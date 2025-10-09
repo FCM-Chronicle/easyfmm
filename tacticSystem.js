@@ -643,10 +643,10 @@ function startMatchSimulation(matchData, tacticSystem, strengthDiff) {
 function simulateMatch(matchData, tacticSystem) {
     const matchInterval = setInterval(() => {
         if (!matchData.isRunning || matchData.minute >= 90) {
-            clearInterval(matchInterval); // ← 먼저 interval 정지
+            clearInterval(matchInterval);
             
-            if (matchData.minute >= 90 && !matchData.isEnded) { // ← 중복 실행 방지
-                matchData.isEnded = true; // ← 경기 종료 플래그 추가
+            if (matchData.minute >= 90 && !matchData.isEnded) {
+                matchData.isEnded = true;
                 endMatch(matchData);
             }
             return;
@@ -657,28 +657,21 @@ function simulateMatch(matchData, tacticSystem) {
 
         // 35% 확률로 이벤트 발생
         if (Math.random() > 0.4) {
-            return; // 이벤트가 발생하지 않음
+            return;
         }
 
-        // 나머지 코드는 동일...
-        // 이벤트 발생 확률 계산
         const userModifiers = tacticSystem.getTacticModifiers(gameData.currentTactic);
         const opponentTactic = tacticSystem.getOpponentTactic(gameData.currentOpponent);
         const opponentModifiers = tacticSystem.getTacticModifiers(opponentTactic);
 
-        // 팀 전력 차이에 따른 골 확률 조정
         const strengthDiff = matchData.strengthDiff;
-        const strengthFactor = strengthDiff.difference / 60; // 50점 차이당 1% 골 확률 변화
-        
-        // 랜덤 이변 요소 (매 분마다 5% 확률로 이변 모드 활성화)
-        const upsetMode = Math.random() < 0.07; // 5% 확률로 이변 모드
+        const strengthFactor = strengthDiff.difference / 60;
+        const upsetMode = Math.random() < 0.07;
         let upsetFactor = 0;
         
         if (upsetMode) {
-            // 이변 모드일 때 약한 팀에게 보너스 (최대 15% 골 확률 증가)
-            upsetFactor = (Math.random() * 0.15) + 0.05; // 5~20% 보너스
+            upsetFactor = (Math.random() * 0.15) + 0.05;
             
-            // 이변 메시지 출력 (10분마다 한 번씩만)
             if (matchData.minute % 10 === 0) {
                 const upsetEvent = {
                     minute: matchData.minute,
@@ -688,6 +681,75 @@ function simulateMatch(matchData, tacticSystem) {
                 displayEvent(upsetEvent, matchData);
             }
         }
+        
+        // 기본 확률 설정
+        let baseGoalChance = 0.015;
+        const baseFoulChance = 0.08;
+        const baseInjuryChance = 0.015; // 부상 확률 1.5%
+        const basePassChance = 0.740; // 패스 확률 조정 (부상 추가로 인해)
+        const baseThrowInChance = 0.06;
+        const baseGoalKickChance = 0.04;
+        const baseCornerChance = 0.03;
+
+        const eventRoll = Math.random();
+        let event = null;
+
+        // 골 확률 계산
+        let userGoalChance = baseGoalChance + userModifiers.goalChance;
+        let opponentGoalChance = baseGoalChance + opponentModifiers.goalChance;
+        
+        if (strengthDiff.userAdvantage) {
+            userGoalChance += Math.abs(strengthFactor);
+            opponentGoalChance -= Math.abs(strengthFactor) * 0.3;
+            
+            if (upsetMode) {
+                opponentGoalChance += upsetFactor;
+                userGoalChance -= upsetFactor * 0.3;
+            }
+        } else {
+            opponentGoalChance += Math.abs(strengthFactor);
+            userGoalChance -= Math.abs(strengthFactor) * 0.5;
+            
+            if (upsetMode) {
+                userGoalChance += upsetFactor;
+                opponentGoalChance -= upsetFactor * 0.3;
+            }
+        }
+        
+        const randomVariation = 0.8 + (Math.random() * 0.1);
+        userGoalChance *= randomVariation;
+        opponentGoalChance *= (2 - randomVariation);
+        
+        userGoalChance = Math.max(0.01, userGoalChance);
+        opponentGoalChance = Math.max(0.01, opponentGoalChance);
+        
+        // 이벤트 판정
+        if (eventRoll < userGoalChance) {
+            event = createGoalEvent(matchData, true);
+        } else if (eventRoll < userGoalChance + opponentGoalChance) {
+            event = createGoalEvent(matchData, false);
+        } else if (eventRoll < userGoalChance + opponentGoalChance + baseInjuryChance) {
+            // 부상 이벤트 (1.5% 확률)
+            const injuryTarget = Math.random() < 0.5; // 50% 확률로 어느 팀
+            event = createInjuryEvent(matchData, injuryTarget);
+        } else if (eventRoll < userGoalChance + opponentGoalChance + baseInjuryChance + baseFoulChance) {
+            event = createFoulEvent(matchData);
+        } else if (eventRoll < userGoalChance + opponentGoalChance + baseInjuryChance + baseFoulChance + basePassChance) {
+            event = createPassEvent(matchData);
+        } else if (eventRoll < userGoalChance + opponentGoalChance + baseInjuryChance + baseFoulChance + basePassChance + baseThrowInChance) {
+            event = createThrowInEvent(matchData);
+        } else if (eventRoll < userGoalChance + opponentGoalChance + baseInjuryChance + baseFoulChance + basePassChance + baseThrowInChance + baseGoalKickChance) {
+            event = createGoalKickEvent(matchData);
+        } else {
+            event = createCornerEvent(matchData);
+        }
+
+        if (event) {
+            displayEvent(event, matchData);
+        }
+
+    }, 1000);
+}
         
         // 기본 골 확률을 3%로 설정
         let baseGoalChance = 0.015;
