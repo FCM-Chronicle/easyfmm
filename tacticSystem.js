@@ -157,52 +157,52 @@ class TacticSystem {
 
        this.teamTactics = {
     // 1부 리그
-    "바르셀로나": "tikitaka",        // 티키타카: 점유율, 라볼피아나에 강함. 롱볼, 침대에 약함
-    "레알 마드리드": "possession",     // 점유율 축구: 티키타카, 라볼피아나에 강함. 롱볼, 게겐프레싱에 약함
-    "맨체스터 시티": "gegenpress",     // 게겐프레싱: 두 줄 수비, 점유율에 강함. 롱볼, 카테나치오에 약함
-    "리버풀": "gegenpress",          // 게겐프레싱
-    "토트넘 홋스퍼": "totalFootball",    // 토탈 풋볼: 티키타카, 게겐프레싱에 강함. 두 줄 수비, 카테나치오에 약함
-    "파리 생제르맹": "tikitaka",       // 티키타카
-    "AC 밀란": "twoLine",            // 두 줄 수비: 롱볼, 침대에 강함. 게겐프레싱, 토탈 풋볼에 약함
-    "인터 밀란": "catenaccio",         // 카테나치오: 두 줄 수비, 침대에 강함. 점유율, 토탈 풋볼에 약함
-    "아스널": "tikitaka",            // 티키타카
-    "나폴리": "possession",          // 점유율 축구
-    "첼시": "gegenpress",            // 게겐프레싱
-    "바이에른 뮌헨": "tikitaka",       // 티키타카
-    "아틀레티코 마드리드": "catenaccio", // 카테나치오
-    "도르트문트": "gegenpress",        // 게겐프레싱
+    "바르셀로나": "tikitaka",
+    "레알_마드리드": "possession",
+    "맨체스터_시티": "tikitaka",
+    "리버풀": "gegenpress",
+    "토트넘_홋스퍼": "totalFootball",
+    "파리_생제르맹": "tikitaka",
+    "AC_밀란": "twoLine",
+    "인터_밀란": "catenaccio",
+    "아스널": "tikitaka",
+    "나폴리": "possession",
+    "첼시": "gegenpress",
+    "바이에른_뮌헨": "tikitaka",
+    "아틀레티코_마드리드": "catenaccio",
+    "도르트문트": "gegenpress",
     
     // 2부 리그
-    "유벤투스": "catenaccio",         // 카테나치오
-    "뉴캐슬 유나이티드": "longBall",       // 롱볼: 침대 축구, 카테나치오에 강함. 게겐프레싱, 티키타카에 약함
-    "아스톤 빌라": "possession",       // 점유율 축구
-    "라이프치히": "gegenpress",        // 게겐프레싱
-    "세비야": "tikitaka",             // 티키타카
-    "아약스": "totalFootball",         // 토탈 풋볼
-    "AS 로마": "catenaccio",          // 카테나치오
-    "레버쿠젠": "longBall",           // 롱볼
-    "스포르팅 CP": "possession",      // 점유율 축구
-    "벤피카": "twoLine",             // 두 줄 수비
-    "셀틱": "longBall",              // 롱볼
-    "페예노르트": "possession",        // 점유율 축구
-    "맨체스터 유나이티드": "gegenpress", // 게겐프레싱
-    "올랭피크 드 마르세유": "twoLine",  // 두 줄 수비
+    "유벤투스": "catenaccio",
+    "뉴캐슬_유나이티드": "longBall",
+    "아스톤_빌라": "possession",
+    "라이프치히": "gegenpress",
+    "세비야": "tikitaka",
+    "아약스": "totalFootball",
+    "AS_로마": "catenaccio",
+    "레버쿠젠": "longBall",
+    "스포르팅_CP": "possession",
+    "벤피카": "twoLine",
+    "셀틱": "longBall",
+    "페예노르트": "possession",
+    "맨체스터_유나이티드": "gegenpress",
+    "올랭피크_드_마르세유": "twoLine",
     
     // 3부 리그
-    "FC 서울": "lavolpiana",         // 라볼피아나: 점유율, 티키타카에 강함. 카테나치오, 롱볼에 약함
-    "갈라타사라이": "possession",      // 점유율 축구
-    "알 힐랄": "tikitaka",           // 티키타카
-    "알 이티하드": "possession",       // 점유율 축구
-    "알 나스르": "twoLine",           // 두 줄 수비
-    "아르헨티나 연합": "catenaccio",     // 카테나치오
-    "미국 연합": "gegenpress",         // 게겐프레싱
-    "멕시코 연합": "totalFootball",      // 토탈 풋볼
-    "브라질 연합": "possession",       // 점유율 축구
-    "전북 현대": "lavolpiana",         // 라볼피아나
-    "울산 현대": "tikitaka",          // 티키타카
-    "포항 스틸러스": "possession",       // 점유율 축구
-    "광주 FC": "tikitaka",           // 티키타카
-    "리옹": "twoLine"                 // 두 줄 수비
+    "FC_서울": "lavolpiana",
+    "갈라타사라이": "possession",
+    "알_힐랄": "tikitaka",
+    "알_이티하드": "possession",
+    "알_나스르": "twoLine",
+    "아르헨티나_연합": "catenaccio",
+    "미국_연합": "gegenpress",
+    "멕시코_연합": "totalFootball",
+    "브라질_연합": "possession",
+    "전북_현대": "lavolpiana",
+    "울산_현대": "tikitaka",
+    "포항_스틸러스": "possession",
+    "광주_FC": "tikitaka",
+    "리옹": "twoLine"
 };
     }
 
