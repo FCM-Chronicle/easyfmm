@@ -1456,11 +1456,11 @@ const teams = (() => {
 })();
 
 
-// 게임 데이터
+// gameData 객체에 부상 정보 추가 (기존 gameData 선언 부분 수정)
 let gameData = {
     selectedTeam: null,
-    currentLeague: 1, // 현재 소속 리그 (1, 2, 3부리그) - 추가
-    teamMoney: 1000, // 억원
+    currentLeague: 1,
+    teamMoney: 1000,
     teamMorale: 80,
     currentSponsor: null,
     matchesPlayed: 0,
@@ -1472,14 +1472,14 @@ let gameData = {
         mf: [null, null, null],
         fw: [null, null, null]
     },
-    // 리그별 데이터로 분리 - 수정
     leagueData: {
         division1: {},
         division2: {},
         division3: {}
     },
     playerGrowthData: {},
-    transferSystemData: {}
+    transferSystemData: {},
+    injuredPlayers: [] // 부상 선수 목록 추가
 };
 
 
