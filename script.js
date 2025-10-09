@@ -2684,22 +2684,19 @@ function calculateTeamStrengthDifference() {
             }
         }
         
-        // 저장할 데이터 구성
         const saveData = {
-            gameData: gameData,
-            teams: teams,
-            allTeams: typeof allTeams !== 'undefined' ? allTeams : null,
-            // 리그 테이블 데이터 (개별적으로 저장)
-            league1Table: allLeagueData.league1Table,
-            league2Table: allLeagueData.league2Table,
-            league3Table: allLeagueData.league3Table,
-            // Records System 데이터 (별도 키로 저장)
-            recordsData: recordsData,
-            // SNS와 성장 데이터
-            snsData: snsManager.getSaveData(),
-            growthData: playerGrowthSystem.getSaveData(),
-            timestamp: new Date().toISOString()
-        };
+        gameData: gameData,
+        teams: teams,
+        allTeams: typeof allTeams !== 'undefined' ? allTeams : null,
+        league1Table: league1Table,
+        league2Table: league2Table,
+        league3Table: league3Table,
+        recordsData: recordsData,
+        snsData: snsManager.getSaveData(),
+        growthData: playerGrowthSystem.getSaveData(),
+        injuryData: injurySystem.getSaveData(), // 부상 데이터 추가
+        timestamp: new Date().toISOString()
+    };
         
         // JSON 파일로 저장
         const blob = new Blob([JSON.stringify(saveData, null, 2)], {type: 'application/json'});
@@ -2786,6 +2783,12 @@ function loadGame(event) {
                 snsManager.loadSaveData(saveData.snsData);
                 console.log('SNS 데이터 복원 완료');
             }
+
+            // 부상 데이터 복원
+    if (saveData.injuryData && typeof injurySystem !== 'undefined') {
+        injurySystem.loadSaveData(saveData.injuryData);
+        console.log('부상 데이터 복원 완료');
+    }
             
             // 포텐셜 시스템 처리
             if (typeof playerGrowthSystem !== 'undefined') {
@@ -2807,6 +2810,7 @@ function loadGame(event) {
                 
                 console.log('=== 포텐셜 시스템 처리 완료 ===');
             }
+            
             
             // 화면 업데이트
             console.log('=== 화면 업데이트 시작 ===');
