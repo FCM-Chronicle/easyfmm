@@ -206,6 +206,159 @@ class TacticSystem {
 };
     }
 
+    // tacticSystem.js 상단에 부상 관리 클래스 추가
+
+// 부상 관리 시스템
+class InjurySystem {
+    constructor() {
+        this.injuries = new Map(); // 선수명 -> {games: 남은경기수, type: 부상종류}
+    }
+
+    // 선수 부상 처리
+    injurePlayer(playerName, severity = 'minor') {
+        const injuryTypes = {
+            minor: { name: '경미한 부상', games: 1 },
+            moderate: { name: '중간 부상', games: 2 },
+            serious: { name: '심각한 부상', games: 3 }
+        };
+
+        const injury = injuryTypes[severity];
+        this.injuries.set(playerName, {
+            games: injury.games,
+            type: injury.name,
+            originalGames: injury.games
+        });
+
+        console.log(`${playerName} - ${injury.name} (${injury.games}경기 결장)`);
+    }
+
+    // 선수가 부상 중인지 확인
+    isInjured(playerName) {
+        return this.injuries.has(playerName) && this.injuries.get(playerName).games > 0;
+    }
+
+    // 부상 정보 가져오기
+    getInjuryInfo(playerName) {
+        return this.injuries.get(playerName) || null;
+    }
+
+    // 경기 후 부상 기간 감소
+    updateInjuries() {
+        const recovered = [];
+        
+        this.injuries.forEach((injury, playerName) => {
+            injury.games--;
+            
+            if (injury.games <= 0) {
+                recovered.push(playerName);
+                this.injuries.delete(playerName);
+            }
+        });
+
+        return recovered; // 회복된 선수 목록 반환
+    }
+
+    // 모든 부상자 목록
+    getAllInjured() {
+        const injured = [];
+        this.injuries.forEach((injury, playerName) => {
+            injured.push({
+                name: playerName,
+                type: injury.type,
+                gamesRemaining: injury.games
+            });
+        });
+        return injured;
+    }
+
+    // 저장 데이터
+    getSaveData() {
+        return Array.from(this.injuries.entries());
+    }
+
+    // 데이터 로드
+    loadSaveData(data) {
+        this.injuries = new Map(data);
+    }
+
+    // 초기화
+    reset() {
+        this.injuries.clear();
+    }
+}
+
+// 전역 부상 시스템 인스턴스
+const injurySystem = new InjurySystem();
+
+// createInjuryEvent 함수 추가
+function createInjuryEvent(matchData, isUserTeam) {
+    const team = isUserTeam ? gameData.selectedTeam : gameData.currentOpponent;
+    const teamName = teamNames[team];
+    
+    let injuredPlayer = null;
+    
+    if (isUserTeam) {
+        // 사용자 팀의 출전 선수 중에서 선택
+        const squad = gameData.squad;
+        const allPlayers = [];
+        
+        if (squad.gk) allPlayers.push(squad.gk);
+        squad.df.forEach(p => { if (p) allPlayers.push(p); });
+        squad.mf.forEach(p => { if (p) allPlayers.push(p); });
+        squad.fw.forEach(p => { if (p) allPlayers.push(p); });
+        
+        if (allPlayers.length > 0) {
+            injuredPlayer = allPlayers[Math.floor(Math.random() * allPlayers.length)];
+        }
+    } else {
+        // 상대 팀의 선수 중에서 선택
+        const teamPlayers = teams[team];
+        const topPlayers = teamPlayers.sort((a, b) => b.rating - a.rating).slice(0, 11);
+        
+        if (topPlayers.length > 0) {
+            injuredPlayer = topPlayers[Math.floor(Math.random() * topPlayers.length)];
+        }
+    }
+
+    if (!injuredPlayer) return null;
+
+    // 부상 심각도 결정 (70% 경미, 25% 중간, 5% 심각)
+    let severity = 'minor';
+    const severityRoll = Math.random();
+    
+    if (severityRoll < 0.05) {
+        severity = 'serious'; // 5%
+    } else if (severityRoll < 0.30) {
+        severity = 'moderate'; // 25%
+    }
+
+    // 부상 처리
+    injurySystem.injurePlayer(injuredPlayer.name, severity);
+    
+    const injuryInfo = injurySystem.getInjuryInfo(injuredPlayer.name);
+    
+    // 부상 메시지
+    const injuryMessages = [
+        `가 부상을 당했습니다!`,
+        `의 부상으로 경기 중단!`,
+        `가 쓰러졌습니다!`,
+        `의 부상으로 교체!`,
+        `가 고통스러워하며 쓰러졌습니다!`
+    ];
+    
+    const message = injuryMessages[Math.floor(Math.random() * injuryMessages.length)];
+
+    return {
+        minute: matchData.minute,
+        type: 'injury',
+        team: teamName,
+        player: injuredPlayer.name,
+        severity: severity,
+        gamesOut: injuryInfo.games,
+        description: `🚑 ${teamName}의 ${injuredPlayer.name}(${injuredPlayer.rating})${message} (${injuryInfo.type}, ${injuryInfo.games}경기 결장)`
+    };
+}
+
     // 전술 효과 계산
     calculateTacticEffect(userTactic, opponentTactic) {
         const userTacticData = this.tactics[userTactic];
