@@ -1,3 +1,6 @@
+// script.js
+// 주요 데이터 구조 및 초기화
+
 const allTeams = {
     // 1부 리그
     "바르셀로나": {
@@ -2191,15 +2194,27 @@ function setNextOpponent() {
 }
 
 function initializeLeagueData() {
-    // 각 리그별로 초기화
+    // 각 division 초기화 (객체 자체는 유지)
+    if (!gameData.leagueData) {
+        gameData.leagueData = {};
+    }
+    
+    // 각 division 비우기
+    gameData.leagueData.division1 = {};
+    gameData.leagueData.division2 = {};
+    gameData.leagueData.division3 = {};
+    
+    // 리그 테이블도 초기화
+    window.league1Table = {};
+    window.league2Table = {};
+    window.league3Table = {};
+    
+    // allTeams 기준으로 새로 구축
     Object.keys(allTeams).forEach(teamKey => {
         const league = allTeams[teamKey].league;
         const divisionKey = `division${league}`;
         
-        if (!gameData.leagueData[divisionKey]) {
-            gameData.leagueData[divisionKey] = {};
-        }
-        
+        // gameData.leagueData 초기화
         gameData.leagueData[divisionKey][teamKey] = {
             matches: 0,
             wins: 0,
@@ -2209,7 +2224,27 @@ function initializeLeagueData() {
             goalsFor: 0,
             goalsAgainst: 0
         };
+        
+        // 리그 테이블도 동시에 초기화
+        let leagueTable;
+        if (league === 1) leagueTable = window.league1Table;
+        else if (league === 2) leagueTable = window.league2Table;
+        else if (league === 3) leagueTable = window.league3Table;
+        
+        if (leagueTable) {
+            leagueTable[teamKey] = {
+                matches: 0,
+                wins: 0,
+                draws: 0,
+                losses: 0,
+                points: 0,
+                goalsFor: 0,
+                goalsAgainst: 0
+            };
+        }
     });
+    
+    console.log('✅ 리그 데이터 및 테이블 완전 초기화 완료');
 }
 
 function displayLeagueTable() {

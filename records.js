@@ -1,3 +1,6 @@
+// records.js
+// 개인기록 시스템 구현
+// gameData, teams, teamNames, allTeams 객체가 이미 정의되어 있다고 가정    
 // 개인기록 시스템 (리그별)
 class RecordsSystem {
     constructor() {

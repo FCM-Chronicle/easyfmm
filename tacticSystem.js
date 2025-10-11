@@ -231,75 +231,73 @@ class TacticSystem {
         return this.teamTactics[opponentTeam] || "possession";
     }
 
-    // 전술에 따른 경기 이벤트 확률 조정
-    getTacticModifiers(tactic) {
-        const modifiers = {
-            goalChance: 0,
-            foulChance: 0,
-            possessionBonus: 0,
-            passAccuracy: 0
-        };
+  getTacticModifiers(tactic) {
+    const modifiers = {
+        goalChance: 0,
+        foulChance: 0,
+        possessionBonus: 0,
+        passAccuracy: 0
+    };
 
-        switch (tactic) {
-            case "gegenpress":
-                modifiers.goalChance = 0.01;
-                modifiers.foulChance = 0.01;
-                modifiers.possessionBonus = -5;
-                modifiers.passAccuracy = -2;
-                break;
-            case "twoLine":
-                modifiers.goalChance = -0.005;
-                modifiers.foulChance = 0.005;
-                modifiers.possessionBonus = -10;
-                modifiers.passAccuracy = 5;
-                break;
-            case "lavolpiana":
-                modifiers.goalChance = 0.005;
-                modifiers.foulChance = 0;
-                modifiers.possessionBonus = 5;
-                modifiers.passAccuracy = 3;
-                break;
-            case "longBall":
-                modifiers.goalChance = 0.008;
-                modifiers.foulChance = -0.005;
-                modifiers.possessionBonus = -15;
-                modifiers.passAccuracy = -5;
-                break;
-            case "possession":
-                modifiers.goalChance = 0;
-                modifiers.foulChance = -0.01;
-                modifiers.possessionBonus = 15;
-                modifiers.passAccuracy = 8;
-                break;
-            case "parkBus":
-                modifiers.goalChance = -0.01;
-                modifiers.foulChance = 0.015;
-                modifiers.possessionBonus = -20;
-                modifiers.passAccuracy = -3;
-                break;
-            case "catenaccio":
-                modifiers.goalChance = -0.008;
-                modifiers.foulChance = 0.01;
-                modifiers.possessionBonus = -12;
-                modifiers.passAccuracy = 2;
-                break;
-            case "totalFootball":
-                modifiers.goalChance = 0.01;
-                modifiers.foulChance = 0;
-                modifiers.possessionBonus = 8;
-                modifiers.passAccuracy = 5;
-                break;
-            case "tikitaka":
-                modifiers.goalChance = 0.005;
-                modifiers.foulChance = -0.01;
-                modifiers.possessionBonus = 20;
-                modifiers.passAccuracy = 10;
-                break;
-        }
-
-        return modifiers;
+    switch (tactic) {
+        case "gegenpress":
+            modifiers.goalChance = 0.0125; // +1.25%
+            modifiers.foulChance = 0.015;
+            modifiers.possessionBonus = -5;
+            modifiers.passAccuracy = -2;
+            break;
+        case "twoLine":
+            modifiers.goalChance = -0.0075; // -0.75%
+            modifiers.foulChance = 0.008;
+            modifiers.possessionBonus = -10;
+            modifiers.passAccuracy = 5;
+            break;
+        case "lavolpiana":
+            modifiers.goalChance = 0.0075; // +0.75%
+            modifiers.foulChance = 0;
+            modifiers.possessionBonus = 5;
+            modifiers.passAccuracy = 3;
+            break;
+        case "longBall":
+            modifiers.goalChance = 0.01; // +1.0%
+            modifiers.foulChance = -0.008;
+            modifiers.possessionBonus = -15;
+            modifiers.passAccuracy = -5;
+            break;
+        case "possession":
+            modifiers.goalChance = 0.005; // +0.5%
+            modifiers.foulChance = -0.012;
+            modifiers.possessionBonus = 15;
+            modifiers.passAccuracy = 8;
+            break;
+        case "parkBus":
+            modifiers.goalChance = -0.0125; // -1.25%
+            modifiers.foulChance = 0.02;
+            modifiers.possessionBonus = -20;
+            modifiers.passAccuracy = -3;
+            break;
+        case "catenaccio":
+            modifiers.goalChance = -0.01; // -1.0%
+            modifiers.foulChance = 0.015;
+            modifiers.possessionBonus = -12;
+            modifiers.passAccuracy = 2;
+            break;
+        case "totalFootball":
+            modifiers.goalChance = 0.0125; // +1.25%
+            modifiers.foulChance = 0;
+            modifiers.possessionBonus = 8;
+            modifiers.passAccuracy = 5;
+            break;
+        case "tikitaka":
+            modifiers.goalChance = 0.0075; // +0.75%
+            modifiers.foulChance = -0.012;
+            modifiers.possessionBonus = 20;
+            modifiers.passAccuracy = 10;
+            break;
     }
 
+    return modifiers;
+}
     // 전술 설명 가져오기
     getTacticDescription(tactic) {
         return this.tactics[tactic] ? this.tactics[tactic].description : "";
@@ -509,9 +507,14 @@ function simulateMatch(matchData, tacticSystem) {
         }
 
         // 이벤트 발생 확률 계산
-        const userModifiers = tacticSystem.getTacticModifiers(gameData.currentTactic);
-        const opponentTactic = tacticSystem.getOpponentTactic(gameData.currentOpponent);
-        const opponentModifiers = tacticSystem.getTacticModifiers(opponentTactic);
+const userModifiers = tacticSystem.getTacticModifiers(gameData.currentTactic);
+const opponentTactic = tacticSystem.getOpponentTactic(gameData.currentOpponent);
+const opponentModifiers = tacticSystem.getTacticModifiers(opponentTactic);
+
+
+// 전술 상성 효과 계산 (이 3줄 추가!)
+const tacticMatchup = tacticSystem.getTacticMatchup(gameData.currentTactic, opponentTactic);
+const tacticAdvantage = tacticMatchup.advantage; // +5 (유리), 0 (중립), -3 (불리)
 
         const strengthDiff = matchData.strengthDiff;
         const strengthFactor = strengthDiff.difference / 60;
@@ -532,39 +535,58 @@ function simulateMatch(matchData, tacticSystem) {
             }
         }
         
-        // 기본 이벤트 확률 (패스 확률 줄임)
-        let baseGoalChance = 0.015;
-        const baseFoulChance = 0.08;
-        const basePassChance = 0.65; // 0.755에서 0.65로 감소
-        const baseInjuryChance = 0.002; // 0.2% 부상 확률
-        const baseThrowInChance = 0.06;
-        const baseGoalKickChance = 0.04;
-        const baseCornerChance = 0.148; // 나머지 확률 (1 - 다른 확률들의 합)
+// 기본 이벤트 확률 (100% 정확히 맞춤)
+let baseGoalChance = 0.015;
+const baseFoulChance = 0.08;
+const basePassChance = 0.743; // 74.3%로 증가 (패스가 가장 많음)
+const baseInjuryChance = 0.002; // 0.2% 부상 확률
+const baseThrowInChance = 0.06;
+const baseGoalKickChance = 0.04;
+const baseCornerChance = 0.05; // 5%로 감소 (합계 정확히 100%)
 
         const eventRoll = Math.random();
         let event = null;
 
-        // 골 확률 계산
-        let userGoalChance = baseGoalChance + userModifiers.goalChance;
-        let opponentGoalChance = baseGoalChance + opponentModifiers.goalChance;
-        
-        if (strengthDiff.userAdvantage) {
-            userGoalChance += Math.abs(strengthFactor);
-            opponentGoalChance -= Math.abs(strengthFactor) * 0.3;
-            
-            if (upsetMode) {
-                opponentGoalChance += upsetFactor;
-                userGoalChance -= upsetFactor * 0.3;
-            }
-        } else {
-            opponentGoalChance += Math.abs(strengthFactor);
-            userGoalChance -= Math.abs(strengthFactor) * 0.5;
-            
-            if (upsetMode) {
-                userGoalChance += upsetFactor;
-                opponentGoalChance -= upsetFactor * 0.3;
-            }
-        }
+// 골 확률 계산
+let userGoalChance = baseGoalChance + userModifiers.goalChance;
+let opponentGoalChance = baseGoalChance + opponentModifiers.goalChance;
+
+// 전술 상성 효과를 골 확률에 반영 (여기 추가!)
+if (tacticAdvantage > 0) {
+    // 유리할 때: 내 골 증가, 상대 골 감소
+    userGoalChance += tacticAdvantage * 0.002; // +5 → +1% 골 확률
+    opponentGoalChance -= tacticAdvantage * 0.001; // 상대는 -0.5%
+} else if (tacticAdvantage < 0) {
+    // 불리할 때: 내 골 감소, 상대 골 증가
+    userGoalChance += tacticAdvantage * 0.002; // -3 → -0.6% 골 확률
+    opponentGoalChance -= tacticAdvantage * 0.001; // 상대는 +0.3%
+}
+
+// 수비형 전술 효과: 상대 골 확률도 감소
+if (userModifiers.goalChance < 0) {
+    opponentGoalChance += userModifiers.goalChance;
+}
+if (opponentModifiers.goalChance < 0) {
+    userGoalChance += opponentModifiers.goalChance;
+}
+
+if (strengthDiff.userAdvantage) {
+    userGoalChance += Math.abs(strengthFactor) * 0.5; // 1.0 → 0.5
+    opponentGoalChance -= Math.abs(strengthFactor) * 0.2; // 0.3 → 0.2
+    
+    if (upsetMode) {
+        opponentGoalChance += upsetFactor;
+        userGoalChance -= upsetFactor * 0.3;
+    }
+} else {
+    opponentGoalChance += Math.abs(strengthFactor) * 0.5; // 1.0 → 0.5
+    userGoalChance -= Math.abs(strengthFactor) * 0.3; // 0.5 → 0.3
+    
+    if (upsetMode) {
+        userGoalChance += upsetFactor;
+        opponentGoalChance -= upsetFactor * 0.3;
+    }
+}
         
         const randomVariation = 0.8 + (Math.random() * 0.4);
         userGoalChance *= randomVariation;

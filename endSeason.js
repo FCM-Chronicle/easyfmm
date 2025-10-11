@@ -1,6 +1,48 @@
 // endSeason.js - 승강제 시스템
 // 다른 파일들의 의존성을 최소화하여 독립적으로 작동
 
+
+// 리그 테이블에서 팀 제거
+function removeFromLeagueTable(teamKey, league) {
+    let leagueTable;
+    if (league === 1) leagueTable = window.league1Table;
+    else if (league === 2) leagueTable = window.league2Table;
+    else if (league === 3) leagueTable = window.league3Table;
+    
+    if (leagueTable && leagueTable[teamKey]) {
+        delete leagueTable[teamKey];
+        console.log(`   🗑️ ${teamKey}를 ${league}부 테이블에서 삭제`);
+    }
+}
+
+// 리그 테이블에 팀 추가
+function addToLeagueTable(teamKey, league) {
+    let leagueTable;
+    if (league === 1) {
+        if (!window.league1Table) window.league1Table = {};
+        leagueTable = window.league1Table;
+    } else if (league === 2) {
+        if (!window.league2Table) window.league2Table = {};
+        leagueTable = window.league2Table;
+    } else if (league === 3) {
+        if (!window.league3Table) window.league3Table = {};
+        leagueTable = window.league3Table;
+    }
+    
+    if (leagueTable) {
+        leagueTable[teamKey] = {
+            matches: 0,
+            wins: 0,
+            draws: 0,
+            losses: 0,
+            points: 0,
+            goalsFor: 0,
+            goalsAgainst: 0
+        };
+        console.log(`   ➕ ${teamKey}를 ${league}부 테이블에 추가`);
+    }
+}
+
 // 시즌 종료 조건 체크
 function checkSeasonEnd() {
     // 현재 리그의 모든 팀이 26경기를 완료했는지 확인 (14팀 리그에서 홈&어웨이)
@@ -19,7 +61,6 @@ function checkSeasonEnd() {
     }
 }
 
-// 시즌 종료 및 승강제 처리 (기존 함수 확장)
 function endSeason() {
     // === 기존 로직 유지 (호환성) ===
     // 현재 리그의 최종 순위 계산 (기존 방식)
@@ -106,22 +147,29 @@ function endSeason() {
     }
     
     // === 공통 마무리 로직 ===
-    // 선수 나이 증가
+    // 1. 선수 나이 증가 (성장 데이터는 유지)
     if (typeof advancePlayerAges === 'function') {
         advancePlayerAges();
     }
     
-    // 시즌 리셋
+    // 2. 개인기록 시스템 리셋 (새 시즌 준비)
+    if (typeof leagueBasedRecordsSystem !== 'undefined') {
+        leagueBasedRecordsSystem.resetSeason();
+        leagueBasedRecordsSystem.initialize();
+    }
+    
+    // 3. 리그 데이터 리셋
     if (typeof initializeLeagueData === 'function') {
         initializeLeagueData();
     }
     gameData.matchesPlayed = 0;
     
-    // 새 시즌 상대 설정
+    // 4. 새 시즌 상대 설정
     if (typeof setNextOpponent === 'function') {
         setNextOpponent();
     }
 }
+    
 
 // === 승강제 헬퍼 함수들 ===
 
@@ -250,21 +298,90 @@ function checkUserPromotionStatus(promotionRelegationData) {
     return { status: 'stay' };
 }
 
-// 승강제 적용
 function applyPromotionRelegationNew(promotionRelegationData) {
+    console.log('=== 승강제 적용 시작 ===');
+    
     // 승격 적용
     promotionRelegationData.promotions.forEach(promotion => {
         if (allTeams[promotion.team]) {
-            allTeams[promotion.team].league = promotion.to;
+            const oldLeague = promotion.from;
+            const newLeague = promotion.to;
+            
+            // 1. allTeams 업데이트
+            allTeams[promotion.team].league = newLeague;
+            
+            // 2. gameData.leagueData 업데이트
+            const oldDivisionKey = `division${oldLeague}`;
+            const newDivisionKey = `division${newLeague}`;
+            
+            // 이전 리그에서 삭제
+            if (gameData.leagueData[oldDivisionKey] && gameData.leagueData[oldDivisionKey][promotion.team]) {
+                delete gameData.leagueData[oldDivisionKey][promotion.team];
+            }
+            
+            // 새 리그에 추가
+            if (!gameData.leagueData[newDivisionKey]) {
+                gameData.leagueData[newDivisionKey] = {};
+            }
+            gameData.leagueData[newDivisionKey][promotion.team] = {
+                matches: 0,
+                wins: 0,
+                draws: 0,
+                losses: 0,
+                points: 0,
+                goalsFor: 0,
+                goalsAgainst: 0
+            };
+            
+            // 3. 리그 테이블 업데이트
+            removeFromLeagueTable(promotion.team, oldLeague);
+            addToLeagueTable(promotion.team, newLeague);
+            
+            console.log(`✅ ${promotion.team}: ${oldLeague}부 → ${newLeague}부 승격 (모든 데이터 동기화 완료)`);
         }
     });
     
     // 강등 적용
     promotionRelegationData.relegations.forEach(relegation => {
         if (allTeams[relegation.team]) {
-            allTeams[relegation.team].league = relegation.to;
+            const oldLeague = relegation.from;
+            const newLeague = relegation.to;
+            
+            // 1. allTeams 업데이트
+            allTeams[relegation.team].league = newLeague;
+            
+            // 2. gameData.leagueData 업데이트
+            const oldDivisionKey = `division${oldLeague}`;
+            const newDivisionKey = `division${newLeague}`;
+            
+            // 이전 리그에서 삭제
+            if (gameData.leagueData[oldDivisionKey] && gameData.leagueData[oldDivisionKey][relegation.team]) {
+                delete gameData.leagueData[oldDivisionKey][relegation.team];
+            }
+            
+            // 새 리그에 추가
+            if (!gameData.leagueData[newDivisionKey]) {
+                gameData.leagueData[newDivisionKey] = {};
+            }
+            gameData.leagueData[newDivisionKey][relegation.team] = {
+                matches: 0,
+                wins: 0,
+                draws: 0,
+                losses: 0,
+                points: 0,
+                goalsFor: 0,
+                goalsAgainst: 0
+            };
+            
+            // 3. 리그 테이블 업데이트
+            removeFromLeagueTable(relegation.team, oldLeague);
+            addToLeagueTable(relegation.team, newLeague);
+            
+            console.log(`⬇️ ${relegation.team}: ${oldLeague}부 → ${newLeague}부 강등 (모든 데이터 동기화 완료)`);
         }
     });
+    
+    console.log('=== 승강제 적용 완료 ===');
 }
 
 // 추가 상금 계산 (리그별 차등)
@@ -327,8 +444,77 @@ function showOtherTeamsPromotionStatus(promotionRelegationData) {
     }, 2000); // 2초 후에 표시
 }
 
+
+
+// 디버깅용: 모든 리그 데이터 검증
+function validateAllLeagueData() {
+    console.log('=== 리그 데이터 검증 시작 ===');
+    
+    let hasError = false;
+    const allTeamsInData = new Map();
+    
+    // 1. gameData.leagueData 검증
+    for (let league = 1; league <= 3; league++) {
+        const divisionKey = `division${league}`;
+        if (gameData.leagueData[divisionKey]) {
+            Object.keys(gameData.leagueData[divisionKey]).forEach(teamKey => {
+                if (!allTeamsInData.has(teamKey)) {
+                    allTeamsInData.set(teamKey, []);
+                }
+                allTeamsInData.get(teamKey).push(`gameData.${league}부`);
+            });
+        }
+    }
+    
+    // 2. 리그 테이블 검증
+    [
+        { table: window.league1Table, name: 'league1Table', league: 1 },
+        { table: window.league2Table, name: 'league2Table', league: 2 },
+        { table: window.league3Table, name: 'league3Table', league: 3 }
+    ].forEach(({ table, name, league }) => {
+        if (table) {
+            Object.keys(table).forEach(teamKey => {
+                if (!allTeamsInData.has(teamKey)) {
+                    allTeamsInData.set(teamKey, []);
+                }
+                allTeamsInData.get(teamKey).push(`${name}.${league}부`);
+            });
+        }
+    });
+    
+    // 3. 중복 체크
+    allTeamsInData.forEach((locations, teamKey) => {
+        if (locations.length > 1) {
+            console.error(`❌ ${teamKey}가 여러 곳에 존재: ${locations.join(', ')}`);
+            hasError = true;
+        }
+        
+        // 4. allTeams와 일치 여부 확인
+        const actualLeague = allTeams[teamKey]?.league;
+        if (actualLeague) {
+            const shouldBeIn = `${actualLeague}부`;
+            const isInCorrectPlace = locations.some(loc => loc.includes(shouldBeIn));
+            
+            if (!isInCorrectPlace) {
+                console.error(`❌ ${teamKey}는 ${actualLeague}부리그에 있어야 하는데 ${locations.join(', ')}에 존재`);
+                hasError = true;
+            }
+        }
+    });
+    
+    if (!hasError) {
+        console.log('✅ 모든 리그 데이터 검증 완료: 문제 없음');
+    }
+    
+    console.log('=== 리그 데이터 검증 완료 ===');
+    return !hasError;
+}
+
 // 전역으로 함수들 노출
 window.endSeason = endSeason;
 window.checkSeasonEnd = checkSeasonEnd;
 window.calculatePromotionRelegationNew = calculatePromotionRelegationNew;
 window.applyPromotionRelegationNew = applyPromotionRelegationNew;
+window.removeFromLeagueTable = removeFromLeagueTable;  // ⭐ 추가
+window.addToLeagueTable = addToLeagueTable;  // ⭐ 추가
+window.validateAllLeagueData = validateAllLeagueData;  // ⭐ 추가

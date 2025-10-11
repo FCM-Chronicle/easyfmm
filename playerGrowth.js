@@ -1,4 +1,6 @@
-// 선수 성장 시스템
+// playerGrowth.js
+// 선수 성장 시스템 구현
+
 class PlayerGrowthSystem {
     constructor() {
         this.growthData = new Map(); // 선수별 성장 데이터 저장
@@ -215,48 +217,52 @@ class PlayerGrowthSystem {
         console.log(message);
     }
 
-    // 모든 팀 선수 성장 처리 (AI 팀들)
-    processAllTeamsGrowth() {
-        Object.keys(teams).forEach(teamKey => {
-            if (teamKey !== gameData.selectedTeam) {
-                const teamPlayers = teams[teamKey];
-                
-                teamPlayers.forEach(player => {
-                    if (player.age <= 25) {
-                        // AI 팀 선수들도 약간의 성장 (유저팀보다 느리게)
-                        let growthInterval = 15; // 기본 15경기마다
-                        let growthChance = 0.1; // 10% 확률
-                        let growthAmount = Math.max(0.34, 0.5 + Math.random() * 0.86); // 최소 0.34, 최대 1.5 성장
+    // playerGrowth.js - processAllTeamsGrowth() 수정
+processAllTeamsGrowth() {
+    Object.keys(teams).forEach(teamKey => {
+        if (teamKey !== gameData.selectedTeam) {
+            const teamPlayers = teams[teamKey];
+            
+            teamPlayers.forEach(player => {
+                if (player.age <= 25) {
+                    // 5경기마다 100% 확률로 0.5~1.2 성장
+                    let growthInterval = 5;
+                    let growthAmount = 0.5 + Math.random() * 0.7;
+                    
+                    if (gameData.matchesPlayed % growthInterval === 0) {
+                        const newRating = Math.min(99, Math.round((player.rating + growthAmount) * 10) / 10);
+                        player.rating = newRating;
                         
-                       
-                     
-                        
-                        if (Math.random() < growthChance && gameData.matchesPlayed % growthInterval === 0) {
-                            // AI 팀 선수들의 능력치도 반올림 처리
-                            player.rating = Math.min(99, Math.round(player.rating + growthAmount));
-                        }
-                    }
-                });
-            }
-        });
-    }
-
-    // 선수 나이 증가 처리 (시즌마다)
-    advancePlayerAges() {
-        Object.keys(teams).forEach(teamKey => {
-            teams[teamKey].forEach(player => {
-                player.age++;
-                
-                // 나이가 증가하면서 성장 완료된 선수의 데이터 정리
-                if (this.growthData.has(player.name)) {
-                    const growthInfo = this.growthData.get(player.name);
-                    if (growthInfo.remainingGrowth <= 0) {
-                        this.growthData.delete(player.name);
+                        console.log(`🤖 AI 성장: ${player.name} (${teamNames[teamKey]}) +${growthAmount.toFixed(2)} → ${newRating}`);
                     }
                 }
             });
+        }
+    });
+}
+
+    advancePlayerAges() {
+    Object.keys(teams).forEach(teamKey => {
+        teams[teamKey].forEach(player => {
+            player.age++;
+            
+            // 성장 완료된 선수만 삭제 (로그 추가)
+            if (this.growthData.has(player.name)) {
+                const growthInfo = this.growthData.get(player.name);
+                
+                // remainingGrowth가 0 이하인 경우에만 삭제
+                if (growthInfo.remainingGrowth <= 0) {
+                    console.log(`${player.name}의 성장 완료 - 데이터 삭제`);
+                    this.growthData.delete(player.name);
+                } else {
+                    console.log(`${player.name}는 아직 성장 중 - 남은 성장량: ${growthInfo.remainingGrowth.toFixed(1)}`);
+                }
+            }
         });
-    }
+    });
+    
+    console.log(`✅ 시즌 종료 후 남은 성장 중인 선수: ${this.growthData.size}명`);
+}
 
     // 스쿼드 화면 업데이트
     updateSquadDisplay() {
