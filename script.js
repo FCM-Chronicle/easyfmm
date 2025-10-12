@@ -1628,6 +1628,10 @@ let selectedPosition = null;
 document.addEventListener('DOMContentLoaded', function() {
     initializeGame();
     setupEventListeners();
+
+    // ✅ 여기에 추가!
+    addReleasePlayerOption();
+
 });
 
 function initializeGame() {
@@ -1908,10 +1912,10 @@ function displayTeamPlayers() {
                 }
             });
             
-            // 후보 선수 우클릭으로 방출 (이적료 받기)
+            // ✅ 후보 선수 우클릭으로 방출 (이적료 받기) - 수정!
             playerCard.addEventListener('contextmenu', (e) => {
                 e.preventDefault();
-                showReleasePlayerDialog(player);
+                releasePlayerWithFee(player, 0); // 직접 호출로 변경
             });
         }
         
@@ -1919,62 +1923,9 @@ function displayTeamPlayers() {
     });
 }
 
-// 선수 방출 다이얼로그 표시
-function showReleasePlayerDialog(player) {
-    const transferFee = calculateReleaseTransferFee(player);
-    
-    const confirmMessage = `${player.name}을(를) 방출하시겠습니까?\n\n` +
-                          `능력치: ${player.rating} | 나이: ${player.age}\n` +
-                          `받을 수 있는 이적료: ${transferFee}억원`;
-    
-    if (confirm(confirmMessage)) {
-        releasePlayerWithFee(player, transferFee);
-    }
-}
 
-// 선수 방출 시 받을 이적료 계산
-function calculateReleaseTransferFee(player) {
-    let basePrice = 500; // 기본 가격 500억
-    
-    // 능력치에 따른 가격 조정
-    const ratingMultiplier = Math.pow(player.rating / 70, 2.5);
-    let price = basePrice * ratingMultiplier;
-    
-    // 나이에 따른 가격 조정
-    let ageMultiplier = 1;
-    if (player.age <= 20) {
-        ageMultiplier = 1.3; // 젊은 선수는 30% 비싸게
-    } else if (player.age <= 25) {
-        ageMultiplier = 1.1; // 25세 이하는 10% 비싸게
-    } else if (player.age >= 30) {
-        ageMultiplier = 1; // 30세 이상은 1배
-    } else if (player.age >= 35) {
-        ageMultiplier = 0.8; // 35세 이상은 20% 싸게
-    }
-    
-    price *= ageMultiplier;
-    
-    // 포지션에 따른 가격 조정
-    const positionMultiplier = {
-        'GK': 1.1,
-        'DF': 1.1,
-        'MF': 1.1,
-        'FW': 1.3
-    };
-    
-    price *= positionMultiplier[player.position] || 1;
-    
-    // 랜덤 요소 추가 (90% ~ 150%)
-    const randomFactor = 0.9 + Math.random() * 0.6;
-    price *= randomFactor;
-    
-    // 방출 시에는 0.4배로 받음
-    price *= 0.4;
-    
-    return Math.round(price);
-}
 
-// 이적료를 받고 선수 방출 (기존 releasePlayerWithFee 함수를 이것으로 교체)
+// 이적료를 받고 선수 방출 (최종 확정)
 function releasePlayerWithFee(player, transferFee) {
     const teamPlayers = teams[gameData.selectedTeam];
     const playerIndex = teamPlayers.findIndex(p => 
@@ -1986,14 +1937,79 @@ function releasePlayerWithFee(player, transferFee) {
         return;
     }
     
+    // === 1단계: 이적료 계산 ===
+    let price = 500; // 기본 가격 500억 고정
+    
+    // 능력치 배율 (80를 기준으로 차등)
+    let ratingMultiplier;
+    if (player.rating >= 80) {
+        ratingMultiplier = 1 + ((player.rating - 80) * 0.04);
+    } else {
+        ratingMultiplier = 1 - ((80 - player.rating) * 0.08);
+        ratingMultiplier = Math.max(0.2, ratingMultiplier);
+    }
+    price *= ratingMultiplier;
+    
+    // 나이 배율 (25세 중심, 31세부터 급락)
+    let ageMultiplier;
+    if (player.age >= 24 && player.age <= 26) {
+        ageMultiplier = 1.0;
+    } else if (player.age >= 22 && player.age <= 28) {
+        ageMultiplier = 0.95;
+    } else if (player.age >= 20 && player.age <= 30) {
+        ageMultiplier = 0.9;
+    } else if (player.age <= 19) {
+        ageMultiplier = 0.95 + (20 - player.age) * 0.025;
+    } else if (player.age === 31) {
+        ageMultiplier = 0.80;
+    } else if (player.age === 32) {
+        ageMultiplier = 0.70;
+    } else if (player.age === 33) {
+        ageMultiplier = 0.60;
+    } else if (player.age === 34) {
+        ageMultiplier = 0.30;
+    } else if (player.age === 35) {
+        ageMultiplier = 0.12;
+    } else {
+        ageMultiplier = 0.05;
+    }
+    price *= ageMultiplier;
+    
+    // 포지션 배율
+    const positionMultiplier = {
+        'GK': 0.95,
+        'DF': 1.0,
+        'MF': 1.05,
+        'FW': 1.15
+    };
+    price *= positionMultiplier[player.position] || 1;
+    
+    // 랜덤 요소 (90% ~ 110%)
+    const randomFactor = 0.9 + Math.random() * 0.15;
+    price *= randomFactor;
+    
+    // 변수에 저장
+    const playerCost = Math.round(price);
+    
+    // === 2단계: 사용자에게 확인 받기 ===
+    const confirmMessage = `${player.name}을(를) 방출하시겠습니까?\n\n` +
+                          `능력치: ${player.rating} | 나이: ${player.age}\n` +
+                          `받을 수 있는 이적료: ${playerCost}억원`;
+    
+    if (!confirm(confirmMessage)) {
+        // 취소하면 함수 종료
+        return;
+    }
+    
+    // === 3단계: 방출 처리 ===
     // 팀에서 제거
     teamPlayers.splice(playerIndex, 1);
     
     // 스쿼드에서도 제거
     removePlayerFromSquad(player);
     
-    // 이적료 받기
-    gameData.teamMoney += transferFee;
+    // 이적료 받기 (저장된 playerCost 사용)
+    gameData.teamMoney += playerCost;
     
     // 무작위 팀으로 이적시키기
     const availableTeams = Object.keys(teams).filter(team => team !== gameData.selectedTeam);
@@ -2008,10 +2024,10 @@ function releasePlayerWithFee(player, transferFee) {
             age: player.age
         });
         
-        alert(`${player.name}을(를) 방출했습니다!\n${teamNames[randomTeam]}로 이적했습니다.\n이적료 ${transferFee}억원을 받았습니다.`);
+        alert(`${player.name}을(를) 방출했습니다!\n${teamNames[randomTeam]}로 이적했습니다.\n이적료 ${playerCost}억원을 받았습니다.`);
     } else {
         // 다른 팀이 없을 경우 외부리그로 이적
-        alert(`${player.name}을(를) 방출했습니다!\n외부리그로 이적했습니다.\n이적료 ${transferFee}억원을 받았습니다.`);
+        alert(`${player.name}을(를) 방출했습니다!\n외부리그로 이적했습니다.\n이적료 ${playerCost}억원을 받았습니다.`);
     }
     
     // 화면 업데이트
@@ -2019,13 +2035,32 @@ function releasePlayerWithFee(player, transferFee) {
     displayTeamPlayers();
     updateFormationDisplay();
     
-    // 이적 시장에도 업데이트가 필요하면
+    // 이적 시장에서도 해당 선수 제거
     if (typeof transferSystem !== 'undefined') {
-        // 이적 시장에서도 해당 선수를 찾아서 제거 (만약 있다면)
         transferSystem.transferMarket = transferSystem.transferMarket.filter(p => 
             !(p.name === player.name && p.position === player.position)
         );
     }
+}
+
+// 선수 방출 기능 (팀 선수 목록에서 우클릭)
+function addReleasePlayerOption() {
+    document.addEventListener('contextmenu', function(e) {
+        if (e.target.closest('.player-card') && document.getElementById('squad').classList.contains('active')) {
+            e.preventDefault();
+            
+            const playerCard = e.target.closest('.player-card');
+            const playerName = playerCard.querySelector('.name').textContent;
+            
+            // 현재 팀에서 해당 선수 찾기
+            const teamPlayers = teams[gameData.selectedTeam];
+            const player = teamPlayers.find(p => p.name === playerName);
+            
+            if (player) {
+                releasePlayerWithFee(player, 0);
+            }
+        }
+    });
 }
 
 // 스쿼드에서 선수 제거하는 헬퍼 함수 (script.js에 추가)

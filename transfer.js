@@ -618,34 +618,6 @@ playerCard.innerHTML = `
     });
 }
 
-// 선수 방출 기능 (팀 선수 목록에서 우클릭)
-function addReleasePlayerOption() {
-    document.addEventListener('contextmenu', function(e) {
-        if (e.target.closest('.player-card') && document.getElementById('squad').classList.contains('active')) {
-            e.preventDefault();
-            
-            const playerCard = e.target.closest('.player-card');
-            const playerName = playerCard.querySelector('.name').textContent;
-            
-            // 현재 팀에서 해당 선수 찾기
-            const teamPlayers = teams[gameData.selectedTeam];
-            const player = teamPlayers.find(p => p.name === playerName);
-            
-            if (player && confirm(`${player.name}을(를) 방출하시겠습니까?`)) {
-                const result = transferSystem.releasePlayer(player);
-                
-                if (result.success) {
-                    alert(result.message);
-                    displayTeamPlayers();
-                    updateFormationDisplay();
-                    displayTransferPlayers(); // 이적 시장 새로고침
-                } else {
-                    alert(result.message);
-                }
-            }
-        }
-    });
-}
 
 // 경기 후 이적 시장 업데이트
 function updateTransferMarketPostMatch() {
@@ -660,7 +632,7 @@ function initializeTransferSystem() {
     }
     
     // 우클릭 이벤트 추가
-    addReleasePlayerOption();
+    // addReleasePlayerOption();
 }
 
 // 저장/불러오기에 이적 데이터 포함하도록 기존 함수 확장
