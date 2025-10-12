@@ -449,26 +449,32 @@
 </div>
           
             <!-- 설정 탭 -->
-            <div id="settings" class="tab-panel">
-                <h3>⚙️ 게임 설정</h3>
-                <div class="settings-content">
-                    <div class="settings-section">
-                        <h4>저장 및 불러오기</h4>
-                        <button id="saveGameBtn" class="btn">💾 게임 저장</button>
-                        <button id="loadGameBtn" class="btn">📁 게임 불러오기</button>
-                        <input type="file" id="loadGameInput" accept=".json, .txt" style="display: none;">
-                    </div>
-                    <div class="settings-section">
-                        <h4>선수 관리</h4>
-                        <button id="showGrowthBtn" class="btn">📈 성장 현황</button>
-                    </div>
-                    <div class="settings-section">
-                        <h4>전술 정보</h4>
-                        <button id="showTacticsBtn" class="btn">🎯 전술 상성표</button>
-                        <button id="showTeamTacticsBtn" class="btn">📋 팀별 전술</button>
-                    </div>
-                </div>
+<div id="settings" class="tab-panel">
+    <h3>⚙️ 게임 설정</h3>
+    <div class="settings-content">
+        <div class="settings-section">
+            <h4>파일로 저장/불러오기</h4>
+            <button id="saveGameBtn" class="btn">💾 파일로 저장</button>
+            <button id="loadGameBtn" class="btn">📁 파일에서 불러오기</button>
+            <input type="file" id="loadGameInput" accept=".json, .txt" style="display: none;">
+        </div>
+        <div class="settings-section">
+            <h4>브라우저에 저장/불러오기 (슬롯 시스템)</h4>
+            <div id="saveSlots" style="display: grid; gap: 15px; margin-top: 15px;">
+                <!-- 슬롯들이 여기에 동적으로 생성됩니다 -->
             </div>
+        </div>
+        <div class="settings-section">
+            <h4>선수 관리</h4>
+            <button id="showGrowthBtn" class="btn">📈 성장 현황</button>
+        </div>
+        <div class="settings-section">
+            <h4>전술 정보</h4>
+            <button id="showTacticsBtn" class="btn">🎯 전술 상성표</button>
+            <button id="showTeamTacticsBtn" class="btn">📋 팀별 전술</button>
+        </div>
+    </div>
+</div>
         </div>
     </div>
 

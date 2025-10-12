@@ -1854,6 +1854,11 @@ function showTab(tabName) {
             }
             break;
             
+        case 'settings':
+            // 설정 탭을 열 때마다 슬롯 UI 생성
+            createSaveSlots();
+            break;
+            
         default:
             console.log(`Unknown tab: ${tabName}`);
             break;
@@ -3219,6 +3224,319 @@ function applyTeamTheme(teamKey) {
 }
 
 // 아니진짜왜안되지
+
+// 슬롯 정보 가져오기
+function getSlotInfo(slotNumber) {
+    const savedData = localStorage.getItem(`footballManagerSave_slot${slotNumber}`);
+    if (!savedData) return null;
+    
+    try {
+        const data = JSON.parse(savedData);
+        return {
+            teamName: teamNames[data.gameData.selectedTeam] || '알 수 없음',
+            timestamp: data.timestamp,
+            matchesPlayed: data.gameData.matchesPlayed || 0,
+            money: data.gameData.teamMoney || 0,
+            league: data.gameData.currentLeague || 1
+        };
+    } catch (error) {
+        console.error(`슬롯 ${slotNumber} 정보 읽기 오류:`, error);
+        return null;
+    }
+}
+
+// 슬롯 UI 생성
+function createSaveSlots() {
+    const container = document.getElementById('saveSlots');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    for (let i = 1; i <= 3; i++) {
+        const slotDiv = document.createElement('div');
+        slotDiv.className = 'save-slot';
+        slotDiv.style.cssText = `
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        `;
+        
+        const slotInfo = getSlotInfo(i);
+        
+        let infoHTML = '';
+        if (slotInfo) {
+            const date = new Date(slotInfo.timestamp);
+            const formattedDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+            
+            infoHTML = `
+                <div style="background: rgba(255, 255, 255, 0.1); padding: 10px; border-radius: 5px;">
+                    <div style="color: #ffd700; font-weight: bold; font-size: 1.1rem; margin-bottom: 5px;">
+                        ${slotInfo.teamName}
+                    </div>
+                    <div style="font-size: 0.9rem; opacity: 0.9;">
+                        📅 ${formattedDate}<br>
+                        🏆 ${slotInfo.league}부 리그<br>
+                        ⚽ 경기 수: ${slotInfo.matchesPlayed}<br>
+                        💰 자금: ${slotInfo.money}억
+                    </div>
+                </div>
+            `;
+        } else {
+            infoHTML = `
+                <div style="text-align: center; padding: 20px; opacity: 0.5;">
+                    <div style="font-size: 2rem; margin-bottom: 10px;">📁</div>
+                    <div>비어있는 슬롯</div>
+                </div>
+            `;
+        }
+        
+        slotDiv.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h4 style="margin: 0; color: #ffd700;">슬롯 ${i}</h4>
+                ${slotInfo ? '<span style="color: #2ecc71; font-size: 0.9rem;">✓ 저장됨</span>' : '<span style="color: #95a5a6; font-size: 0.9rem;">빈 슬롯</span>'}
+            </div>
+            ${infoHTML}
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <button class="btn" onclick="saveToSlot(${i})" style="padding: 8px;">
+                    💾 저장
+                </button>
+                <button class="btn" onclick="loadFromSlot(${i})" style="padding: 8px;" ${!slotInfo ? 'disabled' : ''}>
+                    📁 불러오기
+                </button>
+            </div>
+            <button class="btn" onclick="deleteSlot(${i})" style="background: #e74c3c; padding: 8px;" ${!slotInfo ? 'disabled' : ''}>
+                🗑️ 이 슬롯 삭제
+            </button>
+        `;
+        
+        container.appendChild(slotDiv);
+    }
+}
+
+// 특정 슬롯에 저장
+function saveToSlot(slotNumber) {
+    try {
+        console.log(`=== 슬롯 ${slotNumber}에 저장 시작 ===`);
+        
+        const slotInfo = getSlotInfo(slotNumber);
+        if (slotInfo) {
+            if (!confirm(`슬롯 ${slotNumber}에 이미 저장된 데이터가 있습니다.\n(${slotInfo.teamName}, ${slotInfo.matchesPlayed}경기)\n\n덮어쓰시겠습니까?`)) {
+                return;
+            }
+        }
+        
+        // 모든 리그 테이블 데이터 수집
+        const allLeagueData = {};
+        
+        if (typeof league1Table !== 'undefined') {
+            allLeagueData.league1Table = league1Table;
+        }
+        if (typeof league2Table !== 'undefined') {
+            allLeagueData.league2Table = league2Table;
+        }
+        if (typeof league3Table !== 'undefined') {
+            allLeagueData.league3Table = league3Table;
+        }
+        
+        // Records System에서 모든 득점/도움 데이터 수집
+        const recordsData = {};
+        
+        if (typeof leagueBasedRecordsSystem !== 'undefined') {
+            recordsData.recordsSystemData = leagueBasedRecordsSystem.getSaveData();
+            recordsData.topScorersAll = leagueBasedRecordsSystem.getTopScorers(20);
+            recordsData.topAssistersAll = leagueBasedRecordsSystem.getTopAssisters(20);
+            
+            recordsData.leagueTopScorers = {};
+            recordsData.leagueTopAssisters = {};
+            
+            for (let league = 1; league <= 3; league++) {
+                recordsData.leagueTopScorers[league] = leagueBasedRecordsSystem.getTopScorersByLeague(league, 10);
+                recordsData.leagueTopAssisters[league] = leagueBasedRecordsSystem.getTopAssistersByLeague(league, 10);
+            }
+        }
+        
+        const saveData = {
+            gameData: gameData,
+            teams: teams,
+            allTeams: typeof allTeams !== 'undefined' ? allTeams : null,
+            league1Table: league1Table,
+            league2Table: league2Table,
+            league3Table: league3Table,
+            recordsData: recordsData,
+            snsData: snsManager.getSaveData(),
+            growthData: playerGrowthSystem.getSaveData(),
+            injuryData: injurySystem.getSaveData(),
+            timestamp: new Date().toISOString()
+        };
+        
+        // 로컬스토리지에 저장
+        localStorage.setItem(`footballManagerSave_slot${slotNumber}`, JSON.stringify(saveData));
+        
+        console.log(`슬롯 ${slotNumber}에 저장 완료`);
+        alert(`슬롯 ${slotNumber}에 게임이 저장되었습니다!`);
+        
+        // 슬롯 UI 새로고침
+        createSaveSlots();
+        
+    } catch (error) {
+        console.error(`슬롯 ${slotNumber} 저장 중 오류:`, error);
+        
+        // 용량 초과 에러 처리
+        if (error.name === 'QuotaExceededError') {
+            alert('브라우저 저장 공간이 부족합니다. 다른 슬롯을 삭제하거나 파일 저장을 이용해주세요.');
+        } else {
+            alert('저장 중 오류가 발생했습니다.');
+        }
+    }
+}
+
+// 특정 슬롯에서 불러오기
+function loadFromSlot(slotNumber) {
+    try {
+        const savedData = localStorage.getItem(`footballManagerSave_slot${slotNumber}`);
+        
+        if (!savedData) {
+            alert(`슬롯 ${slotNumber}에 저장된 게임이 없습니다.`);
+            return;
+        }
+        
+        const slotInfo = getSlotInfo(slotNumber);
+        const confirmMessage = slotInfo 
+            ? `슬롯 ${slotNumber}의 게임을 불러오시겠습니까?\n\n팀: ${slotInfo.teamName}\n경기 수: ${slotInfo.matchesPlayed}\n\n현재 진행 중인 게임은 사라집니다.`
+            : `슬롯 ${slotNumber}의 게임을 불러오시겠습니까?\n현재 진행 중인 게임은 사라집니다.`;
+        
+        if (!confirm(confirmMessage)) {
+            return;
+        }
+        
+        console.log(`=== 슬롯 ${slotNumber}에서 불러오기 시작 ===`);
+        const saveData = JSON.parse(savedData);
+        
+        // 기본 게임 데이터 복원
+        gameData = saveData.gameData;
+        console.log('gameData 복원 완료');
+        
+        // 팀 데이터 복원
+        if (saveData.teams) {
+            Object.assign(teams, saveData.teams);
+            console.log('teams 데이터 복원 완료');
+        }
+        if (saveData.allTeams) {
+            Object.assign(allTeams, saveData.allTeams);
+            console.log('allTeams 데이터 복원 완료');
+        }
+        
+        // 리그 테이블 복원
+        if (saveData.league1Table) {
+            league1Table = saveData.league1Table;
+            console.log('1부리그 테이블 복원 완료');
+        }
+        if (saveData.league2Table) {
+            league2Table = saveData.league2Table;
+            console.log('2부리그 테이블 복원 완료');
+        }
+        if (saveData.league3Table) {
+            league3Table = saveData.league3Table;
+            console.log('3부리그 테이블 복원 완료');
+        }
+        
+        // Records System 데이터 복원
+        if (saveData.recordsData && typeof leagueBasedRecordsSystem !== 'undefined') {
+            if (saveData.recordsData.recordsSystemData) {
+                leagueBasedRecordsSystem.loadSaveData(saveData.recordsData.recordsSystemData);
+                console.log('Records System 데이터 복원 완료');
+            }
+        }
+        
+        // SNS 데이터 복원
+        if (saveData.snsData && typeof snsManager !== 'undefined') {
+            snsManager.loadSaveData(saveData.snsData);
+            console.log('SNS 데이터 복원 완료');
+        }
+        
+        // 부상 데이터 복원
+        if (saveData.injuryData && typeof injurySystem !== 'undefined') {
+            injurySystem.loadSaveData(saveData.injuryData);
+            console.log('부상 데이터 복원 완료');
+        }
+        
+        // 포텐셜 시스템 처리
+        if (typeof playerGrowthSystem !== 'undefined') {
+            console.log('=== 포텐셜 시스템 처리 시작 ===');
+            
+            playerGrowthSystem.resetGrowthSystem();
+            console.log('기존 포텐셜 데이터 초기화 완료');
+            
+            if (saveData.growthData) {
+                playerGrowthSystem.loadSaveData(saveData.growthData);
+                console.log('저장된 포텐셜 데이터 로드 완료');
+            } else {
+                playerGrowthSystem.initializePlayerGrowth();
+                console.log('새로운 포텐셜 시스템 초기화');
+            }
+            
+            console.log('=== 포텐셜 시스템 처리 완료 ===');
+        }
+        
+        // 화면 업데이트
+        console.log('=== 화면 업데이트 시작 ===');
+        document.getElementById('teamName').textContent = teamNames[gameData.selectedTeam];
+        updateDisplay();
+        updateFormationDisplay();
+        displayTeamPlayers();
+        console.log('기본 화면 업데이트 완료');
+        
+        // SNS 피드 새로고침
+        if (typeof snsManager !== 'undefined' && document.getElementById('snsFeed')) {
+            snsManager.displayFeed('snsFeed', 15);
+            console.log('SNS 피드 새로고침 완료');
+        }
+        
+        // Records 탭 업데이트
+        if (typeof updateRecordsTab === 'function') {
+            updateRecordsTab();
+            console.log('Records 탭 업데이트 완료');
+        }
+        
+        console.log(`=== 슬롯 ${slotNumber}에서 불러오기 완료 ===`);
+        alert(`슬롯 ${slotNumber}에서 게임을 불러왔습니다!`);
+        
+    } catch (error) {
+        console.error(`슬롯 ${slotNumber} 불러오기 에러:`, error);
+        alert('저장 데이터를 불러오는 중 오류가 발생했습니다.');
+    }
+}
+
+// 특정 슬롯 삭제
+function deleteSlot(slotNumber) {
+    const slotInfo = getSlotInfo(slotNumber);
+    
+    if (!slotInfo) {
+        alert(`슬롯 ${slotNumber}은(는) 이미 비어있습니다.`);
+        return;
+    }
+    
+    const confirmMessage = `슬롯 ${slotNumber}을(를) 삭제하시겠습니까?\n\n팀: ${slotInfo.teamName}\n경기 수: ${slotInfo.matchesPlayed}\n\n이 작업은 되돌릴 수 없습니다.`;
+    
+    if (confirm(confirmMessage)) {
+        localStorage.removeItem(`footballManagerSave_slot${slotNumber}`);
+        alert(`슬롯 ${slotNumber}이(가) 삭제되었습니다.`);
+        
+        // 슬롯 UI 새로고침
+        createSaveSlots();
+    }
+}
+
+// 전역 함수로 등록
+window.saveToSlot = saveToSlot;
+window.loadFromSlot = loadFromSlot;
+window.deleteSlot = deleteSlot;
+
+
 
 // 외부에서 호출할 수 있는 함수들
 window.gameData = gameData;
