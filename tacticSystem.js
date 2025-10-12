@@ -502,26 +502,25 @@ function simulateMatch(matchData, tacticSystem) {
         document.getElementById('matchTime').textContent = matchData.minute + '분';
 
         // 35% 확률로 이벤트 발생 (기존과 동일)
-        if (Math.random() > 0.4) {
+        if (Math.random() > 0.99) {
             return;
         }
 
         // 이벤트 발생 확률 계산
-const userModifiers = tacticSystem.getTacticModifiers(gameData.currentTactic);
-const opponentTactic = tacticSystem.getOpponentTactic(gameData.currentOpponent);
-const opponentModifiers = tacticSystem.getTacticModifiers(opponentTactic);
+        const userModifiers = tacticSystem.getTacticModifiers(gameData.currentTactic);
+        const opponentTactic = tacticSystem.getOpponentTactic(gameData.currentOpponent);
+        const opponentModifiers = tacticSystem.getTacticModifiers(opponentTactic);
 
-
-// 전술 상성 효과 계산 (이 3줄 추가!)
-const tacticMatchup = tacticSystem.getTacticMatchup(gameData.currentTactic, opponentTactic);
-const tacticAdvantage = tacticMatchup.advantage; // +5 (유리), 0 (중립), -3 (불리)
+        // 전술 상성 효과 계산
+        const tacticMatchup = tacticSystem.getTacticMatchup(gameData.currentTactic, opponentTactic);
+        const tacticAdvantage = tacticMatchup.advantage; // +5 (유리), 0 (중립), -3 (불리)
 
         const strengthDiff = matchData.strengthDiff;
         const strengthFactor = strengthDiff.difference / 60;
-        
+
         const upsetMode = Math.random() < 0.07;
         let upsetFactor = 0;
-        
+
         if (upsetMode) {
             upsetFactor = (Math.random() * 0.15) + 0.05;
             
@@ -534,73 +533,81 @@ const tacticAdvantage = tacticMatchup.advantage; // +5 (유리), 0 (중립), -3 
                 displayEvent(upsetEvent, matchData);
             }
         }
-        
-// 기본 이벤트 확률 (100% 정확히 맞춤)
-let baseGoalChance = 0.015;
-const baseFoulChance = 0.08;
-const basePassChance = 0.743; // 74.3%로 증가 (패스가 가장 많음)
-const baseInjuryChance = 0.002; // 0.2% 부상 확률
-const baseThrowInChance = 0.06;
-const baseGoalKickChance = 0.04;
-const baseCornerChance = 0.05; // 5%로 감소 (합계 정확히 100%)
+
+        // ===== 부상 체크를 먼저 독립적으로 수행 =====
+        const injuryRoll = Math.random();
+        if (injuryRoll < 0.55) {
+            const injuryResult = injurySystem.checkInjury(matchData);
+            if (injuryResult.occurred) {
+                const event = createInjuryEvent(matchData, injuryResult);
+                displayEvent(event, matchData);
+                return; // 부상 발생 시 이번 틱 종료
+            }
+        }
+
+        // 기본 이벤트 확률 (부상 제외하고 재조정)
+        let baseGoalChance = 0.015;
+        const baseFoulChance = 0.082;
+        const basePassChance = 0.753;
+        const baseThrowInChance = 0.06;
+        const baseGoalKickChance = 0.04;
+        const baseCornerChance = 0.05;
 
         const eventRoll = Math.random();
         let event = null;
 
-// 골 확률 계산
-let userGoalChance = baseGoalChance + userModifiers.goalChance;
-let opponentGoalChance = baseGoalChance + opponentModifiers.goalChance;
+        // 골 확률 계산
+        let userGoalChance = baseGoalChance + userModifiers.goalChance;
+        let opponentGoalChance = baseGoalChance + opponentModifiers.goalChance;
 
-// 전술 상성 효과를 골 확률에 반영
-if (tacticAdvantage > 0) {
-    // 유리할 때: 내 골 증가, 상대 골 감소
-    userGoalChance += tacticAdvantage * 0.002; // +5 → +1% 골 확률
-    opponentGoalChance -= tacticAdvantage * 0.001; // 상대는 -0.5%
-} else if (tacticAdvantage < 0) {
-    // 불리할 때: 내 골 감소, 상대 골 증가
-    userGoalChance += tacticAdvantage * 0.002; // -3 → -0.6% 골 확률
-    opponentGoalChance -= tacticAdvantage * 0.001; // 상대는 +0.3%
-}
+        // 전술 상성 효과를 골 확률에 반영
+        if (tacticAdvantage > 0) {
+            userGoalChance += tacticAdvantage * 0.002;
+            opponentGoalChance -= tacticAdvantage * 0.001;
+        } else if (tacticAdvantage < 0) {
+            userGoalChance += tacticAdvantage * 0.002;
+            opponentGoalChance -= tacticAdvantage * 0.001;
+        }
 
-// 수비형 전술 효과: 상대 골 확률은 풀로 감소, 자신의 골 확률은 절반만 감소
-if (userModifiers.goalChance < 0) {
-    opponentGoalChance += userModifiers.goalChance;  // 상대는 풀로 감소
-    userGoalChance -= userModifiers.goalChance * 0.5; // 자신은 절반 회복 (음수 * 0.5를 빼면 양수가 더해짐)
-}
-if (opponentModifiers.goalChance < 0) {
-    userGoalChance += opponentModifiers.goalChance;  // 내 골은 풀로 감소
-    opponentGoalChance -= opponentModifiers.goalChance * 0.5; // 상대 자신은 절반 회복
-}
+        // 수비형 전술 효과
+        if (userModifiers.goalChance < 0) {
+            opponentGoalChance += userModifiers.goalChance;
+            userGoalChance -= userModifiers.goalChance * 0.5;
+        }
+        if (opponentModifiers.goalChance < 0) {
+            userGoalChance += opponentModifiers.goalChance;
+            opponentGoalChance -= opponentModifiers.goalChance * 0.5;
+        }
 
-if (strengthDiff.userAdvantage) {
-    userGoalChance += Math.abs(strengthFactor) * 0.5;
-    opponentGoalChance -= Math.abs(strengthFactor) * 0.2;
-    
-    if (upsetMode) {
-        opponentGoalChance += upsetFactor;
-        userGoalChance -= upsetFactor * 0.3;
-    }
-} else {
-    opponentGoalChance += Math.abs(strengthFactor) * 0.5;
-    userGoalChance -= Math.abs(strengthFactor) * 0.3;
-    
-    if (upsetMode) {
-        userGoalChance += upsetFactor;
-        opponentGoalChance -= upsetFactor * 0.3;
-    }
-}
-        
-const randomVariation = 0.8 + (Math.random() * 0.4);
-userGoalChance *= randomVariation;
-opponentGoalChance *= (2 - randomVariation);
+        // 전력차 및 이변 효과 반영
+        if (strengthDiff.userAdvantage) {
+            userGoalChance += Math.abs(strengthFactor) * 0.5;
+            opponentGoalChance -= Math.abs(strengthFactor) * 0.2;
+            
+            if (upsetMode) {
+                opponentGoalChance += upsetFactor;
+                userGoalChance -= upsetFactor * 0.3;
+            }
+        } else {
+            opponentGoalChance += Math.abs(strengthFactor) * 0.5;
+            userGoalChance -= Math.abs(strengthFactor) * 0.3;
+            
+            if (upsetMode) {
+                userGoalChance += upsetFactor;
+                opponentGoalChance -= upsetFactor * 0.3;
+            }
+        }
 
-userGoalChance = Math.max(0.01, userGoalChance);
-opponentGoalChance = Math.max(0.01, opponentGoalChance);
+        const randomVariation = 0.8 + (Math.random() * 0.4);
+        userGoalChance *= randomVariation;
+        opponentGoalChance *= (2 - randomVariation);
 
+        userGoalChance = Math.max(0.01, userGoalChance);
+        opponentGoalChance = Math.max(0.01, opponentGoalChance);
 
         // 이벤트 결정
         let cumulativeChance = 0;
-        
+
         cumulativeChance += userGoalChance;
         if (eventRoll < cumulativeChance) {
             event = createGoalEvent(matchData, true);
@@ -609,32 +616,23 @@ opponentGoalChance = Math.max(0.01, opponentGoalChance);
             if (eventRoll < cumulativeChance) {
                 event = createGoalEvent(matchData, false);
             } else {
-                cumulativeChance += baseInjuryChance;
+                cumulativeChance += baseFoulChance;
                 if (eventRoll < cumulativeChance) {
-                    // 부상 이벤트
-                    const injuryResult = injurySystem.checkInjury(matchData);
-                    if (injuryResult.occurred) {
-                        event = createInjuryEvent(matchData, injuryResult);
-                    }
+                    event = createFoulEvent(matchData);
                 } else {
-                    cumulativeChance += baseFoulChance;
+                    cumulativeChance += basePassChance;
                     if (eventRoll < cumulativeChance) {
-                        event = createFoulEvent(matchData);
+                        event = createPassEvent(matchData);
                     } else {
-                        cumulativeChance += basePassChance;
+                        cumulativeChance += baseThrowInChance;
                         if (eventRoll < cumulativeChance) {
-                            event = createPassEvent(matchData);
+                            event = createThrowInEvent(matchData);
                         } else {
-                            cumulativeChance += baseThrowInChance;
+                            cumulativeChance += baseGoalKickChance;
                             if (eventRoll < cumulativeChance) {
-                                event = createThrowInEvent(matchData);
+                                event = createGoalKickEvent(matchData);
                             } else {
-                                cumulativeChance += baseGoalKickChance;
-                                if (eventRoll < cumulativeChance) {
-                                    event = createGoalKickEvent(matchData);
-                                } else {
-                                    event = createCornerEvent(matchData);
-                                }
+                                event = createCornerEvent(matchData);
                             }
                         }
                     }
@@ -646,13 +644,53 @@ opponentGoalChance = Math.max(0.01, opponentGoalChance);
             displayEvent(event, matchData);
         }
 
-    }, 1000);
+    }, 1000); // ✅ 이 닫는 중괄호와 괄호가 핵심!
 }
-function createGoalEvent(matchData, isUserTeam) {
+
+// 이벤트 결정
+let cumulativeChance = 0;
+
+cumulativeChance += userGoalChance;
+if (eventRoll < cumulativeChance) {
+    event = createGoalEvent(matchData, true);
+} else {
+    cumulativeChance += opponentGoalChance;
+    if (eventRoll < cumulativeChance) {
+        event = createGoalEvent(matchData, false);
+    } else {
+        cumulativeChance += baseFoulChance;
+        if (eventRoll < cumulativeChance) {
+            event = createFoulEvent(matchData);
+        } else {
+            cumulativeChance += basePassChance;
+            if (eventRoll < cumulativeChance) {
+                event = createPassEvent(matchData);
+            } else {
+                cumulativeChance += baseThrowInChance;
+                if (eventRoll < cumulativeChance) {
+                    event = createThrowInEvent(matchData);
+                } else {
+                    cumulativeChance += baseGoalKickChance;
+                    if (eventRoll < cumulativeChance) {
+                        event = createGoalKickEvent(matchData);
+                    } else {
+                        event = createCornerEvent(matchData);
+                    }
+                }
+            }
+        }
+    }
+}
+
+if (event) {
+    displayEvent(event, matchData);
+}
+
+
+    function createGoalEvent(matchData, isUserTeam) {
     const team = isUserTeam ? gameData.selectedTeam : gameData.currentOpponent;
     const teamName = teamNames[team];
     
-    // 골 넣은 선수 결정
     let scorer = null;
     let scorerPosition = null;
     
@@ -660,22 +698,28 @@ function createGoalEvent(matchData, isUserTeam) {
         const squad = gameData.squad;
         const possibleScorers = [];
         
-        squad.fw.forEach(player => {
-            if (player) {
-                for (let i = 0; i < 75; i++) possibleScorers.push(player);
-            }
+        // FW: rating 기준으로 정렬 후 가중치 적용
+        const sortedFW = squad.fw.filter(p => p).sort((a, b) => b.rating - a.rating);
+        sortedFW.forEach((player, index) => {
+            // 1등: 75회, 2등: 65회, 3등: 55회 (10씩 감소)
+            const weight = Math.max(75 - (index * 10), 35);
+            for (let i = 0; i < weight; i++) possibleScorers.push(player);
         });
         
-        squad.mf.forEach(player => {
-            if (player) {
-                for (let i = 0; i < 21; i++) possibleScorers.push(player);
-            }
+        // MF: rating 기준으로 정렬 후 가중치 적용
+        const sortedMF = squad.mf.filter(p => p).sort((a, b) => b.rating - a.rating);
+        sortedMF.forEach((player, index) => {
+            // 1등: 21회, 2등: 18회, 3등: 15회 (3씩 감소)
+            const weight = Math.max(21 - (index * 3), 9);
+            for (let i = 0; i < weight; i++) possibleScorers.push(player);
         });
         
-        squad.df.forEach(player => {
-            if (player) {
-                for (let i = 0; i < 4; i++) possibleScorers.push(player);
-            }
+        // DF: rating 기준으로 정렬 후 가중치 적용
+        const sortedDF = squad.df.filter(p => p).sort((a, b) => b.rating - a.rating);
+        sortedDF.forEach((player, index) => {
+            // 1등: 4회, 2등: 3회, 3등: 3회, 4등: 2회 (1씩 감소)
+            const weight = Math.max(4 - index, 2);
+            for (let i = 0; i < weight; i++) possibleScorers.push(player);
         });
         
         if (possibleScorers.length > 0) {
@@ -689,78 +733,92 @@ function createGoalEvent(matchData, isUserTeam) {
         
         const possibleScorers = [];
         
-        forwards.slice(0, 3).forEach(player => {
-            for (let i = 0; i < 75; i++) possibleScorers.push(player);
+        forwards.slice(0, 3).forEach((player, index) => {
+            const weight = Math.max(75 - (index * 10), 35);
+            for (let i = 0; i < weight; i++) possibleScorers.push(player);
         });
         
-        midfielders.slice(0, 3).forEach(player => {
-            for (let i = 0; i < 21; i++) possibleScorers.push(player);
+        midfielders.slice(0, 3).forEach((player, index) => {
+            const weight = Math.max(21 - (index * 3), 9);
+            for (let i = 0; i < weight; i++) possibleScorers.push(player);
         });
         
-        defenders.slice(0, 4).forEach(player => {
-            for (let i = 0; i < 4; i++) possibleScorers.push(player);
+        defenders.slice(0, 4).forEach((player, index) => {
+            const weight = Math.max(4 - index, 2);
+            for (let i = 0; i < weight; i++) possibleScorers.push(player);
         });
         
         if (possibleScorers.length > 0) {
             scorer = possibleScorers[Math.floor(Math.random() * possibleScorers.length)];
         }
     }
-
-    // 어시스트 선수 결정 (기존 코드 동일)
-    let assister = null;
-    const hasAssist = Math.random() < 0.85;
     
-    if (hasAssist && scorer) {
-        if (isUserTeam) {
-            const squad = gameData.squad;
-            const possibleAssisters = [];
-            
-            squad.fw.forEach(player => {
-                if (player && player.name !== scorer.name) {
-                    for (let i = 0; i < 50; i++) possibleAssisters.push(player);
-                }
-            });
-            
-            squad.mf.forEach(player => {
-                if (player && player.name !== scorer.name) {
-                    for (let i = 0; i < 45; i++) possibleAssisters.push(player);
-                }
-            });
-            
-            squad.df.forEach(player => {
-                if (player && player.name !== scorer.name) {
-                    for (let i = 0; i < 5; i++) possibleAssisters.push(player);
-                }
-            });
-            
-            if (possibleAssisters.length > 0) {
-                assister = possibleAssisters[Math.floor(Math.random() * possibleAssisters.length)];
-            }
-        } else {
-            const teamPlayers = teams[team];
-            const forwards = teamPlayers.filter(p => p.position === 'FW' && p.name !== scorer.name).sort((a, b) => b.rating - a.rating);
-            const midfielders = teamPlayers.filter(p => p.position === 'MF' && p.name !== scorer.name).sort((a, b) => b.rating - a.rating);
-            const defenders = teamPlayers.filter(p => p.position === 'DF' && p.name !== scorer.name).sort((a, b) => b.rating - a.rating);
-            
-            const possibleAssisters = [];
-            
-            forwards.slice(0, 3).forEach(player => {
-                for (let i = 0; i < 50; i++) possibleAssisters.push(player);
-            });
-            
-            midfielders.slice(0, 3).forEach(player => {
-                for (let i = 0; i < 45; i++) possibleAssisters.push(player);
-            });
-            
-            defenders.slice(0, 4).forEach(player => {
-                for (let i = 0; i < 5; i++) possibleAssisters.push(player);
-            });
-            
-            if (possibleAssisters.length > 0) {
-                assister = possibleAssisters[Math.floor(Math.random() * possibleAssisters.length)];
-            }
+    // 나머지 코드는 동일...
+
+    // 어시스트 선수 결정 (rating 기반 가중치 적용)
+let assister = null;
+const hasAssist = Math.random() < 0.85;
+
+if (hasAssist && scorer) {
+    if (isUserTeam) {
+        const squad = gameData.squad;
+        const possibleAssisters = [];
+        
+        // FW: rating 기준으로 정렬 후 가중치 적용
+        const sortedFW = squad.fw.filter(p => p && p.name !== scorer.name).sort((a, b) => b.rating - a.rating);
+        sortedFW.forEach((player, index) => {
+            // 1등: 50회, 2등: 43회, 3등: 36회 (7씩 감소)
+            const weight = Math.max(50 - (index * 7), 22);
+            for (let i = 0; i < weight; i++) possibleAssisters.push(player);
+        });
+        
+        // MF: rating 기준으로 정렬 후 가중치 적용
+        const sortedMF = squad.mf.filter(p => p && p.name !== scorer.name).sort((a, b) => b.rating - a.rating);
+        sortedMF.forEach((player, index) => {
+            // 1등: 45회, 2등: 39회, 3등: 33회 (6씩 감소)
+            const weight = Math.max(45 - (index * 6), 21);
+            for (let i = 0; i < weight; i++) possibleAssisters.push(player);
+        });
+        
+        // DF: rating 기준으로 정렬 후 가중치 적용
+        const sortedDF = squad.df.filter(p => p && p.name !== scorer.name).sort((a, b) => b.rating - a.rating);
+        sortedDF.forEach((player, index) => {
+            // 1등: 5회, 2등: 4회, 3등: 4회, 4등: 3회 (1씩 감소)
+            const weight = Math.max(5 - index, 3);
+            for (let i = 0; i < weight; i++) possibleAssisters.push(player);
+        });
+        
+        if (possibleAssisters.length > 0) {
+            assister = possibleAssisters[Math.floor(Math.random() * possibleAssisters.length)];
+        }
+    } else {
+        const teamPlayers = teams[team];
+        const forwards = teamPlayers.filter(p => p.position === 'FW' && p.name !== scorer.name).sort((a, b) => b.rating - a.rating);
+        const midfielders = teamPlayers.filter(p => p.position === 'MF' && p.name !== scorer.name).sort((a, b) => b.rating - a.rating);
+        const defenders = teamPlayers.filter(p => p.position === 'DF' && p.name !== scorer.name).sort((a, b) => b.rating - a.rating);
+        
+        const possibleAssisters = [];
+        
+        forwards.slice(0, 3).forEach((player, index) => {
+            const weight = Math.max(50 - (index * 7), 22);
+            for (let i = 0; i < weight; i++) possibleAssisters.push(player);
+        });
+        
+        midfielders.slice(0, 3).forEach((player, index) => {
+            const weight = Math.max(45 - (index * 6), 21);
+            for (let i = 0; i < weight; i++) possibleAssisters.push(player);
+        });
+        
+        defenders.slice(0, 4).forEach((player, index) => {
+            const weight = Math.max(5 - index, 3);
+            for (let i = 0; i < weight; i++) possibleAssisters.push(player);
+        });
+        
+        if (possibleAssisters.length > 0) {
+            assister = possibleAssisters[Math.floor(Math.random() * possibleAssisters.length)];
         }
     }
+}
 
     // 점수 업데이트 (기존 코드 동일)
     if (isUserTeam) {
@@ -985,9 +1043,9 @@ function createCornerEvent(matchData) {
 
 function createInjuryEvent(matchData, injuryResult) {
     const severityMessages = [
-        "가벼운 부상을 당했습니다.",
+        "쓰려졌습니다.",
         "부상으로 교체되었습니다.",
-        "심각한 부상을 당해 들것에 실려 나갔습니다."
+        "부상을 당해 들것에 실려 나갔습니다."
     ];
     
     const severity = injuryResult.gamesOut - 1; // 0, 1, 2
@@ -1484,7 +1542,7 @@ function getInterviewQuestions(result, userScore, opponentScore, strengthDiff) {
             return [{
                 question: "전력상 유리했음에도 불구하고 패배했는데 어떻게 생각하시나요?",
                 options: [
-                    { text: "이런 경기는 절대 용납할 수 없습니다! 무엇이 잘못되었는지 철저히 분석하겠습니다!", morale: -20 },
+                    { text: "몇몇의 선수들은 도대체 뭘 하는건지 모르겠습니다. 오늘의 태도는 최악이었고 더 나아지지 못한다면 이 팀에서 방출될 수도 있을 것입니다.", morale: 20 },
                     { text: "실망스럽지만 축구는 그런 스포츠입니다. 다음에는 더 집중하겠습니다.", morale: -10 },
                     { text: "상대가 정말 잘했습니다. 우리도 배울 점이 있었어요.", morale: 0 }
                 ]
@@ -1517,7 +1575,7 @@ function getInterviewQuestions(result, userScore, opponentScore, strengthDiff) {
             return [{
                 question: "유리한 전력에도 불구하고 무승부로 끝났는데 소감은?",
                 options: [
-                    { text: "승리할 수 있었던 경기였는데 정말 아쉽습니다.", morale: -8 },
+                    { text: "승리할 수 있었던 우리 팀이 겨우 이정도라니, 정말 실망스럽습니다.", morale: 10 },
                     { text: "상대의 수비가 견고했습니다. 다음에는 더 창의적으로 공격하겠습니다.", morale: -3 },
                     { text: "무승부도 나쁘지 않은 결과입니다. 꾸준히 발전하고 있어요.", morale: 2 }
                 ]
@@ -1529,7 +1587,7 @@ function getInterviewQuestions(result, userScore, opponentScore, strengthDiff) {
                 options: [
                     { text: "정말 자랑스러운 결과입니다! 선수들이 최선을 다했어요!", morale: 12 },
                     { text: "좋은 결과입니다. 우리의 가능성을 보여준 경기였어요.", morale: 8 },
-                    { text: "승리까지 이어가지 못해 아쉽습니다.", morale: 3 }
+                    { text: "승리까지 이어가지 못해 아쉽습니다.", morale: 9 }
                 ]
             }];
         } else {
@@ -1578,7 +1636,7 @@ class InjurySystem {
 
     // 부상 체크 (경기 중 호출)
     checkInjury(matchData) {
-        const injuryChance = 0.002; // 0.2% 확률
+        const injuryChance = 0.7;// 2퍼센트 확률
         
         if (Math.random() < injuryChance) {
             // 사용자 팀 또는 상대 팀 중 랜덤

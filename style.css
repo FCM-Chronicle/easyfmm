@@ -836,6 +836,11 @@ body.team-dortmund .glass {
     border-color: rgba(231, 76, 60, 0.5);
 }
 
+.event-card.injury {
+    background: rgba(231, 76, 60, 0.3);
+    border-color: rgba(231, 76, 60, 0.5);
+}
+
 .event-card.kickoff-ready {
     background: rgba(52, 152, 219, 0.3);
     border-color: rgba(52, 152, 219, 0.5);
