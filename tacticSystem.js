@@ -106,10 +106,10 @@ class TacticSystem {
                 description: "높은 압박으로 빠른 역습을 노리는 전술"
             },
             twoLine: {
-                name: "두 줄 수비",
+                name: "다이렉트 축구",
                 effective: ["longBall", "parkBus"],
                 ineffective: ["gegenpress", "totalFootball"],
-                description: "견고한 수비 라인으로 상대 공격을 차단"
+                description: "긴 패스로 상대의 공간을 파고드는 전술"
             },
             lavolpiana: {
                 name: "라볼피아나",
@@ -118,7 +118,7 @@ class TacticSystem {
                 description: "측면 공격과 크로스를 중심으로 한 전술"
             },
             longBall: {
-                name: "롱볼축구",
+                name: "롱볼 축구",
                 effective: ["parkBus", "catenaccio"],
                 ineffective: ["gegenpress", "tikitaka"],
                 description: "긴 패스로 빠르게 공격을 전개하는 전술"
@@ -130,10 +130,10 @@ class TacticSystem {
                 description: "공을 오래 소유하며 천천히 공격 기회를 만드는 전술"
             },
             parkBus: {
-                name: "침대 축구",
+                name: "역습 축구",
                 effective: ["catenaccio", "twoLine"],
                 ineffective: ["gegenpress", "totalFootball"],
-                description: "극도로 수비적인 전술로 역습을 노림"
+                description: "수비에 집중하고 호시탐탐 역습을 노리는 전술"
             },
             catenaccio: {
                 name: "카테나치오",
@@ -551,7 +551,7 @@ const baseCornerChance = 0.05; // 5%로 감소 (합계 정확히 100%)
 let userGoalChance = baseGoalChance + userModifiers.goalChance;
 let opponentGoalChance = baseGoalChance + opponentModifiers.goalChance;
 
-// 전술 상성 효과를 골 확률에 반영 (여기 추가!)
+// 전술 상성 효과를 골 확률에 반영
 if (tacticAdvantage > 0) {
     // 유리할 때: 내 골 증가, 상대 골 감소
     userGoalChance += tacticAdvantage * 0.002; // +5 → +1% 골 확률
@@ -562,25 +562,27 @@ if (tacticAdvantage > 0) {
     opponentGoalChance -= tacticAdvantage * 0.001; // 상대는 +0.3%
 }
 
-// 수비형 전술 효과: 상대 골 확률도 감소
+// 수비형 전술 효과: 상대 골 확률은 풀로 감소, 자신의 골 확률은 절반만 감소
 if (userModifiers.goalChance < 0) {
-    opponentGoalChance += userModifiers.goalChance;
+    opponentGoalChance += userModifiers.goalChance;  // 상대는 풀로 감소
+    userGoalChance -= userModifiers.goalChance * 0.5; // 자신은 절반 회복 (음수 * 0.5를 빼면 양수가 더해짐)
 }
 if (opponentModifiers.goalChance < 0) {
-    userGoalChance += opponentModifiers.goalChance;
+    userGoalChance += opponentModifiers.goalChance;  // 내 골은 풀로 감소
+    opponentGoalChance -= opponentModifiers.goalChance * 0.5; // 상대 자신은 절반 회복
 }
 
 if (strengthDiff.userAdvantage) {
-    userGoalChance += Math.abs(strengthFactor) * 0.5; // 1.0 → 0.5
-    opponentGoalChance -= Math.abs(strengthFactor) * 0.2; // 0.3 → 0.2
+    userGoalChance += Math.abs(strengthFactor) * 0.5;
+    opponentGoalChance -= Math.abs(strengthFactor) * 0.2;
     
     if (upsetMode) {
         opponentGoalChance += upsetFactor;
         userGoalChance -= upsetFactor * 0.3;
     }
 } else {
-    opponentGoalChance += Math.abs(strengthFactor) * 0.5; // 1.0 → 0.5
-    userGoalChance -= Math.abs(strengthFactor) * 0.3; // 0.5 → 0.3
+    opponentGoalChance += Math.abs(strengthFactor) * 0.5;
+    userGoalChance -= Math.abs(strengthFactor) * 0.3;
     
     if (upsetMode) {
         userGoalChance += upsetFactor;
@@ -588,13 +590,14 @@ if (strengthDiff.userAdvantage) {
     }
 }
         
-        const randomVariation = 0.8 + (Math.random() * 0.4);
-        userGoalChance *= randomVariation;
-        opponentGoalChance *= (2 - randomVariation);
-        
-        userGoalChance = Math.max(0.01, userGoalChance);
-        opponentGoalChance = Math.max(0.01, opponentGoalChance);
-        
+const randomVariation = 0.8 + (Math.random() * 0.4);
+userGoalChance *= randomVariation;
+opponentGoalChance *= (2 - randomVariation);
+
+userGoalChance = Math.max(0.01, userGoalChance);
+opponentGoalChance = Math.max(0.01, opponentGoalChance);
+
+
         // 이벤트 결정
         let cumulativeChance = 0;
         

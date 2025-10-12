@@ -2962,10 +2962,10 @@ function showTacticsInfo() {
             description: "높은 압박으로 빠른 역습을 노리는 전술"
         },
         twoLine: {
-            name: "두 줄 수비",
+            name: "다이렉트 축구",
             effective: ["longBall", "parkBus"],
             ineffective: ["gegenpress", "totalFootball"],
-            description: "견고한 수비 라인으로 상대 공격을 차단"
+            description: "긴 패스로 상대의 공간을 파고드는 전술"
         },
         lavolpiana: {
             name: "라볼피아나",
@@ -2974,7 +2974,7 @@ function showTacticsInfo() {
             description: "측면 공격과 크로스를 중심으로 한 전술"
         },
         longBall: {
-            name: "롱볼축구",
+            name: "롱볼 축구",
             effective: ["parkBus", "catenaccio"],
             ineffective: ["gegenpress", "tikitaka"],
             description: "긴 패스로 빠르게 공격을 전개하는 전술"
@@ -2986,10 +2986,10 @@ function showTacticsInfo() {
             description: "공을 오래 소유하며 천천히 공격 기회를 만드는 전술"
         },
         parkBus: {
-            name: "윙 플레이",
+            name: "역습 축구",
             effective: ["catenaccio", "twoLine"],
             ineffective: ["gegenpress", "totalFootball"],
-            description: "강력한 윙을 이용하여 측면을 파괴하는 전술술"
+            description: "수비에 집중하고 호시탐탐 역습을 노리는 전술"
         },
         catenaccio: {
             name: "카테나치오",
@@ -3029,14 +3029,14 @@ function showTacticsInfo() {
                         <strong style="color: #e74c3c;">❌ 비효과적 vs:</strong><br>
                         ${tactic.ineffective.map(t => tactics[t].name).join('<br>')}
                     </div>
-                </div>
+                </div>#e74c3c
             </div>
         `;
     });
 
     content += `
         <div style="background: rgba(255, 215, 0, 0.1); border: 1px solid rgba(255, 215, 0, 0.3); border-radius: 10px; padding: 15px; margin-top: 20px; text-align: center;">
-            <strong style="color: #ffd700;">💡 팁: 상대팀의 전술을 파악하고 유리한 전술을 선택하세요!</strong>
+            <strong style="color: #ffd700;">💡 팁: 상대팀의 전술을 파악하고 유리한 전술을 선택하세요(비효과적 vs라는 건 상대가 그 전술일때 비효과적이라는 뜻)<strong>
         </div>
     </div>`;
     
@@ -3132,11 +3132,11 @@ function showTeamTacticsInfo() {
 
     const tacticNames = {
         gegenpress: "게겐프레싱",
-        twoLine: "두 줄 수비",
+        twoLine: "다이렉트 축구",
         lavolpiana: "라볼피아나",
         longBall: "롱볼축구",
         possession: "점유율 축구",
-        parkBus: "침대 축구",
+        parkBus: "역습 축구",
         catenaccio: "카테나치오",
         totalFootball: "토탈 풋볼",
         tikitaka: "티키타카"
