@@ -3232,12 +3232,41 @@ function getSlotInfo(slotNumber) {
     
     try {
         const data = JSON.parse(savedData);
+        const selectedTeam = data.gameData.selectedTeam;
+        const currentLeague = data.gameData.currentLeague;
+        
+        // 팀 순위 계산
+        let teamRank = '-';
+        const divisionKey = `division${currentLeague}`;
+        
+        if (data.gameData.leagueData && data.gameData.leagueData[divisionKey]) {
+            const standings = Object.keys(data.gameData.leagueData[divisionKey]).map(teamKey => ({
+                team: teamKey,
+                ...data.gameData.leagueData[divisionKey][teamKey],
+                goalDiff: data.gameData.leagueData[divisionKey][teamKey].goalsFor - data.gameData.leagueData[divisionKey][teamKey].goalsAgainst
+            })).sort((a, b) => {
+                if (b.points !== a.points) return b.points - a.points;
+                if (b.goalDiff !== a.goalDiff) return b.goalDiff - a.goalDiff;
+                return b.goalsFor - a.goalsFor;
+            });
+            
+            const rank = standings.findIndex(team => team.team === selectedTeam);
+            if (rank !== -1) {
+                teamRank = rank + 1;
+            }
+        }
+        
+        // 다음 상대팀
+        const nextOpponent = data.gameData.currentOpponent ? teamNames[data.gameData.currentOpponent] : '미정';
+        
         return {
-            teamName: teamNames[data.gameData.selectedTeam] || '알 수 없음',
+            teamName: teamNames[selectedTeam] || '알 수 없음',
             timestamp: data.timestamp,
             matchesPlayed: data.gameData.matchesPlayed || 0,
             money: data.gameData.teamMoney || 0,
-            league: data.gameData.currentLeague || 1
+            league: currentLeague || 1,
+            rank: teamRank,
+            nextOpponent: nextOpponent
         };
     } catch (error) {
         console.error(`슬롯 ${slotNumber} 정보 읽기 오류:`, error);
@@ -3279,9 +3308,10 @@ function createSaveSlots() {
                     </div>
                     <div style="font-size: 0.9rem; opacity: 0.9;">
                         📅 ${formattedDate}<br>
-                        🏆 ${slotInfo.league}부 리그<br>
+                        🏆 ${slotInfo.league}부 리그 ${slotInfo.rank}위<br>
                         ⚽ 경기 수: ${slotInfo.matchesPlayed}<br>
-                        💰 자금: ${slotInfo.money}억
+                        💰 자금: ${slotInfo.money}억<br>
+                        🎯 다음 상대: ${slotInfo.nextOpponent}
                     </div>
                 </div>
             `;

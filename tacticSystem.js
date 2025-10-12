@@ -647,44 +647,6 @@ function simulateMatch(matchData, tacticSystem) {
     }, 1000); // ✅ 이 닫는 중괄호와 괄호가 핵심!
 }
 
-// 이벤트 결정
-let cumulativeChance = 0;
-
-cumulativeChance += userGoalChance;
-if (eventRoll < cumulativeChance) {
-    event = createGoalEvent(matchData, true);
-} else {
-    cumulativeChance += opponentGoalChance;
-    if (eventRoll < cumulativeChance) {
-        event = createGoalEvent(matchData, false);
-    } else {
-        cumulativeChance += baseFoulChance;
-        if (eventRoll < cumulativeChance) {
-            event = createFoulEvent(matchData);
-        } else {
-            cumulativeChance += basePassChance;
-            if (eventRoll < cumulativeChance) {
-                event = createPassEvent(matchData);
-            } else {
-                cumulativeChance += baseThrowInChance;
-                if (eventRoll < cumulativeChance) {
-                    event = createThrowInEvent(matchData);
-                } else {
-                    cumulativeChance += baseGoalKickChance;
-                    if (eventRoll < cumulativeChance) {
-                        event = createGoalKickEvent(matchData);
-                    } else {
-                        event = createCornerEvent(matchData);
-                    }
-                }
-            }
-        }
-    }
-}
-
-if (event) {
-    displayEvent(event, matchData);
-}
 
 
     function createGoalEvent(matchData, isUserTeam) {
@@ -1631,22 +1593,19 @@ function handleInterview(option) {
 // ==================== 부상 시스템 ====================
 class InjurySystem {
     constructor() {
-        this.injuredPlayers = new Map(); // 부상 선수 목록 {playerKey: {name, position, gamesRemaining}}
+        this.injuredPlayers = new Map();
     }
 
-    // 부상 체크 (경기 중 호출)
     checkInjury(matchData) {
-        const injuryChance = 0.7;// 2퍼센트 확률
+        const injuryChance = 0.007;
         
         if (Math.random() < injuryChance) {
-            // 사용자 팀 또는 상대 팀 중 랜덤
             const isUserTeam = Math.random() < 0.5;
             const team = isUserTeam ? gameData.selectedTeam : gameData.currentOpponent;
             
             let injuredPlayer = null;
             
             if (isUserTeam) {
-                // 사용자 팀의 스쿼드에서 랜덤 선수 선택
                 const squad = gameData.squad;
                 const allSquadPlayers = [];
                 
@@ -1659,7 +1618,6 @@ class InjurySystem {
                     injuredPlayer = allSquadPlayers[Math.floor(Math.random() * allSquadPlayers.length)];
                 }
             } else {
-                // 상대 팀의 상위 11명 중 랜덤 선택
                 const teamPlayers = teams[team];
                 const sortedPlayers = teamPlayers.sort((a, b) => b.rating - a.rating);
                 const topPlayers = sortedPlayers.slice(0, 11);
@@ -1670,7 +1628,6 @@ class InjurySystem {
             }
             
             if (injuredPlayer) {
-                // 1-3경기 결장
                 const gamesOut = Math.floor(Math.random() * 3) + 1;
                 const playerKey = `${team}_${injuredPlayer.name}`;
                 
@@ -1696,7 +1653,6 @@ class InjurySystem {
         return { occurred: false };
     }
 
-    // 경기 후 부상 일수 감소
     updateInjuries() {
         const recovered = [];
         
@@ -1712,13 +1668,11 @@ class InjurySystem {
         return recovered;
     }
 
-    // 선수가 부상 중인지 확인
     isInjured(team, playerName) {
         const playerKey = `${team}_${playerName}`;
         return this.injuredPlayers.has(playerKey);
     }
 
-    // 부상 선수 목록 가져오기
     getInjuredPlayers(team) {
         const injured = [];
         this.injuredPlayers.forEach((injury, key) => {
@@ -1729,32 +1683,68 @@ class InjurySystem {
         return injured;
     }
 
-    // 저장 데이터
     getSaveData() {
         return {
             injuredPlayers: Array.from(this.injuredPlayers.entries())
         };
     }
 
-    // 로드 데이터
     loadSaveData(data) {
         if (data && data.injuredPlayers) {
             this.injuredPlayers = new Map(data.injuredPlayers);
         }
     }
 
-    // 초기화
     reset() {
         this.injuredPlayers.clear();
     }
+
+    // ✅ 부상 선수를 스쿼드에서 제거하는 함수 추가
+    removeInjuredFromSquad() {
+        if (!gameData.selectedTeam) return;
+        
+        const squad = gameData.squad;
+        
+        // GK 체크
+        if (squad.gk && this.isInjured(gameData.selectedTeam, squad.gk.name)) {
+            squad.gk = null;
+        }
+        
+        // DF 체크
+        squad.df = squad.df.map(player => {
+            if (player && this.isInjured(gameData.selectedTeam, player.name)) {
+                return null;
+            }
+            return player;
+        });
+        
+        // MF 체크
+        squad.mf = squad.mf.map(player => {
+            if (player && this.isInjured(gameData.selectedTeam, player.name)) {
+                return null;
+            }
+            return player;
+        });
+        
+        // FW 체크
+        squad.fw = squad.fw.map(player => {
+            if (player && this.isInjured(gameData.selectedTeam, player.name)) {
+                return null;
+            }
+            return player;
+        });
+    }
 }
 
-// 전역 부상 시스템 인스턴스
+// ✅✅✅ 이 부분이 **반드시** 있어야 합니다! ✅✅✅
 const injurySystem = new InjurySystem();
 
-// 전역으로 노출
+// 전역으로 노출 - 다른 파일에서 사용 가능하도록
 window.injurySystem = injurySystem;
 window.InjurySystem = InjurySystem;
+
+console.log('✅ Injury System 로드 완료');
+
 // 전역으로 함수들 노출
 window.TacticSystem = TacticSystem;
 window.startMatch = startMatch;
