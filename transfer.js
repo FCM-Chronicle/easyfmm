@@ -7,7 +7,7 @@ class TransferSystem {
         
         // 타 리그 선수들
         this.extraPlayers = [
-           [
+           
   { "name": "바르트 페르브뤼헌", "position": "GK", "rating": 85, "age": 22, "team": "외부리그" },
   { "name": "기욤 레스테스", "position": "GK", "rating": 78, "age": 19, "team": "외부리그" },
   { "name": "토마소 마르티넬리", "position": "GK", "rating": 72, "age": 18, "team": "외부리그" },
@@ -23,12 +23,10 @@ class TransferSystem {
   { "name": "마틴 바투리나", "position": "MF", "rating": 79, "age": 21, "team": "외부리그" },
   { "name": "자비 게라", "position": "MF", "rating": 79, "age": 21, "team": "외부리그" },
   { "name": "옌스 카스트로프", "position": "MF", "rating": 75, "age": 21, "team": "외부리그" },
-  { "name": "플로리안 비르츠", "position": "MF", "rating": 88, "age": 21, "team": "외부리그" },
   { "name": "히오르히 수다코프", "position": "MF", "rating": 82, "age": 22, "team": "외부리그" },
   { "name": "켄드리 파에스", "position": "MF", "rating": 76, "age": 17, "team": "외부리그" },
   { "name": "김민수", "position": "MF", "rating": 73, "age": 18, "team": "외부리그" },
-  { "name": "안토니오 누사", "position": "FW", "rating": 80, "age": 19, "team": "외부리그" },
-  { "name": "윌프리드 그난토", "position": "FW", "rating": 79, "age": 20, "team": "외부리그" },
+  { "name": "윌프리드 뇽토", "position": "FW", "rating": 79, "age": 20, "team": "외부리그" },
   { "name": "엘리에스 벤 세기르", "position": "FW", "rating": 80, "age": 19, "team": "외부리그" },
   { "name": "에반 퍼거슨", "position": "FW", "rating": 83, "age": 19, "team": "외부리그" },
   { "name": "카림 코네", "position": "FW", "rating": 77, "age": 20, "team": "외부리그" },
@@ -38,7 +36,7 @@ class TransferSystem {
   { "name": "오현규", "position": "FW", "rating": 75, "age": 23, "team": "외부리그" },
   { "name": "폴 포그바", "position": "MF", "rating": 80, "age": 32, "team": "외부리그" },
   { "name": "델레 알리", "position": "MF", "rating": 79, "age": 29, "team": "외부리그" }
-]
+
         ];
     }
 
@@ -109,7 +107,7 @@ calculatePlayerPrice(player) {
     
     // 나이에 따른 가격 조정 (간소화)
     let ageMultiplier = 1;
-    if (player.age <= 20) {
+    if (player.age <= 19) {
         ageMultiplier = 0.7; // 유망주
     } else if (player.age <= 26) {
         ageMultiplier = 1.5; // 황금기
@@ -146,33 +144,62 @@ calculatePlayerPrice(player) {
         }
     }
 
-    // 선수 검색
-    searchPlayers(filters) {
-        let filteredPlayers = [...this.transferMarket];
-        
-        // 이름 검색
-        if (filters.name && filters.name.trim()) {
-            const searchName = filters.name.toLowerCase();
-            filteredPlayers = filteredPlayers.filter(player => 
-                player.name.toLowerCase().includes(searchName)
-            );
+    // 모든 팀에서 선수 검색 (이름 검색용)
+searchAllPlayers(name) {
+    const searchName = name.toLowerCase().trim();
+    const allPlayers = [];
+    
+    // 모든 팀에서 선수 찾기
+    Object.keys(teams).forEach(teamKey => {
+        if (teamKey !== gameData.selectedTeam) {
+            const teamPlayers = teams[teamKey];
+            teamPlayers.forEach(player => {
+                if (player.name.toLowerCase().includes(searchName)) {
+                    allPlayers.push({
+                        ...player,
+                        originalTeam: teamKey,
+                        price: this.calculatePlayerPrice(player),
+                        daysOnMarket: 0,
+                        inMarket: false
+                    });
+                }
+            });
         }
+    });
+    
+// 외부 리그 선수들도 검색
+this.extraPlayers.forEach(player => {  // ← { 추가!
+    if (player.name.toLowerCase().includes(searchName)) {
+        allPlayers.push({
+            ...player,
+            originalTeam: "외부리그",
+            price: this.calculatePlayerPrice(player),
+            daysOnMarket: 0,
+            inMarket: false
+        });
+    }
+});
+
+return allPlayers;
+}
+        // 선수 검색
+        searchPlayers(filters) {
+            if (filters.name && filters.name.trim()) {
+        let filteredPlayers = this.searchAllPlayers(filters.name);
         
-        // 포지션 필터
+        // 다른 필터 적용
         if (filters.position) {
             filteredPlayers = filteredPlayers.filter(player => 
                 player.position === filters.position
             );
         }
         
-        // 최소 능력치 필터
         if (filters.minRating) {
             filteredPlayers = filteredPlayers.filter(player => 
                 player.rating >= filters.minRating
             );
         }
         
-        // 최대 나이 필터
         if (filters.maxAge) {
             filteredPlayers = filteredPlayers.filter(player => 
                 player.age <= filters.maxAge
@@ -181,6 +208,40 @@ calculatePlayerPrice(player) {
         
         return filteredPlayers;
     }
+    
+            let filteredPlayers = [...this.transferMarket];
+            
+            // 이름 검색
+            if (filters.name && filters.name.trim()) {
+                const searchName = filters.name.toLowerCase();
+                filteredPlayers = filteredPlayers.filter(player => 
+                    player.name.toLowerCase().includes(searchName)
+                );
+            }
+            
+            // 포지션 필터
+            if (filters.position) {
+                filteredPlayers = filteredPlayers.filter(player => 
+                    player.position === filters.position
+                );
+            }
+            
+            // 최소 능력치 필터
+            if (filters.minRating) {
+                filteredPlayers = filteredPlayers.filter(player => 
+                    player.rating >= filters.minRating
+                );
+            }
+            
+            // 최대 나이 필터
+            if (filters.maxAge) {
+                filteredPlayers = filteredPlayers.filter(player => 
+                    player.age <= filters.maxAge
+                );
+            }
+            
+            return filteredPlayers;
+        }
 
     // 선수 영입
     signPlayer(player) {
@@ -420,10 +481,13 @@ calculatePlayerPrice(player) {
         this.transferMarket = saveData.transferMarket || [];
         this.aiTransferCooldown = saveData.aiTransferCooldown || 0;
     }
-}
+    }
+
+
 
 // 전역 이적 시스템 인스턴스
 const transferSystem = new TransferSystem();
+
 
 // 이적 시장 초기화
 function initializeTransferMarket() {
@@ -517,15 +581,19 @@ function searchPlayers() {
         const teamInfo = player.originalTeam === "외부리그" ? 
             "외부리그" : teamNames[player.originalTeam];
         
-        playerCard.innerHTML = `
-            <div class="player-name">${player.name}</div>
-            <div class="player-position">${player.position}</div>
-            <div class="player-rating">능력치: ${player.rating}</div>
-            <div class="player-age">나이: ${player.age}</div>
-            <div class="player-team">소속: ${teamInfo}</div>
-            <div class="transfer-price">${player.price}억</div>
-            <div class="market-days">시장 ${player.daysOnMarket}일째</div>
-        `;
+        const marketStatus = player.inMarket ? 
+    `<div class="market-days">시장 ${player.daysOnMarket}일째</div>` : 
+    `<div class="market-status" style="color: #f39c12;">⚠️ 이적 시장에 없음</div>`;
+
+playerCard.innerHTML = `
+    <div class="player-name">${player.name}</div>
+    <div class="player-position">${player.position}</div>
+    <div class="player-rating">능력치: ${player.rating}</div>
+    <div class="player-age">나이: ${player.age}</div>
+    <div class="player-team">소속: ${teamInfo}</div>
+    <div class="transfer-price">${player.price}억</div>
+    ${marketStatus}
+`;
         
         playerCard.addEventListener('click', () => {
             const result = transferSystem.signPlayer(player);
@@ -699,8 +767,15 @@ if (typeof window.endMatch === 'function') {
     };
 }
 
+
 // 전역으로 함수들 노출
 window.transferSystem = transferSystem;
 window.displayTransferPlayers = displayTransferPlayers;
 window.searchPlayers = searchPlayers;
 window.initializeTransferMarket = initializeTransferMarket;
+window.loadTransferScreen = loadTransferScreen;
+window.saveGameWithTransfer = saveGameWithTransfer;
+window.loadGameWithTransfer = loadGameWithTransfer;
+window.updateTransferMarketPostMatch = updateTransferMarketPostMatch;   
+window.initializeTransferSystem = initializeTransferSystem;         
+window.replaceSaveLoadFunctions = replaceSaveLoadFunctions;
