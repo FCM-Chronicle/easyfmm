@@ -1953,10 +1953,10 @@ function releasePlayerWithFee(player, transferFee) {
     
     // 능력치 배율 (75를 기준으로 차등)
     let ratingMultiplier;
-    if (player.rating >= 75) {
-        ratingMultiplier = 1 + ((player.rating - 75) * 0.04);
+    if (player.rating >= 82) {
+        ratingMultiplier = 1 + ((player.rating - 82) * 0.04);
     } else {
-        ratingMultiplier = 1 - ((75 - player.rating) * 0.08);
+        ratingMultiplier = 1 - ((82 - player.rating) * 0.08);
         ratingMultiplier = Math.max(0.2, ratingMultiplier);
     }
     price *= ratingMultiplier;
@@ -1972,15 +1972,15 @@ function releasePlayerWithFee(player, transferFee) {
     } else if (player.age <= 19) {
         ageMultiplier = 0.95 + (20 - player.age) * 0.025;
     } else if (player.age === 31) {
-        ageMultiplier = 0.65;
+        ageMultiplier = 0.85;
     } else if (player.age === 32) {
-        ageMultiplier = 0.45;
+        ageMultiplier = 0.75;
     } else if (player.age === 33) {
-        ageMultiplier = 0.3;
+        ageMultiplier = 0.5;
     } else if (player.age === 34) {
-        ageMultiplier = 0.2;
+        ageMultiplier = 0.3;
     } else if (player.age === 35) {
-        ageMultiplier = 0.12;
+        ageMultiplier = 0.22;
     } else {
         ageMultiplier = 0.05;
     }
