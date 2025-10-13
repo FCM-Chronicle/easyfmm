@@ -74,10 +74,227 @@ initializeTemplates() {
             "[경기 결과] 충격적인 무승부! {strongTeam}, {weakTeam}과 {score} 무승부!",
             "[경기 결과] 이변! {strongTeam}, {weakTeam}에 발목 잡혀 {score} 무승부!",
             "[경기 결과] {strongTeam}, {weakTeam} 상대로 {score} 무승부... 충격!"
+        ],
+
+        // 시즌 결과 - 우승
+        seasonChampion: [
+            "🏆 [시즌 종료] {team}, {league}부 리그 우승! 최종 {points}점으로 정상 등극!",
+            "🏆 [시즌 종료] 우승! {team}이 {league}부 리그를 제패했습니다!",
+            "🏆 [시즌 종료] {team}, {league}부 리그 챔피언 등극! {points}점 획득!",
+            "👑 [시즌 종료] {team}의 시대! {league}부 리그 우승 달성!",
+            "🎉 [시즌 종료] 완벽한 시즌! {team}, {league}부 리그 우승!"
+        ],
+        
+        // 시즌 결과 - 승격
+        seasonPromotion: [
+            "⬆️ [시즌 종료] {team}, {newLeague}부 리그 승격 확정! 축하합니다!",
+            "🎊 [시즌 종료] 승격의 주역! {team}, {newLeague}부 리그로!",
+            "⬆️ [시즌 종료] {team}, {newLeague}부 리그 승격! 새로운 도전!",
+            "🚀 [시즌 종료] {team}, {newLeague}부 리그 승격 성공!",
+            "✨ [시즌 종료] 꿈의 승격! {team}, {newLeague}부 리그로 올라간다!"
+        ],
+        
+        // 시즌 결과 - 강등
+        seasonRelegation: [
+            "⬇️ [시즌 종료] {team}, {newLeague}부 리그 강등... 재기를 노린다",
+            "😢 [시즌 종료] {team}, {newLeague}부 리그 강등 확정...",
+            "⬇️ [시즌 종료] 아쉬운 강등... {team}, {newLeague}부 리그로",
+            "💔 [시즌 종료] {team}, {newLeague}부 리그 강등... 내년을 기약",
+            "⬇️ [시즌 종료] {team}, {newLeague}부 리그로... 재도약 다짐"
+        ],
+        
+        // 득점왕
+        topScorer: [
+            "⚽👑 [시즌 종료] 득점왕은 {playerName}({team})! {goals}골로 득점왕 수상!",
+            "⚽ [시즌 종료] 골 제조기 {playerName}({team}), {goals}골로 득점왕!",
+            "👟 [시즌 종료] {playerName}({team}), {goals}골로 {league}부 리그 득점왕 등극!",
+            "⚽ [시즌 종료] 득점왕의 탄생! {playerName}({team}) {goals}골!",
+            "🎯 [시즌 종료] {playerName}({team}), {goals}골로 득점왕 차지!"
+        ],
+        
+        // 도움왕
+        topAssister: [
+            "🅰️👑 [시즌 종료] 도움왕은 {playerName}({team})! {assists}도움으로 도움왕!",
+            "🅰️ [시즌 종료] 어시스트 머신 {playerName}({team}), {assists}도움!",
+            "🎯 [시즌 종료] {playerName}({team}), {assists}도움으로 {league}부 리그 도움왕!",
+            "🅰️ [시즌 종료] 도움왕 등극! {playerName}({team}) {assists}도움!",
+            "✨ [시즌 종료] {playerName}({team}), {assists}도움으로 도움왕 차지!"
+        ],
+        
+        // 시즌 종합 결과
+        seasonSummary: [
+            "📊 [시즌 종료] {league}부 리그 시즌 종료! 우승: {champion}, 득점왕: {topScorer}, 도움왕: {topAssister}",
+            "🏁 [시즌 종료] {league}부 리그 막 내렸다! 챔피언 {champion} 등극!",
+            "📋 [시즌 종료] {league}부 리그 최종 결과 발표! 우승팀은 {champion}!"
         ]
+
     };
 }
     
+// SNSManager 클래스 내부에 추가
+
+// 시즌 우승 포스트 생성
+generateSeasonChampionPost(teamKey, league, points) {
+    const template = this.getRandomTemplate('seasonChampion');
+    const templateData = {
+        team: this.getTeamName(teamKey),
+        league: league,
+        points: points
+    };
+
+    const post = {
+        id: this.postIdCounter++,
+        type: 'season_champion',
+        content: this.fillTemplate(template, templateData),
+        hashtags: [`#${league}부리그`, `#우승`, `#${this.sanitizeHashtag(teamKey)}`, '#챔피언'],
+        timestamp: Date.now(),
+        likes: Math.floor(Math.random() * 2000) + 1000,
+        comments: Math.floor(Math.random() * 500) + 100,
+        shares: Math.floor(Math.random() * 200) + 50
+    };
+
+    this.posts.unshift(post);
+    return post;
+}
+
+// 시즌 승격 포스트 생성
+generateSeasonPromotionPost(teamKey, oldLeague, newLeague) {
+    const template = this.getRandomTemplate('seasonPromotion');
+    const templateData = {
+        team: this.getTeamName(teamKey),
+        newLeague: newLeague
+    };
+
+    const post = {
+        id: this.postIdCounter++,
+        type: 'season_promotion',
+        content: this.fillTemplate(template, templateData),
+        hashtags: [`#${newLeague}부리그`, `#승격`, `#${this.sanitizeHashtag(teamKey)}`],
+        timestamp: Date.now(),
+        likes: Math.floor(Math.random() * 800) + 200,
+        comments: Math.floor(Math.random() * 150) + 30,
+        shares: Math.floor(Math.random() * 80) + 20
+    };
+
+    this.posts.unshift(post);
+    return post;
+}
+
+// 시즌 강등 포스트 생성
+generateSeasonRelegationPost(teamKey, oldLeague, newLeague) {
+    const template = this.getRandomTemplate('seasonRelegation');
+    const templateData = {
+        team: this.getTeamName(teamKey),
+        newLeague: newLeague
+    };
+
+    const post = {
+        id: this.postIdCounter++,
+        type: 'season_relegation',
+        content: this.fillTemplate(template, templateData),
+        hashtags: [`#${newLeague}부리그`, `#강등`, `#${this.sanitizeHashtag(teamKey)}`],
+        timestamp: Date.now(),
+        likes: Math.floor(Math.random() * 400) + 100,
+        comments: Math.floor(Math.random() * 100) + 20,
+        shares: Math.floor(Math.random() * 30) + 5
+    };
+
+    this.posts.unshift(post);
+    return post;
+}
+
+// 득점왕 포스트 생성
+generateTopScorerPost(playerName, teamKey, goals, league) {
+    const template = this.getRandomTemplate('topScorer');
+    const templateData = {
+        playerName: playerName,
+        team: this.getTeamName(teamKey),
+        goals: goals,
+        league: league
+    };
+
+    const post = {
+        id: this.postIdCounter++,
+        type: 'top_scorer',
+        content: this.fillTemplate(template, templateData),
+        hashtags: [`#득점왕`, `#${this.sanitizeHashtag(playerName)}`, `#${league}부리그`, `#${this.sanitizeHashtag(teamKey)}`],
+        timestamp: Date.now(),
+        likes: Math.floor(Math.random() * 1500) + 500,
+        comments: Math.floor(Math.random() * 300) + 50,
+        shares: Math.floor(Math.random() * 100) + 30
+    };
+
+    this.posts.unshift(post);
+    return post;
+}
+
+// 도움왕 포스트 생성
+generateTopAssisterPost(playerName, teamKey, assists, league) {
+    const template = this.getRandomTemplate('topAssister');
+    const templateData = {
+        playerName: playerName,
+        team: this.getTeamName(teamKey),
+        assists: assists,
+        league: league
+    };
+
+    const post = {
+        id: this.postIdCounter++,
+        type: 'top_assister',
+        content: this.fillTemplate(template, templateData),
+        hashtags: [`#도움왕`, `#${this.sanitizeHashtag(playerName)}`, `#${league}부리그`, `#${this.sanitizeHashtag(teamKey)}`],
+        timestamp: Date.now(),
+        likes: Math.floor(Math.random() * 1200) + 400,
+        comments: Math.floor(Math.random() * 250) + 40,
+        shares: Math.floor(Math.random() * 80) + 20
+    };
+
+    this.posts.unshift(post);
+    return post;
+}
+
+// 시즌 종료 이벤트 핸들러 (endSeason.js에서 호출)
+onSeasonEnd(seasonData) {
+    console.log('📢 SNS: 시즌 종료 이벤트 처리 시작');
+    
+    // 1. 각 리그 우승팀 포스트
+    if (seasonData.champions) {
+        seasonData.champions.forEach(champion => {
+            this.generateSeasonChampionPost(champion.team, champion.league, champion.points);
+        });
+    }
+    
+    // 2. 승격팀 포스트
+    if (seasonData.promotions) {
+        seasonData.promotions.forEach(promo => {
+            this.generateSeasonPromotionPost(promo.team, promo.from, promo.to);
+        });
+    }
+    
+    // 3. 강등팀 포스트
+    if (seasonData.relegations) {
+        seasonData.relegations.forEach(rel => {
+            this.generateSeasonRelegationPost(rel.team, rel.from, rel.to);
+        });
+    }
+    
+    // 4. 각 리그 득점왕 포스트
+    if (seasonData.topScorers) {
+        seasonData.topScorers.forEach(scorer => {
+            this.generateTopScorerPost(scorer.playerName, scorer.team, scorer.goals, scorer.league);
+        });
+    }
+    
+    // 5. 각 리그 도움왕 포스트
+    if (seasonData.topAssisters) {
+        seasonData.topAssisters.forEach(assister => {
+            this.generateTopAssisterPost(assister.playerName, assister.team, assister.assists, assister.league);
+        });
+    }
+    
+    console.log('✅ SNS: 시즌 종료 이벤트 처리 완료');
+}
+
   // 수정된 generateMatchPost 함수
 generateMatchPost(matchData) {
     if (!matchData || !gameData) return;

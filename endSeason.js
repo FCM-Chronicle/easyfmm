@@ -145,7 +145,7 @@ function endSeason() {
         // 기존 1부리그 시스템 (승강제 없음) - 기존 메시지 그대로
         alert(`시즌 종료!\n최종 순위: ${userPosition}위 (${achievement})\n보상: ${reward}억원`);
     }
-    
+
     // === 공통 마무리 로직 ===
     // 1. 선수 나이 증가 (성장 데이터는 유지)
     if (typeof advancePlayerAges === 'function') {
@@ -167,6 +167,73 @@ function endSeason() {
     // 4. 새 시즌 상대 설정
     if (typeof setNextOpponent === 'function') {
         setNextOpponent();
+    }
+   
+    // 5. SNS 업데이트 (시즌 결과 포스트)
+    const seasonResultData = {
+        champions: [],
+        promotions: [],
+        relegations: [],
+        topScorers: [],
+        topAssisters: []
+    };
+    
+    // 3부리그 시스템이 활성화된 경우
+    if (typeof allTeams !== 'undefined' && Object.keys(allTeams).length > 19) {
+        const detailedStandings = calculateDetailedStandings();
+        const promotionRelegationData = calculatePromotionRelegationNew(detailedStandings);
+        
+        // 우승팀 데이터
+        seasonResultData.champions = promotionRelegationData.champions.map(champ => ({
+            team: champ.team,
+            league: champ.league,
+            points: detailedStandings[`division${champ.league}`][0].points
+        }));
+        
+        // 승격/강등 데이터
+        seasonResultData.promotions = promotionRelegationData.promotions;
+        seasonResultData.relegations = promotionRelegationData.relegations;
+        
+        // 각 리그별 득점왕/도움왕 데이터 수집
+        if (typeof leagueBasedRecordsSystem !== 'undefined') {
+            for (let league = 1; league <= 3; league++) {
+                const topScorer = leagueBasedRecordsSystem.getTopScorer(league);
+                const topAssister = leagueBasedRecordsSystem.getTopAssister(league);
+                
+                if (topScorer) {
+                    seasonResultData.topScorers.push({
+                        playerName: topScorer.playerName,
+                        team: topScorer.team,
+                        goals: topScorer.goals,
+                        league: league
+                    });
+                }
+                
+                if (topAssister) {
+                    seasonResultData.topAssisters.push({
+                        playerName: topAssister.playerName,
+                        team: topAssister.team,
+                        assists: topAssister.assists,
+                        league: league
+                    });
+                }
+            }
+        }
+        
+        // 기존 승강제 적용 로직...
+        applyPromotionRelegationNew(promotionRelegationData);
+        
+        // === 기존 메시지 표시 로직... ===
+        
+        // SNS에 시즌 결과 포스트 생성 (지연 후)
+        setTimeout(() => {
+            if (typeof snsManager !== 'undefined') {
+                snsManager.onSeasonEnd(seasonResultData);
+                if (document.getElementById('snsFeed')) {
+                    snsManager.displayFeed('snsFeed', 15);
+                }
+            }
+        }, 3000); // 3초 후 SNS 업데이트
     }
 }
     

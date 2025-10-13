@@ -501,10 +501,18 @@ function simulateMatch(matchData, tacticSystem) {
         matchData.minute++;
         document.getElementById('matchTime').textContent = matchData.minute + '분';
 
-        // 35% 확률로 이벤트 발생 (기존과 동일)
-        if (Math.random() > 0.99) {
-            return;
-        }
+       // 40% 확률로 이벤트 발생
+if (Math.random() > 0.4) {
+    return;
+}
+
+// ===== 부상 체크를 먼저 독립적으로 수행 =====
+const injuryResult = injurySystem.checkInjury(matchData);
+if (injuryResult.occurred) {
+    const event = createInjuryEvent(matchData, injuryResult);
+    displayEvent(event, matchData);
+    return; // 부상 발생 시 이번 틱 종료
+}
 
         // 이벤트 발생 확률 계산
         const userModifiers = tacticSystem.getTacticModifiers(gameData.currentTactic);
@@ -663,30 +671,32 @@ function simulateMatch(matchData, tacticSystem) {
         // FW: rating 기준으로 정렬 후 가중치 적용
         const sortedFW = squad.fw.filter(p => p).sort((a, b) => b.rating - a.rating);
         sortedFW.forEach((player, index) => {
-            // 1등: 75회, 2등: 65회, 3등: 55회 (10씩 감소)
-            const weight = Math.max(75 - (index * 10), 35);
+            // 1등: 80회, 2등: 65회, 3등: 50회 (15씩 감소, 1등/2등 = 1.23배, 1등/3등 = 1.6배)
+            const weight = Math.max(80 - (index * 15), 35);
             for (let i = 0; i < weight; i++) possibleScorers.push(player);
         });
         
         // MF: rating 기준으로 정렬 후 가중치 적용
         const sortedMF = squad.mf.filter(p => p).sort((a, b) => b.rating - a.rating);
         sortedMF.forEach((player, index) => {
-            // 1등: 21회, 2등: 18회, 3등: 15회 (3씩 감소)
-            const weight = Math.max(21 - (index * 3), 9);
+            // 1등: 24회, 2등: 19회, 3등: 15회 (5, 4씩 감소, 1등/3등 = 1.6배)
+            const weights = [24, 19, 15, 12, 10];
+            const weight = weights[index] !== undefined ? weights[index] : 10;
             for (let i = 0; i < weight; i++) possibleScorers.push(player);
         });
         
         // DF: rating 기준으로 정렬 후 가중치 적용
         const sortedDF = squad.df.filter(p => p).sort((a, b) => b.rating - a.rating);
         sortedDF.forEach((player, index) => {
-            // 1등: 4회, 2등: 3회, 3등: 3회, 4등: 2회 (1씩 감소)
-            const weight = Math.max(4 - index, 2);
+            // 1등: 5회, 2등: 4회, 3등: 3회, 4등: 2회 (완만한 감소)
+            const weight = Math.max(5 - index, 2);
             for (let i = 0; i < weight; i++) possibleScorers.push(player);
         });
         
         if (possibleScorers.length > 0) {
             scorer = possibleScorers[Math.floor(Math.random() * possibleScorers.length)];
         }
+
     } else {
         const teamPlayers = teams[team];
         const forwards = teamPlayers.filter(p => p.position === 'FW').sort((a, b) => b.rating - a.rating);
@@ -1597,7 +1607,7 @@ class InjurySystem {
     }
 
     checkInjury(matchData) {
-        const injuryChance = 0.007;
+        const injuryChance = 0.0185;
         
         if (Math.random() < injuryChance) {
             const isUserTeam = Math.random() < 0.5;
