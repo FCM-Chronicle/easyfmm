@@ -502,7 +502,7 @@ function simulateMatch(matchData, tacticSystem) {
         document.getElementById('matchTime').textContent = matchData.minute + '분';
 
         // 35% 확률로 이벤트 발생 (기존과 동일)
-        if (Math.random() > 0.99) {
+        if (Math.random() > 0.4) {
             return;
         }
 
