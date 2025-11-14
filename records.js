@@ -112,19 +112,24 @@ class RecordsSystem {
         return assisters;
     }
 
-    recordUserMatchStats(matchEvents) {
-        this.addMatchAppearancesForUserTeam();
+   recordUserMatchStats(matchEventsOrData) {
+    this.addMatchAppearancesForUserTeam();
 
-        matchEvents.forEach(event => {
-            if (event.type === 'goal') {
-                this.addGoal(event.scorer, event.assister,
-                    event.team === teamNames[gameData.selectedTeam] ? gameData.selectedTeam : gameData.currentOpponent);
-            }
-        });
+    // matchData 전체가 넘어올 경우 대비
+    const matchEvents = Array.isArray(matchEventsOrData) 
+        ? matchEventsOrData 
+        : (matchEventsOrData?.events || []);
 
-        this.simulateAllLeaguesMatches();
-        this.updateRecordsDisplay();
-    }
+    matchEvents.forEach(event => {
+        if (event.type === 'goal') {
+            this.addGoal(event.scorer, event.assister,
+                event.team === teamNames[gameData.selectedTeam] ? gameData.selectedTeam : gameData.currentOpponent);
+        }
+    });
+
+    this.simulateAllLeaguesMatches();
+    this.updateRecordsDisplay();
+}
 
     simulateAllLeaguesMatches() {
         console.log('=== 모든 리그의 AI 팀 경기 결과 ===');
@@ -931,9 +936,72 @@ getTopAssister(league) {
 
 
 
+// records.js 맨 아래 부분
+
+// 인스턴스를 담을 변수만 선언
+let leagueBasedRecordsSystem = null;
+
+// 모든 스크립트 로드 후 초기화
+function initRecordsSystemInstance() {
+    if (!leagueBasedRecordsSystem) {
+        // 의존성 체크
+        if (typeof teams === 'undefined' || typeof allTeams === 'undefined') {
+            console.warn('teams 또는 allTeams가 아직 로드되지 않았습니다.');
+            return false;
+        }
+        
+        leagueBasedRecordsSystem = new LeagueBasedRecordsSystem();
+        window.recordsSystem = leagueBasedRecordsSystem;
+        window.leagueBasedRecordsSystem = leagueBasedRecordsSystem;
+        console.log('✅ Records System 인스턴스가 생성되었습니다.');
+        return true;
+    }
+    return true;
+}
+
+function initializeRecordsSystem() {
+    // 인스턴스가 없으면 먼저 생성
+    if (!initRecordsSystemInstance()) {
+        return false;
+    }
+    
+    return leagueBasedRecordsSystem.initialize();
+}
+
+function updateRecordsAfterMatch(matchEvents) {
+    if (!leagueBasedRecordsSystem) {
+        console.error('❌ Records system이 초기화되지 않았습니다!');
+        initRecordsSystemInstance();
+    }
+    if (leagueBasedRecordsSystem) {
+        leagueBasedRecordsSystem.recordUserMatchStats(matchEvents);
+    }
+}
+
+function updateRecordsTab() {
+    if (!leagueBasedRecordsSystem) {
+        console.error('❌ Records system이 초기화되지 않았습니다!');
+        initRecordsSystemInstance();
+    }
+    if (leagueBasedRecordsSystem) {
+        leagueBasedRecordsSystem.updateRecordsDisplay();
+    }
+}
+
 // 전역으로 함수들 노출
-window.recordsSystem = leagueBasedRecordsSystem;
-window.leagueBasedRecordsSystem = leagueBasedRecordsSystem;
 window.initializeRecordsSystem = initializeRecordsSystem;
 window.updateRecordsAfterMatch = updateRecordsAfterMatch;
 window.updateRecordsTab = updateRecordsTab;
+window.initRecordsSystemInstance = initRecordsSystemInstance;
+
+// 🎯 핵심: 모든 스크립트 로드 완료 후 자동 생성
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('📂 DOM 로드 완료, Records System 초기화 시도...');
+        initRecordsSystemInstance();
+    });
+} else {
+    // 이미 로드된 경우 즉시 실행
+    console.log('📂 이미 로드됨, Records System 초기화 시도...');
+    initRecordsSystemInstance();
+}

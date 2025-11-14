@@ -501,29 +501,24 @@ function simulateMatch(matchData, tacticSystem) {
         matchData.minute++;
         document.getElementById('matchTime').textContent = matchData.minute + '분';
 
-
-       // 40% 확률로 이벤트 발생
-if (Math.random() > 0.4) {
-    return;
-}
-
-// ===== 부상 체크를 먼저 독립적으로 수행 =====
-const injuryResult = injurySystem.checkInjury(matchData);
-if (injuryResult.occurred) {
-    const event = createInjuryEvent(matchData, injuryResult);
-    displayEvent(event, matchData);
-    return; // 부상 발생 시 이번 틱 종료
-}
-
-        // 35% 확률로 이벤트 발생 (기존과 동일)
+        // 40% 확률로 이벤트 발생
         if (Math.random() > 0.4) {
             return;
+        }
+
+        // ===== 부상 체크 (5경기당 1명꼴) =====
+        const injuryResult = injurySystem.checkInjury(matchData);
+        if (injuryResult.occurred) {
+            const event = createInjuryEvent(matchData, injuryResult);
+            displayEvent(event, matchData);
+            return; // 부상 발생 시 이번 틱 종료
         }
 
         // 이벤트 발생 확률 계산
         const userModifiers = tacticSystem.getTacticModifiers(gameData.currentTactic);
         const opponentTactic = tacticSystem.getOpponentTactic(gameData.currentOpponent);
         const opponentModifiers = tacticSystem.getTacticModifiers(opponentTactic);
+
 
         // 전술 상성 효과 계산
         const tacticMatchup = tacticSystem.getTacticMatchup(gameData.currentTactic, opponentTactic);
@@ -1184,11 +1179,16 @@ function endMatch(matchData) {
         updateRecordsAfterMatch(matchData);
     }
     
+    // endMatch 함수 끝부분 (기존 코드 찾아서 수정)
+    
     // AI 팀들 경기 시뮬레이션
     simulateOtherMatches();
 
-    // 부상 업데이트 (경기 종료 후 처리)
+    // ✅ 부상 업데이트 (경기 종료 후 처리)
     const recovered = injurySystem.updateInjuries();
+    
+    // ✅✅ 부상 선수를 스쿼드에서 제거 (추가!)
+    injurySystem.removeInjuredFromSquad();
     
     if (recovered.length > 0) {
         setTimeout(() => {
@@ -1199,7 +1199,6 @@ function endMatch(matchData) {
             alert(recoveryMessage);
         }, 4000);
     }
-    
 }
 function updateLeagueData(matchData, points) {
     // 현재 리그 확인
@@ -1613,7 +1612,7 @@ class InjurySystem {
     }
 
     checkInjury(matchData) {
-        const injuryChance = 0.0185;
+        const injuryChance = 0.0037;  // ✅ 5경기당 1명 (0.37%)
         
         if (Math.random() < injuryChance) {
             const isUserTeam = Math.random() < 0.5;
