@@ -294,7 +294,6 @@ onSeasonEnd(seasonData) {
     
     console.log('✅ SNS: 시즌 종료 이벤트 처리 완료');
 }
-
   // 수정된 generateMatchPost 함수
 generateMatchPost(matchData) {
     if (!matchData || !gameData) return;

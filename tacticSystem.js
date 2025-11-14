@@ -501,6 +501,7 @@ function simulateMatch(matchData, tacticSystem) {
         matchData.minute++;
         document.getElementById('matchTime').textContent = matchData.minute + '분';
 
+
        // 40% 확률로 이벤트 발생
 if (Math.random() > 0.4) {
     return;
@@ -513,6 +514,11 @@ if (injuryResult.occurred) {
     displayEvent(event, matchData);
     return; // 부상 발생 시 이번 틱 종료
 }
+
+        // 35% 확률로 이벤트 발생 (기존과 동일)
+        if (Math.random() > 0.4) {
+            return;
+        }
 
         // 이벤트 발생 확률 계산
         const userModifiers = tacticSystem.getTacticModifiers(gameData.currentTactic);

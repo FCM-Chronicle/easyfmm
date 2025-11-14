@@ -1953,10 +1953,10 @@ function releasePlayerWithFee(player, transferFee) {
     
     // 능력치 배율 (75를 기준으로 차등)
     let ratingMultiplier;
-    if (player.rating >= 75) {
-        ratingMultiplier = 1 + ((player.rating - 75) * 0.04);
+    if (player.rating >= 82) {
+        ratingMultiplier = 1 + ((player.rating - 82) * 0.04);
     } else {
-        ratingMultiplier = 1 - ((75 - player.rating) * 0.08);
+        ratingMultiplier = 1 - ((82 - player.rating) * 0.08);
         ratingMultiplier = Math.max(0.2, ratingMultiplier);
     }
     price *= ratingMultiplier;
@@ -1972,15 +1972,15 @@ function releasePlayerWithFee(player, transferFee) {
     } else if (player.age <= 19) {
         ageMultiplier = 0.95 + (20 - player.age) * 0.025;
     } else if (player.age === 31) {
-        ageMultiplier = 0.65;
+        ageMultiplier = 0.85;
     } else if (player.age === 32) {
-        ageMultiplier = 0.45;
+        ageMultiplier = 0.75;
     } else if (player.age === 33) {
-        ageMultiplier = 0.3;
+        ageMultiplier = 0.5;
     } else if (player.age === 34) {
-        ageMultiplier = 0.2;
+        ageMultiplier = 0.3;
     } else if (player.age === 35) {
-        ageMultiplier = 0.12;
+        ageMultiplier = 0.22;
     } else {
         ageMultiplier = 0.05;
     }
@@ -3051,48 +3051,53 @@ function showTacticsInfo() {
 
 // 팀별 전술 매핑 (전역 변수)
 const teamTactics = {
+    // 1부 리그
+    바르셀로나: "tikitaka",
+    레알_마드리드: "possession",
     맨체스터_시티: "tikitaka",
     리버풀: "gegenpress",
-    맨체스터_유나이티드: "possession",
-    아스널: "twoLine",
-    첼시: "longBall",
-    토트넘_홋스퍼: "gegenpress",
-    레알_마드리드: "possession",
-    바르셀로나: "totalFootball",
-    AC_밀란: "gegenpress",
-    인터_밀란: "totalFootball",
+    토트넘_홋스퍼: "totalFootball",
+    파리_생제르맹: "tikitaka",
+    AC_밀란: "twoLine",
+    인터_밀란: "catenaccio",
+    아스널: "tikitaka",
+    나폴리: "possession",
+    첼시: "gegenpress",
     바이에른_뮌헨: "tikitaka",
-    파리_생제르맹: "possession",
-    레버쿠젠: "longBall",
-    도르트문트: "gegenpress",
-    뉴캐슬_유나이티드: "lavolpiana",
-    AS_로마: "longBall",
     아틀레티코_마드리드: "catenaccio",
-    나폴리: "parkBus",
-    유벤투스: "possession",
-    아스톤_빌라: "longBall",
-    라이프치히: "totalFootball",
-    세비야: "gegenpress",
-    스포르팅_CP: "lavolpiana",
+    도르트문트: "gegenpress",
+    
+    // 2부 리그
+    유벤투스: "catenaccio",
+    뉴캐슬_유나이티드: "longBall",
+    아스톤_빌라: "possession",
+    라이프치히: "gegenpress",
+    세비야: "tikitaka",
     아약스: "totalFootball",
-    벤피카: "possession",
-    셀틱: "gegenpress",
-    페예노르트: "longBall",
-    올랭피크_드_마르세유: "gegenpress",
-    리옹: "possession",
-    FC_서울: "twoLine",
-    전북_현대: "gegenpress",
-    울산_현대: "possession",
-    포항_스틸러스: "longBall",
-    광주_FC: "parkBus",
-    갈라타사라이: "gegenpress",
-    알_힐랄: "possession",
-    알_이티하드: "longBall",
-    알_나스르: "possession",
-    아르헨티나_연합: "totalFootball",
-    미국_연합: "longBall",
-    멕시코_연합: "gegenpress",
-    브라질_연합: "tikitaka"
+    AS_로마: "catenaccio",
+    레버쿠젠: "longBall",
+    스포르팅_CP: "possession",
+    벤피카: "twoLine",
+    셀틱: "longBall",
+    페예노르트: "possession",
+    맨체스터_유나이티드: "gegenpress",
+    올랭피크_드_마르세유: "twoLine",
+    
+    // 3부 리그
+    FC_서울: "lavolpiana",
+    갈라타사라이: "possession",
+    알_힐랄: "tikitaka",
+    알_이티하드: "possession",
+    알_나스르: "twoLine",
+    아르헨티나_연합: "catenaccio",
+    미국_연합: "gegenpress",
+    멕시코_연합: "totalFootball",
+    브라질_연합: "possession",
+    전북_현대: "lavolpiana",
+    울산_현대: "tikitaka",
+    포항_스틸러스: "possession",
+    광주_FC: "tikitaka",
+    리옹: "twoLine"
 };
 
 // 팀별 전술 정보 표시 함수

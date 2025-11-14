@@ -878,23 +878,58 @@ class LeagueBasedRecordsSystem extends RecordsSystem {
         
         console.log('리그별 개인기록이 리셋되었습니다.');
     }
+
+    // LeagueBasedRecordsSystem 클래스 내부에 추가
+
+// 특정 리그의 득점왕 1명 반환
+getTopScorer(league) {
+    const divisionKey = `division${league}`;
+    if (!this.leagueStats[divisionKey]) return null;
+    
+    const scorers = Array.from(this.leagueStats[divisionKey].values())
+        .filter(player => player.goals > 0)
+        .sort((a, b) => {
+            if (b.goals !== a.goals) return b.goals - a.goals;
+            return b.assists - a.assists;
+        });
+    
+    if (scorers.length === 0) return null;
+    
+    return {
+        playerName: scorers[0].name,
+        team: scorers[0].team,
+        goals: scorers[0].goals,
+        league: league
+    };
 }
 
-// 리그 기반 개인기록 시스템 인스턴스
-const leagueBasedRecordsSystem = new LeagueBasedRecordsSystem();
-
-// 기존 함수들 업데이트
-function initializeRecordsSystem() {
-    leagueBasedRecordsSystem.initialize();
+// 특정 리그의 도움왕 1명 반환
+getTopAssister(league) {
+    const divisionKey = `division${league}`;
+    if (!this.leagueStats[divisionKey]) return null;
+    
+    const assisters = Array.from(this.leagueStats[divisionKey].values())
+        .filter(player => player.assists > 0)
+        .sort((a, b) => {
+            if (b.assists !== a.assists) return b.assists - a.assists;
+            return b.goals - a.goals;
+        });
+    
+    if (assisters.length === 0) return null;
+    
+    return {
+        playerName: assisters[0].name,
+        team: assisters[0].team,
+        assists: assisters[0].assists,
+        league: league
+    };
+}
+    
+    
 }
 
-function updateRecordsAfterMatch(matchData) {
-    leagueBasedRecordsSystem.recordUserMatchStats(matchData.events || []);
-}
 
-function updateRecordsTab() {
-    leagueBasedRecordsSystem.updateRecordsDisplay();
-}
+
 
 // 전역으로 함수들 노출
 window.recordsSystem = leagueBasedRecordsSystem;
