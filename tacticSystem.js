@@ -377,32 +377,24 @@ class TacticSystem {
     }
 }
 
-// 경기 시뮬레이션에서 사용할 함수들
+// 수정된 startMatch 함수 - tacticSystem.js에 교체하세요
+
 function startMatch() {
+    // === 1단계: 초기 검증 ===
     if (!gameData.selectedTeam || !gameData.currentOpponent) {
         alert("팀이나 상대가 설정되지 않았습니다.");
         return;
     }
 
-    // 스쿼드 확인
-    const squad = gameData.squad;
-    const requiredPlayers = 11;
-    let currentPlayers = 0;
-
-    if (squad.gk) currentPlayers++;
-    squad.df.forEach(player => { if (player) currentPlayers++; });
-    squad.mf.forEach(player => { if (player) currentPlayers++; });
-    squad.fw.forEach(player => { if (player) currentPlayers++; });
-
-    if (currentPlayers < requiredPlayers) {
-        alert(`스쿼드에 ${requiredPlayers - currentPlayers}명의 선수가 더 필요합니다.`);
-        return;
+    // === 2단계: 스쿼드 검증 (새로운 포메이션 시스템 사용) ===
+    if (!validateFormationBeforeMatch()) {
+        return; // 검증 실패 시 경기 시작 안 함
     }
 
-    // 경기 화면으로 전환
+    // === 3단계: 경기 화면 전환 ===
     showScreen('matchScreen');
     
-    // 경기 초기화
+    // === 4단계: 경기 데이터 초기화 ===
     const matchData = {
         homeTeam: gameData.selectedTeam,
         awayTeam: gameData.currentOpponent,
@@ -413,25 +405,25 @@ function startMatch() {
         isRunning: false // 처음에는 중지 상태
     };
 
-    // 전술 효과 계산
+    // === 5단계: 전술 효과 계산 ===
     const tacticSystem = new TacticSystem();
     const opponentTactic = tacticSystem.getOpponentTactic(gameData.currentOpponent);
     const tacticEffect = tacticSystem.calculateTacticEffect(gameData.currentTactic, opponentTactic);
     
-    // 팀 전력 차이 계산
+    // === 6단계: 팀 전력 차이 계산 ===
     const strengthDiff = calculateTeamStrengthDifference();
     
-    // 사기에 전술 효과 적용
+    // === 7단계: 사기에 전술 효과 적용 ===
     gameData.teamMorale = Math.max(0, Math.min(100, gameData.teamMorale + tacticEffect));
 
-    // 화면 업데이트
+    // === 8단계: 화면 UI 업데이트 ===
     document.getElementById('homeTeam').textContent = teamNames[matchData.homeTeam];
     document.getElementById('awayTeam').textContent = teamNames[matchData.awayTeam];
     document.getElementById('scoreDisplay').textContent = `${matchData.homeScore} - ${matchData.awayScore}`;
     document.getElementById('matchTime').textContent = '0분';
     document.getElementById('eventList').innerHTML = '';
 
-    // 전술 상성 정보 표시
+    // === 9단계: 전술 상성 정보 표시 ===
     const matchup = tacticSystem.getTacticMatchup(gameData.currentTactic, opponentTactic);
     const tacticInfo = document.createElement('div');
     tacticInfo.className = 'event-card';
@@ -444,7 +436,7 @@ function startMatch() {
     `;
     document.getElementById('eventList').appendChild(tacticInfo);
 
-    // 킥오프 버튼 표시
+    // === 10단계: 킥오프 버튼 표시 ===
     showKickoffButton(matchData, tacticSystem, strengthDiff);
 }
 

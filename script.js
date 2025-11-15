@@ -13,7 +13,7 @@ const allTeams = {
             { name: "이냐키 페냐", position: "GK", country: "스페인", age: 26, rating: 73 },
             { name: "마커스 래시포드", position: "MF", country: "잉글랜드", age: 27, rating: 80 },
             { name: "마르크 안드레 테어 슈테겐", position: "GK", country: "독일", age: 33, rating: 85 },
-            { name: "안드레아스 크리스텐센", position: "DF", country: "덴마크", age: 29, rating: 73 },
+            { name: "안드레아스 크리스텐센", position: "DF", country: "덴마크", age: 29, rating: 78 },
             { name: "페르민 로페스", position: "MF", country: "스페인", age: 22, rating: 82 },
             { name: "마르크 카사도", position: "MF", country: "스페인", age: 21, rating: 79 },
             { name: "다니 올모", position: "MF", country: "스페인", age: 27, rating: 86 },
@@ -133,13 +133,13 @@ const allTeams = {
             { name: "조 고메즈", position: "DF", country: "잉글랜드", age: 28, rating: 75 },
             { name: "엔도 와타루", position: "MF", country: "일본", age: 32, rating: 74 },
             { name: "버질 반 다이크", position: "DF", country: "네덜란드", age: 34, rating: 92 },
-            { name: "이브라히마 코나테", position: "DF", country: "프랑스", age: 26, rating: 86 },
-            { name: "밀로시 케르케즈", position: "DF", country: "헝가리", age: 21, rating: 85 },
-            { name: "플로리안 비르츠", position: "FW", country: "독일", age: 22, rating: 93 },
+            { name: "이브라히마 코나테", position: "DF", country: "프랑스", age: 26, rating: 84 },
+            { name: "밀로시 케르케즈", position: "DF", country: "헝가리", age: 21, rating: 83 },
+            { name: "플로리안 비르츠", position: "FW", country: "독일", age: 22, rating: 85 },
             { name: "도미니크 소보슬라이", position: "MF", country: "헝가리", age: 24, rating: 87 },
             { name: "다르윈 누녜스", position: "FW", country: "우루과이", age: 26, rating: 75 },
             { name: "알렉시스 맥 알리스터", position: "MF", country: "아르헨티나", age: 26, rating: 90 },
-            { name: "모하메드 살라", position: "FW", country: "이집트", age: 33, rating: 94 },
+            { name: "모하메드 살라", position: "FW", country: "이집트", age: 33, rating: 89 },
             { name: "코너 브래들리", position: "DF", country: "북아일랜드", age: 22, rating: 76 },
             { name: "페데리코 키에사", position: "FW", country: "이탈리아", age: 27, rating: 82 },
             { name: "커티스 존스", position: "MF", country: "잉글랜드", age: 24, rating: 81 },
@@ -148,8 +148,8 @@ const allTeams = {
             { name: "코스타스 치미카스", position: "DF", country: "그리스", age: 29, rating: 73 },
             { name: "위고 에키티케", position: "FW", country: "프랑스", age: 23, rating: 86 },
             { name: "기오르기 마마르다슈빌리", position: "GK", country: "조지아", age: 24, rating: 81 },
-            { name: "앤디 로버트슨", position: "DF", country: "스코틀랜드", age: 31, rating: 83 },
-            { name: "제레미 프림퐁", position: "DF", country: "네덜란드", age: 24, rating: 87 },
+            { name: "앤드류 로버트슨", position: "DF", country: "스코틀랜드", age: 31, rating: 83 },
+            { name: "제레미 프림퐁", position: "DF", country: "네덜란드", age: 24, rating: 85 },
             { name: "라이언 흐라벤베르흐", position: "MF", country: "네덜란드", age: 23, rating: 91 },
             { name: "스테판 바이체티치", position: "MF", country: "스페인", age: 20, rating: 67 },
             { name: "리스 윌리엄스", position: "DF", country: "잉글랜드", age: 24, rating: 66 },
@@ -1667,13 +1667,13 @@ function setupEventListeners() {
     });
 
     // 포지션 클릭
-    document.querySelectorAll('.position').forEach(position => {
-        position.addEventListener('click', function() {
-            const pos = this.dataset.position;
-            const index = this.dataset.index;
-            openPlayerModal(pos, index);
-        });
-    });
+    // document.querySelectorAll('.position').forEach(position => {
+    //     position.addEventListener('click', function() {
+    //         const pos = this.dataset.position;
+    //         const index = this.dataset.index;
+    //         openPlayerModal(pos, index);
+    //     });
+    // });
 
     // 경기 시작
     document.getElementById('startMatchBtn').addEventListener('click', startMatch);
@@ -1739,7 +1739,7 @@ function selectTeam(teamKey) {
     setNextOpponent();
     
     // 로비로 이동
-    showScreen('lobby');
+    showScreen('lobby'); 
     displayTeamPlayers();
     updateDisplay();
     displaySponsors();
@@ -1775,7 +1775,10 @@ function autoFillSquad() {
         gameData.squad.fw[i] = fws[i];
     }
     
-    updateFormationDisplay();
+    // 새 포메이션 시스템으로 화면 새로고침
+    if (window.refreshFormation) {
+        window.refreshFormation();
+    }
 }
 
 function showScreen(screenId) {
@@ -1801,8 +1804,10 @@ function showTab(tabName) {
     // 탭별 초기화
     switch(tabName) {
         case 'squad':
-            displayTeamPlayers();
-            updateFormationDisplay();
+            if (window.refreshFormation) {
+                window.refreshFormation();
+            }
+            displayTeamPlayers(); // 선수 목록은 계속 표시
             break;
             
         case 'transfer':
@@ -1920,7 +1925,7 @@ function displayTeamPlayers() {
             // ✅ 후보 선수 우클릭으로 방출 (이적료 받기) - 수정!
             playerCard.addEventListener('contextmenu', (e) => {
                 e.preventDefault();
-            //    releasePlayerWithFee(player, 0); // 직접 호출로 변경
+               releasePlayerWithFee(player, 0); // 직접 호출로 변경
             });
         }
         
@@ -2091,11 +2096,12 @@ function openPlayerModal(position, index) {
     
     const teamPlayers = teams[gameData.selectedTeam];
     const filteredPlayers = teamPlayers.filter(player => 
-        player.position === position.toUpperCase() && !isPlayerInSquad(player)
+        !isPlayerInSquad(player)
     );
     
     if (filteredPlayers.length === 0) {
         modalPlayerList.innerHTML = '<p>배치 가능한 선수가 없습니다.</p>';
+        modal.style.display = 'block';
     } else {
         filteredPlayers.forEach(player => {
             const playerCard = document.createElement('div');
@@ -2106,7 +2112,7 @@ function openPlayerModal(position, index) {
             `;
             
             playerCard.addEventListener('click', () => {
-                assignPlayerToPosition(player);
+                // assignPlayerToPosition(player);
                 closeModal();
             });
             
@@ -2114,7 +2120,7 @@ function openPlayerModal(position, index) {
         });
     }
     
-    modal.style.display = 'block';
+    // modal.style.display = 'block';
 }
 
 function assignPlayerToPosition(player) {
@@ -2144,6 +2150,13 @@ function assignPlayerToPosition(player) {
 }
 
 function updateFormationDisplay() {
+
+    // ✅ 이 3줄만 추가
+    if (typeof refreshFormation === 'function') {
+        refreshFormation();
+        return;
+    }
+    
     // GK 업데이트
     const gkSlot = document.getElementById('gk-slot');
     if (gameData.squad.gk) {
@@ -2205,7 +2218,7 @@ function updateFormationDisplay() {
 
 function closeModal() {
     document.getElementById('playerModal').style.display = 'none';
-    selectedPosition = null;
+    // selectedPosition = null; // formation.js의 교체 로직과 충돌하므로 주석 처리
 }
 
 function updateDisplay() {

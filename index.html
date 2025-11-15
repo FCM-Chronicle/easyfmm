@@ -278,57 +278,24 @@
             <!-- 스쿼드 탭 -->
             <div id="squad" class="tab-panel active">
                 <div class="formation-container">
-                    <div class="field">
-                        <div class="field-line"></div>
-                        <div class="center-circle"></div>
-                        <div class="penalty-box penalty-box-top"></div>
-                        <div class="penalty-box penalty-box-bottom"></div>
-                        
-                        <!-- 골키퍼 -->
-                        <div class="position gk" data-position="gk">
-                            <div class="player-slot" id="gk-slot">GK</div>
-                        </div>
-                        
-                        <!-- 수비수 -->
-                        <div class="position df df-1" data-position="df" data-index="0">
-                            <div class="player-slot">DF</div>
-                        </div>
-                        <div class="position df df-2" data-position="df" data-index="1">
-                            <div class="player-slot">DF</div>
-                        </div>
-                        <div class="position df df-3" data-position="df" data-index="2">
-                            <div class="player-slot">DF</div>
-                        </div>
-                        <div class="position df df-4" data-position="df" data-index="3">
-                            <div class="player-slot">DF</div>
-                        </div>
-                        
-                        <!-- 미드필더 -->
-                        <div class="position mf mf-1" data-position="mf" data-index="0">
-                            <div class="player-slot">MF</div>
-                        </div>
-                        <div class="position mf mf-2" data-position="mf" data-index="1">
-                            <div class="player-slot">MF</div>
-                        </div>
-                        <div class="position mf mf-3" data-position="mf" data-index="2">
-                            <div class="player-slot">MF</div>
-                        </div>
-                        
-                        <!-- 공격수 -->
-                        <div class="position fw fw-1" data-position="fw" data-index="0">
-                            <div class="player-slot">FW</div>
-                        </div>
-                        <div class="position fw fw-2" data-position="fw" data-index="1">
-                            <div class="player-slot">FW</div>
-                        </div>
-                        <div class="position fw fw-3" data-position="fw" data-index="2">
-                            <div class="player-slot">FW</div>
+                    <div class="field-wrapper">
+                        <div class="field">
+                            <div class="field-line"></div>
+                            <div class="center-circle"></div>
+                            <div class="penalty-box penalty-box-top"></div>
+                            <div class="penalty-box penalty-box-bottom"></div>
+                            
+                            <!-- 선수 영역 -->
+                            <div class="player-area" id="fw-area" data-position-type="FW"></div>
+                            <div class="player-area" id="mf-area" data-position-type="MF"></div>
+                            <div class="player-area" id="df-area" data-position-type="DF"></div>
+                            <div class="player-area" id="gk-area" data-position-type="GK"></div>
                         </div>
                     </div>
                 </div>
                 
                 <div class="team-players">
-                    <h3>팀 선수 목록</h3>
+                    <h3>팀 선수 목록(선발인 선수는 판매하지 마세요)</h3>
                     <div id="playerList"></div>
                 </div>
             </div>
@@ -516,8 +483,8 @@
     <!-- 선수 선택 모달 -->
     <div id="playerModal" class="modal">
         <div class="modal-content">
-            <span class="close">&times;</span>
-            <h3>선수 선택</h3>
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h3 class="modal-title">선수 선택</h3>
             <div id="modalPlayerList"></div>
         </div>
     </div>
@@ -531,12 +498,14 @@
         </div>
     </div>
 
+
 <script src="sns.js"></script>
 <script src="records.js"></script>
 <script src="playerGrowth.js"></script>
 <script src="endSeason.js"></script>    
 <script src="tacticSystem.js"></script>  <!-- startMatch 함수가 여기 정의됨 -->
 <script src="transfer.js"></script>
+<script src="formation.js"></script>
 <script src="script.js"></script> 
 </body>
 </html>
