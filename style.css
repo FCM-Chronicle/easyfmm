@@ -1477,6 +1477,30 @@ body {
     background: rgba(128, 128, 128, 0.2);
 }
 
+/* 유스 시스템 */
+.youth-header {
+    background: var(--bg-container);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    padding: 25px;
+    margin-bottom: 25px;
+    border: 1px solid var(--border-color);
+    text-align: center;
+}
+
+.youth-header h3 {
+    font-size: 1.8rem;
+    margin-bottom: 15px;
+    color: var(--team-primary);
+}
+
+#youthPlayerList {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 15px;
+}
+
+
 
 /* ==================== 선수 성장 ==================== */
 .position-header {

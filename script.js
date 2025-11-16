@@ -1470,6 +1470,7 @@ let gameData = {
     currentOpponent: null,
     currentTactic: 'gegenpress',
     squad: {
+        // 4-3-3 포메이션 기준
         gk: null,
         df: [null, null, null, null],
         mf: [null, null, null],
@@ -1482,7 +1483,9 @@ let gameData = {
     },
     playerGrowthData: {},
     transferSystemData: {},
-    injuredPlayers: [] // 부상 선수 목록 추가
+    injuredPlayers: [], // 부상 선수 목록 추가
+    aiPrestige: {}, // AI 팀의 환생 선수/성장 보너스 관리
+    youthSquad: [] // 유스팀 선수 목록 추가
 };
 
 
@@ -1862,6 +1865,10 @@ function showTab(tabName) {
         case 'settings':
             // 설정 탭을 열 때마다 슬롯 UI 생성
             createSaveSlots();
+            break;
+
+        case 'youth':
+            displayYouthPlayers();
             break;
             
         default:
@@ -2620,6 +2627,11 @@ function endMatch(matchData) {
     // AI 팀들 경기 시뮬레이션
     simulateOtherMatches();
 }
+    // 시즌 종료 후 처리
+    setTimeout(() => {
+        processRetirementsAndReincarnations(); // 은퇴 및 환생 처리
+        checkSeasonEnd(); // 시즌 종료 조건 체크
+    }, 1000);
 
 // 저장/불러오기에 스폰서 데이터 포함 확인
 function checkSponsorDataInSave() {
@@ -3577,6 +3589,118 @@ function deleteSlot(slotNumber) {
         // 슬롯 UI 새로고침
         createSaveSlots();
     }
+}
+
+// ==================== 유스 & 환생 시스템 ====================
+
+// 유스팀 선수 표시
+function displayYouthPlayers() {
+    const container = document.getElementById('youthPlayerList');
+    container.innerHTML = '';
+
+    if (gameData.youthSquad.length === 0) {
+        container.innerHTML = '<p style="text-align: center; opacity: 0.7; padding: 20px;">현재 유스팀에 소속된 선수가 없습니다.</p>';
+        return;
+    }
+
+    gameData.youthSquad.forEach(player => {
+        const playerCard = document.createElement('div');
+        playerCard.className = 'player-card';
+        playerCard.innerHTML = `
+            <div class="name">${player.name}</div>
+            <div class="details">
+                <div>${player.position} | 능력치: ${player.rating} | 나이: ${player.age}</div>
+                <div style="color: #2ecc71; font-size: 0.8rem;">유망주</div>
+            </div>
+        `;
+        playerCard.addEventListener('click', () => {
+            // 콜업 로직으로 변경
+            if (teams[gameData.selectedTeam].length >= 50) {
+                alert('팀 인원이 가득 찼습니다! (최대 50명)\n기존 선수를 방출해야 콜업할 수 있습니다.');
+                return;
+            }
+
+            if (confirm(`${player.name} 선수를 1군으로 콜업하시겠습니까?`)) {
+                // 1. 1군에 선수 추가
+                teams[gameData.selectedTeam].push(player);
+
+                // 2. 유스팀에서 선수 제거
+                gameData.youthSquad = gameData.youthSquad.filter(p => p.name !== player.name);
+
+                // 3. 선수에게 성장 포텐셜 부여
+                if (typeof playerGrowthSystem !== 'undefined') {
+                    const potentialGranted = playerGrowthSystem.grantPotentialToPlayer(player);
+                    if (potentialGranted) {
+                        alert(`${player.name} 선수가 1군으로 콜업되었으며, 성장 시스템이 적용되었습니다!`);
+                    } else {
+                        alert(`${player.name} 선수가 1군으로 콜업되었습니다.`);
+                    }
+                }
+
+                // 4. UI 새로고침
+                displayYouthPlayers();
+                displayTeamPlayers();
+            }
+        });
+        container.appendChild(playerCard);
+    });
+}
+
+// 은퇴 및 환생 처리
+function processRetirementsAndReincarnations() {
+    console.log("🔄 은퇴 및 환생 시스템 작동...");
+    Object.keys(allTeams).forEach(teamKey => {
+        const teamPlayers = teams[teamKey];
+        const retiredPlayers = [];
+
+        for (let i = teamPlayers.length - 1; i >= 0; i--) {
+            const player = teamPlayers[i];
+            if (player.age > 37 && Math.random() < 0.07) { // 37세 초과, 7% 확률
+                retiredPlayers.push(player);
+                
+                // 1. 팀에서 선수 제거
+                teamPlayers.splice(i, 1);
+
+                // 2. 유저팀 선수였다면 스쿼드에서도 제거
+                if (teamKey === gameData.selectedTeam) {
+                    removePlayerFromSquad(player);
+                }
+
+                // 3. 환생 선수 생성
+                const reincarnatedPlayer = {
+                    name: player.name, // 이름 유지
+                    position: player.position,
+                    country: player.country,
+                    age: 17,
+                    rating: Math.floor(Math.random() * (71 - 57 + 1)) + 57, // 57~71
+                    isReincarnated: true // 환생 선수 플래그
+                };
+
+                let message;
+                // 4. 환생한 선수를 소속에 맞게 배치
+                if (teamKey === gameData.selectedTeam) {
+                    // 사용자 팀에서 은퇴한 경우, 유스팀으로 이동
+                    gameData.youthSquad.push(reincarnatedPlayer);
+                    message = `[은퇴/환생] 우리 팀의 전설 ${player.name}(${player.age}세)가 은퇴를 선언했습니다. 동시에 그의 재능을 이어받은 17세 유망주가 유스팀에서 발견되었습니다!`;
+                } else {
+                    // AI 팀에서 은퇴한 경우, 해당 AI 팀에 바로 추가
+                    teams[teamKey].push(reincarnatedPlayer);
+
+                    // AI 프레스티지 시스템에 등록
+                    if (!gameData.aiPrestige[teamKey]) {
+                        gameData.aiPrestige[teamKey] = [];
+                    }
+                    gameData.aiPrestige[teamKey].push(reincarnatedPlayer.name);
+
+                    message = `[은퇴/환생] ${teamNames[teamKey]}의 전설적인 선수 ${player.name}(${player.age}세)가 은퇴했습니다. 그의 뒤를 이을 17세 유망주가 팀에 새롭게 등장했습니다.`;
+                }
+                
+                // 5. SNS 알림 생성
+                snsManager.posts.unshift({ id: snsManager.postIdCounter++, type: 'transfer_rumor', content: message, hashtags: ['#은퇴', '#환생', `#${snsManager.sanitizeHashtag(player.name)}`], timestamp: Date.now(), likes: Math.floor(Math.random() * 2000) + 500, comments: Math.floor(Math.random() * 300) + 50, shares: Math.floor(Math.random() * 100) + 20 });
+                console.log(message);
+            }
+        }
+    });
 }
 
 // 전역 함수로 등록

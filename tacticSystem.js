@@ -1191,8 +1191,12 @@ function endMatch(matchData) {
     // AI 팀들 경기 시뮬레이션
     simulateOtherMatches();
 
-    // ✅ 부상 업데이트 (경기 종료 후 처리)
-    const recovered = injurySystem.updateInjuries();
+    // 경기 종료 후 처리 (부상, 은퇴, 시즌종료 체크)
+    setTimeout(() => {
+        const recovered = injurySystem.updateInjuries(); // 부상 회복 처리
+        processRetirementsAndReincarnations(); // 은퇴 및 환생 처리
+        checkSeasonEnd(); // 시즌 종료 조건 체크
+    }, 1000);
     
     // ✅✅ 부상 선수를 스쿼드에서 제거 (추가!)
     injurySystem.removeInjuredFromSquad();

@@ -226,14 +226,23 @@ processAllTeamsGrowth() {
             teamPlayers.forEach(player => {
                 if (player.age <= 25) {
                     // 5경기마다 100% 확률로 0.5~1.2 성장
-                    let growthInterval = 5;
-                    let growthAmount = 0.5 + Math.random() * 0.7;
+                    const growthInterval = 5;
+                    let growthAmount = 0.5 + Math.random() * 0.7; // 기본 성장량
                     
                     if (gameData.matchesPlayed % growthInterval === 0) {
+                        // AI 프레스티지 선수(환생) 성장 보너스
+                        const isPrestigePlayer = gameData.aiPrestige && gameData.aiPrestige[teamKey] && gameData.aiPrestige[teamKey].includes(player.name);
+                        
+                        if (isPrestigePlayer) {
+                            const prestigeBonus = 0.5 + Math.random() * 0.8; // 0.5 ~ 1.3 추가 성장
+                            growthAmount += prestigeBonus;
+                            console.log(`👑 AI 프레스티지 성장: ${player.name} (${teamNames[teamKey]}) +${prestigeBonus.toFixed(2)} 보너스!`);
+                        }
+
                         const newRating = Math.min(99, Math.round((player.rating + growthAmount) * 10) / 10);
                         player.rating = newRating;
                         
-                        console.log(`🤖 AI 성장: ${player.name} (${teamNames[teamKey]}) +${growthAmount.toFixed(2)} → ${newRating}`);
+                        console.log(`🤖 AI 성장: ${player.name} (${teamNames[teamKey]}) +${growthAmount.toFixed(1)} → ${newRating}`);
                     }
                 }
             });
@@ -270,6 +279,30 @@ processAllTeamsGrowth() {
             displayTeamPlayers();
             updateFormationDisplay();
         }
+    }
+
+    // 특정 선수에게 성장 가능성 부여 (유스 콜업 시 사용)
+    grantPotentialToPlayer(player) {
+        if (player.age <= 25 && !this.growthData.has(player.name)) {
+            const growthPotential = this.calculateGrowthPotential(player);
+            
+            let monthlyGrowth = Math.max(0.34, growthPotential / 12);
+            
+            const monthsToGrow = Math.ceil(growthPotential / monthlyGrowth);
+            
+            this.growthData.set(player.name, {
+                currentRating: Math.round(player.rating),
+                maxGrowth: Math.round(growthPotential),
+                remainingGrowth: Math.round(growthPotential),
+                monthsToGrow: monthsToGrow,
+                monthlyGrowth: monthlyGrowth,
+                lastGrowthCheck: Date.now()
+            });
+
+            console.log(`🌟 유망주 콜업: ${player.name}에게 성장 가능성 ${Math.round(growthPotential)} 부여 완료.`);
+            return true;
+        }
+        return false;
     }
 
     // 선수 성장 정보 조회
