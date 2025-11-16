@@ -402,12 +402,17 @@ function startMatch() {
         awayScore: 0,
         minute: 0,
         events: [],
-        isRunning: false // 처음에는 중지 상태
+        isRunning: false, // 처음에는 중지 상태
+        substitutionsMade: 0, // 교체 횟수
+        userTeamRating: 0, // 경기 중 실시간 전력
+        opponentTeamRating: 0,
+        tacticAdvantage: 0
     };
 
     // === 5단계: 전술 효과 계산 ===
     const tacticSystem = new TacticSystem();
     const opponentTactic = tacticSystem.getOpponentTactic(gameData.currentOpponent);
+    matchData.tacticAdvantage = tacticSystem.getTacticMatchup(gameData.currentTactic, opponentTactic).advantage;
     const tacticEffect = tacticSystem.calculateTacticEffect(gameData.currentTactic, opponentTactic);
     
     // === 6단계: 팀 전력 차이 계산 ===
@@ -416,12 +421,20 @@ function startMatch() {
     // === 7단계: 사기에 전술 효과 적용 ===
     gameData.teamMorale = Math.max(0, Math.min(100, gameData.teamMorale + tacticEffect));
 
+    // 경기 시작 시 전력 저장
+    matchData.userTeamRating = strengthDiff.userRating;
+    matchData.opponentTeamRating = strengthDiff.opponentRating;
+
     // === 8단계: 화면 UI 업데이트 ===
     document.getElementById('homeTeam').textContent = teamNames[matchData.homeTeam];
     document.getElementById('awayTeam').textContent = teamNames[matchData.awayTeam];
     document.getElementById('scoreDisplay').textContent = `${matchData.homeScore} - ${matchData.awayScore}`;
     document.getElementById('matchTime').textContent = '0분';
     document.getElementById('eventList').innerHTML = '';
+    document.getElementById('substituteBtn').style.display = 'inline-block'; // 교체 버튼 표시
+    document.getElementById('substituteBtn').onclick = () => {
+        openSubstitutionModal(matchData);
+    };
 
     // === 9단계: 전술 상성 정보 표시 ===
     const matchup = tacticSystem.getTacticMatchup(gameData.currentTactic, opponentTactic);
@@ -465,7 +478,7 @@ function showKickoffButton(matchData, tacticSystem, strengthDiff) {
 function startMatchSimulation(matchData, tacticSystem, strengthDiff) {
     matchData.isRunning = true;
     matchData.strengthDiff = strengthDiff; // 전력 차이 데이터 저장
-    
+    matchData.intervalId = null; // 인터벌 ID 저장
     // 킥오프 메시지
     const kickoffEvent = {
         minute: 0,
@@ -479,7 +492,7 @@ function startMatchSimulation(matchData, tacticSystem, strengthDiff) {
 }
 
 function simulateMatch(matchData, tacticSystem) {
-    const matchInterval = setInterval(() => {
+    const matchInterval = setInterval(function simulationTick() { // 함수에 이름 부여
         if (!matchData.isRunning || matchData.minute >= 90) {
             clearInterval(matchInterval);
             
@@ -497,12 +510,13 @@ function simulateMatch(matchData, tacticSystem) {
         if (Math.random() > 0.4) {
             return;
         }
-
-        // ===== 부상 체크 (5경기당 1명꼴) =====
+        
+        // ===== 부상 체크 =====
         const injuryResult = injurySystem.checkInjury(matchData);
         if (injuryResult.occurred) {
             const event = createInjuryEvent(matchData, injuryResult);
             displayEvent(event, matchData);
+            if (injuryResult.isUserTeam) handleForcedSubstitution(injuryResult.player, matchData);
             return; // 부상 발생 시 이번 틱 종료
         }
 
@@ -513,11 +527,10 @@ function simulateMatch(matchData, tacticSystem) {
 
 
         // 전술 상성 효과 계산
-        const tacticMatchup = tacticSystem.getTacticMatchup(gameData.currentTactic, opponentTactic);
-        const tacticAdvantage = tacticMatchup.advantage; // +5 (유리), 0 (중립), -3 (불리)
+        const tacticAdvantage = matchData.tacticAdvantage;
 
-        const strengthDiff = matchData.strengthDiff;
-        const strengthFactor = strengthDiff.difference / 60;
+        // 실시간 전력차 사용
+        const strengthFactor = (matchData.userTeamRating - matchData.opponentTeamRating) / 60;
 
         const upsetMode = Math.random() < 0.07;
         let upsetFactor = 0;
@@ -529,7 +542,7 @@ function simulateMatch(matchData, tacticSystem) {
                 const upsetEvent = {
                     minute: matchData.minute,
                     type: 'upset',
-                    description: `✨ ${strengthDiff.userAdvantage ? teamNames[gameData.currentOpponent] : teamNames[gameData.selectedTeam]}이(가) 예상 외의 좋은 플레이를 보이고 있습니다!`
+                    description: `✨ ${matchData.userTeamRating > matchData.opponentTeamRating ? teamNames[gameData.currentOpponent] : teamNames[gameData.selectedTeam]}이(가) 예상 외의 좋은 플레이를 보이고 있습니다!`
                 };
                 displayEvent(upsetEvent, matchData);
             }
@@ -581,7 +594,7 @@ function simulateMatch(matchData, tacticSystem) {
         }
 
         // 전력차 및 이변 효과 반영
-        if (strengthDiff.userAdvantage) {
+        if (matchData.userTeamRating > matchData.opponentTeamRating) {
             userGoalChance += Math.abs(strengthFactor) * 0.5;
             opponentGoalChance -= Math.abs(strengthFactor) * 0.2;
             
@@ -645,7 +658,8 @@ function simulateMatch(matchData, tacticSystem) {
             displayEvent(event, matchData);
         }
 
-    }, 1000); // ✅ 이 닫는 중괄호와 괄호가 핵심!
+        matchData.intervalId = matchInterval; // 인터벌 ID 저장
+    }, 1000);
 }
 
 
@@ -1044,6 +1058,7 @@ function displayEvent(event, matchData) {
 
 function endMatch(matchData) {
     document.getElementById('endMatchBtn').style.display = 'block';
+    document.getElementById('substituteBtn').style.display = 'none'; // 교체 버튼 숨기기
     
     // 경기 결과 계산
     const userScore = matchData.homeScore;
@@ -1742,6 +1757,160 @@ class InjurySystem {
         });
     }
 }
+
+// ==================== 교체 시스템 ====================
+
+let selectedFieldPlayer = null;
+let selectedBenchPlayer = null;
+
+function openSubstitutionModal(matchData, isForced = false, injuredPlayer = null) {
+    if (matchData.substitutionsMade >= 5 && !isForced) {
+        alert('교체 횟수를 모두 사용했습니다.');
+        return;
+    }
+
+    const modal = document.getElementById('substitutionModal');
+    const fieldPlayersList = document.getElementById('fieldPlayersList');
+    const benchPlayersList = document.getElementById('benchPlayersList');
+    const subsLeftEl = document.getElementById('substitutionsLeft');
+    const modalTitle = document.getElementById('substitutionModalTitle');
+
+    fieldPlayersList.innerHTML = '';
+    benchPlayersList.innerHTML = '';
+    subsLeftEl.textContent = `남은 교체 횟수: ${5 - matchData.substitutionsMade}`;
+    modalTitle.textContent = isForced ? `🚨 부상 선수 교체` : '선수 교체';
+
+    // 현재 필드 위 선수 목록 생성
+    const squad = gameData.squad;
+    const fieldPlayers = [squad.gk, ...squad.df, ...squad.mf, ...squad.fw].filter(p => p);
+
+    fieldPlayers.forEach(player => {
+        const playerEl = createSubPlayerElement(player);
+        if (isForced && injuredPlayer && player.name === injuredPlayer.name) {
+            playerEl.classList.add('selected');
+            selectedFieldPlayer = { element: playerEl, player: player };
+        } else {
+            playerEl.addEventListener('click', () => selectPlayerForSub(player, playerEl, 'field', matchData));
+        }
+        fieldPlayersList.appendChild(playerEl);
+    });
+
+    // 벤치 선수 목록 생성
+    const benchPlayers = teams[gameData.selectedTeam].filter(p => !fieldPlayers.some(fp => fp.name === p.name));
+    benchPlayers.forEach(player => {
+        const playerEl = createSubPlayerElement(player);
+        playerEl.addEventListener('click', () => selectPlayerForSub(player, playerEl, 'bench', matchData));
+        benchPlayersList.appendChild(playerEl);
+    });
+
+    modal.style.display = 'block';
+}
+
+function createSubPlayerElement(player) {
+    const el = document.createElement('div');
+    el.className = 'substitution-player';
+    el.dataset.playerName = player.name;
+    el.innerHTML = `
+        <div class="name">${player.name} (${player.position})</div>
+        <div class="details">능력치: ${player.rating}</div>
+    `;
+    return el;
+}
+
+function selectPlayerForSub(player, element, type, matchData) {
+    if (type === 'field') {
+        if (selectedFieldPlayer) selectedFieldPlayer.element.classList.remove('selected');
+        element.classList.add('selected');
+        selectedFieldPlayer = { element, player };
+    } else {
+        if (selectedBenchPlayer) selectedBenchPlayer.element.classList.remove('selected');
+        element.classList.add('selected');
+        selectedBenchPlayer = { element, player };
+    }
+
+    if (selectedFieldPlayer && selectedBenchPlayer) {
+        performSubstitution(selectedFieldPlayer.player, selectedBenchPlayer.player, matchData);
+    }
+}
+
+function performSubstitution(playerOut, playerIn, matchData) {
+    if (matchData.substitutionsMade >= 5) {
+        alert('교체 횟수를 모두 사용했습니다.');
+        closeSubstitutionModal();
+        return;
+    }
+
+    // 1. gameData.squad 업데이트
+    const squad = gameData.squad;
+    let replaced = false;
+    ['gk', 'df', 'mf', 'fw'].forEach(posKey => {
+        if (replaced) return;
+        if (posKey === 'gk') {
+            if (squad.gk && squad.gk.name === playerOut.name) {
+                squad.gk = playerIn;
+                replaced = true;
+            }
+        } else {
+            const index = squad[posKey].findIndex(p => p && p.name === playerOut.name);
+            if (index !== -1) {
+                squad[posKey][index] = playerIn;
+                replaced = true;
+            }
+        }
+    });
+
+    if (!replaced) {
+        console.error("교체 대상 선수를 스쿼드에서 찾지 못했습니다:", playerOut);
+        alert('교체 중 오류가 발생했습니다.');
+        return;
+    }
+
+    // 2. 교체 횟수 증가
+    matchData.substitutionsMade++;
+
+    // 3. 전력 재계산 및 보너스 적용
+    const newRating = calculateUserTeamRating();
+    const bonus = 0.2;
+    matchData.userTeamRating = newRating + bonus;
+
+    // 4. 교체 이벤트 생성 및 표시
+    const subEvent = {
+        minute: matchData.minute,
+        type: 'substitution',
+        description: `🔄 교체: IN ${playerIn.name}(${playerIn.rating}) / OUT ${playerOut.name}(${playerOut.rating}).<br>
+                      전력 재계산: ${newRating.toFixed(1)} + ${bonus}(보너스) = ${matchData.userTeamRating.toFixed(1)}`
+    };
+    displayEvent(subEvent, matchData);
+
+    // 5. 모달 닫기 및 선택 초기화
+    closeSubstitutionModal();
+    
+    // 6. 부상으로 인한 강제 교체였다면 경기 재개
+    if (matchData.isPausedForInjury) {
+        matchData.isPausedForInjury = false;
+        matchData.isRunning = true;
+    }
+}
+
+function handleForcedSubstitution(injuredPlayer, matchData) {
+    matchData.isRunning = false; // 경기 일시정지
+    matchData.isPausedForInjury = true;
+    alert(`🚨 ${injuredPlayer.name} 선수가 부상으로 경기를 뛸 수 없습니다! 교체해야 합니다.`);
+    openSubstitutionModal(matchData, true, injuredPlayer);
+}
+
+function closeSubstitutionModal() {
+    document.getElementById('substitutionModal').style.display = 'none';
+    selectedFieldPlayer = null;
+    selectedBenchPlayer = null;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const closeSubModalBtn = document.getElementById('closeSubstitutionModal');
+    if (closeSubModalBtn) {
+        closeSubModalBtn.addEventListener('click', closeSubstitutionModal);
+    }
+});
 
 // ✅✅✅ 이 부분이 **반드시** 있어야 합니다! ✅✅✅
 const injurySystem = new InjurySystem();

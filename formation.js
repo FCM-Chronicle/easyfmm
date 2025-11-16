@@ -120,10 +120,10 @@ class FormationSystem {
     
     setupDragEvents() {
         this.field.addEventListener('mousedown', e => this.onDragStart(e));
-        this.field.addEventListener('touchstart', e => this.onDragStart(e.touches[0]), { passive: false });
+        this.field.addEventListener('touchstart', e => this.onDragStart(e), { passive: false });
 
         document.addEventListener('mousemove', e => this.onDragMove(e));
-        document.addEventListener('touchmove', e => this.onDragMove(e.touches[0]), { passive: false });
+        document.addEventListener('touchmove', e => this.onDragMove(e), { passive: false });
 
         document.addEventListener('mouseup', e => this.onDragEnd(e));
         document.addEventListener('touchend', e => this.onDragEnd(e.changedTouches[0]));
@@ -131,7 +131,10 @@ class FormationSystem {
     
     onDragStart(e) {
         if (!this.isEditMode) return;
-        const target = e.target.closest('.player-slot');
+
+        const touch = e.touches ? e.touches[0] : e;
+        const target = touch.target.closest('.player-slot');
+
         if (!target) return;
 
         // GK는 움직일 수 없음
@@ -158,19 +161,24 @@ class FormationSystem {
         this.field.appendChild(this.draggedPlayer);
         this.draggedPlayer.classList.add('dragging');
         
-        this.offsetX = e.clientX - rect.left;
-        this.offsetY = e.clientY - rect.top;
+        this.offsetX = touch.clientX - rect.left;
+        this.offsetY = touch.clientY - rect.top;
 
         e.preventDefault();
     }
     
     onDragMove(e) {
         if (!this.draggedPlayer) return;
-        e.preventDefault();
+        
+        // passive: false가 제대로 동작하지 않는 브라우저를 위해 추가
+        if (e.cancelable) {
+            e.preventDefault();
+        }
 
+        const touch = e.touches ? e.touches[0] : e;
         const fieldRect = this.field.getBoundingClientRect();
-        let x = e.clientX - fieldRect.left - this.offsetX;
-        let y = e.clientY - fieldRect.top - this.offsetY;
+        let x = touch.clientX - fieldRect.left - this.offsetX;
+        let y = touch.clientY - fieldRect.top - this.offsetY;
 
         // 필드 경계 제한
         x = Math.max(0, Math.min(x, fieldRect.width - this.draggedPlayer.offsetWidth));
@@ -547,15 +555,19 @@ style.textContent = `
 
 @media (max-width: 768px) {
     .player-slot {
-        width: 60px;
-        height: 40px;
+        width: 85px;
+        height: 55px;
     }
     .player-name {
-        font-size: 0.6rem;
-        max-width: 55px;
+        font-size: 0.7rem;
+        max-width: 75px;
     }
     .player-rating {
-        font-size: 0.8rem;
+        font-size: 0.9rem;
+    }
+    .field-wrapper {
+        /* 모바일에서 필드 세로 길이를 약간 늘려 선수들이 겹치지 않게 함 */
+        padding-top: 120%;
     }
 }
 `;

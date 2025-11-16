@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>축구 매니저 게임</title>
-    <link rel="stylesheet" href="style.css">
     <link rel="shortcut icon" href="./favicon.ico">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <!-- 팀 선택 화면 -->
@@ -464,7 +464,10 @@
             <div id="eventList"></div>
         </div>
         
-        <button id="endMatchBtn" class="btn" style="display: none;">경기 종료</button>
+        <div class="match-controls" style="text-align: center; margin-top: 20px; display: flex; justify-content: center; gap: 15px;">
+            <button id="substituteBtn" class="btn" style="display: none;">🔄 교체</button>
+            <button id="endMatchBtn" class="btn" style="display: none;">경기 종료</button>
+        </div>
     </div>
 
     <!-- 인터뷰 화면 -->
@@ -476,6 +479,25 @@
                 <button class="interview-btn" data-option="1"></button>
                 <button class="interview-btn" data-option="2"></button>
                 <button class="interview-btn" data-option="3"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 선수 교체 모달 -->
+    <div id="substitutionModal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <span class="close-btn" id="closeSubstitutionModal">&times;</span>
+            <h3 id="substitutionModalTitle">선수 교체</h3>
+            <p id="substitutionsLeft">남은 교체 횟수: 5</p>
+            <div class="substitution-container">
+                <div class="substitution-section">
+                    <h4>현재 필드</h4>
+                    <div id="fieldPlayersList"></div>
+                </div>
+                <div class="substitution-section">
+                    <h4>벤치</h4>
+                    <div id="benchPlayersList"></div>
+                </div>
             </div>
         </div>
     </div>
