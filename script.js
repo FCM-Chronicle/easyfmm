@@ -107,7 +107,7 @@ const allTeams = {
             { name: "해리 매과이어", position: "DF", country: "잉글랜드", age: 32, rating: 80 },
             { name: "리산드로 마르티네스", position: "DF", country: "아르헨티나", age: 27, rating: 84 },
             { name: "메이슨 마운트", position: "MF", country: "잉글랜드", age: 26, rating: 76 },
-            { name: "브루노 페르난데스", position: "MF", country: "포르투갈", age: 30, rating: 90 },
+            { name: "브루노 페르난데스", position: "MF", country: "포르투갈", age: 30, rating: 89 },
             { name: "라스무스 호일룬", position: "FW", country: "덴마크", age: 22, rating: 75 },
             { name: "마테우스 쿠냐", position: "FW", country: "브라질", age: 26, rating: 88 },
             { name: "조슈아 지르크지", position: "FW", country: "네덜란드", age: 24, rating: 76 },
@@ -115,13 +115,13 @@ const allTeams = {
             { name: "레니 요로", position: "DF", country: "프랑스", age: 19, rating: 82 },
             { name: "아마드 디알로", position: "MF", country: "코트디부아르", age: 23, rating: 84 },
             { name: "알레한드로 가르나초", position: "FW", country: "아르헨티나", age: 21, rating: 82 },
-            { name: "카세미루", position: "MF", country: "브라질", age: 33, rating: 83 },
+            { name: "카세미루", position: "MF", country: "브라질", age: 33, rating: 85 },
             { name: "브라이언 음뵈모", position: "FW", country: "카메룬", age: 25, rating: 87 },
             { name: "톰 히튼", position: "GK", country: "잉글랜드", age: 39, rating: 62 },
             { name: "루크 쇼", position: "DF", country: "잉글랜드", age: 30, rating: 77 },
             { name: "안드레 오나나", position: "GK", country: "카메룬", age: 29, rating: 81 },
             { name: "마누엘 우가르테", position: "MF", country: "우루과이", age: 24, rating: 83 },
-            { name: "코비 마이누", position: "MF", country: "잉글랜드", age: 20, rating: 78 }
+            { name: "코비 마이누", position: "MF", country: "잉글랜드", age: 20, rating: 81 }
         ],
         description: "붉은 악마들의 자존심과 전통"
     },
