@@ -7,7 +7,7 @@ const allTeams = {
         league: 1,
         players: [
             { name: "페드리", position: "MF", country: "스페인", age: 22, rating: 92 },
-            { name: "로베르트 레반도프스키", position: "FW", country: "폴란드", age: 36, rating: 92 },
+            { name: "로베르트 레반도프스키", position: "FW", country: "폴란드", age: 36, rating: 90 },
             { name: "라민 야말", position: "FW", country: "스페인", age: 18, rating: 94 },
             { name: "하피냐", position: "FW", country: "브라질", age: 28, rating: 95 },
             { name: "이냐키 페냐", position: "GK", country: "스페인", age: 26, rating: 73 },
@@ -16,7 +16,7 @@ const allTeams = {
             { name: "안드레아스 크리스텐센", position: "DF", country: "덴마크", age: 29, rating: 78 },
             { name: "페르민 로페스", position: "MF", country: "스페인", age: 22, rating: 82 },
             { name: "마르크 카사도", position: "MF", country: "스페인", age: 21, rating: 79 },
-            { name: "다니 올모", position: "MF", country: "스페인", age: 27, rating: 86 },
+            { name: "다니 올모", position: "MF", country: "스페인", age: 27, rating: 83 },
             { name: "프렝키 더용", position: "MF", country: "네덜란드", age: 28, rating: 86 },
             { name: "쥘 쿤데", position: "DF", country: "프랑스", age: 26, rating: 88 },
             { name: "에릭 가르시아", position: "DF", country: "스페인", age: 24, rating: 75 },
@@ -25,9 +25,9 @@ const allTeams = {
             { name: "오리올 로메우", position: "MF", country: "스페인", age: 33, rating: 69 },
             { name: "엑토르 포트", position: "DF", country: "스페인", age: 19, rating: 72 },
             { name: "마르크 베르날", position: "MF", country: "스페인", age: 18, rating: 71 },
-            { name: "제라르 마르틴", position: "DF", country: "스페인", age: 23, rating: 67 },
+            { name: "제라르 마르틴", position: "DF", country: "스페인", age: 23, rating: 72 },
             { name: "파우 쿠바르시", position: "DF", country: "스페인", age: 18, rating: 84 },
-            { name: "루니 바르다그지", position: "FW", country: "덴마크", age: 19, rating: 69 }
+            { name: "루니 바르다그지", position: "FW", country: "덴마크", age: 19, rating: 74 }
         ],
         description: "꿈과 열정이 살아 숨쉬는 카탈루냐의 자존심"
     },
@@ -107,7 +107,7 @@ const allTeams = {
             { name: "해리 매과이어", position: "DF", country: "잉글랜드", age: 32, rating: 80 },
             { name: "리산드로 마르티네스", position: "DF", country: "아르헨티나", age: 27, rating: 84 },
             { name: "메이슨 마운트", position: "MF", country: "잉글랜드", age: 26, rating: 76 },
-            { name: "브루노 페르난데스", position: "MF", country: "포르투갈", age: 30, rating: 90 },
+            { name: "브루노 페르난데스", position: "MF", country: "포르투갈", age: 30, rating: 89 },
             { name: "라스무스 호일룬", position: "FW", country: "덴마크", age: 22, rating: 75 },
             { name: "마테우스 쿠냐", position: "FW", country: "브라질", age: 26, rating: 88 },
             { name: "조슈아 지르크지", position: "FW", country: "네덜란드", age: 24, rating: 76 },
@@ -115,13 +115,13 @@ const allTeams = {
             { name: "레니 요로", position: "DF", country: "프랑스", age: 19, rating: 82 },
             { name: "아마드 디알로", position: "MF", country: "코트디부아르", age: 23, rating: 84 },
             { name: "알레한드로 가르나초", position: "FW", country: "아르헨티나", age: 21, rating: 82 },
-            { name: "카세미루", position: "MF", country: "브라질", age: 33, rating: 83 },
+            { name: "카세미루", position: "MF", country: "브라질", age: 33, rating: 85 },
             { name: "브라이언 음뵈모", position: "FW", country: "카메룬", age: 25, rating: 87 },
             { name: "톰 히튼", position: "GK", country: "잉글랜드", age: 39, rating: 62 },
             { name: "루크 쇼", position: "DF", country: "잉글랜드", age: 30, rating: 77 },
             { name: "안드레 오나나", position: "GK", country: "카메룬", age: 29, rating: 81 },
             { name: "마누엘 우가르테", position: "MF", country: "우루과이", age: 24, rating: 83 },
-            { name: "코비 마이누", position: "MF", country: "잉글랜드", age: 20, rating: 78 }
+            { name: "코비 마이누", position: "MF", country: "잉글랜드", age: 20, rating: 81 }
         ],
         description: "붉은 악마들의 자존심과 전통"
     },
