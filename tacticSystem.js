@@ -493,13 +493,18 @@ function startMatchSimulation(matchData, tacticSystem, strengthDiff) {
 
 function simulateMatch(matchData, tacticSystem) {
     const matchInterval = setInterval(function simulationTick() { // 함수에 이름 부여
-        if (!matchData.isRunning || matchData.minute >= 90) {
+        // 경기가 90분 이상 진행되면 인터벌을 완전히 종료
+        if (matchData.minute >= 90) {
             clearInterval(matchInterval);
-            
             if (matchData.minute >= 90 && !matchData.isEnded) {
                 matchData.isEnded = true;
                 endMatch(matchData);
             }
+            return;
+        }
+
+        // 경기가 일시정지 상태이면(부상 등), 시간만 흐르지 않도록 하고 인터벌은 유지
+        if (!matchData.isRunning) {
             return;
         }
 
@@ -1173,6 +1178,29 @@ function endMatch(matchData) {
         // 인터뷰 화면으로 이동
         startInterview(result, userScore, opponentScore, strengthDiff);
     };
+
+    // 경기 후 스카우트 활동 처리
+    if (gameData.hiredScout) {
+        const scout = scoutingSystem.scouts[gameData.hiredScout.tier];
+        if (scout && Math.random() < scout.chance) {
+            const result = scoutingSystem.scoutForPlayers(gameData.hiredScout.tier);
+            if (result.success) {
+                setTimeout(() => {
+                    alert(`[스카우트 보고서]\n${result.message}`);
+                    displayScoutedPlayers(result.players);
+                    displayYouthPlayers();
+                }, 1500);
+            }
+        }
+
+        gameData.hiredScout.remainingMatches--;
+        if (gameData.hiredScout.remainingMatches <= 0) {
+            setTimeout(() => {
+                alert(`[계약 만료] ${scout.name}과의 계약이 만료되었습니다.`);
+                gameData.hiredScout = null;
+            }, 2000);
+        }
+    }
     
     // 선수 성장 처리
     if (typeof processPostMatchGrowth === 'function') {
@@ -1619,42 +1647,30 @@ function handleInterview(option) {
 // ==================== 부상 시스템 ====================
 class InjurySystem {
     constructor() {
-        this.injuredPlayers = new Map();
+        this.injuredPlayers = new Map(); // 부상당한 선수 목록
     }
 
     checkInjury(matchData) {
-        const injuryChance = 0.0037;  // ✅ 5경기당 1명 (0.37%)
+        const injuryChance = 0.0037;  // ✅ 10경기당 1-2명 부상 (0.37%)
         
         if (Math.random() < injuryChance) {
-            const isUserTeam = Math.random() < 0.5;
+            // 1. 부상당할 팀을 50% 확률로 결정
+            const isUserTeam = Math.random() < 0.5; 
             const team = isUserTeam ? gameData.selectedTeam : gameData.currentOpponent;
             
             let injuredPlayer = null;
-            
-            if (isUserTeam) {
-                const squad = gameData.squad;
-                const allSquadPlayers = [];
-                
-                if (squad.gk) allSquadPlayers.push(squad.gk);
-                squad.df.forEach(p => { if (p) allSquadPlayers.push(p); });
-                squad.mf.forEach(p => { if (p) allSquadPlayers.push(p); });
-                squad.fw.forEach(p => { if (p) allSquadPlayers.push(p); });
-                
-                if (allSquadPlayers.length > 0) {
-                    injuredPlayer = allSquadPlayers[Math.floor(Math.random() * allSquadPlayers.length)];
-                }
-            } else {
-                const teamPlayers = teams[team];
-                const sortedPlayers = teamPlayers.sort((a, b) => b.rating - a.rating);
-                const topPlayers = sortedPlayers.slice(0, 11);
-                
-                if (topPlayers.length > 0) {
-                    injuredPlayer = topPlayers[Math.floor(Math.random() * topPlayers.length)];
-                }
+            const squadOnField = isUserTeam 
+                ? [gameData.squad.gk, ...gameData.squad.df, ...gameData.squad.mf, ...gameData.squad.fw].filter(p => p)
+                : teams[team].sort((a, b) => b.rating - a.rating).slice(0, 11);
+
+            // 2. 출전 선수 명단에서 부상당할 선수 1명을 무작위로 선택
+            if (squadOnField.length > 0) {
+                injuredPlayer = squadOnField[Math.floor(Math.random() * squadOnField.length)];
             }
-            
-            if (injuredPlayer) {
-                const gamesOut = Math.floor(Math.random() * 3) + 1;
+
+            // 3. 부상 처리 (선수가 선택되었고, 아직 부상중이 아닐 경우)
+            if (injuredPlayer && !this.isInjured(team, injuredPlayer.name)) {
+                const gamesOut = Math.floor(Math.random() * 3) + 1; // 1~3경기 결장
                 const playerKey = `${team}_${injuredPlayer.name}`;
                 
                 this.injuredPlayers.set(playerKey, {
@@ -1675,10 +1691,8 @@ class InjurySystem {
                 };
             }
         }
-        
         return { occurred: false };
-    }
-
+    } // checkInjury 메서드 닫는 괄호
     updateInjuries() {
         const recovered = [];
         
@@ -1761,6 +1775,7 @@ class InjurySystem {
         });
     }
 }
+
 
 // ==================== 교체 시스템 ====================
 
@@ -1893,6 +1908,13 @@ function performSubstitution(playerOut, playerIn, matchData) {
     if (matchData.isPausedForInjury) {
         matchData.isPausedForInjury = false;
         matchData.isRunning = true;
+        console.log('🔄 부상 교체 완료, 경기 재개');
+    }
+
+    // 6. 부상으로 인한 강제 교체였다면 경기 재개
+    if (matchData.isPausedForInjury) {
+        matchData.isPausedForInjury = false;
+        matchData.isRunning = true;
     }
 }
 
@@ -1913,6 +1935,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeSubModalBtn = document.getElementById('closeSubstitutionModal');
     if (closeSubModalBtn) {
         closeSubModalBtn.addEventListener('click', closeSubstitutionModal);
+    }
+
+    // 모달 바깥 영역 클릭 시 닫기 (부상 시에는 닫히지 않도록)
+    const subModal = document.getElementById('substitutionModal');
+    if (subModal) {
+        subModal.addEventListener('click', (e) => {
+            if (e.target === subModal && !window.matchData?.isPausedForInjury) {
+                closeSubstitutionModal();
+            }
+        });
     }
 });
 

@@ -108,13 +108,11 @@ calculatePlayerPrice(player) {
     // 나이에 따른 가격 조정 (간소화)
     let ageMultiplier = 1;
     if (player.age <= 19) {
-        ageMultiplier = 0.7; // 유망주
+        ageMultiplier = 1.7; // 유망주
     } else if (player.age <= 26) {
         ageMultiplier = 1.5; // 황금기
     } else if (player.age >= 35) {
-        ageMultiplier = 1; // 베테랑
-    } else if (player.age >= 30) {
-        ageMultiplier = 1.5; // 중견
+        ageMultiplier = 0.5; // 베테랑
     }
     
     price *= ageMultiplier;
@@ -130,7 +128,7 @@ calculatePlayerPrice(player) {
     price *= positionMultiplier[player.position] || 1;
     
     // 랜덤 요소 추가 (90% ~ 120%)
-    const randomFactor = 0.9 + Math.random() * 0.3;
+    const randomFactor = 0.9 + Math.random() * 0.2;
     price *= randomFactor;
     
     return Math.round(price);

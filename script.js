@@ -1485,7 +1485,8 @@ let gameData = {
     transferSystemData: {},
     injuredPlayers: [], // 부상 선수 목록 추가
     aiPrestige: {}, // AI 팀의 환생 선수/성장 보너스 관리
-    youthSquad: [] // 유스팀 선수 목록 추가
+    youthSquad: [], // 유스팀 선수 목록 추가
+    hiredScout: null // 고용된 스카우터 정보 { tier: 'novice', remainingMatches: 5 }
 };
 
 
@@ -1869,6 +1870,10 @@ function showTab(tabName) {
 
         case 'youth':
             displayYouthPlayers();
+            // 스카우트 UI도 함께 표시
+            if (typeof displayScoutingScreen === 'function') {
+                displayScoutingScreen();
+            }
             break;
             
         default:
@@ -2791,6 +2796,8 @@ function calculateTeamStrengthDifference() {
         snsData: snsManager.getSaveData(),
         growthData: playerGrowthSystem.getSaveData(),
         injuryData: injurySystem.getSaveData(), // 부상 데이터 추가
+        youthSquad: gameData.youthSquad, // 유스팀 데이터 추가
+        hiredScout: gameData.hiredScout, // 스카우터 정보 추가
         timestamp: new Date().toISOString()
     };
         
@@ -2885,6 +2892,18 @@ function loadGame(event) {
         injurySystem.loadSaveData(saveData.injuryData);
         console.log('부상 데이터 복원 완료');
     }
+
+            // 유스팀 데이터 복원
+            if (saveData.gameData.youthSquad) {
+                gameData.youthSquad = saveData.gameData.youthSquad;
+                console.log('유스팀 데이터 복원 완료');
+            }
+
+            // 스카우터 데이터 복원
+            if (saveData.gameData.hiredScout) {
+                gameData.hiredScout = saveData.gameData.hiredScout;
+                console.log('고용된 스카우터 데이터 복원 완료');
+            }
             
             // 포텐셜 시스템 처리
             if (typeof playerGrowthSystem !== 'undefined') {
@@ -3430,6 +3449,8 @@ function saveToSlot(slotNumber) {
             snsData: snsManager.getSaveData(),
             growthData: playerGrowthSystem.getSaveData(),
             injuryData: injurySystem.getSaveData(),
+        youthSquad: gameData.youthSquad, // 유스팀 데이터 추가
+        hiredScout: gameData.hiredScout, // 스카우터 정보 추가
             timestamp: new Date().toISOString()
         };
         
@@ -3523,6 +3544,24 @@ function loadFromSlot(slotNumber) {
             injurySystem.loadSaveData(saveData.injuryData);
             console.log('부상 데이터 복원 완료');
         }
+
+        // 유스팀 데이터 복원
+        if (saveData.gameData.youthSquad) {
+            gameData.youthSquad = saveData.gameData.youthSquad;
+            console.log('유스팀 데이터 복원 완료');
+        }
+
+        // 스카우터 데이터 복원
+        if (saveData.gameData.hiredScout) {
+            gameData.hiredScout = saveData.gameData.hiredScout;
+            console.log('고용된 스카우터 데이터 복원 완료');
+        }
+
+        // 스카우터 데이터 복원
+        if (saveData.gameData.hiredScout) {
+            gameData.hiredScout = saveData.gameData.hiredScout;
+            console.log('고용된 스카우터 데이터 복원 완료');
+        }
         
         // 포텐셜 시스템 처리
         if (typeof playerGrowthSystem !== 'undefined') {
@@ -3597,6 +3636,7 @@ function deleteSlot(slotNumber) {
 function displayYouthPlayers() {
     const container = document.getElementById('youthPlayerList');
     container.innerHTML = '';
+    console.log('🔄 displayYouthPlayers 호출됨. 현재 gameData.youthSquad:', gameData.youthSquad);
 
     if (gameData.youthSquad.length === 0) {
         container.innerHTML = '<p style="text-align: center; opacity: 0.7; padding: 20px;">현재 유스팀에 소속된 선수가 없습니다.</p>';

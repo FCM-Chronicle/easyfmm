@@ -80,40 +80,63 @@ class FormationSystem {
         const squad = gameData.squad;
         const positions = ['GK', 'DF', 'MF', 'FW'];
         const positionMap = { GK: [squad.gk], DF: squad.df, MF: squad.mf, FW: squad.fw };
-
+    
         positions.forEach(pos => {
-            const players = positionMap[pos].filter(p => p);
-            players.forEach((player, index) => {
-                const total = players.length;
+            // null 값을 포함하여 전체 선수 배열을 가져옵니다.
+            const playersWithNulls = positionMap[pos];
+            if (!playersWithNulls) return;
+    
+            const total = playersWithNulls.length;
+    
+            playersWithNulls.forEach((player, index) => {
                 const x = (100 / (total + 1)) * (index + 1);
-                const y = 50; 
-                this.createPlayerElement(player, pos, x, y);
+                const y = 50;
+                // player가 null이면 빈 슬롯을, 아니면 선수 슬롯을 생성합니다.
+                this.createPlayerElement(player, pos, x, y, index);
             });
         });
     }
     
-    createPlayerElement(player, positionType, x, y) {
-        if (!player) return;
-
+    createPlayerElement(player, positionType, x, y, index) {
         const slot = document.createElement('div');
         slot.className = 'player-slot';
         slot.style.left = x + '%';
         slot.style.top = y + '%';
-        slot.innerHTML = `
-            <div class="player-name">${player.name}</div>
-            <div class="player-rating">${player.rating}</div>
-        `;
-        slot.dataset.playerName = player.name;
-        slot.dataset.positionType = positionType;
-
-        // 수정 모드가 아닐 때 교체 모달을 열도록 이벤트 추가
-        // player는 이미 전체 선수 객체이므로 그대로 전달
-        slot.addEventListener('click', (e) => {
-            if (!this.isEditMode) {
-                this.openSwapModal(player, positionType);
-            }
-        });
-
+    
+        if (player) {
+            // 선수가 있는 경우
+            slot.innerHTML = `
+                <div class="player-name">${player.name}</div>
+                <div class="player-rating">${player.rating}</div>
+            `;
+            slot.dataset.playerName = player.name;
+            slot.dataset.positionType = positionType;
+            slot.classList.add('filled');
+    
+            // 수정 모드가 아닐 때 교체 모달을 열도록 이벤트 추가
+            slot.addEventListener('click', (e) => {
+                if (!this.isEditMode) {
+                    this.openSwapModal(player, positionType);
+                }
+            });
+        } else {
+            // 선수가 없는 경우 (공석)
+            slot.innerHTML = `
+                <div class="player-name" style="opacity: 0.5;">공석</div>
+                <div class="player-rating" style="opacity: 0.5;">-</div>
+            `;
+            slot.dataset.positionType = positionType;
+            slot.dataset.index = index; // 교체를 위해 인덱스 정보 저장
+            slot.classList.add('empty');
+    
+            // 공석 클릭 시 교체 모달 열기
+            slot.addEventListener('click', (e) => {
+                if (!this.isEditMode) {
+                    this.openSwapModalForEmptySlot(positionType, index);
+                }
+            });
+        }
+    
         this.areas[positionType].appendChild(slot);
         return slot;
     }
@@ -154,10 +177,10 @@ class FormationSystem {
         const fieldRect = this.field.getBoundingClientRect();
 
         // 드래그 시작 시 field를 기준으로 절대 위치 설정
-        this.draggedPlayer.style.left = `${rect.left - fieldRect.left}px`;
-        this.draggedPlayer.style.top = `${rect.top - fieldRect.top}px`;
+        this.draggedPlayer.style.left = `${touch.clientX - fieldRect.left - (this.draggedPlayer.offsetWidth / 2)}px`;
+        this.draggedPlayer.style.top = `${touch.clientY - fieldRect.top - (this.draggedPlayer.offsetHeight / 2)}px`;
         
-        // 부모를 field로 옮겨서 영역의 제약에서 벗어남
+        // 부모를 field로 옮겨서 영역의 제약에서 벗어남 (기존 로직 유지)
         this.field.appendChild(this.draggedPlayer);
         this.draggedPlayer.classList.add('dragging');
         
@@ -165,6 +188,8 @@ class FormationSystem {
         this.offsetY = touch.clientY - rect.top;
 
         e.preventDefault();
+        this.offsetX = this.draggedPlayer.offsetWidth / 2;
+        this.offsetY = this.draggedPlayer.offsetHeight / 2;
     }
     
     onDragMove(e) {
@@ -191,8 +216,9 @@ class FormationSystem {
     onDragEnd(e) {
         if (!this.draggedPlayer) return;
 
-        const dropX = e.clientX;
-        const dropY = e.clientY;
+        const touch = e.touches ? e.touches[0] : e;
+        const dropX = touch.clientX;
+        const dropY = touch.clientY;
 
         let targetArea = null;
         for (const pos in this.areas) {
@@ -211,31 +237,47 @@ class FormationSystem {
         if (targetArea && (newPositionType !== 'GK' || oldPositionType === 'GK')) {
             // 포지션이 변경된 경우
             if (newPositionType !== oldPositionType) {
-                const playerObj = teams[gameData.selectedTeam].find(p => p.name === this.originalDraggedPlayerInfo.name);
-                if (playerObj) {
-                    // 1. gameData에서 선수 이동
+                const playerName = this.originalDraggedPlayerInfo.name;
+
+                if (playerName) { // 실제 선수를 옮기는 경우
+                    const playerObj = teams[gameData.selectedTeam].find(p => p.name === playerName);
+                    if (playerObj) {
+                        // 1. gameData에서 선수 이동
+                        const oldPosKey = oldPositionType.toLowerCase();
+                        if (oldPosKey === 'gk') {
+                            gameData.squad.gk = null;
+                        } else {
+                            gameData.squad[oldPosKey] = gameData.squad[oldPosKey].filter(p => p && p.name !== playerObj.name);
+                        }
+                        const newPosKey = newPositionType.toLowerCase();
+                        if (newPosKey === 'gk') {
+                            gameData.squad.gk = playerObj;
+                        } else {
+                            gameData.squad[newPosKey].push(playerObj);
+                        }
+                    }
+                } else { // 공석을 옮기는 경우
+                    // 1. 이전 포지션에서 null 제거
                     const oldPosKey = oldPositionType.toLowerCase();
-                    if (oldPosKey === 'gk') {
-                        gameData.squad.gk = null;
-                    } else {
-                        gameData.squad[oldPosKey] = gameData.squad[oldPosKey].filter(p => p && p.name !== playerObj.name);
+                    const nullIndex = gameData.squad[oldPosKey].indexOf(null);
+                    if (nullIndex > -1) {
+                        gameData.squad[oldPosKey].splice(nullIndex, 1);
                     }
+                    // 2. 새로운 포지션에 null 추가
                     const newPosKey = newPositionType.toLowerCase();
-                    if (newPosKey === 'gk') {
-                        gameData.squad.gk = playerObj;
-                    } else {
-                        gameData.squad[newPosKey].push(playerObj);
-                    }
-                    // 2. 드래그된 원본 DOM 요소를 제거하여 복제 문제 방지
-                    this.draggedPlayer.remove();
-                    // 3. 화면 전체를 다시 그려서 데이터와 동기화 (자동 정렬 포함)
-                    this.displayCurrentSquad();
+                    gameData.squad[newPosKey].push(null);
                 }
+                // 2. 드래그된 원본 DOM 요소를 제거하여 복제 문제 방지
+                this.draggedPlayer.remove();
+                // 3. 화면 전체를 다시 그려서 데이터와 동기화 (자동 정렬 포함)
+                this.displayCurrentSquad();
             } else { // 같은 포지션 내에서 위치만 변경된 경우
                 targetArea.appendChild(this.draggedPlayer);
                 const areaRect = targetArea.getBoundingClientRect();
-                const newLeft = (e.clientX - this.offsetX) - areaRect.left;
-                const newTop = (e.clientY - this.offsetY) - areaRect.top;
+                // Calculate newLeft and newTop relative to the targetArea's top-left corner.
+                // These should be the coordinates of the *center* of the player slot, as transform: translate(-50%, -50%) will be applied.
+                const newLeft = touch.clientX - areaRect.left;
+                const newTop = touch.clientY - areaRect.top;
                 this.draggedPlayer.style.left = `${(newLeft / areaRect.width) * 100}%`;
                 this.draggedPlayer.style.top = `${(newTop / areaRect.height) * 100}%`;
             }
@@ -258,42 +300,44 @@ class FormationSystem {
     validateAndAutoCorrect() {
         console.log("🔍 포지션 검증 및 자동 교체 시작");
         let changesMade = false;
-        const currentSquad = this.getCurrentFieldSquad();
+        const currentSquadOnField = this.getCurrentFieldSquad();
         const finalSquad = {
-            gk: currentSquad.GK[0] || null,
-            df: [...currentSquad.DF],
-            mf: [...currentSquad.MF],
-            fw: [...currentSquad.FW]
+            gk: currentSquadOnField.GK[0] || null,
+            df: [...currentSquadOnField.DF],
+            mf: [...currentSquadOnField.MF],
+            fw: [...currentSquadOnField.FW]
         };
 
         // 모든 포지션 영역을 순회
         for (const positionType of ['GK', 'DF', 'MF', 'FW']) {
-            const playersInArea = currentSquad[positionType];
-            const correctedPlayers = [];
+            const playersInArea = currentSquadOnField[positionType];
+            const originalCount = playersInArea.length;
+            const correctedPlayers = []; // 수정된 선수 목록
 
             for (const player of playersInArea) {
                 const originalPosition = allTeams[gameData.selectedTeam].players.find(p => p.name === player.name)?.position;
 
                 if (originalPosition !== positionType) {
                     changesMade = true;
-                    console.log(`- ${player.name}(원래 ${originalPosition})가 ${positionType} 자리에 잘못 배치됨.`);
+                    console.log(`- ${player.name}(원래 ${originalPosition})가 ${positionType} 자리에 잘못 배치되었습니다.`);
 
                     // 교체 선수 찾기
                     const replacement = this.findBestReplacement(positionType, finalSquad);
                     if (replacement) {
-                        console.log(`  -> ${replacement.name}(${replacement.rating})으로 자동 교체.`);
+                        console.log(`  -> ${replacement.name}(${replacement.rating})으로 자동 교체합니다.`);
                         correctedPlayers.push(replacement);
                         // 교체된 선수는 더 이상 후보가 아님
                         this.addToTempSquad(finalSquad, replacement);
                     } else {
-                        console.log(`  -> 교체할 ${positionType} 선수가 없어 빈자리로 둡니다.`);
-                        // 교체 선수가 없으면 null로 처리되도록 correctedPlayers에 추가하지 않음
+                        console.log(`  -> 교체할 ${positionType} 선수가 없어 공석으로 처리합니다.`);
+                        correctedPlayers.push(null); // 자리를 비우기 위해 null 추가
                     }
                 } else {
                     // 포지션이 맞는 선수는 그대로 유지
                     correctedPlayers.push(player);
                 }
             }
+
             // 최종 스쿼드 업데이트
             if (positionType === 'GK') {
                 finalSquad.gk = correctedPlayers[0] || null;
@@ -304,7 +348,7 @@ class FormationSystem {
 
         if (changesMade) {
             console.log("✅ 자동 교체 완료. 최종 스쿼드를 반영합니다.");
-            gameData.squad = finalSquad;
+            gameData.squad = finalSquad; // 선수 교체 및 공석이 반영된 스쿼드로 업데이트
             this.displayCurrentSquad(); // 변경된 스쿼드를 화면에 다시 그림
             displayTeamPlayers(); // 선수 목록도 새로고침
             alert('포지션에 맞지 않는 선수들이 자동으로 교체되었습니다.');
@@ -364,29 +408,21 @@ class FormationSystem {
         const counts = { GK: 0, DF: 0, MF: 0, FW: 0 };
         let total = 0;
 
-        // 현재 화면의 선수들 기준으로 카운트
-        for (const pos in this.areas) {
-            const count = this.areas[pos].querySelectorAll('.player-slot').length;
-            counts[pos] = count;
-            total += count;
+        // gameData.squad의 실제 선수(null이 아닌) 수를 기준으로 카운트
+        if (gameData.squad.gk) {
+            counts.GK++;
+            total++;
         }
+        ['df', 'mf', 'fw'].forEach(posKey => {
+            const players = gameData.squad[posKey].filter(p => p !== null);
+            counts[posKey.toUpperCase()] = players.length;
+            total += players.length;
+        });
 
         let message = '';
 
         if (total !== 11) {
             message = `선발 인원은 11명이어야 합니다. (현재 ${total}명)`;
-        }
-        if (counts.GK !== 1) {
-            message = '골키퍼(GK)는 반드시 1명이어야 합니다.';
-        }
-        if (counts.DF < 2) {
-            message = '수비수(DF)는 최소 2명 이상이어야 합니다.';
-        }
-        if (counts.MF < 2) {
-            message = '미드필더(MF)는 최소 2명 이상이어야 합니다.';
-        }
-        if (counts.FW < 2) {
-            message = '공격수(FW)는 최소 2명 이상이어야 합니다.';
         }
 
         if (message) {
@@ -410,6 +446,7 @@ class FormationSystem {
         const teamPlayers = teams[gameData.selectedTeam];
         const candidates = teamPlayers.filter(p => {
             const originalPosition = allTeams[gameData.selectedTeam].players.find(pl => pl.name === p.name)?.position;
+            // 교체 대상의 포지션(positionType)과 원래 포지션이 같고, 현재 스쿼드에 없는 선수만 필터링
             return originalPosition === positionType && !this.isPlayerInSquad(p);
         });
 
@@ -465,13 +502,72 @@ class FormationSystem {
     }
 }
 
+// CSS 추가 (기존 style 태그 내용에 추가)
+const newStyle = `
+.player-slot.empty {
+    background: rgba(100, 100, 100, 0.3);
+    border: 2px dashed rgba(255, 255, 255, 0.3);
+    cursor: pointer;
+}
+.player-slot.empty:hover {
+    background: rgba(120, 120, 120, 0.5);
+    border-color: #ffd700;
+}
+`;
+
+// 기존 스타일 태그를 찾아 새 스타일을 추가하거나, 없으면 새로 만듭니다.
+let styleTag = document.querySelector('style');
+if (styleTag) {
+    styleTag.textContent += newStyle;
+} else {
+    styleTag = document.createElement('style');
+    styleTag.textContent = newStyle;
+    document.head.appendChild(styleTag);
+}
+
+// FormationSystem 클래스에 openSwapModalForEmptySlot 메서드 추가
+FormationSystem.prototype.openSwapModalForEmptySlot = function(positionType, index) {
+    // 임시 선수 객체를 만들어 openSwapModal 재사용
+    const tempPlayer = { name: `공석 (${positionType})`, isDummy: true };
+    this.openSwapModal(tempPlayer, positionType);
+};
+
+// FormationSystem 클래스의 swapPlayers 메서드 수정
+const originalSwapPlayers = FormationSystem.prototype.swapPlayers;
+FormationSystem.prototype.swapPlayers = function(playerOut, playerIn, positionType) {
+    if (playerOut.isDummy) {
+        // 공석 채우기
+        if (positionType === 'GK') {
+            // 골키퍼 공석 채우기
+            gameData.squad.gk = playerIn;
+        } else {
+            // 필드 플레이어 공석 채우기
+            const posKey = positionType.toLowerCase();
+            const emptyIndex = gameData.squad[posKey].findIndex(p => p === null);
+            if (emptyIndex !== -1) {
+                gameData.squad[posKey][emptyIndex] = playerIn;
+            }
+        }
+    } else {
+        // 기존 선수 교체 로직
+        originalSwapPlayers.call(this, playerOut, playerIn, positionType);
+    }
+
+    // 화면 새로고침
+    this.displayCurrentSquad();
+    if (typeof displayTeamPlayers === 'function') {
+        displayTeamPlayers();
+    }
+};
+
 // CSS
 const style = document.createElement('style');
 style.textContent = `
 .field-wrapper {
     width: 100%;
-    padding-top: 65%; /* 100 / (가로/세로 비율) */
+    padding-top: 23%; /* 필드 세로 비율 대폭 축소 (3/5 수준) */
     position: relative;
+    margin: 0 auto; /* 수평 가운데 정렬 */
 }
 .field {
     position: absolute;
@@ -482,20 +578,24 @@ style.textContent = `
     display: flex;
     flex-direction: column;
 }
+.formation-container {
+    /* 컨테이너 자체의 여백을 줄여 박스 크기 조절 */
+    padding: 0; 
+}
 .player-area {
     position: relative;
     border: 1px dashed rgba(255, 255, 255, 0.1);
 }
 #fw-area { flex-grow: 3.3; } /* 상단 1/3 */
 #mf-area { flex-grow: 3.3; } /* 중간 1/3 */
-#df-area { flex-grow: 3.3; } /* 하단 1/3 */
+#df-area { flex-grow: 3.4; } /* 하단 1/3 */
 #gk-area { flex-grow: 1; }   /* 최하단 */
 
-.field.edit-mode .player-area {
+.field .player-area {
     border-color: rgba(46, 204, 113, 0.5);
 }
 
-.player-slot {
+.formation-container .player-slot {
     position: absolute;
     width: 80px;
     height: 50px;
@@ -505,8 +605,8 @@ style.textContent = `
     display: flex;
     flex-direction: column;
     align-items: center; 
-    justify-content: center;
-    transform: translate(-50%, -50%);
+    justify-content: center; 
+    transform: translate(-50%, -50%); /* 드래그 시작 시 JS로 위치를 재계산하므로 유지 */
     color: white;
     user-select: none;
     cursor: default;
@@ -515,17 +615,17 @@ style.textContent = `
     z-index: 10;
 }
 
-.player-slot:hover {
-    /* 호버 시 위치는 유지하고 크기만 확대 */
+.formation-container .player-slot:hover {
+    /* 호버 시 위치는 유지하고 크기만 확대 (transform은 그대로 둠) */
     transform: translate(-50%, -50%) scale(1.05);
     z-index: 20;
 }
 
-.field.edit-mode .player-slot {
+.formation-container .field .player-slot {
     cursor: grab;
 }
-.field.edit-mode .player-slot.dragging {
-    /* 드래그 중에는 transform을 사용하지 않도록 수정 */
+.formation-container .field .player-slot.dragging {
+    transform: none; /* 드래그 중에는 transform을 비활성화하여 좌표 계산 오류 방지 */
     cursor: grabbing;
     z-index: 1000; /* 다른 요소들 위로 올라오도록 */
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
@@ -535,7 +635,7 @@ style.textContent = `
     height: 55px; /* scale(1.1) 효과 대체 */
 }
 
-.player-name {
+.formation-container .player-slot .player-name {
     font-size: 0.75rem;
     font-weight: bold;
     white-space: nowrap;
@@ -543,31 +643,31 @@ style.textContent = `
     text-overflow: ellipsis;
     max-width: 70px;
 }
-
-.player-rating {
+.formation-container .player-slot .player-rating {
     font-size: 1rem;
     margin-top: 2px;
 }
+
 
 #editFormationBtn.confirm {
     background: linear-gradient(135deg, #2ecc71, #27ae60);
 }
 
 @media (max-width: 768px) {
-    .player-slot {
-        width: 85px;
-        height: 55px;
+    .formation-container .player-slot {
+        width: 70px;
+        height: 45px;
     }
-    .player-name {
-        font-size: 0.7rem;
-        max-width: 75px;
+    .formation-container .player-slot .player-name {
+        font-size: 0.65rem;
+        max-width: 60px;
     }
-    .player-rating {
-        font-size: 0.9rem;
+    .formation-container .player-slot .player-rating {
+        font-size: 0.8rem;
     }
     .field-wrapper {
         /* 모바일에서 필드 세로 길이를 약간 늘려 선수들이 겹치지 않게 함 */
-        padding-top: 120%;
+        padding-top: 65%;
     }
 }
 `;
