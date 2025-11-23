@@ -121,7 +121,8 @@ const allTeams = {
             { name: "루크 쇼", position: "DF", country: "잉글랜드", age: 30, rating: 77 },
             { name: "안드레 오나나", position: "GK", country: "카메룬", age: 29, rating: 81 },
             { name: "마누엘 우가르테", position: "MF", country: "우루과이", age: 24, rating: 83 },
-            { name: "코비 마이누", position: "MF", country: "잉글랜드", age: 20, rating: 81 }
+            { name: "코비 마이누", position: "MF", country: "잉글랜드", age: 20, rating: 81 },
+            { name: "베냐민 세슈코", position: "FW", country: "슬로베니아", age: 22, rating: 83 }
         ],
         description: "붉은 악마들의 자존심과 전통"
     },
@@ -517,7 +518,7 @@ const allTeams = {
             { name: "앤서니 고든", position: "FW", country: "잉글랜드", age: 24, rating: 87 },
             { name: "하비 반스", position: "FW", country: "잉글랜드", age: 27, rating: 81 },
             { name: "맷 타겟", position: "DF", country: "잉글랜드", age: 29, rating: 74 },
-            { name: "알렉산데르 이사크", position: "FW", country: "스웨덴", age: 25, rating: 92 },
+            { name: "닉 볼테마테", position: "FW", country: "스웨덴", age: 23, rating: 85 },
             { name: "에밀 크라프트", position: "DF", country: "스웨덴", age: 31, rating: 71 },
             { name: "윌리엄 오술라", position: "FW", country: "덴마크", age: 21, rating: 72 },
             { name: "오디세아스 블라호디모스", position: "GK", country: "그리스", age: 31, rating: 72 },
@@ -584,13 +585,12 @@ const allTeams = {
             { name: "루카스 클로스터만", position: "DF", country: "독일", age: 29, rating: 81 },
             { name: "리들레 바쿠", position: "DF", country: "독일", age: 27, rating: 78 },
             { name: "아르투르 베르미렌", position: "MF", country: "벨기에", age: 20, rating: 79 },
-            { name: "아산 웨드라오고", position: "MF", country: "독일", age: 19, rating: 70 },
+            { name: "아산 우에드라오고", position: "MF", country: "독일", age: 19, rating: 79 },
             { name: "코스타 네델코비치", position: "DF", country: "세르비아", age: 20, rating: 67 },
             { name: "다비트 라움", position: "DF", country: "독일", age: 27, rating: 84 },
             { name: "카스텔로 뤼케바", position: "DF", country: "프랑스", age: 22, rating: 76 },
             { name: "크사버 슐라거", position: "MF", country: "오스트리아", age: 27, rating: 82 },
             { name: "마르턴 판더보르트", position: "GK", country: "벨기에", age: 23, rating: 81 },
-            { name: "베냐민 셰슈코", position: "FW", country: "슬로베니아", age: 22, rating: 87 },
             { name: "베냐민 헨릭스", position: "DF", country: "독일", age: 28, rating: 76 },
             { name: "케빈 캄플", position: "MF", country: "슬로베니아", age: 34, rating: 69 }
         ],
