@@ -234,7 +234,7 @@ processAllTeamsGrowth() {
                         const isPrestigePlayer = gameData.aiPrestige && gameData.aiPrestige[teamKey] && gameData.aiPrestige[teamKey].includes(player.name);
                         
                         if (isPrestigePlayer) {
-                            const prestigeBonus = 0.5 + Math.random() * 0.8; // 0.5 ~ 1.3 추가 성장
+                            const prestigeBonus = 0.5 + Math.random() * 0.3; // 0.5 ~ 1.3 추가 성장
                             growthAmount += prestigeBonus;
                             console.log(`👑 AI 프레스티지 성장: ${player.name} (${teamNames[teamKey]}) +${prestigeBonus.toFixed(2)} 보너스!`);
                         }
@@ -284,8 +284,12 @@ processAllTeamsGrowth() {
     // 특정 선수에게 성장 가능성 부여 (유스 콜업 시 사용)
     grantPotentialToPlayer(player) {
         if (player.age <= 25 && !this.growthData.has(player.name)) {
-            const growthPotential = this.calculateGrowthPotential(player);
+            let growthPotential = this.calculateGrowthPotential(player);
             
+            // 유스 콜업 보너스: 5~8 사이의 랜덤 수치 추가
+            const callUpBonus = Math.floor(Math.random() * 4) + 2;
+            growthPotential += callUpBonus;
+
             let monthlyGrowth = Math.max(0.34, growthPotential / 12);
             
             const monthsToGrow = Math.ceil(growthPotential / monthlyGrowth);
@@ -299,7 +303,7 @@ processAllTeamsGrowth() {
                 lastGrowthCheck: Date.now()
             });
 
-            console.log(`🌟 유망주 콜업: ${player.name}에게 성장 가능성 ${Math.round(growthPotential)} 부여 완료.`);
+            console.log(`🌟 유망주 콜업: ${player.name}에게 성장 가능성 ${Math.round(growthPotential)} 부여 완료 (기본 포텐셜 + 콜업 보너스 ${callUpBonus}).`);
             return true;
         }
         return false;

@@ -1221,23 +1221,12 @@ function endMatch(matchData) {
 
     // 경기 종료 후 처리 (부상, 은퇴, 시즌종료 체크)
     setTimeout(() => {
-        const recovered = injurySystem.updateInjuries(); // 부상 회복 처리
         processRetirementsAndReincarnations(); // 은퇴 및 환생 처리
         checkSeasonEnd(); // 시즌 종료 조건 체크
     }, 1000);
     
     // ✅✅ 부상 선수를 스쿼드에서 제거 (추가!)
     injurySystem.removeInjuredFromSquad();
-    
-    if (recovered.length > 0) {
-        setTimeout(() => {
-            let recoveryMessage = '🏥 부상에서 회복한 선수:\n\n';
-            recovered.forEach(player => {
-                recoveryMessage += `- ${player.name} (${teamNames[player.team] || player.team})\n`;
-            });
-            alert(recoveryMessage);
-        }, 4000);
-    }
 }
 function updateLeagueData(matchData, points) {
     // 현재 리그 확인

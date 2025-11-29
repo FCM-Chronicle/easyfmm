@@ -121,7 +121,8 @@ const allTeams = {
             { name: "루크 쇼", position: "DF", country: "잉글랜드", age: 30, rating: 77 },
             { name: "안드레 오나나", position: "GK", country: "카메룬", age: 29, rating: 81 },
             { name: "마누엘 우가르테", position: "MF", country: "우루과이", age: 24, rating: 83 },
-            { name: "코비 마이누", position: "MF", country: "잉글랜드", age: 20, rating: 81 }
+            { name: "코비 마이누", position: "MF", country: "잉글랜드", age: 20, rating: 81 },
+            { name: "베냐민 셰슈코", position: "FW", country: "슬로베니아", age: 22, rating: 84 }
         ],
         description: "붉은 악마들의 자존심과 전통"
     },
@@ -140,6 +141,7 @@ const allTeams = {
             { name: "다르윈 누녜스", position: "FW", country: "우루과이", age: 26, rating: 75 },
             { name: "알렉시스 맥 알리스터", position: "MF", country: "아르헨티나", age: 26, rating: 90 },
             { name: "모하메드 살라", position: "FW", country: "이집트", age: 33, rating: 89 },
+            { name: "알렉산데르 이사크", position: "FW", country: "스웨덴", age: 25, rating: 85 },
             { name: "코너 브래들리", position: "DF", country: "북아일랜드", age: 22, rating: 76 },
             { name: "페데리코 키에사", position: "FW", country: "이탈리아", age: 27, rating: 82 },
             { name: "커티스 존스", position: "MF", country: "잉글랜드", age: 24, rating: 81 },
@@ -517,7 +519,6 @@ const allTeams = {
             { name: "앤서니 고든", position: "FW", country: "잉글랜드", age: 24, rating: 87 },
             { name: "하비 반스", position: "FW", country: "잉글랜드", age: 27, rating: 81 },
             { name: "맷 타겟", position: "DF", country: "잉글랜드", age: 29, rating: 74 },
-            { name: "알렉산데르 이사크", position: "FW", country: "스웨덴", age: 25, rating: 92 },
             { name: "에밀 크라프트", position: "DF", country: "스웨덴", age: 31, rating: 71 },
             { name: "윌리엄 오술라", position: "FW", country: "덴마크", age: 21, rating: 72 },
             { name: "오디세아스 블라호디모스", position: "GK", country: "그리스", age: 31, rating: 72 },
@@ -531,7 +532,8 @@ const allTeams = {
             { name: "댄 번", position: "DF", country: "잉글랜드", age: 33, rating: 83 },
             { name: "션 롱스태프", position: "MF", country: "잉글랜드", age: 27, rating: 77 },
             { name: "브루누 기마랑이스", position: "MF", country: "브라질", age: 27, rating: 90 },
-            { name: "루이스 마일리", position: "MF", country: "잉글랜드", age: 19, rating: 72 }
+            { name: "루이스 마일리", position: "MF", country: "잉글랜드", age: 19, rating: 72 },
+            { name: "닉 볼테마데", position: "FW", country: "독일", age: 23, rating: 85 },
         ],
         description: "마그파이스의 재기를 꿈꾸는 타인 사이드의 열정"
     },
@@ -590,7 +592,6 @@ const allTeams = {
             { name: "카스텔로 뤼케바", position: "DF", country: "프랑스", age: 22, rating: 76 },
             { name: "크사버 슐라거", position: "MF", country: "오스트리아", age: 27, rating: 82 },
             { name: "마르턴 판더보르트", position: "GK", country: "벨기에", age: 23, rating: 81 },
-            { name: "베냐민 셰슈코", position: "FW", country: "슬로베니아", age: 22, rating: 87 },
             { name: "베냐민 헨릭스", position: "DF", country: "독일", age: 28, rating: 76 },
             { name: "케빈 캄플", position: "MF", country: "슬로베니아", age: 34, rating: 69 }
         ],

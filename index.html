@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="ko">
-// 나중에 git push 하기
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -55,6 +54,55 @@
             background: rgba(46, 204, 113, 0.1);
             border-left: 3px solid #2ecc71;
             padding: 10px 15px;
+        }
+ 
+        /* --- 스쿼드 탭 레이아웃 --- */
+        .tab-panel.active#squad {
+            display: flex;
+            gap: 20px; /* 컨테이너 간의 간격 */
+        }
+ 
+        .formation-container {
+            flex: 3; /* 3:2 비율로 너비 할당 */
+            min-width: 0; /* flex item의 크기가 줄어들 수 있도록 설정 */
+        }
+ 
+        .team-players {
+            flex: 2; /* 3:2 비율로 너비 할당 */
+            height: 650px; /* 높이 고정 */
+            overflow-y: auto; /* 내용이 많으면 스크롤 */
+        }
+ 
+        /* 모바일 반응형 레이아웃 (화면이 900px 이하일 때) */
+        @media (max-width: 900px) {
+            .tab-panel.active#squad {
+                flex-direction: column;
+                height: auto; /* 높이 자동 조절 */
+                gap: 0; /* 모바일에서는 간격 제거 */
+            }
+ 
+            .formation-container {
+                flex: none; /* flex 속성 초기화 */
+                width: 100%;
+                height: 500px; /* 필드 높이 고정 또는 조정 */
+                margin-bottom: 20px; /* 선수 목록과의 간격 */
+            }
+ 
+            .team-players {
+                flex: none; /* flex 속성 초기화 */
+                width: 100%;
+                height: auto;
+                max-height: 400px; /* 모바일에서 최대 높이 제한 */
+                overflow-y: auto; /* 내용이 많을 경우 스크롤 */
+            }
+        }
+ 
+        /* 스쿼드 컨트롤 영역 스타일 */
+        .squad-controls {
+            padding: 10px 0;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #444;
+            text-align: right;
         }
     </style>
 </head>
@@ -329,6 +377,10 @@
         <div class="tab-content">
             <!-- 스쿼드 탭 -->
             <div id="squad" class="tab-panel active">
+                <div class="squad-controls">
+                    <!-- 포메이션 수정 버튼은 이 곳으로 이동됩니다. (scouting.js에서 처리) -->
+                </div>
+
                 <div class="formation-container">
                     <div class="field-wrapper">
                         <div class="field">
