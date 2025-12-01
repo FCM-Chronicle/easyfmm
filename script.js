@@ -122,11 +122,7 @@ const allTeams = {
             { name: "안드레 오나나", position: "GK", country: "카메룬", age: 29, rating: 81 },
             { name: "마누엘 우가르테", position: "MF", country: "우루과이", age: 24, rating: 83 },
             { name: "코비 마이누", position: "MF", country: "잉글랜드", age: 20, rating: 81 },
-<<<<<<< HEAD
             { name: "베냐민 셰슈코", position: "FW", country: "슬로베니아", age: 22, rating: 84 }
-=======
-            { name: "베냐민 세슈코", position: "FW", country: "슬로베니아", age: 22, rating: 83 }
->>>>>>> b5b943970666c6ed609a3c7ca160ec3dc3329fe3
         ],
         description: "붉은 악마들의 자존심과 전통"
     },
@@ -523,10 +519,7 @@ const allTeams = {
             { name: "앤서니 고든", position: "FW", country: "잉글랜드", age: 24, rating: 87 },
             { name: "하비 반스", position: "FW", country: "잉글랜드", age: 27, rating: 81 },
             { name: "맷 타겟", position: "DF", country: "잉글랜드", age: 29, rating: 74 },
-<<<<<<< HEAD
-=======
             { name: "닉 볼테마테", position: "FW", country: "스웨덴", age: 23, rating: 85 },
->>>>>>> b5b943970666c6ed609a3c7ca160ec3dc3329fe3
             { name: "에밀 크라프트", position: "DF", country: "스웨덴", age: 31, rating: 71 },
             { name: "윌리엄 오술라", position: "FW", country: "덴마크", age: 21, rating: 72 },
             { name: "오디세아스 블라호디모스", position: "GK", country: "그리스", age: 31, rating: 72 },
