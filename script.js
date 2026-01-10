@@ -4206,10 +4206,11 @@ function renderAudioSettings() {
             margin-bottom: 20px;
             border: 1px solid rgba(255, 255, 255, 0.1);
         `;
-        // saveSlots 앞에 추가 (없으면 맨 뒤)
-        const saveSlots = document.getElementById('saveSlots');
-        if (saveSlots) {
-            settingsTab.insertBefore(audioContainer, saveSlots);
+        
+        // 설정 콘텐츠 영역(.settings-content)의 맨 위에 추가
+        const settingsContent = settingsTab.querySelector('.settings-content');
+        if (settingsContent) {
+            settingsContent.insertBefore(audioContainer, settingsContent.firstChild);
         } else {
             settingsTab.appendChild(audioContainer);
         }
