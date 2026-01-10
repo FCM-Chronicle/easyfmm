@@ -172,6 +172,17 @@ function endSeason() {
         advancePlayerAges();
     }
 
+    // [추가] 부상 선수 전원 회복
+    if (typeof injurySystem !== 'undefined') {
+        injurySystem.reset();
+        console.log('🏥 시즌 종료: 모든 부상 선수가 회복되었습니다.');
+    }
+
+    // [추가] AI 팀 밸런스 조정 (은퇴 등으로 부족해진 인원 보충)
+    if (typeof transferSystem !== 'undefined') {
+        transferSystem.balanceAITeams();
+    }
+
     // [추가] 시즌 기록 아카이빙 (리셋 전)
     if (typeof leagueBasedRecordsSystem !== 'undefined') {
         const currentYear = gameData.startYear || 2025;

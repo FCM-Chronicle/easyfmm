@@ -3963,7 +3963,9 @@ function processRetirementsAndReincarnations() {
                 }
                 
                 // 5. SNS 알림 생성
-                snsManager.posts.unshift({ id: snsManager.postIdCounter++, type: 'transfer_rumor', content: message, hashtags: ['#은퇴', '#환생', `#${snsManager.sanitizeHashtag(player.name)}`], timestamp: Date.now(), likes: Math.floor(Math.random() * 2000) + 500, comments: Math.floor(Math.random() * 300) + 50, shares: Math.floor(Math.random() * 100) + 20 });
+                if (typeof snsManager !== 'undefined') {
+                    snsManager.posts.unshift({ id: snsManager.postIdCounter++, type: 'transfer_rumor', content: message, hashtags: ['#은퇴', '#환생', `#${snsManager.sanitizeHashtag(player.name)}`], timestamp: Date.now(), likes: Math.floor(Math.random() * 2000) + 500, comments: Math.floor(Math.random() * 300) + 50, shares: Math.floor(Math.random() * 100) + 20 });
+                }
                 console.log(message);
             }
         }
@@ -4013,7 +4015,7 @@ class AudioManager {
             'assets/ost/다이나믹 듀오(Dynamic Duo) - BAAAM (Feat. Muzie of UV) (가사_lyrics).mp3',
             'assets/ost/에픽하이 (EPIK HIGH) - BORN HATER (Feat. 빈지노, 버벌진트, B.I, MINO, BOBBY) | Lyrics_가사.mp3'
         ];
-        this.currentTrackIndex = 0;
+        this.currentTrackIndex = Math.floor(Math.random() * this.bgmFiles.length);
         this.audio = new Audio();
         this.isPlaying = false;
         this.initialized = false;
@@ -4080,7 +4082,16 @@ class AudioManager {
     }
 
     playNext() {
-        this.currentTrackIndex = (this.currentTrackIndex + 1) % this.bgmFiles.length;
+        // 랜덤 재생 (현재 곡과 다른 곡 선택)
+        let nextIndex;
+        if (this.bgmFiles.length > 1) {
+            do {
+                nextIndex = Math.floor(Math.random() * this.bgmFiles.length);
+            } while (nextIndex === this.currentTrackIndex);
+        } else {
+            nextIndex = 0;
+        }
+        this.currentTrackIndex = nextIndex;
         this.audio.src = this.bgmFiles[this.currentTrackIndex];
         this.play();
     }

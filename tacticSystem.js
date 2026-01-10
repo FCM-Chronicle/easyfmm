@@ -1325,6 +1325,7 @@ function simulateOtherMatches() {
 function startInterview(result, userScore, opponentScore, strengthDiff) {
     // 부상 선수 업데이트 (경기 완전 종료 시점)
     if (typeof injurySystem !== 'undefined') {
+        const recoveredPlayers = injurySystem.updateInjuries();
         injurySystem.removeInjuredFromSquad();
 
         // 회복된 선수 메일 발송

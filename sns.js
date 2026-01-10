@@ -663,6 +663,11 @@ toggleComments(postId) {
             this.generateRandomAINews();
             this.lastUpdateTime = now;
         }
+        
+        // 데이터 정리 (최신 50개만 유지)
+        if (this.posts.length > 50) {
+            this.posts = this.posts.slice(0, 50);
+        }
     }
 
     // 게임 이벤트 연동
