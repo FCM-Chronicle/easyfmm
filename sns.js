@@ -397,6 +397,7 @@ generateMatchPost(matchData) {
     };
 
     this.posts.unshift(post);
+    console.log(`[SNS] 경기 결과 포스트 생성: ${post.content}`);
     return post;
 }
 
@@ -431,6 +432,7 @@ generateMatchPost(matchData) {
         };
 
         this.posts.unshift(post);
+        console.log(`[SNS] 이적 포스트 생성: ${post.content}`);
         return post;
     }
 

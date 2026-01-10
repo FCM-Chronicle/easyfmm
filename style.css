@@ -528,6 +528,18 @@ body {
     cursor: not-allowed;
 }
 
+.player-card.injured {
+    background: rgba(231, 76, 60, 0.1);
+    border-color: #e74c3c;
+    opacity: 0.8;
+    cursor: not-allowed;
+}
+
+.player-card.injured:hover {
+    transform: none;
+    box-shadow: none;
+}
+
 .player-card .name {
     font-weight: bold;
     margin-bottom: 5px;
@@ -1776,6 +1788,143 @@ body {
     color: #fff;
 }
 
+.records-section.full-width {
+    grid-column: 1 / -1;
+}
+
+.best11-pitch {
+    background: linear-gradient(to bottom, #2ecc71, #27ae60);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-top: 10px;
+    box-shadow: inset 0 0 50px rgba(0,0,0,0.2);
+}
+
+.best11-row {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+
+.best11-player {
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 8px;
+    padding: 8px;
+    text-align: center;
+    width: 100px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: transform 0.2s;
+}
+
+.best11-player:hover {
+    transform: scale(1.05);
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 10;
+}
+
+.best11-player.user-player {
+    border-color: #ffd700;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+.best11-rating {
+    color: #ffd700;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.best11-name {
+    font-size: 0.85rem;
+    font-weight: bold;
+    margin: 3px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.best11-team {
+    font-size: 0.7rem;
+    opacity: 0.8;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ==================== 역대 기록 스타일 ==================== */
+.history-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.history-header h4 {
+    color: #ffd700;
+    font-size: 1.4rem;
+    margin-bottom: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 10px;
+}
+
+.history-poty {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 215, 0, 0.05));
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    text-align: center;
+}
+
+.history-label {
+    font-size: 0.9rem;
+    color: #aaa;
+    margin-bottom: 5px;
+}
+
+.history-value {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #fff;
+}
+
+.history-league-section {
+    margin-top: 15px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+}
+
+.history-league-section h5 {
+    color: var(--team-primary);
+    margin-bottom: 10px;
+    font-size: 1rem;
+}
+
+.history-stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.history-stat {
+    display: flex;
+    flex-direction: column;
+}
+
+.history-stat .label {
+    font-size: 0.8rem;
+    color: #aaa;
+}
+
+.history-stat .value {
+    font-size: 0.95rem;
+    font-weight: bold;
+}
 /* ==================== 반응형 디자인 ==================== */
 @media (max-width: 768px) {
     .teams-grid {
@@ -2477,4 +2626,48 @@ body.team-브라질_연합 {
 [class*="team-"] .loading,
 [class*="team-"] .sns-loading::after {
     border-top-color: var(--team-primary) !important;
+}
+
+/* ==================== 평점 모달 스타일 ==================== */
+.ratings-container {
+    display: flex;
+    gap: 20px;
+}
+
+@media (max-width: 768px) {
+    .ratings-container {
+        flex-direction: column;
+    }
+}
+
+.team-ratings h4 {
+    text-align: center;
+    color: var(--team-primary);
+    margin-bottom: 10px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 5px;
+}
+
+.rating-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    font-size: 0.95rem;
+}
+
+.rating-row:last-child {
+    border-bottom: none;
+}
+
+.rating-row.mom {
+    background: rgba(46, 204, 113, 0.3); /* 초록색 강조 */
+    border-left: 3px solid #2ecc71;
+    font-weight: bold;
+}
+
+.rating-value {
+    font-weight: bold;
+    color: #ffd700;
 }

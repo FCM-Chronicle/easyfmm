@@ -446,8 +446,9 @@ class FormationSystem {
         const teamPlayers = teams[gameData.selectedTeam];
         const candidates = teamPlayers.filter(p => {
             const originalPosition = allTeams[gameData.selectedTeam].players.find(pl => pl.name === p.name)?.position;
+            const isInjured = typeof injurySystem !== 'undefined' && injurySystem.isInjured(gameData.selectedTeam, p.name);
             // 교체 대상의 포지션(positionType)과 원래 포지션이 같고, 현재 스쿼드에 없는 선수만 필터링
-            return originalPosition === positionType && !this.isPlayerInSquad(p);
+            return originalPosition === positionType && !this.isPlayerInSquad(p) && !isInjured;
         });
 
         if (candidates.length === 0) {

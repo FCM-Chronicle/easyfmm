@@ -17,6 +17,9 @@ class RecordsSystem {
                 this.initializePlayer(player.name, teamKey, player.position);
             });
         });
+        
+        this.weeklyRatings = []; // 이번 주(라운드) 모든 선수 평점 저장
+        this.currentBest11 = { 1: [], 2: [], 3: [] }; // 이번 주 베스트 11 저장 (리그별)
 
         this.initialized = true;
         console.log('개인기록 시스템이 초기화되었습니다.');
@@ -30,7 +33,9 @@ class RecordsSystem {
                 position: position,
                 goals: 0,
                 assists: 0,
-                matches: 0
+                matches: 0,
+                moms: 0, // MOM 횟수 추가
+                totw: 0 // 라운드 베스트 11 선정 횟수 추가
             });
         }
     }
@@ -112,6 +117,18 @@ class RecordsSystem {
         return assisters;
     }
 
+    // MOM 순위 가져오기
+    getTopMOMs(limit = 5) {
+        const moms = Array.from(this.playerStats.values())
+            .filter(player => player.moms > 0)
+            .sort((a, b) => {
+                if (b.moms !== a.moms) return b.moms - a.moms;
+                return b.goals - a.goals; // 동점 시 득점 순
+            })
+            .slice(0, limit);
+        return moms;
+    }
+
    recordUserMatchStats(matchEventsOrData) {
     this.addMatchAppearancesForUserTeam();
 
@@ -128,44 +145,37 @@ class RecordsSystem {
     });
 
     this.simulateAllLeaguesMatches();
+    
+    // 라운드 종료 후 베스트 11 선정
+    this.generateTeamOfTheWeek();
+    
     this.updateRecordsDisplay();
 }
 
     simulateAllLeaguesMatches() {
-        console.log('=== 모든 리그의 AI 팀 경기 결과 ===');
+        console.log(`=== ${gameData.currentRound}라운드 AI 경기 시뮬레이션 ===`);
+        
         for (let league = 1; league <= 3; league++) {
-            const leagueTeams = Object.keys(allTeams).filter(teamKey =>
-                allTeams[teamKey].league === league &&
-                teamKey !== gameData.selectedTeam &&
-                teamKey !== gameData.currentOpponent
-            );
-
-            if (leagueTeams.length >= 2) {
-                console.log(`\n--- ${league}부리그 ---`);
-                this.simulateLeagueMatches(leagueTeams, league);
-            }
-        }
-        console.log('========================');
-    }
-
-    simulateLeagueMatches(leagueTeams, league) {
-        for (let i = 0; i < leagueTeams.length - 1; i += 2) {
-            const team1 = leagueTeams[i];
-            const team2 = leagueTeams[i + 1];
-
-            const matchResult = this.simulateSingleAIMatch(team1, team2);
-            this.matchRecords.push(matchResult);
-
-            console.log(`${team1} ${matchResult.score1} - ${matchResult.score2} ${team2}`);
-            matchResult.goals.forEach(goal => {
-                let goalLog = `  ⚽ ${goal.minute}분: ${goal.scorer}`;
-                if (goal.assister) {
-                    goalLog += ` (도움: ${goal.assister})`;
-                }
-                goalLog += ` [${goal.team}]`;
-                console.log(goalLog);
+            const divisionKey = `division${league}`;
+            const leagueSchedule = gameData.schedule[divisionKey];
+            
+            if (!leagueSchedule || gameData.currentRound > leagueSchedule.length) continue;
+            
+            const currentRoundMatches = leagueSchedule[gameData.currentRound - 1];
+            
+            console.log(`\n--- ${league}부리그 ---`);
+            
+            currentRoundMatches.forEach(match => {
+                // 유저 경기는 이미 진행되었으므로 스킵
+                if (match.home === gameData.selectedTeam || match.away === gameData.selectedTeam) return;
+                
+                const matchResult = this.simulateSingleAIMatch(match.home, match.away);
+                this.matchRecords.push(matchResult);
+                
+                console.log(`${match.home} ${matchResult.score1} - ${matchResult.score2} ${match.away}`);
             });
         }
+        console.log('========================');
     }
 
   simulateSingleAIMatch(team1Key, team2Key) {
@@ -232,6 +242,9 @@ class RecordsSystem {
     // 리그 테이블 업데이트 추가
     this.updateLeagueTableForAIMatch(team1Key, team2Key, score1, score2);
 
+    // AI 경기 평점 및 MOM 시뮬레이션
+    this.simulateAIMatchRatings(team1Key, team2Key, goals, score1, score2);
+
     return {
         team1: team1Key,
         team2: team2Key,
@@ -240,6 +253,183 @@ class RecordsSystem {
         goals: goals,
         minute: 90
     };
+}
+
+// AI 경기 평점 시뮬레이션
+simulateAIMatchRatings(team1Key, team2Key, goals, score1, score2) {
+    const calcRating = (player, teamKey, goalsConceded) => {
+        let rating = 6.0;
+        // 득점/도움 반영
+        const playerGoals = goals.filter(g => g.scorer === player.name).length;
+        const playerAssists = goals.filter(g => g.assister === player.name).length;
+        
+        rating += playerGoals * 1.5;
+        rating += playerAssists * 1.2;
+        
+        // 클린시트
+        if (goalsConceded === 0 && (player.position === 'GK' || player.position === 'DF')) {
+            rating += 0.5;
+        }
+        
+        // 랜덤 변수 (-0.2 ~ +0.2)
+        rating += (Math.random() * 0.4) - 0.2;
+
+        // 승리 팀 보너스 (+0.3) / 패배 팀 페널티 (-0.2)
+        const myScore = (teamKey === team1Key) ? score1 : score2;
+        const oppScore = (teamKey === team1Key) ? score2 : score1;
+        if (myScore > oppScore) {
+            rating += 0.3;
+        } else if (myScore < oppScore) {
+            rating -= 0.2;
+        }
+        
+        return {
+            player: player,
+            team: teamKey,
+            rating: parseFloat(Math.max(3.0, Math.min(10.0, rating)).toFixed(1))
+        };
+    };
+
+    const team1Players = teams[team1Key].sort((a, b) => b.rating - a.rating).slice(0, 11);
+    const team2Players = teams[team2Key].sort((a, b) => b.rating - a.rating).slice(0, 11);
+
+    const team1Ratings = team1Players.map(p => calcRating(p, team1Key, score2));
+    const team2Ratings = team2Players.map(p => calcRating(p, team2Key, score1));
+
+    // MOM 선정
+    const allRatings = [...team1Ratings, ...team2Ratings];
+    allRatings.sort((a, b) => b.rating - a.rating);
+    const mom = allRatings[0];
+
+    // MOM 기록 저장
+    if (this.playerStats.has(mom.player.name)) {
+        this.playerStats.get(mom.player.name).moms++;
+    } else {
+        this.initializePlayer(mom.player.name, mom.team, mom.player.position);
+        const stats = this.playerStats.get(mom.player.name);
+        if (stats) stats.moms++;
+    }
+
+    // 주간 평점 리스트에 추가 (TOTW용)
+    this.weeklyRatings.push(...allRatings);
+}
+
+// 유저 경기 평점 처리 (tacticSystem.js에서 호출)
+processMatchRatings(ratings, matchData) {
+    // MOM 기록
+    const momPlayer = ratings.mom.player;
+    const momTeam = ratings.home.find(r => r.player.name === momPlayer.name) ? matchData.homeTeam : matchData.awayTeam;
+    
+    if (this.playerStats.has(momPlayer.name)) {
+        this.playerStats.get(momPlayer.name).moms++;
+    }
+    
+    // 주간 평점 리스트에 추가
+    const homeRatings = ratings.home.map(r => ({ player: r.player, team: matchData.homeTeam, rating: parseFloat(r.rating) }));
+    const awayRatings = ratings.away.map(r => ({ player: r.player, team: matchData.awayTeam, rating: parseFloat(r.rating) }));
+    
+    this.weeklyRatings.push(...homeRatings, ...awayRatings);
+}
+
+// 라운드 베스트 11 선정
+generateTeamOfTheWeek() {
+    if (this.weeklyRatings.length === 0) return;
+
+    // 초기화
+    this.currentBest11 = { 1: [], 2: [], 3: [] };
+
+    // 리그별로 순회하며 베스트 11 선정
+    for (let league = 1; league <= 3; league++) {
+        // 해당 리그의 평점 데이터만 필터링
+        const leagueRatings = this.weeklyRatings.filter(r => {
+            const teamData = allTeams[r.team];
+            return teamData && teamData.league === league;
+        });
+
+        if (leagueRatings.length === 0) continue;
+
+        // 포지션별 정렬
+        const gks = leagueRatings.filter(r => r.player.position === 'GK').sort((a, b) => b.rating - a.rating);
+        const dfs = leagueRatings.filter(r => r.player.position === 'DF').sort((a, b) => b.rating - a.rating);
+        const mfs = leagueRatings.filter(r => r.player.position === 'MF').sort((a, b) => b.rating - a.rating);
+        const fws = leagueRatings.filter(r => r.player.position === 'FW').sort((a, b) => b.rating - a.rating);
+
+        // 3-4-3 포메이션 기준 선정 (GK 1, DF 3, MF 4, FW 3)
+        const best11 = [
+            gks[0],
+            ...dfs.slice(0, 3),
+            ...mfs.slice(0, 4),
+            ...fws.slice(0, 3)
+        ].filter(p => p); // undefined 제거
+
+        this.currentBest11[league] = best11;
+
+        // 라운드 베스트 11 선정 횟수(totw) 증가
+        best11.forEach(item => {
+            const playerName = item.player.name;
+            let stats = this.playerStats.get(playerName);
+            if (!stats) {
+                this.initializePlayer(playerName, item.team, item.player.position);
+                stats = this.playerStats.get(playerName);
+            }
+            stats.totw = (stats.totw || 0) + 1;
+        });
+    }
+
+    console.log("🏆 이번 라운드 베스트 11 선정 완료");
+
+    // 우리 팀 선수가 포함되었는지 확인 및 메일 발송
+    const userLeague = gameData.currentLeague;
+    const userBest11 = this.currentBest11[userLeague] || [];
+    const myPlayers = userBest11.filter(r => r.team === gameData.selectedTeam);
+    
+    if (myPlayers.length > 0 && typeof mailManager !== 'undefined') {
+        const playerNames = myPlayers.map(r => `${r.player.name}(${r.rating})`).join(', ');
+        const content = `축하합니다!\n\n이번 라운드 베스트 11에 우리 팀 선수들이 선정되었습니다.\n\n[선정 명단]\n${playerNames}\n\n선수들의 활약이 대단합니다.`;
+        mailManager.addMail(`[뉴스] 라운드 베스트 11 선정 알림`, '리그 사무국', content);
+    }
+
+    // 다음 라운드를 위해 초기화
+    this.weeklyRatings = [];
+}
+
+// 올해의 선수 (시즌 MOM 최다)
+getPlayerOfTheSeason() {
+    const topMOM = this.getTopMOMs(1)[0];
+    return topMOM;
+}
+
+// 시즌 베스트 11 선정 (라운드 베스트 11 최다 선정자 기준 3-4-3)
+getSeasonBest11(league) {
+    // 해당 리그 소속 선수들 필터링
+    const leaguePlayers = [];
+    this.playerStats.forEach(stat => {
+        const team = allTeams[stat.team];
+        if (team && team.league === league) {
+            // 현재 능력치 가져오기
+            const currentRating = teams[stat.team]?.find(p => p.name === stat.name)?.rating || 70;
+            leaguePlayers.push({
+                ...stat,
+                rating: currentRating
+            });
+        }
+    });
+
+    // 선정 횟수(totw) 내림차순, 동점 시 능력치 내림차순 정렬
+    const sortFn = (a, b) => (b.totw || 0) - (a.totw || 0) || b.rating - a.rating;
+
+    const gks = leaguePlayers.filter(p => p.position === 'GK').sort(sortFn);
+    const dfs = leaguePlayers.filter(p => p.position === 'DF').sort(sortFn);
+    const mfs = leaguePlayers.filter(p => p.position === 'MF').sort(sortFn);
+    const fws = leaguePlayers.filter(p => p.position === 'FW').sort(sortFn);
+
+    // 3-4-3 포메이션 선발
+    return [
+        gks[0],
+        ...dfs.slice(0, 3),
+        ...mfs.slice(0, 4),
+        ...fws.slice(0, 3)
+    ].filter(p => p); // undefined 제거
 }
 
 // 리그 테이블 업데이트 메서드 (Records System 클래스에 추가)
@@ -479,8 +669,11 @@ updateLeagueTableForAIMatch(team1Key, team2Key, score1, score2) {
     updateRecordsDisplay() {
         const topScorers = this.getTopScorers(5);
         const topAssisters = this.getTopAssisters(5);
+        const topMOMs = this.getTopMOMs(5);
         this.displayTopScorers(topScorers);
         this.displayTopAssisters(topAssisters);
+        this.displayTopMOMs(topMOMs);
+        this.displayTeamOfTheWeek(gameData.currentLeague);
     }
 
     displayTopScorers(topScorers) {
@@ -533,11 +726,86 @@ updateLeagueTableForAIMatch(team1Key, team2Key, score1, score2) {
         });
     }
 
+    displayTopMOMs(topMOMs) {
+        const container = document.getElementById('topMOMs');
+        if (!container) return;
+        container.innerHTML = '';
+        if (topMOMs.length === 0) {
+            container.innerHTML = '<p style="text-align: center; opacity: 0.7;">아직 기록이 없습니다.</p>';
+            return;
+        }
+
+        topMOMs.forEach((player, index) => {
+            const isUserPlayer = player.team === gameData.selectedTeam;
+            const rankingItem = document.createElement('div');
+            rankingItem.className = `ranking-item ${isUserPlayer ? 'user-player' : ''}`;
+            rankingItem.innerHTML = `
+                <div class="player-rank">${index + 1}</div>
+                <div class="player-info">
+                    <div class="player-name">${player.name}</div>
+                    <div class="player-team">${teamNames[player.team] || '알 수 없음'}</div>
+                </div>
+                <div class="player-stats">${player.moms}회</div>
+            `;
+            container.appendChild(rankingItem);
+        });
+    }
+
+    displayTeamOfTheWeek(league = gameData.currentLeague) {
+        const container = document.getElementById('weeklyBest11');
+        if (!container) return;
+        
+        container.innerHTML = '';
+        
+        const best11 = this.currentBest11[league];
+        
+        if (!best11 || best11.length === 0) {
+            container.innerHTML = '<p style="text-align: center; opacity: 0.7;">아직 선정되지 않았습니다.</p>';
+            return;
+        }
+
+        // 3-4-3 포메이션 UI 생성
+        const pitch = document.createElement('div');
+        pitch.className = 'best11-pitch';
+        
+        // 포지션별 분류
+        const gks = best11.filter(r => r.player.position === 'GK');
+        const dfs = best11.filter(r => r.player.position === 'DF');
+        const mfs = best11.filter(r => r.player.position === 'MF');
+        const fws = best11.filter(r => r.player.position === 'FW');
+
+        const createRow = (players) => {
+            const row = document.createElement('div');
+            row.className = 'best11-row';
+            players.forEach(data => {
+                const isUserPlayer = data.team === gameData.selectedTeam;
+                const card = document.createElement('div');
+                card.className = `best11-player ${isUserPlayer ? 'user-player' : ''}`;
+                card.innerHTML = `
+                    <div class="best11-rating">★${data.rating}</div>
+                    <div class="best11-name">${data.player.name}</div>
+                    <div class="best11-team">${teamNames[data.team] || data.team}</div>
+                `;
+                row.appendChild(card);
+            });
+            return row;
+        };
+
+        // 위에서부터 FW -> MF -> DF -> GK 순서로 배치
+        pitch.appendChild(createRow(fws));
+        pitch.appendChild(createRow(mfs));
+        pitch.appendChild(createRow(dfs));
+        pitch.appendChild(createRow(gks));
+        
+        container.appendChild(pitch);
+    }
+
     getSaveData() {
         return {
             playerStats: Array.from(this.playerStats.entries()),
             matchRecords: this.matchRecords,
-            initialized: this.initialized
+            initialized: this.initialized,
+            currentBest11: this.currentBest11 // 베스트 11 데이터 저장
         };
     }
 
@@ -550,6 +818,14 @@ updateLeagueTableForAIMatch(team1Key, team2Key, score1, score2) {
         }
         if (saveData.initialized) {
             this.initialized = saveData.initialized;
+        }
+        if (saveData.currentBest11) {
+            // 호환성 체크: 배열이면(구버전) 객체로 초기화
+            if (Array.isArray(saveData.currentBest11)) {
+                this.currentBest11 = { 1: [], 2: [], 3: [] };
+            } else {
+                this.currentBest11 = saveData.currentBest11;
+            }
         }
     }
 
@@ -565,6 +841,7 @@ updateLeagueTableForAIMatch(team1Key, team2Key, score1, score2) {
 class LeagueBasedRecordsSystem extends RecordsSystem {
     constructor() {
         super();
+        this.seasonHistory = []; // 역대 시즌 기록 저장
         this.leagueStats = {
             division1: new Map(),
             division2: new Map(), 
@@ -577,6 +854,9 @@ class LeagueBasedRecordsSystem extends RecordsSystem {
         
         // 리그 전환 버튼 추가
         this.addLeagueSwitchButtons();
+
+        // 역대 기록 보기 버튼 추가
+        this.addHistoryButton();
         
         // 부모 클래스의 initialize 호출
         super.initialize();
@@ -818,10 +1098,42 @@ class LeagueBasedRecordsSystem extends RecordsSystem {
         recordsContent.insertBefore(buttonContainer, recordsContent.firstChild);
     }
 
+    // 역대 기록 보기 버튼 추가
+    addHistoryButton() {
+        const recordsHeader = document.querySelector('.records-header');
+        if (!recordsHeader || document.getElementById('viewHistoryBtn')) return;
+
+        const btn = document.createElement('button');
+        btn.id = 'viewHistoryBtn';
+        btn.className = 'btn';
+        btn.textContent = '📜 역대 기록 보기';
+        btn.style.marginTop = '10px';
+        btn.onclick = () => this.toggleHistoryView();
+        
+        recordsHeader.appendChild(btn);
+    }
+
+    toggleHistoryView() {
+        const currentView = document.querySelector('.records-content');
+        const historyView = document.getElementById('historyView');
+        
+        if (currentView && historyView) {
+            const isHistoryVisible = historyView.style.display === 'block';
+            currentView.style.display = isHistoryVisible ? 'grid' : 'none';
+            historyView.style.display = isHistoryVisible ? 'none' : 'block';
+            document.getElementById('viewHistoryBtn').textContent = isHistoryVisible ? '📜 역대 기록 보기' : '📊 현재 시즌 보기';
+            
+            if (!isHistoryVisible) {
+                this.displayHistory();
+            }
+        }
+    }
+
     // 리그 전환
     switchToLeague(league) {
         const topScorers = this.getTopScorersByLeague(league, 5);
         const topAssisters = this.getTopAssistersByLeague(league, 5);
+        // MOM은 리그별 분류가 복잡하여 전체 순위 유지하거나 추후 구현
         
         this.displayTopScorersWithLeague(topScorers, league);
         this.displayTopAssistersWithLeague(topAssisters, league);
@@ -832,6 +1144,9 @@ class LeagueBasedRecordsSystem extends RecordsSystem {
             btn.style.background = index + 1 === league ? 
                 'rgba(255, 215, 0, 0.3)' : 'rgba(255, 255, 255, 0.1)';
         });
+        
+        // 베스트 11도 해당 리그로 전환
+        this.displayTeamOfTheWeek(league);
     }
 
     // 개인기록 표시 업데이트 (리그별)
@@ -842,9 +1157,12 @@ class LeagueBasedRecordsSystem extends RecordsSystem {
         // 사용자 리그의 기록 표시
         const topScorers = this.getTopScorersByLeague(userLeague, 5);
         const topAssisters = this.getTopAssistersByLeague(userLeague, 5);
+        const topMOMs = this.getTopMOMs(5); // 전체 통합
         
         this.displayTopScorersWithLeague(topScorers, userLeague);
         this.displayTopAssistersWithLeague(topAssisters, userLeague);
+        this.displayTopMOMs(topMOMs);
+        this.displayTeamOfTheWeek(userLeague);
     }
 
     // 저장 데이터 준비 (리그별 포함)
@@ -858,7 +1176,8 @@ class LeagueBasedRecordsSystem extends RecordsSystem {
         
         return {
             ...baseData,
-            leagueStats: leagueData
+            leagueStats: leagueData,
+            seasonHistory: this.seasonHistory // 역대 기록 저장
         };
     }
 
@@ -871,6 +1190,9 @@ class LeagueBasedRecordsSystem extends RecordsSystem {
                 this.leagueStats[divisionKey] = new Map(saveData.leagueStats[divisionKey]);
             });
         }
+        if (saveData.seasonHistory) {
+            this.seasonHistory = saveData.seasonHistory;
+        }
     }
 
     // 시즌 리셋 (리그별 포함)
@@ -882,6 +1204,89 @@ class LeagueBasedRecordsSystem extends RecordsSystem {
         });
         
         console.log('리그별 개인기록이 리셋되었습니다.');
+    }
+
+    // 시즌 기록 아카이빙 (endSeason.js에서 호출)
+    archiveSeason(seasonName) {
+        const seasonData = {
+            season: seasonName,
+            poty: this.getPlayerOfTheSeason(),
+            leagues: {}
+        };
+
+        for (let i = 1; i <= 3; i++) {
+            seasonData.leagues[i] = {
+                topScorer: this.getTopScorer(i),
+                topAssister: this.getTopAssister(i),
+                best11: this.getSeasonBest11(i) // 시즌 베스트 11 메서드 사용
+            };
+        }
+
+        this.seasonHistory.unshift(seasonData); // 최신 시즌이 앞으로
+        console.log(`📚 ${seasonName} 시즌 기록 아카이빙 완료`);
+    }
+
+    // 역대 기록 표시
+    displayHistory() {
+        const container = document.getElementById('historyList');
+        if (!container) return;
+        
+        container.innerHTML = '';
+        
+        if (this.seasonHistory.length === 0) {
+            container.innerHTML = '<div style="text-align: center; padding: 20px; color: #aaa;">아직 기록된 시즌이 없습니다.</div>';
+            return;
+        }
+
+        this.seasonHistory.forEach(data => {
+            const seasonCard = document.createElement('div');
+            seasonCard.className = 'history-card';
+            
+            let potyHtml = '';
+            if (data.poty) {
+                potyHtml = `
+                    <div class="history-poty">
+                        <div class="history-label">🏆 올해의 선수</div>
+                        <div class="history-value">${data.poty.name} (${teamNames[data.poty.team] || data.poty.team})</div>
+                    </div>
+                `;
+            }
+
+            let leaguesHtml = '';
+            for (let i = 1; i <= 3; i++) {
+                const leagueData = data.leagues[i];
+                if (!leagueData) continue;
+
+                leaguesHtml += `
+                    <div class="history-league-section">
+                        <h5>${i}부 리그</h5>
+                        <div class="history-stats-grid">
+                            <div class="history-stat">
+                                <span class="label">득점왕</span>
+                                <span class="value">${leagueData.topScorer ? `${leagueData.topScorer.playerName} (${leagueData.topScorer.goals}골)` : '-'}</span>
+                            </div>
+                            <div class="history-stat">
+                                <span class="label">도움왕</span>
+                                <span class="value">${leagueData.topAssister ? `${leagueData.topAssister.playerName} (${leagueData.topAssister.assists}도움)` : '-'}</span>
+                            </div>
+                        </div>
+                        ${best11Html}
+                    </div>
+                `;
+            }
+
+            seasonCard.innerHTML = `
+                <div class="history-header">
+                    <h4>${data.season} 시즌</h4>
+                </div>
+                ${potyHtml}
+                <div class="history-leagues">
+                    ${leaguesHtml}
+                </div>
+            `;
+            
+            container.appendChild(seasonCard);
+        });
     }
 
     // LeagueBasedRecordsSystem 클래스 내부에 추가

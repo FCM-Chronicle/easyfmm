@@ -396,8 +396,8 @@ function startMatch() {
     
     // === 4단계: 경기 데이터 초기화 ===
     const matchData = {
-        homeTeam: gameData.selectedTeam,
-        awayTeam: gameData.currentOpponent,
+        homeTeam: gameData.isHomeGame ? gameData.selectedTeam : gameData.currentOpponent,
+        awayTeam: gameData.isHomeGame ? gameData.currentOpponent : gameData.selectedTeam,
         homeScore: 0,
         awayScore: 0,
         minute: 0,
@@ -476,6 +476,7 @@ function showKickoffButton(matchData, tacticSystem, strengthDiff) {
 
 // 실제 경기 시뮬레이션 시작
 function startMatchSimulation(matchData, tacticSystem, strengthDiff) {
+    console.log('▶️ [Match] 경기 시뮬레이션 시작 (Kickoff)');
     matchData.isRunning = true;
     matchData.strengthDiff = strengthDiff; // 전력 차이 데이터 저장
     matchData.intervalId = null; // 인터벌 ID 저장
@@ -963,14 +964,38 @@ if (hasAssist && scorer) {
 }
 
 function createFoulEvent(matchData) {
-    const teams = [gameData.selectedTeam, gameData.currentOpponent];
-    const team = teams[Math.floor(Math.random() * teams.length)];
+    const isUserHome = matchData.homeTeam === gameData.selectedTeam;
+    const homeTeamKey = matchData.homeTeam;
+    const awayTeamKey = matchData.awayTeam;
+    
+    // 파울 팀 결정 (50:50)
+    const isHomeFoul = Math.random() < 0.5;
+    const foulTeamKey = isHomeFoul ? homeTeamKey : awayTeamKey;
+    const foulTeamName = teamNames[foulTeamKey];
+    
+    // 파울 선수 결정
+    let player = null;
+    if (foulTeamKey === gameData.selectedTeam) {
+        const squad = gameData.squad;
+        const fieldPlayers = [squad.gk, ...squad.df, ...squad.mf, ...squad.fw].filter(p => p);
+        player = fieldPlayers[Math.floor(Math.random() * fieldPlayers.length)];
+    } else {
+        // AI 팀은 상위 11명 중 랜덤
+        const teamPlayers = teams[foulTeamKey];
+        const top11 = [...teamPlayers].sort((a, b) => b.rating - a.rating).slice(0, 11);
+        player = top11[Math.floor(Math.random() * top11.length)];
+    }
+    
+    // 옐로카드 확률 (20%)
+    const isYellow = Math.random() < 0.2;
     
     return {
         minute: matchData.minute,
         type: 'foul',
-        team: teamNames[team],
-        description: `⚠️ ${teamNames[team]}의 파울입니다.`
+        team: foulTeamName,
+        player: player,
+        isYellow: isYellow,
+        description: isYellow && player ? `🟨 ${foulTeamName}의 ${player.name}, 거친 파울로 경고를 받습니다.` : `⚠️ ${foulTeamName} ${player ? player.name + '의' : ''} 파울입니다.`
     };
 }
 
@@ -1062,6 +1087,7 @@ function displayEvent(event, matchData) {
 }
 
 function endMatch(matchData) {
+    console.log('🏁 [Match] 경기 종료 처리 시작 (endMatch)');
     document.getElementById('endMatchBtn').style.display = 'block';
     document.getElementById('substituteBtn').style.display = 'none'; // 교체 버튼 숨기기
     
@@ -1172,11 +1198,21 @@ function endMatch(matchData) {
         const matchResult = result === '승리' ? 'win' : result === '패배' ? 'loss' : 'draw';
         window.processSponsorAfterMatch(matchResult);
     }
+
+    // 메일 시스템 연동 (경기 결과 및 이적 제안)
+    if (typeof mailManager !== 'undefined') {
+        // 경기 결과 메일
+        mailManager.sendMatchResultMail(matchData);
+        
+        // 랜덤 이적 제안 체크 (경기 종료 후)
+        mailManager.checkTransferOffer();
+    }
     
     // 경기 종료 버튼 이벤트
     document.getElementById('endMatchBtn').onclick = () => {
-        // 인터뷰 화면으로 이동
-        startInterview(result, userScore, opponentScore, strengthDiff);
+        // 평점 계산 및 결과 모달 표시
+        const ratings = calculateMatchRatings(matchData);
+        showMatchResultModal(matchData, ratings, result, userScore, opponentScore, strengthDiff);
     };
 
     // 경기 후 스카우트 활동 처리
@@ -1214,15 +1250,16 @@ function endMatch(matchData) {
         updateRecordsAfterMatch(matchData);
     }
     
-    // endMatch 함수 끝부분 (기존 코드 찾아서 수정)
+    // 라운드 종료 및 다음 라운드 준비
+    gameData.currentRound++;
     
-    // AI 팀들 경기 시뮬레이션
-    simulateOtherMatches();
+    // 다음 상대 설정
+    setNextOpponent();
 
     // 경기 종료 후 처리 (부상, 은퇴, 시즌종료 체크)
     setTimeout(() => {
         processRetirementsAndReincarnations(); // 은퇴 및 환생 처리
-        checkSeasonEnd(); // 시즌 종료 조건 체크
+        // checkSeasonEnd는 인터뷰 후로 이동
     }, 1000);
     
     // ✅✅ 부상 선수를 스쿼드에서 제거 (추가!)
@@ -1240,9 +1277,14 @@ function updateLeagueData(matchData, points) {
         return;
     }
     
+    // 홈/어웨이 여부에 따른 점수 판별
+    const isUserHome = matchData.homeTeam === gameData.selectedTeam;
+    const myScore = isUserHome ? matchData.homeScore : matchData.awayScore;
+    const oppScore = isUserHome ? matchData.awayScore : matchData.homeScore;
+
     userData.matches++;
-    userData.goalsFor += matchData.homeScore;
-    userData.goalsAgainst += matchData.awayScore;
+    userData.goalsFor += myScore;
+    userData.goalsAgainst += oppScore;
     userData.points += points;
     
     if (points === 3) {
@@ -1261,227 +1303,40 @@ function updateLeagueData(matchData, points) {
     }
     
     opponentData.matches++;
-    opponentData.goalsFor += matchData.awayScore;
-    opponentData.goalsAgainst += matchData.homeScore;
+    opponentData.goalsFor += oppScore;
+    opponentData.goalsAgainst += myScore;
     
-    if (matchData.homeScore > matchData.awayScore) {
+    if (myScore > oppScore) {
         opponentData.losses++;
-    } else if (matchData.homeScore < matchData.awayScore) {
+    } else if (myScore < oppScore) {
         opponentData.wins++;
         opponentData.points += 3;
     } else {
         opponentData.draws++;
         opponentData.points += 1;
     }
-    // 경기 종료 버튼 이벤트
-    document.getElementById('endMatchBtn').onclick = () => {
-        // 부상 선수 업데이트
-        if (typeof injurySystem !== 'undefined') {
-            injurySystem.updateInjuries();
-            injurySystem.removeInjuredFromSquad();
-        }
-        
-        // 인터뷰 화면으로 이동
-        startInterview(result, userScore, opponentScore, strengthDiff);
-    };
-    
 }
 
 function simulateOtherMatches() {
-    // 현재 리그 확인 및 division 키 생성
-    const currentLeague = gameData.currentLeague;
-    const divisionKey = `division${currentLeague}`;
-    
-    // 현재 리그 데이터 존재 여부 확인
-    if (!gameData.leagueData || !gameData.leagueData[divisionKey]) {
-        console.error('League data not found for:', divisionKey);
-        return;
-    }
-    
-    // 같은 리그의 다른 팀들만 필터링 (사용자 팀과 현재 상대팀 제외)
-    const otherTeams = Object.keys(gameData.leagueData[divisionKey]).filter(team => 
-        team !== gameData.selectedTeam && team !== gameData.currentOpponent
-    );
-    
-    // 짝수개의 팀들을 랜덤하게 매칭
-    for (let i = 0; i < otherTeams.length - 1; i += 2) {
-        const team1 = otherTeams[i];
-        const team2 = otherTeams[i + 1];
-        
-        // 각 팀의 전력 계산
-        const team1Rating = calculateOpponentTeamRating(team1);
-        const team2Rating = calculateOpponentTeamRating(team2);
-        const ratingDiff = team1Rating - team2Rating;
-        
-        // 이변 요소 (10% 확률로 이변 발생)
-        const upsetOccurs = Math.random() < 0.08;
-        
-        // 전력 차이에 따른 확률 조정
-        let team1WinChance = 0.33; // 기본 33%
-        let team2WinChance = 0.33; // 기본 33%
-        let drawChance = 0.34; // 기본 34%
-        
-        if (ratingDiff > 0) {
-            // team1이 더 강함
-            const advantage = Math.min(0.3, ratingDiff / 150); // 최대 30% 우위
-            team1WinChance += advantage;
-            team2WinChance -= advantage * 0.7;
-            drawChance -= advantage * 0.3;
-            
-            // 이변 발생 시 약한 팀에게 보너스
-            if (upsetOccurs) {
-                const upsetBonus = 0.15 + (Math.random() * 0.15); // 15~30% 보너스
-                team2WinChance += upsetBonus;
-                team1WinChance -= upsetBonus * 0.6;
-                drawChance -= upsetBonus * 0.4;
-            }
-        } else if (ratingDiff < 0) {
-            // team2가 더 강함
-            const advantage = Math.min(0.3, Math.abs(ratingDiff) / 100);
-            team2WinChance += advantage;
-            team1WinChance -= advantage * 0.7;
-            drawChance -= advantage * 0.3;
-            
-            // 이변 발생 시 약한 팀에게 보너스
-            if (upsetOccurs) {
-                const upsetBonus = 0.15 + (Math.random() * 0.15); // 15~30% 보너스
-                team1WinChance += upsetBonus;
-                team2WinChance -= upsetBonus * 0.6;
-                drawChance -= upsetBonus * 0.4;
-            }
-        } else {
-            // 비슷한 전력일 때도 랜덤 요소
-            const randomFactor = (Math.random() - 0.5) * 0.2; // ±10%
-            team1WinChance += randomFactor;
-            team2WinChance -= randomFactor;
-        }
-        
-        // 확률 보정 (음수 방지 및 합계 1.0 유지)
-        team1WinChance = Math.max(0.05, team1WinChance);
-        team2WinChance = Math.max(0.05, team2WinChance);
-        drawChance = Math.max(0.05, drawChance);
-        
-        const total = team1WinChance + team2WinChance + drawChance;
-        team1WinChance /= total;
-        team2WinChance /= total;
-        drawChance /= total;
-        
-        const resultRoll = Math.random();
-        let score1, score2;
-        
-        if (resultRoll < team1WinChance) {
-            // team1 승리 - 더 현실적인 스코어
-            if (upsetOccurs && ratingDiff < 0) {
-                // 이변 승리는 간신히 이기는 느낌
-                score1 = Math.floor(Math.random() * 2) + 1; // 1-2골
-                score2 = Math.floor(Math.random() * 2); // 0-1골
-            } else {
-                // 일반 승리도 현실적으로
-                const goalType = Math.random();
-                if (goalType < 0.4) {
-                    // 40% - 1골 승부
-                    score1 = 1;
-                    score2 = 0;
-                } else if (goalType < 0.7) {
-                    // 30% - 2골 차 승부
-                    score1 = 2;
-                    score2 = Math.random() < 0.5 ? 0 : 1;
-                } else if (goalType < 0.9) {
-                    // 20% - 3골 이상 게임
-                    score1 = Math.floor(Math.random() * 2) + 2; // 2-3골
-                    score2 = Math.floor(Math.random() * 2); // 0-1골
-                } else {
-                    // 10% - 높은 득점 게임
-                    score1 = Math.floor(Math.random() * 3) + 2; // 2-4골
-                    score2 = Math.floor(Math.random() * 3); // 0-2골
-                }
-            }
-        } else if (resultRoll < team1WinChance + team2WinChance) {
-            // team2 승리 - 더 현실적인 스코어
-            if (upsetOccurs && ratingDiff > 0) {
-                // 이변 승리는 간신히 이기는 느낌
-                score2 = Math.floor(Math.random() * 2) + 1; // 1-2골
-                score1 = Math.floor(Math.random() * 2); // 0-1골
-            } else {
-                // 일반 승리도 현실적으로
-                const goalType = Math.random();
-                if (goalType < 0.4) {
-                    // 40% - 1골 승부
-                    score2 = 1;
-                    score1 = 0;
-                } else if (goalType < 0.7) {
-                    // 30% - 2골 차 승부
-                    score2 = 2;
-                    score1 = Math.random() < 0.5 ? 0 : 1;
-                } else if (goalType < 0.9) {
-                    // 20% - 3골 이상 게임
-                    score2 = Math.floor(Math.random() * 2) + 2; // 2-3골
-                    score1 = Math.floor(Math.random() * 2); // 0-1골
-                } else {
-                    // 10% - 높은 득점 게임
-                    score2 = Math.floor(Math.random() * 3) + 2; // 2-4골
-                    score1 = Math.floor(Math.random() * 3); // 0-2골
-                }
-            }
-        } else {
-            // 무승부 - 더 다양한 스코어
-            const drawType = Math.random();
-            if (drawType < 0.4) {
-                // 40% - 0-0 무승부
-                score1 = 0;
-                score2 = 0;
-            } else if (drawType < 0.7) {
-                // 30% - 1-1 무승부
-                score1 = 1;
-                score2 = 1;
-            } else if (drawType < 0.9) {
-                // 20% - 2-2 무승부
-                score1 = 2;
-                score2 = 2;
-            } else {
-                // 10% - 3-3 이상 무승부
-                const drawScore = Math.floor(Math.random() * 2) + 3; // 3-4골
-                score1 = drawScore;
-                score2 = drawScore;
-            }
-        }
-        
-        // 리그 데이터 업데이트 (수정된 부분)
-        const team1Data = gameData.leagueData[divisionKey][team1];
-        const team2Data = gameData.leagueData[divisionKey][team2];
-        
-        // 데이터 존재 여부 확인
-        if (!team1Data || !team2Data) {
-            console.error('Team data not found:', team1, team1Data, team2, team2Data);
-            continue; // 이 매치는 스킵하고 다음으로
-        }
-        
-        team1Data.matches++;
-        team1Data.goalsFor += score1;
-        team1Data.goalsAgainst += score2;
-        
-        team2Data.matches++;
-        team2Data.goalsFor += score2;
-        team2Data.goalsAgainst += score1;
-        
-        if (score1 > score2) {
-            team1Data.wins++;
-            team1Data.points += 3;
-            team2Data.losses++;
-        } else if (score1 < score2) {
-            team2Data.wins++;
-            team2Data.points += 3;
-            team1Data.losses++;
-        } else {
-            team1Data.draws++;
-            team2Data.draws++;
-            team1Data.points += 1;
-            team2Data.points += 1;
-        }
-    }
+    // records.js의 simulateAllLeaguesMatches에서 스케줄 기반으로 통합 처리하므로
+    // 여기서는 더 이상 개별적으로 시뮬레이션하지 않습니다.
 }
 
 function startInterview(result, userScore, opponentScore, strengthDiff) {
+    // 부상 선수 업데이트 (경기 완전 종료 시점)
+    if (typeof injurySystem !== 'undefined') {
+        injurySystem.removeInjuredFromSquad();
+
+        // 회복된 선수 메일 발송
+        if (recoveredPlayers.length > 0 && typeof mailManager !== 'undefined') {
+            recoveredPlayers.forEach(player => {
+                if (player.team === gameData.selectedTeam) {
+                    mailManager.sendRecoveryMail(player);
+                }
+            });
+        }
+    }
+
     showScreen('interviewScreen');
     
     const questions = getInterviewQuestions(result, userScore, opponentScore, strengthDiff);
@@ -1614,9 +1469,6 @@ function handleInterview(option) {
     
     gameData.teamMorale = Math.max(0, Math.min(100, gameData.teamMorale + moraleChange));
     
-    // 다음 상대 설정
-    setNextOpponent();
-    
     // 시즌 종료 체크
     checkSeasonEnd();
     
@@ -1627,6 +1479,151 @@ function handleInterview(option) {
     alert(`인터뷰 완료! 팀 사기가 ${moraleChange > 0 ? '+' : ''}${moraleChange} 변했습니다.\n현재 사기: ${gameData.teamMorale}`);
 }
 
+// ==================== 평점 시스템 ====================
+
+function calculateMatchRatings(matchData) {
+    const homeTeam = matchData.homeTeam;
+    const awayTeam = matchData.awayTeam;
+    const homeScore = matchData.homeScore;
+    const awayScore = matchData.awayScore;
+    
+    // 출전 선수 명단 확보
+    let homePlayers = [];
+    let awayPlayers = [];
+    
+    // 홈팀이 유저팀인 경우
+    if (homeTeam === gameData.selectedTeam) {
+        const squad = gameData.squad;
+        if (squad.gk) homePlayers.push(squad.gk);
+        squad.df.forEach(p => { if(p) homePlayers.push(p); });
+        squad.mf.forEach(p => { if(p) homePlayers.push(p); });
+        squad.fw.forEach(p => { if(p) homePlayers.push(p); });
+    } else {
+        // AI 팀은 상위 11명
+        homePlayers = teams[homeTeam].sort((a, b) => b.rating - a.rating).slice(0, 11);
+    }
+    
+    // 어웨이팀이 유저팀인 경우
+    if (awayTeam === gameData.selectedTeam) {
+        const squad = gameData.squad;
+        if (squad.gk) awayPlayers.push(squad.gk);
+        squad.df.forEach(p => { if(p) awayPlayers.push(p); });
+        squad.mf.forEach(p => { if(p) awayPlayers.push(p); });
+        squad.fw.forEach(p => { if(p) awayPlayers.push(p); });
+    } else {
+        awayPlayers = teams[awayTeam].sort((a, b) => b.rating - a.rating).slice(0, 11);
+    }
+    
+    // 평점 계산 함수
+    const calc = (player, teamName, goalsConceded) => {
+        let rating = 6.0; // 기본 평점
+        
+        // 득점/도움 체크
+        const goals = matchData.events.filter(e => e.type === 'goal' && e.scorer === player.name).length;
+        const assists = matchData.events.filter(e => e.type === 'goal' && e.assister === player.name).length;
+        
+        rating += goals * 1.5;
+        rating += assists * 1.2;
+        
+        // 클린시트 (GK, DF)
+        if (goalsConceded === 0 && (player.position === 'GK' || player.position === 'DF')) {
+            rating += 0.5;
+        }
+        
+        // 랜덤 변수 (-0.2 ~ +0.2)
+        rating += (Math.random() * 0.4) - 0.2;
+        
+        // 옐로카드 체크 (실제 이벤트 기반)
+        const hasYellow = matchData.events.some(e => e.type === 'foul' && e.isYellow && e.player && e.player.name === player.name);
+        if (hasYellow) rating -= 1.0;
+
+        // 승리 팀 보너스 (+0.3) / 패배 팀 페널티 (-0.2)
+        const isHomePlayer = teamName === teamNames[matchData.homeTeam];
+        const myScore = isHomePlayer ? matchData.homeScore : matchData.awayScore;
+        const oppScore = isHomePlayer ? matchData.awayScore : matchData.homeScore;
+        
+        if (myScore > oppScore) {
+            rating += 0.3;
+        } else if (myScore < oppScore) {
+            rating -= 0.2;
+        }
+        
+        // 범위 제한 (3.0 ~ 10.0)
+        return {
+            player: player,
+            rating: Math.max(3.0, Math.min(10.0, rating)).toFixed(1),
+            goals: goals,
+            assists: assists,
+            hasYellow: hasYellow
+        };
+    };
+    
+    const homeRatings = homePlayers.map(p => calc(p, teamNames[homeTeam], awayScore));
+    const awayRatings = awayPlayers.map(p => calc(p, teamNames[awayTeam], homeScore));
+    
+    // MOM 선정 (양팀 통틀어 최고 평점)
+    const allRatings = [...homeRatings, ...awayRatings];
+    allRatings.sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating));
+    const mom = allRatings[0];
+    
+    return {
+        home: homeRatings,
+        away: awayRatings,
+        mom: mom
+    };
+}
+
+function showMatchResultModal(matchData, ratings, result, userScore, opponentScore, strengthDiff) {
+    const modal = document.getElementById('matchResultModal');
+    
+    document.getElementById('resultHomeTeam').textContent = teamNames[matchData.homeTeam];
+    document.getElementById('resultAwayTeam').textContent = teamNames[matchData.awayTeam];
+    document.getElementById('resultScore').textContent = `${matchData.homeScore} - ${matchData.awayScore}`;
+    
+    const renderTeamRatings = (containerId, teamRatings, teamName) => {
+        const container = document.getElementById(containerId);
+        container.innerHTML = `<h4>${teamName}</h4>`;
+        
+        teamRatings.forEach(r => {
+            const isMom = r.player.name === ratings.mom.player.name;
+            const row = document.createElement('div');
+            row.className = `rating-row ${isMom ? 'mom' : ''}`;
+            
+            let icons = '';
+            if (r.goals > 0) icons += ' ⚽'.repeat(r.goals);
+            if (r.assists > 0) icons += ' 👟'.repeat(r.assists);
+            if (r.hasYellow) icons += ' 🟨';
+            if (isMom) icons += ' ⭐MOM';
+            
+            row.innerHTML = `
+                <div class="player-name">
+                    ${r.player.name} <span style="font-size:0.8em; opacity:0.7;">(${r.player.position})</span>
+                    <div>${icons}</div>
+                </div>
+                <div class="rating-value">${r.rating}</div>
+            `;
+            container.appendChild(row);
+        });
+    };
+    
+    renderTeamRatings('homeTeamRatings', ratings.home, teamNames[matchData.homeTeam]);
+    renderTeamRatings('awayTeamRatings', ratings.away, teamNames[matchData.awayTeam]);
+    
+    // 확인 버튼 클릭 시 인터뷰로 이동
+    const confirmBtn = document.getElementById('confirmResultBtn');
+    confirmBtn.onclick = () => {
+        modal.style.display = 'none';
+        
+        // 기록 시스템에 평점 및 MOM 데이터 전달
+        if (typeof recordsSystem !== 'undefined') {
+            recordsSystem.processMatchRatings(ratings, matchData);
+        }
+        
+        startInterview(result, userScore, opponentScore, strengthDiff);
+    };
+    
+    modal.style.display = 'block';
+}
 
 
 
@@ -1670,6 +1667,11 @@ class InjurySystem {
                     gamesRemaining: gamesOut
                 });
                 
+                // 사용자 팀 부상 시 메일 발송 (return 전에 실행)
+                if (isUserTeam && typeof mailManager !== 'undefined') {
+                    mailManager.sendInjuryMail({ player: injuredPlayer, gamesOut: gamesOut });
+                }
+
                 return {
                     occurred: true,
                     team: team,
@@ -1804,7 +1806,10 @@ function openSubstitutionModal(matchData, isForced = false, injuredPlayer = null
     });
 
     // 벤치 선수 목록 생성
-    const benchPlayers = teams[gameData.selectedTeam].filter(p => !fieldPlayers.some(fp => fp.name === p.name));
+    const benchPlayers = teams[gameData.selectedTeam].filter(p => 
+        !fieldPlayers.some(fp => fp.name === p.name) &&
+        (!injurySystem || !injurySystem.isInjured(gameData.selectedTeam, p.name)) // 부상 선수 제외
+    );
     benchPlayers.forEach(player => {
         const playerEl = createSubPlayerElement(player);
         playerEl.addEventListener('click', () => selectPlayerForSub(player, playerEl, 'bench', matchData));

@@ -1,9 +1,11 @@
 // 이적 시스템
+console.log('📜 transfer.js 파일 로드 시작');
+
 class TransferSystem {
     constructor() {
         this.transferMarket = [];
         this.aiTransferCooldown = 0;
-        this.basePrice = 800; // 기본 가격 800억
+        this.basePrice = 600; // 기본 가격 600억으로 하향 조정 (요청사항 반영)
         
         // 타 리그 선수들
         this.extraPlayers = [
@@ -18,7 +20,8 @@ class TransferSystem {
   { "name": "아론 히키", "position": "DF", "rating": 80, "age": 22, "team": "외부리그" },
   { "name": "디오고 코스타", "position": "GK", "rating": 86, "age": 25, "team": "외부리그" },
   { "name": "후고 라르손", "position": "MF", "rating": 81, "age": 20, "team": "외부리그" },
-  { "name": "아담 와튼", "position": "MF", "rating": 80, "age": 20, "team": "외부리그" },
+  { "name": "아담 와튼", "position": "MF", "rating": 84, "age": 20, "team": "외부리그" },
+  { "name": "엘리엇 앤더슨", "position": "MF", "rating": 85, "age": 23, "team": "외부리그" },
   { "name": "아산 우에드라오고", "position": "MF", "rating": 78, "age": 18, "team": "외부리그" },
   { "name": "마틴 바투리나", "position": "MF", "rating": 79, "age": 21, "team": "외부리그" },
   { "name": "자비 게라", "position": "MF", "rating": 79, "age": 21, "team": "외부리그" },
@@ -43,25 +46,36 @@ class TransferSystem {
     // 이적 시장 초기화
     initializeTransferMarket() {
         this.transferMarket = [];
+        console.log('🔄 [Transfer] 이적 시장 데이터 생성 시작...');
         
         // 다른 팀의 일부 선수들을 이적 시장에 추가
-        Object.keys(teams).forEach(teamKey => {
-            if (teamKey !== gameData.selectedTeam) {
-                const teamPlayers = teams[teamKey];
-                
-                // 각 팀에서 20% 확률로 선수를 이적 시장에 내놓음
-                teamPlayers.forEach(player => {
-                    if (Math.random() < 0.2) {
-                        this.transferMarket.push({
-                            ...player,
-                            originalTeam: teamKey,
-                            price: this.calculatePlayerPrice(player),
-                            daysOnMarket: Math.floor(Math.random() * 30)
-                        });
+        try {
+            Object.keys(teams).forEach(teamKey => {
+                if (teamKey !== gameData.selectedTeam) {
+                    const teamPlayers = teams[teamKey];
+                    
+                    // [안전 장치] teamPlayers가 배열인지 확인
+                    if (!Array.isArray(teamPlayers)) {
+                        console.warn(`⚠️ [Transfer] ${teamKey} 팀의 선수 데이터가 올바르지 않아 건너뜁니다.`);
+                        return;
                     }
-                });
-            }
-        });
+
+                    // 각 팀에서 20% 확률로 선수를 이적 시장에 내놓음
+                    teamPlayers.forEach(player => {
+                        if (Math.random() < 0.2) {
+                            this.transferMarket.push({
+                                ...player,
+                                originalTeam: teamKey,
+                                price: this.calculatePlayerPrice(player),
+                                daysOnMarket: Math.floor(Math.random() * 30)
+                            });
+                        }
+                    });
+                }
+            });
+        } catch (e) {
+            console.error('❌ [Transfer] 팀 선수 로딩 중 오류:', e);
+        }
 
         // 타 리그 선수들도 추가
         this.extraPlayers.forEach(player => {
@@ -74,6 +88,7 @@ class TransferSystem {
         });
 
         this.shuffleTransferMarket();
+        console.log(`✅ [Transfer] 이적 시장 초기화 완료 (총 ${this.transferMarket.length}명)`);
     }
 
 // 선수 가격 계산 함수 수정 (레이팅 중심)
@@ -241,8 +256,56 @@ return allPlayers;
             return filteredPlayers;
         }
 
+    // 이적 성공 확률 계산
+    calculateTransferSuccessChance(player) {
+        let chance = 0.9; // 기본 성공 확률 90%에서 시작
+
+        // 1. 능력치 페널티 (높을수록 거절 확률 증가)
+        if (player.rating >= 90) chance -= 0.4;      // -40% (슈퍼스타)
+        else if (player.rating >= 85) chance -= 0.25; // -25% (스타)
+        else if (player.rating >= 80) chance -= 0.1;  // -10% (주전급)
+
+        // 2. 나이 페널티 (어릴수록 거절 확률 증가 - 미래가 창창하므로)
+        if (player.age <= 20) chance -= 0.3;      // -30% (유망주)
+        else if (player.age <= 24) chance -= 0.15; // -15% (성장기)
+        
+        // 3. 나이 보너스 (노장일수록 이적 쉬움)
+        if (player.age >= 33) chance += 0.1;      // +10%
+
+        // 최소 5%, 최대 100% 제한
+        return Math.max(0.05, Math.min(1.0, chance));
+    }
+
     // 선수 영입
     signPlayer(player) {
+        // 오퍼 기록 데이터 초기화
+        if (!gameData.transferOffers) {
+            gameData.transferOffers = {};
+        }
+
+        const playerKey = `${player.name}_${player.originalTeam}`;
+        
+        // 해당 선수에 대한 오퍼 기록이 없으면 생성
+        if (!gameData.transferOffers[playerKey]) {
+            gameData.transferOffers[playerKey] = { attempts: 0, lastFailedMatch: -100 };
+        }
+
+        const offerData = gameData.transferOffers[playerKey];
+
+        // 쿨타임 체크 (2번 실패 시 10경기 제한)
+        if (offerData.attempts >= 2) {
+            const matchesPassed = gameData.matchesPlayed - offerData.lastFailedMatch;
+            if (matchesPassed < 10) {
+                return { 
+                    success: false, 
+                    message: `협상 결렬 후 쿨타임 중입니다.\n${10 - matchesPassed}경기 후에 다시 제안할 수 있습니다.` 
+                };
+            } else {
+                // 10경기가 지났으면 횟수 초기화
+                offerData.attempts = 0;
+            }
+        }
+
         if (gameData.teamMoney < player.price) {
             return { success: false, message: "자금이 부족합니다!" };
         }
@@ -250,6 +313,21 @@ return allPlayers;
         // 팀 인원 제한 확인 (50명 제한)
         if (teams[gameData.selectedTeam].length >= 50) {
             return { success: false, message: "팀 인원이 가득 찼습니다! (최대 50명)" };
+        }
+
+        // 확률 체크
+        const successChance = this.calculateTransferSuccessChance(player);
+        const roll = Math.random();
+        const successPercent = Math.round(successChance * 100);
+
+        if (roll > successChance) {
+            // 실패 처리
+            offerData.attempts++;
+            if (offerData.attempts >= 2) {
+                offerData.lastFailedMatch = gameData.matchesPlayed;
+                return { success: false, message: `협상 결렬! 선수가 이적 제안을 거절했습니다.\n(성공 확률: ${successPercent}%)\n\n⚠️ 2회 연속 실패로 10경기 동안 제안이 불가능합니다.` };
+            }
+            return { success: false, message: `협상 실패! 선수가 이적 제안을 거절했습니다.\n(성공 확률: ${successPercent}%)\n\n남은 기회: ${2 - offerData.attempts}회` };
         }
         
         // 영입 처리
@@ -267,6 +345,9 @@ return allPlayers;
         
         // 이적 시장에서 제거
         this.transferMarket = this.transferMarket.filter(p => p !== player);
+
+        // 성공 시 오퍼 기록 삭제 (나중에 다시 영입할 수도 있으므로)
+        delete gameData.transferOffers[playerKey];
         
         // AI 팀에서 선수 제거 (외부리그가 아닌 경우)
         if (player.originalTeam !== "외부리그") {
@@ -279,6 +360,12 @@ return allPlayers;
             }
         }
         
+        // 영입 메일 발송
+        if (typeof mailManager !== 'undefined') {
+            const content = `${player.name} 선수가 우리 팀에 합류했습니다.\n이적료: ${player.price}억\n포지션: ${player.position}\n\n팀 전력에 큰 도움이 될 것입니다.`;
+            mailManager.addMail(`[영입] ${player.name} 영입 완료`, '스카우트 팀장', content);
+        }
+
         return { 
             success: true, 
             message: `${player.name}을(를) ${player.price}억에 영입했습니다!`,
@@ -318,6 +405,12 @@ return allPlayers;
                 rating: player.rating,
                 age: player.age
             });
+
+            // 방출 메일 발송
+            if (typeof mailManager !== 'undefined') {
+                const content = `${player.name} 선수가 ${teamNames[randomTeam]}로 이적했습니다.\n이적료 수입: ${transferFee}억`;
+                mailManager.addMail(`[이적] ${player.name} 이적 완료`, '단장', content);
+            }
             
             return { 
                 success: true, 
@@ -331,6 +424,12 @@ return allPlayers;
                 price: Math.round(this.calculatePlayerPrice(player) * 0.7), // 70% 가격으로
                 daysOnMarket: 0
             });
+
+            // 방출 메일 발송
+            if (typeof mailManager !== 'undefined') {
+                const content = `${player.name} 선수가 팀을 떠나 해외 리그로 이적했습니다.\n이적료 수입: ${transferFee}억`;
+                mailManager.addMail(`[이적] ${player.name} 이적 완료`, '단장', content);
+            }
             
             return { 
                 success: true, 
@@ -635,6 +734,8 @@ function initializeTransferSystem() {
 
 // 저장/불러오기에 이적 데이터 포함하도록 기존 함수 확장
 function saveGameWithTransfer() {
+    console.log('=== 저장 시작 (Transfer System 포함) ===');
+
     // 기존 게임 데이터에 이적 시스템 데이터 추가
     gameData.transferSystemData = transferSystem.getSaveData();
     
@@ -656,6 +757,8 @@ function saveGameWithTransfer() {
     a.download = `${teamNames[gameData.selectedTeam]}_${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
+
+    console.log('게임 저장 완료');
 }
 
 function loadGameWithTransfer(event) {
@@ -717,24 +820,38 @@ function replaceSaveLoadFunctions() {
 }
 
 // 페이지 로드 시 이적 시스템 초기화
-document.addEventListener('DOMContentLoaded', function() {
-    setTimeout(() => {
-        initializeTransferSystem();
-        replaceSaveLoadFunctions();
-    }, 1000);
-});
+function initTransfer() {
+    console.log('🚀 [Transfer] initTransfer 함수 실행 시작');
+    
+    // 필수 데이터 확인 (script.js에서 호출하므로 즉시 확인 가능)
+    if (typeof teams === 'undefined' || typeof gameData === 'undefined') {
+        console.error('❌ [Transfer] 필수 데이터가 아직 로드되지 않았습니다. script.js 로딩 순서를 확인하세요.');
+        return;
+    }
 
-// 경기 종료 후 이적 시장 업데이트를 위한 이벤트 연결
-if (typeof window.endMatch === 'function') {
-    const originalEndMatch = window.endMatch;
-    window.endMatch = function(matchData) {
-        if (originalEndMatch) {
-            originalEndMatch.call(this, matchData);
+    try {
+        console.log('🔄 transfer.js: 초기화 로직 실행');
+        
+        // [안전 장치] 초기화 함수들을 개별 try-catch로 감싸서 하나가 실패해도 나머지는 실행되도록 함
+        try { initializeTransferSystem(); } catch(e) { console.error('❌ 이적 시장 초기화 실패:', e); }
+        
+        // 경기 종료 후 이적 시장 업데이트 연결
+        if (typeof window.endMatch === 'function') {
+            const originalEndMatch = window.endMatch;
+            window.endMatch = function(matchData) {
+                if (originalEndMatch) originalEndMatch.call(this, matchData);
+                // 안전하게 실행
+                setTimeout(() => {
+                    try { updateTransferMarketPostMatch(); } 
+                    catch(e) { console.error('❌ 경기 후 이적 시장 업데이트 실패:', e); }
+                }, 3000);
+            };
+            console.log('🔗 [Transfer] endMatch 함수 연결 완료');
         }
-        setTimeout(() => {
-            updateTransferMarketPostMatch();
-        }, 3000);
-    };
+        console.log('✅ transfer.js: 모든 초기화 완료');
+    } catch (error) {
+        console.error('❌ [Transfer] 초기화 중 치명적 오류:', error);
+    }
 }
 
 
@@ -744,8 +861,6 @@ window.displayTransferPlayers = displayTransferPlayers;
 window.searchPlayers = searchPlayers;
 window.initializeTransferMarket = initializeTransferMarket;
 window.loadTransferScreen = loadTransferScreen;
-window.saveGameWithTransfer = saveGameWithTransfer;
-window.loadGameWithTransfer = loadGameWithTransfer;
 window.updateTransferMarketPostMatch = updateTransferMarketPostMatch;   
 window.initializeTransferSystem = initializeTransferSystem;         
-window.replaceSaveLoadFunctions = replaceSaveLoadFunctions;
+window.initTransfer = initTransfer; // 명시적 노출

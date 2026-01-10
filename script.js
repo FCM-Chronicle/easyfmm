@@ -27,7 +27,8 @@ const allTeams = {
             { name: "마르크 베르날", position: "MF", country: "스페인", age: 18, rating: 71 },
             { name: "제라르 마르틴", position: "DF", country: "스페인", age: 23, rating: 72 },
             { name: "파우 쿠바르시", position: "DF", country: "스페인", age: 18, rating: 84 },
-            { name: "루니 바르다그지", position: "FW", country: "덴마크", age: 19, rating: 74 }
+            { name: "루니 바르다그지", position: "FW", country: "덴마크", age: 19, rating: 74 },
+            { name: "알레한드로 발데", position: "DF", country: "스페인", age: 22, rating: 83 }
         ],
         description: "꿈과 열정이 살아 숨쉬는 카탈루냐의 자존심"
     },
@@ -1056,7 +1057,7 @@ const allTeams = {
         description: "사우디아라비아의 킹 클럽이 보여주는 중동 축구의 힘"
     },
 
-    "알 이티하드": {
+    "알_이티하드": {
         league: 3,
         players: [
             { name: "카림 벤제마", position: "FW", country: "프랑스", age: 37, rating: 83 },
@@ -1488,7 +1489,12 @@ let gameData = {
     injuredPlayers: [], // 부상 선수 목록 추가
     aiPrestige: {}, // AI 팀의 환생 선수/성장 보너스 관리
     youthSquad: [], // 유스팀 선수 목록 추가
-    hiredScout: null // 고용된 스카우터 정보 { tier: 'novice', remainingMatches: 5 }
+    hiredScout: null, // 고용된 스카우터 정보
+    schedule: null, // 시즌 스케줄
+    currentRound: 1, // 현재 라운드
+    isHomeGame: true, // 현재 경기가 홈 경기인지 여부
+    startYear: 2025, // 시작 연도 (시즌 표기용)
+    settings: { autoSave: false } // 게임 설정
 };
 
 
@@ -1638,6 +1644,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // ✅ 여기에 추가!
     addReleasePlayerOption();
 
+            // 이적 시스템 초기화 호출
+            if (typeof initTransfer === 'function') {
+                initTransfer();
+            }
 });
 
 function initializeGame() {
@@ -1744,11 +1754,21 @@ function selectTeam(teamKey) {
     // 상대팀 설정 (같은 리그에서)
     setNextOpponent();
     
+    // 스케줄이 없으면 생성
+    if (!gameData.schedule) {
+        generateFullSchedule();
+    }
+
     // 로비로 이동
     showScreen('lobby'); 
     displayTeamPlayers();
     updateDisplay();
     displaySponsors();
+
+    // 환영 메일 발송
+    if (typeof mailManager !== 'undefined') {
+        mailManager.sendWelcomeMail();
+    }
 }
 
 // 자동으로 스쿼드 채우기 함수
@@ -1864,6 +1884,12 @@ function showTab(tabName) {
                 }, 2000);
             }
             break;
+
+        case 'mail':
+            if (typeof mailManager !== 'undefined') {
+                mailManager.renderList();
+            }
+            break;
             
         case 'settings':
             // 설정 탭을 열 때마다 슬롯 UI 생성
@@ -1921,15 +1947,31 @@ function displayTeamPlayers() {
             playerCard.classList.add('used');
         }
         
-        playerCard.innerHTML = `
-            <div class="name">${player.name}</div>
-            <div class="details">
-                <div>${player.position} | 능력치: ${player.rating} | 나이: ${player.age}</div>
-                ${isUsed ? '<div style="color: #ffd700; font-size: 0.8rem;">★ 출전 중</div>' : ''}
-            </div>
-        `;
+        // 부상 여부 확인
+        const isInjured = typeof injurySystem !== 'undefined' && injurySystem.isInjured(gameData.selectedTeam, player.name);
+        if (isInjured) {
+            playerCard.classList.add('injured');
+            const injuryInfo = injurySystem.getInjuredPlayers(gameData.selectedTeam).find(i => i.name === player.name);
+            const gamesLeft = injuryInfo ? injuryInfo.gamesRemaining : '?';
+            
+            playerCard.innerHTML = `
+                <div class="name">${player.name}</div>
+                <div class="details">
+                    <div>${player.position} | 능력치: ${player.rating} | 나이: ${player.age}</div>
+                    <div style="color: #e74c3c; font-weight: bold; font-size: 0.8rem;">🚑 부상중 (${gamesLeft}경기)</div>
+                </div>
+            `;
+        } else {
+            playerCard.innerHTML = `
+                <div class="name">${player.name}</div>
+                <div class="details">
+                    <div>${player.position} | 능력치: ${player.rating} | 나이: ${player.age}</div>
+                    ${isUsed ? '<div style="color: #ffd700; font-size: 0.8rem;">★ 출전 중</div>' : ''}
+                </div>
+            `;
+        }
         
-        if (!isUsed) {
+        if (!isUsed && !isInjured) {
             playerCard.addEventListener('click', () => {
                 if (selectedPosition !== null) {
                     assignPlayerToPosition(player);
@@ -2247,12 +2289,84 @@ function updateDisplay() {
     }
 }
 
-function setNextOpponent() {
-    // 같은 리그의 팀들 중에서 상대 선택
-    const sameLeagueTeams = Object.keys(allTeams).filter(teamKey => 
-        allTeams[teamKey].league === gameData.currentLeague && teamKey !== gameData.selectedTeam
+// 리그 스케줄 생성 (더블 라운드 로빈)
+function generateLeagueSchedule(leagueTeams) {
+    const schedule = [];
+    const numberOfTeams = leagueTeams.length;
+    if (numberOfTeams % 2 !== 0) return []; // 팀 수가 짝수여야 함
+    
+    const rounds = numberOfTeams - 1;
+    const halfSize = numberOfTeams / 2;
+    const teamsCopy = [...leagueTeams];
+
+    // 전반기 (라운드 로빈)
+    for (let round = 0; round < rounds; round++) {
+        const roundMatches = [];
+        for (let i = 0; i < halfSize; i++) {
+            const home = teamsCopy[i];
+            const away = teamsCopy[numberOfTeams - 1 - i];
+            
+            // 라운드마다 홈/어웨이 번갈아가며 배정 (공평성)
+            if (round % 2 === 0) {
+                 roundMatches.push({ home: home, away: away });
+            } else {
+                 roundMatches.push({ home: away, away: home });
+            }
+        }
+        schedule.push(roundMatches);
+
+        // 팀 회전 (0번 인덱스 고정, 나머지 회전)
+        const first = teamsCopy[0];
+        const rest = teamsCopy.slice(1);
+        const last = rest.pop();
+        rest.unshift(last);
+        teamsCopy.splice(0, teamsCopy.length, first, ...rest);
+    }
+
+    // 후반기 (전반기와 대진은 같고 홈/어웨이만 반대)
+    const secondHalf = schedule.map(round => 
+        round.map(match => ({ home: match.away, away: match.home }))
     );
-    gameData.currentOpponent = sameLeagueTeams[Math.floor(Math.random() * sameLeagueTeams.length)];
+
+    return [...schedule, ...secondHalf];
+}
+
+function generateFullSchedule() {
+    gameData.schedule = {};
+    for (let i = 1; i <= 3; i++) {
+        const leagueTeams = Object.keys(allTeams).filter(key => allTeams[key].league === i);
+        // 매 시즌 랜덤한 순서로 스케줄 생성
+        leagueTeams.sort(() => Math.random() - 0.5);
+        gameData.schedule[`division${i}`] = generateLeagueSchedule(leagueTeams);
+    }
+    gameData.currentRound = 1;
+    console.log("📅 새 시즌 스케줄 생성 완료");
+}
+
+function setNextOpponent() {
+    if (!gameData.schedule) {
+        generateFullSchedule();
+    }
+    // 실제 상대 결정 로직은 tacticSystem.js의 endMatch나 초기화 시점에서 
+    // gameData.currentRound를 기반으로 처리되지만, 
+    // UI 갱신을 위해 여기서도 현재 라운드 정보를 확인합니다.
+    
+    const currentLeagueKey = `division${gameData.currentLeague}`;
+    const leagueSchedule = gameData.schedule[currentLeagueKey];
+    
+    if (!leagueSchedule || gameData.currentRound > leagueSchedule.length) {
+        // 시즌 종료 상태
+        return;
+    }
+
+    const currentRoundMatches = leagueSchedule[gameData.currentRound - 1];
+    const userMatch = currentRoundMatches.find(m => m.home === gameData.selectedTeam || m.away === gameData.selectedTeam);
+
+    if (userMatch) {
+        gameData.currentOpponent = (userMatch.home === gameData.selectedTeam) ? userMatch.away : userMatch.home;
+        gameData.isHomeGame = (userMatch.home === gameData.selectedTeam);
+    }
+    
     updateDisplay();
 }
 
@@ -2441,6 +2555,11 @@ function displaySponsors() {
                 updateDisplay();
                 displaySponsors();
                 alert(`${sponsor.name}와 계약을 체결했습니다! 계약금 ${sponsor.signingBonus}억을 받았습니다.`);
+
+                // 스폰서 계약 메일 발송
+                if (typeof mailManager !== 'undefined') {
+                    mailManager.sendSponsorMail(sponsor);
+                }
             });
         }
         
@@ -2750,6 +2869,16 @@ function calculateTeamStrengthDifference() {
     
     console.log('=== 저장 시작 ===');
     
+    // [추가] AI 선수들의 성장 데이터를 allTeams에도 반영 (저장 시 누락 방지)
+    if (typeof allTeams !== 'undefined' && typeof teams !== 'undefined') {
+        Object.keys(teams).forEach(teamKey => {
+            if (allTeams[teamKey]) {
+                allTeams[teamKey].players = teams[teamKey];
+            }
+        });
+        console.log('✅ teams 데이터를 allTeams에 동기화 완료 (AI 성장 반영)');
+    }
+
     try {
         // 모든 리그 테이블 데이터 수집
         const allLeagueData = {};
@@ -2766,6 +2895,11 @@ function calculateTeamStrengthDifference() {
         
         console.log('수집된 리그 데이터:', allLeagueData);
         console.log('league2Table 내용:', league2Table);
+
+        // 이적 시장 데이터 저장 (gameData에 통합)
+        if (typeof transferSystem !== 'undefined') {
+            gameData.transferSystemData = transferSystem.getSaveData();
+        }
         
         // Records System에서 모든 득점/도움 데이터 수집
         const recordsData = {};
@@ -2796,6 +2930,7 @@ function calculateTeamStrengthDifference() {
         league3Table: league3Table,
         recordsData: recordsData,
         snsData: snsManager.getSaveData(),
+        mailData: mailManager.getSaveData(), // 메일 데이터 저장
         growthData: playerGrowthSystem.getSaveData(),
         injuryData: injurySystem.getSaveData(), // 부상 데이터 추가
         youthSquad: gameData.youthSquad, // 유스팀 데이터 추가
@@ -2856,6 +2991,16 @@ function loadGame(event) {
                 console.log('allTeams 데이터 복원 완료');
             }
             
+            // [추가] 로드 후 teams와 allTeams 연결 복구 (메모리 상 동기화)
+            if (typeof allTeams !== 'undefined' && typeof teams !== 'undefined') {
+                Object.keys(allTeams).forEach(teamKey => {
+                    if (teams[teamKey]) {
+                        // teams의 최신 선수 데이터를 allTeams가 참조하도록 설정
+                        allTeams[teamKey].players = teams[teamKey];
+                    }
+                });
+            }
+            
             // 리그 테이블 복원
             if (saveData.league1Table) {
                 league1Table = saveData.league1Table;
@@ -2895,6 +3040,12 @@ function loadGame(event) {
         console.log('부상 데이터 복원 완료');
     }
 
+            // 이적 시장 데이터 복원
+            if (gameData.transferSystemData && typeof transferSystem !== 'undefined') {
+                transferSystem.loadSaveData(gameData.transferSystemData);
+                console.log('이적 시장 데이터 복원 완료');
+            }
+
             // 유스팀 데이터 복원
             if (saveData.gameData.youthSquad) {
                 gameData.youthSquad = saveData.gameData.youthSquad;
@@ -2905,6 +3056,16 @@ function loadGame(event) {
             if (saveData.gameData.hiredScout) {
                 gameData.hiredScout = saveData.gameData.hiredScout;
                 console.log('고용된 스카우터 데이터 복원 완료');
+            }
+
+            // 스케줄 데이터 복원 (없으면 생성)
+            if (!gameData.schedule) {
+                generateFullSchedule();
+            }
+
+            // 시작 연도 초기화 (구버전 호환)
+            if (!gameData.startYear) {
+                gameData.startYear = 2025;
             }
             
             // 포텐셜 시스템 처리
@@ -2951,6 +3112,16 @@ function loadGame(event) {
             
             console.log('=== 게임 불러오기 완료 ===');
             alert('게임을 불러왔습니다!');
+            
+            // gameData 객체가 교체되었으므로 자동 저장 감지기 재설정
+            if (window.autoSaveSystem) {
+                window.autoSaveSystem.hookMoney();
+            }
+
+            // 자동 저장 UI 업데이트
+            if (typeof window.updateAutoSaveUI === 'function') {
+                window.updateAutoSaveUI();
+            }
             
         } catch (error) {
             console.error('불러오기 에러:', error);
@@ -3399,12 +3570,23 @@ function createSaveSlots() {
 }
 
 // 특정 슬롯에 저장
-function saveToSlot(slotNumber) {
+function saveToSlot(slotNumber, silent = false) {
     try {
-        console.log(`=== 슬롯 ${slotNumber}에 저장 시작 ===`);
+        if (!silent) console.log(`=== 슬롯 ${slotNumber}에 저장 시작 ===`);
         
+        // [추가] AI 선수들의 성장 데이터를 allTeams에도 반영
+        if (typeof allTeams !== 'undefined' && typeof teams !== 'undefined') {
+            Object.keys(teams).forEach(teamKey => {
+                if (allTeams[teamKey]) {
+                    allTeams[teamKey].players = teams[teamKey];
+                }
+            });
+        }
+
         const slotInfo = getSlotInfo(slotNumber);
-        if (slotInfo) {
+        
+        // 자동 저장이 아닐 때만 덮어쓰기 확인
+        if (slotInfo && !silent) {
             if (!confirm(`슬롯 ${slotNumber}에 이미 저장된 데이터가 있습니다.\n(${slotInfo.teamName}, ${slotInfo.matchesPlayed}경기)\n\n덮어쓰시겠습니까?`)) {
                 return;
             }
@@ -3459,8 +3641,10 @@ function saveToSlot(slotNumber) {
         // 로컬스토리지에 저장
         localStorage.setItem(`footballManagerSave_slot${slotNumber}`, JSON.stringify(saveData));
         
-        console.log(`슬롯 ${slotNumber}에 저장 완료`);
-        alert(`슬롯 ${slotNumber}에 게임이 저장되었습니다!`);
+        if (!silent) {
+            console.log(`슬롯 ${slotNumber}에 저장 완료`);
+            alert(`슬롯 ${slotNumber}에 게임이 저장되었습니다!`);
+        }
         
         // 슬롯 UI 새로고침
         createSaveSlots();
@@ -3513,6 +3697,15 @@ function loadFromSlot(slotNumber) {
             console.log('allTeams 데이터 복원 완료');
         }
         
+        // [추가] 로드 후 teams와 allTeams 연결 복구
+        if (typeof allTeams !== 'undefined' && typeof teams !== 'undefined') {
+            Object.keys(allTeams).forEach(teamKey => {
+                if (teams[teamKey]) {
+                    allTeams[teamKey].players = teams[teamKey];
+                }
+            });
+        }
+        
         // 리그 테이블 복원
         if (saveData.league1Table) {
             league1Table = saveData.league1Table;
@@ -3540,6 +3733,12 @@ function loadFromSlot(slotNumber) {
             snsManager.loadSaveData(saveData.snsData);
             console.log('SNS 데이터 복원 완료');
         }
+
+            // 메일 데이터 복원
+            if (saveData.mailData && typeof mailManager !== 'undefined') {
+                mailManager.loadSaveData(saveData.mailData);
+                console.log('메일 데이터 복원 완료');
+            }
         
         // 부상 데이터 복원
         if (saveData.injuryData && typeof injurySystem !== 'undefined') {
@@ -3605,6 +3804,11 @@ function loadFromSlot(slotNumber) {
         
         console.log(`=== 슬롯 ${slotNumber}에서 불러오기 완료 ===`);
         alert(`슬롯 ${slotNumber}에서 게임을 불러왔습니다!`);
+
+        // gameData 객체가 교체되었으므로 자동 저장 감지기 재설정
+        if (window.autoSaveSystem) {
+            window.autoSaveSystem.hookMoney();
+        }
         
     } catch (error) {
         console.error(`슬롯 ${slotNumber} 불러오기 에러:`, error);
@@ -3757,6 +3961,7 @@ window.gameData = gameData;
 window.allTeams = allTeams; // 추가
 window.teams = teams;
 // window.teamNames = teamNames; // 삭제 또는 수정
+window.generateFullSchedule = generateFullSchedule; // 추가
 window.updateDisplay = updateDisplay;
 window.setNextOpponent = setNextOpponent;
 window.displayTeamPlayers = displayTeamPlayers;

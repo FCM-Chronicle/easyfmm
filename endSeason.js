@@ -50,10 +50,13 @@ function checkSeasonEnd() {
         allTeams[team].league === gameData.currentLeague
     );
     
+    // 총 라운드 수 계산 (팀 수 - 1) * 2
+    const totalRounds = (currentLeagueTeams.length - 1) * 2;
+    
     const allTeamsFinished = currentLeagueTeams.every(teamKey => {
         const divisionKey = `division${gameData.currentLeague}`;
         const teamData = gameData.leagueData[divisionKey][teamKey];
-        return teamData && teamData.matches >= 26;
+        return teamData && teamData.matches >= totalRounds;
     });
     
     if (allTeamsFinished) {
@@ -102,6 +105,23 @@ function endSeason() {
     
     gameData.teamMoney += reward;
     
+    // === 올해의 선수상 시상 (MOM 최다) ===
+    let potyMessage = '';
+    if (typeof leagueBasedRecordsSystem !== 'undefined') {
+        const poty = leagueBasedRecordsSystem.getPlayerOfTheSeason();
+        if (poty) {
+            const isMyPlayer = poty.team === gameData.selectedTeam;
+            potyMessage = `\n\n🏆 [올해의 선수상]\n${poty.name} (${teamNames[poty.team] || poty.team})\nMOM 선정: ${poty.moms}회`;
+            
+            if (isMyPlayer) {
+                potyMessage += "\n(우리 팀 선수가 수상했습니다! 상금 100억)";
+                gameData.teamMoney += 100;
+                // 메일 발송
+                mailManager.addMail(`[수상] ${poty.name} 올해의 선수상 수상!`, '리그 사무국', `축하합니다!\n${poty.name} 선수가 이번 시즌 최고의 활약을 펼쳐 '올해의 선수상'을 수상했습니다.\n\n구단의 위상을 드높인 공로로 상금 100억원이 지급됩니다.`);
+            }
+        }
+    }
+
     // === 새로운 승강제 로직 추가 ===
     // 3부리그 시스템이 활성화된 경우에만 승강제 적용
     if (typeof allTeams !== 'undefined' && Object.keys(allTeams).length > 19) {
@@ -135,7 +155,7 @@ function endSeason() {
         }
         
         // 기존 메시지 + 승강제 정보
-        alert(`시즌 종료!\n최종 순위: ${userPosition}위 (${achievement})\n보상: ${reward}억원${promotionMessage}`);
+        alert(`시즌 종료!\n최종 순위: ${userPosition}위 (${achievement})\n보상: ${reward}억원${promotionMessage}${potyMessage}`);
         
         // 다른 팀들의 승강제 현황 표시
         if (promotionRelegationData.promotions.length > 0 || promotionRelegationData.relegations.length > 0) {
@@ -143,13 +163,20 @@ function endSeason() {
         }
     } else {
         // 기존 1부리그 시스템 (승강제 없음) - 기존 메시지 그대로
-        alert(`시즌 종료!\n최종 순위: ${userPosition}위 (${achievement})\n보상: ${reward}억원`);
+        alert(`시즌 종료!\n최종 순위: ${userPosition}위 (${achievement})\n보상: ${reward}억원${potyMessage}`);
     }
-
+    
     // === 공통 마무리 로직 ===
     // 1. 선수 나이 증가 (성장 데이터는 유지)
     if (typeof advancePlayerAges === 'function') {
         advancePlayerAges();
+    }
+
+    // [추가] 시즌 기록 아카이빙 (리셋 전)
+    if (typeof leagueBasedRecordsSystem !== 'undefined') {
+        const currentYear = gameData.startYear || 2025;
+        const seasonName = `${currentYear}/${currentYear + 1}`;
+        leagueBasedRecordsSystem.archiveSeason(seasonName);
     }
     
     // 2. 개인기록 시스템 리셋 (새 시즌 준비)
@@ -165,6 +192,14 @@ function endSeason() {
     gameData.matchesPlayed = 0;
     
     // 4. 새 시즌 상대 설정
+    if (typeof generateFullSchedule === 'function') {
+        generateFullSchedule(); // 새 시즌 스케줄 생성
+    }
+    
+    // [추가] 연도 증가
+    if (!gameData.startYear) gameData.startYear = 2025;
+    gameData.startYear++;
+
     if (typeof setNextOpponent === 'function') {
         setNextOpponent();
     }
