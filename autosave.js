@@ -1,6 +1,11 @@
 // autosave.js
 // 자동 저장 기능 구현
 
+// 전역 객체 초기화 (script.js에서 호출 가능하도록)
+window.autoSaveSystem = {
+    hookMoney: null
+};
+
 document.addEventListener('DOMContentLoaded', () => {
     const autoSaveToggle = document.getElementById('autoSaveToggle');
     const autoSaveStatus = document.getElementById('autoSaveStatus');
@@ -19,6 +24,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (typeof gameData !== 'undefined') {
                 if (!gameData.settings) gameData.settings = {};
                 gameData.settings.autoSave = isAutoSaveOn;
+                
+                // 끄면 슬롯 정보도 초기화 (다시 켤 때 새로운 타겟 설정을 위해)
+                if (!isAutoSaveOn) {
+                    gameData.settings.autoSaveSlot = null;
+                }
             }
             
             // 꺼질 때 타겟 초기화 (다시 켤 때 새로운 '최초'를 설정할 수 있게 함)
@@ -29,7 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             updateStatusText();
             
-            if (isAutoSaveOn && !targetSlotButton) {
+            if (isAutoSaveOn && !targetSlotNumber) {
                 alert('자동 저장을 활성화했습니다.\n원하는 슬롯에 한 번 "저장"을 하면, 이후 해당 슬롯에 계속 덮어씌워집니다.');
             }
         });
@@ -38,12 +48,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateStatusText() {
         if (!autoSaveStatus) return;
         if (isAutoSaveOn) {
-            if (targetSlotButton) {
-                // 슬롯 번호 찾기 (버튼의 부모 요소 등을 통해 추정)
-                const slotDiv = targetSlotButton.closest('div'); 
-                // 텍스트에서 슬롯 번호 추출 시도, 실패하면 '선택된 슬롯'
-                const slotName = slotDiv ? slotDiv.innerText.split('\n')[0] : '선택된 슬롯';
-                autoSaveStatus.textContent = `✅ 자동 저장 켜짐 (${slotName}에 저장 중)`;
+            if (targetSlotNumber) {
+                autoSaveStatus.textContent = `✅ 자동 저장 켜짐 (슬롯 ${targetSlotNumber}에 저장 중)`;
                 autoSaveStatus.style.color = '#2ecc71';
             } else {
                 autoSaveStatus.textContent = '⚠️ 자동 저장 대기 중 (먼저 슬롯에 수동으로 한 번 저장하세요)';
@@ -71,6 +77,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     const match = onclickAttr.match(/saveToSlot\((\d+)\)/);
                     if (match) {
                         targetSlotNumber = parseInt(match[1]);
+                        
+                        // 슬롯 번호도 설정에 저장
+                        if (typeof gameData !== 'undefined') {
+                            if (!gameData.settings) gameData.settings = {};
+                            gameData.settings.autoSaveSlot = targetSlotNumber;
+                        }
                     }
                 }
 
@@ -93,31 +105,37 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // 4. 자금 변동 감지 (gameData.teamMoney Hook)
+    function hookMoneyProperty() {
+        if (typeof gameData === 'undefined') return;
+
+        let internalMoney = gameData.teamMoney;
+        
+        // gameData.teamMoney 속성을 재정의하여 변경 감지
+        Object.defineProperty(gameData, 'teamMoney', {
+            get: function() {
+                return internalMoney;
+            },
+            set: function(newValue) {
+                const isChanged = internalMoney !== newValue;
+                internalMoney = newValue;
+                
+                if (isChanged) {
+                    triggerAutoSave();
+                }
+            },
+            configurable: true
+        });
+        console.log('💰 자금 변동 감지기가 설정되었습니다.');
+    }
+
+    // 외부에서 호출 가능하도록 연결
+    window.autoSaveSystem.hookMoney = hookMoneyProperty;
+
     // gameData가 로드될 때까지 잠시 대기
     const checkGameDataInterval = setInterval(() => {
         if (typeof gameData !== 'undefined') {
             clearInterval(checkGameDataInterval);
-            
-            // teamMoney로 수정 (기존 money는 잘못된 속성명일 수 있음)
-            let internalMoney = gameData.teamMoney;
-            
-            // gameData.teamMoney 속성을 재정의하여 변경 감지
-            Object.defineProperty(gameData, 'teamMoney', {
-                get: function() {
-                    return internalMoney;
-                },
-                set: function(newValue) {
-                    const isChanged = internalMoney !== newValue;
-                    internalMoney = newValue;
-                    
-                    // 값이 실제로 바뀌었을 때만 저장
-                    if (isChanged) {
-                        triggerAutoSave();
-                    }
-                },
-                configurable: true
-            });
-            console.log('💰 자금 변동 감지기가 설정되었습니다.');
+            hookMoneyProperty();
         }
     }, 1000);
 
@@ -133,10 +151,21 @@ document.addEventListener('DOMContentLoaded', () => {
     window.updateAutoSaveUI = function() {
         if (typeof gameData !== 'undefined' && gameData.settings && autoSaveToggle) {
             const savedState = gameData.settings.autoSave;
+            const savedSlot = gameData.settings.autoSaveSlot;
+
+            // 저장된 슬롯 번호 복원
+            if (savedSlot) {
+                targetSlotNumber = savedSlot;
+            }
+
             if (autoSaveToggle.checked !== savedState) {
                 autoSaveToggle.checked = savedState;
                 // 이벤트 트리거하여 내부 상태 업데이트
                 autoSaveToggle.dispatchEvent(new Event('change'));
+            } else {
+                // 상태가 같더라도 텍스트 업데이트 (슬롯 번호가 복원되었을 수 있으므로)
+                isAutoSaveOn = savedState;
+                updateStatusText();
             }
         }
     };

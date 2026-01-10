@@ -980,6 +980,23 @@ class LeagueBasedRecordsSystem extends RecordsSystem {
         return assisters;
     }
 
+    // 리그별 MOM 순위 (추가됨)
+    getTopMOMsByLeague(league, limit = 5) {
+        const moms = Array.from(this.playerStats.values())
+            .filter(player => {
+                if (player.moms <= 0) return false;
+                // 해당 선수의 팀이 현재 조회하려는 리그인지 확인
+                const teamData = allTeams[player.team];
+                return teamData && teamData.league === league;
+            })
+            .sort((a, b) => {
+                if (b.moms !== a.moms) return b.moms - a.moms;
+                return b.goals - a.goals; // 동점 시 득점 순
+            })
+            .slice(0, limit);
+        return moms;
+    }
+
     // 리그 정보 포함한 득점왕 표시
     displayTopScorersWithLeague(topScorers, league) {
         const container = document.getElementById('topScorers');
@@ -1133,10 +1150,11 @@ class LeagueBasedRecordsSystem extends RecordsSystem {
     switchToLeague(league) {
         const topScorers = this.getTopScorersByLeague(league, 5);
         const topAssisters = this.getTopAssistersByLeague(league, 5);
-        // MOM은 리그별 분류가 복잡하여 전체 순위 유지하거나 추후 구현
+        const topMOMs = this.getTopMOMsByLeague(league, 5); // 리그별 MOM 가져오기
         
         this.displayTopScorersWithLeague(topScorers, league);
         this.displayTopAssistersWithLeague(topAssisters, league);
+        this.displayTopMOMs(topMOMs); // MOM 표시 업데이트
         
         // 버튼 활성화 상태 업데이트
         document.querySelectorAll('.league-switch-btn').forEach((btn, index) => {
@@ -1157,7 +1175,7 @@ class LeagueBasedRecordsSystem extends RecordsSystem {
         // 사용자 리그의 기록 표시
         const topScorers = this.getTopScorersByLeague(userLeague, 5);
         const topAssisters = this.getTopAssistersByLeague(userLeague, 5);
-        const topMOMs = this.getTopMOMs(5); // 전체 통합
+        const topMOMs = this.getTopMOMsByLeague(userLeague, 5); // 리그별 MOM으로 변경
         
         this.displayTopScorersWithLeague(topScorers, userLeague);
         this.displayTopAssistersWithLeague(topAssisters, userLeague);

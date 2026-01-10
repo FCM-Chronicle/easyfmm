@@ -1494,7 +1494,7 @@ let gameData = {
     currentRound: 1, // 현재 라운드
     isHomeGame: true, // 현재 경기가 홈 경기인지 여부
     startYear: 2025, // 시작 연도 (시즌 표기용)
-    settings: { autoSave: false } // 게임 설정
+    settings: { autoSave: false, bgm: true, bgmVolume: 50 } // 게임 설정 (오디오 추가)
 };
 
 
@@ -1769,6 +1769,12 @@ function selectTeam(teamKey) {
     if (typeof mailManager !== 'undefined') {
         mailManager.sendWelcomeMail();
     }
+
+    // 배경음악 재생 시작
+    if (typeof audioManager !== 'undefined') {
+        audioManager.init();
+        audioManager.play();
+    }
 }
 
 // 자동으로 스쿼드 채우기 함수
@@ -1894,6 +1900,10 @@ function showTab(tabName) {
         case 'settings':
             // 설정 탭을 열 때마다 슬롯 UI 생성
             createSaveSlots();
+            // 오디오 설정 UI 생성
+            if (typeof renderAudioSettings === 'function') {
+                renderAudioSettings();
+            }
             break;
 
         case 'youth':
@@ -3122,6 +3132,12 @@ function loadGame(event) {
             if (typeof window.updateAutoSaveUI === 'function') {
                 window.updateAutoSaveUI();
             }
+
+            // 오디오 설정 복원 및 재생
+            if (typeof audioManager !== 'undefined') {
+                audioManager.init();
+                audioManager.applySettings(gameData.settings);
+            }
             
         } catch (error) {
             console.error('불러오기 에러:', error);
@@ -3809,6 +3825,11 @@ function loadFromSlot(slotNumber) {
         if (window.autoSaveSystem) {
             window.autoSaveSystem.hookMoney();
         }
+
+        // 자동 저장 UI 업데이트 (설정 복원)
+        if (typeof window.updateAutoSaveUI === 'function') {
+            window.updateAutoSaveUI();
+        }
         
     } catch (error) {
         console.error(`슬롯 ${slotNumber} 불러오기 에러:`, error);
@@ -3969,3 +3990,281 @@ window.updateFormationDisplay = updateFormationDisplay;
 window.calculateTeamRating = calculateTeamRating;
 window.calculateOpponentTeamRating = calculateOpponentTeamRating;
 window.calculateTeamStrengthDifference = calculateTeamStrengthDifference;
+
+// ==================== 오디오 시스템 ====================
+
+class AudioManager {
+    constructor() {
+        this.bgmFiles = [
+            'assets/ost/BEENZINO-Always Awake.mp3',
+            'assets/ost/BEENZINO-Aqua Man.mp3',
+            'assets/ost/Bruno Mars - 24K Magic (Audio).mp3',
+            'assets/ost/Caesars Palace - Jerk It Out (Official Video).mp3',
+            'assets/ost/Dynamic Duo & DJ Premier AEAO.mp3',
+            'assets/ost/Glass Animals - Heat Waves (Lyrics).mp3',
+            'assets/ost/Imagine Dragons - On Top Of The World (Lyric Video).mp3',
+            'assets/ost/John Newman - Love Me Again.mp3',
+            'assets/ost/Linkin Park - Battle Symphony [Lyrics].mp3',
+            'assets/ost/Mark Ronson - Uptown Funk (Lyrics) ft. Bruno Mars.mp3',
+            'assets/ost/MGMT - Kids (Lyrics).mp3',
+            'assets/ost/SAINT MOTEL - My Type.mp3',
+            'assets/ost/Song 2.mp3',
+            'assets/ost/다이나믹 듀오(Dynamic Duo) - BAAAM (Feat. Muzie of UV) (가사_lyrics).mp3',
+            'assets/ost/에픽하이 (EPIK HIGH) - BORN HATER (Feat. 빈지노, 버벌진트, B.I, MINO, BOBBY) | Lyrics_가사.mp3'
+        ];
+        this.currentTrackIndex = 0;
+        this.audio = new Audio();
+        this.isPlaying = false;
+        this.initialized = false;
+        
+        this.createNowPlayingUI(); // UI 생성
+    }
+
+    init() {
+        if (this.initialized) return;
+        
+        this.audio.loop = false;
+        // 한 곡이 끝나면 다음 곡 재생
+        this.audio.addEventListener('ended', () => this.playNext());
+        
+        // 초기 설정 적용
+        if (typeof gameData !== 'undefined' && gameData.settings) {
+            this.applySettings(gameData.settings);
+        }
+        
+        this.initialized = true;
+    }
+    
+    applySettings(settings) {
+        if (!settings) return;
+        
+        const isMuted = settings.bgm === false; // bgm: true가 켜짐
+        const volume = (settings.bgmVolume !== undefined ? settings.bgmVolume : 50) / 100;
+        
+        this.audio.muted = isMuted;
+        this.audio.volume = volume;
+        
+        if (!isMuted && !this.isPlaying && this.initialized) {
+            this.play();
+        } else if (isMuted && this.isPlaying) {
+            this.pause();
+        }
+    }
+
+    play() {
+        if (this.bgmFiles.length === 0) return;
+        if (this.audio.muted) return;
+
+        // 소스가 없으면 설정
+        if (!this.audio.src) {
+            this.audio.src = this.bgmFiles[this.currentTrackIndex];
+        }
+        
+        const playPromise = this.audio.play();
+        if (playPromise !== undefined) {
+            playPromise.then(() => {
+                this.isPlaying = true;
+                // 현재 재생 중인 곡 정보 표시
+                this.showNowPlaying(this.bgmFiles[this.currentTrackIndex]);
+            }).catch(error => {
+                console.log("Audio play prevented (브라우저 정책):", error);
+                this.isPlaying = false;
+            });
+        }
+    }
+
+    pause() {
+        this.audio.pause();
+        this.isPlaying = false;
+    }
+
+    playNext() {
+        this.currentTrackIndex = (this.currentTrackIndex + 1) % this.bgmFiles.length;
+        this.audio.src = this.bgmFiles[this.currentTrackIndex];
+        this.play();
+    }
+    
+    setVolume(value) {
+        // value: 0 ~ 100
+        const normalizedVolume = value / 100;
+        this.audio.volume = normalizedVolume;
+        if (gameData.settings) {
+            gameData.settings.bgmVolume = value;
+        }
+    }
+    
+    toggleBgm(isOn) {
+        this.audio.muted = !isOn;
+        if (gameData.settings) {
+            gameData.settings.bgm = isOn;
+        }
+        
+        if (isOn) {
+            this.play();
+        } else {
+            this.pause();
+        }
+    }
+
+    createNowPlayingUI() {
+        if (document.getElementById('nowPlayingContainer')) return;
+
+        const container = document.createElement('div');
+        container.id = 'nowPlayingContainer';
+        container.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 30px;
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            opacity: 0;
+            transform: translateY(-20px);
+            pointer-events: none;
+        `;
+        
+        const text = document.createElement('span');
+        text.id = 'nowPlayingText';
+        
+        container.appendChild(text);
+        document.body.appendChild(container);
+        this.nowPlayingElement = container;
+        this.nowPlayingText = text;
+    }
+
+    showNowPlaying(filename) {
+        if (!this.nowPlayingElement) return;
+        
+        let cleanName = filename.split('/').pop().replace('.mp3', '');
+        
+        // 불필요한 태그 제거 및 정리
+        cleanName = cleanName
+            .replace(/\(Lyrics\)/gi, '')
+            .replace(/\(Official Video\)/gi, '')
+            .replace(/\(Lyric Video\)/gi, '')
+            .replace(/\(Audio\)/gi, '')
+            .replace(/\[Lyrics\]/gi, '')
+            .replace(/\(가사_lyrics\)/gi, '')
+            .replace(/\| Lyrics_가사/gi, '')
+            .trim();
+
+        // 하이픈 포맷팅 (띄어쓰기 추가)
+        if (cleanName.includes('-') && !cleanName.includes(' - ')) {
+             cleanName = cleanName.replace('-', ' - ');
+        }
+
+        this.nowPlayingText.textContent = `🎵 ${cleanName}`;
+        
+        // 표시 애니메이션
+        this.nowPlayingElement.style.display = 'flex';
+        void this.nowPlayingElement.offsetWidth; // reflow 강제
+        
+        this.nowPlayingElement.style.opacity = '1';
+        this.nowPlayingElement.style.transform = 'translateY(0)';
+        
+        if (this.hideTimeout) clearTimeout(this.hideTimeout);
+        this.hideTimeout = setTimeout(() => {
+            this.nowPlayingElement.style.opacity = '0';
+            this.nowPlayingElement.style.transform = 'translateY(-20px)';
+            setTimeout(() => {
+                if (this.nowPlayingElement.style.opacity === '0') {
+                    this.nowPlayingElement.style.display = 'none';
+                }
+            }, 500);
+        }, 5000); // 5초간 표시
+    }
+}
+
+const audioManager = new AudioManager();
+window.audioManager = audioManager;
+
+// 설정 탭에 오디오 설정 UI 렌더링
+function renderAudioSettings() {
+    const settingsTab = document.getElementById('settings');
+    if (!settingsTab) return;
+    
+    let audioContainer = document.getElementById('audioSettings');
+    if (!audioContainer) {
+        audioContainer = document.createElement('div');
+        audioContainer.id = 'audioSettings';
+        audioContainer.style.cssText = `
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        `;
+        // saveSlots 앞에 추가 (없으면 맨 뒤)
+        const saveSlots = document.getElementById('saveSlots');
+        if (saveSlots) {
+            settingsTab.insertBefore(audioContainer, saveSlots);
+        } else {
+            settingsTab.appendChild(audioContainer);
+        }
+    }
+    
+    const isBgmOn = gameData.settings ? gameData.settings.bgm !== false : true;
+    const volume = gameData.settings && gameData.settings.bgmVolume !== undefined ? gameData.settings.bgmVolume : 50;
+    
+    audioContainer.innerHTML = `
+        <h4 style="color: #ffd700; margin-top: 0; margin-bottom: 15px;">🎵 배경음악 설정</h4>
+        <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 15px;">
+            <label class="switch" style="position: relative; display: inline-block; width: 50px; height: 24px;">
+                <input type="checkbox" id="bgmToggle" ${isBgmOn ? 'checked' : ''} style="opacity: 0; width: 0; height: 0;">
+                <span class="slider round" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px;"></span>
+            </label>
+            <span id="bgmStatusText">배경음악 ${isBgmOn ? 'ON' : 'OFF'}</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <span>볼륨:</span>
+            <input type="range" id="bgmVolume" min="0" max="100" value="${volume}" style="flex-grow: 1; cursor: pointer;">
+            <span id="volumeValue" style="width: 40px; text-align: right;">${volume}%</span>
+        </div>
+    `;
+    
+    // CSS 추가 (슬라이더 스타일)
+    const style = document.createElement('style');
+    style.textContent = `
+        .switch input:checked + .slider { background-color: #2ecc71; }
+        .switch input:focus + .slider { box-shadow: 0 0 1px #2ecc71; }
+        .switch .slider:before {
+            position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px;
+            background-color: white; transition: .4s; border-radius: 50%;
+        }
+        .switch input:checked + .slider:before { transform: translateX(26px); }
+    `;
+    if (!document.getElementById('audioStyles')) {
+        style.id = 'audioStyles';
+        document.head.appendChild(style);
+    }
+    
+    // 이벤트 리스너
+    const bgmToggle = document.getElementById('bgmToggle');
+    const bgmVolume = document.getElementById('bgmVolume');
+    const volumeValue = document.getElementById('volumeValue');
+    const bgmStatusText = document.getElementById('bgmStatusText');
+    
+    bgmToggle.addEventListener('change', (e) => {
+        const isOn = e.target.checked;
+        audioManager.toggleBgm(isOn);
+        bgmStatusText.textContent = `배경음악 ${isOn ? 'ON' : 'OFF'}`;
+    });
+    
+    bgmVolume.addEventListener('input', (e) => {
+        const val = parseInt(e.target.value);
+        volumeValue.textContent = `${val}%`;
+        audioManager.setVolume(val);
+    });
+}
+window.renderAudioSettings = renderAudioSettings;
