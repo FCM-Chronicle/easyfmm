@@ -3996,8 +3996,9 @@ window.calculateTeamStrengthDifference = calculateTeamStrengthDifference;
 class AudioManager {
     constructor() {
         this.bgmFiles = [
-            'assets/ost/BEENZINO-Always Awake.mp3',
-            'assets/ost/BEENZINO-Aqua Man.mp3',
+            // ❗ 여기에 assets/ost 폴더에 넣은 mp3 파일명을 정확히 입력하세요.
+            'assets/ost/[Bonus Track] Always Awake.mp3',
+            'assets/ost/Aqua Man.mp3',
             'assets/ost/Bruno Mars - 24K Magic (Audio).mp3',
             'assets/ost/Caesars Palace - Jerk It Out (Official Video).mp3',
             'assets/ost/Dynamic Duo & DJ Premier AEAO.mp3',
