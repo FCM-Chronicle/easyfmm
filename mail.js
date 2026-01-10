@@ -163,18 +163,15 @@ class MailManager {
 
     // 2. 경기 결과 메일
     sendMatchResultMail(matchData) {
-        const opponent = teamNames[matchData.awayTeam] === teamNames[gameData.selectedTeam] 
-            ? teamNames[matchData.homeTeam] 
-            : teamNames[matchData.awayTeam];
+        const isUserHome = matchData.homeTeam === gameData.selectedTeam;
+        
+        const opponent = isUserHome 
+            ? teamNames[matchData.awayTeam] 
+            : teamNames[matchData.homeTeam];
             
-        const myScore = teamNames[matchData.homeTeam] === teamNames[gameData.selectedTeam] 
-            ? matchData.homeScore 
-            : matchData.awayScore;
-            
-        const oppScore = teamNames[matchData.homeTeam] === teamNames[gameData.selectedTeam] 
-            ? matchData.awayScore 
-            : matchData.homeScore;
-
+        const myScore = isUserHome ? matchData.homeScore : matchData.awayScore;
+        const oppScore = isUserHome ? matchData.awayScore : matchData.homeScore;
+        
         const result = myScore > oppScore ? '승리' : (myScore < oppScore ? '패배' : '무승부');
         
         // 득점자/도움자 정리
@@ -256,7 +253,7 @@ class MailManager {
             basePrice = targetPlayer.rating * 10; // fallback
         }
         
-        const bonus = Math.floor(Math.random() * 401) + 100; // 100 ~ 500
+        const bonus = Math.floor(Math.random() * 201) + 100; // 100 ~ 300
         const offerPrice = basePrice + bonus;
         
         // 제안 팀 (랜덤)

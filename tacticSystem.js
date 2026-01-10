@@ -805,11 +805,19 @@ if (hasAssist && scorer) {
     }
 }
 
-    // 점수 업데이트 (기존 코드 동일)
+    // 점수 업데이트
     if (isUserTeam) {
-        matchData.homeScore++;
+        if (matchData.homeTeam === gameData.selectedTeam) {
+            matchData.homeScore++;
+        } else {
+            matchData.awayScore++;
+        }
     } else {
-        matchData.awayScore++;
+        if (matchData.homeTeam === gameData.selectedTeam) {
+            matchData.awayScore++;
+        } else {
+            matchData.homeScore++;
+        }
     }
 
     document.getElementById('scoreDisplay').textContent = `${matchData.homeScore} - ${matchData.awayScore}`;
@@ -1092,8 +1100,9 @@ function endMatch(matchData) {
     document.getElementById('substituteBtn').style.display = 'none'; // 교체 버튼 숨기기
     
     // 경기 결과 계산
-    const userScore = matchData.homeScore;
-    const opponentScore = matchData.awayScore;
+    const isUserHome = matchData.homeTeam === gameData.selectedTeam;
+    const userScore = isUserHome ? matchData.homeScore : matchData.awayScore;
+    const opponentScore = isUserHome ? matchData.awayScore : matchData.homeScore;
     let result = '';
     let moraleChange = 0;
     let points = 0;

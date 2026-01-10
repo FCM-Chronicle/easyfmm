@@ -446,32 +446,34 @@ updateLeagueTableForAIMatch(team1Key, team2Key, score1, score2) {
         return;
     }
     
-    // 해당 리그 테이블 가져오기
-    let leagueTable;
-    if (team1League === 1) {
-        if (typeof league1Table === 'undefined') window.league1Table = {};
-        leagueTable = league1Table;
-    } else if (team1League === 2) {
-        if (typeof league2Table === 'undefined') window.league2Table = {};
-        leagueTable = league2Table;
-    } else if (team1League === 3) {
-        if (typeof league3Table === 'undefined') window.league3Table = {};
-        leagueTable = league3Table;
+    // 1. gameData.leagueData 업데이트 (메인 데이터 - UI 표시용)
+        const divisionKey = `division${team1League}`;
+        if (gameData.leagueData && gameData.leagueData[divisionKey]) {
+            this.applyMatchResultToTable(gameData.leagueData[divisionKey], team1Key, team2Key, score1, score2);
     }
     
-    if (!leagueTable) {
-        console.log(`${team1League}부리그 테이블을 찾을 수 없음`);
-        return;
-    }
+    // 2. window.leagueXTable 업데이트 (호환성 유지)
+        let legacyTable;
+        if (team1League === 1) legacyTable = window.league1Table;
+        else if (team1League === 2) legacyTable = window.league2Table;
+        else if (team1League === 3) legacyTable = window.league3Table;
     
-    // 팀 통계 업데이트
+        if (legacyTable) {
+            this.applyMatchResultToTable(legacyTable, team1Key, team2Key, score1, score2);
+        }
+        
+        console.log(`${team1League}부리그 테이블 업데이트: ${team1Key} ${score1}-${score2} ${team2Key}`);
+    }
+
+    // 테이블 업데이트 헬퍼 메서드
+    applyMatchResultToTable(table, team1Key, team2Key, score1, score2) {
     [team1Key, team2Key].forEach((teamKey, index) => {
         const teamScore = index === 0 ? score1 : score2;
         const opponentScore = index === 0 ? score2 : score1;
         
         // 팀 데이터 초기화
-        if (!leagueTable[teamKey]) {
-            leagueTable[teamKey] = {
+        if (!table[teamKey]) {
+                table[teamKey] = {
                 matches: 0,
                 wins: 0,
                 draws: 0,
@@ -482,7 +484,7 @@ updateLeagueTableForAIMatch(team1Key, team2Key, score1, score2) {
             };
         }
         
-        const teamStats = leagueTable[teamKey];
+        const teamStats = table[teamKey];
         teamStats.matches++;
         teamStats.goalsFor += teamScore;
         teamStats.goalsAgainst += opponentScore;
@@ -498,7 +500,6 @@ updateLeagueTableForAIMatch(team1Key, team2Key, score1, score2) {
         }
     });
     
-    console.log(`${team1League}부리그 테이블 업데이트: ${team1Key} ${score1}-${score2} ${team2Key}`);
 }
 
     calculateAITeamRating(teamKey) {

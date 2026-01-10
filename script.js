@@ -68,10 +68,10 @@ const allTeams = {
         players: [
             { name: "제임스 트래포드", position: "GK", country: "잉글랜드", age: 22, rating: 81 },
             { name: "후벵 디아스", position: "DF", country: "포르투갈", age: 28, rating: 87 },
-            { name: "티자니 라인더르스", position: "MF", country: "네덜란드", age: 27, rating: 88 },
+            { name: "티자니 라인더르스", position: "MF", country: "네덜란드", age: 27, rating: 85 },
             { name: "존 스톤스", position: "DF", country: "잉글랜드", age: 31, rating: 77 },
             { name: "네이선 아케", position: "DF", country: "네덜란드", age: 30, rating: 79 },
-            { name: "오마르 마르무시", position: "FW", country: "이집트", age: 26, rating: 88 },
+            { name: "오마르 마르무시", position: "FW", country: "이집트", age: 26, rating: 84 },
             { name: "마테오 코바치치", position: "MF", country: "크로아티아", age: 31, rating: 83 },
             { name: "엘링 홀란드", position: "FW", country: "노르웨이", age: 25, rating: 94 },
             { name: "잭 그릴리쉬", position: "MF", country: "잉글랜드", age: 29, rating: 71 },
@@ -88,12 +88,13 @@ const allTeams = {
             { name: "마누엘 아칸지", position: "DF", country: "스위스", age: 30, rating: 78 },
             { name: "사비뉴", position: "FW", country: "브라질", age: 21, rating: 84 },
             { name: "마테우스 누네스", position: "MF", country: "포르투갈", age: 26, rating: 81 },
-            { name: "라얀 셰르키", position: "MF", country: "프랑스", age: 21, rating: 87 },
+            { name: "라얀 셰르키", position: "MF", country: "프랑스", age: 21, rating: 89 },
             { name: "클라우디오 에체베리", position: "MF", country: "아르헨티나", age: 19, rating: 74 },
             { name: "에데르송", position: "GK", country: "브라질", age: 31, rating: 82 },
-            { name: "필 포든", position: "FW", country: "잉글랜드", age: 25, rating: 87 },
+            { name: "필 포든", position: "FW", country: "잉글랜드", age: 25, rating: 84 },
             { name: "오스카르 보브", position: "MF", country: "노르웨이", age: 22, rating: 73 },
-            { name: "리코 루이스", position: "DF", country: "잉글랜드", age: 20, rating: 79 }
+            { name: "리코 루이스", position: "DF", country: "잉글랜드", age: 20, rating: 79 },
+            { name: "앙투안 세메뇨", position: "FW", country: "잉글랜드", age: 25, rating: 87 },
         ],
         description: "천상의 축구를 구현하는 맨체스터의 블루 문"
     },
@@ -166,7 +167,7 @@ const allTeams = {
         league: 1,
         players: [
             { name: "굴리엘모 비카리오", position: "GK", country: "이탈리아", age: 28, rating: 84 },
-            { name: "케빈 단조", position: "DF", country: "오스트리아", age: 26, rating: 81 },
+            { name: "케빈 단소", position: "DF", country: "오스트리아", age: 26, rating: 81 },
             { name: "라두 드라구신", position: "DF", country: "루마니아", age: 23, rating: 76 },
             { name: "손흥민", position: "FW", country: "대한민국", age: 33, rating: 93 },
             { name: "이브 비수마", position: "MF", country: "말리", age: 28, rating: 82 },
@@ -195,7 +196,8 @@ const allTeams = {
             { name: "데인 스칼렛", position: "FW", country: "잉글랜드", age: 21, rating: 68 },
             { name: "알피 디바인", position: "MF", country: "잉글랜드", age: 20, rating: 66 },
             { name: "루카 부슈코비치", position: "DF", country: "크로아티아", age: 18, rating: 68 },
-            { name: "타카이 코타", position: "DF", country: "일본", age: 20, rating: 71 }
+            { name: "타카이 코타", position: "DF", country: "일본", age: 20, rating: 71 },
+            { name: "사비 시몬스", position: "MF", country: "네덜란드", age: 22, rating: 87 }
         ],
         description: "To Dare Is To Do - 스퍼스의 도전 정신"
     },
@@ -581,7 +583,6 @@ const allTeams = {
             { name: "안토니오 누사", position: "MF", country: "노르웨이", age: 20, rating: 84 },
             { name: "아마두 아이다라", position: "MF", country: "말리", age: 27, rating: 81 },
             { name: "유수프 포울센", position: "FW", country: "덴마크", age: 31, rating: 73 },
-            { name: "사비 시몬스", position: "MF", country: "네덜란드", age: 22, rating: 90 },
             { name: "로이스 오펜다", position: "FW", country: "벨기에", age: 25, rating: 87 },
             { name: "니콜라스 자이발트", position: "MF", country: "오스트리아", age: 24, rating: 80 },
             { name: "크리스토프 바움가르트너", position: "MF", country: "오스트리아", age: 26, rating: 78 },
