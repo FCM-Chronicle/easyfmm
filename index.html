@@ -794,13 +794,14 @@
                     ⭐ 아이콘 팀 만들기<br>
                     <span style="font-size: 0.9rem; font-weight: normal; display: block; margin-top: 10px; color: #ddd;">
                         레전드 선수들로 구성된 드림팀<br>
-                        2부리그 시작 / 오버롤 81 / 19세
+                        2부리그 시작 / 초기 오버롤 81 / 19세
                     </span>
                 </button>
-                <button id="createCustomTeamBtn" class="btn" style="padding: 30px; font-size: 1.2rem; flex: 1; background: #555;">
+                <button id="createCustomTeamBtn" class="btn primary" style="padding: 30px; font-size: 1.2rem; flex: 1; background: linear-gradient(45deg, #3498db, #2980b9);">
                     📝 커스텀 팀 만들기<br>
-                    <span style="font-size: 0.9rem; font-weight: normal; display: block; margin-top: 10px; color: #aaa;">
-                        (준비 중)
+                    <span style="font-size: 0.9rem; font-weight: normal; display: block; margin-top: 10px; color: #ddd;">
+                        원하는 선수들로 구성된 나만의 팀<br>
+                        1~3부 리그 선택 가능 / 이름, 국적 등 커스터마이징
                     </span>
                 </button>
             </div>
@@ -820,6 +821,49 @@
                     <!-- 자바스크립트로 선수 목록 생성 -->
                 </div>
                 <button id="confirmCreateTeamBtn" class="btn primary" style="width: 100%;" disabled>팀 생성 완료</button>
+            </div>
+
+            <!-- 커스텀 팀 생성 화면 -->
+            <div id="customTeamCreationArea" style="display: none;">
+                <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 15px;">
+                    <div>
+                        <label style="display: block; font-size: 0.9rem; margin-bottom: 5px;">팀 이름 (6자)</label>
+                        <input type="text" id="customTeamNameInput" maxlength="6" style="padding: 8px; width: 120px; text-align: center; background: #333; color: white; border: 1px solid #555;">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 0.9rem; margin-bottom: 5px;">참가 리그</label>
+                        <select id="customLeagueSelect" style="padding: 8px; width: 100px; background: #333; color: white; border: 1px solid #555;">
+                            <option value="1">1부 리그</option>
+                            <option value="2">2부 리그</option>
+                            <option value="3">3부 리그</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 0.9rem; margin-bottom: 5px;">팀 국적</label>
+                        <select id="customNationSelect" style="padding: 8px; width: 100px; background: #333; color: white; border: 1px solid #555;">
+                            <option value="random">랜덤</option>
+                            <option value="대한민국">대한민국</option>
+                            <option value="잉글랜드">잉글랜드</option>
+                            <option value="스페인">스페인</option>
+                            <option value="독일">독일</option>
+                            <option value="프랑스">프랑스</option>
+                            <option value="이탈리아">이탈리아</option>
+                            <option value="브라질">브라질</option>
+                            <option value="아르헨티나">아르헨티나</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 15px; text-align: center;">
+                    <label style="font-size: 0.9rem; margin-right: 10px;">교체할 팀:</label>
+                    <select id="customReplacementSelect" style="padding: 5px; background: #333; color: white; border: 1px solid #555;"></select>
+                </div>
+
+                <div id="customPlayerInputs" style="max-height: 400px; overflow-y: auto; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 5px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <!-- 자바스크립트로 입력 필드 생성 -->
+                </div>
+
+                <button id="confirmCreateCustomTeamBtn" class="btn primary" style="width: 100%; margin-top: 15px;">팀 생성 완료</button>
             </div>
         </div>
     </div>

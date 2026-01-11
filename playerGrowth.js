@@ -76,6 +76,12 @@ class PlayerGrowthSystem {
         if (player.isIcon) {
             teamModifier = 1.5; // 1.5배 성장
             console.log(`⭐ 아이콘 ${player.name}에게 전설적인 성장 보너스 적용`);
+        }   
+
+        // [추가] 커스텀 선수 특별 보너스 (105까지 성장 가능하도록 잠재력 대폭 부여)
+        if (player.isCustom) {
+            teamModifier = 2.0; // 2배 성장
+            console.log(`🛠️ 커스텀 ${player.name}에게 한계 돌파 성장 보너스 적용`);
         }
 
         const finalGrowth = Math.round(baseGrowth * ageModifier * ratingModifier * teamModifier);
@@ -87,7 +93,14 @@ class PlayerGrowthSystem {
 
         // [추가] 아이콘 선수는 최소 18 성장 보장 (99 찍을 수 있게)
         if (player.isIcon) {
-            return Math.max(finalGrowth, 18);
+            return Math.max(finalGrowth, 16);
+        }
+
+        // [추가] 커스텀 선수는 105까지 크기 위해 충분한 잠재력 부여
+        if (player.isCustom) {
+            // 현재 오버롤에서 98까지의 차이만큼은 최소한 보장 + 랜덤 알파
+            const gap = 98 - player.rating;
+            return Math.max(finalGrowth, gap + Math.random() * 5);
         }
 
         return finalGrowth;
@@ -195,8 +208,9 @@ class PlayerGrowthSystem {
     applyGrowth(player, growthAmount, growthInfo) {
         const oldRating = Math.floor(player.rating); // 정수부 비교를 위해 내림
         
-        // [수정] 소수점 단위 성장 누적 (반올림 하지 않음)
-        player.rating = Math.min(99, player.rating + growthAmount);
+        // [수정] 성장 한계 설정 (커스텀 선수는 105, 그 외는 99)
+        const maxRating = player.isCustom ? 105 : 99;
+        player.rating = Math.min(maxRating, player.rating + growthAmount);
         
         const newRating = Math.floor(player.rating); // 성장 후 정수부
         
