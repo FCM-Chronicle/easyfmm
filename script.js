@@ -103,7 +103,7 @@ const allTeams = {
         league: 2,
         players: [
             { name: "알타이 바이은드르", position: "GK", country: "튀르키예", age: 27, rating: 69 },
-            { name: "센느 라멘스", position: "GK", country: "벨기에", age: 23, rating: 80 },
+            { name: "센느 라멘스", position: "GK", country: "벨기에", age: 23, rating: 83 },
             { name: "디오구 달로", position: "DF", country: "포르투갈", age: 26, rating: 77 },
             { name: "누사이르 마즈라위", position: "DF", country: "모로코", age: 27, rating: 84 },
             { name: "마테이스 더리흐트", position: "DF", country: "네덜란드", age: 25, rating: 82 },
@@ -121,7 +121,6 @@ const allTeams = {
             { name: "브라이언 음뵈모", position: "FW", country: "카메룬", age: 25, rating: 87 },
             { name: "톰 히튼", position: "GK", country: "잉글랜드", age: 39, rating: 62 },
             { name: "루크 쇼", position: "DF", country: "잉글랜드", age: 30, rating: 77 },
-            { name: "안드레 오나나", position: "GK", country: "카메룬", age: 29, rating: 81 },
             { name: "마누엘 우가르테", position: "MF", country: "우루과이", age: 24, rating: 83 },
             { name: "코비 마이누", position: "MF", country: "잉글랜드", age: 20, rating: 81 },
             { name: "베냐민 셰슈코", position: "FW", country: "슬로베니아", age: 22, rating: 84 }
@@ -133,6 +132,7 @@ const allTeams = {
         league: 1,
         players: [
             { name: "알리송 베케르", position: "GK", country: "브라질", age: 32, rating: 86 },
+            { name: "리오 응구모하", position: "GK", country: "잉글랜드", age: 17, rating: 69 },
             { name: "조 고메즈", position: "DF", country: "잉글랜드", age: 28, rating: 75 },
             { name: "엔도 와타루", position: "MF", country: "일본", age: 32, rating: 74 },
             { name: "버질 반 다이크", position: "DF", country: "네덜란드", age: 34, rating: 92 },
@@ -236,6 +236,7 @@ const allTeams = {
             { name: "사무엘레 리치", position: "FW", country: "이탈리아", age: 22, rating: 80 },
             { name: "산티아고 히메네스", position: "FW", country: "멕시코", age: 24, rating: 83 },
             { name: "루벤 로프터스치크", position: "MF", country: "잉글랜드", age: 29, rating: 81 },
+            { name: "프란치스코 카마르다", position: "FW", country: "이탈리아", age: 17, rating: 78 },
             { name: "하파엘 레앙", position: "FW", country: "포르투갈", age: 26, rating: 89 },
             { name: "아드리앙 라비오", position: "MF", country: "프랑스", age: 30, rating: 86 },
             { name: "크리스천 풀리식", position: "FW", country: "미국", age: 26, rating: 90 },
@@ -313,7 +314,8 @@ const allTeams = {
             { name: "리카르도 칼라피오리", position: "DF", country: "이탈리아", age: 23, rating: 85 },
             { name: "마르틴 수비멘디", position: "MF", country: "스페인", age: 26, rating: 87 },
             { name: "데클란 라이스", position: "MF", country: "잉글랜드", age: 26, rating: 91 },
-            { name: "마일스 루이스스켈리", position: "DF", country: "잉글랜드", age: 19, rating: 83 }
+            { name: "마일스 루이스스켈리", position: "DF", country: "잉글랜드", age: 19, rating: 83 },
+            { name: "맥스 다우먼", position: "FW", country: "잉글랜드", age: 16, rating: 70 },
         ],
         description: "거너스의 아름다운 축구와 불굴의 정신력"
     },
@@ -390,6 +392,7 @@ const allTeams = {
         league: 1,
         players: [
             { name: "마누엘 노이어", position: "GK", country: "독일", age: 39, rating: 83 },
+            { name: "레나르트 칼", position: "MF", country: "독일", age: 17, rating: 76 },
             { name: "다요 우파메카노", position: "DF", country: "프랑스", age: 26, rating: 85 },
             { name: "김민재", position: "DF", country: "대한민국", age: 28, rating: 86 },
             { name: "요나단 타", position: "DF", country: "독일", age: 29, rating: 87 },
@@ -539,7 +542,7 @@ const allTeams = {
             { name: "션 롱스태프", position: "MF", country: "잉글랜드", age: 27, rating: 77 },
             { name: "브루누 기마랑이스", position: "MF", country: "브라질", age: 27, rating: 90 },
             { name: "루이스 마일리", position: "MF", country: "잉글랜드", age: 19, rating: 72 },
-            { name: "닉 볼테마데", position: "FW", country: "독일", age: 23, rating: 85 },
+            { name: "닉 볼테마데", position: "FW", country: "독일", age: 23, rating: 88 },
         ],
         description: "마그파이스의 재기를 꿈꾸는 타인 사이드의 열정"
     },
@@ -844,6 +847,7 @@ const allTeams = {
         league: 2,
         players: [
             { name: "저스틴 베일로", position: "GK", country: "네덜란드", age: 27, rating: 67 },
+            { name: "배승균", position: "MF", country: "대한민국", age: 18, rating: 60 },
             { name: "바르트 니우코프", position: "DF", country: "네덜란드", age: 29, rating: 71 },
             { name: "토마스 베일런", position: "DF", country: "네덜란드", age: 23, rating: 77 },
             { name: "와타나베 츠요시", position: "DF", country: "일본", age: 28, rating: 73 },
@@ -1261,7 +1265,7 @@ const allTeams = {
             { name: "티아고", position: "FW", country: "브라질", age: 31, rating: 79 },
             { name: "송민규", position: "FW", country: "대한민국", age: 25, rating: 74 },
             { name: "이승우", position: "MF", country: "대한민국", age: 27, rating: 80 },
-            { name: "강상윤", position: "MF", country: "대한민국", age: 21, rating: 71 },
+            { name: "강상윤", position: "MF", country: "대한민국", age: 21, rating: 73 },
             { name: "전진우", position: "MF", country: "대한민국", age: 25, rating: 73 },
             { name: "성진영", position: "FW", country: "대한민국", age: 22, rating: 72 },
             { name: "박재용", position: "FW", country: "대한민국", age: 25, rating: 73 },

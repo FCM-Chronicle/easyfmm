@@ -183,9 +183,27 @@ class RecordsSystem {
     const team2Rating = this.calculateAITeamRating(team2Key);
     const ratingDiff = team1Rating - team2Rating;
     const upsetOccurs = Math.random() < 0.08;
-    let team1WinChance = 0.33;
-    let team2WinChance = 0.33;
-    let drawChance = 0.34;
+    let team1WinChance = 0.375;
+    let team2WinChance = 0.375;
+    let drawChance = 0.25;
+
+    // 전술 상성 반영
+    if (typeof TacticSystem !== 'undefined') {
+        const ts = new TacticSystem();
+        const t1Tactic = ts.getOpponentTactic(team1Key);
+        const t2Tactic = ts.getOpponentTactic(team2Key);
+        const matchup = ts.getTacticMatchup(t1Tactic, t2Tactic);
+        
+        if (matchup.advantage > 0) {
+            team1WinChance += 0.05;
+            team2WinChance -= 0.03;
+            drawChance -= 0.02;
+        } else if (matchup.advantage < 0) {
+            team1WinChance -= 0.03;
+            team2WinChance += 0.05;
+            drawChance -= 0.02;
+        }
+    }
 
     if (ratingDiff > 0) {
         const advantage = Math.min(0.3, ratingDiff / 150);
