@@ -71,11 +71,23 @@ class PlayerGrowthSystem {
             console.log(`세륜중학교 ${player.name}에게 특별 성장 보너스 적용: x${teamModifier.toFixed(2)}`);
         }
 
+
+        // [추가] 아이콘 선수 특별 보너스 (전설적인 잠재력)
+        if (player.isIcon) {
+            teamModifier = 1.5; // 1.5배 성장
+            console.log(`⭐ 아이콘 ${player.name}에게 전설적인 성장 보너스 적용`);
+        }
+
         const finalGrowth = Math.round(baseGrowth * ageModifier * ratingModifier * teamModifier);
         
         // 세륜중학교 선수들은 최소 성장 보장
         if (gameData.selectedTeam === 'seryu3') {
             return Math.max(finalGrowth, 15); // 최소 15 성장 보장
+        }
+
+        // [추가] 아이콘 선수는 최소 18 성장 보장 (99 찍을 수 있게)
+        if (player.isIcon) {
+            return Math.max(finalGrowth, 18);
         }
 
         return finalGrowth;

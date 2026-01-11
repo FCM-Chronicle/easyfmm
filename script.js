@@ -1455,6 +1455,60 @@ const allTeams = {
     }
     }
 
+// 아이콘 선수 명단
+const iconPlayersList = [
+    { name: "디에고 마라도나", position: "FW", country: "아르헨티나" },
+    { name: "펠레", position: "FW", country: "브라질" },
+    { name: "요한 크루이프", position: "FW", country: "네덜란드" },
+    { name: "지네딘 지단", position: "MF", country: "프랑스" },
+    { name: "프란츠 베켄바워", position: "DF", country: "독일" },
+    { name: "알프레도 디 스테파노", position: "FW", country: "아르헨티나" },
+    { name: "호나우두", position: "FW", country: "브라질" },
+    { name: "미셸 플라티니", position: "MF", country: "프랑스" },
+    { name: "페렌츠 푸스카스", position: "FW", country: "헝가리" },
+    { name: "에우제비우", position: "FW", country: "포르투갈" },
+    { name: "가린샤", position: "FW", country: "브라질" },
+    { name: "게르트 뮐러", position: "FW", country: "독일" },
+    { name: "보비 찰튼", position: "MF", country: "잉글랜드" },
+    { name: "지쿠", position: "MF", country: "브라질" },
+    { name: "조지 베스트", position: "FW", country: "북아일랜드" },
+    { name: "마르코 반 바스텐", position: "FW", country: "네덜란드" },
+    { name: "파올로 말디니", position: "DF", country: "이탈리아" },
+    { name: "알레산드로 네스타", position: "DF", country: "이탈리아" },
+    { name: "안드레스 이니에스타", position: "MF", country: "스페인" },
+    { name: "사비 에르난데스", position: "MF", country: "스페인" },
+    { name: "호나우지뉴", position: "FW", country: "브라질" },
+    { name: "로타어 마테우스", position: "MF", country: "독일" },
+    { name: "레프 야신", position: "GK", country: "소련" },
+    { name: "리오 퍼디난드", position: "DF", country: "잉글랜드" },
+    { name: "루드 굴리트", position: "MF", country: "네덜란드" },
+    { name: "로베르토 바조", position: "FW", country: "이탈리아" },
+    { name: "호마리우", position: "FW", country: "브라질" },
+    { name: "티에리 앙리", position: "FW", country: "프랑스" },
+    { name: "카카", position: "MF", country: "브라질" },
+    { name: "스티븐 제라드", position: "MF", country: "잉글랜드" },
+    { name: "안드레아 피를로", position: "MF", country: "이탈리아" },
+    { name: "라이언 긱스", position: "MF", country: "웨일스" },
+    { name: "파벨 네드베드", position: "MF", country: "체코" },
+    { name: "필립 람", position: "DF", country: "독일" },
+    { name: "알레산드로 델 피에로", position: "MF", country: "이탈리아" },
+    { name: "카를레스 푸욜", position: "DF", country: "스페인" },
+    { name: "루이스 피구", position: "MF", country: "포르투갈" },
+    { name: "차범근", position: "FW", country: "대한민국" },
+    { name: "올리버 칸", position: "GK", country: "독일" },
+    { name: "피터 슈마이켈", position: "GK", country: "덴마크" },
+    { name: "박지성", position: "MF", country: "대한민국" },
+    { name: "소크라테스", position: "MF", country: "브라질" },
+    { name: "미하엘 발락", position: "MF", country: "독일" },
+    { name: "클라렌스 세이도르프", position: "MF", country: "네덜란드" },
+    { name: "야야 투레", position: "MF", country: "코트디부아르" },
+    { name: "호베르투 카를로스", position: "DF", country: "브라질" },
+    { name: "파비오 칸나바로", position: "DF", country: "이탈리아" },
+    { name: "프랭크 램파드", position: "MF", country: "잉글랜드" },
+    { name: "파트리크 비에이라", position: "MF", country: "프랑스" },
+    { name: "에드윈 반 데 사르", position: "GK", country: "네덜란드" }
+];
+
 // 기존 코드 호환용 변환
 const teams = (() => {
     const convertedTeams = {};
@@ -1709,6 +1763,13 @@ function setupEventListeners() {
     //     });
     // });
 
+    // 나만의 팀 만들기 버튼
+    document.getElementById('openCreateTeamModalBtn').addEventListener('click', openCreateTeamModal);
+    document.getElementById('closeCreateTeamModal').addEventListener('click', closeCreateTeamModal);
+    document.getElementById('createIconTeamBtn').addEventListener('click', showIconTeamCreation);
+    document.getElementById('createCustomTeamBtn').addEventListener('click', () => alert('커스텀 팀 만들기는 준비 중입니다.'));
+    document.getElementById('confirmCreateTeamBtn').addEventListener('click', createIconTeam);
+
     // 경기 시작
     document.getElementById('startMatchBtn').addEventListener('click', startMatch);
 
@@ -1742,6 +1803,175 @@ function setupEventListeners() {
             handleInterview(option);
         });
     });
+}
+
+// 팀 만들기 모달 열기
+function openCreateTeamModal() {
+    document.getElementById('createTeamModal').style.display = 'block';
+    document.getElementById('createTeamModeSelection').style.display = 'flex';
+    document.getElementById('iconTeamCreationArea').style.display = 'none';
+}
+
+function closeCreateTeamModal() {
+    document.getElementById('createTeamModal').style.display = 'none';
+}
+
+// 아이콘 팀 생성 화면 표시
+function showIconTeamCreation() {
+    document.getElementById('createTeamModeSelection').style.display = 'none';
+    document.getElementById('iconTeamCreationArea').style.display = 'block';
+    
+    // 교체할 팀 목록 채우기 (2부 리그)
+    const teamSelect = document.getElementById('replacementTeamSelect');
+    teamSelect.innerHTML = '';
+    const league2Teams = Object.keys(allTeams).filter(key => allTeams[key].league === 2);
+    league2Teams.forEach(teamKey => {
+        const option = document.createElement('option');
+        option.value = teamKey;
+        option.textContent = teamNames[teamKey] || teamKey;
+        teamSelect.appendChild(option);
+    });
+
+    // 선수 목록 포지션별 정렬 (GK -> DF -> MF -> FW)
+    const positionOrder = { 'GK': 1, 'DF': 2, 'MF': 3, 'FW': 4 };
+    iconPlayersList.sort((a, b) => {
+        const posA = positionOrder[a.position] || 5;
+        const posB = positionOrder[b.position] || 5;
+        return posA - posB;
+    });
+
+    // 선택 초기화 (정렬로 인해 인덱스가 바뀌므로)
+    selectedIconIndices.clear();
+    updateSelectedCount();
+
+    const listContainer = document.getElementById('iconPlayerSelectionList');
+    listContainer.innerHTML = '';
+    
+    iconPlayersList.forEach((player, index) => {
+        const item = document.createElement('div');
+        item.className = 'icon-player-select-item';
+        item.style.cssText = 'background: rgba(255,255,255,0.1); padding: 10px; border-radius: 5px; cursor: pointer; border: 1px solid transparent; display: flex; justify-content: space-between; align-items: center;';
+        item.innerHTML = `
+            <div>
+                <span style="font-weight: bold;">${player.name}</span>
+                <span style="font-size: 0.8rem; color: #aaa; margin-left: 5px;">${player.position}</span>
+            </div>
+            <div class="check-mark" style="display: none;">✅</div>
+        `;
+        
+        item.addEventListener('click', () => toggleIconPlayerSelection(item, index));
+        listContainer.appendChild(item);
+    });
+    
+    updateSelectedCount();
+}
+
+let selectedIconIndices = new Set();
+
+function toggleIconPlayerSelection(element, index) {
+    if (selectedIconIndices.has(index)) {
+        selectedIconIndices.delete(index);
+        element.style.borderColor = 'transparent';
+        element.style.background = 'rgba(255,255,255,0.1)';
+        element.querySelector('.check-mark').style.display = 'none';
+    } else {
+        if (selectedIconIndices.size >= 18) {
+            alert('최대 18명까지만 선택할 수 있습니다.');
+            return;
+        }
+        selectedIconIndices.add(index);
+        element.style.borderColor = '#ffd700';
+        element.style.background = 'rgba(255, 215, 0, 0.2)';
+        element.querySelector('.check-mark').style.display = 'block';
+    }
+    updateSelectedCount();
+}
+
+function updateSelectedCount() {
+    const count = selectedIconIndices.size;
+    document.getElementById('selectedCount').textContent = count;
+    document.getElementById('confirmCreateTeamBtn').disabled = count !== 18;
+}
+
+function createIconTeam() {
+    const teamNameInput = document.getElementById('customTeamName').value.trim();
+    if (!teamNameInput) {
+        alert('팀 이름을 입력해주세요.');
+        return;
+    }
+    if (teamNameInput.length > 6) {
+        alert('팀 이름은 6글자 이내여야 합니다.');
+        return;
+    }
+    if (selectedIconIndices.size !== 18) {
+        alert('선수 18명을 선택해야 합니다.');
+        return;
+    }
+
+    // 포지션별 인원 체크
+    let gkCount = 0, dfCount = 0, mfCount = 0, fwCount = 0;
+    selectedIconIndices.forEach(index => {
+        const p = iconPlayersList[index];
+        if (p.position === 'GK') gkCount++;
+        else if (p.position === 'DF') dfCount++;
+        else if (p.position === 'MF') mfCount++;
+        else if (p.position === 'FW') fwCount++;
+    });
+
+    if (gkCount < 2) {
+        alert('골키퍼는 최소 2명 선택해야 합니다.');
+        return;
+    }
+    if (dfCount < 5) {
+        alert('수비수는 최소 5명 선택해야 합니다.');
+        return;
+    }
+    if (mfCount < 5) {
+        alert('미드필더는 최소 5명 선택해야 합니다.');
+        return;
+    }
+
+    // 선택된 교체 팀 가져오기
+    const replacedTeamKey = document.getElementById('replacementTeamSelect').value;
+    if (!replacedTeamKey || !allTeams[replacedTeamKey]) {
+        alert('교체할 팀을 선택해주세요.');
+        return;
+    }
+    
+    // 선택된 선수 데이터 생성
+    const newPlayers = Array.from(selectedIconIndices).map(index => {
+        const p = iconPlayersList[index];
+        return {
+            name: p.name,
+            position: p.position,
+            country: p.country,
+            age: 19,
+            rating: 81,
+            isIcon: true // 아이콘 선수 식별용 플래그
+        };
+    });
+
+    // 새 팀 데이터 생성
+    const newTeamKey = teamNameInput; // 유저 입력 이름을 키로 사용
+    allTeams[newTeamKey] = {
+        league: 2,
+        players: newPlayers,
+        description: "전설적인 선수들이 모인 나만의 드림팀"
+    };
+    teams[newTeamKey] = newPlayers;
+    teamNames[newTeamKey] = teamNameInput;
+
+    // 기존 팀 삭제
+    delete allTeams[replacedTeamKey];
+    delete teams[replacedTeamKey];
+    delete teamNames[replacedTeamKey];
+
+    // 게임 데이터 초기화
+    gameData.teamMoney = 0; // 시작 자금 0원
+    gameData.schedule = null; // 스케줄 재생성 필요
+    
+    closeCreateTeamModal();
+    selectTeam(newTeamKey);
 }
 
 function selectTeam(teamKey) {

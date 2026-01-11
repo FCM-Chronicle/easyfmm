@@ -240,6 +240,9 @@
 <div id="teamSelection" class="screen active">
     <h1>팀 선택</h1>
     
+    <!-- 나만의 팀 만들기 버튼 -->
+    <button id="openCreateTeamModalBtn" class="btn" style="width: 100%; max-width: 1200px; margin: 0 auto 30px; display: block; background: linear-gradient(45deg, #f1c40f, #e67e22); color: #000; font-weight: bold; font-size: 1.2rem; padding: 15px;">🛠️ 나만의 팀 만들기</button>
+
     <!-- 1부리그 -->
     <div class="league-section">
         <h2 class="league-title">🏆 1부리그 - 최고의 명문 클럽들</h2>
@@ -775,6 +778,48 @@
                 <button class="interview-btn" data-option="1"></button>
                 <button class="interview-btn" data-option="2"></button>
                 <button class="interview-btn" data-option="3"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 팀 만들기 모달 -->
+    <div id="createTeamModal" class="modal">
+        <div class="modal-content" style="max-width: 900px;">
+            <span class="close-btn" id="closeCreateTeamModal">&times;</span>
+            <h3 style="text-align: center; color: #ffd700; margin-bottom: 30px;">나만의 팀 만들기</h3>
+            
+            <!-- 모드 선택 화면 -->
+            <div id="createTeamModeSelection" style="display: flex; gap: 20px; justify-content: center; margin-bottom: 20px;">
+                <button id="createIconTeamBtn" class="btn primary" style="padding: 30px; font-size: 1.2rem; flex: 1;">
+                    ⭐ 아이콘 팀 만들기<br>
+                    <span style="font-size: 0.9rem; font-weight: normal; display: block; margin-top: 10px; color: #ddd;">
+                        레전드 선수들로 구성된 드림팀<br>
+                        2부리그 시작 / 오버롤 81 / 19세
+                    </span>
+                </button>
+                <button id="createCustomTeamBtn" class="btn" style="padding: 30px; font-size: 1.2rem; flex: 1; background: #555;">
+                    📝 커스텀 팀 만들기<br>
+                    <span style="font-size: 0.9rem; font-weight: normal; display: block; margin-top: 10px; color: #aaa;">
+                        (준비 중)
+                    </span>
+                </button>
+            </div>
+
+            <!-- 아이콘 팀 생성 화면 (초기에는 숨김) -->
+            <div id="iconTeamCreationArea" style="display: none;">
+                <div style="margin-bottom: 20px; text-align: center;">
+                    <label style="font-size: 1.1rem; margin-right: 10px;">팀 이름:</label>
+                    <input type="text" id="customTeamName" maxlength="6" placeholder="6글자 이내" style="padding: 8px; font-size: 1rem; width: 150px; text-align: center;">
+                </div>
+                <div style="margin-bottom: 20px; text-align: center;">
+                    <label style="font-size: 1.1rem; margin-right: 10px;">교체할 팀 (2부):</label>
+                    <select id="replacementTeamSelect" style="padding: 8px; font-size: 1rem; width: 200px; background: #333; color: #fff; border: 1px solid #555;"></select>
+                </div>
+                <p style="text-align: center; margin-bottom: 15px;">선수 18명을 선택하세요 (<span id="selectedCount">0</span>/18)</p>
+                <div id="iconPlayerSelectionList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; max-height: 400px; overflow-y: auto; margin-bottom: 20px; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 5px;">
+                    <!-- 자바스크립트로 선수 목록 생성 -->
+                </div>
+                <button id="confirmCreateTeamBtn" class="btn primary" style="width: 100%;" disabled>팀 생성 완료</button>
             </div>
         </div>
     </div>
