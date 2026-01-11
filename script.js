@@ -2170,6 +2170,11 @@ function selectTeam(teamKey) {
         audioManager.init();
         audioManager.play();
     }
+
+    // 튜토리얼 시작 (처음인 경우)
+    if (window.tutorialSystem) {
+        window.tutorialSystem.init();
+    }
 }
 
 // 자동으로 스쿼드 채우기 함수
@@ -2305,6 +2310,10 @@ function showTab(tabName) {
             if (typeof renderAudioSettings === 'function') {
                 renderAudioSettings();
             }
+            // 일반 설정 UI 생성
+            if (typeof renderGeneralSettings === 'function') {
+                renderGeneralSettings();
+            }
             break;
 
         case 'youth':
@@ -2368,7 +2377,7 @@ function displayTeamPlayers() {
             playerCard.innerHTML = `
                 <div class="name">${player.name}</div>
                 <div class="details">
-                    <div>${player.position} | 능력치: ${player.rating} | 나이: ${player.age}</div>
+                    <div>${player.position} | 능력치: ${Math.floor(player.rating)} | 나이: ${player.age}</div>
                     <div style="color: #e74c3c; font-weight: bold; font-size: 0.8rem;">🚑 부상중 (${gamesLeft}경기)</div>
                 </div>
             `;
@@ -2376,7 +2385,7 @@ function displayTeamPlayers() {
             playerCard.innerHTML = `
                 <div class="name">${player.name}</div>
                 <div class="details">
-                    <div>${player.position} | 능력치: ${player.rating} | 나이: ${player.age}</div>
+                    <div>${player.position} | 능력치: ${Math.floor(player.rating)} | 나이: ${player.age}</div>
                     ${isUsed ? '<div style="color: #ffd700; font-size: 0.8rem;">★ 출전 중</div>' : ''}
                 </div>
             `;
@@ -2619,7 +2628,7 @@ function updateFormationDisplay() {
     if (gameData.squad.gk) {
         gkSlot.innerHTML = `
             <div>${gameData.squad.gk.name}</div>
-            <div>${gameData.squad.gk.rating}</div>
+            <div>${Math.floor(gameData.squad.gk.rating)}</div>
         `;
         gkSlot.classList.add('filled');
     } else {
@@ -2633,7 +2642,7 @@ function updateFormationDisplay() {
         if (gameData.squad.df[i]) {
             dfSlot.innerHTML = `
                 <div>${gameData.squad.df[i].name}</div>
-                <div>${gameData.squad.df[i].rating}</div>
+                <div>${Math.floor(gameData.squad.df[i].rating)}</div>
             `;
             dfSlot.classList.add('filled');
         } else {
@@ -2648,7 +2657,7 @@ function updateFormationDisplay() {
         if (gameData.squad.mf[i]) {
             mfSlot.innerHTML = `
                 <div>${gameData.squad.mf[i].name}</div>
-                <div>${gameData.squad.mf[i].rating}</div>
+                <div>${Math.floor(gameData.squad.mf[i].rating)}</div>
             `;
             mfSlot.classList.add('filled');
         } else {
@@ -2663,7 +2672,7 @@ function updateFormationDisplay() {
         if (gameData.squad.fw[i]) {
             fwSlot.innerHTML = `
                 <div>${gameData.squad.fw[i].name}</div>
-                <div>${gameData.squad.fw[i].rating}</div>
+                <div>${Math.floor(gameData.squad.fw[i].rating)}</div>
             `;
             fwSlot.classList.add('filled');
         } else {
@@ -3497,6 +3506,7 @@ function loadGame(event) {
             updateDisplay();
             updateFormationDisplay();
             displayTeamPlayers();
+            showScreen('lobby'); // 로비 화면으로 이동
             console.log('기본 화면 업데이트 완료');
             
             // SNS 피드 새로고침
@@ -4394,7 +4404,7 @@ class AudioManager {
             'assets/ost/Aqua Man.mp3',
             'assets/ost/Bruno Mars - 24K Magic (Audio).mp3',
             'assets/ost/Caesars Palace - Jerk It Out (Official Video).mp3',
-            'assets/ost/Dynamic Duo & DJ Premier - AEAO.mp3',
+            'assets/ost/AEAO.mp3',
             'assets/ost/Glass Animals - Heat Waves (Lyrics).mp3',
             'assets/ost/Imagine Dragons - On Top Of The World (Lyric Video).mp3',
             'assets/ost/John Newman - Love Me Again.mp3',
@@ -4404,12 +4414,15 @@ class AudioManager {
             'assets/ost/SAINT MOTEL - My Type.mp3',
             'assets/ost/Song 2.mp3',
             'assets/ost/다이나믹 듀오(Dynamic Duo) - BAAAM (Feat. Muzie of UV) (가사_lyrics).mp3',
-            'assets/ost/에픽하이 (EPIK HIGH) - BORN HATER (Feat. 빈지노, 버벌진트, B.I, MINO, BOBBY) | Lyrics_가사.mp3'
+            'assets/ost/Born Hater.mp3'
         ];
-        this.currentTrackIndex = 0; // [수정] 첫 번째 곡부터 순서대로 재생
+        this.currentTrackIndex = 0;
         this.audio = new Audio();
         this.isPlaying = false;
         this.initialized = false;
+        
+        // [추가] 플레이리스트 셔플 (랜덤 재생)
+        this.shufflePlaylist();
         
         this.createNowPlayingUI(); // UI 생성
     }
@@ -4436,6 +4449,15 @@ class AudioManager {
         }
         
         this.initialized = true;
+    }
+    
+    // [추가] 셔플 메서드
+    shufflePlaylist() {
+        for (let i = this.bgmFiles.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [this.bgmFiles[i], this.bgmFiles[j]] = [this.bgmFiles[j], this.bgmFiles[i]];
+        }
+        console.log("🔀 BGM 플레이리스트가 셔플되었습니다.");
     }
     
     applySettings(settings) {
@@ -4677,3 +4699,49 @@ function renderAudioSettings() {
     });
 }
 window.renderAudioSettings = renderAudioSettings;
+
+// 일반 설정 UI 렌더링
+function renderGeneralSettings() {
+    const settingsTab = document.getElementById('settings');
+    if (!settingsTab) return;
+    
+    let generalContainer = document.getElementById('generalSettings');
+    if (!generalContainer) {
+        generalContainer = document.createElement('div');
+        generalContainer.id = 'generalSettings';
+        generalContainer.style.cssText = `
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        `;
+        
+        const settingsContent = settingsTab.querySelector('.settings-content');
+        if (settingsContent) {
+            const audioSettings = document.getElementById('audioSettings');
+            if (audioSettings && audioSettings.parentNode === settingsContent) {
+                settingsContent.insertBefore(generalContainer, audioSettings.nextSibling);
+            } else {
+                settingsContent.insertBefore(generalContainer, settingsContent.firstChild);
+            }
+        } else {
+            settingsTab.appendChild(generalContainer);
+        }
+    }
+    
+    generalContainer.innerHTML = `
+        <h4 style="color: #ffd700; margin-top: 0; margin-bottom: 15px;">⚙️ 일반 설정</h4>
+        <button class="btn" id="replayTutorialBtn" style="width: 100%;">튜토리얼 다시 보기</button>
+    `;
+    
+    document.getElementById('replayTutorialBtn').addEventListener('click', () => {
+        if (window.tutorialSystem) {
+            window.tutorialSystem.currentStep = 0;
+            window.tutorialSystem.showTutorial();
+        } else {
+            alert('튜토리얼을 실행할 수 없습니다.');
+        }
+    });
+}
+window.renderGeneralSettings = renderGeneralSettings;

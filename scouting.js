@@ -239,7 +239,7 @@ function displayScoutedPlayers(players) {
         playerCard.innerHTML = `
             <div class="name">${player.name}</div>
             <div class="details">
-                ${player.position} | 능력치: ${player.rating} | 나이: ${player.age}
+                ${player.position} | 능력치: ${Math.round(player.rating)} | 나이: ${player.age}
             </div>
         `;
         listContainer.appendChild(playerCard);

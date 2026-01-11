@@ -854,7 +854,7 @@ function displayTransferPlayers() {
         playerCard.innerHTML = `
             <div class="player-name">${player.name}</div>
             <div class="player-position">${player.position}</div>
-            <div class="player-rating">능력치: ${player.rating}</div>
+            <div class="player-rating">능력치: ${Math.floor(player.rating)}</div>
             <div class="player-age">나이: ${player.age}</div>
             <div class="player-team">소속: ${teamInfo}</div>
             <div class="transfer-price">${player.price}억</div>
@@ -922,7 +922,7 @@ function searchPlayers() {
 playerCard.innerHTML = `
     <div class="player-name">${player.name}</div>
     <div class="player-position">${player.position}</div>
-    <div class="player-rating">능력치: ${player.rating}</div>
+    <div class="player-rating">능력치: ${Math.floor(player.rating)}</div>
     <div class="player-age">나이: ${player.age}</div>
     <div class="player-team">소속: ${teamInfo}</div>
     <div class="transfer-price">${player.price}억</div>
@@ -983,7 +983,7 @@ function displayTransferNews() {
                     ${fromTeamName} <span class="transfer-arrow">➔</span> ${toTeamName}
                 </div>
                 <div class="news-rating" style="font-size: 0.85em; color: #aaa; margin-top: 2px;">
-                    능력치: ${news.rating}
+                    능력치: ${Math.floor(news.rating)}
                 </div>
             </div>
             <div class="news-fee">

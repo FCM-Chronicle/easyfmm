@@ -107,7 +107,7 @@ class FormationSystem {
             // 선수가 있는 경우
             slot.innerHTML = `
                 <div class="player-name">${player.name}</div>
-                <div class="player-rating">${player.rating}</div>
+                <div class="player-rating">${Math.floor(player.rating)}</div>
             `;
             slot.dataset.playerName = player.name;
             slot.dataset.positionType = positionType;
