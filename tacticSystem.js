@@ -41,15 +41,51 @@ function calculateUserTeamRating() {
     return playerCount > 0 ? totalRating / playerCount : 0;
 }
 
-function calculateOpponentTeamRating(teamKey) {
+// [추가] AI 팀 베스트 11 선발 함수 (포지션 고려)
+function getBestEleven(teamKey) {
     const teamPlayers = teams[teamKey];
-    if (!teamPlayers || teamPlayers.length === 0) return 70; // 기본값
+    if (!teamPlayers) return [];
 
-    // 상위 11명의 평균 능력치 계산
-    const sortedPlayers = teamPlayers.sort((a, b) => b.rating - a.rating);
-    const topPlayers = sortedPlayers.slice(0, 11);
-    const totalRating = topPlayers.reduce((sum, player) => sum + player.rating, 0);
+    // 포지션별 분류 및 정렬
+    const gks = teamPlayers.filter(p => p.position === 'GK').sort((a, b) => b.rating - a.rating);
+    const dfs = teamPlayers.filter(p => p.position === 'DF').sort((a, b) => b.rating - a.rating);
+    const mfs = teamPlayers.filter(p => p.position === 'MF').sort((a, b) => b.rating - a.rating);
+    const fws = teamPlayers.filter(p => p.position === 'FW').sort((a, b) => b.rating - a.rating);
+
+    const best11 = [];
+
+    // GK 1명 (필수)
+    if (gks.length > 0) best11.push(gks[0]);
+
+    // DF 4명, MF 3명, FW 3명 (기본 4-3-3)
+    for (let i = 0; i < 4 && i < dfs.length; i++) best11.push(dfs[i]);
+    for (let i = 0; i < 3 && i < mfs.length; i++) best11.push(mfs[i]);
+    for (let i = 0; i < 3 && i < fws.length; i++) best11.push(fws[i]);
+
+    // 11명이 안 되면 나머지 포지션에서 채우기 (GK 제외)
+    if (best11.length < 11) {
+        const remaining = teamPlayers
+            .filter(p => !best11.includes(p) && p.position !== 'GK')
+            .sort((a, b) => b.rating - a.rating);
+        
+        for (let i = 0; i < remaining.length && best11.length < 11; i++) {
+            best11.push(remaining[i]);
+        }
+    }
     
+    // 그래도 부족하면 GK 포함 (극단적인 경우)
+    if (best11.length < 11) {
+        const remainingAll = teamPlayers.filter(p => !best11.includes(p)).sort((a, b) => b.rating - a.rating);
+        for (let i = 0; i < remainingAll.length && best11.length < 11; i++) best11.push(remainingAll[i]);
+    }
+
+    return best11;
+}
+
+function calculateOpponentTeamRating(teamKey) {
+    const topPlayers = getBestEleven(teamKey);
+    if (topPlayers.length === 0) return 70;
+    const totalRating = topPlayers.reduce((sum, player) => sum + player.rating, 0);
     return totalRating / topPlayers.length;
 }
 
@@ -989,9 +1025,8 @@ function createFoulEvent(matchData) {
         player = fieldPlayers[Math.floor(Math.random() * fieldPlayers.length)];
     } else {
         // AI 팀은 상위 11명 중 랜덤
-        const teamPlayers = teams[foulTeamKey];
-        const top11 = [...teamPlayers].sort((a, b) => b.rating - a.rating).slice(0, 11);
-        player = top11[Math.floor(Math.random() * top11.length)];
+        const top11 = getBestEleven(foulTeamKey);
+        player = top11.length > 0 ? top11[Math.floor(Math.random() * top11.length)] : null;
     }
     
     // 옐로카드 확률 (20%)
@@ -1510,7 +1545,7 @@ function calculateMatchRatings(matchData) {
         squad.fw.forEach(p => { if(p) homePlayers.push(p); });
     } else {
         // AI 팀은 상위 11명
-        homePlayers = teams[homeTeam].sort((a, b) => b.rating - a.rating).slice(0, 11);
+        homePlayers = getBestEleven(homeTeam);
     }
     
     // 어웨이팀이 유저팀인 경우
@@ -1521,7 +1556,7 @@ function calculateMatchRatings(matchData) {
         squad.mf.forEach(p => { if(p) awayPlayers.push(p); });
         squad.fw.forEach(p => { if(p) awayPlayers.push(p); });
     } else {
-        awayPlayers = teams[awayTeam].sort((a, b) => b.rating - a.rating).slice(0, 11);
+        awayPlayers = getBestEleven(awayTeam);
     }
     
     // 평점 계산 함수
@@ -1657,7 +1692,7 @@ class InjurySystem {
             let injuredPlayer = null;
             const squadOnField = isUserTeam 
                 ? [gameData.squad.gk, ...gameData.squad.df, ...gameData.squad.mf, ...gameData.squad.fw].filter(p => p)
-                : teams[team].sort((a, b) => b.rating - a.rating).slice(0, 11);
+                : getBestEleven(team);
 
             // 2. 출전 선수 명단에서 부상당할 선수 1명을 무작위로 선택
             if (squadOnField.length > 0) {

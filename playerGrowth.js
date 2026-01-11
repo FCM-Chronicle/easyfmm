@@ -16,16 +16,17 @@ class PlayerGrowthSystem {
             if (player.age <= 25 && !this.growthData.has(player.name)) {
                 const growthPotential = this.calculateGrowthPotential(player);
                 
-                // 월별 성장을 최소 0.34 이상으로 보장
-                let monthlyGrowth = Math.max(0.34, growthPotential / 12); // 1년 기간으로 나눔
+                // [수정] 성장 속도 둔화: 12개월 -> 36개월 (3년) 기준으로 변경
+                // 월별 성장을 최소 0.05 이상으로 보장 (기존 0.34에서 대폭 하향)
+                let monthlyGrowth = Math.max(0.05, growthPotential / 36); 
                 
                 // 성장 기간 계산 (총 성장량 / 월별 성장)
                 const monthsToGrow = Math.ceil(growthPotential / monthlyGrowth);
                 
                 this.growthData.set(player.name, {
-                    currentRating: Math.round(player.rating), // 반올림 적용
-                    maxGrowth: Math.round(growthPotential), // 반올림 적용
-                    remainingGrowth: Math.round(growthPotential), // 반올림 적용
+                    currentRating: player.rating, // 소수점 유지
+                    maxGrowth: growthPotential,
+                    remainingGrowth: growthPotential,
                     monthsToGrow: monthsToGrow,
                     monthlyGrowth: monthlyGrowth,
                     lastGrowthCheck: Date.now()
@@ -126,8 +127,8 @@ class PlayerGrowthSystem {
 
     // 성장량 계산
     calculateGrowthAmount(player, growthInfo) {
-        // 기본 월별 성장량 (최소 0.34 보장)
-        let baseGrowth = Math.max(0.34, growthInfo.monthlyGrowth);
+        // [수정] 기본 월별 성장량 (최소 0.05 보장)
+        let baseGrowth = Math.max(0.05, growthInfo.monthlyGrowth);
 
         // 팀 사기에 따른 보정
         const moraleModifier = gameData.teamMorale / 100;
@@ -135,7 +136,7 @@ class PlayerGrowthSystem {
 
         // 경기 출전에 따른 보정 (스쿼드에 포함된 선수는 더 빨리 성장)
         if (this.isPlayerInSquad(player)) {
-            baseGrowth *= 2.0; // 1.5배로 빠른 성장
+            baseGrowth *= 1.3; // [수정] 2.0배 -> 1.3배로 하향 조정
         }
 
         // 세륜중학교 추가 성장 보너스
@@ -152,8 +153,8 @@ class PlayerGrowthSystem {
         const randomFactor = 0.8 + Math.random() * 0.4;
         baseGrowth *= randomFactor;
 
-        // 성장량도 반올림 처리하되 최소 0.34 보장
-        const roundedGrowth = Math.max(0.34, Math.round(baseGrowth * 10) / 10); // 소수점 첫째자리까지 반올림
+        // [수정] 성장량 소수점 둘째자리까지 계산 (최소 0.05)
+        const roundedGrowth = Math.max(0.05, Math.round(baseGrowth * 100) / 100);
         return Math.min(roundedGrowth, growthInfo.remainingGrowth);
     }
 
@@ -180,11 +181,15 @@ class PlayerGrowthSystem {
 
     // 성장 적용
     applyGrowth(player, growthAmount, growthInfo) {
-        const oldRating = Math.round(player.rating); // 기존 능력치 반올림
-        const newRating = Math.min(99, Math.round(player.rating + growthAmount)); // 새 능력치 반올림
+        const oldRating = Math.floor(player.rating); // 정수부 비교를 위해 내림
         
-        player.rating = newRating; // 반올림된 값으로 적용
-        growthInfo.remainingGrowth = Math.max(0, Math.round((growthInfo.remainingGrowth - growthAmount) * 10) / 10); // 남은 성장량도 반올림
+        // [수정] 소수점 단위 성장 누적 (반올림 하지 않음)
+        player.rating = Math.min(99, player.rating + growthAmount);
+        
+        const newRating = Math.floor(player.rating); // 성장 후 정수부
+        
+        // 남은 성장량 차감
+        growthInfo.remainingGrowth = Math.max(0, growthInfo.remainingGrowth - growthAmount);
         growthInfo.lastGrowthCheck = Date.now();
 
         // 성장 알림
@@ -225,24 +230,25 @@ processAllTeamsGrowth() {
             
             teamPlayers.forEach(player => {
                 if (player.age <= 25) {
-                    // 5경기마다 100% 확률로 0.5~1.2 성장
+                    // 5경기마다 100% 확률로 0.1~0.3 성장 (기존 0.5~1.2에서 대폭 하향)
                     const growthInterval = 5;
-                    let growthAmount = 0.5 + Math.random() * 0.7; // 기본 성장량
+                    let growthAmount = 0.1 + Math.random() * 0.2; 
                     
                     if (gameData.matchesPlayed % growthInterval === 0) {
                         // AI 프레스티지 선수(환생) 성장 보너스
                         const isPrestigePlayer = gameData.aiPrestige && gameData.aiPrestige[teamKey] && gameData.aiPrestige[teamKey].includes(player.name);
                         
                         if (isPrestigePlayer) {
-                            const prestigeBonus = 0.5 + Math.random() * 0.3; // 0.5 ~ 1.3 추가 성장
+                            const prestigeBonus = 0.2 + Math.random() * 0.2; // 0.2 ~ 0.4 추가 성장
                             growthAmount += prestigeBonus;
                             console.log(`👑 AI 프레스티지 성장: ${player.name} (${teamNames[teamKey]}) +${prestigeBonus.toFixed(2)} 보너스!`);
                         }
 
-                        const newRating = Math.min(99, Math.round((player.rating + growthAmount) * 10) / 10);
+                        // AI 선수도 소수점 성장 반영
+                        const newRating = Math.min(99, player.rating + growthAmount);
                         player.rating = newRating;
                         
-                        console.log(`🤖 AI 성장: ${player.name} (${teamNames[teamKey]}) +${growthAmount.toFixed(1)} → ${newRating}`);
+                        console.log(`🤖 AI 성장: ${player.name} (${teamNames[teamKey]}) +${growthAmount.toFixed(2)} → ${newRating.toFixed(1)}`);
                     }
                 }
             });
@@ -259,10 +265,13 @@ processAllTeamsGrowth() {
             if (this.growthData.has(player.name)) {
                 const growthInfo = this.growthData.get(player.name);
                 
-                // remainingGrowth가 0 이하인 경우에만 삭제
-                if (growthInfo.remainingGrowth <= 0) {
-                    console.log(`${player.name}의 성장 완료 - 데이터 삭제`);
+                // [수정] 포텐셜 재갱신 방지: 성장이 끝났어도 25세 이하이면 데이터를 유지하여 initializePlayerGrowth에서 다시 잡히지 않도록 함
+                // 26세 이상이 되면 더 이상 성장 대상이 아니므로 삭제해도 됨
+                if (growthInfo.remainingGrowth <= 0 && player.age > 25) {
+                    console.log(`${player.name}의 성장 완료 및 나이 초과 - 데이터 삭제`);
                     this.growthData.delete(player.name);
+                } else if (growthInfo.remainingGrowth <= 0) {
+                    console.log(`${player.name}의 성장 완료 (데이터 유지 - 포텐셜 고정)`);
                 } else {
                     console.log(`${player.name}는 아직 성장 중 - 남은 성장량: ${growthInfo.remainingGrowth.toFixed(1)}`);
                 }
@@ -290,7 +299,8 @@ processAllTeamsGrowth() {
             const callUpBonus = Math.floor(Math.random() * 4) + 2;
             growthPotential += callUpBonus;
 
-            let monthlyGrowth = Math.max(0.34, growthPotential / 12);
+            // [수정] 유스 콜업 선수도 3년 기준 성장
+            let monthlyGrowth = Math.max(0.05, growthPotential / 36);
             
             const monthsToGrow = Math.ceil(growthPotential / monthlyGrowth);
             

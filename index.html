@@ -502,6 +502,7 @@
     <button class="tab-btn" data-tab="records">개인기록</button>
     <button class="tab-btn" data-tab="youth">유스</button>
     <button class="tab-btn" data-tab="sns">SNS</button>
+    <button class="tab-btn" data-tab="transfer_news">이적 뉴스</button>
     <button class="tab-btn" data-tab="mail">
         메일함 <span id="mailBadge" class="mail-badge"></span>
     </button>
@@ -618,7 +619,11 @@
                 </div>
                 <div id="sponsorList"></div>
             </div>
-        
+        <!-- 탭 콘텐츠 영역에 추가 -->
+        <div id="transfer_news" class="tab-panel">
+            <h3>최신 이적 소식</h3>
+            <div id="transferNewsList"></div> <!-- 여기에 카드가 생성됩니다 -->
+        </div>
           
 <!-- 개인 기록 탭 -->
 <div id="records" class="tab-panel">

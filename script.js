@@ -12,7 +12,7 @@ const allTeams = {
             { name: "하피냐", position: "FW", country: "브라질", age: 28, rating: 95 },
             { name: "이냐키 페냐", position: "GK", country: "스페인", age: 26, rating: 73 },
             { name: "마커스 래시포드", position: "MF", country: "잉글랜드", age: 27, rating: 80 },
-            { name: "마르크 안드레 테어 슈테겐", position: "GK", country: "독일", age: 33, rating: 85 },
+            { name: "마르크 안드레 테어 슈테겐", position: "GK", country: "독일", age: 33, rating: 82 },
             { name: "안드레아스 크리스텐센", position: "DF", country: "덴마크", age: 29, rating: 78 },
             { name: "페르민 로페스", position: "MF", country: "스페인", age: 22, rating: 82 },
             { name: "마르크 카사도", position: "MF", country: "스페인", age: 21, rating: 79 },
@@ -24,10 +24,10 @@ const allTeams = {
             { name: "주안 가르시아", position: "GK", country: "스페인", age: 23, rating: 81 },
             { name: "오리올 로메우", position: "MF", country: "스페인", age: 33, rating: 69 },
             { name: "엑토르 포트", position: "DF", country: "스페인", age: 19, rating: 72 },
-            { name: "마르크 베르날", position: "MF", country: "스페인", age: 18, rating: 71 },
+            { name: "마르크 베르날", position: "MF", country: "스페인", age: 18, rating: 76 },
             { name: "제라르 마르틴", position: "DF", country: "스페인", age: 23, rating: 72 },
             { name: "파우 쿠바르시", position: "DF", country: "스페인", age: 18, rating: 84 },
-            { name: "루니 바르다그지", position: "FW", country: "덴마크", age: 19, rating: 74 },
+            { name: "루니 바르다그지", position: "FW", country: "덴마크", age: 19, rating: 69 },
             { name: "알레한드로 발데", position: "DF", country: "스페인", age: 22, rating: 83 }
         ],
         description: "꿈과 열정이 살아 숨쉬는 카탈루냐의 자존심"
@@ -36,7 +36,7 @@ const allTeams = {
     "레알_마드리드": {
         league: 1,
         players: [
-            { name: "티보 쿠르투아", position: "GK", country: "벨기에", age: 33, rating: 85 },
+            { name: "티보 쿠르투아", position: "GK", country: "벨기에", age: 33, rating: 89 },
             { name: "다니 카르바할", position: "DF", country: "스페인", age: 33, rating: 83 },
             { name: "에데르 밀리탕", position: "DF", country: "브라질", age: 27, rating: 86 },
             { name: "데이비드 알라바", position: "DF", country: "오스트리아", age: 33, rating: 69 },
@@ -44,7 +44,7 @@ const allTeams = {
             { name: "에두아르도 카마빙가", position: "MF", country: "프랑스", age: 22, rating: 85 },
             { name: "비니시우스 주니오르", position: "FW", country: "브라질", age: 25, rating: 93 },
             { name: "페데리코 발베르데", position: "MF", country: "우루과이", age: 27, rating: 92 },
-            { name: "킬리안 음바페", position: "FW", country: "프랑스", age: 26, rating: 94 },
+            { name: "킬리안 음바페", position: "FW", country: "프랑스", age: 26, rating: 95 },
             { name: "호드리구", position: "FW", country: "브라질", age: 24, rating: 89 },
             { name: "트렌트 알렉산더아놀드", position: "DF", country: "잉글랜드", age: 26, rating: 86 },
             { name: "안드리 루닌", position: "GK", country: "우크라이나", age: 26, rating: 79 },
@@ -67,6 +67,7 @@ const allTeams = {
         league: 1,
         players: [
             { name: "제임스 트래포드", position: "GK", country: "잉글랜드", age: 22, rating: 81 },
+            { name: "잔루이지 돈나룸마", position: "GK", country: "이탈리아", age: 26, rating: 87 },
             { name: "후벵 디아스", position: "DF", country: "포르투갈", age: 28, rating: 87 },
             { name: "티자니 라인더르스", position: "MF", country: "네덜란드", age: 27, rating: 85 },
             { name: "존 스톤스", position: "DF", country: "잉글랜드", age: 31, rating: 77 },
@@ -75,7 +76,7 @@ const allTeams = {
             { name: "마테오 코바치치", position: "MF", country: "크로아티아", age: 31, rating: 83 },
             { name: "엘링 홀란드", position: "FW", country: "노르웨이", age: 25, rating: 94 },
             { name: "잭 그릴리쉬", position: "MF", country: "잉글랜드", age: 29, rating: 71 },
-            { name: "제레미 도쿠", position: "MF", country: "벨기에", age: 23, rating: 85 },
+            { name: "제레미 도쿠", position: "FW", country: "벨기에", age: 23, rating: 88 },
             { name: "마커스 베티넬리", position: "GK", country: "잉글랜드", age: 33, rating: 62 },
             { name: "니코 곤살레스", position: "MF", country: "스페인", age: 27, rating: 81 },
             { name: "로드리", position: "MF", country: "스페인", age: 29, rating: 93 },
@@ -90,7 +91,6 @@ const allTeams = {
             { name: "마테우스 누네스", position: "MF", country: "포르투갈", age: 26, rating: 81 },
             { name: "라얀 셰르키", position: "MF", country: "프랑스", age: 21, rating: 89 },
             { name: "클라우디오 에체베리", position: "MF", country: "아르헨티나", age: 19, rating: 74 },
-            { name: "에데르송", position: "GK", country: "브라질", age: 31, rating: 82 },
             { name: "필 포든", position: "FW", country: "잉글랜드", age: 25, rating: 84 },
             { name: "오스카르 보브", position: "MF", country: "노르웨이", age: 22, rating: 73 },
             { name: "리코 루이스", position: "DF", country: "잉글랜드", age: 20, rating: 79 },
@@ -103,14 +103,14 @@ const allTeams = {
         league: 2,
         players: [
             { name: "알타이 바이은드르", position: "GK", country: "튀르키예", age: 27, rating: 69 },
+            { name: "센느 라멘스", position: "GK", country: "벨기에", age: 23, rating: 80 },
             { name: "디오구 달로", position: "DF", country: "포르투갈", age: 26, rating: 77 },
             { name: "누사이르 마즈라위", position: "DF", country: "모로코", age: 27, rating: 84 },
             { name: "마테이스 더리흐트", position: "DF", country: "네덜란드", age: 25, rating: 82 },
             { name: "해리 매과이어", position: "DF", country: "잉글랜드", age: 32, rating: 80 },
             { name: "리산드로 마르티네스", position: "DF", country: "아르헨티나", age: 27, rating: 84 },
-            { name: "메이슨 마운트", position: "MF", country: "잉글랜드", age: 26, rating: 76 },
+            { name: "메이슨 마운트", position: "MF", country: "잉글랜드", age: 26, rating: 82 },
             { name: "브루노 페르난데스", position: "MF", country: "포르투갈", age: 30, rating: 89 },
-            { name: "라스무스 호일룬", position: "FW", country: "덴마크", age: 22, rating: 75 },
             { name: "마테우스 쿠냐", position: "FW", country: "브라질", age: 26, rating: 88 },
             { name: "조슈아 지르크지", position: "FW", country: "네덜란드", age: 24, rating: 76 },
             { name: "파트리크 도르구", position: "DF", country: "덴마크", age: 19, rating: 80 },
@@ -140,7 +140,6 @@ const allTeams = {
             { name: "밀로시 케르케즈", position: "DF", country: "헝가리", age: 21, rating: 83 },
             { name: "플로리안 비르츠", position: "FW", country: "독일", age: 22, rating: 85 },
             { name: "도미니크 소보슬라이", position: "MF", country: "헝가리", age: 24, rating: 87 },
-            { name: "다르윈 누녜스", position: "FW", country: "우루과이", age: 26, rating: 75 },
             { name: "알렉시스 맥 알리스터", position: "MF", country: "아르헨티나", age: 26, rating: 90 },
             { name: "모하메드 살라", position: "FW", country: "이집트", age: 33, rating: 89 },
             { name: "알렉산데르 이사크", position: "FW", country: "스웨덴", age: 25, rating: 85 },
@@ -205,7 +204,7 @@ const allTeams = {
     "파리_생제르맹": {
         league: 1,
         players: [
-            { name: "잔루이지 돈나룸마", position: "GK", country: "이탈리아", age: 26, rating: 87 },
+            { name: "루카 슈발리에", position: "GK", country: "프랑스", age: 24, rating: 85 },
             { name: "아슈라프 하키미", position: "DF", country: "모로코", age: 26, rating: 92 },
             { name: "프레스넬 킴펨베", position: "DF", country: "프랑스", age: 29, rating: 69 },
             { name: "루카스 베랄두", position: "DF", country: "브라질", age: 21, rating: 75 },
@@ -238,14 +237,15 @@ const allTeams = {
             { name: "산티아고 히메네스", position: "FW", country: "멕시코", age: 24, rating: 83 },
             { name: "루벤 로프터스치크", position: "MF", country: "잉글랜드", age: 29, rating: 81 },
             { name: "하파엘 레앙", position: "FW", country: "포르투갈", age: 26, rating: 89 },
+            { name: "아드리앙 라비오", position: "MF", country: "프랑스", age: 30, rating: 86 },
             { name: "크리스천 풀리식", position: "FW", country: "미국", age: 26, rating: 90 },
             { name: "루카 모드리치", position: "MF", country: "크로아티아", age: 39, rating: 85 },
             { name: "마이크 메냥", position: "GK", country: "프랑스", age: 30, rating: 85 },
             { name: "알렉스 히메네스", position: "DF", country: "스페인", age: 20, rating: 73 },
+            { name: "아르돈 야샤리", position: "MF", country: "스위스", age: 22, rating: 83 },
             { name: "사무엘 추쿠에제", position: "FW", country: "나이지리아", age: 26, rating: 76 },
             { name: "에메르송 로얄", position: "DF", country: "브라질", age: 26, rating: 72 },
             { name: "피카요 토모리", position: "DF", country: "잉글랜드", age: 27, rating: 85 },
-            { name: "말릭 티아우", position: "DF", country: "독일", age: 23, rating: 78 },
             { name: "유수프 포파나", position: "MF", country: "프랑스", age: 26, rating: 82 },
             { name: "스트라히냐 파블로비치", position: "DF", country: "세르비아", age: 24, rating: 77 },
             { name: "워렌 본도", position: "MF", country: "프랑스", age: 23, rating: 67 },
@@ -331,6 +331,7 @@ const allTeams = {
             { name: "로멜루 루카쿠", position: "FW", country: "벨기에", age: 32, rating: 86 },
             { name: "아미르 라흐마니", position: "DF", country: "코소보", age: 31, rating: 82 },
             { name: "니키타 콘티니", position: "GK", country: "이탈리아", age: 29, rating: 65 },
+            { name: "라스무스 호일룬", position: "FW", country: "덴마크", age: 22, rating: 79 },
             { name: "필리프 빌링", position: "MF", country: "덴마크", age: 28, rating: 76 },
             { name: "라파 마린", position: "MF", country: "스페인", age: 23, rating: 74 },
             { name: "마티아스 올리베라", position: "DF", country: "우루과이", age: 27, rating: 83 },
@@ -398,7 +399,7 @@ const allTeams = {
             { name: "해리 케인", position: "FW", country: "잉글랜드", age: 32, rating: 93 },
             { name: "자말 무시알라", position: "MF", country: "독일", age: 22, rating: 93 },
             { name: "킹슬리 코망", position: "FW", country: "프랑스", age: 29, rating: 80 },
-            { name: "루이스 디아스", position: "MF", country: "콜롬비아", age: 28, rating: 87 },
+            { name: "루이스 디아스", position: "FW", country: "콜롬비아", age: 28, rating: 85 },
             { name: "주앙 팔리냐", position: "MF", country: "포르투갈", age: 30, rating: 79 },
             { name: "마이클 올리세", position: "FW", country: "프랑스", age: 23, rating: 88 },
             { name: "알폰소 데이비스", position: "DF", country: "캐나다", age: 24, rating: 87 },
@@ -411,7 +412,7 @@ const allTeams = {
             { name: "알렉산다르 파블로비치", position: "MF", country: "독일", age: 21, rating: 85 },
             { name: "파울 바너", position: "MF", country: "독일", age: 19, rating: 67 }
         ],
-        description: "독일 축구의 자존심이자 바바리아의 왕자들"
+        description: "독일 축구의 자존심이자 뮌헨의 왕자들"
     },
 
     "아틀레티코_마드리드": {
@@ -480,7 +481,7 @@ const allTeams = {
         players: [
             { name: "마티아 페린", position: "GK", country: "이탈리아", age: 35, rating: 72 },
             { name: "알베르투 코스타", position: "DF", country: "포르투갈", age: 21, rating: 67 },
-            { name: "글레이송 브레메르", position: "DF", country: "브라질", age: 28, rating: 86 },
+            { name: "글레이송 브레메르", position: "DF", country: "브라질", age: 28, rating: 85 },
             { name: "페데리코 가티", position: "DF", country: "이탈리아", age: 27, rating: 83 },
             { name: "마누엘 로카텔리", position: "MF", country: "이탈리아", age: 27, rating: 79 },
             { name: "로이드 켈리", position: "DF", country: "잉글랜드", age: 26, rating: 74 },
@@ -514,6 +515,7 @@ const allTeams = {
             { name: "마르틴 두브라프카", position: "GK", country: "슬로바키아", age: 36, rating: 71 },
             { name: "키어런 트리피어", position: "DF", country: "잉글랜드", age: 34, rating: 82 },
             { name: "스벤 보트만", position: "DF", country: "네덜란드", age: 25, rating: 83 },
+            { name: "말릭 티아우", position: "DF", country: "독일", age: 23, rating: 81 },
             { name: "파비안 셰어", position: "DF", country: "스위스", age: 33, rating: 84 },
             { name: "자말 라셀스", position: "DF", country: "잉글랜드", age: 31, rating: 75 },
             { name: "조엘린통", position: "MF", country: "브라질", age: 28, rating: 84 },
@@ -558,7 +560,7 @@ const allTeams = {
             { name: "안드레스 가르시아", position: "DF", country: "스페인", age: 22, rating: 68 },
             { name: "도니얼 말런", position: "FW", country: "네덜란드", age: 26, rating: 83 },
             { name: "마르코 아센시오", position: "FW", country: "스페인", age: 29, rating: 79 },
-            { name: "이안 마트센", position: "DF", country: "네덜란드", age: 23, rating: 82 },
+            { name: "이안 마트센", position: "DF", country: "네덜란드", age: 23, rating: 84 },
             { name: "에밀리아노 마르티네스", position: "GK", country: "아르헨티나", age: 32, rating: 85 },
             { name: "아마두 오나나", position: "MF", country: "벨기에", age: 23, rating: 84 },
             { name: "로빈 올센", position: "GK", country: "스웨덴", age: 35, rating: 69 },
@@ -926,7 +928,6 @@ const allTeams = {
             { name: "티모시 웨아", position: "FW", country: "미국", age: 25, rating: 79 },
             { name: "이스마엘 베나세르", position: "MF", country: "알제리", age: 27, rating: 78 },
             { name: "피에르에밀 호이비에르", position: "MF", country: "덴마크", age: 30, rating: 85 },
-            { name: "아드리앙 라비오", position: "MF", country: "프랑스", age: 30, rating: 86 },
             { name: "빌랄 나디르", position: "MF", country: "프랑스", age: 21, rating: 69 },
             { name: "폴 리롤라", position: "DF", country: "스페인", age: 27, rating: 73 },
             { name: "루벤 블랑코", position: "GK", country: "스페인", age: 30, rating: 70 },
@@ -1053,6 +1054,7 @@ const allTeams = {
             { name: "압데라작 함달라", position: "FW", country: "모로코", age: 34, rating: 74 },
             { name: "카이오 세자르", position: "FW", country: "브라질", age: 21, rating: 72 },
             { name: "모테브 알 하르비", position: "DF", country: "사우디아라비아", age: 25, rating: 70 },
+            { name: "다르윈 누녜스", position: "FW", country: "우루과이", age: 25, rating: 75 },
             { name: "모하메드 알 야미", position: "GK", country: "사우디아라비아", age: 27, rating: 69 }
         ],
         description: "사우디아라비아의 킹 클럽이 보여주는 중동 축구의 힘"
@@ -1178,7 +1180,7 @@ const allTeams = {
             { name: "리키 푸치", position: "MF", country: "스페인", age: 25, rating: 73 },
             { name: "티아고 알마다", position: "MF", country: "아르헨티나", age: 24, rating: 75 },
             { name: "쿠초 에르난데스", position: "FW", country: "콜롬비아", age: 26, rating: 76 },
-            { name: "데니스 부앙가", position: "FW", country: "가봉", age: 30, rating: 75 },
+            { name: "드니 부앙가", position: "FW", country: "가봉", age: 30, rating: 80 },
             { name: "크리스티안 벤테케", position: "FW", country: "벨기에", age: 34, rating: 76 },
             { name: "로렌초 인시녜", position: "FW", country: "이탈리아", age: 34, rating: 77 },
             { name: "요르고스 야쿠마키스", position: "FW", country: "그리스", age: 30, rating: 74 }
@@ -1189,7 +1191,7 @@ const allTeams = {
     "멕시코_연합": {
         league: 3,
         players: [
-            { name: "세르히오 라모스", position: "DF", country: "스페인", age: 39, rating: 78 },
+        { name: "세르히오 라모스", position: "DF", country: "스페인", age: 39, rating: 78 },
         { name: "루이스 말라곤", position: "GK", country: "멕시코", age: 28, rating: 74 },
         { name: "나우엘 구스만", position: "GK", country: "아르헨티나", age: 39, rating: 72 },
         { name: "에스테반 안드라다", position: "GK", country: "아르헨티나", age: 34, rating: 73 },
@@ -1254,7 +1256,7 @@ const allTeams = {
             { name: "김영빈", position: "DF", country: "대한민국", age: 33, rating: 74 },
             { name: "최우진", position: "DF", country: "대한민국", age: 21, rating: 69 },
             { name: "박진섭", position: "MF", country: "대한민국", age: 29, rating: 76 },
-            { name: "감보아", position: "MF", country: "브라질", age: 28, rating: 78 },
+            { name: "감보아", position: "MF", country: "브라질", age: 28, rating: 74 },
             { name: "한국영", position: "MF", country: "대한민국", age: 35, rating: 73 },
             { name: "티아고", position: "FW", country: "브라질", age: 31, rating: 79 },
             { name: "송민규", position: "FW", country: "대한민국", age: 25, rating: 74 },
@@ -1292,7 +1294,7 @@ const allTeams = {
             { name: "정상운", position: "FW", country: "대한민국", age: 22, rating: 69 },
             { name: "공시현", position: "GK", country: "대한민국", age: 20, rating: 66 },
             { name: "연제운", position: "DF", country: "대한민국", age: 30, rating: 72 },
-            { name: "콤파뇨", position: "FW", country: "이탈리아", age: 29, rating: 78 },
+            { name: "콤파뇨", position: "FW", country: "이탈리아", age: 29, rating: 79 },
             { name: "김진규", position: "MF", country: "대한민국", age: 28, rating: 74 },
             { name: "임준휘", position: "FW", country: "대한민국", age: 20, rating: 67 },
             { name: "김창훈", position: "FW", country: "대한민국", age: 20, rating: 68 }
@@ -1619,7 +1621,7 @@ const passMessages = [
     "이(가) 팀이 미드필드에서 공을 돌리고 있습니다",
     "의 예리한 패스!",
     "의 후방 빌드업",
-    "이(가)측면으로 공을 연결합니다",
+    "이(가) 측면으로 공을 연결합니다",
     "이(가) 중앙에서 패스를 시도합니다",
     "의 안전한 백패스",
     "이(가) 공격을 전개합니다",
@@ -1630,7 +1632,22 @@ const passMessages = [
     "이(가) 스루패스를 찔러넣습니다",
     "이(가) 롱패스로 전환합니다",
     "이(가) 숏패스를 연결합니다",
-    "의 침착한 패스 플레이"
+    "의 침착한 패스 플레이",
+    "이(가) 템포를 조절합니다",
+    "의 빠른 역습!",
+    "이(가) 측면을 돌파합니다",
+    "이(가) 중앙 침투를 시도합니다",
+    "의 조직적인 수비",
+    "이(가) 전방 압박을 가합니다",
+    "이(가) 라인을 올립니다",
+    "의 치밀한 빌드업",
+    "이(가) 공간을 찾아갑니다",
+    "이(가) 볼 소유권을 가져갑니다",
+    "의 강력한 중거리 슛!",
+    "이(가) 박스 안으로 침투합니다",
+    "의 날카로운 돌파",
+    "이(가) 측면을 활용합니다",
+    "이(가) 수비 라인을 흔듭니다"
 ];
 
 // DOM 요소들
@@ -1643,7 +1660,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setupEventListeners();
 
     // ✅ 여기에 추가!
-    addReleasePlayerOption();
+    // addReleasePlayerOption();
 
             // 이적 시스템 초기화 호출
             if (typeof initTransfer === 'function') {
@@ -1846,6 +1863,12 @@ function showTab(tabName) {
         case 'transfer':
             if (typeof displayTransferPlayers === 'function') {
                 displayTransferPlayers();
+            }
+            break;
+            
+        case 'transfer_news': // [추가] 이적 뉴스 탭 처리
+            if (typeof displayTransferNews === 'function') {
+                displayTransferNews();
             }
             break;
             
@@ -2100,8 +2123,18 @@ function releasePlayerWithFee(player, transferFee) {
             age: player.age
         });
         
+        // [추가] 이적 뉴스에 기록
+        if (typeof transferSystem !== 'undefined') {
+            transferSystem.addTransferNews(player, gameData.selectedTeam, randomTeam, playerCost);
+        }
+        
         alert(`${player.name}을(를) 방출했습니다!\n${teamNames[randomTeam]}로 이적했습니다.\n이적료 ${playerCost}억원을 받았습니다.`);
     } else {
+        // [추가] 이적 뉴스에 기록 (외부리그)
+        if (typeof transferSystem !== 'undefined') {
+            transferSystem.addTransferNews(player, gameData.selectedTeam, "외부리그", playerCost);
+        }
+        
         alert(`${player.name}을(를) 방출했습니다!\n외부리그로 이적했습니다.\n이적료 ${playerCost}억원을 받았습니다.`);
     }
     
@@ -2114,26 +2147,6 @@ function releasePlayerWithFee(player, transferFee) {
             !(p.name === player.name && p.position === player.position)
         );
     }
-}
-
-// 선수 방출 기능 (팀 선수 목록에서 우클릭)
-function addReleasePlayerOption() {
-    document.addEventListener('contextmenu', function(e) {
-        if (e.target.closest('.player-card') && document.getElementById('squad').classList.contains('active')) {
-            e.preventDefault();
-
-            const playerCard = e.target.closest('.player-card');
-            const playerName = playerCard.querySelector('.name').textContent;
-            
-            // 현재 팀에서 해당 선수 찾기
-            const teamPlayers = teams[gameData.selectedTeam];
-            const player = teamPlayers.find(p => p.name === playerName);
-            
-            if (player) {
-                releasePlayerWithFee(player, 0);
-            }
-        }
-    });
 }
 
 // 스쿼드에서 선수 제거하는 헬퍼 함수 (script.js에 추가)

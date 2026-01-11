@@ -4,7 +4,9 @@ console.log('📜 transfer.js 파일 로드 시작');
 class TransferSystem {
     constructor() {
         this.transferMarket = [];
+        this.transferNews = []; // [추가] 이적 뉴스 데이터 저장
         this.aiTransferCooldown = 0;
+        this.aiSquadManagementCooldown = 0; // AI 지능적 영입 쿨타임
         this.basePrice = 600; // 기본 가격 600억으로 하향 조정 (요청사항 반영)
         
         // 타 리그 선수들
@@ -43,6 +45,30 @@ class TransferSystem {
         ];
     }
 
+    // [추가] 선수가 이미 우리 팀에 있는지 확인하는 헬퍼 메서드
+    isPlayerInUserTeam(playerName) {
+        if (typeof gameData === 'undefined' || !gameData.selectedTeam || typeof teams === 'undefined' || !teams[gameData.selectedTeam]) {
+            return false;
+        }
+        return teams[gameData.selectedTeam].some(p => p.name === playerName);
+    }
+
+    // [추가] 이적 뉴스 추가
+    addTransferNews(player, fromTeam, toTeam, fee) {
+        this.transferNews.unshift({
+            name: player.name,
+            position: player.position,
+            rating: player.rating,
+            age: player.age,
+            from: fromTeam,
+            to: toTeam,
+            fee: fee,
+            timestamp: Date.now()
+        });
+        // 최대 50개까지만 저장
+        if (this.transferNews.length > 50) this.transferNews.pop();
+    }
+
     // 이적 시장 초기화
     initializeTransferMarket() {
         this.transferMarket = [];
@@ -62,6 +88,9 @@ class TransferSystem {
 
                     // 각 팀에서 20% 확률로 선수를 이적 시장에 내놓음
                     teamPlayers.forEach(player => {
+                        // [수정] 이미 우리 팀에 있는 선수는 제외 (중복 방지)
+                        if (this.isPlayerInUserTeam(player.name)) return;
+
                         if (Math.random() < 0.2) {
                             this.transferMarket.push({
                                 ...player,
@@ -79,6 +108,9 @@ class TransferSystem {
 
         // 타 리그 선수들도 추가
         this.extraPlayers.forEach(player => {
+            // [수정] 이미 우리 팀에 있는 선수는 제외 (중복 방지)
+            if (this.isPlayerInUserTeam(player.name)) return;
+
             this.transferMarket.push({
                 ...player,
                 originalTeam: "외부리그",
@@ -181,7 +213,9 @@ searchAllPlayers(name) {
     });
     
 // 외부 리그 선수들도 검색
-this.extraPlayers.forEach(player => {  // ← { 추가!
+this.extraPlayers.forEach(player => {
+    // [수정] 이미 우리 팀에 있는 선수는 제외
+    if (this.isPlayerInUserTeam(player.name)) return;
     if (player.name.toLowerCase().includes(searchName)) {
         allPlayers.push({
             ...player,
@@ -306,6 +340,11 @@ return allPlayers;
             }
         }
 
+        // [추가] 이미 보유한 선수인지 최종 확인
+        if (this.isPlayerInUserTeam(player.name)) {
+            return { success: false, message: "이미 우리 팀에 소속된 선수입니다." };
+        }
+
         if (gameData.teamMoney < player.price) {
             return { success: false, message: "자금이 부족합니다!" };
         }
@@ -366,6 +405,9 @@ return allPlayers;
             mailManager.addMail(`[영입] ${player.name} 영입 완료`, '스카우트 팀장', content);
         }
 
+        // [추가] 이적 뉴스 기록
+        this.addTransferNews(newPlayer, player.originalTeam, gameData.selectedTeam, player.price);
+
         return { 
             success: true, 
             message: `${player.name}을(를) ${player.price}억에 영입했습니다!`,
@@ -412,6 +454,9 @@ return allPlayers;
                 mailManager.addMail(`[이적] ${player.name} 이적 완료`, '단장', content);
             }
             
+            // [추가] 이적 뉴스 기록
+            this.addTransferNews(player, gameData.selectedTeam, randomTeam, transferFee);
+
             return { 
                 success: true, 
                 message: `${player.name}을(를) 방출했습니다. ${teamNames[randomTeam]}로 이적했습니다.${transferFee > 0 ? ` (이적료: ${transferFee}억)` : ''}`
@@ -431,6 +476,9 @@ return allPlayers;
                 mailManager.addMail(`[이적] ${player.name} 이적 완료`, '단장', content);
             }
             
+            // [추가] 이적 뉴스 기록
+            this.addTransferNews(player, gameData.selectedTeam, "외부리그", transferFee);
+
             return { 
                 success: true, 
                 message: `${player.name}을(를) 방출했습니다. 외부리그로 이적했습니다.${transferFee > 0 ? ` (이적료: ${transferFee}억)` : ''}`
@@ -493,6 +541,10 @@ return allPlayers;
             teams[buyingTeam].push(transferCandidate);
             
             console.log(`AI 이적: ${transferCandidate.name}이(가) ${teamNames[sellingTeam]}에서 ${teamNames[buyingTeam]}로 이적했습니다.`);
+            
+            // [추가] 이적 뉴스 기록
+            const estimatedFee = this.calculatePlayerPrice(transferCandidate);
+            this.addTransferNews(transferCandidate, sellingTeam, buyingTeam, estimatedFee);
         }
     }
 
@@ -524,6 +576,9 @@ return allPlayers;
         // AI 이적 시뮬레이션
         this.simulateAITransfers();
 
+        // [추가] AI 팀 스쿼드 관리 (지능적 영입)
+        this.manageAITeamSquads();
+
         // AI 팀 밸런스 조정 (부족한 포지션 채우기)
         this.balanceAITeams();
     }
@@ -540,7 +595,8 @@ return allPlayers;
         if (teamPlayers.length <= 20) return; // 최소 인원 유지
         
         const availablePlayers = teamPlayers.filter(player => 
-            !this.transferMarket.some(tp => tp.name === player.name && tp.originalTeam === randomTeam)
+            !this.transferMarket.some(tp => tp.name === player.name && tp.originalTeam === randomTeam) &&
+            !this.isPlayerInUserTeam(player.name) // [추가] 우리 팀 선수 제외
         );
         
         if (availablePlayers.length > 0) {
@@ -566,6 +622,137 @@ return allPlayers;
     renewContract(player, newSalary, contractLength) {
         // 계약 연장 로직
         return { success: true, message: `${player.name}과(와) 계약을 연장했습니다.` };
+    }
+
+    // [추가] AI 팀 스쿼드 관리 (지능적 영입 로직)
+    manageAITeamSquads() {
+        // [수정] 3경기 -> 10경기 (빈도 대폭 감소, 약 한 달에 한 번)
+        if (this.aiSquadManagementCooldown > 0) {
+            this.aiSquadManagementCooldown--;
+            return;
+        }
+        this.aiSquadManagementCooldown = 10;
+
+        const aiTeams = Object.keys(teams).filter(t => t !== gameData.selectedTeam);
+        
+        // [추가] 팀 순서를 랜덤하게 섞어서 특정 팀이 항상 먼저 선수를 채가는 것 방지
+        aiTeams.sort(() => Math.random() - 0.5);
+
+        aiTeams.forEach(teamKey => {
+            // [추가] 쿨타임이 찼어도 30% 확률로만 영입 시도 (과도한 이적 방지)
+            if (Math.random() < 0.3) {
+                this.analyzeAndReinforceTeam(teamKey);
+            }
+        });
+    }
+
+    // 팀 분석 및 보강
+    analyzeAndReinforceTeam(teamKey) {
+        const teamPlayers = teams[teamKey];
+        if (!teamPlayers || teamPlayers.length === 0) return;
+
+        // 팀 평균 오버롤 계산
+        const totalRating = teamPlayers.reduce((sum, p) => sum + p.rating, 0);
+        const avgRating = Math.round(totalRating / teamPlayers.length);
+
+        const positions = ['GK', 'DF', 'MF', 'FW'];
+        
+        positions.forEach(pos => {
+            const playersInPos = teamPlayers.filter(p => p.position === pos).sort((a, b) => b.rating - a.rating);
+            
+            // 1. 주전급 노쇠화/기량저하 체크 (Replacement)
+            if (playersInPos.length > 0) {
+                const bestPlayer = playersInPos[0];
+                // 나이가 35세 이상이거나 평균 오버롤보다 4 이상 낮은 경우
+                if (bestPlayer.age >= 35 || bestPlayer.rating <= (avgRating - 4)) {
+                    // 조건: 평균 오버롤 이상, 30세 이하 선수 영입 시도
+                    this.attemptAITransfer(teamKey, {
+                        position: pos,
+                        minRating: avgRating,
+                        maxAge: 30
+                    });
+                }
+            }
+
+            // 2. 뎁스 보강 체크 (Backup)
+            // 특정 포지션 인원이 4명인 경우 (GK 제외)
+            if (pos !== 'GK' && playersInPos.length === 4) {
+                // 조건: 평균 오버롤 -6 ~ -3 수준의 백업 선수 영입 시도
+                this.attemptAITransfer(teamKey, {
+                    position: pos,
+                    minRating: avgRating - 6,
+                    maxRating: avgRating - 3
+                });
+            }
+        });
+    }
+
+    // AI 영입 시도 (후보군 검색 및 협상)
+    attemptAITransfer(buyerTeamKey, criteria) {
+        // 다른 AI 팀들의 선수들을 후보로 수집 (유저 팀 제외)
+        let candidates = [];
+        const otherTeams = Object.keys(teams).filter(t => t !== gameData.selectedTeam && t !== buyerTeamKey);
+        
+        otherTeams.forEach(sourceTeamKey => {
+            const sourcePlayers = teams[sourceTeamKey];
+            sourcePlayers.forEach(player => {
+                if (player.position === criteria.position) {
+                    // 나이 조건
+                    if (criteria.maxAge && player.age > criteria.maxAge) return;
+                    // 오버롤 조건
+                    if (criteria.minRating && player.rating < criteria.minRating) return;
+                    if (criteria.maxRating && player.rating > criteria.maxRating) return;
+
+                    candidates.push({ player, teamKey: sourceTeamKey });
+                }
+            });
+        });
+
+        // 후보 섞기 (랜덤성 부여)
+        candidates.sort(() => Math.random() - 0.5);
+
+        // 후보들을 순회하며 영입 시도
+        for (const candidate of candidates) {
+            const { player, teamKey } = candidate;
+            
+            // 판매 의사 확인 (중요 선수 보호 로직)
+            if (this.checkSellingWillingness(player, teamKey)) {
+                // 이적 성사: 원소속팀에서 제거하고 구매팀에 추가
+                const fromSquad = teams[teamKey];
+                const idx = fromSquad.indexOf(player);
+                if (idx > -1) {
+                    fromSquad.splice(idx, 1);
+                    teams[buyerTeamKey].push(player);
+                    console.log(`🤖 AI 지능적 이적: ${player.name} (${teamNames[teamKey]} -> ${teamNames[buyerTeamKey]})`);
+                    
+                    // [추가] 이적 뉴스 기록
+                    const estimatedFee = this.calculatePlayerPrice(player);
+                    this.addTransferNews(player, teamKey, buyerTeamKey, estimatedFee);
+
+                    return; // 한 포지션당 한 명만 영입하고 종료
+                }
+            }
+            // 실패 시 다음 후보로 넘어감 (다른 팀의 비슷한 선수를 찾게 됨)
+        }
+    }
+
+    // 판매 의사 확인 (핵심 선수 보호)
+    checkSellingWillingness(player, teamKey) {
+        const teamPlayers = teams[teamKey];
+        if (!teamPlayers || teamPlayers.length <= 18) return false; // 최소 인원 보호
+
+        // 오버롤 순으로 정렬하여 순위 확인
+        const sortedPlayers = [...teamPlayers].sort((a, b) => b.rating - a.rating);
+        const rank = sortedPlayers.indexOf(player) + 1;
+
+        // Top 3: 절대 안 팖
+        if (rank <= 3) return false;
+        
+        // Top 4~6: 50% 확률로 판매
+        if (rank <= 6) return Math.random() < 0.5;
+        
+        // 그 외: 판매 허용
+        return true;
     }
 
      // AI 팀 밸런스 조정
@@ -615,14 +802,18 @@ return allPlayers;
     getSaveData() {
         return {
             transferMarket: this.transferMarket,
-            aiTransferCooldown: this.aiTransferCooldown
+            transferNews: this.transferNews, // [추가] 뉴스 데이터 저장
+            aiTransferCooldown: this.aiTransferCooldown,
+            aiSquadManagementCooldown: this.aiSquadManagementCooldown,
         };
     }
 
     // 저장 데이터 로드
     loadSaveData(saveData) {
         this.transferMarket = saveData.transferMarket || [];
+        this.transferNews = saveData.transferNews || []; // [추가] 뉴스 데이터 로드
         this.aiTransferCooldown = saveData.aiTransferCooldown || 0;
+        this.aiSquadManagementCooldown = saveData.aiSquadManagementCooldown || 0;
     }
     }
 
@@ -758,6 +949,49 @@ playerCard.innerHTML = `
         });
         
         container.appendChild(playerCard);
+    });
+}
+
+// [추가] 이적 뉴스 표시 함수
+function displayTransferNews() {
+    const container = document.getElementById('transferNewsList'); // HTML에 이 ID를 가진 div가 있어야 함
+    if (!container) return;
+
+    container.innerHTML = '';
+    const newsList = transferSystem.transferNews;
+
+    if (newsList.length === 0) {
+        container.innerHTML = '<p style="text-align: center; padding: 20px; color: #aaa;">아직 이적 소식이 없습니다.</p>';
+        return;
+    }
+
+    newsList.forEach(news => {
+        const newsCard = document.createElement('div');
+        const isUserInvolved = news.from === gameData.selectedTeam || news.to === gameData.selectedTeam;
+        
+        newsCard.className = `news-card ${isUserInvolved ? 'user-transfer' : ''}`;
+        
+        const fromTeamName = news.from === "외부리그" ? "외부리그" : (teamNames[news.from] || news.from);
+        const toTeamName = news.to === "외부리그" ? "외부리그" : (teamNames[news.to] || news.to);
+
+        newsCard.innerHTML = `
+            <div class="news-info">
+                <div class="news-player">
+                    ${news.name} <span style="font-size: 0.8em; font-weight: normal; color: #ddd;">(${news.position}, ${news.age}세)</span>
+                </div>
+                <div class="news-detail">
+                    ${fromTeamName} <span class="transfer-arrow">➔</span> ${toTeamName}
+                </div>
+                <div class="news-rating" style="font-size: 0.85em; color: #aaa; margin-top: 2px;">
+                    능력치: ${news.rating}
+                </div>
+            </div>
+            <div class="news-fee">
+                ${news.fee}억
+            </div>
+        `;
+        
+        container.appendChild(newsCard);
     });
 }
 
@@ -904,9 +1138,54 @@ function initTransfer() {
 // 전역으로 함수들 노출
 window.transferSystem = transferSystem;
 window.displayTransferPlayers = displayTransferPlayers;
+window.displayTransferNews = displayTransferNews; // [추가]
 window.searchPlayers = searchPlayers;
 window.initializeTransferMarket = initializeTransferMarket;
 window.loadTransferScreen = loadTransferScreen;
 window.updateTransferMarketPostMatch = updateTransferMarketPostMatch;   
 window.initializeTransferSystem = initializeTransferSystem;         
 window.initTransfer = initTransfer; // 명시적 노출
+
+// [추가] 이적 뉴스 스타일 주입
+const transferNewsStyle = document.createElement('style');
+transferNewsStyle.textContent = `
+    .news-card {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 10px;
+        border-left: 4px solid #3498db;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .news-card.user-transfer {
+        background: rgba(46, 204, 113, 0.1);
+        border-left-color: #2ecc71;
+    }
+    .news-info {
+        flex-grow: 1;
+    }
+    .news-player {
+        font-weight: bold;
+        font-size: 1.1em;
+        color: #fff;
+    }
+    .news-detail {
+        font-size: 0.9em;
+        color: #ccc;
+        margin-top: 4px;
+    }
+    .news-fee {
+        font-weight: bold;
+        color: #f1c40f;
+        font-size: 1.1em;
+        min-width: 80px;
+        text-align: right;
+    }
+    .transfer-arrow {
+        color: #aaa;
+        margin: 0 5px;
+    }
+`;
+document.head.appendChild(transferNewsStyle);

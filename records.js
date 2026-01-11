@@ -1429,3 +1429,215 @@ if (document.readyState === 'loading') {
     console.log('📂 이미 로드됨, Records System 초기화 시도...');
     initRecordsSystemInstance();
 }
+
+// ✅ 반응형 스타일 추가 (개인기록 탭 전용)
+const recordsStyle = document.createElement('style');
+recordsStyle.textContent = `
+    /* 기록 컨테이너 그리드 레이아웃 */
+    .records-content {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        padding: 10px;
+    }
+
+    /* 랭킹 아이템 스타일 */
+    .ranking-item {
+        display: flex;
+        align-items: center;
+        padding: 12px;
+        background: rgba(255, 255, 255, 0.05);
+        margin-bottom: 8px;
+        border-radius: 8px;
+        transition: background 0.2s;
+    }
+    
+    .ranking-item:hover {
+        background: rgba(255, 255, 255, 0.1);
+    }
+    
+    .ranking-item.user-player {
+        background: rgba(46, 204, 113, 0.15);
+        border: 1px solid rgba(46, 204, 113, 0.3);
+    }
+
+    .player-rank {
+        width: 30px;
+        font-weight: bold;
+        color: #ffd700;
+        text-align: center;
+        font-size: 1.1em;
+    }
+
+    .player-info {
+        flex-grow: 1;
+        margin-left: 15px;
+        overflow: hidden;
+    }
+
+    .player-name {
+        font-weight: bold;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 0.95em;
+    }
+
+    .player-team {
+        font-size: 0.8em;
+        color: #aaa;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-top: 2px;
+    }
+
+    .player-stats {
+        font-weight: bold;
+        color: #2ecc71;
+        min-width: 50px;
+        text-align: right;
+        font-size: 1.1em;
+    }
+
+    /* 주간 베스트 11 피치 스타일 */
+    .best11-pitch {
+        background: linear-gradient(180deg, #27ae60 0%, #2ecc71 100%);
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        border-radius: 12px;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-height: 550px;
+        position: relative;
+        box-shadow: inset 0 0 50px rgba(0,0,0,0.3);
+        margin-top: 10px;
+    }
+    
+    /* 피치 장식 (중앙선, 센터서클) */
+    .best11-pitch::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 100px;
+        height: 100px;
+        border: 2px solid rgba(255,255,255,0.2);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+    
+    .best11-pitch::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: rgba(255,255,255,0.2);
+        transform: translateY(-50%);
+        pointer-events: none;
+    }
+
+    .best11-row {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        z-index: 1;
+        position: relative;
+    }
+
+    .best11-player {
+        background: rgba(0, 0, 0, 0.6);
+        border-radius: 8px;
+        padding: 8px 5px;
+        width: 90px;
+        text-align: center;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        transition: transform 0.2s;
+        backdrop-filter: blur(2px);
+    }
+    
+    .best11-player:hover {
+        transform: translateY(-5px) scale(1.05);
+        background: rgba(0, 0, 0, 0.8);
+        border-color: #ffd700;
+        z-index: 10;
+    }
+    
+    .best11-player.user-player {
+        border-color: #ffd700;
+        background: rgba(255, 215, 0, 0.25);
+    }
+
+    .best11-rating {
+        color: #ffd700;
+        font-weight: bold;
+        font-size: 0.85em;
+        margin-bottom: 4px;
+    }
+
+    .best11-name {
+        font-size: 0.85em;
+        font-weight: bold;
+        margin-bottom: 2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        color: #fff;
+    }
+
+    .best11-team {
+        font-size: 0.7em;
+        color: #ddd;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* 모바일 반응형 스타일 */
+    @media (max-width: 768px) {
+        .records-content {
+            grid-template-columns: 1fr; /* 모바일에서는 1열로 */
+            gap: 15px;
+            padding: 5px;
+        }
+        
+        .best11-pitch {
+            min-height: 450px;
+            padding: 15px 5px;
+        }
+        
+        .best11-row {
+            gap: 8px;
+        }
+        
+        .best11-player {
+            width: 70px;
+            padding: 5px 2px;
+        }
+        
+        .best11-name {
+            font-size: 0.75em;
+        }
+        
+        .best11-team {
+            display: none; /* 공간 부족 시 팀명 숨김 */
+        }
+        
+        .best11-rating {
+            font-size: 0.8em;
+        }
+        
+        .ranking-item {
+            padding: 10px;
+        }
+        
+        .player-info {
+            margin-left: 10px;
+        }
+    }
+`;
+document.head.appendChild(recordsStyle);
