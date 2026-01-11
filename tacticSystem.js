@@ -602,7 +602,7 @@ function simulateMatch(matchData, tacticSystem) {
         }
 
         // 기본 이벤트 확률 (부상 제외하고 재조정)
-        let baseGoalChance = 0.015;
+        let baseGoalChance = 0.02;
         const baseFoulChance = 0.082;
         const basePassChance = 0.753;
         const baseThrowInChance = 0.06;
