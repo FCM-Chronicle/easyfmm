@@ -51,14 +51,14 @@ const allTeams = {
             { name: "오렐리앵 추아메니", position: "MF", country: "프랑스", age: 25, rating: 85 },
             { name: "아르다 귈러", position: "MF", country: "튀르키예", age: 20, rating: 83 },
             { name: "엔드릭", position: "FW", country: "브라질", age: 19, rating: 75 },
-            { name: "알바로 카레라스", position: "DF", country: "스페인", age: 22, rating: 83 },
+            { name: "알바로 카레라스", position: "DF", country: "스페인", age: 22, rating: 84 },
             { name: "다니 세바요스", position: "MF", country: "스페인", age: 28, rating: 73 },
             { name: "프란 가르시아", position: "DF", country: "스페인", age: 25, rating: 81 },
             { name: "브라힘 디아스", position: "FW", country: "모로코", age: 25, rating: 82 },
-            { name: "안토니오 뤼디거", position: "DF", country: "독일", age: 32, rating: 84 },
+            { name: "안토니오 뤼디거", position: "DF", country: "독일", age: 32, rating: 82 },
             { name: "페를랑 멘디", position: "DF", country: "프랑스", age: 30, rating: 72 },
             { name: "딘 하위선", position: "DF", country: "스페인", age: 20, rating: 86 },
-            { name: "라울 아센시오", position: "DF", country: "스페인", age: 22, rating: 84 }
+            { name: "라울 아센시오", position: "DF", country: "스페인", age: 22, rating: 83 }
         ],
         description: "왕실의 위엄을 지닌 세계 최고의 클럽"
     },
@@ -4390,7 +4390,7 @@ class AudioManager {
             'assets/ost/Aqua Man.mp3',
             'assets/ost/Bruno Mars - 24K Magic (Audio).mp3',
             'assets/ost/Caesars Palace - Jerk It Out (Official Video).mp3',
-            'assets/ost/Dynamic Duo & DJ Premier AEAO.mp3',
+            'assets/ost/Dynamic Duo & DJ Premier - AEAO.mp3',
             'assets/ost/Glass Animals - Heat Waves (Lyrics).mp3',
             'assets/ost/Imagine Dragons - On Top Of The World (Lyric Video).mp3',
             'assets/ost/John Newman - Love Me Again.mp3',
@@ -4402,7 +4402,7 @@ class AudioManager {
             'assets/ost/다이나믹 듀오(Dynamic Duo) - BAAAM (Feat. Muzie of UV) (가사_lyrics).mp3',
             'assets/ost/에픽하이 (EPIK HIGH) - BORN HATER (Feat. 빈지노, 버벌진트, B.I, MINO, BOBBY) | Lyrics_가사.mp3'
         ];
-        this.currentTrackIndex = Math.floor(Math.random() * this.bgmFiles.length);
+        this.currentTrackIndex = 0; // [수정] 첫 번째 곡부터 순서대로 재생
         this.audio = new Audio();
         this.isPlaying = false;
         this.initialized = false;
@@ -4413,6 +4413,15 @@ class AudioManager {
     init() {
         if (this.initialized) return;
         
+        // [수정] 오디오 객체가 가비지 컬렉션되어 끊기는 현상 방지 (DOM에 추가)
+        document.body.appendChild(this.audio);
+
+        // [추가] 에러 발생 시 다음 곡 재생
+        this.audio.addEventListener('error', (e) => {
+            console.warn("Audio error, playing next:", e);
+            setTimeout(() => this.playNext(), 1000);
+        });
+
         this.audio.loop = false;
         // 한 곡이 끝나면 다음 곡 재생
         this.audio.addEventListener('ended', () => this.playNext());
@@ -4469,16 +4478,12 @@ class AudioManager {
     }
 
     playNext() {
-        // 랜덤 재생 (현재 곡과 다른 곡 선택)
-        let nextIndex;
-        if (this.bgmFiles.length > 1) {
-            do {
-                nextIndex = Math.floor(Math.random() * this.bgmFiles.length);
-            } while (nextIndex === this.currentTrackIndex);
-        } else {
-            nextIndex = 0;
+        // [수정] 순차 재생 (마지막 곡이면 다시 처음으로)
+        this.currentTrackIndex++;
+        if (this.currentTrackIndex >= this.bgmFiles.length) {
+            this.currentTrackIndex = 0;
         }
-        this.currentTrackIndex = nextIndex;
+        
         this.audio.src = this.bgmFiles[this.currentTrackIndex];
         this.play();
     }

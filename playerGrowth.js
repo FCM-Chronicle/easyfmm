@@ -65,11 +65,11 @@ class PlayerGrowthSystem {
         }
 
         // 세륜중학교 특별 보너스 (1.5배 ~ 2.5배)
-        let teamModifier = 1;
-        if (gameData.selectedTeam === 'seryu3') {
-            teamModifier = 1.5 + Math.random() * 1.0; // 1.5 ~ 2.5배
-            console.log(`세륜중학교 ${player.name}에게 특별 성장 보너스 적용: x${teamModifier.toFixed(2)}`);
-        }
+         let teamModifier = 1;
+         if (gameData.selectedTeam === 'seryu3') {
+             teamModifier = 1.5 + Math.random() * 1.0; // 1.5 ~ 2.5배
+             console.log(`세륜중학교 ${player.name}에게 특별 성장 보너스 적용: x${teamModifier.toFixed(2)}`);
+         }
 
 
         // [추가] 아이콘 선수 특별 보너스 (전설적인 잠재력)
@@ -80,7 +80,7 @@ class PlayerGrowthSystem {
 
         // [추가] 커스텀 선수 특별 보너스 (105까지 성장 가능하도록 잠재력 대폭 부여)
         if (player.isCustom) {
-            teamModifier = 2.0; // 2배 성장
+            teamModifier = 2; // 2배 성장
             console.log(`🛠️ 커스텀 ${player.name}에게 한계 돌파 성장 보너스 적용`);
         }
 
@@ -89,7 +89,7 @@ class PlayerGrowthSystem {
         // 세륜중학교 선수들은 최소 성장 보장
         if (gameData.selectedTeam === 'seryu3') {
             return Math.max(finalGrowth, 15); // 최소 15 성장 보장
-        }
+         }
 
         // [추가] 아이콘 선수는 최소 18 성장 보장 (99 찍을 수 있게)
         if (player.isIcon) {
