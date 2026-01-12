@@ -4416,9 +4416,9 @@ class AudioManager {
             'assets/ost/다이나믹 듀오(Dynamic Duo) - BAAAM (Feat. Muzie of UV) (가사_lyrics).mp3',
             'assets/ost/Born Hater.mp3',
             'assets/ost/Business class (Feat. JUSTHIS).mp3',
-            'assets/ost/SUPERBEEWHY (Feat. BewhY) (Prod. by BewhY)',
-            'assets/ost/Travel Again (Feat. Cautious Clay)',
-            'assets/ost/Jay Park (박재범), GRAY (그레이) -  EL TORNADO'
+            'assets/ost/SUPERBEEWHY (Feat. BewhY) (Prod. by BewhY).mp3',
+            'assets/ost/Travel Again (Feat. Cautious Clay).mp3',
+            'assets/ost/Jay Park (박재범), GRAY (그레이) -  EL TORNADO.mp3'
         ];
         this.currentTrackIndex = 0;
         this.audio = new Audio();
