@@ -18,7 +18,7 @@ class PlayerGrowthSystem {
                 
                 // [수정] 성장 속도 둔화: 12개월 -> 36개월 (3년) 기준으로 변경
                 // 월별 성장을 최소 0.05 이상으로 보장 (기존 0.34에서 대폭 하향)
-                let monthlyGrowth = Math.max(0.05, growthPotential / 36); 
+                let monthlyGrowth = Math.max(0.2, growthPotential / 36); 
                 
                 // 성장 기간 계산 (총 성장량 / 월별 성장)
                 const monthsToGrow = Math.ceil(growthPotential / monthlyGrowth);
@@ -190,7 +190,7 @@ class PlayerGrowthSystem {
     // 성장량 계산
     calculateGrowthAmount(player, growthInfo) {
         // [수정] 기본 월별 성장량 (최소 0.05 보장)
-        let baseGrowth = Math.max(0.05, growthInfo.monthlyGrowth);
+        let baseGrowth = Math.max(0.2, growthInfo.monthlyGrowth);
 
         // 팀 사기에 따른 보정
         const moraleModifier = gameData.teamMorale / 100;
@@ -246,7 +246,7 @@ class PlayerGrowthSystem {
         const oldRating = Math.floor(player.rating); // 정수부 비교를 위해 내림
         
         // [수정] 성장 한계 설정 (커스텀 선수는 105, 그 외는 99)
-        const maxRating = player.isCustom ? 105 : 99;
+        const maxRating = player.isCustom ? 105 : 104;
         player.rating = Math.min(maxRating, player.rating + growthAmount);
         
         const newRating = Math.floor(player.rating); // 성장 후 정수부
