@@ -510,12 +510,17 @@ function showKickoffButton(matchData, tacticSystem, strengthDiff) {
     });
 }
 
-// 실제 경기 시뮬레이션 시작
 function startMatchSimulation(matchData, tacticSystem, strengthDiff) {
     console.log('▶️ [Match] 경기 시뮬레이션 시작 (Kickoff)');
     matchData.isRunning = true;
     matchData.strengthDiff = strengthDiff; // 전력 차이 데이터 저장
     matchData.intervalId = null; // 인터벌 ID 저장
+    
+    // 이변모드 초기화 (경기당 1회만 체크)
+    matchData.upsetModeChecked = false;
+    matchData.upsetMode = false;
+    matchData.upsetFactor = 0;
+    
     // 킥오프 메시지
     const kickoffEvent = {
         minute: 0,
@@ -572,23 +577,28 @@ function simulateMatch(matchData, tacticSystem) {
         const tacticAdvantage = matchData.tacticAdvantage;
 
         // 실시간 전력차 사용
-        const strengthFactor = (matchData.userTeamRating - matchData.opponentTeamRating) / 60;
+const strengthFactor = matchData.userTeamRating - matchData.opponentTeamRating;
 
-        const upsetMode = Math.random() < 0.07;
-        let upsetFactor = 0;
+// 이변모드는 경기당 1회만 체크 (5% 확률 = 20경기당 1회)
+if (!matchData.upsetModeChecked) {
+    matchData.upsetModeChecked = true;
+    matchData.upsetMode = Math.random() < 0.05;
+    
+    if (matchData.upsetMode) {
+        // 1-4% 범위의 골 확률 증가
+        matchData.upsetFactor = (Math.random() * 0.03) + 0.01; // 0.01 ~ 0.04
+        
+        const upsetEvent = {
+            minute: matchData.minute,
+            type: 'upset',
+            description: `✨ ${matchData.userTeamRating > matchData.opponentTeamRating ? teamNames[gameData.currentOpponent] : teamNames[gameData.selectedTeam]}이(가) 예상 외의 좋은 플레이를 보이고 있습니다!`
+        };
+        displayEvent(upsetEvent, matchData);
+    }
+}
 
-        if (upsetMode) {
-            upsetFactor = (Math.random() * 0.15) + 0.05;
-            
-            if (matchData.minute % 10 === 0) {
-                const upsetEvent = {
-                    minute: matchData.minute,
-                    type: 'upset',
-                    description: `✨ ${matchData.userTeamRating > matchData.opponentTeamRating ? teamNames[gameData.currentOpponent] : teamNames[gameData.selectedTeam]}이(가) 예상 외의 좋은 플레이를 보이고 있습니다!`
-                };
-                displayEvent(upsetEvent, matchData);
-            }
-        }
+const upsetMode = matchData.upsetMode || false;
+const upsetFactor = matchData.upsetFactor || 0;
 
         // ===== 부상 체크를 먼저 독립적으로 수행 =====
         const injuryRoll = Math.random();
@@ -613,54 +623,64 @@ function simulateMatch(matchData, tacticSystem) {
         let event = null;
 
         // 골 확률 계산
-        let userGoalChance = baseGoalChance + userModifiers.goalChance;
-        let opponentGoalChance = baseGoalChance + opponentModifiers.goalChance;
+let userGoalChance = baseGoalChance + userModifiers.goalChance;
+let opponentGoalChance = baseGoalChance + opponentModifiers.goalChance;
 
-        // 전술 상성 효과를 골 확률에 반영
-        if (tacticAdvantage > 0) {
-            userGoalChance += tacticAdvantage * 0.002;
-            opponentGoalChance -= tacticAdvantage * 0.001;
-        } else if (tacticAdvantage < 0) {
-            userGoalChance += tacticAdvantage * 0.002;
-            opponentGoalChance -= tacticAdvantage * 0.001;
-        }
+// 1. 전술 상성 효과 (유리하면 1% 추가)
+if (tacticAdvantage > 0) {
+    userGoalChance += 0.01; // 1% 고정
+    opponentGoalChance -= tacticAdvantage * 0.001;
+} else if (tacticAdvantage < 0) {
+    opponentGoalChance += 0.01; // 1% 고정
+    userGoalChance -= Math.abs(tacticAdvantage) * 0.001;
+}
 
-        // 수비형 전술 효과
-        if (userModifiers.goalChance < 0) {
-            opponentGoalChance += userModifiers.goalChance;
-            userGoalChance -= userModifiers.goalChance * 0.5;
-        }
-        if (opponentModifiers.goalChance < 0) {
-            userGoalChance += opponentModifiers.goalChance;
-            opponentGoalChance -= opponentModifiers.goalChance * 0.5;
-        }
+// 2. 전력 차이 효과 (0.1 전력당 0.1% = 1.0 전력당 1%)
+// strengthFactor는 이미 실제 전력 차이값 (예: 5.2)
+const strengthBonus = Math.abs(strengthFactor) * 0.001; // 0.1당 0.1% = 1당 1%
 
-        // 전력차 및 이변 효과 반영
-        if (matchData.userTeamRating > matchData.opponentTeamRating) {
-            userGoalChance += Math.abs(strengthFactor) * 0.5;
-            opponentGoalChance -= Math.abs(strengthFactor) * 0.2;
-            
-            if (upsetMode) {
-                opponentGoalChance += upsetFactor;
-                userGoalChance -= upsetFactor * 0.3;
-            }
-        } else {
-            opponentGoalChance += Math.abs(strengthFactor) * 0.5;
-            userGoalChance -= Math.abs(strengthFactor) * 0.3;
-            
-            if (upsetMode) {
-                userGoalChance += upsetFactor;
-                opponentGoalChance -= upsetFactor * 0.3;
-            }
-        }
+if (strengthFactor > 0) {
+    // 유저팀이 강함
+    userGoalChance += strengthBonus;
+    opponentGoalChance -= strengthBonus * 0.5; // 상대는 절반만 감소
+} else if (strengthFactor < 0) {
+    // 상대팀이 강함
+    opponentGoalChance += strengthBonus;
+    userGoalChance -= strengthBonus * 0.5;
+}
 
-        const randomVariation = 0.8 + (Math.random() * 0.4);
-        userGoalChance *= randomVariation;
-        opponentGoalChance *= (2 - randomVariation);
+// 3. 수비형 전술 효과
+if (userModifiers.goalChance < 0) {
+    opponentGoalChance += userModifiers.goalChance;
+    userGoalChance -= userModifiers.goalChance * 0.5;
+}
+if (opponentModifiers.goalChance < 0) {
+    userGoalChance += opponentModifiers.goalChance;
+    opponentGoalChance -= opponentModifiers.goalChance * 0.5;
+}
 
-        userGoalChance = Math.max(0.01, userGoalChance);
-        opponentGoalChance = Math.max(0.01, opponentGoalChance);
+// 4. 이변 효과 (1-4% 범위)
+if (upsetMode) {
+    if (strengthFactor > 0) {
+        // 강한 팀이 유저팀일 때, 상대에게 보너스
+        opponentGoalChance += upsetFactor;
+        userGoalChance -= upsetFactor * 0.3;
+    } else {
+        // 강한 팀이 상대팀일 때, 유저에게 보너스
+        userGoalChance += upsetFactor;
+        opponentGoalChance -= upsetFactor * 0.3;
+    }
+}
 
+// 5. 랜덤 변수 (±20%)
+const randomVariation = 0.8 + (Math.random() * 0.4);
+userGoalChance *= randomVariation;
+opponentGoalChance *= (2 - randomVariation);
+
+// 6. 최소값 보장
+userGoalChance = Math.max(0.01, userGoalChance);
+opponentGoalChance = Math.max(0.01, opponentGoalChance);
+        
         // 이벤트 결정
         let cumulativeChance = 0;
 
