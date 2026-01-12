@@ -18,7 +18,7 @@ class PlayerGrowthSystem {
                 
                 // [수정] 성장 속도 둔화: 12개월 -> 36개월 (3년) 기준으로 변경
                 // 월별 성장을 최소 0.05 이상으로 보장 (기존 0.34에서 대폭 하향)
-                let monthlyGrowth = Math.max(0.2, growthPotential / 36); 
+                let monthlyGrowth = Math.max(0.2, growthPotential / 13); 
                 
                 // 성장 기간 계산 (총 성장량 / 월별 성장)
                 const monthsToGrow = Math.ceil(growthPotential / monthlyGrowth);
