@@ -1,4 +1,4 @@
-//tacticSystem.js
+// tacticSystem.js
 
 // 메모리 업데이트: 포지션별 골 확률이 FW: 75%, MF: 21%, DF: 4%로 설정됨
 
@@ -277,35 +277,36 @@ class TacticSystem {
 
     switch (tactic) {
         case "gegenpress":
-            modifiers.goalChance = 0.0125; // +1.25%
-            modifiers.foulChance = 0.015;
-            modifiers.possessionBonus = -5;
-            modifiers.passAccuracy = -2;
+            modifiers.goalChance = 0.0; // +1.25%
+            modifiers.foulChance = 0.0;
+            modifiers.possessionBonus = 0;
+            modifiers.passAccuracy = 0;
             break;
         case "twoLine":
-            modifiers.goalChance = -0.0075; // -0.75%
-            modifiers.foulChance = 0.008;
-            modifiers.possessionBonus = -10;
-            modifiers.passAccuracy = 5;
+            modifiers.goalChance = 0; // -0.75%
+            modifiers.foulChance = 0;
+            modifiers.possessionBonus = 0;
+            modifiers.passAccuracy = 0;
             break;
         case "lavolpiana":
-            modifiers.goalChance = 0.0075; // +0.75%
+            modifiers.goalChance = 0; // +0.75%
             modifiers.foulChance = 0;
-            modifiers.possessionBonus = 5;
-            modifiers.passAccuracy = 3;
+            modifiers.possessionBonus = 0;
+            modifiers.passAccuracy = 0;
             break;
         case "longBall":
-            modifiers.goalChance = 0.01; // +1.0%
-            modifiers.foulChance = -0.008;
-            modifiers.possessionBonus = -15;
-            modifiers.passAccuracy = -5;
+            modifiers.goalChance = 0; // +1.0%
+            modifiers.foulChance = 0;
+            modifiers.possessionBonus = 0;
+            modifiers.passAccuracy = 0;
             break;
         case "possession":
-            modifiers.goalChance = 0.005; // +0.5%
-            modifiers.foulChance = -0.012;
-            modifiers.possessionBonus = 15;
-            modifiers.passAccuracy = 8;
+            modifiers.goalChance = 0; 
+            modifiers.foulChance = 0;
+            modifiers.possessionBonus = 0;
+            modifiers.passAccuracy = 0;
             break;
+        case "parkBus":
         case "parkBus":
             modifiers.goalChance = -0.0125; // -1.25%
             modifiers.foulChance = 0.02;
