@@ -613,7 +613,7 @@ const upsetFactor = matchData.upsetFactor || 0;
         }
 
         // 기본 이벤트 확률 (부상 제외하고 재조정)
-        let baseGoalChance = 0.05;
+        let baseGoalChance = 0.03;
         const baseFoulChance = 0.082;
         const basePassChance = 0.753;
         const baseThrowInChance = 0.06;
@@ -629,10 +629,10 @@ let opponentGoalChance = baseGoalChance + opponentModifiers.goalChance;
 
 // 1. 전술 상성 효과 (유리하면 1% 추가)
 if (tacticAdvantage > 0) {
-    userGoalChance += 0.01; // 1% 고정
+    userGoalChance += 0.018; // 1.8% 고정
     opponentGoalChance -= tacticAdvantage * 0.001;
 } else if (tacticAdvantage < 0) {
-    opponentGoalChance += 0.01; // 1% 고정
+    opponentGoalChance += 0.018; // 1% 고정
     userGoalChance -= Math.abs(tacticAdvantage) * 0.001;
 }
 
