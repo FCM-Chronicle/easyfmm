@@ -613,7 +613,7 @@ const upsetFactor = matchData.upsetFactor || 0;
         }
 
         // 기본 이벤트 확률 (부상 제외하고 재조정)
-        let baseGoalChance = 0.02;
+        let baseGoalChance = 0.05;
         const baseFoulChance = 0.082;
         const basePassChance = 0.753;
         const baseThrowInChance = 0.06;
