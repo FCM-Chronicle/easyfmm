@@ -521,17 +521,70 @@ return allPlayers;
         
         if (availableTeams.length < 2) return;
         
-        const buyingTeam = availableTeams[Math.floor(Math.random() * availableTeams.length)];
+        // [수정] 빅클럽(1부)이 이적 시장에서 더 적극적 (50% 확률로 1부 팀이 구매자)
+        let buyingTeam;
+        if (Math.random() < 0.5) {
+            const league1Teams = availableTeams.filter(t => allTeams[t] && allTeams[t].league === 1);
+            if (league1Teams.length > 0) {
+                buyingTeam = league1Teams[Math.floor(Math.random() * league1Teams.length)];
+            } else {
+                buyingTeam = availableTeams[Math.floor(Math.random() * availableTeams.length)];
+            }
+        } else {
+            buyingTeam = availableTeams[Math.floor(Math.random() * availableTeams.length)];
+        }
+
         const sellingTeams = availableTeams.filter(team => team !== buyingTeam);
         const sellingTeam = sellingTeams[Math.floor(Math.random() * sellingTeams.length)];
         
         const sellingTeamPlayers = teams[sellingTeam];
         if (sellingTeamPlayers.length <= 15) return; // 최소 인원 유지
         
-        // 낮은 능력치 선수를 이적시킬 확률이 높음
-        const transferCandidate = sellingTeamPlayers
-            .filter(p => p.rating < 85)
-            .sort((a, b) => a.rating - b.rating)[0];
+        const buyingLeague = allTeams[buyingTeam] ? allTeams[buyingTeam].league : 3;
+        const sellingLeague = allTeams[sellingTeam] ? allTeams[sellingTeam].league : 3;
+
+        let transferCandidate = null;
+
+        // [수정] 3부 리그 팀은 나이 많은 선수(32세 이상)를 선호
+        if (buyingLeague === 3) {
+            // 1부 리그에서 영입할 때는 32세 이상만 가능하도록 강제 (젊은 선수 유출 방지)
+            if (sellingLeague === 1) {
+                const veterans = sellingTeamPlayers.filter(p => p.age >= 32);
+                if (veterans.length > 0) {
+                    transferCandidate = veterans[Math.floor(Math.random() * veterans.length)];
+                }
+            } else {
+                // 다른 리그에서는 나이 많은 선수 선호하되 없으면 일반 영입
+                const veterans = sellingTeamPlayers.filter(p => p.age >= 32);
+                if (veterans.length > 0 && Math.random() < 0.7) {
+                    transferCandidate = veterans[Math.floor(Math.random() * veterans.length)];
+                }
+            }
+        } 
+        // [수정] 1부 리그 팀은 능력치 좋은 선수를 선호
+        else if (buyingLeague === 1) {
+             // 판매 팀의 상위권 선수 중 랜덤 (너무 핵심 선수는 안 팔 수도 있지만 여기선 단순화)
+             const goodPlayers = sellingTeamPlayers.filter(p => p.rating >= 75);
+             if (goodPlayers.length > 0) {
+                 transferCandidate = goodPlayers[Math.floor(Math.random() * goodPlayers.length)];
+             }
+        }
+
+        // 후보가 아직 없으면 기존 로직 (낮은 능력치 위주, 방출성 이적)
+        if (!transferCandidate) {
+            // 1부 -> 3부 젊은 선수 이적 방지 조건 추가
+            let candidates = sellingTeamPlayers.filter(p => p.rating < 85);
+            
+            if (sellingLeague === 1 && buyingLeague === 3) {
+                candidates = candidates.filter(p => p.age >= 32);
+            }
+
+            if (candidates.length > 0) {
+                // 능력치 낮은 순으로 정렬하여 하위권 선수 선택
+                candidates.sort((a, b) => a.rating - b.rating);
+                transferCandidate = candidates[0];
+            }
+        }
         
         if (transferCandidate && Math.random() < 0.5) {
             // 이적 실행
@@ -651,6 +704,8 @@ return allPlayers;
         const teamPlayers = teams[teamKey];
         if (!teamPlayers || teamPlayers.length === 0) return;
 
+        const teamLeague = allTeams[teamKey] ? allTeams[teamKey].league : 3;
+
         // 팀 평균 오버롤 계산
         const totalRating = teamPlayers.reduce((sum, p) => sum + p.rating, 0);
         const avgRating = Math.round(totalRating / teamPlayers.length);
@@ -665,11 +720,14 @@ return allPlayers;
                 const bestPlayer = playersInPos[0];
                 // 나이가 35세 이상이거나 평균 오버롤보다 4 이상 낮은 경우
                 if (bestPlayer.age >= 35 || bestPlayer.rating <= (avgRating - 4)) {
-                    // 조건: 평균 오버롤 이상, 30세 이하 선수 영입 시도
+                    // [수정] 3부 리그는 나이 많은 선수도 영입 대상에 포함 (빅클럽 방출 선수 영입 유도)
+                    const targetMaxAge = teamLeague === 3 ? 36 : 30;
+                    
+                    // 조건: 평균 오버롤 이상 선수 영입 시도
                     this.attemptAITransfer(teamKey, {
                         position: pos,
                         minRating: avgRating,
-                        maxAge: 30
+                        maxAge: targetMaxAge
                     });
                 }
             }
@@ -693,9 +751,16 @@ return allPlayers;
         let candidates = [];
         const otherTeams = Object.keys(teams).filter(t => t !== gameData.selectedTeam && t !== buyerTeamKey);
         
+        const buyerLeague = allTeams[buyerTeamKey] ? allTeams[buyerTeamKey].league : 3;
+        
         otherTeams.forEach(sourceTeamKey => {
             const sourcePlayers = teams[sourceTeamKey];
+            const sourceLeague = allTeams[sourceTeamKey] ? allTeams[sourceTeamKey].league : 3;
+
             sourcePlayers.forEach(player => {
+                // [추가] 1부 리그 젊은 선수(31세 이하)가 3부 리그로 가는 것 방지
+                if (sourceLeague === 1 && buyerLeague === 3 && player.age <= 31) return;
+
                 if (player.position === criteria.position) {
                     // 나이 조건
                     if (criteria.maxAge && player.age > criteria.maxAge) return;

@@ -16,13 +16,8 @@ class PlayerGrowthSystem {
             if (player.age <= 25 && !this.growthData.has(player.name)) {
                 const growthPotential = this.calculateGrowthPotential(player);
                 
-                // 성장량에 따라 기간 조정 (15 이하면 빠르게)
-                let growthMonths;
-                if (growthPotential <= 15) {
-                    growthMonths = Math.max(5, growthPotential);
-                } else {
-                    growthMonths = 12;
-                }
+                // [수정] 포텐셜에 따라 성장 기간을 3~12개월로 다르게 설정
+                const growthMonths = Math.max(3, Math.min(12, Math.round(growthPotential / 2.5)));
                 const monthlyGrowth = growthPotential / growthMonths;
                 
                 this.growthData.set(player.name, {
@@ -67,6 +62,10 @@ class PlayerGrowthSystem {
             "윤도영": 94,
             "강상윤": 99,
             "디스 얀서": 88,
+            "켄드리 파에스": 96,
+            "아산 우에드라오고": 99,
+            "백인우": 94,
+            "대릴 바콜라": 93,
         };
 
         if (fixedPotentials.hasOwnProperty(player.name)) {
@@ -168,19 +167,14 @@ class PlayerGrowthSystem {
         }
     }
 
-    // 성장 조건 확인 (5경기마다)
+    // [수정] 성장 조건 확인 (3경기마다로 단축)
     shouldPlayerGrow(player, growthInfo) {
         if (growthInfo.remainingGrowth <= 0) {
             return false;
         }
 
-        // 세륜중학교는 3경기마다
-        if (gameData.selectedTeam === 'seryu3') {
-            return gameData.matchesPlayed > 0 && gameData.matchesPlayed % 3 === 0;
-        }
-
-        // 일반 팀은 5경기마다
-        return gameData.matchesPlayed > 0 && gameData.matchesPlayed % 5 === 0;
+        // 3경기마다 성장
+        return gameData.matchesPlayed > 0 && gameData.matchesPlayed % 3 === 0;
     }
 
     // 성장량 계산 (월별 성장량 그대로 사용)
@@ -286,8 +280,8 @@ class PlayerGrowthSystem {
                 
                 teamPlayers.forEach(player => {
                     if (player.age <= 25 && gameData.matchesPlayed % 5 === 0) {
-                        // 우리 팀이 1 오버롤 성장할 때마다 AI는 0.8~1.4 성장
-                        let growthAmount = teamGrowth * (0.8 + Math.random() * 0.6);
+                        // [수정] 우리 팀이 1 오버롤 성장할 때마다 AI는 0.6~1.2 성장 (성장 속도 재조정)
+                        let growthAmount = teamGrowth * (0.6 + Math.random() * 0.6);
                         
                         // AI 프레스티지 선수 보너스
                         const isPrestigePlayer = gameData.aiPrestige && gameData.aiPrestige[teamKey] && gameData.aiPrestige[teamKey].includes(player.name);
@@ -348,13 +342,8 @@ class PlayerGrowthSystem {
             const callUpBonus = 3 + Math.floor(Math.random() * 4);
             growthPotential += callUpBonus;
             
-            // 성장량에 따라 기간 조정 (15 이하면 빠르게)
-            let growthMonths;
-            if (growthPotential <= 15) {
-                growthMonths = Math.max(5, growthPotential);
-            } else {
-                growthMonths = 12;
-            }
+            // [수정] 포텐셜에 따라 성장 기간을 3~12개월로 다르게 설정
+            const growthMonths = Math.max(3, Math.min(12, Math.round(growthPotential / 2.5)));
             const monthlyGrowth = growthPotential / growthMonths;
             
             this.growthData.set(player.name, {
