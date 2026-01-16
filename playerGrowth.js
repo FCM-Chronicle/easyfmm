@@ -62,11 +62,11 @@ class PlayerGrowthSystem {
             "조시 아체암퐁": 92,
             "맥스 다우먼": 99,
             "리오 응구모하": 94,
-            "레나르트 칼": 99,
+            "레나르트 칼": 101,
             "배승균": 95,
             "윤도영": 94,
             "강상윤": 99,
-            "디스 얀서": 88
+            "디스 얀서": 88,
         };
 
         if (fixedPotentials.hasOwnProperty(player.name)) {
