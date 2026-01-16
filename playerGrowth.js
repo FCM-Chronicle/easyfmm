@@ -1,5 +1,5 @@
 // playerGrowth.js
-// 선수 성장 시스템 구현 (14개월 기준 성장)
+// 선수 성장 시스템 구현 (12개월 기준 성장)
 
 class PlayerGrowthSystem {
     constructor() {
@@ -16,12 +16,12 @@ class PlayerGrowthSystem {
             if (player.age <= 25 && !this.growthData.has(player.name)) {
                 const growthPotential = this.calculateGrowthPotential(player);
                 
-                // 성장량에 따라 기간 조정 (10 이하면 빠르게)
+                // 성장량에 따라 기간 조정 (15 이하면 빠르게)
                 let growthMonths;
-                if (growthPotential <= 10) {
+                if (growthPotential <= 15) {
                     growthMonths = Math.max(5, growthPotential);
                 } else {
-                    growthMonths = 14;
+                    growthMonths = 12;
                 }
                 const monthlyGrowth = growthPotential / growthMonths;
                 
@@ -185,7 +185,7 @@ class PlayerGrowthSystem {
 
     // 성장량 계산 (월별 성장량 그대로 사용)
     calculateGrowthAmount(player, growthInfo) {
-        // 14개월로 나눈 월별 성장량 그대로 사용
+        // 12개월로 나눈 월별 성장량 그대로 사용
         let growthAmount = growthInfo.monthlyGrowth;
 
         // 남은 성장량을 초과하지 않도록
@@ -348,12 +348,12 @@ class PlayerGrowthSystem {
             const callUpBonus = 3 + Math.floor(Math.random() * 4);
             growthPotential += callUpBonus;
             
-            // 성장량에 따라 기간 조정 (10 이하면 빠르게)
+            // 성장량에 따라 기간 조정 (15 이하면 빠르게)
             let growthMonths;
-            if (growthPotential <= 10) {
+            if (growthPotential <= 15) {
                 growthMonths = Math.max(5, growthPotential);
             } else {
-                growthMonths = 14;
+                growthMonths = 12;
             }
             const monthlyGrowth = growthPotential / growthMonths;
             
