@@ -12,7 +12,7 @@ const allTeams = {
             { name: "하피냐", position: "FW", country: "브라질", age: 28, rating: 95 },
             { name: "이냐키 페냐", position: "GK", country: "스페인", age: 26, rating: 73 },
             { name: "마커스 래시포드", position: "MF", country: "잉글랜드", age: 27, rating: 80 },
-            { name: "마르크 안드레 테어 슈테겐", position: "GK", country: "독일", age: 33, rating: 82 },
+            { name: "마르크 안드레 테어 슈테겐", position: "GK", country: "독일", age: 33, rating: 79 },
             { name: "안드레아스 크리스텐센", position: "DF", country: "덴마크", age: 29, rating: 78 },
             { name: "페르민 로페스", position: "MF", country: "스페인", age: 22, rating: 82 },
             { name: "마르크 카사도", position: "MF", country: "스페인", age: 21, rating: 79 },
@@ -20,12 +20,12 @@ const allTeams = {
             { name: "프렝키 더용", position: "MF", country: "네덜란드", age: 28, rating: 86 },
             { name: "쥘 쿤데", position: "DF", country: "프랑스", age: 26, rating: 88 },
             { name: "에릭 가르시아", position: "DF", country: "스페인", age: 24, rating: 75 },
-            { name: "보이치에흐 슈체스니", position: "GK", country: "폴란드", age: 35, rating: 84 },
-            { name: "주안 가르시아", position: "GK", country: "스페인", age: 23, rating: 81 },
+            { name: "보이치에흐 슈체스니", position: "GK", country: "폴란드", age: 35, rating: 83 },
+            { name: "주안 가르시아", position: "GK", country: "스페인", age: 23, rating: 85 },
             { name: "오리올 로메우", position: "MF", country: "스페인", age: 33, rating: 69 },
             { name: "엑토르 포트", position: "DF", country: "스페인", age: 19, rating: 72 },
             { name: "마르크 베르날", position: "MF", country: "스페인", age: 18, rating: 76 },
-            { name: "제라르 마르틴", position: "DF", country: "스페인", age: 23, rating: 72 },
+            { name: "제라르 마르틴", position: "DF", country: "스페인", age: 23, rating: 80 },
             { name: "파우 쿠바르시", position: "DF", country: "스페인", age: 18, rating: 84 },
             { name: "루니 바르다그지", position: "FW", country: "덴마크", age: 19, rating: 69 },
             { name: "알레한드로 발데", position: "DF", country: "스페인", age: 22, rating: 83 }
@@ -60,7 +60,7 @@ const allTeams = {
             { name: "딘 하위선", position: "DF", country: "스페인", age: 20, rating: 86 },
             { name: "라울 아센시오", position: "DF", country: "스페인", age: 22, rating: 83 }
         ],
-        description: "왕실의 위엄을 지닌 세계 최고의 클럽"
+        description: "황실의 위엄을 지닌 세계 최고의 클럽"
     },
 
     "맨체스터_시티": {
