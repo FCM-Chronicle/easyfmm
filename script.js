@@ -4418,7 +4418,7 @@ class AudioManager {
             'assets/ost/Business class (Feat. JUSTHIS).mp3',
             'assets/ost/SUPERBEEWHY (Feat. BewhY) (Prod. by BewhY).mp3',
             'assets/ost/Travel Again (Feat. Cautious Clay).mp3',
-            'assets/ost/Jay Park (박재범), GRAY (그레이) -  EL TORNADO.mp3'
+            'assets/ost/Jay Park (박재범), GRAY (그레이) - _EL TORNADO_ Lyrics (Color Coded Lyrics Han_Rom_Eng_가사) [BAnXszYMGSU].mp3'
         ];
         this.currentTrackIndex = 0;
         this.audio = new Audio();
