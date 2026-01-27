@@ -14,6 +14,7 @@ const allTeams = {
             { name: "마커스 래시포드", position: "MF", country: "잉글랜드", age: 27, rating: 80 },
             { name: "마르크 안드레 테어 슈테겐", position: "GK", country: "독일", age: 33, rating: 79 },
             { name: "안드레아스 크리스텐센", position: "DF", country: "덴마크", age: 29, rating: 78 },
+            { name: "가비", position: "MF", country: "스페인", age: 20, rating: 88 },
             { name: "페르민 로페스", position: "MF", country: "스페인", age: 22, rating: 82 },
             { name: "마르크 카사도", position: "MF", country: "스페인", age: 21, rating: 79 },
             { name: "다니 올모", position: "MF", country: "스페인", age: 27, rating: 83 },
@@ -103,7 +104,7 @@ const allTeams = {
         league: 2,
         players: [
             { name: "알타이 바이은드르", position: "GK", country: "튀르키예", age: 27, rating: 69 },
-            { name: "센느 라멘스", position: "GK", country: "벨기에", age: 23, rating: 83 },
+            { name: "센느 라멘스", position: "GK", country: "벨기에", age: 23, rating: 85 },
             { name: "디오구 달로", position: "DF", country: "포르투갈", age: 26, rating: 77 },
             { name: "누사이르 마즈라위", position: "DF", country: "모로코", age: 27, rating: 84 },
             { name: "마테이스 더리흐트", position: "DF", country: "네덜란드", age: 25, rating: 82 },
@@ -116,7 +117,6 @@ const allTeams = {
             { name: "파트리크 도르구", position: "DF", country: "덴마크", age: 19, rating: 80 },
             { name: "레니 요로", position: "DF", country: "프랑스", age: 19, rating: 82 },
             { name: "아마드 디알로", position: "MF", country: "코트디부아르", age: 23, rating: 84 },
-            { name: "알레한드로 가르나초", position: "FW", country: "아르헨티나", age: 21, rating: 82 },
             { name: "카세미루", position: "MF", country: "브라질", age: 33, rating: 85 },
             { name: "브라이언 음뵈모", position: "FW", country: "카메룬", age: 25, rating: 87 },
             { name: "톰 히튼", position: "GK", country: "잉글랜드", age: 39, rating: 62 },
@@ -357,6 +357,7 @@ const allTeams = {
             { name: "로베르트 산체스", position: "GK", country: "스페인", age: 27, rating: 81 },
             { name: "마르크 쿠쿠레야", position: "DF", country: "스페인", age: 27, rating: 88 },
             { name: "토신 아다라비오요", position: "DF", country: "잉글랜드", age: 27, rating: 77 },
+            { name: "알레한드로 가르나초", position: "FW", country: "아르헨티나", age: 21, rating: 78 },
             { name: "브누아 바디아실", position: "DF", country: "프랑스", age: 24, rating: 76 },
             { name: "리바이 콜윌", position: "DF", country: "잉글랜드", age: 22, rating: 84 },
             { name: "페드루 네투", position: "FW", country: "포르투갈", age: 25, rating: 83 },
@@ -1557,7 +1558,8 @@ let gameData = {
     currentRound: 1, // 현재 라운드
     isHomeGame: true, // 현재 경기가 홈 경기인지 여부
     startYear: 2025, // 시작 연도 (시즌 표기용)
-    settings: { autoSave: false, bgm: true, bgmVolume: 50 } // 게임 설정 (오디오 추가)
+    settings: { autoSave: false, bgm: true, bgmVolume: 50 }, // 게임 설정 (오디오 추가)
+    playerRoles: {} // [추가] 선수별 역할 데이터 초기화
 };
 
 
@@ -1707,7 +1709,27 @@ const passMessages = [
     "이(가) 박스 안으로 침투합니다",
     "의 날카로운 돌파",
     "이(가) 측면을 활용합니다",
-    "이(가) 수비 라인을 흔듭니다"
+    "이(가) 수비 라인을 흔듭니다",
+    "이(가) 빈 공간을 찾아 들어갑니다",
+    "의 감각적인 힐패스!",
+    "이(가) 반대편으로 길게 열어줍니다",
+    "이(가) 2대1 패스를 주고받습니다",
+    "의 탈압박 능력이 돋보입니다",
+    "이(가) 상대의 압박을 여유롭게 벗어납니다",
+    "이(가) 전방으로 쇄도합니다",
+    "의 창의적인 플레이",
+    "이(가) 경기를 조율합니다",
+    "이(가) 볼을 지켜냅니다",
+    "의 정확한 롱킥!",
+    "이(가) 수비 사이로 파고듭니다",
+    "이(가) 동료를 활용합니다",
+    "의 센스 있는 터치",
+    "이(가) 공격 템포를 올립니다",
+    "이(가) 침착하게 볼을 소유합니다",
+    "의 날카로운 크로스 시도",
+    "이(가) 중앙으로 좁혀 들어옵니다",
+    "이(가) 오버래핑을 시도합니다",
+    "의 허를 찌르는 패스"
 ];
 
 // DOM 요소들
@@ -1803,6 +1825,21 @@ function setupEventListeners() {
     document.getElementById('tacticSelect').addEventListener('change', function() {
         gameData.currentTactic = this.value;
     });
+
+    // [신규] 매치 엔진 가이드 모달
+    const guideBtn = document.getElementById('openEngineGuideBtn');
+    const guideModal = document.getElementById('engineGuideModal');
+    const closeGuideBtn = document.getElementById('closeEngineGuideModal');
+
+    if (guideBtn && guideModal) {
+        guideBtn.addEventListener('click', () => guideModal.style.display = 'block');
+        closeGuideBtn.addEventListener('click', () => guideModal.style.display = 'none');
+        
+        // 모달 바깥 클릭 시 닫기
+        window.addEventListener('click', (e) => {
+            if (e.target === guideModal) guideModal.style.display = 'none';
+        });
+    }
 
     // 인터뷰 버튼
     document.querySelectorAll('.interview-btn').forEach(btn => {
@@ -2140,6 +2177,11 @@ function selectTeam(teamKey) {
     if (typeof transferSystem !== 'undefined') {
         transferSystem.initializeTransferMarket();
     }
+
+    // DNA 시스템 초기화 (추가)
+    if (typeof DNAManager !== 'undefined') {
+        DNAManager.initialize(teams[teamKey]);
+    }
     
     // 개인기록 시스템 초기화
     if (typeof recordsSystem !== 'undefined') {
@@ -2251,6 +2293,13 @@ function showTab(tabName) {
         case 'transfer_news': // [추가] 이적 뉴스 탭 처리
             if (typeof displayTransferNews === 'function') {
                 displayTransferNews();
+            }
+            break;
+
+        case 'tactics': // 전술 탭 추가
+            if (typeof DNAManager !== 'undefined') {
+                console.log('🧬 Tactics tab opened, calling DNAManager.renderUI()');
+                DNAManager.renderUI();
             }
             break;
             
@@ -3389,6 +3438,7 @@ function loadGame(event) {
             
             // 기본 게임 데이터 복원
             gameData = saveData.gameData;
+            if (!gameData.playerRoles) gameData.playerRoles = {}; // [추가] 구버전 세이브 호환성 보장
             console.log('gameData 복원 완료');
             
             // 팀 데이터 복원

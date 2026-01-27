@@ -66,6 +66,7 @@ class PlayerGrowthSystem {
             "아산 우에드라오고": 99,
             "백인우": 94,
             "대릴 바콜라": 93,
+            "파트리크 도르구":99
         };
 
         if (fixedPotentials.hasOwnProperty(player.name)) {
@@ -210,15 +211,15 @@ class PlayerGrowthSystem {
         return false;
     }
 
-    // 성장 적용 (정수로만)
+    // [수정] 성장 적용 (소수점 유지)
     applyGrowth(player, growthAmount, growthInfo) {
         const oldRating = Math.round(player.rating);
         
         // 성장 한계 설정
         const maxRating = player.isCustom ? 105 : 104;
-        player.rating = Math.min(maxRating, Math.round(player.rating) + growthAmount);
+        player.rating = Math.min(maxRating, player.rating + growthAmount); // 소수점 유지
         
-        const newRating = Math.round(player.rating);
+        const newRating = Math.floor(player.rating); // 표시는 정수로
         
         // 남은 성장량 차감
         growthInfo.remainingGrowth = Math.max(0, growthInfo.remainingGrowth - growthAmount);
@@ -256,7 +257,7 @@ class PlayerGrowthSystem {
     calculateTeamAverageRating() {
         if (!gameData.selectedTeam) return 75;
         
-        const teamPlayers = teams[gameData.selectedTeam];
+        const teamPlayers = teams[gameData.selectedTeam]; // Best 11 로직은 아님 (전체 평균)
         const totalRating = teamPlayers.reduce((sum, player) => sum + Math.round(player.rating), 0);
         return Math.round(totalRating / teamPlayers.length);
     }
@@ -361,18 +362,10 @@ class PlayerGrowthSystem {
         return false;
     }
 
-    // 우리 팀 선수 오버롤 정수 처리 (소수점 버림)
+    // [수정] 우리 팀 선수 오버롤 정수 처리 (삭제 또는 비활성화)
     normalizeOurTeamRatings() {
-        if (!gameData.selectedTeam) return;
-        
-        const teamPlayers = teams[gameData.selectedTeam];
-        teamPlayers.forEach(player => {
-            if (player.rating % 1 !== 0) { // 소수점이 있는 경우
-                const oldRating = player.rating;
-                player.rating = Math.floor(player.rating); // 소수점 버림
-                console.log(`🔧 ${player.name} 오버롤 정수화: ${oldRating.toFixed(1)} → ${player.rating}`);
-            }
-        });
+        // 소수점 유지를 위해 기능 비활성화
+        // console.log("🔧 오버롤 정수화 기능이 비활성화되었습니다 (소수점 유지).");
     }
 
     // 선수 성장 정보 조회
@@ -449,7 +442,12 @@ function initializePlayerGrowth() {
 function processPostMatchGrowth() {
     playerGrowthSystem.processPlayerGrowth();
     playerGrowthSystem.processAllTeamsGrowth();
-    playerGrowthSystem.normalizeOurTeamRatings(); // 우리 팀 선수 오버롤 정수화
+    // playerGrowthSystem.normalizeOurTeamRatings(); // [수정] 소수점 유지를 위해 주석 처리
+
+    // [추가] 성장 후 DNA 포인트 재계산 (실시간 반영)
+    if (typeof DNAManager !== 'undefined') {
+        DNAManager.recalculateLineOVRs();
+    }
 }
 
 // 시즌 종료 시 나이 증가

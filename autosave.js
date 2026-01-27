@@ -103,6 +103,9 @@ document.addEventListener('DOMContentLoaded', () => {
             window.saveToSlot(targetSlotNumber, true);
         }
     }
+    
+    // [추가] 외부에서 자동 저장을 호출할 수 있도록 전역 노출
+    window.triggerAutoSave = triggerAutoSave;
 
     // 4. 자금 변동 감지 (gameData.teamMoney Hook)
     function hookMoneyProperty() {

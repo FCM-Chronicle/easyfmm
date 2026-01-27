@@ -2,6 +2,11 @@
 
 // 메모리 업데이트: 포지션별 골 확률이 FW: 75%, MF: 21%, DF: 4%로 설정됨
 
+// [전역 설정] 기본 롤(Role) 설정 (유저가 선택하지 않았을 경우 대비)
+if (!gameData.lineRoles) {
+    gameData.lineRoles = { attack: 'AF', midfield: 'BBM', defense: 'BPD' };
+}
+
 // 팀 전력 계산 함수들
 function calculateUserTeamRating() {
     const squad = gameData.squad;
@@ -414,6 +419,565 @@ class TacticSystem {
     }
 }
 
+// ==================== [신규] AI 스탯 생성기 ====================
+const AIStatGenerator = {
+    // 전술별 스탯 가중치 프리셋
+    presets: {
+        tikitaka: { 
+            attack: { attack: 0.9, speed: 0.9, technique: 1.2, physical: 0.8 },
+            midfield: { technique: 1.3, attack: 1.1, defense: 0.8, mentality: 1.2 },
+            defense: { defense: 0.9, speed: 1.0, physical: 0.9, mentality: 1.1 }
+        },
+        gegenpress: {
+            attack: { attack: 1.0, speed: 1.2, technique: 0.9, physical: 1.1 },
+            midfield: { technique: 0.9, attack: 1.0, defense: 1.2, mentality: 1.1 },
+            defense: { defense: 1.0, speed: 1.2, physical: 1.1, mentality: 1.0 }
+        },
+        counter: { // twoLine, longBall, parkBus
+            attack: { attack: 1.1, speed: 1.2, technique: 0.8, physical: 1.0 },
+            midfield: { technique: 0.8, attack: 0.8, defense: 1.3, mentality: 1.0 },
+            defense: { defense: 1.3, speed: 0.9, physical: 1.3, mentality: 1.0 }
+        },
+        balanced: { // possession, totalFootball, etc.
+            attack: { attack: 1.0, speed: 1.0, technique: 1.0, physical: 1.0 },
+            midfield: { technique: 1.0, attack: 1.0, defense: 1.0, mentality: 1.0 },
+            defense: { defense: 1.0, speed: 1.0, physical: 1.0, mentality: 1.0 }
+        }
+    },
+
+    getPreset(tactic) {
+        if (['tikitaka', 'lavolpiana'].includes(tactic)) return this.presets.tikitaka;
+        if (['gegenpress'].includes(tactic)) return this.presets.gegenpress;
+        if (['twoLine', 'longBall', 'parkBus', 'catenaccio'].includes(tactic)) return this.presets.counter;
+        return this.presets.balanced;
+    },
+
+    // [수정] AI 스탯 생성 시 베스트 11 기준 라인별 OVR 사용
+    create(teamKey, tactic) {
+        const teamPlayers = teams[teamKey];
+        if (!teamPlayers) return { attack: {}, midfield: {}, defense: {} };
+
+        // 포지션별 베스트 선별
+        const fws = teamPlayers.filter(p => p.position === 'FW').sort((a, b) => b.rating - a.rating).slice(0, 3);
+        const mfs = teamPlayers.filter(p => p.position === 'MF').sort((a, b) => b.rating - a.rating).slice(0, 3);
+        const dfs = teamPlayers.filter(p => p.position === 'DF').sort((a, b) => b.rating - a.rating).slice(0, 4);
+        const gks = teamPlayers.filter(p => p.position === 'GK').sort((a, b) => b.rating - a.rating).slice(0, 1);
+
+        const calcAvg = (players) => players.length > 0 ? Math.round(players.reduce((acc, p) => acc + p.rating, 0) / players.length) : 70;
+
+        const attackOVR = calcAvg(fws);
+        const midfieldOVR = calcAvg(mfs);
+        const defenseOVR = calcAvg([...dfs, ...gks]);
+
+        const preset = this.getPreset(tactic);
+        const aiStats = { attack: {}, midfield: {}, defense: {} };
+
+        ['attack', 'midfield', 'defense'].forEach(line => {
+            const linePreset = preset[line];
+            aiStats[line] = {};
+            const baseOVR = line === 'attack' ? attackOVR : line === 'midfield' ? midfieldOVR : defenseOVR;
+
+            for (const [statName, multiplier] of Object.entries(linePreset)) {
+                // 기본 능력치 + 전술 보정 + 랜덤 변수(±5%)
+                const randomFactor = 0.95 + Math.random() * 0.1;
+                // multiplier는 평균 1.0 내외이므로 OVR * multiplier가 적절 (총합 4.0 근사)
+                aiStats[line][statName] = Math.round(baseOVR * multiplier * randomFactor);
+            }
+            // AI 체력 초기화
+            aiStats[line].stamina = 100;
+        });
+
+        return aiStats;
+    }
+};
+
+// [신규] 해설 멘트 데이터 (다양성 추가)
+const CommentaryData = {
+    midfield: {
+        bypass: [
+            "🚀 {team}, 중원을 거치지 않는 긴 패스로 단숨에 공격 기회를 잡습니다!",
+            "🚀 {team}, 롱볼 한 방으로 상대 허를 찌릅니다!",
+            "🚀 {team}, 미드필더를 생략하고 전방으로 바로 연결합니다.",
+            "🚀 {team}, 다이렉트 패스로 수비 뒷공간을 노립니다!",
+            "🚀 {team}, 후방에서 한 번에 넘어오는 패스! 공격수에게 연결됩니다.",
+            "🚀 {team}, 중원 싸움을 피하고 측면으로 길게 벌려줍니다."
+        ],
+        win: [
+            "💪 {team}, {reason}(으)로 중원을 장악하며 공격을 전개합니다.",
+            "💪 {team}, 허리 싸움에서 승리하며 주도권을 가져옵니다.",
+            "💪 {team}, 미드필더진의 유기적인 패스워크가 돋보입니다.",
+            "💪 중원에서 상대를 완전히 압도하는 {team}입니다.",
+            "💪 {team}, 중원에서 상대를 완전히 갖고 노네요!",
+            "💪 {team}, 지금 중원 싸움에서 우세한 모습을 보입니다"
+        ]
+    },
+    defense: {
+        success: [
+            "🛡️ {team}, {reason}으로 {opponent}의 공격을 무력화합니다.",
+            "🛡️ {team}, 견고한 수비벽을 세우며 상대 공격을 차단합니다.",
+            "🛡️ {team}, 침착한 수비로 위기를 넘깁니다.",
+            "🛡️ {team}, 상대의 패스 길목을 완벽하게 읽어냅니다.",
+            "🛡️ {team}, 협력 수비로 상대 공격수를 고립시킵니다.",
+            "🛡️ {team}, 몸을 사리지 않는 수비로 실점을 막아냅니다."
+        ],
+        counter: [
+            "⚡️ {team}, 공을 뺏어내자마자 빛같은 역습! 수비 뒷공간을 파고듭니다!",
+            "⚡️ {team}, 수비 성공 후 빠른 전환! 역습 찬스입니다!",
+            "⚡️ {team}, 상대가 라인을 올린 틈을 타 날카로운 역습을 전개합니다!",
+            "⚡️ {team}, 총알 같은 역습! 수비수들이 따라잡지 못합니다!",
+            "⚡️ {team}, 역습 기회! 공격 숫자가 더 많습니다!",
+            "⚡️ {team}, 전광석화 같은 역습으로 상대 진영을 흔듭니다!"
+        ]
+    },
+    miss: {
+        counter: [
+            "😱 {team} {player}, 결정적인 역습 찬스에서 슈팅이 빗나갑니다!",
+            "😱 {team}, {player}의 마무리 슈팅이 골문을 외면합니다.",
+            "😱 {team}, 역습 상황에서 {player}의 슛이 뜨고 맙니다.",
+            "😱 {team} {player}, 골키퍼와 1대1 기회를 놓칩니다!",
+            "😱 {team}, {player}의 칩슛이 골대 위로 넘어갑니다.",
+            "😱 {team} {player}, 너무 급하게 찼나요? 역습 찬스가 무산됩니다.",
+            "😱 {team}, 거의 빈골대나 다름 없었는데요, {player}선수. 이걸 놓칩니다",
+            "😱 {team} 역습 찬스에서 슈팅이 골대를 강타합니다! {player}, 많이 아쉽겠어요"
+        ],
+        strong: [
+            "🥅 {team} {player}, 완벽한 찬스를 허공으로 날려버립니다.",
+            "🥅 {team}, {player}의 회심의 슈팅이 골대를 맞고 나갑니다!",
+            "🥅 {team} {player}, 결정적인 기회였는데 슈팅이 빗나갑니다.",
+            "🥅 {team}, {player}의 슈팅이 골문 옆으로 살짝 벗어납니다.",
+            "🥅 {team} {player}, 노마크 찬스에서 실축합니다! 믿을 수 없네요.",
+            "🥅 {team} {player}, 이걸 놓쳐요?? 이건 많이 아쉽겠는데요.",
+            "🥅 {team}, {player}의 발리슛이 빗맞으며 기회가 무산됩니다.",
+            "🥅 {team} 오늘 {player}선수가 컨디션이 좋지 않나봅니다. 이걸 놓쳐요..."
+            "🥅 {player} 선수 이건 거의 아마추어급 실수인데요.."
+        ],
+        normal: [
+            "🥅 {team} {player}의 중거리 슛, 골문을 크게 벗어납니다.",
+            "🥅 {team}, {player}의 슈팅이 수비수 맞고 굴절되어 나갑니다.",
+            "🥅 {team} {player}, 과감하게 때려봤지만 골문과는 거리가 멉니다.",
+            "🥅 {team}, {player}의 슛이 힘없이 골대 옆으로 흘러갑니다.",
+            "🥅 {team} {player}, 공간이 열리자마자 슈팅! 아쉽게 빗나갑니다.",
+            "🥅 {team}, {player}의 터닝 슛이 골대 위로 넘어갑니다.",
+            "🥅 {team} {player}, 수비수를 제치고 슈팅했으나 골문을 벗어납니다.",
+            "🥅 {team}, {player}의 기습적인 슈팅! 하지만 골대 옆을 때립니다.",
+            "🥅 {team} {player}, 아쉽습니다! 깻잎 한장 차이로 나갑니다.",
+            "🥅 {team}, {player}, 잘 찼네요. 그러나 골키퍼의 슈퍼세이브!",
+        ]
+    },
+    save: {
+        counter: [
+            "🧤 {team} 키퍼, {player}의 1대1 슈팅을 막아냅니다! 슈퍼 세이브!",
+            "🧤 {team} 키퍼, {player}의 결정적인 역습 슈팅을 몸을 날려 쳐냅니다!",
+            "🧤 {team} 키퍼, 팀을 구합니다! {player}의 슛을 막았습니다."
+        ],
+        strong: [
+            "🧤 {team} 골키퍼가 {player}의 슛을 막아냅니다! 엄청난 선방쇼!",
+            "🧤 {team} 골키퍼, {player}의 구석을 노린 슛을 쳐냅니다!",
+            "🧤 {team} 골키퍼, {player}의 골이나 다름없는 슈팅을 선방합니다!",
+            "🧤 {team} 골키퍼, 슈퍼 세이브! {player}의 머리를 감싸쥐게 만듭니다."
+        ],
+        normal: [
+            "🧤 {team} 골키퍼, {player}의 정면 슈팅을 안전하게 잡아냅니다.",
+            "🧤 {team} 골키퍼, {player}의 슛을 침착하게 처리합니다.",
+            "🧤 {team} 골키퍼, {player}의 중거리 슛을 어렵지 않게 막아냅니다.",
+            "🧤 {team} 골키퍼, {player}의 슛을 펀칭으로 걷어냅니다."
+        ]
+    }
+};
+
+// ==================== [신규] 리얼 매치 엔진 ====================
+class RealMatchEngine {
+    constructor(matchData) {
+        this.matchData = matchData;
+        this.tacticSystem = new TacticSystem();
+        
+        // 1. 유저 스탯 준비
+        if (!gameData.lineStats) DNAManager.initialize(teams[gameData.selectedTeam]);
+        this.userStats = gameData.lineStats;
+        this.userRoles = gameData.lineRoles || { attack: 'AF', midfield: 'BBM', defense: 'BPD' };
+
+        // 2. AI 스탯 생성
+        const aiTeamKey = matchData.homeTeam === gameData.selectedTeam ? matchData.awayTeam : matchData.homeTeam;
+        const aiTactic = this.tacticSystem.getOpponentTactic(aiTeamKey);
+        this.aiStats = AIStatGenerator.create(aiTeamKey, aiTactic);
+        this.aiRoles = this.assignAIRoles(aiTactic); // AI 롤 자동 배정
+
+        // 3. 경기 상태 초기화
+        this.ballZone = 'midfield'; // midfield, user_attack, ai_attack
+        this.lastAction = 'kickoff';
+    }
+
+    assignAIRoles(tactic) {
+        // 전술에 맞는 단순 롤 배정
+        if (['tikitaka', 'possession', 'lavolpiana', 'totalFootball'].includes(tactic)) return { attack: 'F9', midfield: 'DLP', defense: 'BPD' };
+        if (['counter', 'longBall', 'twoLine', 'catenaccio', 'parkBus', 'gegenpress'].includes(tactic)) return { attack: 'P', midfield: 'BWM', defense: 'NCB' };
+        return { attack: 'CF', midfield: 'BBM', defense: 'CD' };
+    }
+
+    // 스탯 파워 계산 (롤 가중치 + 체력 반영)
+    getLinePower(isUser, line, statType) {
+        const stats = isUser ? this.userStats : this.aiStats;
+        
+        let baseValue = stats[line].stats ? stats[line].stats[statType] : stats[line][statType];
+        if (!baseValue) baseValue = 50; // Fallback
+
+        // 1. 롤 가중치 적용 (개별 선수 평균)
+        let avgMultiplier = 0;
+        
+        if (isUser) {
+            // 유저: 해당 라인의 선수들을 찾아 개별 역할 가중치 평균 계산
+            let players = [];
+            if (line === 'attack') players = gameData.squad.fw;
+            else if (line === 'midfield') players = gameData.squad.mf;
+            else if (line === 'defense') players = gameData.squad.df;
+            
+            players = players.filter(p => p !== null);
+            
+            if (players.length > 0) {
+                let totalWeight = 0;
+                players.forEach(p => {
+                    // 선수별 역할 가져오기 (없으면 기본값)
+                    const roleKey = gameData.playerRoles?.[p.name] || (line === 'attack' ? 'AF' : line === 'midfield' ? 'BBM' : 'BPD');
+                    const roleData = TacticsManager.getRoleData(roleKey);
+                    
+                    // 스탯 매핑 (speed -> mobility)
+                    const statMap = { speed: 'mobility' };
+                    const mappedType = statMap[statType] || statType;
+                    
+                    const weight = roleData && roleData[mappedType] !== undefined ? roleData[mappedType] : 0;
+                    totalWeight += weight;
+                });
+                avgMultiplier = totalWeight / players.length;
+            }
+        } else {
+            // AI: 기존 방식대로 라인 통합 롤 사용
+            const roleKey = this.aiRoles[line];
+            // calculateFinalPower 로직을 역산하거나 직접 가중치 가져옴
+            // 여기서는 간단히 TacticsManager 활용을 위해 기존 방식 유지하되, 내부 로직과 맞춤
+            const powerWithRole = TacticsManager.calculateFinalPower(baseValue, roleKey, statType);
+            return powerWithRole; // AI는 체력 계산을 별도로 하므로 여기서 리턴해도 됨 (아래 체력 로직과 통합 필요)
+        }
+
+        // 유저 파워 계산: 기본값 * (1 + 평균 가중치)
+        let power = baseValue * (1 + avgMultiplier);
+        
+        // AI의 경우 위에서 리턴하지 않았다면 여기서 처리 (구조상 AI는 위에서 처리됨)
+
+        // 2. 체력 페널티 적용
+        const stamina = stats[line].stamina;
+        let staminaFactor = 1.0;
+        if (stamina < 30) staminaFactor = 0.7; // 탈진 시 30% 감소
+        else if (stamina < 50) staminaFactor = 0.85;
+        else if (stamina < 70) staminaFactor = 0.95;
+
+        return power * staminaFactor;
+    }
+
+    // 체력 소모
+    consumeStamina() {
+        const process = (isUser) => {
+            const stats = isUser ? this.userStats : this.aiStats;
+            
+            ['attack', 'midfield', 'defense'].forEach(line => {
+                let consumptionRate = 0;
+
+                if (isUser) {
+                    // 유저: 선수별 소모율 평균
+                    let players = [];
+                    if (line === 'attack') players = gameData.squad.fw;
+                    else if (line === 'midfield') players = gameData.squad.mf;
+                    else if (line === 'defense') players = gameData.squad.df;
+                    players = players.filter(p => p !== null);
+
+                    if (players.length > 0) {
+                        let totalRate = 0;
+                        players.forEach(p => {
+                            const roleKey = gameData.playerRoles?.[p.name] || (line === 'attack' ? 'AF' : line === 'midfield' ? 'BBM' : 'BPD');
+                            const staminaKey = TacticsManager.getStaminaConsumptionKey(roleKey);
+                            totalRate += TacticsManager.getStaminaConsumptionRate(staminaKey);
+                        });
+                        consumptionRate = totalRate / players.length;
+                    } else {
+                        consumptionRate = 0.38; // 기본값
+                    }
+                } else {
+                    // AI: 라인 롤 기준
+                    const roleKey = this.aiRoles[line];
+                    const staminaKey = TacticsManager.getStaminaConsumptionKey(roleKey);
+                    consumptionRate = TacticsManager.getStaminaConsumptionRate(staminaKey);
+                }
+
+                stats[line].stamina = Math.max(0, stats[line].stamina - consumptionRate);
+            });
+        };
+        process(true);
+        process(false);
+    }
+
+    // 1분 단위 시뮬레이션
+    update(minute) {
+        this.consumeStamina();
+
+        // 1. 중원 싸움 (Midfield Battle)
+        if (this.ballZone === 'midfield') {
+            // 기술 + 정신력 + 수비력 평균 비교
+            // [수정] 변수 정의 (ReferenceError 방지)
+            const userTech = this.getLinePower(true, 'midfield', 'technique');
+            const userMental = this.getLinePower(true, 'midfield', 'mentality');
+            const userMid = (userTech + userMental) / 2;
+            
+            const aiTech = this.getLinePower(false, 'midfield', 'technique');
+            const aiMental = this.getLinePower(false, 'midfield', 'mentality');
+            const aiMid = (aiTech + aiMental) / 2;
+
+            // 랜덤 변수 (0~20)
+            const userRoll = userMid + Math.random() * 20;
+            const aiRoll = aiMid + Math.random() * 20;
+
+            let winnerIsUser = userRoll > aiRoll;
+
+            // [수정] 중원 싸움 패배 시에도 역습/롱볼 등으로 공격 기회를 잡을 확률 추가 (Bypass)
+            // 중원 장악이 전부가 아니도록 수정
+            if (!winnerIsUser) {
+                // 유저가 중원에서 밀렸을 때
+                // 롱볼, 다이렉트, 역습 전술일 경우 확률 증가
+                let bypassChance = 0.12; // 기본 12%
+                if (['longBall', 'twoLine', 'parkBus', 'catenaccio'].includes(gameData.currentTactic)) {
+                    bypassChance = 0.28; // 28%
+                }
+                
+                if (Math.random() < bypassChance) {
+                    winnerIsUser = true;
+                    // [해설] 중원 생략 공격 (가끔 출력)
+                    if (Math.random() < 0.2) {
+                        const msg = this.getRandomCommentary('midfield', 'bypass', {
+                            team: teamNames[gameData.selectedTeam]
+                        });
+                        const event = { minute: minute, type: 'midfield_bypass', description: msg };
+                        displayEvent(event, this.matchData);
+                    }
+                }
+            } else {
+                // AI가 중원에서 밀렸을 때 (AI도 동일하게 적용)
+                const aiTactic = this.tacticSystem.getOpponentTactic(this.matchData.homeTeam === gameData.selectedTeam ? this.matchData.awayTeam : this.matchData.homeTeam);
+                let bypassChance = 0.12;
+                if (['longBall', 'twoLine', 'parkBus', 'catenaccio', 'counter'].includes(aiTactic)) {
+                    bypassChance = 0.28;
+                }
+                
+                if (Math.random() < bypassChance) {
+                    winnerIsUser = false;
+                    if (Math.random() < 0.2) {
+                        const aiTeamName = teamNames[gameData.currentOpponent];
+                        const msg = this.getRandomCommentary('midfield', 'bypass', {
+                            team: aiTeamName
+                        });
+                        const event = { minute: minute, type: 'midfield_bypass', description: msg };
+                        displayEvent(event, this.matchData);
+                    }
+                }
+            }
+
+            const winnerName = winnerIsUser ? teamNames[gameData.selectedTeam] : teamNames[gameData.currentOpponent];
+
+            if (winnerIsUser) {
+                this.ballZone = 'user_attack';
+                this.lastAction = 'build_up'; // 지공 상황
+            } else {
+                this.ballZone = 'ai_attack';
+                this.lastAction = 'build_up'; // 지공 상황
+            }
+
+            // [해설] 중원 장악 텍스트 (압도적인 차이일 때 가끔 출력)
+            if (Math.abs(userRoll - aiRoll) > 25 && Math.random() < 0.15) {
+                const winReason = (winnerIsUser ? userTech : aiTech) > (winnerIsUser ? userMental : aiMental) 
+                    ? "정교한 패스워크" : "투지 넘치는 압박";
+                const msg = this.getRandomCommentary('midfield', 'win', {
+                    team: winnerName,
+                    reason: winReason
+                });
+                const event = {
+                    minute: minute,
+                    type: 'midfield',
+                    description: msg
+                };
+                displayEvent(event, this.matchData);
+            }
+        }
+        // 2. 공격 시도 (Final Third)
+        else {
+            const isUserAttacking = this.ballZone === 'user_attack';
+            const atkTeamName = isUserAttacking ? teamNames[gameData.selectedTeam] : teamNames[gameData.currentOpponent];
+            const defTeamName = isUserAttacking ? teamNames[gameData.currentOpponent] : teamNames[gameData.selectedTeam];
+            
+            // 공격진(공격+스피드) vs 수비진(수비+피지컬)
+            const atkPower = this.getLinePower(isUserAttacking, 'attack', 'attack') + this.getLinePower(isUserAttacking, 'attack', 'speed');
+            
+            const defStat = this.getLinePower(!isUserAttacking, 'defense', 'defense');
+            const phyStat = this.getLinePower(!isUserAttacking, 'defense', 'physical');
+            const defPower = defStat + phyStat;
+
+            // [관문 1: 기회 창출]
+            const chanceRatio = atkPower / (atkPower + defPower); // 0.4 ~ 0.6 수준
+            if (Math.random() < chanceRatio) {
+                // [관문 2: 슈팅]
+                this.attemptGoal(isUserAttacking, atkPower, defPower, minute);
+            } else {
+                // 수비 성공! -> 역습 기회 체크
+                const counterAttackingTeamIsUser = !isUserAttacking;
+
+                // 역습은 공격 라인의 스피드와 수비 라인의 스피드를 비교
+                const counterSpeed = this.getLinePower(counterAttackingTeamIsUser, 'attack', 'speed');
+                const opponentDefenseSpeed = this.getLinePower(!counterAttackingTeamIsUser, 'defense', 'speed');
+
+                // 역습 조건: 공격진 스피드가 수비진 스피드보다 20% 이상 빠르고, 50% 확률
+                if (counterSpeed > opponentDefenseSpeed * 1.2 && Math.random() < 0.5) {
+                    this.ballZone = counterAttackingTeamIsUser ? 'user_attack' : 'ai_attack';
+                    this.lastAction = 'counter_attack'; // 역습 상황으로 전환
+                    
+                    const msg = this.getRandomCommentary('defense', 'counter', {
+                        team: defTeamName
+                    });
+                    // 역습 이벤트 생성
+                    const event = {
+                        minute: minute,
+                        type: 'counter_attack',
+                        description: msg
+                    };
+                    displayEvent(event, this.matchData);
+
+                } else {
+                    // [해설] 일반 수비 성공 (가끔 출력)
+                    if (Math.random() < 0.15) {
+                        // 피지컬로 막았는지, 수비력으로 막았는지 구분
+                        const defReason = phyStat > defStat ? "강력한 몸싸움" : "지능적인 커팅";
+                        const msg = this.getRandomCommentary('defense', 'success', {
+                            team: defTeamName,
+                            reason: defReason,
+                            opponent: atkTeamName
+                        });
+                        const event = { minute: minute, type: 'defense_success', description: msg };
+                        displayEvent(event, this.matchData);
+                    }
+                    this.ballZone = 'midfield';
+                    this.lastAction = 'possession_change';
+                }
+            }
+        }
+    }
+
+    attemptGoal(isUserAttacking, atkPower, defPower, minute) {
+        // [관문 3: 골 결정력]
+        // 파워 차이에 따른 기본 확률
+        const powerDiff = atkPower - defPower;
+        let goalChance = 0.10; // 기본 10%
+
+        if (powerDiff > 50) goalChance = 0.35; // 압도적 (40% -> 35%)
+        else if (powerDiff > 20) goalChance = 0.18; // 우세 (25% -> 18%)
+        else if (powerDiff < -20) goalChance = 0.02; // 열세
+        else goalChance = 0.07; // 팽팽함 (10% -> 7%)
+
+        // 역습 보너스 적용
+        if (this.lastAction === 'counter_attack') {
+            goalChance *= 1.5; // 역습 시 골 확률 1.5배
+        }
+
+        // 랜덤 변수 추가
+        if (Math.random() < goalChance) {
+            // ⚽ 골 성공!
+            const event = createGoalEvent(this.matchData, isUserAttacking);
+            
+            // [해설] 상황에 따른 골 멘트 추가
+            let context = "";
+            
+            // 역습 골이면 메시지 수정
+            if (this.lastAction === 'counter_attack') {
+                context = "⚡️ 역습의 마침표! ";
+            } else if (powerDiff > 40) {
+                context = "🔥 압도적인 공격력! ";
+            } else if (powerDiff < -10) {
+                context = "💎 천금같은 기회! ";
+            }
+
+            // 기존 골 메시지에 문맥 추가
+            event.description = event.description.replace("⚽", "⚽ " + context);
+
+            displayEvent(event, this.matchData);
+            this.ballZone = 'midfield'; // 킥오프
+            this.lastAction = 'kickoff';
+        } else {
+            // 빗나감 or 선방
+            const isSave = Math.random() < 0.5;
+            const attackingTeamName = isUserAttacking ? teamNames[this.matchData.homeTeam] : teamNames[this.matchData.awayTeam];
+            const defendingTeamName = isUserAttacking ? teamNames[this.matchData.awayTeam] : teamNames[this.matchData.homeTeam];
+            
+            const shooterName = this.getShooter(isUserAttacking);
+            
+            let description = '';
+            if (this.lastAction === 'counter_attack') {
+                if (isSave) {
+                    description = this.getRandomCommentary('save', 'counter', { team: defendingTeamName, player: shooterName });
+                } else {
+                    description = this.getRandomCommentary('miss', 'counter', { team: attackingTeamName, player: shooterName });
+                }
+            } else if (isSave) {
+                if (powerDiff > 30) {
+                    description = this.getRandomCommentary('save', 'strong', { team: defendingTeamName, player: shooterName });
+                } else {
+                    description = this.getRandomCommentary('save', 'normal', { team: defendingTeamName, player: shooterName });
+                }
+            } else {
+                if (powerDiff > 30) {
+                    description = this.getRandomCommentary('miss', 'strong', { team: attackingTeamName, player: shooterName });
+                } else {
+                    description = this.getRandomCommentary('miss', 'normal', { team: attackingTeamName, player: shooterName });
+                }
+            }
+            
+            const event = { minute: minute, type: isSave ? 'save' : 'miss', description: description };
+            displayEvent(event, this.matchData);
+
+            if (isSave) {
+            }
+            this.ballZone = 'midfield'; // 골킥 등
+            this.lastAction = 'turnover';
+        }
+    }
+
+    // [신규] 슈팅한 선수 이름 가져오기
+    getShooter(isUserAttacking) {
+        const attackingTeamKey = isUserAttacking ? gameData.selectedTeam : gameData.currentOpponent;
+        
+        let players = [];
+        if (attackingTeamKey === gameData.selectedTeam) {
+             const squad = gameData.squad;
+             players = [...squad.fw, ...squad.mf].filter(p => p !== null);
+             if (players.length === 0) players = squad.df.filter(p => p !== null);
+        } else {
+             const teamPlayers = teams[attackingTeamKey];
+             if (teamPlayers) {
+                 players = teamPlayers.filter(p => p.position === 'FW' || p.position === 'MF');
+                 if (players.length === 0) players = teamPlayers;
+             }
+        }
+        
+        if (players.length > 0) {
+            return players[Math.floor(Math.random() * players.length)].name;
+        }
+        return "선수";
+    }
+
+    // [신규] 해설 멘트 랜덤 선택 헬퍼
+    getRandomCommentary(category, subCategory, data) {
+        const templates = CommentaryData[category][subCategory];
+        let template = templates[Math.floor(Math.random() * templates.length)];
+        for (const key in data) {
+            template = template.replace(`{${key}}`, data[key]);
+        }
+        return template;
+    }
+}
+
 // 수정된 startMatch 함수 - tacticSystem.js에 교체하세요
 
 function startMatch() {
@@ -487,11 +1051,15 @@ function startMatch() {
     document.getElementById('eventList').appendChild(tacticInfo);
 
     // === 10단계: 킥오프 버튼 표시 ===
-    showKickoffButton(matchData, tacticSystem, strengthDiff);
+    // [수정] MatchEngine 인스턴스 생성
+    const matchEngine = new RealMatchEngine(matchData);
+    
+    // 킥오프 버튼에 엔진 전달
+    showKickoffButton(matchData, matchEngine, strengthDiff);
 }
 
 // 킥오프 버튼 표시
-function showKickoffButton(matchData, tacticSystem, strengthDiff) {
+function showKickoffButton(matchData, matchEngine, strengthDiff) {
     const eventList = document.getElementById('eventList');
     
     // 킥오프 안내 메시지
@@ -506,12 +1074,12 @@ function showKickoffButton(matchData, tacticSystem, strengthDiff) {
 
     // 킥오프 버튼 이벤트
     document.getElementById('kickoffBtn').addEventListener('click', () => {
-        startMatchSimulation(matchData, tacticSystem, strengthDiff);
+        startMatchSimulation(matchData, matchEngine, strengthDiff);
         kickoffInfo.remove(); // 킥오프 버튼 제거
     });
 }
 
-function startMatchSimulation(matchData, tacticSystem, strengthDiff) {
+function startMatchSimulation(matchData, matchEngine, strengthDiff) {
     console.log('▶️ [Match] 경기 시뮬레이션 시작 (Kickoff)');
     matchData.isRunning = true;
     matchData.strengthDiff = strengthDiff; // 전력 차이 데이터 저장
@@ -531,10 +1099,10 @@ function startMatchSimulation(matchData, tacticSystem, strengthDiff) {
     displayEvent(kickoffEvent, matchData);
 
     // 경기 시뮬레이션 시작
-    simulateMatch(matchData, tacticSystem);
+    simulateMatch(matchData, matchEngine);
 }
 
-function simulateMatch(matchData, tacticSystem) {
+function simulateMatch(matchData, matchEngine) {
     const matchInterval = setInterval(function simulationTick() { // 함수에 이름 부여
         // 경기가 90분 이상 진행되면 인터벌을 완전히 종료
         if (matchData.minute >= 90) {
@@ -554,10 +1122,6 @@ function simulateMatch(matchData, tacticSystem) {
         matchData.minute++;
         document.getElementById('matchTime').textContent = matchData.minute + '분';
 
-        // 40% 확률로 이벤트 발생
-        if (Math.random() > 0.4) {
-            return;
-        }
         
         // ===== 부상 체크 =====
         const injuryResult = injurySystem.checkInjury(matchData);
@@ -568,179 +1132,27 @@ function simulateMatch(matchData, tacticSystem) {
             return; // 부상 발생 시 이번 틱 종료
         }
 
-        // 이벤트 발생 확률 계산
-        const userModifiers = tacticSystem.getTacticModifiers(gameData.currentTactic);
-        const opponentTactic = tacticSystem.getOpponentTactic(gameData.currentOpponent);
-        const opponentModifiers = tacticSystem.getTacticModifiers(opponentTactic);
+        // [신규] 매치 엔진 업데이트 (골 판정 포함)
+        matchEngine.update(matchData.minute);
 
-
-        // 전술 상성 효과 계산
-        const tacticAdvantage = matchData.tacticAdvantage;
-
-        // 실시간 전력차 사용
-const strengthFactor = matchData.userTeamRating - matchData.opponentTeamRating;
-
-// 이변모드는 경기당 1회만 체크 (5% 확률 = 20경기당 1회)
-if (!matchData.upsetModeChecked) {
-    matchData.upsetModeChecked = true;
-    matchData.upsetMode = Math.random() < 0.05;
-    
-    if (matchData.upsetMode) {
-        // 1-4% 범위의 골 확률 증가
-        matchData.upsetFactor = (Math.random() * 0.03) + 0.01; // 0.01 ~ 0.04
-        
-        const upsetEvent = {
-            minute: matchData.minute,
-            type: 'upset',
-            description: `✨ ${matchData.userTeamRating > matchData.opponentTeamRating ? teamNames[gameData.currentOpponent] : teamNames[gameData.selectedTeam]}이(가) 예상 외의 좋은 플레이를 보이고 있습니다!`
-        };
-        displayEvent(upsetEvent, matchData);
-    }
-}
-
-const upsetMode = matchData.upsetMode || false;
-const upsetFactor = matchData.upsetFactor || 0;
-
-        // ===== 부상 체크를 먼저 독립적으로 수행 =====
-        const injuryRoll = Math.random();
-        if (injuryRoll < 0.55) {
-            const injuryResult = injurySystem.checkInjury(matchData);
-            if (injuryResult.occurred) {
-                const event = createInjuryEvent(matchData, injuryResult);
-                displayEvent(event, matchData);
-                return; // 부상 발생 시 이번 틱 종료
-            }
-        }
-
-        // 기본 이벤트 확률 (부상 제외하고 재조정)
-        let baseGoalChance = 0.03;
-        const baseFoulChance = 0.082;
-        const basePassChance = 0.753;
-        const baseThrowInChance = 0.06;
-        const baseGoalKickChance = 0.04;
-        const baseCornerChance = 0.05;
-
-        const eventRoll = Math.random();
-        let event = null;
-
-        // 골 확률 계산
-let userGoalChance = baseGoalChance + userModifiers.goalChance;
-let opponentGoalChance = baseGoalChance + opponentModifiers.goalChance;
-
-// 1. 전술 상성 효과 (2% 고정)
-if (tacticAdvantage > 0) {
-    userGoalChance += 0.02;
-    opponentGoalChance -= 0.012;
-} else if (tacticAdvantage < 0) {
-    opponentGoalChance += 0.02;
-    userGoalChance -= 0.012;
-}
-
-// 2. 전력 차이 효과 (1.0 전력당 0.6% 골 확률 증가)
-const strengthBonus = Math.abs(strengthFactor) * 0.006;
-
-if (strengthFactor > 0) {
-    // 유저팀이 강함
-    userGoalChance += strengthBonus;
-    opponentGoalChance -= strengthBonus * 0.3; // 상대는 30%만 감소
-} else if (strengthFactor < 0) {
-    // 상대팀이 강함
-    opponentGoalChance += strengthBonus;
-    userGoalChance -= strengthBonus * 0.3;
-}
-
-// 3. 수비형 전술 효과
-if (userModifiers.goalChance < 0) {
-    opponentGoalChance += Math.abs(userModifiers.goalChance) * 0.8;
-    userGoalChance -= Math.abs(userModifiers.goalChance) * 0.3;
-}
-if (opponentModifiers.goalChance < 0) {
-    userGoalChance += Math.abs(opponentModifiers.goalChance) * 0.8;
-    opponentGoalChance -= Math.abs(opponentModifiers.goalChance) * 0.3;
-}
-
-// 4. 이변 효과 (확률 감소: 5% → 1%, 효과 감소: 1-4% → 0.3-1.5%)
-if (!matchData.upsetModeChecked) {
-    matchData.upsetModeChecked = true;
-    matchData.upsetMode = Math.random() < 0.01; // 1% 확률
-    
-    if (matchData.upsetMode) {
-        matchData.upsetFactor = (Math.random() * 0.012) + 0.003; // 0.3% ~ 1.5%
-        
-        const upsetEvent = {
-            minute: matchData.minute,
-            type: 'upset',
-            description: `✨ ${matchData.userTeamRating > matchData.opponentTeamRating ? teamNames[gameData.currentOpponent] : teamNames[gameData.selectedTeam]}이(가) 예상 외의 좋은 플레이를 보이고 있습니다!`
-        };
-        displayEvent(upsetEvent, matchData);
-    }
-}
-
-if (matchData.upsetMode) {
-    if (strengthFactor > 0) {
-        // 강한 팀이 유저팀일 때, 상대에게 보너스
-        opponentGoalChance += matchData.upsetFactor;
-        userGoalChance -= matchData.upsetFactor * 0.2;
-    } else {
-        // 강한 팀이 상대팀일 때, 유저에게 보너스
-        userGoalChance += matchData.upsetFactor;
-        opponentGoalChance -= matchData.upsetFactor * 0.2;
-    }
-}
-
-// 5. 랜덤 변수 (±10%)
-const randomVariation = 0.9 + (Math.random() * 0.2); // 0.9 ~ 1.1
-userGoalChance *= randomVariation;
-opponentGoalChance *= (2 - randomVariation); // 1.1 ~ 0.9 (역방향)
-
-// 6. 최소값 보장
-userGoalChance = Math.max(0.008, userGoalChance);
-opponentGoalChance = Math.max(0.008, opponentGoalChance);
-        
-        // 이벤트 결정
-        let cumulativeChance = 0;
-
-        cumulativeChance += userGoalChance;
-        if (eventRoll < cumulativeChance) {
-            event = createGoalEvent(matchData, true);
-        } else {
-            cumulativeChance += opponentGoalChance;
-            if (eventRoll < cumulativeChance) {
-                event = createGoalEvent(matchData, false);
-            } else {
-                cumulativeChance += baseFoulChance;
-                if (eventRoll < cumulativeChance) {
-                    event = createFoulEvent(matchData);
-                } else {
-                    cumulativeChance += basePassChance;
-                    if (eventRoll < cumulativeChance) {
-                        event = createPassEvent(matchData);
-                    } else {
-                        cumulativeChance += baseThrowInChance;
-                        if (eventRoll < cumulativeChance) {
-                            event = createThrowInEvent(matchData);
-                        } else {
-                            cumulativeChance += baseGoalKickChance;
-                            if (eventRoll < cumulativeChance) {
-                                event = createGoalKickEvent(matchData);
-                            } else {
-                                event = createCornerEvent(matchData);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        if (event) {
-            displayEvent(event, matchData);
+        // [기타 이벤트] 골 외의 파울, 코너킥 등은 분위기용으로 랜덤 발생 (확률 낮춤)
+        if (Math.random() < 0.05) {
+            const miscEvent = createMiscEvent(matchData);
+            if (miscEvent) displayEvent(miscEvent, matchData);
         }
 
         matchData.intervalId = matchInterval; // 인터벌 ID 저장
     }, 1000);
 }
 
-
+// [신규] 기타 이벤트 생성기 (골 제외)
+function createMiscEvent(matchData) {
+    const roll = Math.random();
+    if (roll < 0.3) return createFoulEvent(matchData);
+    if (roll < 0.6) return createPassEvent(matchData);
+    if (roll < 0.8) return createCornerEvent(matchData);
+    return null;
+}
 
     function createGoalEvent(matchData, isUserTeam) {
     const team = isUserTeam ? gameData.selectedTeam : gameData.currentOpponent;
@@ -975,7 +1387,11 @@ if (hasAssist && scorer) {
         "의 의외의 공격 가담으로 어시스트!"
     ];
 
+    // [수정] 어시스트 멘트 다양화
     function getAssistMessage(assisterPosition) {
+        // 기존 메시지 풀이 너무 적으면 여기서 확장 가능
+        // 현재는 기존 로직 유지하되, 호출 시 랜덤성을 더 부여
+        
         let messagePool = [];
         
         if (assisterPosition === 'FW') {
@@ -992,21 +1408,33 @@ if (hasAssist && scorer) {
     }
 
     const goalFinishMessages = [
-        "의 완벽한 골!",
-        "의 환상적인 골!",
-        "의 멋진 골!",
-        "의 강력한 골!",
-        "의 정확한 골!",
-        "의 침착한 골!",
-        "의 기막힌 골!",
-        "의 예술적인 골!",
-        "의 완성도 높은 골!",
-        "의 절묘한 골!",
-        "가 골네트를 흔들었습니다!",
-        "가 골문을 갈랐습니다!",
-        "의 마무리가 골로 이어졌습니다!",
-        "가 골을 만들어냈습니다!",
-        "의 슛이 골문을 찾았습니다!"
+        "의 완벽한 골!", "의 환상적인 골!", "의 멋진 골!", "의 강력한 골!",
+        "의 정확한 골!", "의 침착한 골!", "의 기막힌 골!", "의 예술적인 골!",
+        "의 완성도 높은 골!", "의 절묘한 골!", "가 골네트를 흔들었습니다!",
+        "가 골문을 갈랐습니다!", "의 마무리가 골로 이어졌습니다!",
+        "가 골을 만들어냈습니다!", "의 슛이 골문을 찾았습니다!",
+        "의 득점포 가동!", "가 침착하게 마무리합니다!", "의 원더골 작렬!",
+        "가 골망을 찢을 듯한 슈팅으로 득점합니다!", "의 감각적인 칩슛 성공!",
+        "의 헤더골!", "의 발리슛 작렬!", "가 수비수를 제치고 득점합니다!",
+        "의 대포알 같은 중거리 슛!", "가 골키퍼의 키를 넘기는 슛으로 득점!"
+    ];
+
+    const soloGoalMessages = [
+        "의 개인기가 빛난 골!",
+        "의 독주골!",
+        "가 혼자서 만들어낸 골!",
+        "의 단독 돌파골!",
+        "의 완벽한 개인플레이!",
+        "의 기막힌 개인기!",
+        "가 혼자 힘으로 골을 만들었습니다!",
+        "의 솔로런이 골로 이어졌습니다!",
+        "의 순간적인 판단력이 만든 골!",
+        "의 클래스가 돋보인 골!",
+        "가 수비진을 홀로 무너뜨리고 득점합니다!",
+        "의 드리블 돌파에 이은 득점!",
+        "가 상대 수비를 농락하며 골을 넣습니다!",
+        "의 환상적인 솔로 플레이!",
+        "가 그라운드를 지배하며 직접 해결합니다!"
     ];
 
     let goalDescription;
@@ -1016,18 +1444,6 @@ if (hasAssist && scorer) {
         
         goalDescription = `⚽ ${teamName}의 ${assister.name}(${assister.rating})${assistMessage} ${scorer.name}(${scorer.rating})${goalFinish}${specialMessage}`;
     } else {
-        const soloGoalMessages = [
-            "의 개인기가 빛난 골!",
-            "의 독주골!",
-            "가 혼자서 만들어낸 골!",
-            "의 단독 돌파골!",
-            "의 완벽한 개인플레이!",
-            "의 기막힌 개인기!",
-            "가 혼자 힘으로 골을 만들었습니다!",
-            "의 솔로런이 골로 이어졌습니다!",
-            "의 순간적인 판단력이 만든 골!",
-            "의 클래스가 돋보인 골!"
-        ];
         
         const soloMessage = soloGoalMessages[Math.floor(Math.random() * soloGoalMessages.length)];
         goalDescription = `⚽ ${teamName}의 ${scorer ? scorer.name : '선수'}(${scorer ? scorer.rating : '?'})${soloMessage}${specialMessage}`;
@@ -1068,13 +1484,21 @@ function createFoulEvent(matchData) {
     // 옐로카드 확률 (20%)
     const isYellow = Math.random() < 0.2;
     
+    const foulDescriptions = [
+        `⚠️ ${foulTeamName} ${player ? player.name + '의' : ''} 파울입니다.`,
+        `⚠️ ${foulTeamName}, 무리한 태클로 파울을 범합니다.`,
+        `⚠️ ${foulTeamName}, 상대의 공격 흐름을 끊는 파울.`,
+        `⚠️ ${foulTeamName}, 손을 써서 파울이 선언됩니다.`,
+        `⚠️ ${foulTeamName}, 공중볼 경합 과정에서 파울.`
+    ];
+
     return {
         minute: matchData.minute,
         type: 'foul',
         team: foulTeamName,
         player: player,
         isYellow: isYellow,
-        description: isYellow && player ? `🟨 ${foulTeamName}의 ${player.name}, 거친 파울로 경고를 받습니다.` : `⚠️ ${foulTeamName} ${player ? player.name + '의' : ''} 파울입니다.`
+        description: isYellow && player ? `🟨 ${foulTeamName}의 ${player.name}, 거친 파울로 경고를 받습니다.` : foulDescriptions[Math.floor(Math.random() * foulDescriptions.length)]
     };
 }
 

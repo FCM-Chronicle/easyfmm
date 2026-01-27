@@ -7,6 +7,9 @@ class FormationSystem {
         this.isEditMode = false;
         this.draggedPlayer = null;
         this.originalDraggedPlayerInfo = null; // 드래그 시작 시 선수 정보 저장
+        this.longPressTimer = null;
+        this.longPressDuration = 500; // 500ms for a long press
+        this.isRoleViewMode = false; // [신규] 롤 정보 보기 모드 플래그
         
         this.init();
     }
@@ -21,34 +24,79 @@ class FormationSystem {
             DF: document.getElementById('df-area'),
             GK: document.getElementById('gk-area'),
         };
+
+        this.substitutionSheet = document.getElementById('substitutionSheet');
+        this.sheetTitle = document.getElementById('sheetTitle');
+        this.sheetPlayerList = document.getElementById('sheetPlayerList');
+        const closeSheetBtn = document.getElementById('closeSubstitutionSheet');
+        if (closeSheetBtn) closeSheetBtn.addEventListener('click', () => this.hideSubstitutionSheet());
         
-        this.createEditButton();
+        this.createControlButtons(); // [수정] 버튼 생성 함수 교체
         this.displayCurrentSquad();
         this.setupDragEvents();
     }
     
-    createEditButton() {
-        const btn = document.createElement('button');
-        btn.id = 'editFormationBtn';
-        btn.className = 'btn primary';
-        btn.textContent = '⚙️ 포메이션 수정';
-        btn.style.cssText = `
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            z-index: 100;
-        `;
-        
-        btn.onclick = () => this.toggleEditMode();
-        
+    // [수정] 컨트롤 버튼 생성 (수정 버튼 + 롤 정보 버튼)
+    createControlButtons() {
         const container = document.querySelector('.formation-container');
-        if (container) {
-            container.style.position = 'relative';
-            container.appendChild(btn);
-        }
+        if (!container) return;
+        container.style.position = 'relative';
+
+        // 버튼 컨테이너
+        const controlsDiv = document.createElement('div');
+        controlsDiv.className = 'formation-controls';
+        controlsDiv.style.cssText = `
+            position: absolute;
+            top: 10px;
+            left: 0;
+            right: 0;
+            padding: 0 15px;
+            display: flex;
+            justify-content: space-between;
+            z-index: 100;
+            pointer-events: none; /* 컨테이너는 클릭 통과 */
+        `;
+
+        // 1. 롤 정보 버튼 (왼쪽)
+        const roleBtn = document.createElement('button');
+        roleBtn.id = 'viewRoleBtn';
+        roleBtn.className = 'btn';
+        roleBtn.innerHTML = '📋 롤 정보';
+        roleBtn.style.cssText = `
+            padding: 6px 12px;
+            font-size: 0.85rem;
+            background-color: rgba(52, 152, 219, 0.9);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            pointer-events: auto; /* 버튼은 클릭 가능 */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            cursor: pointer;
+        `;
+        roleBtn.onclick = () => this.toggleRoleViewMode();
+
+        // 2. 포메이션 수정 버튼 (오른쪽)
+        const editBtn = document.createElement('button');
+        editBtn.id = 'editFormationBtn';
+        editBtn.className = 'btn primary';
+        editBtn.innerHTML = '⚙️ 포메이션 수정';
+        editBtn.style.cssText = `
+            padding: 6px 12px;
+            font-size: 0.85rem;
+            pointer-events: auto;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            cursor: pointer;
+        `;
+        editBtn.onclick = () => this.toggleEditMode();
+
+        controlsDiv.appendChild(roleBtn);
+        controlsDiv.appendChild(editBtn);
+        container.appendChild(controlsDiv);
     }
     
     toggleEditMode() {
+        if (this.isRoleViewMode) this.toggleRoleViewMode(); // 롤 보기 모드 끄기
+
         this.isEditMode = !this.isEditMode;
         const btn = document.getElementById('editFormationBtn');
         
@@ -71,6 +119,26 @@ class FormationSystem {
                 // 검증 실패 시 편집 모드 유지
                 this.isEditMode = true;
             }
+        }
+    }
+
+    // [신규] 롤 정보 보기 모드 토글
+    toggleRoleViewMode() {
+        if (this.isEditMode) this.toggleEditMode(); // 수정 모드 끄기
+
+        this.isRoleViewMode = !this.isRoleViewMode;
+        const btn = document.getElementById('viewRoleBtn');
+        const field = document.querySelector('.field');
+        
+        if (this.isRoleViewMode) {
+            btn.innerHTML = '❌ 닫기';
+            btn.style.backgroundColor = '#e74c3c';
+            field.classList.add('role-view-mode'); // 커서 스타일 변경용 클래스
+        } else {
+            btn.innerHTML = '📋 롤 정보';
+            btn.style.backgroundColor = 'rgba(52, 152, 219, 0.9)';
+            field.classList.remove('role-view-mode');
+            this.hideSubstitutionSheet();
         }
     }
     
@@ -104,21 +172,40 @@ class FormationSystem {
         slot.style.top = y + '%';
     
         if (player) {
+            // [추가] 역할 표시 로직
+            let roleDisplay = '';
+            if (positionType !== 'GK' && typeof gameData !== 'undefined') {
+                // 1. 개별 역할 확인
+                if (gameData.playerRoles && gameData.playerRoles[player.name]) {
+                    roleDisplay = gameData.playerRoles[player.name];
+                } 
+                // 2. 없으면 기존 라인 역할(하위 호환) 또는 기본값
+                else if (gameData.lineRoles) {
+                    // 표시 안 함 (개별 설정 유도)
+                }
+            }
+
             // 선수가 있는 경우
             slot.innerHTML = `
                 <div class="player-name">${player.name}</div>
                 <div class="player-rating">${Math.floor(player.rating)}</div>
+                ${roleDisplay ? `<div class="player-role">${roleDisplay}</div>` : ''}
             `;
             slot.dataset.playerName = player.name;
             slot.dataset.positionType = positionType;
             slot.classList.add('filled');
     
-            // 수정 모드가 아닐 때 교체 모달을 열도록 이벤트 추가
+            // [수정] 클릭 이벤트 통합 (교체 및 롤 정보)
             slot.addEventListener('click', (e) => {
-                if (!this.isEditMode) {
-                    this.openSwapModal(player, positionType);
+                if (this.isEditMode) return;
+
+                if (this.isRoleViewMode) {
+                    this.showRoleInfo(player, positionType);
+                } else {
+                    this.showSubstitutionSheet(player, positionType);
                 }
             });
+
         } else {
             // 선수가 없는 경우 (공석)
             slot.innerHTML = `
@@ -129,11 +216,12 @@ class FormationSystem {
             slot.dataset.index = index; // 교체를 위해 인덱스 정보 저장
             slot.classList.add('empty');
     
-            // 공석 클릭 시 교체 모달 열기
+            // [수정] 클릭 이벤트 통합 (공석 교체)
             slot.addEventListener('click', (e) => {
-                if (!this.isEditMode) {
-                    this.openSwapModalForEmptySlot(positionType, index);
-                }
+                if (this.isEditMode) return;
+                
+                const dummyPlayer = { name: `공석 (${positionType})`, isDummy: true };
+                this.showSubstitutionSheet(dummyPlayer, positionType);
             });
         }
     
@@ -433,45 +521,6 @@ class FormationSystem {
         return { valid: true, message: '포메이션 검증 완료' };
     }
 
-    // 선수 교체 모달 열기
-    openSwapModal(currentPlayer, positionType) {
-        const modal = document.getElementById('playerModal');
-        const modalPlayerList = document.getElementById('modalPlayerList');
-        document.querySelector('#playerModal .modal-title').textContent = `🔁 ${currentPlayer.name} 선수 교체`;
-        
-        modalPlayerList.innerHTML = '';
-
-        // 후보 선수 목록: 현재 스쿼드에 없으면서, 교체 대상이 있는 필드 포지션(positionType)과
-        // 동일한 '원래' 포지션을 가진 선수들을 필터링합니다.
-        const teamPlayers = teams[gameData.selectedTeam];
-        const candidates = teamPlayers.filter(p => {
-            const originalPosition = allTeams[gameData.selectedTeam].players.find(pl => pl.name === p.name)?.position;
-            const isInjured = typeof injurySystem !== 'undefined' && injurySystem.isInjured(gameData.selectedTeam, p.name);
-            // 교체 대상의 포지션(positionType)과 원래 포지션이 같고, 현재 스쿼드에 없는 선수만 필터링
-            return originalPosition === positionType && !this.isPlayerInSquad(p) && !isInjured;
-        });
-
-        if (candidates.length === 0) {
-            modalPlayerList.innerHTML = '<p style="text-align: center; padding: 20px 0;">교체 가능한 선수가 없습니다.</p>';
-        } else {
-            candidates.forEach(candidate => {
-                const playerCard = document.createElement('div');
-                playerCard.className = 'player-card';
-                playerCard.innerHTML = `
-                    <div class="name">${candidate.name}</div>
-                    <div class="details">능력치: ${candidate.rating} | 나이: ${candidate.age}</div>
-                `;
-                playerCard.onclick = () => {
-                    this.swapPlayers(currentPlayer, candidate, positionType);
-                    closeModal();
-                };
-                modalPlayerList.appendChild(playerCard);
-            });
-        }
-
-        modal.style.display = 'block';
-    }
-
     // 선수 교체 실행
     swapPlayers(playerOut, playerIn, positionType) {
         const posKey = positionType.toLowerCase();
@@ -501,6 +550,156 @@ class FormationSystem {
         const fieldPlayers = [...df, ...mf, ...fw].filter(p => p);
         return fieldPlayers.some(p => p.name === player.name);
     }
+
+    // [신규] 교체용 바텀 시트 표시
+    showSubstitutionSheet(playerOut, positionType) {
+        this.sheetTitle.textContent = `${playerOut.name} 교체`;
+        this.sheetPlayerList.innerHTML = '';
+
+        const teamPlayers = teams[gameData.selectedTeam];
+        const candidates = teamPlayers.filter(p => {
+            const originalPosition = allTeams[gameData.selectedTeam].players.find(pl => pl.name === p.name)?.position;
+            const isInjured = typeof injurySystem !== 'undefined' && injurySystem.isInjured(gameData.selectedTeam, p.name);
+            
+            // 교체 대상의 포지션(positionType)과 원래 포지션이 같고, 현재 스쿼드에 없는 선수만 필터링
+            // 단, playerOut이 더미(공석)가 아닐 경우, playerOut 자신은 후보에서 제외
+            const notSelf = playerOut.isDummy ? true : p.name !== playerOut.name;
+            
+            return originalPosition === positionType && !this.isPlayerInSquad(p) && !isInjured && notSelf;
+        });
+
+        if (candidates.length === 0) {
+            this.sheetPlayerList.innerHTML = '<p style="text-align: center; padding: 20px 0; color: #aaa;">교체 가능한 선수가 없습니다.</p>';
+        } else {
+            candidates.forEach(candidate => {
+                const playerCard = document.createElement('div');
+                playerCard.className = 'player-card'; // 기존 스타일 재사용
+                playerCard.innerHTML = `
+                    <div class="name">${candidate.name}</div>
+                    <div class="details">능력치: ${candidate.rating} | 나이: ${candidate.age}</div>
+                `;
+                playerCard.onclick = () => {
+                    this.swapPlayers(playerOut, candidate, positionType);
+                    this.hideSubstitutionSheet();
+                };
+                this.sheetPlayerList.appendChild(playerCard);
+            });
+        }
+
+        this.substitutionSheet.classList.add('active');
+    }
+
+    // [신규] 교체용 바텀 시트 숨기기
+    hideSubstitutionSheet() {
+        this.substitutionSheet.classList.remove('active');
+    }
+
+    // [신규] 롤 정보 표시 (바텀 시트 재사용)
+    showRoleInfo(player, positionType) {
+        const render = () => {
+            // 포지션 타입을 라인(line)으로 변환
+            let line = 'defense';
+            if (positionType === 'FW') line = 'attack';
+            else if (positionType === 'MF') line = 'midfield';
+            else if (positionType === 'DF') line = 'defense';
+            else if (positionType === 'GK') {
+                this.showSheetContent(player.name, "골키퍼", "최후방을 사수하는 수문장입니다.", []);
+                return;
+            }
+
+            // [수정] 개별 역할 가져오기
+            if (!gameData.playerRoles) gameData.playerRoles = {};
+            
+            let currentRoleKey = gameData.playerRoles[player.name];
+            
+            // 설정된 역할이 없으면 기본값 할당
+            if (!currentRoleKey) {
+                if (line === 'attack') currentRoleKey = 'AF';
+                else if (line === 'midfield') currentRoleKey = 'BBM';
+                else currentRoleKey = 'BPD';
+                
+                // 기본값을 저장
+                gameData.playerRoles[player.name] = currentRoleKey;
+            }
+
+            // 역할 데이터 가져오기
+            const roleDataMap = window.RoleData ? window.RoleData[line] : null;
+            if (!roleDataMap) return;
+
+            const currentRoleData = roleDataMap[currentRoleKey];
+            
+            const bonuses = [];
+            const displayNames = {
+                attack: "공격", technique: "기술", mobility: "스피드",
+                defense: "수비", physical: "피지컬", mentality: "정신력"
+            };
+            
+            if (currentRoleData) {
+                for (const [key, value] of Object.entries(currentRoleData)) {
+                    if (typeof value === 'number' && value !== 0 && displayNames[key]) {
+                        const sign = value > 0 ? '+' : '';
+                        bonuses.push({ name: displayNames[key], value: `${sign}${Math.round(value * 100)}%`, isPositive: value > 0 });
+                    }
+                }
+            }
+            
+            // [추가] 역할 변경 셀렉터 생성
+            let selectorHtml = `<div style="margin-bottom: 20px; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);">
+                <label style="color: #ffd700; font-size: 0.9rem; margin-bottom: 8px; display: block; font-weight: bold;">
+                    🔄 ${player.name}의 역할 변경
+                </label>
+                <div style="position: relative;">
+                    <select id="roleSelector" style="width: 100%; padding: 12px; padding-right: 30px; background: #2c3e50; color: white; border: 1px solid #555; border-radius: 6px; font-size: 1rem; appearance: none; cursor: pointer; outline: none;">`;
+            
+            for (const [key, data] of Object.entries(roleDataMap)) {
+                const selected = key === currentRoleKey ? 'selected' : '';
+                selectorHtml += `<option value="${key}" ${selected}>${data.name}</option>`;
+            }
+            selectorHtml += `</select>
+                    <div style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); pointer-events: none; color: #aaa;">▼</div>
+                </div>
+                <p style="color: #aaa; font-size: 0.8rem; margin-top: 8px; margin-bottom: 0;">* 이 선수의 개인 전술 역할입니다.</p>
+            </div>`;
+
+            const lineName = line === 'attack' ? '공격진' : line === 'midfield' ? '미드필더진' : '수비진';
+            this.showSheetContent(player.name, currentRoleData ? currentRoleData.name : "역할 없음", currentRoleData ? `${lineName} 역할` : "", bonuses, selectorHtml);
+
+            // 셀렉터 이벤트 바인딩
+            const select = document.getElementById('roleSelector');
+            if (select) {
+                select.addEventListener('change', (e) => {
+                    // [수정] 개별 선수 역할 저장
+                    gameData.playerRoles[player.name] = e.target.value;
+                    
+                    if (typeof window.triggerAutoSave === 'function') window.triggerAutoSave();
+                    render(); // 변경 후 UI 갱신
+                    this.displayCurrentSquad(); // [추가] 필드 UI 즉시 갱신 (역할 태그 업데이트)
+                });
+            }
+        };
+        render();
+    }
+
+    // [신규] 바텀 시트 내용 채우기 (롤 정보용)
+    showSheetContent(title, subtitle, description, stats, extraHtml = '') {
+        this.sheetTitle.textContent = title;
+        this.sheetPlayerList.innerHTML = `
+            <div style="padding: 20px; color: white;">
+                ${extraHtml}
+                <h3 style="color: #ffd700; margin-top: 0; margin-bottom: 10px;">${subtitle}</h3>
+                <p style="color: #ccc; font-size: 0.9rem; margin-bottom: 20px;">${description}</p>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    ${stats.map(s => `
+                        <div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 5px; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 0.9rem;">${s.name}</span>
+                            <span style="color: ${s.isPositive ? '#2ecc71' : '#e74c3c'}; font-weight: bold;">${s.value}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+        this.substitutionSheet.classList.add('active');
+    }
 }
 
 // CSS 추가 (기존 style 태그 내용에 추가)
@@ -514,6 +713,75 @@ const newStyle = `
     background: rgba(120, 120, 120, 0.5);
     border-color: #ffd700;
 }
+
+/* 바텀 시트 스타일 강제 주입 (CSS 깨짐 방지) */
+.bottom-sheet {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #2c3e50;
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
+    box-shadow: 0 -5px 20px rgba(0,0,0,0.5);
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    z-index: 2000; /* 모달보다 높게 */
+    max-height: 80vh; /* 높이 증가 */
+    display: flex;
+    flex-direction: column;
+    color: white;
+}
+.bottom-sheet.active {
+    transform: translateY(0);
+}
+.sheet-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    background: rgba(0,0,0,0.2);
+    border-radius: 15px 15px 0 0;
+    flex-shrink: 0; /* 헤더 크기 고정 */
+}
+.sheet-header h4 { margin: 0; color: #ffd700; font-size: 1.2rem; }
+.close-sheet-btn { font-size: 2rem; cursor: pointer; color: #aaa; line-height: 1; }
+.close-sheet-btn:hover { color: white; }
+
+.sheet-player-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+    -webkit-overflow-scrolling: touch;
+}
+/* 스크롤바 스타일 */
+.sheet-player-list::-webkit-scrollbar { width: 6px; }
+.sheet-player-list::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+.sheet-player-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
+
+.field.role-view-mode .player-slot {
+    cursor: help !important;
+    border-color: #3498db !important;
+    animation: pulse-border 2s infinite;
+}
+@keyframes pulse-border {
+    0% { box-shadow: 0 0 0 0 rgba(52, 152, 219, 0.4); }
+    70% { box-shadow: 0 0 0 6px rgba(52, 152, 219, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(52, 152, 219, 0); }
+}
+
+.player-role {
+    font-size: 0.7rem;
+    color: #f1c40f;
+    font-weight: bold;
+    background-color: rgba(0, 0, 0, 0.6);
+    padding: 1px 4px;
+    border-radius: 3px;
+    margin-top: 2px;
+    line-height: 1;
+    z-index: 5;
+}
 `;
 
 // 기존 스타일 태그를 찾아 새 스타일을 추가하거나, 없으면 새로 만듭니다.
@@ -525,13 +793,6 @@ if (styleTag) {
     styleTag.textContent = newStyle;
     document.head.appendChild(styleTag);
 }
-
-// FormationSystem 클래스에 openSwapModalForEmptySlot 메서드 추가
-FormationSystem.prototype.openSwapModalForEmptySlot = function(positionType, index) {
-    // 임시 선수 객체를 만들어 openSwapModal 재사용
-    const tempPlayer = { name: `공석 (${positionType})`, isDummy: true };
-    this.openSwapModal(tempPlayer, positionType);
-};
 
 // FormationSystem 클래스의 swapPlayers 메서드 수정
 const originalSwapPlayers = FormationSystem.prototype.swapPlayers;
@@ -599,7 +860,7 @@ style.textContent = `
 .formation-container .player-slot {
     position: absolute;
     width: 80px;
-    height: 50px;
+    height: 60px;
     background: linear-gradient(135deg, #2ecc71, #27ae60);
     border: 2px solid #2ecc71;
     border-radius: 8px;
@@ -633,7 +894,7 @@ style.textContent = `
     background: linear-gradient(135deg, #f1c40f, #f39c12);
     border-color: #f1c40f;
     width: 88px; /* scale(1.1) 효과 대체 */
-    height: 55px; /* scale(1.1) 효과 대체 */
+    height: 66px; /* scale(1.1) 효과 대체 */
 }
 
 .formation-container .player-slot .player-name {
@@ -657,7 +918,7 @@ style.textContent = `
 @media (max-width: 768px) {
     .formation-container .player-slot {
         width: 70px;
-        height: 45px;
+        height: 55px;
     }
     .formation-container .player-slot .player-name {
         font-size: 0.65rem;

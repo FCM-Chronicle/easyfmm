@@ -564,7 +564,7 @@ return allPlayers;
         // [수정] 1부 리그 팀은 능력치 좋은 선수를 선호
         else if (buyingLeague === 1) {
              // 판매 팀의 상위권 선수 중 랜덤 (너무 핵심 선수는 안 팔 수도 있지만 여기선 단순화)
-             const goodPlayers = sellingTeamPlayers.filter(p => p.rating >= 75);
+             const goodPlayers = sellingTeamPlayers.filter(p => p.rating >= 80);
              if (goodPlayers.length > 0) {
                  transferCandidate = goodPlayers[Math.floor(Math.random() * goodPlayers.length)];
              }
@@ -575,6 +575,14 @@ return allPlayers;
             // 1부 -> 3부 젊은 선수 이적 방지 조건 추가
             let candidates = sellingTeamPlayers.filter(p => p.rating < 85);
             
+            // [수정] 현실성 강화: 상위 리그에서 하위 리그로의 이적 제한 강화
+            if (sellingLeague < buyingLeague) {
+                // 25세 이하 선수는 하위 리그로 이적하지 않음 (임대 제외, 완전 이적 금지)
+                candidates = candidates.filter(p => p.age > 25);
+                // 26~29세 전성기 선수도 평점 75 이상이면 이적 금지
+                candidates = candidates.filter(p => !(p.age <= 29 && p.rating >= 75));
+            }
+
             if (sellingLeague === 1 && buyingLeague === 3) {
                 candidates = candidates.filter(p => p.age >= 32);
             }
@@ -758,8 +766,19 @@ return allPlayers;
             const sourceLeague = allTeams[sourceTeamKey] ? allTeams[sourceTeamKey].league : 3;
 
             sourcePlayers.forEach(player => {
-                // [추가] 1부 리그 젊은 선수(31세 이하)가 3부 리그로 가는 것 방지
-                if (sourceLeague === 1 && buyerLeague === 3 && player.age <= 31) return;
+                // [수정] 현실적인 이적 제한 강화
+                // 1. 상위 리그 -> 하위 리그 이적 제한
+                if (sourceLeague < buyerLeague) {
+                    // 1부 -> 2부: 26세 이하 주전급(78+) 금지
+                    if (sourceLeague === 1 && buyerLeague === 2 && player.age <= 26 && player.rating >= 78) return;
+                    // 1부 -> 3부: 33세 미만 금지 (은퇴 앞둔 선수만 가능)
+                    if (sourceLeague === 1 && buyerLeague === 3 && player.age < 33) return;
+                    // 2부 -> 3부: 24세 이하 유망주(72+) 금지
+                    if (sourceLeague === 2 && buyerLeague === 3 && player.age <= 24 && player.rating >= 72) return;
+                    
+                    // [추가] 일반적인 유망주 보호 (모든 하위 리그 이적에 대해)
+                    if (player.age <= 22 && player.rating >= 70) return; // 22세 이하 70+ 유망주는 하위 리그로 안 감
+                }
 
                 if (player.position === criteria.position) {
                     // 나이 조건

@@ -98,6 +98,34 @@
                 overflow-y: auto; /* 내용이 많을 경우 스크롤 */
             }
         }
+
+        /* 매치 엔진 가이드 모달 스타일 */
+        .engine-guide-content {
+            line-height: 1.6;
+            color: #ddd;
+        }
+        .engine-guide-section {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .engine-guide-section h4 {
+            color: #ffd700;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+        .engine-guide-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-right: 5px;
+        }
+        .badge-mid { background: #3498db; color: white; }
+        .badge-atk { background: #e74c3c; color: white; }
+        .badge-def { background: #2ecc71; color: white; }
+        .badge-counter { background: #f1c40f; color: black; }
  
         /* 스쿼드 컨트롤 영역 스타일 */
         .squad-controls {
@@ -232,6 +260,64 @@
         }
         .tab-btn {
             position: relative; /* 뱃지 위치용 */
+        }
+        /* DNA 전술 탭 추가 스타일 */
+        .dna-body {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+            margin-top: 15px;
+        }
+        .dna-chart-container {
+            flex: 1;
+            min-width: 280px;
+            height: 280px;
+        }
+        .dna-stats-grid { flex: 1.2; }
+
+        /* DNA 전술 탭 스타일 */
+        .dna-section {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .dna-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 10px;
+        }
+        .dna-header h4 { margin: 0; color: #ffd700; }
+        .dna-points { font-size: 0.9rem; }
+        .text-green { color: #2ecc71; font-weight: bold; }
+        .text-red { color: #e74c3c; font-weight: bold; }
+        
+        .dna-stat-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 8px 15px;
+            border-radius: 5px;
+        }
+        .stat-label { width: 80px; font-weight: bold; }
+        .stat-controls { display: flex; align-items: center; gap: 5px; }
+        .stat-value { width: 40px; text-align: center; font-weight: bold; font-size: 1.1rem; color: #3498db; }
+        .btn-control { background: #444; border: none; color: white; padding: 5px 10px; border-radius: 3px; cursor: pointer; font-size: 0.8rem; }
+        .btn-control:hover { background: #555; }
+
+        @media (max-width: 768px) {
+            .dna-body {
+                flex-direction: column;
+            }
+            .dna-chart-container {
+                margin-bottom: 20px;
+            }
         }
     </style>
 </head>
@@ -506,6 +592,7 @@
     <button class="tab-btn" data-tab="youth">유스</button>
     <button class="tab-btn" data-tab="sns">SNS</button>
     <button class="tab-btn" data-tab="transfer_news">이적 뉴스</button>
+    <button class="tab-btn" data-tab="tactics">전술(DNA)</button>
     <button class="tab-btn" data-tab="mail">
         메일함 <span id="mailBadge" class="mail-badge"></span>
     </button>
@@ -579,6 +666,16 @@
                         💡 팁: 설정에서 상대팀의 전술 스타일을 파악한 후 적절한 전술을 선택하세요
                     </div>
                 </div>
+            </div>
+
+            <!-- 전술(DNA) 탭 -->
+            <div id="tactics" class="tab-panel">
+                <div class="tactics-header">
+                    <h3>🧬 팀 DNA 설정</h3>
+                    <button id="openEngineGuideBtn" class="btn" style="float: right; margin-top: -40px; background: #9b59b6;">📖 매치 엔진 가이드</button>
+                    <p style="color: #aaa; font-size: 0.9rem; margin-bottom: 20px;">라인별 총 포인트(OVR x 4)를 4대 핵심 스탯에 직접 분배하여 팀의 색깔을 결정하세요.</p>
+                </div>
+                <div id="tacticsContent"></div>
             </div>
 
             <!-- 이적 탭 -->
@@ -887,6 +984,44 @@
         </div>
     </div>
 
+    <!-- 매치 엔진 가이드 모달 -->
+    <div id="engineGuideModal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <span class="close-btn" id="closeEngineGuideModal">&times;</span>
+            <h3 style="text-align: center; color: #ffd700; margin-bottom: 20px;">📖 매치 엔진 작동 원리</h3>
+            <div class="engine-guide-content" style="max-height: 600px; overflow-y: auto;">
+                
+                <div class="engine-guide-section">
+                    <h4>1. 경기 구역 (Zones)</h4>
+                    <p>경기는 크게 <strong>중원(Midfield)</strong>, <strong>공격 지역(Final Third)</strong> 두 구역에서 진행됩니다. 공은 기본적으로 중원에 있으며, 중원 싸움에서 승리한 팀이 공격 지역으로 진입합니다.</p>
+                </div>
+
+                <div class="engine-guide-section">
+                    <h4>2. <span class="engine-guide-badge badge-mid">중원 장악</span> (Midfield Battle)</h4>
+                    <p>양 팀 미드필더진의 <strong>기술 + 정신력 + 수비력</strong> 평균치를 비교합니다. 여기에 약간의 운(랜덤 변수)이 작용하여 승자를 결정합니다.</p>
+                    <p>⚠️ <strong>중원 우회(Bypass):</strong> 중원 싸움에서 져도 '롱볼', '다이렉트' 등의 전술을 사용하거나 운이 좋으면 중원을 생략하고 바로 공격 기회를 잡을 수 있습니다. (중원 장악이 전부는 아닙니다!)</p>
+                </div>
+
+                <div class="engine-guide-section">
+                    <h4>3. <span class="engine-guide-badge badge-atk">공격 및 골</span> (Goal Chance)</h4>
+                    <p>공격 지역에 진입하면 <strong>공격진(공격력+스피드)</strong> vs <strong>수비진(수비력+피지컬)</strong>의 대결이 펼쳐집니다.</p>
+                    <p>이 대결에서 승리하면 슈팅 기회를 잡습니다. 슈팅 성공률은 양 팀의 전력 차이와 공격수의 결정력에 따라 달라집니다.</p>
+                </div>
+
+                <div class="engine-guide-section">
+                    <h4>4. <span class="engine-guide-badge badge-def">수비 및 역습</span> (Defense & Counter)</h4>
+                    <p>수비진이 공격을 막아내면 공 소유권이 넘어옵니다. 이때 <strong>역습(Counter Attack)</strong> 기회가 발생할 수 있습니다.</p>
+                    <p>⚡ <strong>역습 조건:</strong> 수비 성공 직후, 우리 공격진의 <strong>스피드</strong>가 상대 수비진보다 월등히 빠르면 역습이 발동됩니다. 역습 상황에서는 골 확률이 1.5배 증가합니다.</p>
+                </div>
+
+                <div class="engine-guide-section">
+                    <h4>5. 요약</h4>
+                    <p>강한 미드필더는 공격 기회를 많이 가져오고, 강한 수비수는 실점을 막고 역습 기회를 만듭니다. 빠른 공격수는 역습에 유리하고, 기술적인 공격수는 지공 상황에서 유리합니다.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- 선수 교체 모달 -->
     <div id="substitutionModal" class="modal">
         <div class="modal-content" style="max-width: 800px;">
@@ -903,6 +1038,17 @@
                     <div id="benchPlayersList"></div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- [신규] 선수 교체용 바텀 시트 -->
+    <div id="substitutionSheet" class="bottom-sheet">
+        <div class="sheet-header">
+            <h4 id="sheetTitle">선수 교체</h4>
+            <span class="close-sheet-btn" id="closeSubstitutionSheet">&times;</span>
+        </div>
+        <div id="sheetPlayerList" class="sheet-player-list">
+            <!-- 선수 목록이 여기에 동적으로 생성됩니다 -->
         </div>
     </div>
 
@@ -937,5 +1083,7 @@
 <script src="autosave.js"></script>
 <script src="mail.js"></script>
 <script src="tutorial.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="tactics.js"></script>
 </body>
 </html>
