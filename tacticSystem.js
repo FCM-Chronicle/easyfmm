@@ -548,7 +548,7 @@ const CommentaryData = {
             "🥅 {team} {player}, 노마크 찬스에서 실축합니다! 믿을 수 없네요.",
             "🥅 {team} {player}, 이걸 놓쳐요?? 이건 많이 아쉽겠는데요.",
             "🥅 {team}, {player}의 발리슛이 빗맞으며 기회가 무산됩니다.",
-            "🥅 {team} 오늘 {player}선수가 컨디션이 좋지 않나봅니다. 이걸 놓쳐요..."
+            "🥅 {team} 오늘 {player}선수가 컨디션이 좋지 않나봅니다. 이걸 놓쳐요...",
             "🥅 {player} 선수 이건 거의 아마추어급 실수인데요.."
         ],
         normal: [
@@ -620,11 +620,12 @@ class RealMatchEngine {
         
         let baseValue = stats[line].stats ? stats[line].stats[statType] : stats[line][statType];
         if (!baseValue) baseValue = 50; // Fallback
+        
+        let power = 0;
 
         // 1. 롤 가중치 적용 (개별 선수 평균)
-        let avgMultiplier = 0;
-        
         if (isUser) {
+            let avgMultiplier = 0;
             // 유저: 해당 라인의 선수들을 찾아 개별 역할 가중치 평균 계산
             let players = [];
             if (line === 'attack') players = gameData.squad.fw;
@@ -649,19 +650,14 @@ class RealMatchEngine {
                 });
                 avgMultiplier = totalWeight / players.length;
             }
+            // 유저 파워 계산: 기본값 * (1 + 평균 가중치)
+            power = baseValue * (1 + avgMultiplier);
         } else {
             // AI: 기존 방식대로 라인 통합 롤 사용
             const roleKey = this.aiRoles[line];
-            // calculateFinalPower 로직을 역산하거나 직접 가중치 가져옴
-            // 여기서는 간단히 TacticsManager 활용을 위해 기존 방식 유지하되, 내부 로직과 맞춤
-            const powerWithRole = TacticsManager.calculateFinalPower(baseValue, roleKey, statType);
-            return powerWithRole; // AI는 체력 계산을 별도로 하므로 여기서 리턴해도 됨 (아래 체력 로직과 통합 필요)
+            // calculateFinalPower 로직 사용
+            power = TacticsManager.calculateFinalPower(baseValue, roleKey, statType);
         }
-
-        // 유저 파워 계산: 기본값 * (1 + 평균 가중치)
-        let power = baseValue * (1 + avgMultiplier);
-        
-        // AI의 경우 위에서 리턴하지 않았다면 여기서 처리 (구조상 AI는 위에서 처리됨)
 
         // 2. 체력 페널티 적용
         const stamina = stats[line].stamina;
@@ -1759,6 +1755,16 @@ function endMatch(matchData) {
     
     // 다음 상대 설정
     setNextOpponent();
+
+    // [추가] 경기 종료 후 유저 팀 스태미나 100으로 회복
+    if (gameData.lineStats) {
+        ['attack', 'midfield', 'defense'].forEach(line => {
+            if (gameData.lineStats[line]) {
+                gameData.lineStats[line].stamina = 100;
+            }
+        });
+        console.log('🔋 유저 팀 스태미나 100으로 회복 완료');
+    }
 
     // 경기 종료 후 처리 (부상, 은퇴, 시즌종료 체크)
     setTimeout(() => {
