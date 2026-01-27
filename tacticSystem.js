@@ -566,21 +566,21 @@ const CommentaryData = {
     },
     save: {
         counter: [
-            "🧤 {team} 키퍼, {player}의 1대1 슈팅을 막아냅니다! 슈퍼 세이브!",
-            "🧤 {team} 키퍼, {player}의 결정적인 역습 슈팅을 몸을 날려 쳐냅니다!",
-            "🧤 {team} 키퍼, 팀을 구합니다! {player}의 슛을 막았습니다."
+            "🧤  키퍼, {player}의 1대1 슈팅을 막아냅니다! 슈퍼 세이브!",
+            "🧤  키퍼, {player}의 결정적인 역습 슈팅을 몸을 날려 쳐냅니다!",
+            "🧤  키퍼, 팀을 구합니다! {player}의 슛을 막았습니다."
         ],
         strong: [
-            "🧤 {team} 골키퍼가 {player}의 슛을 막아냅니다! 엄청난 선방쇼!",
-            "🧤 {team} 골키퍼, {player}의 구석을 노린 슛을 쳐냅니다!",
-            "🧤 {team} 골키퍼, {player}의 골이나 다름없는 슈팅을 선방합니다!",
-            "🧤 {team} 골키퍼, 슈퍼 세이브! {player}의 머리를 감싸쥐게 만듭니다."
+            "🧤 골키퍼가 {player}의 슛을 막아냅니다! 엄청난 선방쇼!",
+            "🧤 골키퍼, {player}의 구석을 노린 슛을 쳐냅니다!",
+            "🧤 골키퍼, {player}의 골이나 다름없는 슈팅을 선방합니다!",
+            "🧤 골키퍼, 슈퍼 세이브! {player}의 머리를 감싸쥐게 만듭니다."
         ],
         normal: [
-            "🧤 {team} 골키퍼, {player}의 정면 슈팅을 안전하게 잡아냅니다.",
-            "🧤 {team} 골키퍼, {player}의 슛을 침착하게 처리합니다.",
-            "🧤 {team} 골키퍼, {player}의 중거리 슛을 어렵지 않게 막아냅니다.",
-            "🧤 {team} 골키퍼, {player}의 슛을 펀칭으로 걷어냅니다."
+            "🧤 골키퍼, {player}의 정면 슈팅을 안전하게 잡아냅니다.",
+            "🧤 골키퍼, {player}의 슛을 침착하게 처리합니다.",
+            "🧤 골키퍼, {player}의 중거리 슛을 어렵지 않게 막아냅니다.",
+            "🧤 골키퍼, {player}의 슛을 펀칭으로 걷어냅니다."
         ]
     }
 };
@@ -626,6 +626,7 @@ class RealMatchEngine {
         // 1. 롤 가중치 적용 (개별 선수 평균)
         if (isUser) {
             let avgMultiplier = 0;
+            let avgEfficiency = 1.0; // [추가] 평균 효율성
             // 유저: 해당 라인의 선수들을 찾아 개별 역할 가중치 평균 계산
             let players = [];
             if (line === 'attack') players = gameData.squad.fw;
@@ -635,6 +636,7 @@ class RealMatchEngine {
             players = players.filter(p => p !== null);
             
             if (players.length > 0) {
+                let totalEfficiency = 0;
                 let totalWeight = 0;
                 players.forEach(p => {
                     // 선수별 역할 가져오기 (없으면 기본값)
@@ -647,16 +649,42 @@ class RealMatchEngine {
                     
                     const weight = roleData && roleData[mappedType] !== undefined ? roleData[mappedType] : 0;
                     totalWeight += weight;
+
+                    // [추가] 체력 효율성 합산
+                    const staminaKey = TacticsManager.getStaminaConsumptionKey(roleKey);
+                    const efficiency = TacticsManager.getStaminaEfficiency(staminaKey);
+                    totalEfficiency += efficiency;
                 });
                 avgMultiplier = totalWeight / players.length;
+                avgEfficiency = totalEfficiency / players.length;
             }
-            // 유저 파워 계산: 기본값 * (1 + 평균 가중치)
-            power = baseValue * (1 + avgMultiplier);
+            // 유저 파워 계산: 기본값 * (1 + 평균 가중치) * 평균 효율성
+            power = baseValue * (1 + avgMultiplier) * avgEfficiency;
         } else {
-            // AI: 기존 방식대로 라인 통합 롤 사용
+            // AI: 라인별 단일 롤 적용
             const roleKey = this.aiRoles[line];
-            // calculateFinalPower 로직 사용
             power = TacticsManager.calculateFinalPower(baseValue, roleKey, statType);
+        }
+        
+        // [신규] 일시적 스탯(상담/이벤트 효과) 적용
+        if (isUser && gameData.temporaryStats) {
+            let totalBonus = 0;
+            let players = [];
+            if (line === 'attack') players = gameData.squad.fw;
+            else if (line === 'midfield') players = gameData.squad.mf;
+            else if (line === 'defense') players = gameData.squad.df;
+            players = players.filter(p => p !== null);
+
+            players.forEach(p => {
+                if (gameData.temporaryStats[p.name]) {
+                    // statType 매핑 (mobility -> speed 등)
+                    const map = { mobility: 'speed' };
+                    const key = map[statType] || statType;
+                    totalBonus += (gameData.temporaryStats[p.name][key] || 0);
+                }
+            });
+            // 라인 전체 파워에 보너스 합산 (평균이 아닌 합산으로 임팩트 강화)
+            if (players.length > 0) power += (totalBonus / players.length);
         }
 
         // 2. 체력 페널티 적용
@@ -713,6 +741,7 @@ class RealMatchEngine {
     // 1분 단위 시뮬레이션
     update(minute) {
         this.consumeStamina();
+        this.updateStaminaUI(); // [추가] UI 업데이트
 
         // 1. 중원 싸움 (Midfield Battle)
         if (this.ballZone === 'midfield') {
@@ -972,6 +1001,43 @@ class RealMatchEngine {
         }
         return template;
     }
+
+    // [신규] 스태미나 UI 업데이트
+    updateStaminaUI() {
+        const atk = document.getElementById('atkStamina');
+        const mid = document.getElementById('midStamina');
+        const def = document.getElementById('defStamina');
+        
+        if (atk) atk.textContent = Math.max(0, Math.floor(this.userStats.attack.stamina));
+        if (mid) mid.textContent = Math.max(0, Math.floor(this.userStats.midfield.stamina));
+        if (def) def.textContent = Math.max(0, Math.floor(this.userStats.defense.stamina));
+    }
+
+    // [신규] 선수 교체 시 스태미나 재계산
+    recalculateStaminaOnSub(playerOut) {
+        const positionType = playerOut.position;
+        let lineKey;
+        let playersInLine;
+
+        if (positionType === 'FW') {
+            lineKey = 'attack';
+            playersInLine = gameData.squad.fw.filter(p => p);
+        } else if (positionType === 'MF') {
+            lineKey = 'midfield';
+            playersInLine = gameData.squad.mf.filter(p => p);
+        } else if (positionType === 'DF' || positionType === 'GK') {
+            lineKey = 'defense';
+            playersInLine = [...gameData.squad.df, gameData.squad.gk].filter(p => p);
+        }
+
+        if (lineKey && playersInLine && playersInLine.length > 0) {
+            const currentStamina = this.userStats[lineKey].stamina;
+            const numPlayers = playersInLine.length;
+            const newStamina = (currentStamina * (numPlayers - 1) + 100) / numPlayers;
+            this.userStats[lineKey].stamina = Math.min(100, newStamina);
+            console.log(`🔄 교체 발생 (${lineKey}): ${playerOut.name} OUT. 스태미나 재계산: ${currentStamina.toFixed(1)} -> ${this.userStats[lineKey].stamina.toFixed(1)}`);
+        }
+    }
 }
 
 // 수정된 startMatch 함수 - tacticSystem.js에 교체하세요
@@ -1027,6 +1093,14 @@ function startMatch() {
     document.getElementById('awayTeam').textContent = teamNames[matchData.awayTeam];
     document.getElementById('scoreDisplay').textContent = `${matchData.homeScore} - ${matchData.awayScore}`;
     document.getElementById('matchTime').textContent = '0분';
+    
+    // [추가] 스태미나 표시 초기화
+    if (document.getElementById('atkStamina')) {
+        document.getElementById('atkStamina').textContent = '100';
+        document.getElementById('midStamina').textContent = '100';
+        document.getElementById('defStamina').textContent = '100';
+    }
+
     document.getElementById('eventList').innerHTML = '';
     document.getElementById('substituteBtn').style.display = 'inline-block'; // 교체 버튼 표시
     document.getElementById('substituteBtn').onclick = () => {
@@ -1050,6 +1124,7 @@ function startMatch() {
     // [수정] MatchEngine 인스턴스 생성
     const matchEngine = new RealMatchEngine(matchData);
     
+    matchData.engine = matchEngine; // [추가] 교체 시 스태미나 재계산을 위해 엔진 인스턴스 전달
     // 킥오프 버튼에 엔진 전달
     showKickoffButton(matchData, matchEngine, strengthDiff);
 }
@@ -1774,6 +1849,12 @@ function endMatch(matchData) {
     
     // ✅✅ 부상 선수를 스쿼드에서 제거 (추가!)
     injurySystem.removeInjuredFromSquad();
+
+    // [신규] 일시적 스탯 초기화 (다음 경기에는 적용 안 됨)
+    if (gameData.temporaryStats) {
+        gameData.temporaryStats = {};
+        console.log('🧹 경기 종료: 일시적 스탯(상담 효과)이 초기화되었습니다.');
+    }
 }
 function updateLeagueData(matchData, points) {
     // 현재 리그 확인
@@ -2387,6 +2468,11 @@ function performSubstitution(playerOut, playerIn, matchData) {
         console.error("교체 대상 선수를 스쿼드에서 찾지 못했습니다:", playerOut);
         alert('교체 중 오류가 발생했습니다.');
         return;
+    }
+
+    // [추가] 교체 시 스태미나 재계산
+    if (matchData.engine) {
+        matchData.engine.recalculateStaminaOnSub(playerOut);
     }
 
     // 2. 교체 횟수 증가

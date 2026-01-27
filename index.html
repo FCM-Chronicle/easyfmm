@@ -596,6 +596,7 @@
     <button class="tab-btn" data-tab="mail">
         메일함 <span id="mailBadge" class="mail-badge"></span>
     </button>
+    <button class="tab-btn" data-tab="secretary">비서</button>
     <button class="tab-btn" data-tab="settings">설정</button>
 </div>
         <div class="tab-content">
@@ -800,6 +801,21 @@
                 </div>
             </div>
 
+            <!-- 비서 탭 -->
+            <div id="secretary" class="tab-panel">
+                <div class="secretary-container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; min-height: 400px; background: rgba(0,0,0,0.2); border-radius: 10px; padding: 20px;">
+                    <div style="font-size: 4rem; margin-bottom: 20px;">👩‍💼</div>
+                    <h3 style="color: #ffd700; margin-bottom: 10px;">비서실</h3>
+                    <p style="color: #ddd; text-align: center; max-width: 500px; margin-bottom: 30px; line-height: 1.6;">
+                        감독님, 선수들이 면담을 기다리고 있습니다.<br>
+                        선수들의 고민을 해결해주면 경기력이 향상될 수 있습니다.
+                    </p>
+                    <button id="openOfficeBtn" class="btn" style="background: linear-gradient(45deg, #8e44ad, #9b59b6); padding: 15px 40px; font-size: 1.2rem; border: none; border-radius: 30px; box-shadow: 0 4px 15px rgba(142, 68, 173, 0.4); transition: transform 0.2s;">
+                        📋 감독실 입장하기
+                    </button>
+                </div>
+            </div>
+
             <!-- 설정 탭 -->
 <div id="settings" class="tab-panel">
     <h3>⚙️ 게임 설정</h3>
@@ -853,6 +869,15 @@
             </div>
             <div class="time">
                 <span id="matchTime">0분</span>
+            </div>
+            <!-- [신규] 스태미나 표시기 -->
+            <div id="staminaContainer" style="margin-top: 10px; font-size: 0.9rem; background: rgba(0,0,0,0.3); padding: 5px 15px; border-radius: 15px;">
+                <span style="color: #aaa; margin-right: 10px;">체력:</span>
+                <span style="color: #e74c3c; font-weight: bold;">FW <span id="atkStamina">100</span>%</span>
+                <span style="color: #555; margin: 0 5px;">|</span>
+                <span style="color: #3498db; font-weight: bold;">MF <span id="midStamina">100</span>%</span>
+                <span style="color: #555; margin: 0 5px;">|</span>
+                <span style="color: #2ecc71; font-weight: bold;">DF <span id="defStamina">100</span>%</span>
             </div>
         </div>
         
@@ -1022,6 +1047,24 @@
         </div>
     </div>
 
+    <!-- [신규] 비서 상담실 모달 -->
+    <div id="secretaryModal" class="modal" style="z-index: 3000;">
+        <div class="secretary-room">
+            <div class="secretary-header">
+                <div class="secretary-profile">
+                    <div class="secretary-avatar">👩‍💼</div>
+                    <div class="secretary-info">
+                        <div class="secretary-role">비서실장</div>
+                        <div class="secretary-name" id="secretaryNameDisplay">김지수</div>
+                    </div>
+                </div>
+            </div>
+            <div id="secretaryContent" class="secretary-content">
+                <!-- 동적으로 내용이 채워집니다 -->
+            </div>
+        </div>
+    </div>
+
     <!-- 선수 교체 모달 -->
     <div id="substitutionModal" class="modal">
         <div class="modal-content" style="max-width: 800px;">
@@ -1085,5 +1128,6 @@
 <script src="tutorial.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="tactics.js"></script>
+<script src="secretary.js"></script>
 </body>
 </html>

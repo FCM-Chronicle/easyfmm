@@ -51,10 +51,18 @@ const RoleData = {
 
 // 2. 체력(Stamina) 소모율 데이터
 const StaminaConsumption = {
-    low: 0.22,       // 분당 -0.22
-    normal: 0.38,    // 분당 -0.38
-    high: 0.55,      // 분당 -0.55
-    very_high: 0.67  // 분당 -0.67
+    low: 0.18,       // 분당 -0.18 (소폭 하향)
+    normal: 0.30,    // 분당 -0.30 (소폭 하향)
+    high: 0.42,      // 분당 -0.42 (소폭 하향)
+    very_high: 0.52  // 분당 -0.52 (소폭 하향)
+};
+
+// [신규] 체력 소모 대비 효율성 데이터 (체력을 덜 쓰면 효율이 떨어짐)
+const StaminaEfficiency = {
+    low: 0.85,       // 체력 소모 낮음 -> 효율 15% 감소 (페널티)
+    normal: 1.0,     // 보통 -> 기준점
+    high: 1.1,       // 높음 -> 효율 10% 증가 (보너스)
+    very_high: 1.2   // 매우 높음 -> 효율 20% 증가 (보너스)
 };
 
 // 3. 전술 관련 로직을 관리하는 객체 (매니저)
@@ -104,8 +112,12 @@ const TacticsManager = {
 
         const weight = role[mappedStatType];
         
-        // 최종 파워 계산 공식: 최종 파워 = (라인 기본 스탯 * (1 + 롤 가중치))
-        const finalPower = baseStat * (1 + weight);
+        // [수정] 효율성 반영
+        // 최종 파워 계산 공식: (라인 기본 스탯 * (1 + 롤 가중치)) * 체력 효율
+        const staminaKey = role.stamina || 'normal';
+        const efficiency = StaminaEfficiency[staminaKey] || 1.0;
+
+        const finalPower = baseStat * (1 + weight) * efficiency;
         
         return Math.round(finalPower); // 계산 결과는 정수로 반환
     },
@@ -127,6 +139,15 @@ const TacticsManager = {
      */
     getStaminaConsumptionRate(staminaKey) {
         return StaminaConsumption[staminaKey] || StaminaConsumption.normal;
+    },
+
+    /**
+     * [신규] 체력 소모 키에 해당하는 효율성을 반환합니다.
+     * @param {string} staminaKey - 체력 소모 키
+     * @returns {number} 효율성 계수 (예: 0.85, 1.0, 1.2)
+     */
+    getStaminaEfficiency(staminaKey) {
+        return StaminaEfficiency[staminaKey] || 1.0;
     }
 };
 

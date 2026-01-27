@@ -778,7 +778,6 @@ const allTeams = {
         league: 2,
         players: [
             { name: "아나톨리 트루빈", position: "GK", country: "우크라이나", age: 24, rating: 79 },
-            { name: "알바로 카레라스", position: "DF", country: "스페인", age: 22, rating: 83 },
             { name: "안토니우 실바", position: "DF", country: "포르투갈", age: 21, rating: 84 },
             { name: "알렉산데르 바", position: "DF", country: "덴마크", age: 27, rating: 82 },
             { name: "아마르 데디치", position: "DF", country: "보스니아", age: 22, rating: 72 },
@@ -821,7 +820,7 @@ const allTeams = {
             { name: "베니아민 뉘그렌", position: "FW", country: "스웨덴", age: 24, rating: 72 },
             { name: "아담 이다", position: "FW", country: "아일랜드", age: 24, rating: 73 },
             { name: "빌랴미 시니살로", position: "GK", country: "핀란드", age: 23, rating: 73 },
-            { name: "양현준", position: "FW", country: "대한민국", age: 23, rating: 71 },
+            { name: "양현준", position: "FW", country: "대한민국", age: 23, rating: 76 },
             { name: "루크 매코완", position: "MF", country: "스코틀랜드", age: 27, rating: 75 },
             { name: "야마다 신", position: "FW", country: "일본", age: 25, rating: 69 },
             { name: "칼럼 오스먼드", position: "FW", country: "오스트레일리아", age: 19, rating: 66 },
@@ -848,7 +847,7 @@ const allTeams = {
         league: 2,
         players: [
             { name: "저스틴 베일로", position: "GK", country: "네덜란드", age: 27, rating: 67 },
-            { name: "배승균", position: "MF", country: "대한민국", age: 18, rating: 60 },
+            { name: "배승균", position: "MF", country: "대한민국", age: 18, rating: 66 },
             { name: "바르트 니우코프", position: "DF", country: "네덜란드", age: 29, rating: 71 },
             { name: "토마스 베일런", position: "DF", country: "네덜란드", age: 23, rating: 77 },
             { name: "와타나베 츠요시", position: "DF", country: "일본", age: 28, rating: 73 },
@@ -1559,7 +1558,10 @@ let gameData = {
     isHomeGame: true, // 현재 경기가 홈 경기인지 여부
     startYear: 2025, // 시작 연도 (시즌 표기용)
     settings: { autoSave: false, bgm: true, bgmVolume: 50 }, // 게임 설정 (오디오 추가)
-    playerRoles: {} // [추가] 선수별 역할 데이터 초기화
+    playerRoles: {}, // [추가] 선수별 역할 데이터 초기화
+    temporaryStats: {}, // [신규] 일시적 스탯 버프/디버프 저장소
+    secretaryName: "김지수", // [신규] 비서 이름 (secretary.js에서 사용)
+    losingStreak: 0 // [신규] 연패 기록
 };
 
 
@@ -1848,6 +1850,18 @@ function setupEventListeners() {
             handleInterview(option);
         });
     });
+
+    // [신규] 감독실(비서 상담) 버튼 이벤트
+    const officeBtn = document.getElementById('openOfficeBtn');
+    if (officeBtn) {
+        officeBtn.addEventListener('click', () => {
+            if (typeof secretarySystem !== 'undefined') {
+                secretarySystem.startConsultation();
+            } else {
+                alert('비서 시스템이 로드되지 않았습니다.');
+            }
+        });
+    }
 }
 
 // 팀 만들기 모달 열기
@@ -2217,6 +2231,11 @@ function selectTeam(teamKey) {
     if (window.tutorialSystem) {
         window.tutorialSystem.init();
     }
+
+    // [신규] 랜덤 이벤트 트리거 (경기 전/후 등 적절한 시점에 호출 가능)
+    if (typeof secretarySystem !== 'undefined') {
+        // secretarySystem.triggerRandomEvent(); // 테스트용, 실제로는 경기 전후에 호출
+    }
 }
 
 // 자동으로 스쿼드 채우기 함수
@@ -2363,6 +2382,10 @@ function showTab(tabName) {
             if (typeof renderGeneralSettings === 'function') {
                 renderGeneralSettings();
             }
+    // [신규] 비서 설정 UI 생성
+    if (typeof renderSecretarySettings === 'function') {
+        renderSecretarySettings();
+    }
             break;
 
         case 'youth':
@@ -4799,3 +4822,34 @@ function renderGeneralSettings() {
     });
 }
 window.renderGeneralSettings = renderGeneralSettings;
+
+// [신규] 비서 설정 UI 렌더링
+function renderSecretarySettings() {
+    const settingsTab = document.getElementById('settings');
+    if (!settingsTab) return;
+    
+    let secContainer = document.getElementById('secretarySettings');
+    if (!secContainer) {
+        secContainer = document.createElement('div');
+        secContainer.id = 'secretarySettings';
+        secContainer.className = 'settings-section';
+        
+        // 일반 설정 다음에 추가
+        const generalSettings = document.getElementById('generalSettings');
+        if (generalSettings) {
+            generalSettings.parentNode.insertBefore(secContainer, generalSettings.nextSibling);
+        } else {
+            settingsTab.appendChild(secContainer);
+        }
+    }
+    
+    secContainer.innerHTML = `
+        <h4>👩‍💼 비서 설정</h4>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <label>비서 이름:</label>
+            <input type="text" id="secretaryNameInput" value="${gameData.secretaryName || '김지수'}" style="padding: 5px; width: 100px; background: #333; color: white; border: 1px solid #555;">
+            <button class="btn" onclick="gameData.secretaryName = document.getElementById('secretaryNameInput').value; alert('비서 이름이 변경되었습니다.');">변경</button>
+        </div>
+    `;
+}
+window.renderSecretarySettings = renderSecretarySettings;
