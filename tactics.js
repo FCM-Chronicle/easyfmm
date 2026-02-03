@@ -59,10 +59,10 @@ const StaminaConsumption = {
 
 // [신규] 체력 소모 대비 효율성 데이터 (체력을 덜 쓰면 효율이 떨어짐)
 const StaminaEfficiency = {
-    low: 0.85,       // 체력 소모 낮음 -> 효율 15% 감소 (페널티)
+    low: 0.75,       // 체력 소모 낮음 -> 효율 25% 감소 (페널티)
     normal: 1.0,     // 보통 -> 기준점
-    high: 1.1,       // 높음 -> 효율 10% 증가 (보너스)
-    very_high: 1.2   // 매우 높음 -> 효율 20% 증가 (보너스)
+    high: 1.05,       // 높음 -> 효율 5% 증가 (보너스)
+    very_high: 1.1   // 매우 높음 -> 효율 10% 증가 (보너스)
 };
 
 // 3. 전술 관련 로직을 관리하는 객체 (매니저)
@@ -198,6 +198,27 @@ const DNAManager = {
 
     // [신규] 라인별 OVR 재계산 (베스트 11 기준)
     recalculateLineOVRs(teamPlayers) {
+        // [수정] 현재 스쿼드(gameData.squad)가 있으면 그것을 기준으로 계산
+        if (gameData.squad) {
+            const fws = gameData.squad.fw.filter(p => p);
+            const mfs = gameData.squad.mf.filter(p => p);
+            const dfs = gameData.squad.df.filter(p => p);
+            const gks = gameData.squad.gk ? [gameData.squad.gk] : [];
+
+            // 스쿼드에 선수가 배치되어 있다면 스쿼드 기준 계산
+            if (fws.length + mfs.length + dfs.length + gks.length > 0) {
+                const calcAvg = (players) => players.length > 0 ? Math.round(players.reduce((sum, p) => sum + p.rating, 0) / players.length) : 0;
+
+                this.setLinePoints('attack', calcAvg(fws));
+                this.setLinePoints('midfield', calcAvg(mfs));
+                this.setLinePoints('defense', calcAvg([...dfs, ...gks]));
+                
+                console.log('🧬 DNA 포인트 재계산 완료 (현재 스쿼드 기준)');
+                return;
+            }
+        }
+
+        // 스쿼드가 비어있을 경우(초기화 전 등) 기존 로직(전체 선수 중 베스트) 사용
         if (!teamPlayers) teamPlayers = teams[gameData.selectedTeam];
         if (!teamPlayers) return;
 

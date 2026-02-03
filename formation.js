@@ -359,6 +359,9 @@ class FormationSystem {
                 this.draggedPlayer.remove();
                 // 3. 화면 전체를 다시 그려서 데이터와 동기화 (자동 정렬 포함)
                 this.displayCurrentSquad();
+                
+                // [추가] 스쿼드 변경 시 DNA 포인트 재계산
+                if (typeof DNAManager !== 'undefined') DNAManager.recalculateLineOVRs();
             } else { // 같은 포지션 내에서 위치만 변경된 경우
                 targetArea.appendChild(this.draggedPlayer);
                 const areaRect = targetArea.getBoundingClientRect();
@@ -439,6 +442,9 @@ class FormationSystem {
             gameData.squad = finalSquad; // 선수 교체 및 공석이 반영된 스쿼드로 업데이트
             this.displayCurrentSquad(); // 변경된 스쿼드를 화면에 다시 그림
             displayTeamPlayers(); // 선수 목록도 새로고침
+            
+            // [추가] 자동 교체 후 DNA 포인트 재계산
+            if (typeof DNAManager !== 'undefined') DNAManager.recalculateLineOVRs();
             alert('포지션에 맞지 않는 선수들이 자동으로 교체되었습니다.');
         } else {
             console.log("✅ 모든 선수가 올바른 포지션에 있습니다.");
@@ -820,6 +826,9 @@ FormationSystem.prototype.swapPlayers = function(playerOut, playerIn, positionTy
     if (typeof displayTeamPlayers === 'function') {
         displayTeamPlayers();
     }
+    
+    // [추가] 선수 교체 시 DNA 포인트 재계산
+    if (typeof DNAManager !== 'undefined') DNAManager.recalculateLineOVRs();
 };
 
 // CSS

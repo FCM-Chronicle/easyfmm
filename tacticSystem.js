@@ -257,11 +257,11 @@ class TacticSystem {
 
         // 내 전술이 상대 전술에 효과적인 경우
         if (userTacticData.effective.includes(opponentTactic)) {
-            effect += 15; // 사기 +15
+            effect += 5; // 사기 +5
         }
         // 내 전술이 상대 전술에 비효과적인 경우
         else if (userTacticData.ineffective.includes(opponentTactic)) {
-            effect -= 10; // 사기 -10
+            effect -= 5; // 사기 -5
         }
 
         return effect;
@@ -527,6 +527,13 @@ const CommentaryData = {
             "⚡️ {team}, 총알 같은 역습! 수비수들이 따라잡지 못합니다!",
             "⚡️ {team}, 역습 기회! 공격 숫자가 더 많습니다!",
             "⚡️ {team}, 전광석화 같은 역습으로 상대 진영을 흔듭니다!"
+        ],
+        block: [
+            "🧱 {team}, 수비수가 몸을 날려 결정적인 슈팅을 막아냅니다!",
+            "🧱 {team}, 육탄 방어! 슈팅이 수비수 몸에 맞고 굴절됩니다!",
+            "🧱 {team}, 상대의 슈팅을 수비수가 블록해냅니다! 대단한 헌신입니다!",
+            "🧱 {team}, 골문으로 향하던 공을 수비수가 막아냅니다!",
+            "🧱 {team}, 수비벽에 막힙니다! 슈팅이 통과하지 못합니다."
         ]
     },
     miss: {
@@ -560,13 +567,12 @@ const CommentaryData = {
             "🥅 {team}, {player}의 터닝 슛이 골대 위로 넘어갑니다.",
             "🥅 {team} {player}, 수비수를 제치고 슈팅했으나 골문을 벗어납니다.",
             "🥅 {team}, {player}의 기습적인 슈팅! 하지만 골대 옆을 때립니다.",
-            "🥅 {team} {player}, 아쉽습니다! 깻잎 한장 차이로 나갑니다.",
-            "🥅 {team}, {player}, 잘 찼네요. 그러나 골키퍼의 슈퍼세이브!",
+            "🥅 {team} {player}, 아쉽습니다! 깻잎 한장 차이로 나갑니다."
         ]
     },
     save: {
         counter: [
-            "🧤  키퍼, {player}의 1대1 슈팅을 막아냅니다! 슈퍼 세이브!",
+            "🧤 키퍼, {player}의 1대1 슈팅을 막아냅니다! 슈퍼 세이브!",
             "🧤  키퍼, {player}의 결정적인 역습 슈팅을 몸을 날려 쳐냅니다!",
             "🧤  키퍼, 팀을 구합니다! {player}의 슛을 막았습니다."
         ],
@@ -580,7 +586,8 @@ const CommentaryData = {
             "🧤 골키퍼, {player}의 정면 슈팅을 안전하게 잡아냅니다.",
             "🧤 골키퍼, {player}의 슛을 침착하게 처리합니다.",
             "🧤 골키퍼, {player}의 중거리 슛을 어렵지 않게 막아냅니다.",
-            "🧤 골키퍼, {player}의 슛을 펀칭으로 걷어냅니다."
+            "🧤 골키퍼, {player}의 슛을 펀칭으로 걷어냅니다.",
+            "🧤 {team} {player}, 잘 찼네요! 그러나 골키퍼의 슈퍼세이브에 막힙니다!"
         ]
     }
 };
@@ -612,6 +619,28 @@ class RealMatchEngine {
         if (['tikitaka', 'possession', 'lavolpiana', 'totalFootball'].includes(tactic)) return { attack: 'F9', midfield: 'DLP', defense: 'BPD' };
         if (['counter', 'longBall', 'twoLine', 'catenaccio', 'parkBus', 'gegenpress'].includes(tactic)) return { attack: 'P', midfield: 'BWM', defense: 'NCB' };
         return { attack: 'CF', midfield: 'BBM', defense: 'CD' };
+    }
+
+    // [신규] 패스 플레이어 2명 선정 (같은 팀)
+    getPassPlayers(teamKey) {
+        let players = [];
+        if (teamKey === gameData.selectedTeam) {
+             const squad = gameData.squad;
+             // GK 제외, 필드 플레이어만
+             players = [...squad.fw, ...squad.mf, ...squad.df].filter(p => p !== null);
+        } else {
+             players = getBestEleven(teamKey).filter(p => p.position !== 'GK');
+        }
+        
+        if (players.length < 2) return null;
+        
+        const p1 = players[Math.floor(Math.random() * players.length)];
+        let p2 = players[Math.floor(Math.random() * players.length)];
+        while (p1.name === p2.name) {
+            p2 = players[Math.floor(Math.random() * players.length)];
+        }
+        
+        return [p1, p2];
     }
 
     // 스탯 파워 계산 (롤 가중치 + 체력 반영)
@@ -690,9 +719,9 @@ class RealMatchEngine {
         // 2. 체력 페널티 적용
         const stamina = stats[line].stamina;
         let staminaFactor = 1.0;
-        if (stamina < 30) staminaFactor = 0.7; // 탈진 시 30% 감소
-        else if (stamina < 50) staminaFactor = 0.85;
-        else if (stamina < 70) staminaFactor = 0.95;
+        if (stamina < 30) staminaFactor = 0.8; // 탈진 시 20% 감소
+        else if (stamina < 50) staminaFactor = 0.9;
+        else if (stamina < 70) staminaFactor = 0.98;
 
         return power * staminaFactor;
     }
@@ -836,18 +865,62 @@ class RealMatchEngine {
             const defTeamName = isUserAttacking ? teamNames[gameData.currentOpponent] : teamNames[gameData.selectedTeam];
             
             // 공격진(공격+스피드) vs 수비진(수비+피지컬)
-            const atkPower = this.getLinePower(isUserAttacking, 'attack', 'attack') + this.getLinePower(isUserAttacking, 'attack', 'speed');
+            // [수정] 매 순간의 랜덤성 추가 (0.85 ~ 1.15) - 전력 차이 영향 완화 및 의외성 부여
+            const atkRandom = 0.85 + Math.random() * 0.3;
+            const defRandom = 0.85 + Math.random() * 0.3;
+
+            const atkPower = (this.getLinePower(isUserAttacking, 'attack', 'attack') + this.getLinePower(isUserAttacking, 'attack', 'speed')) * atkRandom;
             
             const defStat = this.getLinePower(!isUserAttacking, 'defense', 'defense');
             const phyStat = this.getLinePower(!isUserAttacking, 'defense', 'physical');
-            const defPower = defStat + phyStat;
+            const defPower = (defStat + phyStat) * defRandom;
 
             // [관문 1: 기회 창출]
             const chanceRatio = atkPower / (atkPower + defPower); // 0.4 ~ 0.6 수준
-            if (Math.random() < chanceRatio) {
+            // [수정] 슈팅 빈도를 줄이기 위해 전체적인 기회 창출 확률을 낮춤 (0.4 -> 0.3)
+            if (Math.random() < (chanceRatio * 0.3)) {
+                // [밸런스 조정] 수비수 슈팅 블록 확률을 수비력에 비례하도록 변경 (기존 로직 유지)
+                const blockChance = (defPower / (atkPower + defPower)) * 0.2; // 평균 10% 내외
+                if (Math.random() < blockChance) {
+                    const defendingTeamName = isUserAttacking ? teamNames[gameData.currentOpponent] : teamNames[gameData.selectedTeam];
+                    const blockMsg = this.getRandomCommentary('defense', 'block', { team: defendingTeamName });
+                    const event = {
+                        minute: minute,
+                        type: 'block',
+                        description: blockMsg
+                    };
+                    displayEvent(event, this.matchData);
+                    this.ballZone = 'midfield'; // 소유권 전환
+                    this.lastAction = 'turnover';
+                    return; // 슈팅 시도 없이 턴 종료
+                }
+
                 // [관문 2: 슈팅]
                 this.attemptGoal(isUserAttacking, atkPower, defPower, minute);
             } else {
+                // [신규] 슈팅 기회 무산 시 패스 연결 확률 증가 (0.35 -> 0.5)
+                if (Math.random() < 0.5) {
+                    const passPlayers = this.getPassPlayers(isUserAttacking ? gameData.selectedTeam : gameData.currentOpponent);
+                    if (passPlayers) {
+                        const p1 = passPlayers[0];
+                        const p2 = passPlayers[1];
+                        const teamName = isUserAttacking ? teamNames[gameData.selectedTeam] : teamNames[gameData.currentOpponent];
+                        
+                        const passMsgs = [
+                            `⚽ ${teamName}의 ${p1.name}, ${p2.name}에게 짧게 내줍니다.`,
+                            `⚽ ${p1.name}, 빈 공간의 ${p2.name}를 보고 패스합니다.`,
+                            `⚽ ${p1.name}와 ${p2.name}의 2대1 패스 연결!`,
+                            `⚽ ${p1.name}, ${p2.name}에게 정확하게 배달합니다.`,
+                            `⚽ ${teamName}, ${p1.name}에서 ${p2.name}(으)로 이어지는 매끄러운 연계.`
+                        ];
+                        const msg = passMsgs[Math.floor(Math.random() * passMsgs.length)];
+                        
+                        const event = { minute: minute, type: 'pass', description: msg };
+                        displayEvent(event, this.matchData);
+                        return; // 공격권 유지하며 턴 종료
+                    }
+                }
+
                 // 수비 성공! -> 역습 기회 체크
                 const counterAttackingTeamIsUser = !isUserAttacking;
 
@@ -895,50 +968,130 @@ class RealMatchEngine {
         // [관문 3: 골 결정력]
         // 파워 차이에 따른 기본 확률
         const powerDiff = atkPower - defPower;
-        let goalChance = 0.10; // 기본 10%
+        let shootingQuality = 'difficult';
 
-        if (powerDiff > 50) goalChance = 0.35; // 압도적 (40% -> 35%)
-        else if (powerDiff > 20) goalChance = 0.18; // 우세 (25% -> 18%)
-        else if (powerDiff < -20) goalChance = 0.02; // 열세
-        else goalChance = 0.07; // 팽팽함 (10% -> 7%)
+        // [이동] 수비수 슈팅 블록 확률 계산 (여기서 처리)
+        const blockChance = (defPower / (atkPower + defPower)) * 0.2; // 평균 10% 내외
+        let isBlocked = false;
+        if (Math.random() < blockChance) {
+            isBlocked = true;
+            // 블록되면 골 확률은 0
+        }
+
+        // [수정] 전력 차이 영향 완화 (계단식 -> 선형 공식)
+        // 기존: 10점 차이면 18%, 40점 차이면 40%로 급격히 상승
+        // 변경: 기본 8% + 전력차 1점당 0.4% 증가 (랜덤성 포함된 powerDiff 사용)
+        let goalChance = 0.08 + (powerDiff * 0.004);
+        
+        // 최소 2%, 최대 35%로 제한 (절대적인 승리/패배 방지)
+        goalChance = Math.max(0.02, Math.min(0.35, goalChance));
+
+        // 슈팅 퀄리티 텍스트 결정 (확률 기반)
+        if (goalChance >= 0.25) shootingQuality = 'decisive';
+        else if (goalChance >= 0.12) shootingQuality = 'normal';
+        else shootingQuality = 'difficult';
 
         // 역습 보너스 적용
         if (this.lastAction === 'counter_attack') {
             goalChance *= 1.5; // 역습 시 골 확률 1.5배
         }
 
-        // 랜덤 변수 추가
-        if (Math.random() < goalChance) {
-            // ⚽ 골 성공!
-            const event = createGoalEvent(this.matchData, isUserAttacking);
-            
-            // [해설] 상황에 따른 골 멘트 추가
+        // [신규] 체력 저하에 따른 결정력 페널티
+        const attackingStats = isUserAttacking ? this.userStats.attack : this.aiStats.attack;
+        if (attackingStats.stamina < 50) {
+            goalChance *= 0.8; // 체력 50% 미만 시 골 확률 20% 감소
+        }
+
+        // === 결과 결정 ===
+        let outcome = 'miss';
+        if (isBlocked) {
+            outcome = 'block';
+        } else if (Math.random() < goalChance) {
+            outcome = 'goal';
+        } else if (Math.random() < 0.5) { // 빗나감/선방 반반
+            outcome = 'save';
+        } else {
+            outcome = 'miss';
+        }
+
+        // === 몰입감 모드 확인 ===
+        const immersionMode = gameData.settings ? gameData.settings.immersionMode !== false : true;
+
+        if (immersionMode) {
+            // 1. 경기 일시정지
+            this.matchData.isRunning = false;
+
+            // 2. 찬스 카드 생성 및 표시
+            const attackingTeamName = isUserAttacking ? teamNames[gameData.selectedTeam] : teamNames[gameData.currentOpponent];
+            const suspenseEvent = {
+                minute: minute,
+                type: 'chance',
+                description: `🔥 ${attackingTeamName}, 결정적인 슈팅 기회! 과연?`
+            };
+            const cardElement = displayEvent(suspenseEvent, this.matchData);
+
+            // 3. 하이라이트 효과 적용
+            const eventList = document.getElementById('eventList');
+            eventList.classList.add('dimmed');
+            cardElement.classList.add('highlight');
+
+            // 4. 2초 후 결과 공개
+            setTimeout(() => {
+                // 하이라이트 해제
+                eventList.classList.remove('dimmed');
+                cardElement.classList.remove('highlight');
+
+                // 결과 처리 및 카드 업데이트
+                this.resolveGoalOutcome(outcome, isUserAttacking, minute, shootingQuality, cardElement);
+
+                // 경기 재개
+                this.matchData.isRunning = true;
+            }, 4000); // [수정] 몰입 모드 대기 시간을 2초 -> 4초로 대폭 증가
+        } else {
+            // 즉시 결과 처리
+            this.resolveGoalOutcome(outcome, isUserAttacking, minute, shootingQuality);
+        }
+    }
+
+    // [신규] 골 결과 처리 및 이벤트 표시 (분리됨)
+    resolveGoalOutcome(outcome, isUserAttacking, minute, shootingQuality, existingCardElement = null) {
+        const attackingTeamName = isUserAttacking ? teamNames[gameData.selectedTeam] : teamNames[gameData.currentOpponent];
+        const defendingTeamName = isUserAttacking ? teamNames[gameData.currentOpponent] : teamNames[gameData.selectedTeam];
+        
+        let event;
+
+        if (outcome === 'goal') {
+            // ⚽ 골 성공
+            event = createGoalEvent(this.matchData, isUserAttacking);
             let context = "";
-            
-            // 역습 골이면 메시지 수정
             if (this.lastAction === 'counter_attack') {
                 context = "⚡️ 역습의 마침표! ";
-            } else if (powerDiff > 40) {
+            } else if (shootingQuality === 'decisive') {
                 context = "🔥 압도적인 공격력! ";
-            } else if (powerDiff < -10) {
+            } else if (shootingQuality === 'difficult') {
                 context = "💎 천금같은 기회! ";
             }
 
             // 기존 골 메시지에 문맥 추가
             event.description = event.description.replace("⚽", "⚽ " + context);
 
-            displayEvent(event, this.matchData);
-            this.ballZone = 'midfield'; // 킥오프
+            this.ballZone = 'midfield';
             this.lastAction = 'kickoff';
+        } else if (outcome === 'block') {
+            // 🧱 블록
+            const blockMsg = this.getRandomCommentary('defense', 'block', { team: defendingTeamName });
+            event = { minute: minute, type: 'block', description: blockMsg };
+            
+            this.ballZone = 'midfield';
+            this.lastAction = 'turnover';
         } else {
             // 빗나감 or 선방
-            const isSave = Math.random() < 0.5;
-            const attackingTeamName = isUserAttacking ? teamNames[this.matchData.homeTeam] : teamNames[this.matchData.awayTeam];
-            const defendingTeamName = isUserAttacking ? teamNames[this.matchData.awayTeam] : teamNames[this.matchData.homeTeam];
-            
             const shooterName = this.getShooter(isUserAttacking);
             
             let description = '';
+            let missCategory = shootingQuality === 'decisive' ? 'strong' : 'normal';
+            const isSave = outcome === 'save';
+
             if (this.lastAction === 'counter_attack') {
                 if (isSave) {
                     description = this.getRandomCommentary('save', 'counter', { team: defendingTeamName, player: shooterName });
@@ -946,26 +1099,29 @@ class RealMatchEngine {
                     description = this.getRandomCommentary('miss', 'counter', { team: attackingTeamName, player: shooterName });
                 }
             } else if (isSave) {
-                if (powerDiff > 30) {
-                    description = this.getRandomCommentary('save', 'strong', { team: defendingTeamName, player: shooterName });
-                } else {
-                    description = this.getRandomCommentary('save', 'normal', { team: defendingTeamName, player: shooterName });
-                }
+                description = this.getRandomCommentary('save', missCategory, { team: attackingTeamName, player: shooterName });
             } else {
-                if (powerDiff > 30) {
-                    description = this.getRandomCommentary('miss', 'strong', { team: attackingTeamName, player: shooterName });
-                } else {
-                    description = this.getRandomCommentary('miss', 'normal', { team: attackingTeamName, player: shooterName });
-                }
+                description = this.getRandomCommentary('miss', missCategory, { team: attackingTeamName, player: shooterName });
             }
             
-            const event = { minute: minute, type: isSave ? 'save' : 'miss', description: description };
-            displayEvent(event, this.matchData);
+            event = { minute: minute, type: outcome, description: description };
 
-            if (isSave) {
-            }
-            this.ballZone = 'midfield'; // 골킥 등
+            this.ballZone = 'midfield';
             this.lastAction = 'turnover';
+        }
+
+        if (existingCardElement) {
+            // 기존 카드 업데이트 (몰입감 모드)
+            existingCardElement.className = `event-card ${event.type}`;
+            existingCardElement.innerHTML = `
+                <div class="event-time">${event.minute}분</div>
+                <div>${event.description}</div>
+            `;
+            // 이벤트 데이터에도 추가 (기록용)
+            this.matchData.events.push(event);
+        } else {
+            // 새 카드 생성 (일반 모드)
+            displayEvent(event, this.matchData);
         }
     }
 
@@ -979,10 +1135,11 @@ class RealMatchEngine {
              players = [...squad.fw, ...squad.mf].filter(p => p !== null);
              if (players.length === 0) players = squad.df.filter(p => p !== null);
         } else {
-             const teamPlayers = teams[attackingTeamKey];
-             if (teamPlayers) {
-                 players = teamPlayers.filter(p => p.position === 'FW' || p.position === 'MF');
-                 if (players.length === 0) players = teamPlayers;
+             // [수정] AI팀은 베스트 11 중에서 슈터를 정함
+             const best11 = getBestEleven(attackingTeamKey);
+             if (best11.length > 0) {
+                 players = best11.filter(p => p.position === 'FW' || p.position === 'MF');
+                 if (players.length === 0) players = best11; // 공격/미드필더 없으면 베스트11 전체에서
              }
         }
         
@@ -1266,30 +1423,33 @@ function createMiscEvent(matchData) {
         }
 
     } else {
-        const teamPlayers = teams[team];
-        const forwards = teamPlayers.filter(p => p.position === 'FW').sort((a, b) => b.rating - a.rating);
-        const midfielders = teamPlayers.filter(p => p.position === 'MF').sort((a, b) => b.rating - a.rating);
-        const defenders = teamPlayers.filter(p => p.position === 'DF').sort((a, b) => b.rating - a.rating);
+        // [수정] AI팀은 베스트 11 중에서 득점자를 정함
+        const best11 = getBestEleven(team);
+        const forwards = best11.filter(p => p.position === 'FW').sort((a, b) => b.rating - a.rating);
+        const midfielders = best11.filter(p => p.position === 'MF').sort((a, b) => b.rating - a.rating);
+        const defenders = best11.filter(p => p.position === 'DF').sort((a, b) => b.rating - a.rating);
         
         const possibleScorers = [];
         
-        forwards.slice(0, 3).forEach((player, index) => {
+        forwards.forEach((player, index) => {
             const weight = Math.max(75 - (index * 10), 35);
             for (let i = 0; i < weight; i++) possibleScorers.push(player);
         });
         
-        midfielders.slice(0, 3).forEach((player, index) => {
+        midfielders.forEach((player, index) => {
             const weight = Math.max(21 - (index * 3), 9);
             for (let i = 0; i < weight; i++) possibleScorers.push(player);
         });
         
-        defenders.slice(0, 4).forEach((player, index) => {
+        defenders.forEach((player, index) => {
             const weight = Math.max(4 - index, 2);
             for (let i = 0; i < weight; i++) possibleScorers.push(player);
         });
         
         if (possibleScorers.length > 0) {
             scorer = possibleScorers[Math.floor(Math.random() * possibleScorers.length)];
+        } else if (best11.length > 0) { // 만약 후보가 없으면 베스트11에서 랜덤 선택
+            scorer = best11[Math.floor(Math.random() * best11.length)];
         }
     }
     
@@ -1332,24 +1492,25 @@ if (hasAssist && scorer) {
             assister = possibleAssisters[Math.floor(Math.random() * possibleAssisters.length)];
         }
     } else {
-        const teamPlayers = teams[team];
-        const forwards = teamPlayers.filter(p => p.position === 'FW' && p.name !== scorer.name).sort((a, b) => b.rating - a.rating);
-        const midfielders = teamPlayers.filter(p => p.position === 'MF' && p.name !== scorer.name).sort((a, b) => b.rating - a.rating);
-        const defenders = teamPlayers.filter(p => p.position === 'DF' && p.name !== scorer.name).sort((a, b) => b.rating - a.rating);
+        // [수정] AI팀은 베스트 11 중에서 도움자를 정함
+        const best11 = getBestEleven(team);
+        const forwards = best11.filter(p => p.position === 'FW' && p.name !== scorer.name).sort((a, b) => b.rating - a.rating);
+        const midfielders = best11.filter(p => p.position === 'MF' && p.name !== scorer.name).sort((a, b) => b.rating - a.rating);
+        const defenders = best11.filter(p => p.position === 'DF' && p.name !== scorer.name).sort((a, b) => b.rating - a.rating);
         
         const possibleAssisters = [];
         
-        forwards.slice(0, 3).forEach((player, index) => {
+        forwards.forEach((player, index) => {
             const weight = Math.max(50 - (index * 7), 22);
             for (let i = 0; i < weight; i++) possibleAssisters.push(player);
         });
         
-        midfielders.slice(0, 3).forEach((player, index) => {
+        midfielders.forEach((player, index) => {
             const weight = Math.max(45 - (index * 6), 21);
             for (let i = 0; i < weight; i++) possibleAssisters.push(player);
         });
         
-        defenders.slice(0, 4).forEach((player, index) => {
+        defenders.forEach((player, index) => {
             const weight = Math.max(5 - index, 3);
             for (let i = 0; i < weight; i++) possibleAssisters.push(player);
         });
@@ -1658,6 +1819,7 @@ function displayEvent(event, matchData) {
     eventList.scrollTop = eventList.scrollHeight;
     
     matchData.events.push(event);
+    return eventCard; // [수정] 생성된 요소 반환
 }
 
 function endMatch(matchData) {

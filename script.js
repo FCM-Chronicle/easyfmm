@@ -1750,6 +1750,9 @@ document.addEventListener('DOMContentLoaded', function() {
             if (typeof initTransfer === 'function') {
                 initTransfer();
             }
+            
+            // [신규] 자동 스크롤 시스템 초기화
+            AutoScrollSystem.init();
 });
 
 function initializeGame() {
@@ -4724,6 +4727,7 @@ function renderAudioSettings() {
     
     const isBgmOn = gameData.settings ? gameData.settings.bgm !== false : true;
     const volume = gameData.settings && gameData.settings.bgmVolume !== undefined ? gameData.settings.bgmVolume : 50;
+    const isImmersionOn = gameData.settings ? gameData.settings.immersionMode !== false : true; // 기본값 ON
     
     audioContainer.innerHTML = `
         <h4 style="color: #ffd700; margin-top: 0; margin-bottom: 15px;">🎵 배경음악 설정</h4>
@@ -4738,6 +4742,14 @@ function renderAudioSettings() {
             <span>볼륨:</span>
             <input type="range" id="bgmVolume" min="0" max="100" value="${volume}" style="flex-grow: 1; cursor: pointer;">
             <span id="volumeValue" style="width: 40px; text-align: right;">${volume}%</span>
+        </div>
+        <h4 style="color: #ffd700; margin-top: 20px; margin-bottom: 15px;">⚡ 경기 연출 설정</h4>
+        <div style="display: flex; align-items: center; gap: 20px;">
+            <label class="switch" style="position: relative; display: inline-block; width: 50px; height: 24px;">
+                <input type="checkbox" id="immersionToggle" ${isImmersionOn ? 'checked' : ''} style="opacity: 0; width: 0; height: 0;">
+                <span class="slider round" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px;"></span>
+            </label>
+            <span id="immersionStatusText">몰입감 모드 ${isImmersionOn ? 'ON' : 'OFF'}</span>
         </div>
     `;
     
@@ -4762,6 +4774,8 @@ function renderAudioSettings() {
     const bgmVolume = document.getElementById('bgmVolume');
     const volumeValue = document.getElementById('volumeValue');
     const bgmStatusText = document.getElementById('bgmStatusText');
+    const immersionToggle = document.getElementById('immersionToggle');
+    const immersionStatusText = document.getElementById('immersionStatusText');
     
     bgmToggle.addEventListener('change', (e) => {
         const isOn = e.target.checked;
@@ -4773,6 +4787,13 @@ function renderAudioSettings() {
         const val = parseInt(e.target.value);
         volumeValue.textContent = `${val}%`;
         audioManager.setVolume(val);
+    });
+
+    immersionToggle.addEventListener('change', (e) => {
+        const isOn = e.target.checked;
+        if (!gameData.settings) gameData.settings = {};
+        gameData.settings.immersionMode = isOn;
+        immersionStatusText.textContent = `몰입감 모드 ${isOn ? 'ON' : 'OFF'}`;
     });
 }
 window.renderAudioSettings = renderAudioSettings;
@@ -4853,3 +4874,91 @@ function renderSecretarySettings() {
     `;
 }
 window.renderSecretarySettings = renderSecretarySettings;
+
+// [신규] 자동 스크롤 시스템
+const AutoScrollSystem = {
+    isActive: false,
+    scrollSpeed: 0.5, // 스크롤 속도
+    idleTimer: null,
+    animationId: null,
+
+    init() {
+        // 사용자 입력 감지 이벤트 등록
+        const events = ['mousedown', 'wheel', 'touchstart', 'touchmove', 'keydown', 'click'];
+        events.forEach(eventType => {
+            window.addEventListener(eventType, () => this.onUserInteraction(), { passive: true });
+        });
+
+        // 초기 시작 (3초 후)
+        this.resetIdleTimer();
+    },
+
+    start() {
+        // 모달이 열려있으면 자동 스크롤 방지
+        const openModal = document.querySelector('.modal[style*="display: block"]');
+        if (openModal) {
+            this.resetIdleTimer(); // 모달이 닫힐 때까지 계속 체크
+            return;
+        }
+
+        if (this.isActive) return;
+        this.isActive = true;
+        this.animate();
+    },
+
+    stop() {
+        this.isActive = false;
+        if (this.animationId) {
+            cancelAnimationFrame(this.animationId);
+            this.animationId = null;
+        }
+    },
+
+    animate() {
+        if (!this.isActive) return;
+
+        // [수정] 스크롤 대상 결정 (경기 화면일 경우 eventList, 아니면 window)
+        let target = window;
+        let isWindow = true;
+        
+        const matchScreen = document.getElementById('matchScreen');
+        const eventList = document.getElementById('eventList');
+        
+        // 경기 화면이 활성화되어 있고 eventList가 존재하면 대상을 eventList로 변경
+        if (matchScreen && matchScreen.classList.contains('active') && eventList) {
+            target = eventList;
+            isWindow = false;
+        }
+
+        // 현재 스크롤 상태 확인
+        let currentScroll = isWindow ? window.scrollY : target.scrollTop;
+        let clientHeight = isWindow ? window.innerHeight : target.clientHeight;
+        let maxScroll = isWindow ? document.body.offsetHeight : target.scrollHeight;
+
+        // 끝에 도달했는지 확인
+        if ((clientHeight + currentScroll) >= maxScroll - 1) {
+            this.stop();
+            return;
+        }
+
+        if (isWindow) {
+            window.scrollBy(0, this.scrollSpeed);
+        } else {
+            target.scrollTop += this.scrollSpeed;
+        }
+
+        this.animationId = requestAnimationFrame(() => this.animate());
+    },
+
+    onUserInteraction() {
+        this.stop();
+        this.resetIdleTimer();
+    },
+
+    resetIdleTimer() {
+        if (this.idleTimer) clearTimeout(this.idleTimer);
+        this.idleTimer = setTimeout(() => {
+            this.start();
+        }, 3000);
+    }
+};

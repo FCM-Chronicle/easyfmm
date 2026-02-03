@@ -503,6 +503,9 @@ return allPlayers;
         gameData.squad.fw = gameData.squad.fw.map(p => 
             p && p.name === player.name ? null : p
         );
+        
+        // [추가] 스쿼드에서 제거되었으므로 DNA 포인트 재계산
+        if (typeof DNAManager !== 'undefined') DNAManager.recalculateLineOVRs();
     }
 
     // AI 팀 간 이적 시뮬레이션
