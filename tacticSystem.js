@@ -784,9 +784,9 @@ class RealMatchEngine {
             const aiMental = this.getLinePower(false, 'midfield', 'mentality');
             const aiMid = (aiTech + aiMental) / 2;
 
-            // 랜덤 변수 (0~20)
-            const userRoll = userMid + Math.random() * 20;
-            const aiRoll = aiMid + Math.random() * 20;
+            // [수정] 랜덤 변수 조정 (0~50 -> 0~35) - 미드필더 영향력 다시 상향 (너프 완화)
+            const userRoll = userMid + Math.random() * 35;
+            const aiRoll = aiMid + Math.random() * 35;
 
             let winnerIsUser = userRoll > aiRoll;
 
@@ -795,9 +795,9 @@ class RealMatchEngine {
             if (!winnerIsUser) {
                 // 유저가 중원에서 밀렸을 때
                 // 롱볼, 다이렉트, 역습 전술일 경우 확률 증가
-                let bypassChance = 0.12; // 기본 12%
+                let bypassChance = 0.15; // [수정] 기본 15% (20%에서 하향)
                 if (['longBall', 'twoLine', 'parkBus', 'catenaccio'].includes(gameData.currentTactic)) {
-                    bypassChance = 0.28; // 28%
+                    bypassChance = 0.35; // [수정] 35% (45%에서 하향)
                 }
                 
                 if (Math.random() < bypassChance) {
@@ -814,9 +814,9 @@ class RealMatchEngine {
             } else {
                 // AI가 중원에서 밀렸을 때 (AI도 동일하게 적용)
                 const aiTactic = this.tacticSystem.getOpponentTactic(this.matchData.homeTeam === gameData.selectedTeam ? this.matchData.awayTeam : this.matchData.homeTeam);
-                let bypassChance = 0.12;
+                let bypassChance = 0.15; // [수정] 기본 15%
                 if (['longBall', 'twoLine', 'parkBus', 'catenaccio', 'counter'].includes(aiTactic)) {
-                    bypassChance = 0.28;
+                    bypassChance = 0.35; // [수정] 35%
                 }
                 
                 if (Math.random() < bypassChance) {
@@ -877,8 +877,8 @@ class RealMatchEngine {
 
             // [관문 1: 기회 창출]
             const chanceRatio = atkPower / (atkPower + defPower); // 0.4 ~ 0.6 수준
-            // [수정] 슈팅 빈도를 줄이기 위해 전체적인 기회 창출 확률을 낮춤 (0.4 -> 0.35)
-            if (Math.random() < (chanceRatio * 0.35)) {
+            // [수정] 슈팅 빈도 대폭 상향 (0.38 -> 0.5)
+            if (Math.random() < (chanceRatio * 0.5)) {
                 // [밸런스 조정] 수비수 슈팅 블록 확률을 수비력에 비례하도록 변경 (기존 로직 유지)
                 const blockChance = (defPower / (atkPower + defPower)) * 0.2; // 평균 10% 내외
                 if (Math.random() < blockChance) {
@@ -980,11 +980,11 @@ class RealMatchEngine {
 
         // [수정] 전력 차이 영향 완화 (계단식 -> 선형 공식)
         // 기존: 10점 차이면 18%, 40점 차이면 40%로 급격히 상승
-        // 변경: 기본 8% + 전력차 1점당 0.4% 증가 (랜덤성 포함된 powerDiff 사용)
-        let goalChance = 0.08 + (powerDiff * 0.004);
+        // 변경: 기본 20% + 전력차 1점당 0.5% 증가 (골 확률 대폭 상향)
+        let goalChance = 0.20 + (powerDiff * 0.005);
         
-        // 최소 2%, 최대 35%로 제한 (절대적인 승리/패배 방지)
-        goalChance = Math.max(0.02, Math.min(0.35, goalChance));
+        // 최소 2%, 최대 70%로 제한 (화끈한 득점 지원)
+        goalChance = Math.max(0.02, Math.min(0.70, goalChance));
 
         // 슈팅 퀄리티 텍스트 결정 (확률 기반)
         if (goalChance >= 0.25) shootingQuality = 'decisive';
@@ -1817,10 +1817,13 @@ function displayEvent(event, matchData) {
     
     eventList.appendChild(eventCard);
     
-    // [수정] 스크롤바가 있는 요소를 확실하게 바닥으로 내림
-    eventList.scrollTop = eventList.scrollHeight;
-    if (eventList.parentElement) {
-        eventList.parentElement.scrollTop = eventList.parentElement.scrollHeight;
+    // [수정] 자동 스크롤이 일시 정지 상태가 아닐 때만 바닥으로 내림
+    // 사용자가 스크롤을 올려서 보고 있을 때(isPaused) 강제로 내리는 것을 방지
+    if (window.AutoScrollSystem && !window.AutoScrollSystem.isPaused) {
+        eventList.scrollTop = eventList.scrollHeight;
+        if (eventList.parentElement) {
+            eventList.parentElement.scrollTop = eventList.parentElement.scrollHeight;
+        }
     }
     
     matchData.events.push(event);

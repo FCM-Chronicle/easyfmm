@@ -330,6 +330,25 @@ simulateAIMatchRatings(team1Key, team2Key, goals, score1, score2) {
 
     // 주간 평점 리스트에 추가 (TOTW용)
     this.weeklyRatings.push(...allRatings);
+
+    // [추가] 콘솔에 경기 상세 정보 출력
+    console.log(`\n[경기 결과] ${teamNames[team1Key]} ${score1} : ${score2} ${teamNames[team2Key]}`);
+    
+    if (goals.length > 0) {
+        console.log("⚽ 득점/도움:");
+        goals.forEach(g => {
+            const scorerTeam = teamNames[g.team] || g.team;
+            let msg = ` - ${g.scorer} (${scorerTeam})`;
+            if (g.assister) msg += ` (도움: ${g.assister})`;
+            console.log(msg);
+        });
+    }
+
+    console.log(`📊 ${teamNames[team1Key]} 평점:`);
+    console.log(team1Ratings.map(r => `${r.player.name} ${r.rating}`).join(', '));
+
+    console.log(`📊 ${teamNames[team2Key]} 평점:`);
+    console.log(team2Ratings.map(r => `${r.player.name} ${r.rating}`).join(', '));
 }
 
 // 유저 경기 평점 처리 (tacticSystem.js에서 호출)

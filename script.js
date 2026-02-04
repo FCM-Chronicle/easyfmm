@@ -3344,6 +3344,27 @@ function calculateTeamStrengthDifference() {
     };
 }
 
+// [신규] 불러오기 후 스쿼드 선수 객체 재연결 (Re-linking)
+// 저장된 스쿼드의 선수 객체는 복사본이므로, 실제 teams의 선수 객체와 연결해줘야 함
+function relinkSquadPlayers() {
+    if (!gameData.squad || !gameData.selectedTeam || !teams[gameData.selectedTeam]) return;
+
+    const teamPlayers = teams[gameData.selectedTeam];
+    
+    const findRealPlayer = (savedPlayer) => {
+        if (!savedPlayer) return null;
+        // 이름과 포지션으로 실제 선수 객체 찾기
+        return teamPlayers.find(p => p.name === savedPlayer.name && p.position === savedPlayer.position) || savedPlayer;
+    };
+
+    if (gameData.squad.gk) gameData.squad.gk = findRealPlayer(gameData.squad.gk);
+    gameData.squad.df = gameData.squad.df.map(p => findRealPlayer(p));
+    gameData.squad.mf = gameData.squad.mf.map(p => findRealPlayer(p));
+    gameData.squad.fw = gameData.squad.fw.map(p => findRealPlayer(p));
+
+    console.log('✅ 스쿼드 선수 객체 재연결 완료');
+}
+
   function saveGame() {
     // 중복 실행 방지
     if (window.savingInProgress) {
@@ -3365,22 +3386,6 @@ function calculateTeamStrengthDifference() {
     }
 
     try {
-        // 모든 리그 테이블 데이터 수집
-        const allLeagueData = {};
-        
-        if (typeof league1Table !== 'undefined') {
-            allLeagueData.league1Table = league1Table;
-        }
-        if (typeof league2Table !== 'undefined') {
-            allLeagueData.league2Table = league2Table;
-        }
-        if (typeof league3Table !== 'undefined') {
-            allLeagueData.league3Table = league3Table;
-        }
-        
-        console.log('수집된 리그 데이터:', allLeagueData);
-        console.log('league2Table 내용:', league2Table);
-
         // 이적 시장 데이터 저장 (gameData에 통합)
         if (typeof transferSystem !== 'undefined') {
             gameData.transferSystemData = transferSystem.getSaveData();
@@ -3408,18 +3413,12 @@ function calculateTeamStrengthDifference() {
         
         const saveData = {
         gameData: gameData,
-        teams: teams,
-        allTeams: typeof allTeams !== 'undefined' ? allTeams : null,
-        league1Table: league1Table,
-        league2Table: league2Table,
-        league3Table: league3Table,
+        allTeams: typeof allTeams !== 'undefined' ? allTeams : null, // teams는 allTeams에서 복구 가능하므로 제외
         recordsData: recordsData,
         snsData: snsManager.getSaveData(),
         mailData: mailManager.getSaveData(), // 메일 데이터 저장
         growthData: playerGrowthSystem.getSaveData(),
         injuryData: injurySystem.getSaveData(), // 부상 데이터 추가
-        youthSquad: gameData.youthSquad, // 유스팀 데이터 추가
-        hiredScout: gameData.hiredScout, // 스카우터 정보 추가
         timestamp: new Date().toISOString()
     };
         
@@ -3467,38 +3466,35 @@ function loadGame(event) {
             if (!gameData.playerRoles) gameData.playerRoles = {}; // [추가] 구버전 세이브 호환성 보장
             console.log('gameData 복원 완료');
             
-            // 팀 데이터 복원
-            if (saveData.teams) {
-                Object.assign(teams, saveData.teams);
-                console.log('teams 데이터 복원 완료');
-            }
+            // 팀 데이터 복원 (allTeams -> teams 재구성)
             if (saveData.allTeams) {
                 Object.assign(allTeams, saveData.allTeams);
                 console.log('allTeams 데이터 복원 완료');
-            }
-            
-            // [추가] 로드 후 teams와 allTeams 연결 복구 (메모리 상 동기화)
-            if (typeof allTeams !== 'undefined' && typeof teams !== 'undefined') {
+                
+                // teams 객체 재구성
                 Object.keys(allTeams).forEach(teamKey => {
-                    if (teams[teamKey]) {
-                        // teams의 최신 선수 데이터를 allTeams가 참조하도록 설정
-                        allTeams[teamKey].players = teams[teamKey];
-                    }
+                    teams[teamKey] = allTeams[teamKey].players;
                 });
+                console.log('teams 객체 재구성 완료');
+            } else if (saveData.teams) {
+                // 구버전 호환: teams만 있는 경우
+                Object.assign(teams, saveData.teams);
             }
             
-            // 리그 테이블 복원
-            if (saveData.league1Table) {
-                league1Table = saveData.league1Table;
-                console.log('1부리그 테이블 복원 완료');
-            }
-            if (saveData.league2Table) {
-                league2Table = saveData.league2Table;
-                console.log('2부리그 테이블 복원 완료');
-            }
-            if (saveData.league3Table) {
-                league3Table = saveData.league3Table;
-                console.log('3부리그 테이블 복원 완료');
+            // 스쿼드 선수 객체 재연결 (중요!)
+            relinkSquadPlayers();
+            
+            // 리그 테이블 복원 (gameData.leagueData 기반으로 전역 변수 복구)
+            if (gameData.leagueData) {
+                if (gameData.leagueData.division1) window.league1Table = gameData.leagueData.division1;
+                if (gameData.leagueData.division2) window.league2Table = gameData.leagueData.division2;
+                if (gameData.leagueData.division3) window.league3Table = gameData.leagueData.division3;
+                console.log('리그 테이블 전역 변수 복구 완료');
+            } else {
+                // 구버전 호환
+                if (saveData.league1Table) window.league1Table = saveData.league1Table;
+                if (saveData.league2Table) window.league2Table = saveData.league2Table;
+                if (saveData.league3Table) window.league3Table = saveData.league3Table;
             }
             
             // Records System 데이터 복원
@@ -3530,18 +3526,6 @@ function loadGame(event) {
             if (gameData.transferSystemData && typeof transferSystem !== 'undefined') {
                 transferSystem.loadSaveData(gameData.transferSystemData);
                 console.log('이적 시장 데이터 복원 완료');
-            }
-
-            // 유스팀 데이터 복원
-            if (saveData.gameData.youthSquad) {
-                gameData.youthSquad = saveData.gameData.youthSquad;
-                console.log('유스팀 데이터 복원 완료');
-            }
-
-            // 스카우터 데이터 복원
-            if (saveData.gameData.hiredScout) {
-                gameData.hiredScout = saveData.gameData.hiredScout;
-                console.log('고용된 스카우터 데이터 복원 완료');
             }
 
             // 스케줄 데이터 복원 (없으면 생성)
@@ -4085,17 +4069,9 @@ function saveToSlot(slotNumber, silent = false) {
             }
         }
         
-        // 모든 리그 테이블 데이터 수집
-        const allLeagueData = {};
-        
-        if (typeof league1Table !== 'undefined') {
-            allLeagueData.league1Table = league1Table;
-        }
-        if (typeof league2Table !== 'undefined') {
-            allLeagueData.league2Table = league2Table;
-        }
-        if (typeof league3Table !== 'undefined') {
-            allLeagueData.league3Table = league3Table;
+        // [수정] 이적 시장 데이터 저장 (gameData에 통합)
+        if (typeof transferSystem !== 'undefined') {
+            gameData.transferSystemData = transferSystem.getSaveData();
         }
         
         // Records System에서 모든 득점/도움 데이터 수집
@@ -4117,17 +4093,12 @@ function saveToSlot(slotNumber, silent = false) {
         
         const saveData = {
             gameData: gameData,
-            teams: teams,
             allTeams: typeof allTeams !== 'undefined' ? allTeams : null,
-            league1Table: league1Table,
-            league2Table: league2Table,
-            league3Table: league3Table,
             recordsData: recordsData,
             snsData: snsManager.getSaveData(),
+            mailData: mailManager.getSaveData(),
             growthData: playerGrowthSystem.getSaveData(),
             injuryData: injurySystem.getSaveData(),
-        youthSquad: gameData.youthSquad, // 유스팀 데이터 추가
-        hiredScout: gameData.hiredScout, // 스카우터 정보 추가
             timestamp: new Date().toISOString()
         };
         
@@ -4180,37 +4151,35 @@ function loadFromSlot(slotNumber) {
         gameData = saveData.gameData;
         console.log('gameData 복원 완료');
         
-        // 팀 데이터 복원
-        if (saveData.teams) {
-            Object.assign(teams, saveData.teams);
-            console.log('teams 데이터 복원 완료');
-        }
+        // 팀 데이터 복원 (allTeams -> teams 재구성)
         if (saveData.allTeams) {
             Object.assign(allTeams, saveData.allTeams);
             console.log('allTeams 데이터 복원 완료');
+            
+            // teams 객체 재구성
+            Object.keys(allTeams).forEach(teamKey => {
+                teams[teamKey] = allTeams[teamKey].players;
+            });
+            console.log('teams 객체 재구성 완료');
+        } else if (saveData.teams) {
+            // 구버전 호환
+            Object.assign(teams, saveData.teams);
         }
         
-        // [추가] 로드 후 teams와 allTeams 연결 복구
-        if (typeof allTeams !== 'undefined' && typeof teams !== 'undefined') {
-            Object.keys(allTeams).forEach(teamKey => {
-                if (teams[teamKey]) {
-                    allTeams[teamKey].players = teams[teamKey];
-                }
-            });
-        }
+        // 스쿼드 선수 객체 재연결
+        relinkSquadPlayers();
         
         // 리그 테이블 복원
-        if (saveData.league1Table) {
-            league1Table = saveData.league1Table;
-            console.log('1부리그 테이블 복원 완료');
-        }
-        if (saveData.league2Table) {
-            league2Table = saveData.league2Table;
-            console.log('2부리그 테이블 복원 완료');
-        }
-        if (saveData.league3Table) {
-            league3Table = saveData.league3Table;
-            console.log('3부리그 테이블 복원 완료');
+        if (gameData.leagueData) {
+            if (gameData.leagueData.division1) window.league1Table = gameData.leagueData.division1;
+            if (gameData.leagueData.division2) window.league2Table = gameData.leagueData.division2;
+            if (gameData.leagueData.division3) window.league3Table = gameData.leagueData.division3;
+            console.log('리그 테이블 전역 변수 복구 완료');
+        } else {
+            // 구버전 호환
+            if (saveData.league1Table) window.league1Table = saveData.league1Table;
+            if (saveData.league2Table) window.league2Table = saveData.league2Table;
+            if (saveData.league3Table) window.league3Table = saveData.league3Table;
         }
         
         // Records System 데이터 복원
@@ -4239,24 +4208,6 @@ function loadFromSlot(slotNumber) {
             console.log('부상 데이터 복원 완료');
         }
 
-        // 유스팀 데이터 복원
-        if (saveData.gameData.youthSquad) {
-            gameData.youthSquad = saveData.gameData.youthSquad;
-            console.log('유스팀 데이터 복원 완료');
-        }
-
-        // 스카우터 데이터 복원
-        if (saveData.gameData.hiredScout) {
-            gameData.hiredScout = saveData.gameData.hiredScout;
-            console.log('고용된 스카우터 데이터 복원 완료');
-        }
-
-        // 스카우터 데이터 복원
-        if (saveData.gameData.hiredScout) {
-            gameData.hiredScout = saveData.gameData.hiredScout;
-            console.log('고용된 스카우터 데이터 복원 완료');
-        }
-        
         // 포텐셜 시스템 처리
         if (typeof playerGrowthSystem !== 'undefined') {
             console.log('=== 포텐셜 시스템 처리 시작 ===');
@@ -4830,7 +4781,8 @@ function renderGeneralSettings() {
     
     generalContainer.innerHTML = `
         <h4 style="color: #ffd700; margin-top: 0; margin-bottom: 15px;">⚙️ 일반 설정</h4>
-        <button class="btn" id="replayTutorialBtn" style="width: 100%;">튜토리얼 다시 보기</button>
+        <button class="btn" id="replayTutorialBtn" style="width: 100%; margin-bottom: 10px;">튜토리얼 다시 보기</button>
+        <button class="btn" onclick="openDatabaseModal()" style="width: 100%; background: linear-gradient(45deg, #3498db, #2980b9);">📚 데이터베이스 열람</button>
     `;
     
     document.getElementById('replayTutorialBtn').addEventListener('click', () => {
@@ -4876,7 +4828,7 @@ function renderSecretarySettings() {
 window.renderSecretarySettings = renderSecretarySettings;
 
 // [신규] 자동 스크롤 시스템 (경기 화면 전용, 조건 없음)
-const AutoScrollSystem = {
+window.AutoScrollSystem = {
     scrollSpeed: 2.0,
     isPaused: false, // [추가] 일시 정지 플래그
     resumeTimer: null, // [추가] 재개 타이머
@@ -4922,3 +4874,145 @@ const AutoScrollSystem = {
         requestAnimationFrame(() => this.animate());
     }
 };
+
+// [신규] 데이터베이스 열람 시스템
+function openDatabaseModal() {
+    let modal = document.getElementById('databaseModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'databaseModal';
+        modal.className = 'modal';
+        modal.style.zIndex = '9999'; // 최상위
+        modal.innerHTML = `
+            <div class="modal-content" style="max-width: 800px; height: 80vh; display: flex; flex-direction: column; background: #2c3e50; color: white;">
+                <span class="close" onclick="document.getElementById('databaseModal').style.display='none'" style="color: white; align-self: flex-end; cursor: pointer; font-size: 28px;">&times;</span>
+                <h3 id="dbModalTitle" style="text-align: center; color: #ffd700; margin-bottom: 20px; margin-top: 0;">데이터베이스</h3>
+                <div id="dbModalContent" style="flex: 1; overflow-y: auto; padding: 10px;"></div>
+                <div id="dbModalControls" style="margin-top: 15px; text-align: center; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1);">
+                    <button id="dbBackBtn" class="btn" style="display: none; background: #7f8c8d;">⬅️ 뒤로가기</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        
+        // 뒤로가기 버튼 이벤트
+        document.getElementById('dbBackBtn').addEventListener('click', () => {
+            const currentView = modal.dataset.view;
+            if (currentView === 'teams') {
+                renderDatabaseLeagues();
+            } else if (currentView === 'players') {
+                const currentLeague = modal.dataset.league;
+                renderDatabaseTeams(currentLeague);
+            }
+        });
+
+        // 모달 바깥 클릭 시 닫기
+        window.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+    }
+    
+    modal.style.display = 'block';
+    renderDatabaseLeagues();
+}
+
+function renderDatabaseLeagues() {
+    const modal = document.getElementById('databaseModal');
+    const content = document.getElementById('dbModalContent');
+    const backBtn = document.getElementById('dbBackBtn');
+    const title = document.getElementById('dbModalTitle');
+    
+    modal.dataset.view = 'leagues';
+    backBtn.style.display = 'none';
+    title.textContent = '리그 선택';
+    
+    content.innerHTML = `
+        <div style="display: grid; gap: 15px;">
+            <button class="btn" onclick="renderDatabaseTeams(1)" style="padding: 20px; font-size: 1.2rem; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);">🏆 1부 리그</button>
+            <button class="btn" onclick="renderDatabaseTeams(2)" style="padding: 20px; font-size: 1.2rem; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);">⚽ 2부 리그</button>
+            <button class="btn" onclick="renderDatabaseTeams(3)" style="padding: 20px; font-size: 1.2rem; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);">🌟 3부 리그</button>
+        </div>
+    `;
+}
+
+function renderDatabaseTeams(league) {
+    const modal = document.getElementById('databaseModal');
+    const content = document.getElementById('dbModalContent');
+    const backBtn = document.getElementById('dbBackBtn');
+    const title = document.getElementById('dbModalTitle');
+    
+    modal.dataset.view = 'teams';
+    modal.dataset.league = league;
+    backBtn.style.display = 'inline-block';
+    title.textContent = `${league}부 리그 팀 목록`;
+    
+    const leagueTeams = Object.keys(allTeams).filter(key => allTeams[key].league == league);
+    
+    let html = '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px;">';
+    leagueTeams.forEach(teamKey => {
+        const teamName = teamNames[teamKey] || teamKey;
+        const currentPlayers = teams[teamKey] ? teams[teamKey].length : allTeams[teamKey].players.length;
+        html += `
+            <div onclick="renderDatabasePlayers('${teamKey}')" style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; cursor: pointer; text-align: center; transition: background 0.2s; border: 1px solid rgba(255,255,255,0.1);">
+                <div style="font-weight: bold; font-size: 1.1rem; margin-bottom: 5px; color: #fff;">${teamName}</div>
+                <div style="font-size: 0.9rem; color: #aaa;">선수 ${currentPlayers}명</div>
+            </div>
+        `;
+    });
+    html += '</div>';
+    content.innerHTML = html;
+}
+
+function renderDatabasePlayers(teamKey) {
+    const modal = document.getElementById('databaseModal');
+    const content = document.getElementById('dbModalContent');
+    const backBtn = document.getElementById('dbBackBtn');
+    const title = document.getElementById('dbModalTitle');
+    
+    modal.dataset.view = 'players';
+    backBtn.style.display = 'inline-block';
+    const teamName = teamNames[teamKey] || teamKey;
+    title.textContent = `${teamName} 선수 명단`;
+    
+    const players = teams[teamKey] || allTeams[teamKey].players;
+    const posOrder = { 'GK': 1, 'DF': 2, 'MF': 3, 'FW': 4 };
+    const sortedPlayers = [...players].sort((a, b) => (posOrder[a.position] || 5) - (posOrder[b.position] || 5) || b.rating - a.rating);
+    
+    let html = '<div style="display: flex; flex-direction: column; gap: 10px;">';
+    sortedPlayers.forEach(player => {
+        let stats = { goals: 0, assists: 0, matches: 0, moms: 0 };
+        if (typeof leagueBasedRecordsSystem !== 'undefined' && leagueBasedRecordsSystem.playerStats.has(player.name)) {
+            const record = leagueBasedRecordsSystem.playerStats.get(player.name);
+            if (record.team === teamKey) stats = record;
+        }
+        let posColor = player.position === 'FW' ? '#e74c3c' : player.position === 'MF' ? '#2ecc71' : player.position === 'DF' ? '#3498db' : '#f1c40f';
+        html += `
+            <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid ${posColor};">
+                <div style="flex: 1;">
+                    <div style="font-weight: bold; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+                        <span style="color: ${posColor}; font-size: 0.9rem; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px;">${player.position}</span>
+                        ${player.name}
+                    </div>
+                    <div style="font-size: 0.85rem; color: #ccc; margin-top: 6px;">
+                        ${player.country || '국적 미상'} | ${player.age}세 | 오버롤 <span style="color: #ffd700; font-weight: bold;">${Math.floor(player.rating)}</span>
+                    </div>
+                </div>
+                <div style="text-align: right; font-size: 0.85rem; color: #ddd; min-width: 100px;">
+                    <div style="margin-bottom: 2px;">🏟️ 경기: ${stats.matches}</div>
+                    <div style="margin-bottom: 2px;">⚽ 골: ${stats.goals}</div>
+                    <div style="margin-bottom: 2px;">👟 도움: ${stats.assists}</div>
+                    <div>⭐ MOM: ${stats.moms}</div>
+                </div>
+            </div>
+        `;
+    });
+    html += '</div>';
+    content.innerHTML = html;
+}
+
+// 전역 노출
+window.openDatabaseModal = openDatabaseModal;
+window.renderDatabaseTeams = renderDatabaseTeams;
+window.renderDatabasePlayers = renderDatabasePlayers;
