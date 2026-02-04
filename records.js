@@ -155,7 +155,9 @@ class RecordsSystem {
     simulateAllLeaguesMatches() {
         console.log(`=== ${gameData.currentRound}라운드 AI 경기 시뮬레이션 ===`);
         
-        for (let league = 1; league <= 3; league++) {
+        // [수정] 현재 리그가 4부(월드컵)라면 4부까지, 아니면 3부까지 시뮬레이션
+        const maxLeague = gameData.currentLeague === 4 ? 4 : 3;
+        for (let league = 1; league <= maxLeague; league++) {
             const divisionKey = `division${league}`;
             const leagueSchedule = gameData.schedule[divisionKey];
             

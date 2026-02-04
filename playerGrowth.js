@@ -46,7 +46,7 @@ class PlayerGrowthSystem {
             "마르크 베르날": 91,
             "루니 바르다그지": 89,
             "파우 쿠바르시": 100,
-            "엔드릭": 92,
+            "엔드릭": 97,
             "리코 루이스": 89,
             "코비 마이누": 95,
             "아론 바우만": 98,
@@ -186,8 +186,8 @@ class PlayerGrowthSystem {
         // 남은 성장량을 초과하지 않도록
         growthAmount = Math.min(growthAmount, growthInfo.remainingGrowth);
         
-        // 정수로 반올림
-        return Math.round(growthAmount);
+        // [수정] 소수점 단위 성장도 누락 없이 반영되도록 반올림 제거
+        return growthAmount;
     }
 
     // 선수가 현재 스쿼드에 포함되어 있는지 확인
@@ -213,7 +213,8 @@ class PlayerGrowthSystem {
 
     // [수정] 성장 적용 (소수점 유지)
     applyGrowth(player, growthAmount, growthInfo) {
-        const oldRating = Math.round(player.rating);
+        // [수정] UI 표시 기준(내림)으로 변경하여 실제 수치가 바뀔 때만 알림
+        const oldRating = Math.floor(player.rating);
         
         // 성장 한계 설정
         const maxRating = player.isCustom ? 105 : 104;
@@ -262,44 +263,72 @@ class PlayerGrowthSystem {
         return Math.round(totalRating / teamPlayers.length);
     }
 
-    // AI 팀 성장 처리 (우리 팀 평균 오버롤 기반)
+    // [수정] AI 팀 성장 처리 (독립적 성장 시스템으로 변경)
     processAllTeamsGrowth() {
-        // 우리 팀 평균 오버롤이 1 오를 때마다 계산
-        const currentTeamAvg = this.calculateTeamAverageRating();
+        // 5경기마다 성장 처리
+        if (gameData.matchesPlayed % 5 !== 0) return;
+
+        console.log("🤖 AI 선수 성장 프로세스 시작...");
         
-        // 초기 평균 저장 (처음 호출 시)
-        if (!gameData.initialTeamAvg) {
-            gameData.initialTeamAvg = currentTeamAvg;
-        }
-        
-        // 우리 팀이 몇 오버롤 성장했는지 계산
-        const teamGrowth = currentTeamAvg - gameData.initialTeamAvg;
+        // 유저 팀 평균 오버롤 계산 (비교용)
+        const userTeamAvg = this.calculateTeamAverageRating();
         
         Object.keys(teams).forEach(teamKey => {
             if (teamKey !== gameData.selectedTeam) {
                 const teamPlayers = teams[teamKey];
                 
+                // AI 팀 평균 오버롤 계산
+                const aiTeamAvg = Math.round(teamPlayers.reduce((sum, p) => sum + p.rating, 0) / teamPlayers.length);
+                
+                // 밸런싱 계수 (유저 팀과의 격차에 따라 성장 속도 조절)
+                let balanceFactor = 1.0;
+                const diff = aiTeamAvg - userTeamAvg;
+                
+                // [수정] 5시즌 내 유저 최강팀 등극을 위한 밸런싱 (압도적 차이는 방지)
+                if (diff > 2) {
+                    balanceFactor = 0.4; // AI가 유저보다 강하면 성장 대폭 둔화 (유저 추격 지원)
+                } else if (diff < -6) {
+                    balanceFactor = 1.3; // 격차가 너무 벌어지면(6 이상) AI 부스트 (압도적 차이 방지)
+                } else if (diff < 0) {
+                    balanceFactor = 0.9; // 유저가 우위일 때는 AI 성장 소폭 둔화 (유저 우위 유지)
+                }
+
                 teamPlayers.forEach(player => {
-                    if (player.age <= 25 && gameData.matchesPlayed % 5 === 0) {
-                        // [수정] 우리 팀이 1 오버롤 성장할 때마다 AI는 0.6~1.2 성장 (성장 속도 재조정)
-                        let growthAmount = teamGrowth * (0.6 + Math.random() * 0.6);
+                    // 25세 이하 선수만 성장
+                    if (player.age <= 25) {
+                        // 기본 성장치 (5경기당 0.3 ~ 0.7)
+                        let growthAmount = 0.3 + Math.random() * 0.4;
+
+                        // 1. 나이 보정 (어릴수록 빠름)
+                        if (player.age <= 20) growthAmount *= 1.5;
+                        else if (player.age <= 23) growthAmount *= 1.2;
+                        
+                        // 2. 현재 능력치 보정 (낮을수록 빨리 큼 - 캐치업)
+                        if (player.rating < 70) growthAmount *= 1.3;
+                        else if (player.rating > 90) growthAmount *= 0.5; // 고능력치는 성장 둔화
+                        
+                        // 3. 밸런싱 계수 적용 (신규)
+                        growthAmount *= balanceFactor;
                         
                         // AI 프레스티지 선수 보너스
                         const isPrestigePlayer = gameData.aiPrestige && gameData.aiPrestige[teamKey] && gameData.aiPrestige[teamKey].includes(player.name);
                         
                         if (isPrestigePlayer) {
-                            growthAmount += 0.3; // +0.3 보너스
-                            console.log(`👑 AI 프레스티지 성장: ${player.name} (${teamNames[teamKey]}) +${growthAmount.toFixed(1)}`);
+                            growthAmount += 0.5; // 프레스티지 추가 보너스
                         }
 
                         // 소수점 1자리까지 허용
                         growthAmount = Math.round(growthAmount * 10) / 10;
                         
                         // AI 선수 성장 적용
+                        const oldRating = player.rating;
                         const newRating = Math.min(99, player.rating + growthAmount);
                         player.rating = Math.round(newRating * 10) / 10; // 소수점 1자리
                         
-                        console.log(`🤖 AI 성장: ${player.name} (${teamNames[teamKey]}) +${growthAmount.toFixed(1)} → ${player.rating.toFixed(1)}`);
+                        // 로그 출력 (성장폭이 0.5 이상일 때만)
+                        if (growthAmount >= 0.5) {
+                            console.log(`📈 ${player.name} (${teamNames[teamKey] || teamKey}): ${oldRating.toFixed(1)} -> ${player.rating.toFixed(1)} (+${growthAmount}) [밸런스: x${balanceFactor}]`);
+                        }
                     }
                 });
             }

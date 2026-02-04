@@ -51,7 +51,6 @@ const allTeams = {
             { name: "안드리 루닌", position: "GK", country: "우크라이나", age: 26, rating: 79 },
             { name: "오렐리앵 추아메니", position: "MF", country: "프랑스", age: 25, rating: 85 },
             { name: "아르다 귈러", position: "MF", country: "튀르키예", age: 20, rating: 83 },
-            { name: "엔드릭", position: "FW", country: "브라질", age: 19, rating: 75 },
             { name: "알바로 카레라스", position: "DF", country: "스페인", age: 22, rating: 84 },
             { name: "다니 세바요스", position: "MF", country: "스페인", age: 28, rating: 73 },
             { name: "프란 가르시아", position: "DF", country: "스페인", age: 25, rating: 81 },
@@ -233,9 +232,11 @@ const allTeams = {
         league: 1,
         players: [
             { name: "피에트로 테라치아노", position: "GK", country: "이탈리아", age: 21, rating: 67 },
+            { name: "크리스토퍼 은쿤쿠", position: "FW", country: "프랑스", age: 27, rating: 75 },
             { name: "사무엘레 리치", position: "FW", country: "이탈리아", age: 22, rating: 80 },
             { name: "산티아고 히메네스", position: "FW", country: "멕시코", age: 24, rating: 83 },
             { name: "루벤 로프터스치크", position: "MF", country: "잉글랜드", age: 29, rating: 81 },
+            { name: "알렉시스 살레마커스", position: "FW", country: "벨기에", age: 26, rating: 81 },
             { name: "프란치스코 카마르다", position: "FW", country: "이탈리아", age: 17, rating: 78 },
             { name: "하파엘 레앙", position: "FW", country: "포르투갈", age: 26, rating: 89 },
             { name: "아드리앙 라비오", position: "MF", country: "프랑스", age: 30, rating: 86 },
@@ -249,9 +250,11 @@ const allTeams = {
             { name: "피카요 토모리", position: "DF", country: "잉글랜드", age: 27, rating: 85 },
             { name: "유수프 포파나", position: "MF", country: "프랑스", age: 26, rating: 82 },
             { name: "스트라히냐 파블로비치", position: "DF", country: "세르비아", age: 24, rating: 77 },
+            { name: "페르비스 에스투피냔", position: "DF", country: "에콰도르", age: 28, rating: 78 },
             { name: "워렌 본도", position: "MF", country: "프랑스", age: 23, rating: 67 },
             { name: "필리포 테라치아노", position: "DF", country: "이탈리아", age: 22, rating: 67 },
             { name: "마테오 가비아", position: "DF", country: "이탈리아", age: 25, rating: 80 },
+            { name: "니클라스 퓔크루크", position: "FW", country: "독일", age: 32, rating: 81 },
             { name: "유누스 무사", position: "MF", country: "미국", age: 22, rating: 77 }
         ],
         description: "로소네리의 전통과 명예를 이어가는 밀라노의 자존심"
@@ -368,7 +371,6 @@ const allTeams = {
             { name: "다리우 이수구", position: "MF", country: "포르투갈", age: 21, rating: 73 },
             { name: "니콜라 잭슨", position: "FW", country: "세네갈", age: 24, rating: 79 },
             { name: "안드레이 산투스", position: "MF", country: "브라질", age: 21, rating: 86 },
-            { name: "크리스토퍼 은쿤쿠", position: "FW", country: "프랑스", age: 27, rating: 75 },
             { name: "마마두 사르", position: "DF", country: "프랑스", age: 19, rating: 74 },
             { name: "주앙 페드루", position: "FW", country: "브라질", age: 24, rating: 86 },
             { name: "키어넌 듀스버리홀", position: "MF", country: "잉글랜드", age: 26, rating: 77 },
@@ -702,8 +704,8 @@ const allTeams = {
             { name: "닐 엘 야누이", position: "MF", country: "프랑스", age: 21, rating: 83 },
             { name: "아나스 살라에딘", position: "DF", country: "네덜란드", age: 23, rating: 69 },
             { name: "톰마소 발단치", position: "MF", country: "이탈리아", age: 22, rating: 77 },
-            { name: "알렉시스 살레마커스", position: "FW", country: "벨기에", age: 26, rating: 81 },
             { name: "니콜로 피실리", position: "FW", country: "이탈리아", age: 20, rating: 75 },
+            { name: "레온 베일리", position: "FW", country: "자메이카", age: 28, rating: 78 },
             { name: "부바 상가레", position: "DF", country: "스페인", age: 17, rating: 67 },
             { name: "페데리코 나르딘", position: "DF", country: "이탈리아", age: 18, rating: 66 },
             { name: "스테판 엘샤라위", position: "FW", country: "이탈리아", age: 32, rating: 82 },
@@ -1021,7 +1023,6 @@ const allTeams = {
             { name: "바란 데미로글루", position: "MF", country: "튀르키예", age: 20, rating: 70 },
             { name: "알리 예실유르트", position: "DF", country: "튀르키예", age: 20, rating: 68 },
             { name: "알리 투랍 불뷸", position: "DF", country: "튀르키예", age: 20, rating: 68 },
-            { name: "알바로 모라타", position: "FW", country: "스페인", age: 32, rating: 78 },
             { name: "함자 아크만", position: "MF", country: "튀르키예", age: 20, rating: 69 },
             { name: "에페 아크만", position: "MF", country: "튀르키예", age: 19, rating: 68 },
             { name: "카짐칸 카라타스", position: "DF", country: "튀르키예", age: 27, rating: 72 },
@@ -1441,10 +1442,9 @@ const allTeams = {
             { name: "말릭 포파나", position: "MF", country: "벨기에", age: 20, rating: 74 },
             { name: "태너 테스만", position: "MF", country: "미국", age: 23, rating: 75 },
             { name: "아브네르 비니시우스", position: "DF", country: "브라질", age: 25, rating: 77 },
-            { name: "라얀 셰르키", position: "MF", country: "프랑스", age: 21, rating: 87 },
             { name: "무사 니아카테", position: "DF", country: "세네갈", age: 29, rating: 76 },
             { name: "샤엘 쿰베디", position: "DF", country: "프랑스", age: 20, rating: 73 },
-            { name: "클린톤 마타", position: "DF", country: "앙골라", age: 32, rating: 74 },
+            { name: "클린톤 마타", position: "DF", country: "앙골라", age: 32, rating: 78 },
             { name: "티아고 알마다", position: "MF", country: "아르헨티나", age: 24, rating: 75 },
             { name: "와흐메드 오마리", position: "DF", country: "코모로스", age: 25, rating: 74 },
             { name: "네마냐 마티치", position: "MF", country: "세르비아", age: 37, rating: 75 },
@@ -1452,6 +1452,7 @@ const allTeams = {
             { name: "어니스트 누아마", position: "FW", country: "가나", age: 21, rating: 72 },
             { name: "레미 데캉", position: "GK", country: "프랑스", age: 29, rating: 72 },
             { name: "두예 찰레타차르", position: "DF", country: "크로아티아", age: 28, rating: 75 },
+            { name: "엔드릭", position: "FW", country: "브라질", age: 19, rating: 80 },
             { name: "조르지 미카우타제", position: "FW", country: "조지아", age: 24, rating: 76 },
             { name: "에인슬리 메이틀랜드나일스", position: "DF", country: "잉글랜드", age: 27, rating: 74 }
         ],
@@ -1535,6 +1536,7 @@ let gameData = {
     matchesPlayed: 0,
     currentOpponent: null,
     currentTactic: 'gegenpress',
+    isWorldCupMode: false, // [추가] 월드컵 모드 플래그 초기화
     squad: {
         // 4-3-3 포메이션 기준
         gk: null,
@@ -1557,6 +1559,7 @@ let gameData = {
     currentRound: 1, // 현재 라운드
     isHomeGame: true, // 현재 경기가 홈 경기인지 여부
     startYear: 2025, // 시작 연도 (시즌 표기용)
+    seasonCount: 1, // [신규] 시즌 카운트
     settings: { autoSave: false, bgm: true, bgmVolume: 50 }, // 게임 설정 (오디오 추가)
     playerRoles: {}, // [추가] 선수별 역할 데이터 초기화
     temporaryStats: {}, // [신규] 일시적 스탯 버프/디버프 저장소
@@ -2285,6 +2288,40 @@ function showScreen(screenId) {
 }
 
 function showTab(tabName) {
+    // [추가] 월드컵 모드 탭 제어
+    if (gameData.isWorldCupMode) {
+        // 허용된 탭: squad, match, tactics, settings, records(대회기록), callup(차출)
+        // 차단된 탭: transfer, league, sponsor, youth, sns, transfer_news, mail
+        const blockedTabs = ['transfer', 'league', 'sponsor', 'youth', 'sns', 'transfer_news', 'mail'];
+        
+        if (blockedTabs.includes(tabName)) {
+            return;
+        }
+
+        // 'records' 탭 클릭 시 월드컵 기록 화면 표시
+        if (tabName === 'records') {
+            if (typeof WorldCupManager !== 'undefined') {
+                WorldCupManager.renderRecordsTab();
+            }
+        }
+
+        // 'callup' 탭 (이적 탭 자리에 대신 사용)
+        if (tabName === 'callup') {
+            if (typeof WorldCupManager !== 'undefined') {
+                WorldCupManager.renderCallUpTab();
+            }
+            // callup 탭 활성화 (UI적으로는 transfer 탭을 사용)
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            const btn = document.querySelector(`[data-tab="transfer"]`); // 차출 버튼은 transfer 버튼을 재활용
+            if (btn) btn.classList.add('active');
+            
+            document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
+            const panel = document.getElementById('transfer'); // 패널도 transfer 재활용
+            if (panel) panel.classList.add('active');
+            return;
+        }
+    }
+
     // 탭 버튼 활성화
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.classList.remove('active');
@@ -2405,6 +2442,29 @@ function showTab(tabName) {
     }
 }
 
+// [신규] 탭 UI 활성화 헬퍼 함수
+function activateTabUI(tabName) {
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // callup 탭은 transfer 버튼을 사용
+    let btnSelector = `[data-tab="${tabName}"]`;
+    if (tabName === 'callup') btnSelector = `[data-tab="transfer"]`;
+    
+    const btn = document.querySelector(btnSelector);
+    if (btn) btn.classList.add('active');
+    
+    document.querySelectorAll('.tab-panel').forEach(panel => {
+        panel.classList.remove('active');
+    });
+    
+    // 패널 ID 매핑 (callup은 transfer 패널 재활용)
+    let panelId = (tabName === 'callup') ? 'transfer' : tabName;
+    const panel = document.getElementById(panelId);
+    if (panel) panel.classList.add('active');
+}
+
 // 선수가 이미 스쿼드에 있는지 확인하는 함수
 function isPlayerInSquad(player) {
     const squad = gameData.squad;
@@ -2476,6 +2536,11 @@ function displayTeamPlayers() {
             // ✅ 후보 선수 우클릭으로 방출 (이적료 받기) - 수정!
             playerCard.addEventListener('contextmenu', (e) => {
                 e.preventDefault();
+                // [추가] 월드컵 모드에서는 방출 불가
+                if (gameData.isWorldCupMode) {
+                    alert("🏆 월드컵 기간에는 선수를 방출할 수 없습니다.");
+                    return;
+                }
                releasePlayerWithFee(player, 0); // 직접 호출로 변경
             });
         }
@@ -3538,6 +3603,11 @@ function loadGame(event) {
                 gameData.startYear = 2025;
             }
             
+            // [추가] 시즌 카운트 복원 (구버전 호환)
+            if (!gameData.seasonCount) {
+                gameData.seasonCount = (gameData.startYear || 2025) - 2024;
+            }
+            
             // 포텐셜 시스템 처리
             if (typeof playerGrowthSystem !== 'undefined') {
                 console.log('=== 포텐셜 시스템 처리 시작 ===');
@@ -3965,7 +4035,8 @@ function getSlotInfo(slotNumber) {
             money: data.gameData.teamMoney || 0,
             league: currentLeague || 1,
             rank: teamRank,
-            nextOpponent: nextOpponent
+            nextOpponent: nextOpponent,
+            season: data.gameData.seasonCount || ((data.gameData.startYear || 2025) - 2024) // [추가] 시즌 정보
         };
     } catch (error) {
         console.error(`슬롯 ${slotNumber} 정보 읽기 오류:`, error);
@@ -4007,7 +4078,7 @@ function createSaveSlots() {
                     </div>
                     <div style="font-size: 0.9rem; opacity: 0.9;">
                         📅 ${formattedDate}<br>
-                        🏆 ${slotInfo.league}부 리그 ${slotInfo.rank}위<br>
+                        🏆 시즌 ${slotInfo.season} | ${slotInfo.league}부 리그 ${slotInfo.rank}위<br>
                         ⚽ 경기 수: ${slotInfo.matchesPlayed}<br>
                         💰 자금: ${slotInfo.money}억<br>
                         🎯 다음 상대: ${slotInfo.nextOpponent}
@@ -4411,6 +4482,7 @@ window.deleteSlot = deleteSlot;
 window.gameData = gameData;
 window.allTeams = allTeams; // 추가
 window.teams = teams;
+window.teamNames = teamNames; // [수정] teamNames 전역 노출 (월드컵 모드 호환성)
 // window.teamNames = teamNames; // 삭제 또는 수정
 window.generateFullSchedule = generateFullSchedule; // 추가
 window.updateDisplay = updateDisplay;

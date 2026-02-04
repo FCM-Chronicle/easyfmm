@@ -231,6 +231,10 @@ function endSeason() {
     if (!gameData.startYear) gameData.startYear = 2025;
     gameData.startYear++;
 
+    // [추가] 시즌 카운트 증가
+    if (!gameData.seasonCount) gameData.seasonCount = 1;
+    gameData.seasonCount++;
+
     if (typeof setNextOpponent === 'function') {
         setNextOpponent();
     }

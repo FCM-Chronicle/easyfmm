@@ -1250,6 +1250,26 @@ function startMatch() {
     document.getElementById('awayTeam').textContent = teamNames[matchData.awayTeam];
     document.getElementById('scoreDisplay').textContent = `${matchData.homeScore} - ${matchData.awayScore}`;
     document.getElementById('matchTime').textContent = '0분';
+
+    // [추가] 경기 종류 표시 로직
+    const matchTypeDisplay = document.getElementById('matchTypeDisplay'); // HTML에 <div id="matchTypeDisplay"></div> 와 같은 요소가 있다고 가정
+    if (matchTypeDisplay) {
+        if (gameData.isWorldCupMode && typeof WorldCupManager !== 'undefined') {
+            const stage = WorldCupManager.currentStage;
+            const stageNames = {
+                'group': '조별리그',
+                'r32': '32강',
+                'r16': '16강',
+                'qf': '준준결승',
+                'sf': '준결승',
+                'final': '결승'
+            };
+            matchTypeDisplay.textContent = stageNames[stage] || '토너먼트';
+        } else {
+            // 일반 리그 모드일 경우
+            matchTypeDisplay.textContent = `${gameData.currentLeague}부 리그`;
+        }
+    }
     
     // [추가] 스태미나 표시 초기화
     if (document.getElementById('atkStamina')) {
@@ -1835,6 +1855,12 @@ function endMatch(matchData) {
     document.getElementById('endMatchBtn').style.display = 'block';
     document.getElementById('substituteBtn').style.display = 'none'; // 교체 버튼 숨기기
     
+    // [추가] 월드컵 모드일 경우 별도 처리
+    if (gameData.isWorldCupMode && typeof WorldCupManager !== 'undefined') {
+        WorldCupManager.handleMatchEnd(matchData);
+        // 월드컵 모드에서는 자금, 사기 등의 변동을 최소화하거나 다르게 적용할 수 있음
+    }
+
     // 경기 결과 계산
     const isUserHome = matchData.homeTeam === gameData.selectedTeam;
     const userScore = isUserHome ? matchData.homeScore : matchData.awayScore;
