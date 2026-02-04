@@ -877,8 +877,8 @@ class RealMatchEngine {
 
             // [관문 1: 기회 창출]
             const chanceRatio = atkPower / (atkPower + defPower); // 0.4 ~ 0.6 수준
-            // [수정] 슈팅 빈도를 줄이기 위해 전체적인 기회 창출 확률을 낮춤 (0.4 -> 0.3)
-            if (Math.random() < (chanceRatio * 0.3)) {
+            // [수정] 슈팅 빈도를 줄이기 위해 전체적인 기회 창출 확률을 낮춤 (0.4 -> 0.35)
+            if (Math.random() < (chanceRatio * 0.35)) {
                 // [밸런스 조정] 수비수 슈팅 블록 확률을 수비력에 비례하도록 변경 (기존 로직 유지)
                 const blockChance = (defPower / (atkPower + defPower)) * 0.2; // 평균 10% 내외
                 if (Math.random() < blockChance) {
@@ -1816,7 +1816,12 @@ function displayEvent(event, matchData) {
     `;
     
     eventList.appendChild(eventCard);
+    
+    // [수정] 스크롤바가 있는 요소를 확실하게 바닥으로 내림
     eventList.scrollTop = eventList.scrollHeight;
+    if (eventList.parentElement) {
+        eventList.parentElement.scrollTop = eventList.parentElement.scrollHeight;
+    }
     
     matchData.events.push(event);
     return eventCard; // [수정] 생성된 요소 반환

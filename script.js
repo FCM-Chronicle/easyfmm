@@ -4875,90 +4875,50 @@ function renderSecretarySettings() {
 }
 window.renderSecretarySettings = renderSecretarySettings;
 
-// [신규] 자동 스크롤 시스템
+// [신규] 자동 스크롤 시스템 (경기 화면 전용, 조건 없음)
 const AutoScrollSystem = {
-    isActive: false,
-    scrollSpeed: 0.5, // 스크롤 속도
-    idleTimer: null,
-    animationId: null,
+    scrollSpeed: 2.0,
+    isPaused: false, // [추가] 일시 정지 플래그
+    resumeTimer: null, // [추가] 재개 타이머
 
     init() {
-        // 사용자 입력 감지 이벤트 등록
-        const events = ['mousedown', 'wheel', 'touchstart', 'touchmove', 'keydown', 'click'];
+        // [추가] 사용자 상호작용 감지 (휠, 터치, 키보드, 마우스 클릭)
+        const events = ['wheel', 'touchmove', 'touchstart', 'keydown', 'mousedown'];
         events.forEach(eventType => {
             window.addEventListener(eventType, () => this.onUserInteraction(), { passive: true });
         });
 
-        // 초기 시작 (3초 후)
-        this.resetIdleTimer();
-    },
-
-    start() {
-        // 모달이 열려있으면 자동 스크롤 방지
-        const openModal = document.querySelector('.modal[style*="display: block"]');
-        if (openModal) {
-            this.resetIdleTimer(); // 모달이 닫힐 때까지 계속 체크
-            return;
-        }
-
-        if (this.isActive) return;
-        this.isActive = true;
         this.animate();
     },
 
-    stop() {
-        this.isActive = false;
-        if (this.animationId) {
-            cancelAnimationFrame(this.animationId);
-            this.animationId = null;
-        }
+    // [추가] 사용자 조작 시 호출
+    onUserInteraction() {
+        const matchScreen = document.getElementById('matchScreen');
+        if (!matchScreen || !matchScreen.classList.contains('active')) return;
+
+        this.isPaused = true; // 스크롤 멈춤
+
+        if (this.resumeTimer) clearTimeout(this.resumeTimer);
+
+        // 2초 뒤 다시 시작
+        this.resumeTimer = setTimeout(() => {
+            this.isPaused = false;
+        }, 2000);
     },
 
     animate() {
-        if (!this.isActive) return;
-
-        // [수정] 스크롤 대상 결정 (경기 화면일 경우 eventList, 아니면 window)
-        let target = window;
-        let isWindow = true;
-        
         const matchScreen = document.getElementById('matchScreen');
         const eventList = document.getElementById('eventList');
         
-        // 경기 화면이 활성화되어 있고 eventList가 존재하면 대상을 eventList로 변경
-        if (matchScreen && matchScreen.classList.contains('active') && eventList) {
-            target = eventList;
-            isWindow = false;
+        // 경기 화면이 활성화되어 있고 eventList가 존재하며, 일시 정지 상태가 아닐 때만 스크롤
+        if (matchScreen && matchScreen.classList.contains('active') && eventList && !this.isPaused) {
+            // [수정] 스크롤바가 어디에 생길지 모르므로 리스트와 부모 요소 모두 스크롤 시도
+            eventList.scrollTop += this.scrollSpeed;
+            if (eventList.parentElement) {
+                eventList.parentElement.scrollTop += this.scrollSpeed;
+            }
         }
 
-        // 현재 스크롤 상태 확인
-        let currentScroll = isWindow ? window.scrollY : target.scrollTop;
-        let clientHeight = isWindow ? window.innerHeight : target.clientHeight;
-        let maxScroll = isWindow ? document.body.offsetHeight : target.scrollHeight;
-
-        // 끝에 도달했는지 확인
-        if ((clientHeight + currentScroll) >= maxScroll - 1) {
-            this.stop();
-            return;
-        }
-
-        if (isWindow) {
-            window.scrollBy(0, this.scrollSpeed);
-        } else {
-            target.scrollTop += this.scrollSpeed;
-        }
-
-        this.animationId = requestAnimationFrame(() => this.animate());
-    },
-
-    onUserInteraction() {
-        this.stop();
-        this.resetIdleTimer();
-    },
-
-    resetIdleTimer() {
-        if (this.idleTimer) clearTimeout(this.idleTimer);
-        this.idleTimer = setTimeout(() => {
-            this.start();
-        }, 3000);
+        requestAnimationFrame(() => this.animate());
     }
 };
