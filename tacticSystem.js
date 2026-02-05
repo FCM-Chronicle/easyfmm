@@ -877,8 +877,12 @@ class RealMatchEngine {
 
             // [관문 1: 기회 창출]
             const chanceRatio = atkPower / (atkPower + defPower); // 0.4 ~ 0.6 수준
-            // [수정] 슈팅 빈도 대폭 상향 (0.38 -> 0.5)
-            if (Math.random() < (chanceRatio * 0.5)) {
+            
+            // [수정] 슈팅 빈도 조정 (월드컵 모드 밸런스 적용)
+            let shootFreq = 0.4;
+            if (gameData.isWorldCupMode) shootFreq = 0.32; // 월드컵 모드에서는 슈팅 빈도 20% 추가 감소
+
+            if (Math.random() < (chanceRatio * shootFreq)) {
                 // [밸런스 조정] 수비수 슈팅 블록 확률을 수비력에 비례하도록 변경 (기존 로직 유지)
                 const blockChance = (defPower / (atkPower + defPower)) * 0.2; // 평균 10% 내외
                 if (Math.random() < blockChance) {
@@ -978,13 +982,16 @@ class RealMatchEngine {
             // 블록되면 골 확률은 0
         }
 
-        // [수정] 전력 차이 영향 완화 (계단식 -> 선형 공식)
-        // 기존: 10점 차이면 18%, 40점 차이면 40%로 급격히 상승
-        // 변경: 기본 20% + 전력차 1점당 0.5% 증가 (골 확률 대폭 상향)
-        let goalChance = 0.20 + (powerDiff * 0.005);
+        // [밸런스 수정] 기본 골 확률 및 전력차 영향력 하향 조정
+        let goalChance = 0.16 + (powerDiff * 0.003);
         
-        // 최소 2%, 최대 70%로 제한 (화끈한 득점 지원)
-        goalChance = Math.max(0.02, Math.min(0.70, goalChance));
+        // [추가] 월드컵 모드일 경우 골 확률 추가 하향 (대량 득점 방지)
+        if (gameData.isWorldCupMode) {
+            goalChance = 0.13 + (powerDiff * 0.002);
+        }
+        
+        // 최소 2%, 최대 65%로 제한
+        goalChance = Math.max(0.02, Math.min(0.65, goalChance));
 
         // 슈팅 퀄리티 텍스트 결정 (확률 기반)
         if (goalChance >= 0.25) shootingQuality = 'decisive';
@@ -1262,6 +1269,8 @@ function startMatch() {
                 'r16': '16강',
                 'qf': '준준결승',
                 'sf': '준결승',
+                'qf': '8강',
+                'sf': '4강',
                 'final': '결승'
             };
             matchTypeDisplay.textContent = stageNames[stage] || '토너먼트';

@@ -8,6 +8,7 @@ const WorldCupManager = {
     tournamentBracket: [], // 토너먼트 대진표 데이터
     currentStage: 'group', // group, r32, r16, qf, sf, final
     isEliminated: false, // 유저 탈락 여부
+    currentCallUpSort: 'ovr', // [추가] 차출 탭 정렬 기준 (ovr, name)
 
     // [수정] 언어권별 이름 데이터베이스 (한글 표기)
     // 주요 국가(한국, 잉글랜드, 스페인, 독일, 이탈리아, 네덜란드)는 제외됨
@@ -42,7 +43,7 @@ const WorldCupManager = {
         },
         "English": { // 미국, 호주, 캐나다 등 (잉글랜드 제외)
             first: ["제임스", "존", "로버트", "마이클", "윌리엄", "데이비드", "리차드", "조셉", "토마스", "찰스", "해리", "올리버", "잭", "노아", "조지", "카일"],
-            last: ["스미스", "존슨", "윌리엄스", "브라운", "존스", "밀러", "데이비스", "가르시아", "로드리게스", "윌슨", "워커", "케인", "벨링엄", "포든", "라이스"]
+            last: ["스미스", "존슨", "윌리엄스", "브라운", "존스", "밀러", "데이비스", "가르시아", "로저스", "윌슨", "워커", "케인", "엘리엇", "포든", "라이스"]
         }
     },
     
@@ -130,6 +131,14 @@ const WorldCupManager = {
     startNewWorldCup() {
         if (!confirm('새로운 월드컵을 시작하시겠습니까?')) return;
         this.generateWorldCupData();
+        
+        // [추가] 데이터 생성 검증 (빈 데이터 저장 방지)
+        if (!this.wcPlayers || Object.keys(this.wcPlayers).length === 0) {
+            alert("월드컵 데이터 생성에 실패했습니다. (선수 데이터 없음)\n페이지를 새로고침 후 다시 시도해주세요.");
+            console.error("generateWorldCupData failed: wcPlayers is empty");
+            return;
+        }
+
         this.setupGroups();
         this.saveWorldCup(1);
         document.getElementById('wcModal').style.display = 'none';
@@ -444,7 +453,10 @@ const WorldCupManager = {
     },
 
     // [신규] 차출(Call-up) 탭 렌더링
-    renderCallUpTab() {
+    renderCallUpTab(sortType = null) {
+        // 정렬 기준 업데이트
+        if (sortType) this.currentCallUpSort = sortType;
+
         const container = document.getElementById('transferPlayers'); // 이적 탭 컨테이너 재활용
         if (!container) return;
         
@@ -456,8 +468,14 @@ const WorldCupManager = {
 
         container.innerHTML = `
             <div style="padding: 15px; background: rgba(0,0,0,0.2); margin-bottom: 15px; border-radius: 5px;">
-                <h3 style="color: #ffd700; margin-top: 0;">국가대표 선수단 관리 (25인)</h3>
-                <p style="color: #ccc; font-size: 0.9rem;">현재 스쿼드에 없는 선수를 클릭하여 스쿼드 내 선수와 교체할 수 있습니다.</p>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h3 style="color: #ffd700; margin: 0;">국가대표 선수단 관리 (25인)</h3>
+                    <div style="display: flex; gap: 5px;">
+                        <button class="btn" onclick="WorldCupManager.renderCallUpTab('ovr')" style="padding: 5px 10px; font-size: 0.8rem; ${this.currentCallUpSort === 'ovr' ? 'background-color: #2ecc71;' : 'background-color: #555;'}">능력치순</button>
+                        <button class="btn" onclick="WorldCupManager.renderCallUpTab('name')" style="padding: 5px 10px; font-size: 0.8rem; ${this.currentCallUpSort === 'name' ? 'background-color: #2ecc71;' : 'background-color: #555;'}">이름순</button>
+                    </div>
+                </div>
+                <p style="color: #ccc; font-size: 0.9rem; margin: 0;">현재 스쿼드에 없는 선수를 클릭하여 스쿼드 내 선수와 교체할 수 있습니다.</p>
             </div>
             <div id="callupList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px;"></div>
         `;
@@ -468,7 +486,14 @@ const WorldCupManager = {
         const currentNames = new Set(currentSquad.map(p => p.name));
 
         // 스쿼드에 없는 선수들만 표시
-        const candidates = pool.filter(p => !currentNames.has(p.name));
+        let candidates = pool.filter(p => !currentNames.has(p.name));
+
+        // 정렬 적용
+        if (this.currentCallUpSort === 'ovr') {
+            candidates.sort((a, b) => b.rating - a.rating);
+        } else if (this.currentCallUpSort === 'name') {
+            candidates.sort((a, b) => a.name.localeCompare(b.name));
+        }
 
         if (candidates.length === 0) {
             list.innerHTML = '<p style="grid-column: 1/-1; text-align: center;">교체 가능한 선수가 없습니다.</p>';
@@ -524,19 +549,19 @@ const WorldCupManager = {
         // 1. 조별리그 순위표
         const groupSection = document.createElement('div');
         groupSection.innerHTML = `<h3 style="color: #ffd700; border-bottom: 2px solid #ffd700; padding-bottom: 10px;">🏆 조별리그 현황</h3>`;
-        
+
         const standings = this.calculateAllGroupStandings();
         const grid = document.createElement('div');
         grid.style.cssText = 'display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 15px;';
-
+    
         Object.keys(standings).sort().forEach(group => {
             const table = document.createElement('div');
             table.style.cssText = 'background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px;';
-            
+
             let rows = standings[group].map((t, i) => `
                 <div style="display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.1); ${t.team === this.userTeam ? 'color: #2ecc71; font-weight: bold;' : ''}">
                     <span style="width: 20px;">${i+1}</span>
-                    <span style="flex: 1;">${t.team}</span>
+                    <span style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${t.team}</span>
                     <span style="width: 30px; text-align: center;">${t.points}</span>
                     <span style="width: 30px; text-align: center;">${t.goalDiff}</span>
                 </div>
@@ -548,23 +573,58 @@ const WorldCupManager = {
         groupSection.appendChild(grid);
         container.appendChild(groupSection);
 
-        // 2. 토너먼트 대진표 (16강 이상일 때)
+        // 2. 토너먼트 대진표
         if (this.currentStage !== 'group') {
             const bracketSection = document.createElement('div');
             bracketSection.style.marginTop = '30px';
             bracketSection.innerHTML = `<h3 style="color: #ffd700; border-bottom: 2px solid #ffd700; padding-bottom: 10px;">⚔️ 토너먼트 대진</h3>`;
-            
-            const bracketDiv = document.createElement('div');
-            bracketDiv.innerHTML = `<p style="padding: 20px; text-align: center;">현재 ${this.currentStage.toUpperCase()} 진행 중입니다.</p>`;
-            // TODO: 실제 대진표 시각화 (간단히 텍스트로)
-            if (this.tournamentBracket.length > 0) {
-                const list = this.tournamentBracket.map(m => `<div style="padding: 5px; background: rgba(0,0,0,0.3); margin: 5px 0;">${m.home} vs ${m.away}</div>`).join('');
-                bracketDiv.innerHTML += list;
-            }
-            
-            bracketSection.appendChild(bracketDiv);
+
+            const bracketHTML = this.renderTournamentBracket();
+            bracketSection.innerHTML += bracketHTML;
+
             container.appendChild(bracketSection);
         }
+    },
+
+    renderTournamentBracket() {
+        if (!this.tournamentBracket || Object.keys(this.tournamentBracket).length === 0) return '';
+
+        const stages = ['r32', 'r16', 'qf', 'sf', 'final'];
+        let html = '<div class="bracket-container">';
+
+        stages.forEach(stage => {
+            const matches = this.tournamentBracket[stage];
+            if (matches && matches.length > 0) {
+                html += `<div class="round round-${stage}">`;
+                html += `<h4 class="round-title">${this.getStageKoreanName(stage)}</h4>`;
+                matches.forEach(match => {
+                    const isUserMatch = match.home === this.userTeam || match.away === this.userTeam;
+                    html += `
+                        <div class="match ${isUserMatch ? 'user-match' : ''}">
+                            <div class="team">${match.home || '?'}</div>
+                            <div class="vs">vs</div>
+                            <div class="team">${match.away || '?'}</div>
+                        </div>
+                    `;
+                });
+                html += `</div>`;
+            }
+        });
+
+        html += '</div>';
+        return html;
+    },
+
+    simulateAITournamentMatch(team1, team2) {
+        const team1Rating = typeof calculateOpponentTeamRating !== 'undefined' ? calculateOpponentTeamRating(team1) : 75;
+        const team2Rating = typeof calculateOpponentTeamRating !== 'undefined' ? calculateOpponentTeamRating(team2) : 75;
+        const ratingDiff = team1Rating - team2Rating;
+
+        // 능력치 차이가 클수록 승리 확률에 더 큰 영향을 주도록 조정 (0.01 -> 0.015)
+        let team1WinChance = 0.5 + (ratingDiff * 0.015);
+        team1WinChance = Math.max(0.1, Math.min(0.9, team1WinChance)); // 최소 10%, 최대 90%
+
+        return Math.random() < team1WinChance ? team1 : team2;
     },
 
     // [신규] 월드컵 모드 UI 업데이트 (탭 제어)
@@ -704,7 +764,7 @@ const WorldCupManager = {
             bracketSection.innerHTML = `<h3 style="color: #ffd700; border-bottom: 2px solid #ffd700; padding-bottom: 10px;">⚔️ 토너먼트 대진</h3>`;
             
             const bracketDiv = document.createElement('div');
-            bracketDiv.innerHTML = `<p style="padding: 20px; text-align: center;">현재 ${this.currentStage.toUpperCase()} 진행 중입니다.</p>`;
+            bracketDiv.innerHTML = `<p style="padding: 20px; text-align: center;">현재 ${this.getStageKoreanName(this.currentStage)} 진행 중입니다.</p>`;
             // TODO: 실제 대진표 시각화 (간단히 텍스트로)
             if (this.tournamentBracket.length > 0) {
                 const list = this.tournamentBracket.map(m => `<div style="padding: 5px; background: rgba(0,0,0,0.3); margin: 5px 0;">${m.home} vs ${m.away}</div>`).join('');
@@ -756,8 +816,9 @@ const WorldCupManager = {
     handleMatchEnd(matchData) {
         // 1. 조별리그 종료 체크
         if (this.currentStage === 'group') {
-            // 현재 라운드가 3라운드이고 경기가 끝났으면 다음 단계 준비
-            if (gameData.currentRound === 3) {
+            // [수정] 3경기를 모두 치렀을 때 조별리그 종료 (리그 데이터 기준)
+            const userMatches = gameData.leagueData.division4[this.userTeam].matches;
+            if (userMatches >= 3) {
                 setTimeout(() => this.startKnockoutStage(), 1000);
             }
         } 
@@ -773,11 +834,14 @@ const WorldCupManager = {
         const oppScore = matchData.homeTeam === this.userTeam ? matchData.awayScore : matchData.homeScore;
         
         if (userScore > oppScore) {
-            alert(`🎉 승리! ${this.getNextStageName()} 진출!`);
+            alert(`🎉 승리! ${this.getNextStageName()}에 진출합니다!`);
             this.advanceTournament(true);
         } else if (userScore < oppScore) {
             alert(`😭 패배... 월드컵 여정이 여기서 끝납니다.`);
             this.isEliminated = true;
+            setTimeout(() => {
+                location.reload();
+            }, 5000);
         } else {
             // 무승부 -> 승부차기
             this.simulatePenaltyShootout(matchData);
@@ -785,37 +849,91 @@ const WorldCupManager = {
     },
 
     simulatePenaltyShootout(matchData) {
-        // 간단한 승부차기 로직
-        let userGoals = 0;
-        let oppGoals = 0;
+        let userScore = 0;
+        let oppScore = 0;
+        let userKicks = "";
+        let oppKicks = "";
         
-        // 5번씩 킥
-        for(let i=0; i<5; i++) {
-            if(Math.random() > 0.2) userGoals++;
-            if(Math.random() > 0.2) oppGoals++;
+        // 기본 성공률 75%
+        const baseChance = 0.75;
+        
+        // 5번의 정규 키커
+        for (let i = 1; i <= 5; i++) {
+            // 유저 킥
+            if (Math.random() < baseChance) {
+                userScore++;
+                userKicks += "⭕ ";
+            } else {
+                userKicks += "❌ ";
+            }
+            
+            // 상대 킥
+            if (Math.random() < baseChance) {
+                oppScore++;
+                oppKicks += "⭕ ";
+            } else {
+                oppKicks += "❌ ";
+            }
         }
         
-        // 동점이면 서든데스
-        while(userGoals === oppGoals) {
-            if(Math.random() > 0.2) userGoals++;
-            if(Math.random() > 0.2) oppGoals++;
+        // 동점일 경우 서든데스
+        while (userScore === oppScore) {
+            if (Math.random() < baseChance) {
+                userScore++;
+                userKicks += "⭕ ";
+            } else {
+                userKicks += "❌ ";
+            }
+            
+            if (Math.random() < baseChance) {
+                oppScore++;
+                oppKicks += "⭕ ";
+            } else {
+                oppKicks += "❌ ";
+            }
+            
+            // 무한 루프 방지
+            if (userKicks.length > 40) break; 
         }
         
-        const won = userGoals > oppGoals;
-        const msg = `[승부차기 결과] ${userGoals} : ${oppGoals}\n` + (won ? "승리했습니다!" : "패배했습니다...");
+        const won = userScore > oppScore;
+        const opponentName = matchData.homeTeam === this.userTeam ? (teamNames[matchData.awayTeam] || matchData.awayTeam) : (teamNames[matchData.homeTeam] || matchData.homeTeam);
+        
+        const msg = `[승부차기 결과]\n\n` +
+                    `${this.userTeam}: ${userKicks} (${userScore})\n` +
+                    `${opponentName}: ${oppKicks} (${oppScore})\n\n` +
+                    (won ? "🎉 승부차기 승리! 다음 라운드로 진출합니다!" : "😭 승부차기 패배... 탈락했습니다.");
+        
         alert(msg);
         
         if (won) {
             this.advanceTournament(true);
         } else {
             this.isEliminated = true;
+            setTimeout(() => {
+                location.reload();
+            }, 5000);
         }
+    },
+
+    getStageKoreanName(stage) {
+        const names = {
+            'group': '조별리그',
+            'r32': '32강',
+            'r16': '16강',
+            'qf': '8강',
+            'sf': '4강',
+            'final': '결승'
+        };
+        return names[stage] || stage;
     },
 
     getNextStageName() {
         const stages = ['r32', 'r16', 'qf', 'sf', 'final'];
         const idx = stages.indexOf(this.currentStage);
-        if (idx < stages.length - 1) return stages[idx + 1].toUpperCase();
+        if (idx < stages.length - 1) {
+            return this.getStageKoreanName(stages[idx + 1]);
+        }
         return "우승";
     },
 
@@ -853,38 +971,42 @@ const WorldCupManager = {
         if (userRank > 3 || (userRank === 3 && !bestThirds.find(t => t.team === this.userTeam))) {
             this.isEliminated = true;
             alert("조별리그 탈락! 대회를 마칩니다.");
+            setTimeout(() => {
+                location.reload();
+            }, 5000);
             return;
         }
 
         // 4. 32강 대진표 생성
         const bracket = this.generateBracket(firsts, seconds, bestThirds);
-        this.tournamentBracket = bracket;
+        this.tournamentBracket = { r32: [], r16: [], qf: [], sf: [], final: [] };
+        this.tournamentBracket.r32 = bracket;
         this.currentStage = 'r32';
-        
+
         // 5. 일정 설정
         this.setKnockoutSchedule(bracket);
-        
+
         alert("32강 대진표가 확정되었습니다!");
     },
 
     calculateAllGroupStandings() {
         const standings = {};
         const data = gameData.leagueData.division4;
-        
+
         Object.entries(this.groups).forEach(([group, teams]) => {
             const groupTeams = teams.map(team => ({
                 team: team,
                 ...data[team],
                 goalDiff: data[team].goalsFor - data[team].goalsAgainst
             }));
-            
+
             // 정렬: 승점 > 득실 > 다득점 > 승자승(생략) > 랜덤
             groupTeams.sort((a, b) => {
                 if (b.points !== a.points) return b.points - a.points;
                 if (b.goalDiff !== a.goalDiff) return b.goalDiff - a.goalDiff;
                 return b.goalsFor - a.goalsFor;
             });
-            
+
             standings[group] = groupTeams;
         });
         return standings;
@@ -901,27 +1023,27 @@ const WorldCupManager = {
     // 32강 대진표 생성 알고리즘
     generateBracket(firsts, seconds, thirds) {
         const matches = [];
-        
+
         // 1. 2위 vs 2위 고정 매칭 (2A vs 2B, 2C vs 2D ...)
         for (let i = 0; i < seconds.length; i += 2) {
             matches.push({ home: seconds[i].team, away: seconds[i+1].team });
         }
-        
+
         // 2. 1위 vs 3위 매칭 (와일드카드 셔플)
         // 1위 팀들을 성적순으로 정렬
         firsts.sort((a, b) => b.points - a.points || b.goalDiff - a.goalDiff || b.goalsFor - a.goalsFor);
-        
+
         const unmatchedFirsts = [...firsts];
         const unmatchedThirds = [...thirds];
-        
+
         // 상위 8개 1위 팀 vs 3위 팀 (같은 조 피하기)
         const top8Firsts = unmatchedFirsts.slice(0, 8);
         const bottom4Firsts = unmatchedFirsts.slice(8);
-        
+
         for (let i = 0; i < top8Firsts.length; i++) {
             const first = top8Firsts[i];
             let thirdIndex = 0;
-            
+
             // 같은 조가 아닌 3위 팀 찾기
             while (thirdIndex < unmatchedThirds.length) {
                 if (unmatchedThirds[thirdIndex].group !== first.group) {
@@ -929,19 +1051,19 @@ const WorldCupManager = {
                 }
                 thirdIndex++;
             }
-            
+
             // 만약 적절한 팀이 없으면(거의 없겠지만) 0번 선택
             if (thirdIndex >= unmatchedThirds.length) thirdIndex = 0;
-            
+
             const third = unmatchedThirds.splice(thirdIndex, 1)[0];
             matches.push({ home: first.team, away: third.team });
         }
-        
+
         // 3. 남은 1위 vs 1위 (4팀 -> 2경기)
         for (let i = 0; i < bottom4Firsts.length; i += 2) {
             matches.push({ home: bottom4Firsts[i].team, away: bottom4Firsts[i+1].team });
         }
-        
+
         return matches;
     },
 
@@ -956,41 +1078,51 @@ const WorldCupManager = {
         // 다음 라운드 진출 로직 (16강 -> 8강 -> 4강 -> 결승)
         const stages = ['r32', 'r16', 'qf', 'sf', 'final'];
         const currentIndex = stages.indexOf(this.currentStage);
-        
+
         if (currentIndex < stages.length - 1) {
             this.currentStage = stages[currentIndex + 1];
-            
+
             // 다음 라운드 대진 생성 (간소화: 랜덤 매칭)
-            this.generateNextRoundRandomly(userWon);
-            
-            alert(`${this.currentStage.toUpperCase()} 진출! 다음 상대를 확인하세요.`);
+            this.generateNextRound(userWon);
+
+            alert(`${this.getStageKoreanName(this.currentStage)} 진출! 다음 상대를 확인하세요.`);
         } else {
             alert("🏆 월드컵 우승! 축하합니다!");
             // 엔딩 크레딧 or 메인 메뉴 복귀
         }
     },
 
-    generateNextRoundRandomly(userWon) {
-        // 현재 라운드의 승자 수 (이전 라운드 경기 수 / 2)
-        const currentMatches = gameData.schedule.division4[0];
-        const nextRoundCount = Math.floor(currentMatches.length / 2);
-        
-        if (nextRoundCount < 1) return; // 결승 종료
+    generateNextRound(userWon) {
+        const stages = ['r32', 'r16', 'qf', 'sf', 'final'];
+        const prevStageIndex = stages.indexOf(this.currentStage) - 1;
+        if (prevStageIndex < 0) return;
 
+        const prevStage = stages[prevStageIndex];
+        const prevMatches = this.tournamentBracket[prevStage];
+        const winners = [];
+
+        // 이전 라운드 모든 경기의 승자 결정
+        prevMatches.forEach(match => {
+            let winner;
+            if (match.home === this.userTeam || match.away === this.userTeam) {
+                // 유저의 경기. userWon이 true이므로 유저가 승자.
+                winner = this.userTeam;
+            } else {
+                // AI vs AI 경기 시뮬레이션
+                winner = this.simulateAITournamentMatch(match.home, match.away);
+            }
+            winners.push(winner);
+        });
+
+        // 승자들로 다음 라운드 대진 생성
         const nextMatches = [];
-        
-        // 유저 매치 생성
-        // 실제로는 승자들 중 하나여야 함. 여기서는 랜덤한 강팀을 상대로 설정
-        const potentialOpponents = ["브라질", "프랑스", "아르헨티나", "잉글랜드", "스페인", "독일", "포르투갈", "네덜란드"];
-        const nextOpponent = potentialOpponents[Math.floor(Math.random() * potentialOpponents.length)];
-        
-        nextMatches.push({ home: this.userTeam, away: nextOpponent });
-        
-        // 나머지 매치들 (시뮬레이션용 더미)
-        for(let i=1; i<nextRoundCount; i++) {
-            nextMatches.push({ home: `AI팀_${i}A`, away: `AI팀_${i}B` });
+        for (let i = 0; i < winners.length; i += 2) {
+            if (winners[i + 1]) {
+                nextMatches.push({ home: winners[i], away: winners[i + 1] });
+            }
         }
-        
+
+        this.tournamentBracket[this.currentStage] = nextMatches;
         this.setKnockoutSchedule(nextMatches);
     },
 
@@ -1017,8 +1149,13 @@ const WorldCupManager = {
             const data = JSON.parse(dataStr);
 
             // [수정] 저장 데이터 유효성 검사
-            if (!data || !data.wcPlayers || Object.keys(data.wcPlayers).length === 0 || !data.userTeam) {
-                alert(`오류: 월드컵 슬롯 ${slotIndex}의 데이터가 손상되었습니다. 이 슬롯을 삭제하고 새로운 월드컵을 시작해주세요.`);
+            let errorMsg = "";
+            if (!data) errorMsg = "데이터가 비어있습니다.";
+            else if (!data.wcPlayers || Object.keys(data.wcPlayers).length === 0) errorMsg = "선수 데이터가 손상되었습니다.";
+            else if (!data.userTeam) errorMsg = "팀 정보가 없습니다.";
+
+            if (errorMsg) {
+                alert(`오류: 월드컵 슬롯 ${slotIndex}의 데이터가 손상되었습니다.\n원인: ${errorMsg}\n\n이 슬롯을 삭제하고 새로운 월드컵을 시작해주세요.`);
                 console.error("손상된 월드컵 데이터:", data);
                 return;
             }
@@ -1052,3 +1189,46 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 window.WorldCupManager = WorldCupManager;
+
+// 월드컵 모드 전용 스타일
+const wcStyle = document.createElement('style');
+wcStyle.id = 'worldcup-styles';
+wcStyle.textContent = `
+    .bracket-container {
+        display: flex;
+        overflow-x: auto;
+        padding: 20px;
+        background: rgba(0,0,0,0.2);
+        border-radius: 10px;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+    .round {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-around;
+        flex-shrink: 0;
+        min-width: 220px;
+        margin-right: 40px;
+    }
+    .round-title {
+        text-align: center;
+        color: #ffd700;
+        margin-bottom: 20px;
+    }
+    .match {
+        background: rgba(255,255,255,0.05);
+        padding: 12px;
+        border-radius: 5px;
+        margin-bottom: 25px;
+        border-left: 4px solid #3498db;
+    }
+    .match.user-match {
+        border-left-color: #2ecc71;
+        background: rgba(46, 204, 113, 0.1);
+    }
+    .team { text-align: center; font-weight: bold; }
+    .vs { text-align: center; color: #aaa; font-size: 0.8rem; margin: 4px 0; }
+`;
+if (!document.getElementById('worldcup-styles')) {
+    document.head.appendChild(wcStyle);
+}

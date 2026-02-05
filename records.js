@@ -7,6 +7,8 @@ class RecordsSystem {
         this.playerStats = new Map();
         this.matchRecords = [];
         this.initialized = false;
+        this.weeklyRatings = []; // [수정] 초기화 추가
+        this.currentBest11 = { 1: [], 2: [], 3: [], 4: [] }; // [수정] 4부(월드컵) 포함 초기화
     }
 
     initialize() {
@@ -19,7 +21,7 @@ class RecordsSystem {
         });
         
         this.weeklyRatings = []; // 이번 주(라운드) 모든 선수 평점 저장
-        this.currentBest11 = { 1: [], 2: [], 3: [] }; // 이번 주 베스트 11 저장 (리그별)
+        this.currentBest11 = { 1: [], 2: [], 3: [], 4: [] }; // [수정] 4부 포함
 
         this.initialized = true;
         console.log('개인기록 시스템이 초기화되었습니다.');
@@ -331,6 +333,7 @@ simulateAIMatchRatings(team1Key, team2Key, goals, score1, score2) {
     }
 
     // 주간 평점 리스트에 추가 (TOTW용)
+    if (!this.weeklyRatings) this.weeklyRatings = []; // [수정] 안전 장치 추가
     this.weeklyRatings.push(...allRatings);
 
     // [추가] 콘솔에 경기 상세 정보 출력
@@ -367,6 +370,7 @@ processMatchRatings(ratings, matchData) {
     const homeRatings = ratings.home.map(r => ({ player: r.player, team: matchData.homeTeam, rating: parseFloat(r.rating) }));
     const awayRatings = ratings.away.map(r => ({ player: r.player, team: matchData.awayTeam, rating: parseFloat(r.rating) }));
     
+    if (!this.weeklyRatings) this.weeklyRatings = []; // [수정] 안전 장치 추가
     this.weeklyRatings.push(...homeRatings, ...awayRatings);
 }
 
@@ -375,10 +379,10 @@ generateTeamOfTheWeek() {
     if (this.weeklyRatings.length === 0) return;
 
     // 초기화
-    this.currentBest11 = { 1: [], 2: [], 3: [] };
+        this.currentBest11 = { 1: [], 2: [], 3: [], 4: [] }; // [수정] 4부 포함
 
     // 리그별로 순회하며 베스트 11 선정
-    for (let league = 1; league <= 3; league++) {
+        for (let league = 1; league <= 4; league++) { // [수정] 4부까지 순회
         // 해당 리그의 평점 데이터만 필터링
         const leagueRatings = this.weeklyRatings.filter(r => {
             const teamData = allTeams[r.team];
@@ -862,11 +866,18 @@ updateLeagueTableForAIMatch(team1Key, team2Key, score1, score2) {
         if (saveData.currentBest11) {
             // 호환성 체크: 배열이면(구버전) 객체로 초기화
             if (Array.isArray(saveData.currentBest11)) {
-                this.currentBest11 = { 1: [], 2: [], 3: [] };
+                this.currentBest11 = { 1: [], 2: [], 3: [], 4: [] };
             } else {
                 this.currentBest11 = saveData.currentBest11;
+                // [수정] 4부 데이터가 없으면 추가
+                if (!this.currentBest11[4]) this.currentBest11[4] = [];
             }
+        } else {
+            this.currentBest11 = { 1: [], 2: [], 3: [], 4: [] };
         }
+        
+        // [수정] weeklyRatings는 저장되지 않는 임시 데이터이므로 로드 시 초기화 필수
+        this.weeklyRatings = [];
     }
 
     resetSeason() {

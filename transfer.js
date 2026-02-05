@@ -18,6 +18,7 @@ class TransferSystem {
   { "name": "아크람 아피프", "position": "FW", "country": "카타르", "rating": 79, "age": 29, "team": "외부리그" },
   { "name": "알모에즈 알리", "position": "FW", "country": "카타르", "rating": 78, "age": 29, "team": "외부리그" },
   { "name": "메샬 바르샴", "position": "GK", "country": "카타르", "rating": 74, "age": 27, "team": "외부리그" },
+  { "name": "이재성", "position": "MF", "country": "대한민국", "rating": 81, "age": 33, "team": "외부리그" },
   /* 🇺🇿 우즈베키스탄 */
   { "name": "엘도르 쇼무로도프", "position": "FW", "country": "우즈베키스탄", "rating": 77, "age": 30, "team": "외부리그" },
   { "name": "압보스벡 파이줄라예프", "position": "MF", "country": "우즈베키스탄", "rating": 75, "age": 22, "team": "외부리그" },
@@ -37,7 +38,7 @@ class TransferSystem {
   { "name": "로건 코스타", "position": "DF", "country": "카보베르데", "rating": 78, "age": 24, "team": "외부리그" },
   { "name": "라이언 멘데스", "position": "FW", "country": "카보베르데", "rating": 71, "age": 36, "team": "외부리그" },
   { "name": "베베", "position": "FW", "country": "카보베르데", "rating": 70, "age": 35, "team": "외부리그" },
-  { "name": "조던 픽포드", "position": "GK", "country": "잉글랜드", "rating": 83, "age": 31, "team": "외부리그"}
+  { "name": "조던 픽포드", "position": "GK", "country": "잉글랜드", "rating": 83, "age": 31, "team": "외부리그" },
   { "name": "조규성", "position": "FW", "country": "대한민국", "rating": 80, "age": 27, "team": "외부리그" },
   { "name": "기욤 레스테스", "position": "GK", "country": "프랑스", "rating": 78, "age": 19, "team": "외부리그" },
   { "name": "토마소 마르티넬리", "position": "GK", "country": "이탈리아", "rating": 72, "age": 18, "team": "외부리그" },

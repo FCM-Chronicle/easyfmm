@@ -214,7 +214,7 @@ const allTeams = {
             { name: "우스만 뎀벨레", position: "FW", country: "프랑스", age: 28, rating: 95 },
             { name: "데지레 두에", position: "FW", country: "프랑스", age: 20, rating: 89 },
             { name: "비티냐", position: "MF", country: "포르투갈", age: 25, rating: 93 },
-            { name: "이강인", position: "MF", country: "대한민국", age: 24, rating: 82 },
+            { name: "이강인", position: "MF", country: "대한민국", age: 24, rating: 84 },
             { name: "뤼카 에르난데스", position: "DF", country: "프랑스", age: 29, rating: 77 },
             { name: "세니 마율루", position: "MF", country: "프랑스", age: 19, rating: 73 },
             { name: "누누 멘데스", position: "DF", country: "포르투갈", age: 23, rating: 91 },
@@ -854,7 +854,7 @@ const allTeams = {
             { name: "토마스 베일런", position: "DF", country: "네덜란드", age: 23, rating: 77 },
             { name: "와타나베 츠요시", position: "DF", country: "일본", age: 28, rating: 73 },
             { name: "헤이스 스말", position: "DF", country: "네덜란드", age: 27, rating: 76 },
-            { name: "황인범", position: "MF", country: "대한민국", age: 28, rating: 83 },
+            { name: "황인범", position: "MF", country: "대한민국", age: 28, rating: 80 },
             { name: "야쿠프 모데르", position: "MF", country: "폴란드", age: 26, rating: 82 },
             { name: "퀸턴 팀버르", position: "MF", country: "네덜란드", age: 24, rating: 82 },
             { name: "우에다 아야세", position: "FW", country: "일본", age: 26, rating: 73 },
@@ -3169,6 +3169,155 @@ function expireSponsorContract() {
     }
     
     updateDisplay();
+}
+
+function endMatch(matchData) {
+    document.getElementById('endMatchBtn').style.display = 'block';
+    
+    // 경기 결과 계산
+    const userScore = matchData.homeScore;
+    const opponentScore = matchData.awayScore;
+    let result = '';
+    let moraleChange = 0;
+    let points = 0;
+    
+    // 전력 차이에 따른 결과 반영
+    const strengthDiff = matchData.strengthDiff;
+    const expectation = strengthDiff.userAdvantage ? '승리' : '패배';
+    const isUpset = (result === '승리' && !strengthDiff.userAdvantage) || 
+                   (result === '패배' && strengthDiff.userAdvantage);
+    
+    if (userScore > opponentScore) {
+        result = '승리';
+        if (strengthDiff.userAdvantage) {
+            // 예상된 승리
+            moraleChange = Math.floor(Math.random() * 8) + 5; // 5-12
+        } else {
+            // 예상 밖 승리 (업셋)
+            moraleChange = Math.floor(Math.random() * 15) + 10; // 10-24
+        }
+        points = 3;
+        
+        // 기본 경기 수익
+        gameData.teamMoney += 50; // 승리 시 50억
+        
+        // 스폰서 보너스
+        if (gameData.currentSponsor) {
+            gameData.teamMoney += gameData.currentSponsor.payPerWin;
+        }
+    } else if (userScore < opponentScore) {
+        result = '패배';
+        if (!strengthDiff.userAdvantage) {
+            // 예상된 패배
+            moraleChange = -(Math.floor(Math.random() * 8) + 3); // -3 to -10
+        } else {
+            // 예상 밖 패배 (충격적 패배)
+            moraleChange = -(Math.floor(Math.random() * 15) + 10); // -10 to -24
+        }
+        points = 0;
+        
+        // 기본 경기 수익
+        gameData.teamMoney += 10; // 패배 시 10억
+        
+        // 스폰서 보너스
+        if (gameData.currentSponsor) {
+            gameData.teamMoney += gameData.currentSponsor.payPerLoss;
+        }
+    } else {
+        result = '무승부';
+        if (strengthDiff.strengthGap < 5) {
+            // 비슷한 전력 간 무승부
+            moraleChange = Math.floor(Math.random() * 3) - 1; // -1 to 1
+        } else if (strengthDiff.userAdvantage) {
+            // 강한 팀이 무승부 (실망)
+            moraleChange = -(Math.floor(Math.random() * 5) + 2); // -2 to -6
+        } else {
+            // 약한 팀이 무승부 (선전)
+            moraleChange = Math.floor(Math.random() * 8) + 3; // 3-10
+        }
+        points = 1;
+        
+        // 기본 경기 수익
+        gameData.teamMoney += 15; // 무승부 시 15억
+        
+        // 스폰서 보너스 (승리의 절반)
+        if (gameData.currentSponsor) {
+            gameData.teamMoney += Math.floor(gameData.currentSponsor.payPerWin / 2);
+        }
+    }
+    
+    // 리그 데이터 업데이트
+    updateLeagueData(matchData, points);
+    
+    // 사기 업데이트
+    gameData.teamMorale = Math.max(0, Math.min(100, gameData.teamMorale + moraleChange));
+    
+    // 경기 수 증가
+    gameData.matchesPlayed++;
+    
+    // 경기 종료 메시지 (이변 여부 반영)
+    let finalMessage = `경기 종료! ${result} (${userScore}-${opponentScore})`;
+    
+    if (isUpset) {
+        if (result === '승리') {
+            finalMessage += `\n🎉 대이변! 전력상 불리했던 경기에서 승리!`;
+        } else if (result === '패배') {
+            finalMessage += `\n😱 충격! 전력상 유리했던 경기에서 패배...`;
+        }
+    }
+    
+    finalMessage += `\n${strengthDiff.userAdvantage ? '전력상 유리했던' : '전력상 불리했던'} 경기에서 ${result}`;
+    finalMessage += `\n사기 변화: ${moraleChange > 0 ? '+' : ''}${moraleChange}`;
+    
+    const finalEvent = {
+        minute: 90,
+        type: 'final',
+        description: finalMessage
+    };
+    displayEvent(finalEvent, matchData);
+    
+    // 스폰서 처리 (수정된 부분)
+    if (typeof window.processSponsorAfterMatch === 'function') {
+        const matchResult = result === '승리' ? 'win' : result === '패배' ? 'loss' : 'draw';
+        window.processSponsorAfterMatch(matchResult);
+    }
+    
+    // 경기 종료 버튼 이벤트
+    document.getElementById('endMatchBtn').onclick = () => {
+        // 인터뷰 화면으로 이동
+        startInterview(result, userScore, opponentScore, strengthDiff);
+    };
+    
+    // 선수 성장 처리
+    if (typeof processPostMatchGrowth === 'function') {
+        setTimeout(() => {
+            processPostMatchGrowth();
+        }, 2000);
+    }
+
+    // 개인기록 업데이트
+    if (typeof updateRecordsAfterMatch === 'function') {
+        updateRecordsAfterMatch(matchData);
+    }
+    
+    // AI 팀들 경기 시뮬레이션
+    simulateOtherMatches();
+
+    // [추가] 경기 종료 후 유저 팀 스태미나 100으로 회복
+    if (gameData.lineStats) {
+        ['attack', 'midfield', 'defense'].forEach(line => {
+            if (gameData.lineStats[line]) {
+                gameData.lineStats[line].stamina = 100;
+            }
+        });
+        console.log('🔋 유저 팀 스태미나 100으로 회복 완료');
+    }
+
+    // 시즌 종료 후 처리
+    setTimeout(() => {
+        processRetirementsAndReincarnations(); // 은퇴 및 환생 처리
+        checkSeasonEnd(); // 시즌 종료 조건 체크
+    }, 1000);
 }
 
 function endMatch(matchData) {
