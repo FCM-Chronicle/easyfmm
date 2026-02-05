@@ -912,6 +912,11 @@ class LeagueBasedRecordsSystem extends RecordsSystem {
             const league = allTeams[teamKey].league;
             const divisionKey = `division${league}`;
             
+            // [수정] divisionKey가 없으면 초기화 (월드컵 모드 등 대비)
+            if (!this.leagueStats[divisionKey]) {
+                this.leagueStats[divisionKey] = new Map();
+            }
+            
             if (!this.leagueStats[divisionKey].has(playerName)) {
                 this.leagueStats[divisionKey].set(playerName, {
                     name: playerName,
@@ -936,6 +941,11 @@ class LeagueBasedRecordsSystem extends RecordsSystem {
             const league = allTeams[teamKey].league;
             const divisionKey = `division${league}`;
             
+            // [수정] divisionKey가 없으면 초기화
+            if (!this.leagueStats[divisionKey]) {
+                this.leagueStats[divisionKey] = new Map();
+            }
+            
             // 득점자 리그별 기록
             if (this.leagueStats[divisionKey].has(scorerName)) {
                 const scorerStats = this.leagueStats[divisionKey].get(scorerName);
@@ -950,7 +960,7 @@ class LeagueBasedRecordsSystem extends RecordsSystem {
             }
 
             // 어시스트 리그별 기록
-            if (assisterName && this.leagueStats[divisionKey].has(assisterName)) {
+            if (assisterName && this.leagueStats[divisionKey] && this.leagueStats[divisionKey].has(assisterName)) {
                 const assisterStats = this.leagueStats[divisionKey].get(assisterName);
                 assisterStats.assists++;
             } else if (assisterName) {
@@ -973,6 +983,11 @@ class LeagueBasedRecordsSystem extends RecordsSystem {
         if (allTeams && allTeams[teamKey]) {
             const league = allTeams[teamKey].league;
             const divisionKey = `division${league}`;
+            
+            // [수정] divisionKey가 없으면 초기화
+            if (!this.leagueStats[divisionKey]) {
+                this.leagueStats[divisionKey] = new Map();
+            }
             
             if (this.leagueStats[divisionKey].has(playerName)) {
                 const playerStats = this.leagueStats[divisionKey].get(playerName);

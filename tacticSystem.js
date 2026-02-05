@@ -1855,12 +1855,6 @@ function endMatch(matchData) {
     document.getElementById('endMatchBtn').style.display = 'block';
     document.getElementById('substituteBtn').style.display = 'none'; // 교체 버튼 숨기기
     
-    // [추가] 월드컵 모드일 경우 별도 처리
-    if (gameData.isWorldCupMode && typeof WorldCupManager !== 'undefined') {
-        WorldCupManager.handleMatchEnd(matchData);
-        // 월드컵 모드에서는 자금, 사기 등의 변동을 최소화하거나 다르게 적용할 수 있음
-    }
-
     // 경기 결과 계산
     const isUserHome = matchData.homeTeam === gameData.selectedTeam;
     const userScore = isUserHome ? matchData.homeScore : matchData.awayScore;
@@ -1965,20 +1959,20 @@ function endMatch(matchData) {
     displayEvent(finalEvent, matchData);
     
     // 스폰서 처리 (수정된 부분)
-    if (typeof window.processSponsorAfterMatch === 'function') {
+    if (!gameData.isWorldCupMode && typeof window.processSponsorAfterMatch === 'function') {
         const matchResult = result === '승리' ? 'win' : result === '패배' ? 'loss' : 'draw';
         window.processSponsorAfterMatch(matchResult);
     }
 
     // 메일 시스템 연동 (경기 결과 및 이적 제안)
-    if (typeof mailManager !== 'undefined') {
+    if (!gameData.isWorldCupMode && typeof mailManager !== 'undefined') {
         // 경기 결과 메일
         mailManager.sendMatchResultMail(matchData);
         
         // 랜덤 이적 제안 체크 (경기 종료 후)
         mailManager.checkTransferOffer();
     }
-    
+
     // 경기 종료 버튼 이벤트
     document.getElementById('endMatchBtn').onclick = () => {
         // 평점 계산 및 결과 모달 표시
@@ -1987,7 +1981,7 @@ function endMatch(matchData) {
     };
 
     // 경기 후 스카우트 활동 처리
-    if (gameData.hiredScout) {
+    if (!gameData.isWorldCupMode && gameData.hiredScout) {
         const scout = scoutingSystem.scouts[gameData.hiredScout.tier];
         if (scout && Math.random() < scout.chance) {
             const result = scoutingSystem.scoutForPlayers(gameData.hiredScout.tier);
@@ -2008,7 +2002,7 @@ function endMatch(matchData) {
             }, 2000);
         }
     }
-    
+
     // 선수 성장 처리
     if (typeof processPostMatchGrowth === 'function') {
         setTimeout(() => {
@@ -2406,8 +2400,25 @@ function showMatchResultModal(matchData, ratings, result, userScore, opponentSco
         if (typeof recordsSystem !== 'undefined') {
             recordsSystem.processMatchRatings(ratings, matchData);
         }
-        
-        startInterview(result, userScore, opponentScore, strengthDiff);
+
+        // [분기 처리] 월드컵 모드인지 확인
+        if (gameData.isWorldCupMode && typeof WorldCupManager !== 'undefined') {
+            WorldCupManager.handleMatchEnd(matchData);
+
+            // 월드컵 모드에서는 경기 후 바로 다음 상대를 설정하고 로비로 돌아감
+            // 단, 유저가 탈락한 경우는 제외
+            if (!WorldCupManager.isEliminated) {
+                if (typeof setNextOpponent === 'function') setNextOpponent();
+                if (typeof showScreen === 'function') showScreen('lobby');
+                if (typeof updateDisplay === 'function') updateDisplay();
+            } else {
+                alert("월드컵 여정이 종료되었습니다. 메인 메뉴로 돌아갑니다.");
+                if (typeof showScreen === 'function') showScreen('lobby');
+            }
+        } else {
+            // 기본 동작: 인터뷰로 이동
+            startInterview(result, userScore, opponentScore, strengthDiff);
+        }
     };
     
     modal.style.display = 'block';

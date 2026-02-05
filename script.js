@@ -94,7 +94,7 @@ const allTeams = {
             { name: "필 포든", position: "FW", country: "잉글랜드", age: 25, rating: 84 },
             { name: "오스카르 보브", position: "MF", country: "노르웨이", age: 22, rating: 73 },
             { name: "리코 루이스", position: "DF", country: "잉글랜드", age: 20, rating: 79 },
-            { name: "앙투안 세메뇨", position: "FW", country: "잉글랜드", age: 25, rating: 87 },
+            { name: "앙투안 세메뇨", position: "FW", country: "가나", age: 25, rating: 87 },
         ],
         description: "천상의 축구를 구현하는 맨체스터의 블루 문"
     },
@@ -1265,7 +1265,7 @@ const allTeams = {
             { name: "한국영", position: "MF", country: "대한민국", age: 35, rating: 73 },
             { name: "티아고", position: "FW", country: "브라질", age: 31, rating: 79 },
             { name: "송민규", position: "FW", country: "대한민국", age: 25, rating: 74 },
-            { name: "이승우", position: "MF", country: "대한민국", age: 27, rating: 80 },
+            { name: "이승우", position: "MF", country: "대한민국", age: 27, rating: 78 },
             { name: "강상윤", position: "MF", country: "대한민국", age: 21, rating: 73 },
             { name: "전진우", position: "MF", country: "대한민국", age: 25, rating: 73 },
             { name: "성진영", position: "FW", country: "대한민국", age: 22, rating: 72 },

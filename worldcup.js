@@ -143,16 +143,29 @@ const WorldCupManager = {
 
         // 1. 기존 allTeams에서 국적별로 선수 분류 (아이콘 제외) - teamNames가 필요하므로 함께 확인
         if (typeof allTeams !== 'undefined') {
-            Object.values(allTeams).forEach(team => {
-                team.players.forEach(p => {
+            Object.entries(allTeams).forEach(([teamKey, teamData]) => {
+                teamData.players.forEach(p => {
                     // [수정] 레전드 선수(isIcon) 제외
                     if (p.isIcon) return;
 
                     if (p.country && p.country !== "국적 미상") {
                         if (!countries[p.country]) countries[p.country] = [];
-                        countries[p.country].push({ ...p, originalClub: teamNames[team] || team });
+                        countries[p.country].push({ ...p, originalClub: teamNames[teamKey] || teamKey });
                     }
                 });
+            });
+        }
+
+        // [추가] 2. transfer.js의 외부 리그(extraPlayers) 선수들도 국가별로 분류
+        if (typeof transferSystem !== 'undefined' && Array.isArray(transferSystem.extraPlayers)) {
+            transferSystem.extraPlayers.forEach(p => {
+                // 레전드 선수(isIcon) 제외
+                if (p.isIcon) return;
+
+                if (p.country && p.country !== "국적 미상") {
+                    if (!countries[p.country]) countries[p.country] = [];
+                    countries[p.country].push({ ...p, originalClub: "외부 리그" });
+                }
             });
         }
 
@@ -171,6 +184,10 @@ const WorldCupManager = {
         // 3. 각 국가별 스쿼드 구성 (25인)
         participatingCountries.forEach(country => {
             let realPlayers = countries[country] || [];
+
+            // [추가] 실제 선수들의 평균 오버롤 계산
+            const totalRating = realPlayers.reduce((sum, p) => sum + p.rating, 0);
+            const avgRating = realPlayers.length > 0 ? Math.round(totalRating / realPlayers.length) : 0;
             
             // 포지션별 분류 및 정렬
             const gks = realPlayers.filter(p => p.position === 'GK').sort((a, b) => b.rating - a.rating);
@@ -196,7 +213,7 @@ const WorldCupManager = {
             // 부족한 인원 가상 선수로 채우기
             const fillVirtual = (pos, currentCount, targetCount) => {
                 for (let i = currentCount; i < targetCount; i++) {
-                    const vp = this.createVirtualPlayer(country, pos);
+                    const vp = this.createVirtualPlayer(country, pos, avgRating);
                     squad.push(vp);
                     pool.push(vp); // 풀에도 추가
                 }
@@ -219,7 +236,7 @@ const WorldCupManager = {
                 const needed = 4 - wildcards.length;
                 for (let i = 0; i < needed; i++) {
                     const pos = ['DF', 'MF', 'FW'][i % 3];
-                    const vp = this.createVirtualPlayer(country, pos);
+                    const vp = this.createVirtualPlayer(country, pos, avgRating);
                     squad.push(vp);
                     pool.push(vp);
                 }
@@ -230,7 +247,7 @@ const WorldCupManager = {
         });
     },
 
-    createVirtualPlayer(country, fixedPos = null) {
+    createVirtualPlayer(country, fixedPos = null, avgRating = 0) {
         // 언어권 기반 이름 생성 로직
         let region = "English"; // 기본값 (미국, 호주 등)
 
@@ -254,7 +271,17 @@ const WorldCupManager = {
         
         const positions = ['GK', 'DF', 'MF', 'FW'];
         const position = fixedPos || positions[Math.floor(Math.random() * positions.length)];
-        const rating = Math.floor(Math.random() * 16) + 70;
+        
+        let rating;
+        if (avgRating === 0) {
+            // 실제 선수가 한 명도 없는 경우: 65 ~ 76 사이
+            rating = Math.floor(Math.random() * 12) + 65;
+        } else {
+            // 팀 평균 오버롤 기반: 평균 + (-7 ~ +2)
+            const adjustment = Math.floor(Math.random() * 10) - 7;
+            rating = Math.max(50, Math.min(99, avgRating + adjustment));
+        }
+
         const age = Math.floor(Math.random() * 15) + 18;
 
         return { name, position, country, age, rating, isVirtual: true, originalClub: "FA" };
@@ -983,17 +1010,30 @@ const WorldCupManager = {
     loadWorldCup(slotIndex) {
         const dataStr = localStorage.getItem(`worldcup_save_${slotIndex}`);
         if (!dataStr) {
-            alert('저장된 데이터가 없습니다.');
+            alert(`슬롯 ${slotIndex}에 저장된 데이터가 없습니다.`);
             return;
         }
-        const data = JSON.parse(dataStr);
-        this.wcPlayers = data.wcPlayers;
-        this.groups = data.groups;
-        this.userTeam = data.userTeam;
-        this.currentStage = data.currentStage || 'group';
-        
-        document.getElementById('wcModal').style.display = 'none';
-        this.enterWorldCupMode(); // 데이터 로드 후 모드 진입
+        try {
+            const data = JSON.parse(dataStr);
+
+            // [수정] 저장 데이터 유효성 검사
+            if (!data || !data.wcPlayers || Object.keys(data.wcPlayers).length === 0 || !data.userTeam) {
+                alert(`오류: 월드컵 슬롯 ${slotIndex}의 데이터가 손상되었습니다. 이 슬롯을 삭제하고 새로운 월드컵을 시작해주세요.`);
+                console.error("손상된 월드컵 데이터:", data);
+                return;
+            }
+
+            this.wcPlayers = data.wcPlayers;
+            this.groups = data.groups;
+            this.userTeam = data.userTeam;
+            this.currentStage = data.currentStage || 'group';
+            
+            document.getElementById('wcModal').style.display = 'none';
+            this.enterWorldCupMode(); // 데이터 로드 후 모드 진입
+        } catch (e) {
+            alert(`오류: 월드컵 슬롯 ${slotIndex}의 데이터를 읽는 중 오류가 발생했습니다. 파일이 손상되었을 수 있습니다.`);
+            console.error("월드컵 저장 데이터 파싱 오류:", e);
+        }
     },
     
     deleteWorldCup(slotIndex) {
