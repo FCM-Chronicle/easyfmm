@@ -9,6 +9,7 @@ const WorldCupManager = {
     currentStage: 'group', // group, r32, r16, qf, sf, final
     isEliminated: false, // 유저 탈락 여부
     currentCallUpSort: 'ovr', // [추가] 차출 탭 정렬 기준 (ovr, name)
+    currentSlotIndex: null, // 현재 플레이 중인 슬롯 번호
 
     // [수정] 언어권별 이름 데이터베이스 (한글 표기)
     // 주요 국가(한국, 잉글랜드, 스페인, 독일, 이탈리아, 네덜란드)는 제외됨
@@ -140,7 +141,7 @@ const WorldCupManager = {
         }
 
         this.setupGroups();
-        this.saveWorldCup(1);
+        // [수정] 팀 선택 전에는 저장하지 않음 (데이터 손상 방지)
         document.getElementById('wcModal').style.display = 'none';
         this.showGroupStageUI();
     },
@@ -349,11 +350,13 @@ const WorldCupManager = {
     selectTeam(teamName) {
         if (confirm(`'${teamName}' 국가대표팀으로 월드컵에 참가하시겠습니까?`)) {
             this.userTeam = teamName;
+            // [수정] 모드 진입(데이터 초기화) 후 저장해야 안전함
             this.enterWorldCupMode();
+            this.tryInitialSave();
         }
     },
 
-    enterWorldCupMode() {
+    enterWorldCupMode(isLoading = false) { // [수정] 로딩 여부 파라미터 추가
         console.log("🏆 월드컵 모드 진입 시작:", this.userTeam);
 
         // [수정] 1. UI 전환을 가장 먼저 수행 (화면이 멈춘 것처럼 보이지 않게 함)
@@ -379,18 +382,30 @@ const WorldCupManager = {
         gameData.selectedTeam = this.userTeam;
         gameData.currentLeague = 4; // 월드컵 리그 ID
         gameData.teamMoney = 0;
-        gameData.matchesPlayed = 0;
-        gameData.seasonCount = 1;
         gameData.isWorldCupMode = true;
-        this.currentStage = 'group';
-        this.isEliminated = false;
+        
+        // [추가] 월드컵 모드 진입 시 BGM 플레이리스트 변경
+        if (typeof audioManager !== 'undefined') {
+            audioManager.updatePlaylist();
+        }
+        
+        // [수정] 로딩 중이 아닐 때만 초기화 (진행 상황 유지)
+        if (!isLoading) {
+            gameData.matchesPlayed = 0;
+            gameData.seasonCount = 1;
+            this.currentStage = 'group';
+            this.isEliminated = false;
+        }
 
         // 3. 리그 데이터 초기화
         if (!gameData.leagueData) gameData.leagueData = {};
-        gameData.leagueData.division4 = {};
-        Object.keys(this.wcPlayers).forEach(teamKey => {
-            gameData.leagueData.division4[teamKey] = { matches: 0, wins: 0, draws: 0, losses: 0, points: 0, goalsFor: 0, goalsAgainst: 0 };
-        });
+        
+        if (!isLoading) {
+            gameData.leagueData.division4 = {};
+            Object.keys(this.wcPlayers).forEach(teamKey => {
+                gameData.leagueData.division4[teamKey] = { matches: 0, wins: 0, draws: 0, losses: 0, points: 0, goalsFor: 0, goalsAgainst: 0 };
+            });
+        }
 
         // 4. 스쿼드 자동 채우기
         gameData.squad = { gk: null, df: [null,null,null,null], mf: [null,null,null], fw: [null,null,null] };
@@ -405,8 +420,10 @@ const WorldCupManager = {
             DNAManager.initialize(window.teams[this.userTeam]);
         }
 
-        // 5. 전체 조별리그 일정 생성 (모든 조 포함)
-        this.generateWCSchedule();
+        // 5. 전체 조별리그 일정 생성 (로딩 중이 아닐 때만)
+        if (!isLoading) {
+            this.generateWCSchedule();
+        }
 
         // 7. UI 전환 (탭 숨김/표시)
         this.updateWorldCupUI();
@@ -627,155 +644,6 @@ const WorldCupManager = {
         return Math.random() < team1WinChance ? team1 : team2;
     },
 
-    // [신규] 월드컵 모드 UI 업데이트 (탭 제어)
-    updateWorldCupUI() {
-        // 1. 불필요한 탭 숨기기
-        const tabsToHide = ['sponsor', 'youth', 'transfer_news', 'league', 'sns', 'mail'];
-        tabsToHide.forEach(t => {
-            const btn = document.querySelector(`[data-tab="${t}"]`);
-            if (btn) btn.style.display = 'none';
-        });
-
-        // 2. 차출 탭 (이적 탭 재활용)
-        const transferBtn = document.querySelector(`[data-tab="transfer"]`);
-        if (transferBtn) {
-            transferBtn.style.display = 'inline-block';
-            transferBtn.textContent = '🔄 차출';
-            transferBtn.dataset.tab = 'callup'; // 탭 ID 변경
-        }
-
-        // 3. 기록 탭 (이름 변경)
-        const recordsBtn = document.querySelector(`[data-tab="records"]`);
-        if (recordsBtn) {
-            recordsBtn.style.display = 'inline-block'; // 숨겨져 있었다면 다시 표시
-            recordsBtn.textContent = '📊 대회 기록';
-        }
-    },
-
-    // [신규] 차출(Call-up) 탭 렌더링
-    renderCallUpTab() {
-        const container = document.getElementById('transferPlayers'); // 이적 탭 컨테이너 재활용
-        if (!container) return;
-        
-        // 첫 경기 시작 전까지만 차출 가능
-        if (gameData.matchesPlayed > 0) {
-            container.innerHTML = '<div style="text-align:center; padding: 50px; color:#e74c3c;"><h3>🚫 차출 기간 종료</h3><p>대회가 시작되어 더 이상 선수를 교체할 수 없습니다.</p></div>';
-            return;
-        }
-
-        container.innerHTML = `
-            <div style="padding: 15px; background: rgba(0,0,0,0.2); margin-bottom: 15px; border-radius: 5px;">
-                <h3 style="color: #ffd700; margin-top: 0;">국가대표 선수단 관리 (25인)</h3>
-                <p style="color: #ccc; font-size: 0.9rem;">현재 스쿼드에 없는 선수를 클릭하여 스쿼드 내 선수와 교체할 수 있습니다.</p>
-            </div>
-            <div id="callupList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px;"></div>
-        `;
-
-        const list = document.getElementById('callupList');
-        const pool = this.nationalPools[this.userTeam] || [];
-        const currentSquad = window.teams[this.userTeam];
-        const currentNames = new Set(currentSquad.map(p => p.name));
-
-        // 스쿼드에 없는 선수들만 표시
-        const candidates = pool.filter(p => !currentNames.has(p.name));
-
-        if (candidates.length === 0) {
-            list.innerHTML = '<p style="grid-column: 1/-1; text-align: center;">교체 가능한 선수가 없습니다.</p>';
-            return;
-        }
-
-        candidates.forEach(player => {
-            const card = document.createElement('div');
-            card.className = 'player-card';
-            card.innerHTML = `
-                <div class="name">${player.name}</div>
-                <div class="details">${player.position} | OVR: ${player.rating} | ${player.age}세</div>
-                <div style="font-size: 0.8rem; color: #aaa;">${player.originalClub}</div>
-            `;
-            card.onclick = () => this.swapSquadPlayer(player);
-            list.appendChild(card);
-        });
-    },
-
-    swapSquadPlayer(newPlayer) {
-        // 교체 대상 선택 (스쿼드 내 선수 목록 팝업)
-        const currentSquad = window.teams[this.userTeam];
-        let options = currentSquad.map((p, idx) => `${idx + 1}. ${p.name} (${p.position}, ${p.rating})`).join('\n');
-        
-        const input = prompt(`[${newPlayer.name}] 선수와 교체할 스쿼드 선수의 번호를 입력하세요:\n\n${options}`);
-        const idx = parseInt(input) - 1;
-
-        if (!isNaN(idx) && idx >= 0 && idx < currentSquad.length) {
-            const oldPlayer = currentSquad[idx];
-            
-            // 교체 실행
-            currentSquad[idx] = newPlayer;
-            
-            // gameData.squad(선발/후보)에서도 제거해야 함
-            if (typeof removePlayerFromSquad === 'function') {
-                removePlayerFromSquad(oldPlayer);
-            }
-
-            alert(`🔄 교체 완료: ${oldPlayer.name} OUT ➔ ${newPlayer.name} IN`);
-            this.renderCallUpTab(); // UI 갱신
-            if (typeof displayTeamPlayers === 'function') displayTeamPlayers();
-        }
-    },
-
-    // [신규] 대회 기록 탭 렌더링
-    renderRecordsTab() {
-        const container = document.querySelector('.records-content');
-        if (!container) return;
-
-        container.innerHTML = '';
-        container.style.display = 'block'; // 그리드 대신 블록으로
-
-        // 1. 조별리그 순위표
-        const groupSection = document.createElement('div');
-        groupSection.innerHTML = `<h3 style="color: #ffd700; border-bottom: 2px solid #ffd700; padding-bottom: 10px;">🏆 조별리그 현황</h3>`;
-        
-        const standings = this.calculateAllGroupStandings();
-        const grid = document.createElement('div');
-        grid.style.cssText = 'display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 15px;';
-
-        Object.keys(standings).sort().forEach(group => {
-            const table = document.createElement('div');
-            table.style.cssText = 'background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px;';
-            
-            let rows = standings[group].map((t, i) => `
-                <div style="display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.1); ${t.team === this.userTeam ? 'color: #2ecc71; font-weight: bold;' : ''}">
-                    <span style="width: 20px;">${i+1}</span>
-                    <span style="flex: 1;">${t.team}</span>
-                    <span style="width: 30px; text-align: center;">${t.points}</span>
-                    <span style="width: 30px; text-align: center;">${t.goalDiff}</span>
-                </div>
-            `).join('');
-
-            table.innerHTML = `<h4 style="margin: 0 0 10px 0; color: #3498db;">${group}조</h4>${rows}`;
-            grid.appendChild(table);
-        });
-        groupSection.appendChild(grid);
-        container.appendChild(groupSection);
-
-        // 2. 토너먼트 대진표 (16강 이상일 때)
-        if (this.currentStage !== 'group') {
-            const bracketSection = document.createElement('div');
-            bracketSection.style.marginTop = '30px';
-            bracketSection.innerHTML = `<h3 style="color: #ffd700; border-bottom: 2px solid #ffd700; padding-bottom: 10px;">⚔️ 토너먼트 대진</h3>`;
-            
-            const bracketDiv = document.createElement('div');
-            bracketDiv.innerHTML = `<p style="padding: 20px; text-align: center;">현재 ${this.getStageKoreanName(this.currentStage)} 진행 중입니다.</p>`;
-            // TODO: 실제 대진표 시각화 (간단히 텍스트로)
-            if (this.tournamentBracket.length > 0) {
-                const list = this.tournamentBracket.map(m => `<div style="padding: 5px; background: rgba(0,0,0,0.3); margin: 5px 0;">${m.home} vs ${m.away}</div>`).join('');
-                bracketDiv.innerHTML += list;
-            }
-            
-            bracketSection.appendChild(bracketDiv);
-            container.appendChild(bracketSection);
-        }
-    },
-
     // [수정] 조별리그 전체 일정 생성 (모든 조 포함)
     generateWCSchedule() {
         const schedule = [[], [], []]; // 3라운드
@@ -814,6 +682,9 @@ const WorldCupManager = {
 
     // 경기 종료 후 호출되는 핸들러
     handleMatchEnd(matchData) {
+        // [추가] 경기 종료 후 자동 저장
+        this.autoSave();
+
         // 1. 조별리그 종료 체크
         if (this.currentStage === 'group') {
             // [수정] 3경기를 모두 치렀을 때 조별리그 종료 (리그 데이터 기준)
@@ -986,6 +857,9 @@ const WorldCupManager = {
         // 5. 일정 설정
         this.setKnockoutSchedule(bracket);
 
+        // [추가] 32강 대진표 확정 후 자동 저장
+        this.autoSave();
+
         alert("32강 대진표가 확정되었습니다!");
     },
 
@@ -1085,6 +959,9 @@ const WorldCupManager = {
             // 다음 라운드 대진 생성 (간소화: 랜덤 매칭)
             this.generateNextRound(userWon);
 
+            // [추가] 라운드 진출 후 자동 저장
+            this.autoSave();
+
             alert(`${this.getStageKoreanName(this.currentStage)} 진출! 다음 상대를 확인하세요.`);
         } else {
             alert("🏆 월드컵 우승! 축하합니다!");
@@ -1126,17 +1003,42 @@ const WorldCupManager = {
         this.setKnockoutSchedule(nextMatches);
     },
 
-    saveWorldCup(slotIndex) {
+    saveWorldCup(slotIndex, silent = false) {
         const data = {
             wcPlayers: this.wcPlayers,
             groups: this.groups,
             userTeam: this.userTeam,
             currentStage: this.currentStage,
-            timestamp: Date.now()
+            timestamp: Date.now(),
+            // [추가] 진행 상황 상세 데이터 저장
+            leagueData: gameData.leagueData ? gameData.leagueData.division4 : {},
+            schedule: gameData.schedule ? gameData.schedule.division4 : [],
+            tournamentBracket: this.tournamentBracket,
+            matchesPlayed: gameData.matchesPlayed,
+            currentRound: gameData.currentRound,
+            isEliminated: this.isEliminated
         };
         localStorage.setItem(`worldcup_save_${slotIndex}`, JSON.stringify(data));
-        alert(`월드컵 슬롯 ${slotIndex}에 저장되었습니다.`);
+        if (!silent) alert(`월드컵 슬롯 ${slotIndex}에 저장되었습니다.`);
         this.renderSaveSlots();
+    },
+
+    tryInitialSave() {
+        for (let i = 1; i <= 3; i++) {
+            if (!localStorage.getItem(`worldcup_save_${i}`)) {
+                this.currentSlotIndex = i;
+                this.saveWorldCup(i, true);
+                return;
+            }
+        }
+        alert("저장 슬롯(1~3)이 모두 꽉 찼습니다.\n기존 데이터를 삭제해야 자동 저장이 가능합니다.");
+        this.currentSlotIndex = null;
+    },
+
+    autoSave() {
+        if (this.currentSlotIndex) {
+            this.saveWorldCup(this.currentSlotIndex, true);
+        }
     },
 
     loadWorldCup(slotIndex) {
@@ -1164,9 +1066,34 @@ const WorldCupManager = {
             this.groups = data.groups;
             this.userTeam = data.userTeam;
             this.currentStage = data.currentStage || 'group';
+            this.currentSlotIndex = slotIndex; // 현재 슬롯 설정
+            // [추가] 진행 상황 복원
+            this.tournamentBracket = data.tournamentBracket || {};
+            this.isEliminated = data.isEliminated || false;
             
             document.getElementById('wcModal').style.display = 'none';
-            this.enterWorldCupMode(); // 데이터 로드 후 모드 진입
+            this.enterWorldCupMode(true); // [수정] 로딩 모드로 진입 (초기화 방지)
+
+            // [추가] 게임 데이터 상세 복원
+            if (data.leagueData) {
+                if (!gameData.leagueData) gameData.leagueData = {};
+                gameData.leagueData.division4 = data.leagueData;
+            }
+            
+            if (data.schedule) {
+                if (!gameData.schedule) gameData.schedule = {};
+                gameData.schedule.division4 = data.schedule;
+            } else {
+                // 스케줄이 없는 경우 (구버전 세이브 등) 재생성
+                this.generateWCSchedule();
+            }
+            
+            if (data.matchesPlayed !== undefined) gameData.matchesPlayed = data.matchesPlayed;
+            if (data.currentRound !== undefined) gameData.currentRound = data.currentRound;
+            
+            if (typeof window.setNextOpponent === 'function') window.setNextOpponent();
+            if (typeof window.updateDisplay === 'function') window.updateDisplay();
+            this.updateWorldCupUI();
         } catch (e) {
             alert(`오류: 월드컵 슬롯 ${slotIndex}의 데이터를 읽는 중 오류가 발생했습니다. 파일이 손상되었을 수 있습니다.`);
             console.error("월드컵 저장 데이터 파싱 오류:", e);

@@ -243,7 +243,56 @@ class TacticSystem {
     "울산_현대": "tikitaka",
     "포항_스틸러스": "possession",
     "광주_FC": "tikitaka",
-    "리옹": "twoLine"
+    "리옹": "twoLine",
+
+    // [추가] 월드컵 국가대표팀 전술 매핑
+    "대한민국": "lavolpiana",
+    "멕시코": "possession",
+    "남아공": "twoLine",
+    "캐나다": "gegenpress",
+    "카타르": "parkBus",
+    "스위스": "catenaccio",
+    "브라질": "totalFootball",
+    "모로코": "parkBus",
+    "아이티": "longBall",
+    "스코틀랜드": "longBall",
+    "미국": "gegenpress",
+    "파라과이": "catenaccio",
+    "호주": "longBall",
+    "독일": "gegenpress",
+    "퀴라소": "possession",
+    "코트디부아르": "twoLine",
+    "에콰도르": "gegenpress",
+    "네덜란드": "totalFootball",
+    "일본": "tikitaka",
+    "튀니지": "parkBus",
+    "벨기에": "possession",
+    "이집트": "parkBus",
+    "이란": "catenaccio",
+    "뉴질랜드": "longBall",
+    "스페인": "tikitaka",
+    "카보베르데": "twoLine",
+    "사우디아라비아": "parkBus",
+    "우루과이": "twoLine",
+    "프랑스": "possession",
+    "세네갈": "twoLine",
+    "노르웨이": "longBall",
+    "아르헨티나": "possession",
+    "알제리": "twoLine",
+    "오스트리아": "gegenpress",
+    "요르단": "parkBus",
+    "포르투갈": "possession",
+    "우즈베키스탄": "parkBus",
+    "콜롬비아": "twoLine",
+    "잉글랜드": "possession",
+    "크로아티아": "possession",
+    "가나": "twoLine",
+    "파나마": "parkBus",
+    
+    // 플레이오프 및 기타 국가
+    "체코": "gegenpress", "덴마크": "twoLine", "이탈리아": "catenaccio", "웨일스": "longBall",
+    "튀르키예": "gegenpress", "루마니아": "twoLine", "우크라이나": "twoLine", "폴란드": "twoLine",
+    "이라크": "parkBus", "볼리비아": "catenaccio", "코스타리카": "parkBus", "아랍에미리트": "possession"
 };
     }
 
@@ -269,7 +318,12 @@ class TacticSystem {
 
     // 상대팀의 전술 가져오기
     getOpponentTactic(opponentTeam) {
-        return this.teamTactics[opponentTeam] || "possession";
+        if (this.teamTactics[opponentTeam]) {
+            return this.teamTactics[opponentTeam];
+        }
+        // 매핑된 전술이 없으면 랜덤으로 하나 배정 (기본값 'possession' 제거)
+        const tacticKeys = Object.keys(this.tactics);
+        return tacticKeys[Math.floor(Math.random() * tacticKeys.length)];
     }
 
   getTacticModifiers(tactic) {

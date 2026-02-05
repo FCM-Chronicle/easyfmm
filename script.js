@@ -4642,12 +4642,12 @@ window.calculateTeamRating = calculateTeamRating;
 window.calculateOpponentTeamRating = calculateOpponentTeamRating;
 window.calculateTeamStrengthDifference = calculateTeamStrengthDifference;
 
+// ... existing code ...
 // ==================== 오디오 시스템 ====================
 
 class AudioManager {
     constructor() {
-        this.bgmFiles = [
-            // ❗ 여기에 assets/ost 폴더에 넣은 mp3 파일명을 정확히 입력하세요.
+        this.defaultPlaylist = [
             'assets/ost/[Bonus Track] Always Awake.mp3',
             'assets/ost/Aqua Man.mp3',
             'assets/ost/Bruno Mars - 24K Magic (Audio).mp3',
@@ -4668,12 +4668,21 @@ class AudioManager {
             'assets/ost/Travel Again (Feat. Cautious Clay).mp3',
             'assets/ost/Jay Park (박재범), GRAY (그레이) - _EL TORNADO_ Lyrics (Color Coded Lyrics Han_Rom_Eng_가사) [BAnXszYMGSU].mp3'
         ];
+
+        this.worldCupPlaylist = [
+            'assets/WCost/BTS_Jungkook_Dreamers_Lyrics_FIFA_World_Cup_2022_Song.mp3',
+            'assets/WCost/Hayya_Hayya_Better_Together_Lyrics_FIFA_World_Cup_2022_Trinidad_Cardona_DaVido_Aisha.mp3',
+            'assets/WCost/The_Official_FIFA_World_Cup_26_Theme.mp3'
+        ];
+
+        this.bgmFiles = [...this.defaultPlaylist];
         this.currentTrackIndex = 0;
         this.audio = new Audio();
         this.isPlaying = false;
         this.initialized = false;
+        this.currentMode = 'default'; // 현재 모드 추적
         
-        // [추가] 플레이리스트 셔플 (랜덤 재생)
+        // 플레이리스트 셔플 (랜덤 재생)
         this.shufflePlaylist();
         
         this.createNowPlayingUI(); // UI 생성
@@ -4682,10 +4691,10 @@ class AudioManager {
     init() {
         if (this.initialized) return;
         
-        // [수정] 오디오 객체가 가비지 컬렉션되어 끊기는 현상 방지 (DOM에 추가)
+        // 오디오 객체가 가비지 컬렉션되어 끊기는 현상 방지 (DOM에 추가)
         document.body.appendChild(this.audio);
 
-        // [추가] 에러 발생 시 다음 곡 재생
+        // 에러 발생 시 다음 곡 재생
         this.audio.addEventListener('error', (e) => {
             console.warn("Audio error, playing next:", e);
             setTimeout(() => this.playNext(), 1000);
@@ -4703,7 +4712,32 @@ class AudioManager {
         this.initialized = true;
     }
     
-    // [추가] 셔플 메서드
+    // 플레이리스트 업데이트 (모드 변경 시 호출)
+    updatePlaylist() {
+        const isWorldCup = typeof gameData !== 'undefined' && gameData.isWorldCupMode;
+        const newMode = isWorldCup ? 'worldcup' : 'default';
+
+        if (this.currentMode !== newMode) {
+            this.currentMode = newMode;
+            this.bgmFiles = isWorldCup ? [...this.worldCupPlaylist] : [...this.defaultPlaylist];
+            this.shufflePlaylist();
+            this.currentTrackIndex = 0;
+            
+            console.log(`🔀 BGM 플레이리스트가 ${newMode} 모드로 변경되었습니다.`);
+
+            // [수정] 소스를 강제로 변경하여 새 리스트의 곡이 나오도록 함
+            if (this.bgmFiles.length > 0) {
+                this.audio.src = this.bgmFiles[this.currentTrackIndex];
+                
+                // BGM이 켜져있다면 재생
+                if (gameData.settings && gameData.settings.bgm) {
+                    this.play();
+                }
+            }
+        }
+    }
+
+    // 셔플 메서드
     shufflePlaylist() {
         for (let i = this.bgmFiles.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
@@ -4726,6 +4760,9 @@ class AudioManager {
         } else if (isMuted && this.isPlaying) {
             this.pause();
         }
+        
+        // 저장된 게임의 모드에 맞춰 플레이리스트 업데이트
+        this.updatePlaylist();
     }
 
     play() {
@@ -4756,7 +4793,7 @@ class AudioManager {
     }
 
     playNext() {
-        // [수정] 순차 재생 (마지막 곡이면 다시 처음으로)
+        // 순차 재생 (마지막 곡이면 다시 처음으로)
         this.currentTrackIndex++;
         if (this.currentTrackIndex >= this.bgmFiles.length) {
             this.currentTrackIndex = 0;
@@ -4870,6 +4907,10 @@ class AudioManager {
 
 const audioManager = new AudioManager();
 window.audioManager = audioManager;
+
+// ... existing code ...
+
+
 
 // 설정 탭에 오디오 설정 UI 렌더링
 function renderAudioSettings() {
