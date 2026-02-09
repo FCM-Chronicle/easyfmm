@@ -63,15 +63,21 @@ class FormationSystem {
         roleBtn.className = 'btn';
         roleBtn.innerHTML = '📋 롤 정보';
         roleBtn.style.cssText = `
-            padding: 6px 12px;
-            font-size: 0.85rem;
-            background-color: rgba(52, 152, 219, 0.9);
+            padding: 10px 20px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            background: rgba(52, 152, 219, 0.3);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
             color: white;
-            border: none;
-            border-radius: 5px;
+            border-radius: 25px; /* 클레이 느낌을 위해 더 둥글게 */
             pointer-events: auto; /* 버튼은 클릭 가능 */
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            /* 외부 그림자로 띄우고, 내부 그림자(inset)로 볼륨감 표현 */
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2), inset 2px 2px 5px rgba(255,255,255,0.3), inset -2px -2px 5px rgba(0,0,0,0.1);
             cursor: pointer;
+            transition: all 0.3s ease;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
         `;
         roleBtn.onclick = () => this.toggleRoleViewMode();
 
@@ -81,11 +87,20 @@ class FormationSystem {
         editBtn.className = 'btn primary';
         editBtn.innerHTML = '⚙️ 포메이션 수정';
         editBtn.style.cssText = `
-            padding: 6px 12px;
-            font-size: 0.85rem;
+            padding: 10px 20px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            color: white;
+            border-radius: 25px;
             pointer-events: auto;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2), inset 2px 2px 5px rgba(255,255,255,0.3), inset -2px -2px 5px rgba(0,0,0,0.1);
             cursor: pointer;
+            transition: all 0.3s ease;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
         `;
         editBtn.onclick = () => this.toggleEditMode();
 
@@ -136,7 +151,7 @@ class FormationSystem {
             field.classList.add('role-view-mode'); // 커서 스타일 변경용 클래스
         } else {
             btn.innerHTML = '📋 롤 정보';
-            btn.style.backgroundColor = 'rgba(52, 152, 219, 0.9)';
+            btn.style.backgroundColor = 'rgba(52, 152, 219, 0.6)';
             field.classList.remove('role-view-mode');
             this.hideSubstitutionSheet();
         }
@@ -711,12 +726,17 @@ class FormationSystem {
 // CSS 추가 (기존 style 태그 내용에 추가)
 const newStyle = `
 .player-slot.empty {
-    background: rgba(100, 100, 100, 0.3);
-    border: 2px dashed rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 18px;
     cursor: pointer;
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    /* 빈 슬롯은 안으로 파인 느낌 (Pressed Clay) */
+    box-shadow: inset 4px 4px 8px rgba(0,0,0,0.2), inset -4px -4px 8px rgba(255,255,255,0.1);
 }
 .player-slot.empty:hover {
-    background: rgba(120, 120, 120, 0.5);
+    background: rgba(255, 255, 255, 0.15);
     border-color: #ffd700;
 }
 
@@ -726,10 +746,13 @@ const newStyle = `
     bottom: 0;
     left: 0;
     right: 0;
-    background: #2c3e50;
-    border-top-left-radius: 15px;
-    border-top-right-radius: 15px;
-    box-shadow: 0 -5px 20px rgba(0,0,0,0.5);
+    background: rgba(40, 50, 60, 0.65);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-top-left-radius: 30px;
+    border-top-right-radius: 30px;
+    box-shadow: 0 -10px 40px rgba(0,0,0,0.4), inset 0 2px 10px rgba(255,255,255,0.1);
     transform: translateY(100%);
     transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     z-index: 2000; /* 모달보다 높게 */
@@ -870,9 +893,11 @@ style.textContent = `
     position: absolute;
     width: 80px;
     height: 60px;
-    background: linear-gradient(135deg, #2ecc71, #27ae60);
-    border: 2px solid #2ecc71;
-    border-radius: 8px;
+    background: rgba(46, 204, 113, 0.25);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 18px; /* 더 둥글게 */
     display: flex;
     flex-direction: column;
     align-items: center; 
@@ -882,13 +907,23 @@ style.textContent = `
     user-select: none;
     cursor: default;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    /* 클레이모피즘: 외부 그림자 + 내부 하이라이트/그림자 */
+    box-shadow: 
+        0 10px 20px rgba(0, 0, 0, 0.2), 
+        inset 3px 3px 6px rgba(255, 255, 255, 0.3), 
+        inset -3px -3px 6px rgba(0, 0, 0, 0.1);
     z-index: 10;
 }
 
 .formation-container .player-slot:hover {
     /* 호버 시 위치는 유지하고 크기만 확대 (transform은 그대로 둠) */
     transform: translate(-50%, -50%) scale(1.05);
+    background: rgba(46, 204, 113, 0.4);
+    border-color: rgba(255, 255, 255, 0.6);
+    box-shadow: 
+        0 15px 30px rgba(0, 0, 0, 0.3), 
+        inset 3px 3px 6px rgba(255, 255, 255, 0.4), 
+        inset -3px -3px 6px rgba(0, 0, 0, 0.1);
     z-index: 20;
 }
 

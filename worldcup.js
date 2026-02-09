@@ -637,9 +637,10 @@ const WorldCupManager = {
         const team2Rating = typeof calculateOpponentTeamRating !== 'undefined' ? calculateOpponentTeamRating(team2) : 75;
         const ratingDiff = team1Rating - team2Rating;
 
-        // 능력치 차이가 클수록 승리 확률에 더 큰 영향을 주도록 조정 (0.01 -> 0.015)
-        let team1WinChance = 0.5 + (ratingDiff * 0.015);
-        team1WinChance = Math.max(0.1, Math.min(0.9, team1WinChance)); // 최소 10%, 최대 90%
+        // [수정] 전력 차이 반영 비중 대폭 상향 (0.015 -> 0.04)
+        // 예: 전력차 5 -> 승률 70%, 전력차 10 -> 승률 90%
+        let team1WinChance = 0.5 + (ratingDiff * 0.04);
+        team1WinChance = Math.max(0.05, Math.min(0.95, team1WinChance)); // 최소 5%, 최대 95%
 
         return Math.random() < team1WinChance ? team1 : team2;
     },

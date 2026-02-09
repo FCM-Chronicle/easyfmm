@@ -186,7 +186,9 @@ class RecordsSystem {
     const team1Rating = this.calculateAITeamRating(team1Key);
     const team2Rating = this.calculateAITeamRating(team2Key);
     const ratingDiff = team1Rating - team2Rating;
-    const upsetOccurs = Math.random() < 0.08;
+    // [수정] 월드컵 모드일 경우 이변 확률 감소 (8% -> 2%)
+    const upsetChance = (typeof gameData !== 'undefined' && gameData.isWorldCupMode) ? 0.02 : 0.08;
+    const upsetOccurs = Math.random() < upsetChance;
     let team1WinChance = 0.375;
     let team2WinChance = 0.375;
     let drawChance = 0.25;
@@ -209,8 +211,12 @@ class RecordsSystem {
         }
     }
 
+    // [수정] 월드컵 모드일 경우 전력 차이 반영 비중 확대
+    const powerDivisor = (typeof gameData !== 'undefined' && gameData.isWorldCupMode) ? 50 : 150;
+    const maxAdvantage = (typeof gameData !== 'undefined' && gameData.isWorldCupMode) ? 0.45 : 0.3;
+
     if (ratingDiff > 0) {
-        const advantage = Math.min(0.3, ratingDiff / 150);
+        const advantage = Math.min(maxAdvantage, ratingDiff / powerDivisor);
         team1WinChance += advantage;
         team2WinChance -= advantage * 0.7;
         drawChance -= advantage * 0.3;
@@ -222,7 +228,7 @@ class RecordsSystem {
             drawChance -= upsetBonus * 0.4;
         }
     } else if (ratingDiff < 0) {
-        const advantage = Math.min(0.3, Math.abs(ratingDiff) / 100);
+        const advantage = Math.min(maxAdvantage, Math.abs(ratingDiff) / (powerDivisor * 0.66)); // 약팀이 이길 확률은 더 낮게 보정
         team2WinChance += advantage;
         team1WinChance -= advantage * 0.7;
         drawChance -= advantage * 0.3;
