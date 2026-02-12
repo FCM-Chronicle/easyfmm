@@ -1559,8 +1559,8 @@ let gameData = {
     currentRound: 1, // 현재 라운드
     isHomeGame: true, // 현재 경기가 홈 경기인지 여부
     startYear: 2025, // 시작 연도 (시즌 표기용)
-    seasonCount: 1, // [신규] 시즌 카운트
-    settings: { autoSave: false, bgm: true, bgmVolume: 50 }, // 게임 설정 (오디오 추가)
+    seasonCount: 1, // 시즌 카운트
+    settings: { autoSave: false, bgm: true, bgmVolume: 50, sfxVolume: 50, immersionMode: true }, // 게임 설정 (오디오, SFX, 몰입 모드 추가)
     playerRoles: {}, // [추가] 선수별 역할 데이터 초기화
     temporaryStats: {}, // [신규] 일시적 스탯 버프/디버프 저장소
     secretaryName: "김지수", // [신규] 비서 이름 (secretary.js에서 사용)
@@ -1756,6 +1756,9 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // [신규] 자동 스크롤 시스템 초기화
             AutoScrollSystem.init();
+
+            // [신규] 커스텀 커서 초기화
+            window.customCursorInstance = new CustomCursor();
 });
 
 function initializeGame() {
@@ -1788,6 +1791,10 @@ function setupEventListeners() {
             const tabName = this.dataset.tab;
             showTab(tabName);
         });
+    });
+    // [수정] 홈 버튼 이벤트
+    document.getElementById('homeBtn').addEventListener('click', function() {
+        showDashboard();
     });
 
     // 포지션 클릭
@@ -2219,6 +2226,8 @@ function selectTeam(teamKey) {
     // 로비로 이동
     showScreen('lobby'); 
     displayTeamPlayers();
+    showScreen('lobby');
+    showDashboard(); // [수정] 로비 진입 시 대시보드 표시
     updateDisplay();
     displaySponsors();
 
@@ -2285,9 +2294,28 @@ function showScreen(screenId) {
         screen.classList.remove('active');
     });
     document.getElementById(screenId).classList.add('active');
+
+    // [추가] 월드컵 모드 버튼 표시/숨김 처리
+    const wcBtn = document.getElementById('worldCupBtn');
+    if (wcBtn) {
+        if (screenId === 'lobby') {
+            // 로비 화면(게임 시작)에서는 버튼 숨기기
+            wcBtn.style.display = 'none';
+        } else if (screenId === 'teamSelection') {
+            // 팀 선택 화면에서는 버튼 보이기
+            wcBtn.style.display = 'block';
+        }
+    }
 }
 
 function showTab(tabName) {
+    // [신규] 대시보드 숨기고 탭 컨텐츠 표시
+    document.getElementById('dashboard-container').style.display = 'none';
+    document.getElementById('tab-content-area').style.display = 'block';
+    document.getElementById('homeBtn').style.display = 'block'; // 홈 버튼 표시
+    
+    // 기존 탭 로직 유지
+
     // [추가] 월드컵 모드 탭 제어
     if (gameData.isWorldCupMode) {
         // 허용된 탭: squad, match, tactics, settings, records(대회기록), callup(차출)
@@ -2326,13 +2354,22 @@ function showTab(tabName) {
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.classList.remove('active');
     });
-    document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+    const activeBtn = document.querySelector(`[data-tab="${tabName}"]`);
+    if (activeBtn) {
+        activeBtn.classList.add('active');
+    }
     
     // 탭 패널 표시
     document.querySelectorAll('.tab-panel').forEach(panel => {
         panel.classList.remove('active');
     });
-    document.getElementById(tabName).classList.add('active');
+    const activePanel = document.getElementById(tabName);
+    if (activePanel) {
+        activePanel.classList.add('active');
+    } else {
+        console.error(`Tab panel not found: ${tabName}`);
+        return;
+    }
     
     // 탭별 초기화
     switch(tabName) {
@@ -2439,6 +2476,570 @@ function showTab(tabName) {
         default:
             console.log(`Unknown tab: ${tabName}`);
             break;
+    }
+}
+
+// [신규] 대시보드 표시 함수
+function showDashboard() {
+    document.getElementById('dashboard-container').style.display = 'grid';
+    document.getElementById('tab-content-area').style.display = 'none';
+    document.getElementById('homeBtn').style.display = 'none'; // 홈 화면에선 홈 버튼 숨김
+    
+    renderDashboard();
+}
+
+// [신규] 대시보드 렌더링
+function renderDashboard() {
+    const container = document.getElementById('dashboard-container');
+    container.innerHTML = '';
+
+    // 1. 다음 경기 카드
+    const nextMatchCard = createDashboardCard('🏆 다음 경기', 'match', () => {
+        const opponent = gameData.currentOpponent ? teamNames[gameData.currentOpponent] : '미정';
+        return `
+            <div style="text-align: center;">
+                <div style="font-size: 1.5rem; font-weight: bold; margin-bottom: 10px;">VS ${opponent}</div>
+                <div style="color: #aaa;">${gameData.isHomeGame ? '홈 경기' : '원정 경기'}</div>
+                <div style="margin-top: 15px; color: #2ecc71; font-weight: bold;">킥오프 준비 완료</div>
+            </div>
+        `;
+    });
+
+    // 2. 리그 순위 카드 (내 위/아래 순위 표시)
+    const leagueCard = createDashboardCard('📊 리그 순위', 'league', () => {
+        const league = gameData.currentLeague;
+        const divisionKey = `division${league}`;
+        const table = gameData.leagueData[divisionKey];
+        
+        if (!table) return '<div style="text-align:center; color:#aaa;">데이터 없음</div>';
+
+        // 순위 정렬
+        const standings = Object.keys(table).map(key => ({
+            name: teamNames[key] || key,
+            key: key,
+            ...table[key],
+            diff: table[key].goalsFor - table[key].goalsAgainst
+        })).sort((a, b) => b.points - a.points || b.diff - a.diff || b.goalsFor - a.goalsFor);
+
+        const myIndex = standings.findIndex(t => t.key === gameData.selectedTeam);
+        let html = '';
+
+        // 내 위, 나, 내 아래 표시
+        const range = [myIndex - 1, myIndex, myIndex + 1];
+        range.forEach(idx => {
+            if (standings[idx]) {
+                const team = standings[idx];
+                const isMe = idx === myIndex;
+                html += `
+                    <div class="rank-row ${isMe ? 'my-team' : ''}">
+                        <span>${idx + 1}위</span>
+                        <span>${team.name}</span>
+                        <span>${team.points}pts</span>
+                    </div>
+                `;
+            }
+        });
+        return html;
+    });
+
+    // 3. 스쿼드 요약 카드
+    const squadCard = createDashboardCard('👥 스쿼드', 'squad', () => {
+        const rating = calculateTeamRating().toFixed(1);
+        const injuredCount = gameData.injuredPlayers ? gameData.injuredPlayers.length : 0; // 수정: injuredPlayers는 배열이 아닐 수 있음. injurySystem 확인 필요하지만 일단 안전하게
+        // injurySystem이 있으면 거기서 가져옴
+        const realInjuredCount = (typeof injurySystem !== 'undefined') ? injurySystem.getInjuredPlayers(gameData.selectedTeam).length : 0;
+        
+        return `
+            <div style="display: flex; justify-content: space-around; text-align: center;">
+                <div>
+                    <div style="font-size: 0.9rem; color: #aaa;">평균 능력치</div>
+                    <div style="font-size: 1.5rem; font-weight: bold; color: #3498db;">${rating}</div>
+                </div>
+                <div>
+                    <div style="font-size: 0.9rem; color: #aaa;">부상자</div>
+                    <div style="font-size: 1.5rem; font-weight: bold; color: ${realInjuredCount > 0 ? '#e74c3c' : '#2ecc71'};">${realInjuredCount}명</div>
+                </div>
+            </div>
+        `;
+    });
+
+    // 4. 이적 시장 카드
+    const transferCard = createDashboardCard('💰 이적 시장', 'transfer', () => {
+        return `
+            <div style="text-align: center;">
+                <div style="font-size: 0.9rem; color: #aaa;">이적 자금</div>
+                <div style="font-size: 1.5rem; font-weight: bold; color: #f1c40f;">${gameData.teamMoney}억</div>
+                <div style="margin-top: 10px; font-size: 0.9rem;">새로운 인재 영입하기</div>
+            </div>
+        `;
+    });
+
+    // 5. 기타 카드들
+    const tacticsCard = createDashboardCard('🧬 전술/DNA', 'tactics', () => `<div style="text-align:center;">현재 전술: <span style="color:#ffd700;">${gameData.currentTactic}</span></div>`);
+    const mailCard = createDashboardCard('📬 메일함', 'mail', () => {
+        const unread = (typeof mailManager !== 'undefined') ? mailManager.getUnreadCount() : 0;
+        return `<div style="text-align:center;">읽지 않은 메일: <span style="color:${unread > 0 ? '#e74c3c' : '#aaa'}; font-weight:bold;">${unread}통</span></div>`;
+    });
+    const settingsCard = createDashboardCard('⚙️ 설정 / 저장', 'settings', () => `<div style="text-align:center;">게임 저장 및 불러오기</div>`);
+
+    container.appendChild(nextMatchCard);
+    container.appendChild(leagueCard);
+    container.appendChild(squadCard);
+    container.appendChild(transferCard);
+    container.appendChild(tacticsCard);
+    container.appendChild(mailCard);
+    container.appendChild(settingsCard);
+}
+
+function createDashboardCard(title, tabName, contentFn) {
+    const card = document.createElement('div');
+    card.className = 'dashboard-card';
+    card.innerHTML = `
+        <h3>${title} <span>➔</span></h3>
+        <div class="dashboard-content">${contentFn()}</div>
+    `;
+    card.onclick = () => showTab(tabName);
+    return card;
+}
+
+// ==================== [신규] 커스텀 커서 시스템 ====================
+
+const cursorStyle = document.createElement('style');
+cursorStyle.textContent = `
+    body.custom-cursor-active, body.custom-cursor-active * {
+        cursor: none !important;
+    }
+    .custom-cursor {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 8px;
+        height: 8px;
+        background-color: white;
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 99999;
+        transform-origin: center center;
+        mix-blend-mode: difference;
+        transition: width 0.2s cubic-bezier(0.25, 1, 0.5, 1), height 0.2s cubic-bezier(0.25, 1, 0.5, 1), background-color 0.2s, border-radius 0.2s;
+    }
+    .custom-cursor.targeting {
+        background-color: transparent;
+        border-radius: 4px;
+    }
+    .custom-cursor-corner {
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        background-color: transparent;
+        transition: transform 0.1s ease-out, opacity 0.2s;
+        opacity: 0;
+    }
+    .custom-cursor.targeting .custom-cursor-corner {
+        opacity: 1;
+    }
+    .custom-cursor-corner-tl { top: -2px; left: -2px; border-top: 2px solid white; border-left: 2px solid white; }
+    .custom-cursor-corner-tr { top: -2px; right: -2px; border-top: 2px solid white; border-right: 2px solid white; }
+    .custom-cursor-corner-bl { bottom: -2px; left: -2px; border-bottom: 2px solid white; border-left: 2px solid white; }
+    .custom-cursor-corner-br { bottom: -2px; right: -2px; border-bottom: 2px solid white; border-right: 2px solid white; }
+`;
+document.head.appendChild(cursorStyle);
+
+class CustomCursor {
+    constructor(options = {}) {
+        this.options = {
+            targetSelector: 'a, button, .btn, .team-card, .tab-btn, .player-slot, .interview-btn, .scout-card, .mail-item, select, input, [onclick], .dashboard-card, .player-card, .transfer-player, .league-switch-btn, .sponsor-card, .settings-section',
+            hideDefaultCursor: true,
+            hoverDuration: 0.2,
+            parallaxOn: true,
+            parallaxAmount: 5,
+            ...options
+        };
+
+        this.cursorEl = null;
+        this.corners = {};
+        this.pos = { x: 0, y: 0 };
+        this.mouse = { x: 0, y: 0 };
+        this.isTargeting = false;
+        this.target = null;
+        this.animationFrame = null;
+
+        // [신규] 게임패드 관련 변수
+        this.gamepadIndex = null;
+        this.buttonStates = {};
+        this.cursorSpeed = 12; // 커서 이동 속도
+        this.scrollSpeed = 15; // 스크롤 속도
+        this.deadzone = 0.1;   // 데드존
+        this.dpadCooldown = 150; // D-pad 연타 방지 쿨다운 (ms)
+        this.vibrationTimer = null; // [신규] 진동 타이머
+
+        this.init();
+    }
+
+    init() {
+        if (this.options.hideDefaultCursor) {
+            document.body.classList.add('custom-cursor-active');
+        }
+        // 한글 파일명 호환성 문제를 위해 영문명으로 변경 (파일 이름도 변경 필요)
+        this.hoverSound = new Audio('assets/SFX/hover.mp3'); 
+        this.clickSound = new Audio('assets/SFX/click.mp3');
+        
+        this.hoverSound.onerror = () => console.warn("Hover sound not found: assets/SFX/hover.mp3");
+        this.clickSound.onerror = () => console.warn("Click sound not found: assets/SFX/click.mp3");
+
+        if (typeof audioManager !== 'undefined') {
+            this.hoverSound.volume = audioManager.sfxVolume / 100;
+            this.clickSound.volume = audioManager.sfxVolume / 100;
+        } else { // Fallback if audioManager is not yet initialized
+            this.hoverSound.volume = 0.5;
+            this.clickSound.volume = 0.5;
+        }
+
+        // [신규] 게임패드 연결 이벤트
+        window.addEventListener("gamepadconnected", (e) => {
+            this.gamepadIndex = e.gamepad.index;
+            console.log("🎮 컨트롤러 연결됨:", e.gamepad.id);
+            // 연결 시 현재 마우스 위치로 초기화 (튀는 현상 방지)
+            this.mouse.x = this.pos.x;
+            this.mouse.y = this.pos.y;
+            // 연결 시 진동 피드백
+            if (e.gamepad.vibrationActuator) {
+                this.triggerVibration(100, 0.5, 0.2);
+            }
+        });
+        window.addEventListener("gamepaddisconnected", (e) => {
+            if (this.gamepadIndex === e.gamepad.index) {
+                this.gamepadIndex = null;
+                console.log("🎮 컨트롤러 연결 해제됨");
+            }
+        });
+
+        this.createCursor();
+        this.addEventListeners();
+        this.startAnimation();
+    }
+
+    createCursor() {
+        this.cursorEl = document.createElement('div');
+        this.cursorEl.className = 'custom-cursor';
+        
+        const cornerIds = ['tl', 'tr', 'bl', 'br'];
+        cornerIds.forEach(id => {
+            const corner = document.createElement('div');
+            corner.className = `custom-cursor-corner custom-cursor-corner-${id}`;
+            this.cursorEl.appendChild(corner);
+            this.corners[id] = corner;
+        });
+
+        document.body.appendChild(this.cursorEl);
+    }
+
+    addEventListeners() {
+        document.addEventListener('mousemove', e => {
+            this.mouse.x = e.clientX;
+            this.mouse.y = e.clientY;
+        });
+
+        document.addEventListener('mousedown', () => {
+            if (typeof audioManager !== 'undefined') {
+                this.triggerVibration(50, 0.4, 0.1); // 클릭 시 짧은 진동
+                audioManager.playSfx(this.clickSound);
+            }
+        });
+
+        document.body.addEventListener('mouseover', (e) => {
+            const newTarget = e.target.closest(this.options.targetSelector);
+            if (newTarget) {
+                this.onTargetEnter(newTarget);
+            } else if (this.target) {
+                this.onTargetLeave();
+            }
+        });
+    }
+
+    onTargetEnter(target) {
+        if (this.target === target) return;
+
+        if (typeof audioManager !== 'undefined') {
+            audioManager.playSfx(this.hoverSound);
+        }
+
+        this.isTargeting = true;
+        this.target = target;
+        this.cursorEl.classList.add('targeting');
+        
+        const rect = this.target.getBoundingClientRect();
+        
+        this.cursorEl.style.transition = `width 0.2s cubic-bezier(0.25, 1, 0.5, 1), height 0.2s cubic-bezier(0.25, 1, 0.5, 1), transform 0.2s cubic-bezier(0.25, 1, 0.5, 1), border-radius 0.2s, background-color 0.2s`;
+        this.cursorEl.style.width = `${rect.width}px`;
+        this.cursorEl.style.height = `${rect.height}px`;
+        this.cursorEl.style.transform = `translate(${rect.left}px, ${rect.top}px)`;
+    }
+
+    onTargetLeave() {
+        if (!this.isTargeting) return;
+
+        this.isTargeting = false;
+        this.target = null;
+        this.cursorEl.classList.remove('targeting');
+        
+        this.cursorEl.style.transition = `width 0.2s cubic-bezier(0.25, 1, 0.5, 1), height 0.2s cubic-bezier(0.25, 1, 0.5, 1), border-radius 0.2s, background-color 0.2s`;
+        Object.values(this.corners).forEach(corner => corner.style.transform = 'translate(0, 0)');
+    }
+
+    startAnimation() {
+        const animate = () => {
+            // [신규] 게임패드 입력 처리
+            this.updateGamepad();
+
+            this.pos.x += (this.mouse.x - this.pos.x) * 0.2;
+            this.pos.y += (this.mouse.y - this.pos.y) * 0.2;
+
+            if (!this.isTargeting) {
+                this.cursorEl.style.width = '8px';
+                this.cursorEl.style.height = '8px';
+                this.cursorEl.style.transform = `translate(${this.pos.x - 4}px, ${this.pos.y - 4}px)`;
+            } else if (this.options.parallaxOn && this.target) {
+                const rect = this.target.getBoundingClientRect();
+                const relX = this.mouse.x - rect.left;
+                const relY = this.mouse.y - rect.top;
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                const dx = (relX - centerX) / centerX;
+                const dy = (relY - centerY) / centerY;
+                const p = this.options.parallaxAmount;
+
+                this.corners.tl.style.transform = `translate(${-dx * p}px, ${-dy * p}px)`;
+                this.corners.tr.style.transform = `translate(${dx * p}px, ${-dy * p}px)`;
+                this.corners.bl.style.transform = `translate(${-dx * p}px, ${dy * p}px)`;
+                this.corners.br.style.transform = `translate(${dx * p}px, ${dy * p}px)`;
+            }
+
+            this.animationFrame = requestAnimationFrame(animate);
+        };
+        animate();
+    }
+
+    // [신규] 컨트롤러 진동 메서드
+    triggerVibration(duration = 100, strong = 0.5, weak = 0.25) {
+        if (this.gamepadIndex === null) return;
+        const gp = navigator.getGamepads()[this.gamepadIndex];
+        if (gp && gp.vibrationActuator) {
+            // 기존 타이머가 있다면 취소 (중복 실행 방지)
+            if (this.vibrationTimer) {
+                clearTimeout(this.vibrationTimer);
+                this.vibrationTimer = null;
+            }
+
+            gp.vibrationActuator.playEffect("dual-rumble", {
+                startDelay: 0,
+                duration: duration,
+                weakMagnitude: weak,
+                strongMagnitude: strong,
+            });
+
+            // [수정] 안전장치: duration 후에 강제로 0으로 설정 (무한 진동 방지)
+            this.vibrationTimer = setTimeout(() => {
+                if (gp && gp.vibrationActuator) {
+                    gp.vibrationActuator.playEffect("dual-rumble", {
+                        startDelay: 0,
+                        duration: 0,
+                        weakMagnitude: 0,
+                        strongMagnitude: 0,
+                    });
+                }
+                this.vibrationTimer = null;
+            }, duration + 50); // 50ms 여유
+        }
+    }
+
+    // [신규] D-pad 메뉴 네비게이션 메서드
+    navigateWithDpad(direction) {
+        const allTargets = Array.from(document.querySelectorAll(this.options.targetSelector))
+                                .filter(el => el.offsetParent !== null && el.getBoundingClientRect().width > 0); // 보이는 요소만
+
+        if (allTargets.length === 0) return;
+
+        let currentTarget = this.target;
+        // 현재 타겟이 없으면, 화면 중앙에서 가장 가까운 요소를 시작점으로.
+        if (!currentTarget || !allTargets.includes(currentTarget)) {
+            const screenCenterX = window.innerWidth / 2;
+            const screenCenterY = window.innerHeight / 2;
+            allTargets.sort((a, b) => {
+                const aRect = a.getBoundingClientRect();
+                const bRect = b.getBoundingClientRect();
+                const distA = Math.hypot(aRect.x - screenCenterX, aRect.y - screenCenterY);
+                const distB = Math.hypot(bRect.x - screenCenterX, bRect.y - screenCenterY);
+                return distA - distB;
+            });
+            currentTarget = allTargets[0];
+        }
+
+        const currentRect = currentTarget.getBoundingClientRect();
+        const currentCenter = { x: currentRect.left + currentRect.width / 2, y: currentRect.top + currentRect.height / 2 };
+
+        let bestCandidate = null;
+        let minScore = Infinity;
+
+        allTargets.forEach(candidate => {
+            if (candidate === currentTarget) return;
+
+            const candRect = candidate.getBoundingClientRect();
+            const candCenter = { x: candRect.left + candRect.width / 2, y: candRect.top + candRect.height / 2 };
+
+            const dx = candCenter.x - currentCenter.x;
+            const dy = candCenter.y - currentCenter.y;
+
+            let score = Infinity;
+
+            switch (direction) {
+                case 'right':
+                    if (dx > 0) { // 오른쪽에 있는 후보만
+                        score = Math.hypot(dx, dy * 2.5); // Y축 차이에 더 큰 페널티
+                    }
+                    break;
+                case 'left':
+                    if (dx < 0) { // 왼쪽에 있는 후보만
+                        score = Math.hypot(dx, dy * 2.5);
+                    }
+                    break;
+                case 'down':
+                    if (dy > 0) { // 아래쪽에 있는 후보만
+                        score = Math.hypot(dx * 2.5, dy); // X축 차이에 더 큰 페널티
+                    }
+                    break;
+                case 'up':
+                    if (dy < 0) { // 위쪽에 있는 후보만
+                        score = Math.hypot(dx * 2.5, dy);
+                    }
+                    break;
+            }
+
+            if (score < minScore) {
+                minScore = score;
+                bestCandidate = candidate;
+            }
+        });
+
+        if (bestCandidate) {
+            const nextRect = bestCandidate.getBoundingClientRect();
+            // 새 타겟의 중심으로 마우스 위치 이동
+            this.mouse.x = nextRect.left + nextRect.width / 2;
+            this.mouse.y = nextRect.top + nextRect.height / 2;
+            
+            // onTargetEnter가 자동으로 호출되면서 호버 효과와 소리 재생
+            // this.onTargetEnter(bestCandidate); // mousemove 이벤트가 처리하므로 중복 호출 불필요
+        }
+    }
+
+    // [신규] 게임패드 업데이트 메서드
+    updateGamepad() {
+        if (this.gamepadIndex === null) return;
+        
+        const gp = navigator.getGamepads()[this.gamepadIndex];
+        if (!gp) return;
+
+        // 1. 커서 이동 (L 스틱 + D-pad)
+        let dx = 0;
+        let dy = 0;
+
+        // L 스틱 (Axis 0, 1)
+        if (Math.abs(gp.axes[0]) > this.deadzone) dx += gp.axes[0] * this.cursorSpeed;
+        if (Math.abs(gp.axes[1]) > this.deadzone) dy += gp.axes[1] * this.cursorSpeed;
+
+        // D-pad (Buttons 12, 13, 14, 15) - 메뉴 네비게이션으로 변경
+        const now = Date.now();
+        const dpadPressed = (buttonIndex, direction) => {
+            if (gp.buttons[buttonIndex] && gp.buttons[buttonIndex].pressed) {
+                if (!this.buttonStates[buttonIndex] || (now - this.buttonStates[buttonIndex]) > this.dpadCooldown) {
+                    this.navigateWithDpad(direction);
+                    this.buttonStates[buttonIndex] = now;
+                }
+                return true;
+            } else {
+                if (this.buttonStates[buttonIndex]) this.buttonStates[buttonIndex] = false;
+                return false;
+            }
+        };
+
+        const dpadUp = dpadPressed(12, 'up');
+        const dpadDown = dpadPressed(13, 'down');
+        const dpadLeft = dpadPressed(14, 'left');
+        const dpadRight = dpadPressed(15, 'right');
+
+        // D-pad가 눌렸을 때는 아날로그 스틱의 커서 이동을 무시
+        if (dpadUp || dpadDown || dpadLeft || dpadRight) {
+            dx = 0;
+            dy = 0;
+        }
+
+        if (dx !== 0 || dy !== 0) {
+            this.mouse.x += dx;
+            this.mouse.y += dy;
+            
+            // 화면 경계 제한
+            this.mouse.x = Math.max(0, Math.min(window.innerWidth, this.mouse.x));
+            this.mouse.y = Math.max(0, Math.min(window.innerHeight, this.mouse.y));
+            
+            // 커서 아래 요소 감지 (호버 효과 트리거)
+            const element = document.elementFromPoint(this.mouse.x, this.mouse.y);
+            if (element) {
+                const newTarget = element.closest(this.options.targetSelector);
+                if (newTarget) {
+                    this.onTargetEnter(newTarget);
+                } else if (this.target) {
+                    this.onTargetLeave();
+                }
+            }
+        }
+
+        // 2. 스크롤 (R 스틱 - Axis 3)
+        if (Math.abs(gp.axes[3]) > this.deadzone) {
+            window.scrollBy(0, gp.axes[3] * this.scrollSpeed);
+        }
+
+        // 3. 클릭 (O 버튼 - Button 1)
+        if (gp.buttons[1] && gp.buttons[1].pressed) {
+            if (!this.buttonStates[1]) {
+                this.triggerVibration(50, 0.5, 0.1); // 클릭 진동
+                this.triggerClick('click');
+                this.buttonStates[1] = true;
+            }
+        } else {
+            this.buttonStates[1] = false;
+        }
+
+        // 4. 우클릭 (네모 버튼 - Button 2)
+        if (gp.buttons[2] && gp.buttons[2].pressed) {
+            if (!this.buttonStates[2]) {
+                this.triggerVibration(50, 0.5, 0.1); // 클릭 진동
+                this.triggerClick('contextmenu');
+                this.buttonStates[2] = true;
+            }
+        } else {
+            this.buttonStates[2] = false;
+        }
+    }
+
+    triggerClick(type) {
+        const element = document.elementFromPoint(this.mouse.x, this.mouse.y);
+        if (element) {
+            const event = new MouseEvent(type, {
+                bubbles: true,
+                cancelable: true,
+                view: window,
+                clientX: this.mouse.x,
+                clientY: this.mouse.y,
+                button: type === 'contextmenu' ? 2 : 0
+            });
+            element.dispatchEvent(event);
+            
+            // 소리 재생
+            if (type === 'click' && typeof audioManager !== 'undefined') {
+                // this.triggerVibration(50, 0.4, 0.1); // mousedown에서 이미 처리
+                audioManager.playSfx(this.clickSound);
+            }
+        }
     }
 }
 
@@ -3786,6 +4387,7 @@ function loadGame(event) {
             updateFormationDisplay();
             displayTeamPlayers();
             showScreen('lobby'); // 로비 화면으로 이동
+            if (typeof showDashboard === 'function') showDashboard(); // 대시보드 표시
             console.log('기본 화면 업데이트 완료');
             
             // SNS 피드 새로고침
@@ -4680,6 +5282,7 @@ class AudioManager {
         this.audio = new Audio();
         this.isPlaying = false;
         this.initialized = false;
+        this.sfxVolume = 50; // Default SFX volume (0-100)
         this.currentMode = 'default'; // 현재 모드 추적
         
         // 플레이리스트 셔플 (랜덤 재생)
@@ -4707,6 +5310,10 @@ class AudioManager {
         // 초기 설정 적용
         if (typeof gameData !== 'undefined' && gameData.settings) {
             this.applySettings(gameData.settings);
+        }
+        // CustomCursor가 이미 생성되어 있다면 SFX 볼륨을 적용
+        if (window.customCursorInstance) {
+            this.setSfxVolume(this.sfxVolume);
         }
         
         this.initialized = true;
@@ -4755,6 +5362,11 @@ class AudioManager {
         this.audio.muted = isMuted;
         this.audio.volume = volume;
         
+        // [수정] SFX 볼륨 설정 적용 추가
+        if (settings.sfxVolume !== undefined) {
+            this.setSfxVolume(settings.sfxVolume);
+        }
+        
         if (!isMuted && !this.isPlaying && this.initialized) {
             this.play();
         } else if (isMuted && this.isPlaying) {
@@ -4773,7 +5385,7 @@ class AudioManager {
         if (!this.audio.src) {
             this.audio.src = this.bgmFiles[this.currentTrackIndex];
         }
-        
+       
         const playPromise = this.audio.play();
         if (playPromise !== undefined) {
             playPromise.then(() => {
@@ -4812,6 +5424,18 @@ class AudioManager {
         }
     }
     
+    // [신규] SFX 볼륨 설정
+    setSfxVolume(value) {
+        this.sfxVolume = value;
+        if (gameData.settings) {
+            gameData.settings.sfxVolume = value;
+        }
+        if (window.customCursorInstance) {
+            window.customCursorInstance.hoverSound.volume = this.sfxVolume / 100;
+            window.customCursorInstance.clickSound.volume = this.sfxVolume / 100;
+        }
+    }
+    
     toggleBgm(isOn) {
         this.audio.muted = !isOn;
         if (gameData.settings) {
@@ -4823,6 +5447,14 @@ class AudioManager {
         } else {
             this.pause();
         }
+    }
+
+    // [신규] SFX 재생 (CustomCursor에서 호출)
+    playSfx(sound) {
+        // SFX는 BGM mute 설정과 별개로 작동 (나중에 SFX mute 설정 추가 가능)
+        // 현재는 BGM 볼륨 설정에 따라 SFX 볼륨도 조절되므로, 별도 mute는 필요 없음
+        sound.currentTime = 0;
+        sound.play().catch(e => console.log("SFX play failed:", e));
     }
 
     createNowPlayingUI() {
@@ -4919,6 +5551,7 @@ function renderAudioSettings() {
     
     let audioContainer = document.getElementById('audioSettings');
     if (!audioContainer) {
+        // ... (기존 코드 유지)
         audioContainer = document.createElement('div');
         audioContainer.id = 'audioSettings';
         audioContainer.style.cssText = `
@@ -4940,53 +5573,50 @@ function renderAudioSettings() {
     
     const isBgmOn = gameData.settings ? gameData.settings.bgm !== false : true;
     const volume = gameData.settings && gameData.settings.bgmVolume !== undefined ? gameData.settings.bgmVolume : 50;
+    const sfxVolume = gameData.settings && gameData.settings.sfxVolume !== undefined ? gameData.settings.sfxVolume : 50;
     const isImmersionOn = gameData.settings ? gameData.settings.immersionMode !== false : true; // 기본값 ON
     
     audioContainer.innerHTML = `
         <h4 style="color: #ffd700; margin-top: 0; margin-bottom: 15px;">🎵 배경음악 설정</h4>
-        <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 15px;">
-            <label class="switch" style="position: relative; display: inline-block; width: 50px; height: 24px;">
-                <input type="checkbox" id="bgmToggle" ${isBgmOn ? 'checked' : ''} style="opacity: 0; width: 0; height: 0;">
-                <span class="slider round" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px;"></span>
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+            <label class="switch">
+                <input type="checkbox" id="bgmToggle" ${isBgmOn ? 'checked' : ''}>
+                <span class="slider round"></span>
             </label>
             <span id="bgmStatusText">배경음악 ${isBgmOn ? 'ON' : 'OFF'}</span>
         </div>
         <div style="display: flex; align-items: center; gap: 10px;">
-            <span>볼륨:</span>
+            <span>BGM 볼륨:</span>
             <input type="range" id="bgmVolume" min="0" max="100" value="${volume}" style="flex-grow: 1; cursor: pointer;">
-            <span id="volumeValue" style="width: 40px; text-align: right;">${volume}%</span>
+            <span id="bgmVolumeValue" style="width: 40px; text-align: right;">${volume}%</span>
         </div>
+        <div style="display: flex; align-items: center; gap: 10px; margin-top: 10px;">
+            <span>SFX 볼륨:</span>
+            <input type="range" id="sfxVolume" min="0" max="100" value="${sfxVolume}" style="flex-grow: 1; cursor: pointer;">
+            <span id="sfxVolumeValue" style="width: 40px; text-align: right;">${sfxVolume}%</span>
+        </div>
+
         <h4 style="color: #ffd700; margin-top: 20px; margin-bottom: 15px;">⚡ 경기 연출 설정</h4>
-        <div style="display: flex; align-items: center; gap: 20px;">
-            <label class="switch" style="position: relative; display: inline-block; width: 50px; height: 24px;">
-                <input type="checkbox" id="immersionToggle" ${isImmersionOn ? 'checked' : ''} style="opacity: 0; width: 0; height: 0;">
-                <span class="slider round" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px;"></span>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <label class="switch">
+                <input type="checkbox" id="immersionToggle" ${isImmersionOn ? 'checked' : ''}>
+                <span class="slider round"></span>
             </label>
             <span id="immersionStatusText">몰입감 모드 ${isImmersionOn ? 'ON' : 'OFF'}</span>
         </div>
     `;
     
-    // CSS 추가 (슬라이더 스타일)
-    const style = document.createElement('style');
-    style.textContent = `
-        .switch input:checked + .slider { background-color: #2ecc71; }
-        .switch input:focus + .slider { box-shadow: 0 0 1px #2ecc71; }
-        .switch .slider:before {
-            position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px;
-            background-color: white; transition: .4s; border-radius: 50%;
-        }
-        .switch input:checked + .slider:before { transform: translateX(26px); }
-    `;
-    if (!document.getElementById('audioStyles')) {
-        style.id = 'audioStyles';
-        document.head.appendChild(style);
-    }
+    // 기존에 JS로 주입하던 스타일 제거 (index.html의 CSS로 통합)
+    const oldStyle = document.getElementById('audioStyles');
+    if (oldStyle) oldStyle.remove();
     
     // 이벤트 리스너
     const bgmToggle = document.getElementById('bgmToggle');
     const bgmVolume = document.getElementById('bgmVolume');
-    const volumeValue = document.getElementById('volumeValue');
+    const bgmVolumeValue = document.getElementById('bgmVolumeValue');
     const bgmStatusText = document.getElementById('bgmStatusText');
+    const sfxVolumeInput = document.getElementById('sfxVolume'); // Changed name to avoid conflict
+    const sfxVolumeValue = document.getElementById('sfxVolumeValue');
     const immersionToggle = document.getElementById('immersionToggle');
     const immersionStatusText = document.getElementById('immersionStatusText');
     
@@ -4995,11 +5625,21 @@ function renderAudioSettings() {
         audioManager.toggleBgm(isOn);
         bgmStatusText.textContent = `배경음악 ${isOn ? 'ON' : 'OFF'}`;
     });
+    // Initial play attempt for BGM (due to browser autoplay policies)
+    if (isBgmOn) {
+        audioManager.play();
+    }
     
     bgmVolume.addEventListener('input', (e) => {
         const val = parseInt(e.target.value);
-        volumeValue.textContent = `${val}%`;
+        bgmVolumeValue.textContent = `${val}%`;
         audioManager.setVolume(val);
+    });
+
+    sfxVolumeInput.addEventListener('input', (e) => { // Use sfxVolumeInput
+        const val = parseInt(e.target.value);
+        sfxVolumeValue.textContent = `${val}%`;
+        audioManager.setSfxVolume(val);
     });
 
     immersionToggle.addEventListener('change', (e) => {
@@ -5278,3 +5918,128 @@ function renderDatabasePlayers(teamKey) {
 window.openDatabaseModal = openDatabaseModal;
 window.renderDatabaseTeams = renderDatabaseTeams;
 window.renderDatabasePlayers = renderDatabasePlayers;
+
+// [신규] 대시보드 표시 함수
+function showDashboard() {
+    const dashboardContainer = document.getElementById('dashboard-container');
+    const tabContentArea = document.getElementById('tab-content-area');
+    const homeBtn = document.getElementById('homeBtn');
+
+    if (dashboardContainer) dashboardContainer.style.display = 'grid';
+    if (tabContentArea) tabContentArea.style.display = 'none';
+    if (homeBtn) homeBtn.style.display = 'none'; // 홈 화면에선 홈 버튼 숨김
+    
+    renderDashboard();
+}
+
+// [신규] 대시보드 렌더링
+function renderDashboard() {
+    const container = document.getElementById('dashboard-container');
+    if (!container) return; // 안전 장치
+    container.innerHTML = '';
+
+    // 1. 다음 경기 카드
+    const nextMatchCard = createDashboardCard('🏆 다음 경기', 'match', () => {
+        const opponent = gameData.currentOpponent ? teamNames[gameData.currentOpponent] : '미정';
+        return `
+            <div style="text-align: center;">
+                <div style="font-size: 1.5rem; font-weight: bold; margin-bottom: 10px;">VS ${opponent}</div>
+                <div style="color: #aaa;">${gameData.isHomeGame ? '홈 경기' : '원정 경기'}</div>
+                <div style="margin-top: 15px; color: #2ecc71; font-weight: bold;">킥오프 준비 완료</div>
+            </div>
+        `;
+    });
+
+    // 2. 리그 순위 카드
+    const leagueCard = createDashboardCard('📊 리그 순위', 'league', () => {
+        const league = gameData.currentLeague;
+        const divisionKey = `division${league}`;
+        const table = gameData.leagueData[divisionKey];
+        
+        if (!table) return '<div style="text-align:center; color:#aaa;">데이터 없음</div>';
+
+        const standings = Object.keys(table).map(key => ({
+            name: teamNames[key] || key,
+            key: key,
+            ...table[key],
+            diff: table[key].goalsFor - table[key].goalsAgainst
+        })).sort((a, b) => b.points - a.points || b.diff - a.diff || b.goalsFor - a.goalsFor);
+
+        const myIndex = standings.findIndex(t => t.key === gameData.selectedTeam);
+        let html = '';
+
+        const range = [myIndex - 1, myIndex, myIndex + 1];
+        range.forEach(idx => {
+            if (standings[idx]) {
+                const team = standings[idx];
+                const isMe = idx === myIndex;
+                html += `
+                    <div class="rank-row ${isMe ? 'my-team' : ''}">
+                        <span>${idx + 1}위</span>
+                        <span>${team.name}</span>
+                        <span>${team.points}pts</span>
+                    </div>
+                `;
+            }
+        });
+        return html;
+    });
+
+    // 3. 스쿼드 요약 카드
+    const squadCard = createDashboardCard('👥 스쿼드', 'squad', () => {
+        const rating = typeof calculateTeamRating === 'function' ? calculateTeamRating().toFixed(1) : '0.0';
+        const realInjuredCount = (typeof injurySystem !== 'undefined') ? injurySystem.getInjuredPlayers(gameData.selectedTeam).length : 0;
+        
+        return `
+            <div style="text-align: center; display: flex; flex-direction: column; justify-content: center; height: 100%;">
+                <div>
+                    <div style="font-size: 0.9rem; color: #aaa;">평균 능력치</div>
+                    <div style="font-size: 2rem; font-weight: bold; color: #3498db; margin-bottom: 15px;">${rating}</div>
+                </div>
+                <div>
+                    <div style="font-size: 0.9rem; color: #aaa;">부상자</div>
+                    <div style="font-size: 1.5rem; font-weight: bold; color: ${realInjuredCount > 0 ? '#e74c3c' : '#2ecc71'};">${realInjuredCount}명</div>
+                </div>
+            </div>
+        `;
+    });
+
+    // 4. 이적 시장 카드
+    const transferCard = createDashboardCard('💰 이적 시장', 'transfer', () => {
+        return `
+            <div style="text-align: center; display: flex; flex-direction: column; justify-content: center; height: 100%;">
+                <div style="font-size: 0.9rem; color: #aaa;">이적 자금</div>
+                <div style="font-size: 2.5rem; font-weight: bold; color: #f1c40f; margin: 10px 0;">${gameData.teamMoney}억</div>
+                <div style="font-size: 0.9rem;">새로운 인재 영입하기</div>
+            </div>
+        `;
+    });
+
+    // 5. 기타 카드들
+    const tacticsCard = createDashboardCard('🧬 전술/DNA', 'tactics', () => `<div style="text-align:center;">현재 전술: <span style="color:#ffd700;">${gameData.currentTactic}</span></div>`);
+    const mailCard = createDashboardCard('📬 메일함', 'mail', () => {
+        const unread = (typeof mailManager !== 'undefined') ? mailManager.getUnreadCount() : 0;
+        return `<div style="text-align:center;">읽지 않은 메일: <span style="color:${unread > 0 ? '#e74c3c' : '#aaa'}; font-weight:bold;">${unread}통</span></div>`;
+    });
+    const settingsCard = createDashboardCard('⚙️ 설정 / 저장', 'settings', () => `<div style="text-align:center;">게임 저장 및 불러오기</div>`);
+
+    container.appendChild(nextMatchCard);
+    container.appendChild(leagueCard);
+    container.appendChild(squadCard);
+    container.appendChild(transferCard);
+    container.appendChild(tacticsCard);
+    container.appendChild(mailCard);
+    container.appendChild(settingsCard);
+}
+
+function createDashboardCard(title, tabName, contentFn) {
+    const card = document.createElement('div');
+    card.className = 'dashboard-card';
+    card.id = `dashboard-${tabName}`; // Bento UI를 위한 ID 추가
+    card.innerHTML = `
+        <h3>${title} <span>➔</span></h3>
+        <div class="dashboard-content">${contentFn()}</div>
+    `;
+    card.onclick = () => showTab(tabName);
+    return card;
+}

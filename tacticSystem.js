@@ -1136,6 +1136,12 @@ class RealMatchEngine {
             // 기존 골 메시지에 문맥 추가
             event.description = event.description.replace("⚽", "⚽ " + context);
 
+            // [신규] 골 기록 시 컨트롤러 진동
+            if (window.customCursorInstance && typeof window.customCursorInstance.triggerVibration === 'function') {
+                // 강하고 긴 진동
+                window.customCursorInstance.triggerVibration(600, 0.9, 0.6);
+            }
+
             this.ballZone = 'midfield';
             this.lastAction = 'kickoff';
         } else if (outcome === 'block') {
@@ -1917,6 +1923,12 @@ function endMatch(matchData) {
     console.log('🏁 [Match] 경기 종료 처리 시작 (endMatch)');
     document.getElementById('endMatchBtn').style.display = 'block';
     document.getElementById('substituteBtn').style.display = 'none'; // 교체 버튼 숨기기
+
+    // [신규] 경기 종료 휘슬 진동 (2초)
+    if (window.customCursorInstance && typeof window.customCursorInstance.triggerVibration === 'function') {
+        // 2초간 강한 진동 후 자동 정지
+        window.customCursorInstance.triggerVibration(2000, 1.0, 1.0);
+    }
     
     // 경기 결과 계산
     const isUserHome = matchData.homeTeam === gameData.selectedTeam;

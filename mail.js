@@ -50,6 +50,11 @@ class MailManager {
         }
     }
 
+    // 안 읽은 메일 수 반환
+    getUnreadCount() {
+        return this.unreadCount;
+    }
+
     // 메일 목록 렌더링
     renderList() {
         const listContainer = document.getElementById('mailList');

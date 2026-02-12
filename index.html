@@ -139,7 +139,7 @@
         .switch {
             position: relative;
             display: inline-block;
-            width: 50px;
+            width: 48px; /* 너비 조정 */
             height: 24px;
             vertical-align: middle;
             margin-right: 10px;
@@ -156,26 +156,28 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background-color: #ccc;
+            background-color: #7f8c8d; /* OFF 색상 (어두운 회색) */
             transition: .4s;
-            border-radius: 24px;
+            border-radius: 24px; /* Pill shape */
         }
         .slider:before {
             position: absolute;
             content: "";
-            height: 16px;
-            width: 16px;
-            left: 4px;
-            bottom: 4px;
+            height: 18px; /* 핸들 크기 조정 */
+            width: 18px;
+            left: 3px; /* 위치 조정 */
+            bottom: 3px; /* 위치 조정 */
             background-color: white;
             transition: .4s;
             border-radius: 50%;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
         }
         input:checked + .slider {
-            background-color: #2ecc71;
+            background-color: #27ae60; /* ON 색상 (진한 녹색) */
+            box-shadow: 0 0 8px rgba(39, 174, 96, 0.7); /* 빛나는 효과 */
         }
         input:checked + .slider:before {
-            transform: translateX(26px);
+            transform: translateX(24px); /* 이동 거리 조정 */
         }
         .auto-save-control {
             display: flex;
@@ -396,6 +398,34 @@
                 mask-image: none; /* 페이드 효과 제거 */
                 -webkit-mask-image: none;
             }
+        }
+
+        /* 리그 순위표 스타일 (대시보드용) */
+        .rank-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 10px;
+            border-radius: 8px;
+            margin-bottom: 5px;
+            font-size: 0.95rem;
+        }
+        .rank-row.my-team {
+            background: rgba(46, 204, 113, 0.2);
+            border: 1px solid rgba(46, 204, 113, 0.3);
+            color: #fff;
+            font-weight: bold;
+            transform: scale(1.02);
+        }
+        .rank-row span:first-child { width: 30px; }
+        .rank-row span:nth-child(2) { flex: 1; text-align: left; padding-left: 10px; }
+        .rank-row span:last-child { font-weight: bold; }
+
+        /* 홈 버튼 스타일 */
+        #homeBtn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            transition: all 0.2s;
         }
     </style>
 </head>
@@ -643,7 +673,10 @@
     <!-- 로비 화면 -->
     <div id="lobby" class="screen">
         <div class="lobby-header">
-            <h1 id="teamName">팀 이름</h1>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <button id="homeBtn" class="btn" style="display: none; padding: 8px 15px; font-size: 1.2rem;">🏠 홈</button>
+                <h1 id="teamName" style="margin: 0;">팀 이름</h1>
+            </div>
             <div class="team-info">
                 <div class="info-item">
                     <span class="label">자금:</span>
@@ -660,24 +693,13 @@
             </div>
         </div>
         
-        <div class="lobby-tabs">
-    <button class="tab-btn active" data-tab="squad">스쿼드</button>
-    <button class="tab-btn" data-tab="match">경기</button>
-    <button class="tab-btn" data-tab="transfer">이적</button>
-    <button class="tab-btn" data-tab="league">리그</button>
-    <button class="tab-btn" data-tab="sponsor">스폰서</button>
-    <button class="tab-btn" data-tab="records">개인기록</button>
-    <button class="tab-btn" data-tab="youth">유스</button>
-    <button class="tab-btn" data-tab="sns">SNS</button>
-    <button class="tab-btn" data-tab="transfer_news">이적 뉴스</button>
-    <button class="tab-btn" data-tab="tactics">전술(DNA)</button>
-    <button class="tab-btn" data-tab="mail">
-        메일함 <span id="mailBadge" class="mail-badge"></span>
-    </button>
-    <button class="tab-btn" data-tab="secretary" style="display: none;">비서</button>
-    <button class="tab-btn" data-tab="settings">설정</button>
-</div>
-        <div class="tab-content">
+        <!-- [신규] 대시보드 컨테이너 -->
+        <div id="dashboard-container" class="dashboard-grid">
+            <!-- 자바스크립트로 카드가 생성됩니다 -->
+        </div>
+
+        <!-- 기존 탭 컨텐츠 (초기에는 숨김) -->
+        <div id="tab-content-area" class="tab-content" style="display: none;">
             <!-- 스쿼드 탭 -->
             <div id="squad" class="tab-panel active">
                 <div class="squad-controls">
