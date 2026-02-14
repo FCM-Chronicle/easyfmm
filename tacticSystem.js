@@ -294,6 +294,11 @@ class TacticSystem {
     "튀르키예": "gegenpress", "루마니아": "twoLine", "우크라이나": "twoLine", "폴란드": "twoLine",
     "이라크": "parkBus", "볼리비아": "catenaccio", "코스타리카": "parkBus", "아랍에미리트": "possession"
 };
+
+        // [추가] 레전드 모드일 경우 전술 덮어쓰기
+        if (typeof gameData !== 'undefined' && gameData.isLegendMode && typeof LegendLeagueManager !== 'undefined') {
+            this.teamTactics = LegendLeagueManager.getTacticsMap();
+        }
     }
 
 
