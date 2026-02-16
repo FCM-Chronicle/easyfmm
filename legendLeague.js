@@ -368,12 +368,16 @@ const LegendLeagueManager = {
             return;
         }
 
+        const btn = document.getElementById('legendLeagueBtn');
+        if (btn) btn.style.display = 'none';
+
         console.log("👑 레전드 리그 모드 진입...");
 
         // 1. 전역 데이터 교체
-        window.teams = {};
-        window.teamNames = {};
-        window.allTeams = {};
+        // script.js의 const 변수 참조 유지를 위해 객체를 새로 할당하지 않고 내용만 비움
+        if (window.teams) Object.keys(window.teams).forEach(key => delete window.teams[key]);
+        if (window.teamNames) Object.keys(window.teamNames).forEach(key => delete window.teamNames[key]);
+        if (window.allTeams) Object.keys(window.allTeams).forEach(key => delete window.allTeams[key]);
 
         // 레전드 팀 데이터 로드
         Object.entries(this.legendTeams).forEach(([teamKey, teamData]) => {
@@ -408,6 +412,14 @@ const LegendLeagueManager = {
         }
 
         alert("👑 레전드 리그에 오신 것을 환영합니다!\n감독을 맡을 전설의 팀을 선택해주세요.");
+    },
+
+    getTacticsMap() {
+        const map = {};
+        Object.entries(this.legendTeams).forEach(([key, data]) => {
+            map[key] = data.tactic || "possession";
+        });
+        return map;
     },
 
     renderTeamSelectionScreen() {

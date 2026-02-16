@@ -2677,9 +2677,6 @@ class CustomCursor {
     }
 
     init() {
-        if (this.options.hideDefaultCursor) {
-            document.body.classList.add('custom-cursor-active');
-        }
         // 한글 파일명 호환성 문제를 위해 영문명으로 변경 (파일 이름도 변경 필요)
         this.hoverSound = new Audio('assets/SFX/hover.mp3'); 
         this.clickSound = new Audio('assets/SFX/click.mp3');
@@ -2693,6 +2690,17 @@ class CustomCursor {
         } else { // Fallback if audioManager is not yet initialized
             this.hoverSound.volume = 0.5;
             this.clickSound.volume = 0.5;
+        }
+
+        // [신규] 모바일 장치 감지 (터치 스크린)
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+
+        if (isMobile) {
+            return;
+        }
+
+        if (this.options.hideDefaultCursor) {
+            document.body.classList.add('custom-cursor-active');
         }
 
         // [신규] 게임패드 연결 이벤트
