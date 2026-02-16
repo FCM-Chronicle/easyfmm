@@ -2303,7 +2303,27 @@ function showScreen(screenId) {
             wcBtn.style.display = 'none';
         } else if (screenId === 'teamSelection') {
             // 팀 선택 화면에서는 버튼 보이기
-            wcBtn.style.display = 'block';
+            // [수정] 레전드 모드 진행 중(팀 선택)일 때는 월드컵 버튼도 숨김
+            if (typeof gameData !== 'undefined' && gameData.isLegendMode) {
+                wcBtn.style.display = 'none';
+            } else {
+                wcBtn.style.display = 'block';
+            }
+        }
+    }
+
+    // [추가] 레전드 리그 버튼 표시/숨김 처리
+    const legendBtn = document.getElementById('legendLeagueBtn');
+    if (legendBtn) {
+        if (screenId === 'lobby') {
+            legendBtn.style.display = 'none';
+        } else if (screenId === 'teamSelection') {
+            // 레전드 모드가 활성화된 상태라면 버튼 숨김 (이미 진입했으므로)
+            if (typeof gameData !== 'undefined' && gameData.isLegendMode) {
+                legendBtn.style.display = 'none';
+            } else {
+                legendBtn.style.display = 'block';
+            }
         }
     }
 }
