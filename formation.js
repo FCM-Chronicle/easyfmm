@@ -38,23 +38,19 @@ class FormationSystem {
     
     // [수정] 컨트롤 버튼 생성 (수정 버튼 + 롤 정보 버튼)
     createControlButtons() {
-        const container = document.querySelector('.formation-container');
+        const container = document.querySelector('.squad-controls');
         if (!container) return;
-        container.style.position = 'relative';
+        
+        container.innerHTML = ''; // 기존 내용 초기화
 
         // 버튼 컨테이너
         const controlsDiv = document.createElement('div');
         controlsDiv.className = 'formation-controls';
         controlsDiv.style.cssText = `
-            position: absolute;
-            top: 10px;
-            left: 0;
-            right: 0;
-            padding: 0 15px;
             display: flex;
             justify-content: space-between;
-            z-index: 100;
-            pointer-events: none; /* 컨테이너는 클릭 통과 */
+            align-items: center;
+            width: 100%;
         `;
 
         // 1. 롤 정보 버튼 (왼쪽)
@@ -63,21 +59,16 @@ class FormationSystem {
         roleBtn.className = 'btn';
         roleBtn.innerHTML = '📋 롤 정보';
         roleBtn.style.cssText = `
-            padding: 10px 20px;
-            font-size: 0.95rem;
+            padding: 8px 16px;
+            font-size: 0.9rem;
             font-weight: bold;
             background: rgba(52, 152, 219, 0.3);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(5px);
             border: 1px solid rgba(255, 255, 255, 0.4);
             color: white;
-            border-radius: 25px; /* 클레이 느낌을 위해 더 둥글게 */
-            pointer-events: auto; /* 버튼은 클릭 가능 */
-            /* 외부 그림자로 띄우고, 내부 그림자(inset)로 볼륨감 표현 */
-            box-shadow: 0 8px 20px rgba(0,0,0,0.2), inset 2px 2px 5px rgba(255,255,255,0.3), inset -2px -2px 5px rgba(0,0,0,0.1);
+            border-radius: 20px;
             cursor: pointer;
             transition: all 0.3s ease;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
         `;
         roleBtn.onclick = () => this.toggleRoleViewMode();
 
@@ -87,20 +78,16 @@ class FormationSystem {
         editBtn.className = 'btn primary';
         editBtn.innerHTML = '⚙️ 포메이션 수정';
         editBtn.style.cssText = `
-            padding: 10px 20px;
-            font-size: 0.95rem;
+            padding: 8px 16px;
+            font-size: 0.9rem;
             font-weight: bold;
             background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(5px);
             border: 1px solid rgba(255, 255, 255, 0.4);
             color: white;
-            border-radius: 25px;
-            pointer-events: auto;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.2), inset 2px 2px 5px rgba(255,255,255,0.3), inset -2px -2px 5px rgba(0,0,0,0.1);
+            border-radius: 20px;
             cursor: pointer;
             transition: all 0.3s ease;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
         `;
         editBtn.onclick = () => this.toggleEditMode();
 
@@ -202,6 +189,7 @@ class FormationSystem {
 
             // 선수가 있는 경우
             slot.innerHTML = `
+                <img src="assets/players/${player.name}.png" class="player-slot-image" loading="lazy" onerror="this.src='assets/players/default.png'">
                 <div class="player-name">${player.name}</div>
                 <div class="player-rating">${Math.floor(player.rating)}</div>
                 ${roleDisplay ? `<div class="player-role">${roleDisplay}</div>` : ''}
@@ -596,8 +584,13 @@ class FormationSystem {
                 const playerCard = document.createElement('div');
                 playerCard.className = 'player-card'; // 기존 스타일 재사용
                 playerCard.innerHTML = `
-                    <div class="name">${candidate.name}</div>
-                    <div class="details">능력치: ${candidate.rating} | 나이: ${candidate.age}</div>
+                    <div class="player-card-content">
+                        <img src="assets/players/${candidate.name}.png" class="player-card-image" loading="lazy" onerror="this.src='assets/players/default.png'">
+                        <div class="player-info-text">
+                            <div class="name">${candidate.name}</div>
+                            <div class="details">능력치: ${candidate.rating} | 나이: ${candidate.age}</div>
+                        </div>
+                    </div>
                 `;
                 playerCard.onclick = () => {
                     this.swapPlayers(playerOut, candidate, positionType);
@@ -892,16 +885,16 @@ style.textContent = `
 .formation-container .player-slot {
     position: absolute;
     width: 80px;
-    height: 60px;
+    height: 120px;
     background: rgba(46, 204, 113, 0.25);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.4);
-    border-radius: 18px; /* 더 둥글게 */
+    border-radius: 18px;
     display: flex;
     flex-direction: column;
     align-items: center; 
-    justify-content: center; 
+    justify-content: flex-start; 
     transform: translate(-50%, -50%); /* 드래그 시작 시 JS로 위치를 재계산하므로 유지 */
     color: white;
     user-select: none;
@@ -913,6 +906,7 @@ style.textContent = `
         inset 3px 3px 6px rgba(255, 255, 255, 0.3), 
         inset -3px -3px 6px rgba(0, 0, 0, 0.1);
     z-index: 10;
+    overflow: hidden;
 }
 
 .formation-container .player-slot:hover {
@@ -927,9 +921,19 @@ style.textContent = `
     z-index: 20;
 }
 
+.player-slot-image {
+    width: 100%;
+    height: 80px;
+    object-fit: cover;
+    object-position: top;
+    pointer-events: none;
+    margin-bottom: 0;
+}
+
 .formation-container .field .player-slot {
     cursor: grab;
 }
+
 .formation-container .field .player-slot.dragging {
     transform: none; /* 드래그 중에는 transform을 비활성화하여 좌표 계산 오류 방지 */
     cursor: grabbing;
@@ -938,7 +942,7 @@ style.textContent = `
     background: linear-gradient(135deg, #f1c40f, #f39c12);
     border-color: #f1c40f;
     width: 88px; /* scale(1.1) 효과 대체 */
-    height: 66px; /* scale(1.1) 효과 대체 */
+    height: 132px; /* 120 * 1.1 */
 }
 
 .formation-container .player-slot .player-name {
@@ -948,6 +952,7 @@ style.textContent = `
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 70px;
+    margin-top: 2px;
 }
 .formation-container .player-slot .player-rating {
     font-size: 1rem;
@@ -962,7 +967,7 @@ style.textContent = `
 @media (max-width: 768px) {
     .formation-container .player-slot {
         width: 70px;
-        height: 55px;
+        height: 110px;
     }
     .formation-container .player-slot .player-name {
         font-size: 0.65rem;

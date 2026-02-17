@@ -950,6 +950,7 @@ function loadTransferScreen() {
 // 이적 가능 선수 표시
 function displayTransferPlayers() {
     const container = document.getElementById('transferPlayers');
+    const fragment = document.createDocumentFragment(); // [성능 개선]
     container.innerHTML = '';
     const transferPlayers = transferSystem.getTransferMarketDisplay();
 
@@ -966,13 +967,18 @@ function displayTransferPlayers() {
             "외부리그" : teamNames[player.originalTeam];
         
         playerCard.innerHTML = `
-            <div class="player-name">${player.name}</div>
-            <div class="player-position">${player.position}</div>
-            <div class="player-rating">능력치: ${Math.floor(player.rating)}</div>
-            <div class="player-age">나이: ${player.age}</div>
-            <div class="player-team">소속: ${teamInfo}</div>
-            <div class="transfer-price">${player.price}억</div>
-            <div class="market-days">시장 ${player.daysOnMarket}일째</div>
+            <div class="player-card-content">
+                <img src="assets/players/${player.name}.png" class="player-card-image" loading="lazy" onerror="this.src='assets/players/default.png'">
+                <div class="player-info-text">
+                    <div class="player-name">${player.name}</div>
+                    <div class="player-position">${player.position}</div>
+                    <div class="player-rating">능력치: ${Math.floor(player.rating)}</div>
+                    <div class="player-age">나이: ${player.age}</div>
+                    <div class="player-team">소속: ${teamInfo}</div>
+                    <div class="transfer-price">${player.price}억</div>
+                    <div class="market-days">시장 ${player.daysOnMarket}일째</div>
+                </div>
+            </div>
         `;
         
         playerCard.addEventListener('click', () => {
@@ -999,8 +1005,9 @@ function displayTransferPlayers() {
             }
         });
         
-        container.appendChild(playerCard);
+        fragment.appendChild(playerCard);
     });
+    container.appendChild(fragment); // [성능 개선]
 }
 
 // 선수 검색
@@ -1013,6 +1020,7 @@ function searchPlayers() {
     };
     
     const container = document.getElementById('transferPlayers');
+    const fragment = document.createDocumentFragment(); // [성능 개선]
     container.innerHTML = '';
 
     const filteredPlayers = transferSystem.searchPlayers(filters);
@@ -1034,13 +1042,18 @@ function searchPlayers() {
     `<div class="market-status" style="color: #f39c12;">⚠️ 이적 시장에 없음</div>`;
 
 playerCard.innerHTML = `
-    <div class="player-name">${player.name}</div>
-    <div class="player-position">${player.position}</div>
-    <div class="player-rating">능력치: ${Math.floor(player.rating)}</div>
-    <div class="player-age">나이: ${player.age}</div>
-    <div class="player-team">소속: ${teamInfo}</div>
-    <div class="transfer-price">${player.price}억</div>
-    ${marketStatus}
+    <div class="player-card-content">
+        <img src="assets/players/${player.name}.png" class="player-card-image" loading="lazy" onerror="this.src='assets/players/default.png'">
+        <div class="player-info-text">
+            <div class="player-name">${player.name}</div>
+            <div class="player-position">${player.position}</div>
+            <div class="player-rating">능력치: ${Math.floor(player.rating)}</div>
+            <div class="player-age">나이: ${player.age}</div>
+            <div class="player-team">소속: ${teamInfo}</div>
+            <div class="transfer-price">${player.price}억</div>
+            ${marketStatus}
+        </div>
+    </div>
 `;
         
         playerCard.addEventListener('click', () => {
@@ -1062,8 +1075,9 @@ playerCard.innerHTML = `
             }
         });
         
-        container.appendChild(playerCard);
+        fragment.appendChild(playerCard);
     });
+    container.appendChild(fragment); // [성능 개선]
 }
 
 // [추가] 이적 뉴스 표시 함수

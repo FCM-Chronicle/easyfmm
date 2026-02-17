@@ -632,6 +632,24 @@ body {
     color: var(--text-secondary);
 }
 
+/* 선수 카드 이미지 스타일 */
+.player-card-content {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.player-card-image {
+    width: 120px;
+    height: 120px;
+    object-fit: contain; /* 이미지가 잘리지 않고 비율에 맞게 표시되도록 수정 */
+    flex-shrink: 0;
+}
+
+.player-info-text {
+    flex: 1;
+}
+
 /* ==================== 버튼 스타일 ==================== */
 .btn {
     background: var(--bg-container);
@@ -1893,9 +1911,9 @@ body {
 .best11-player {
     background: rgba(0, 0, 0, 0.5);
     border-radius: 8px;
-    padding: 8px;
+    padding: 12px 8px;
     text-align: center;
-    width: 100px;
+    width: 140px;
     border: 1px solid rgba(255, 255, 255, 0.2);
     transition: transform 0.2s;
 }
@@ -1904,6 +1922,14 @@ body {
     transform: scale(1.05);
     background: rgba(0, 0, 0, 0.7);
     z-index: 10;
+}
+
+.best11-image {
+    width: 100px;
+    height: 100px;
+    object-fit: contain; /* 이미지가 잘리지 않고 비율에 맞게 표시되도록 수정 */
+    margin: 0 auto 5px auto;
+    display: block;
 }
 
 .best11-player.user-player {

@@ -186,7 +186,7 @@ const allTeams = {
             { name: "마노르 솔로몬", position: "FW", country: "이스라엘", age: 26, rating: 78 },
             { name: "윌손 오도베르", position: "FW", country: "프랑스", age: 20, rating: 75 },
             { name: "파페 마타르 사르", position: "MF", country: "세네갈", age: 22, rating: 83 },
-            { name: "로드리고 벤쿠르", position: "MF", country: "우루과이", age: 28, rating: 81 },
+            { name: "로드리고 벤탕쿠르", position: "MF", country: "우루과이", age: 28, rating: 81 },
             { name: "안토닌 킨스키", position: "GK", country: "체코", age: 22, rating: 73 },
             { name: "벤 데이비스", position: "DF", country: "웨일스", age: 32, rating: 76 },
             { name: "미키 판더벤", position: "DF", country: "네덜란드", age: 24, rating: 86 },
@@ -1620,7 +1620,7 @@ const teamLogoCodes = {
     "바르셀로나": "FCB", "레알_마드리드": "RMA", "맨체스터_시티": "MCI", "리버풀": "LIV",
     "토트넘_홋스퍼": "TOT", "파리_생제르맹": "PSG", "AC_밀란": "ACM", "인터_밀란": "INT",
     "아스널": "ARS", "나폴리": "NAP", "첼시": "CHE", "바이에른_뮌헨": "BAY",
-    "아틀레티코_마드리드": "ATM", "도르트문트": "DOR",
+    "아틀레티코_마드리드": "ATM", "도르트문트": "BVB",
     // 2부
     "유벤투스": "JUV", "뉴캐슬_유나이티드": "NEW", "아스톤_빌라": "AVL", "라이프치히": "LEI",
     "세비야": "SEV", "아약스": "AJA", "AS_로마": "ROM", "레버쿠젠": "B04",
@@ -1796,19 +1796,25 @@ function initializeGame() {
 }
 
 function setupEventListeners() {
-    // 팀 선택
-    document.querySelectorAll('.team-card').forEach(card => {
-        card.addEventListener('click', function() {
-            // 1. data-team 속성에서 값 가져오기
-            const originalTeamKey = this.dataset.team; 
-
-            // 2. 공백을 언더스코어로 변환하여 유효한 키 생성
-            const validTeamKey = originalTeamKey.replace(/\s/g, '_'); 
-            
-            // 3. 변환된 유효한 키를 selectTeam 함수에 전달
-            selectTeam(validTeamKey); 
+    // [성능 개선] 이벤트 위임(Event Delegation) 적용
+    const teamSelectionScreen = document.getElementById('teamSelection');
+    if (teamSelectionScreen) {
+        teamSelectionScreen.addEventListener('click', function(e) {
+            const card = e.target.closest('.team-card');
+            if (card) {
+                const originalTeamKey = card.dataset.team;
+                const validTeamKey = originalTeamKey.replace(/\s/g, '_');
+                selectTeam(validTeamKey);
+            }
         });
-    });
+    }
+
+    // [성능 개선] 선수 목록 이벤트 위임
+    const playerList = document.getElementById('playerList');
+    if (playerList) {
+        playerList.addEventListener('click', handlePlayerListClick);
+        playerList.addEventListener('contextmenu', handlePlayerListRightClick);
+    }
 
 
     // 탭 전환
@@ -3198,21 +3204,28 @@ function isPlayerInSquad(player) {
 
 function displayTeamPlayers() {
     const playerList = document.getElementById('playerList');
+    const fragment = document.createDocumentFragment(); // [성능 개선] DocumentFragment 사용
     playerList.innerHTML = '';
     
     const teamPlayers = teams[gameData.selectedTeam];
     
+    // [성능 개선] 스쿼드 선수 이름을 Set으로 만들어 O(1) 시간 복잡도로 조회
+    const squadPlayerNames = new Set();
+    if (gameData.squad.gk) squadPlayerNames.add(gameData.squad.gk.name);
+    gameData.squad.df.forEach(p => p && squadPlayerNames.add(p.name));
+    gameData.squad.mf.forEach(p => p && squadPlayerNames.add(p.name));
+    gameData.squad.fw.forEach(p => p && squadPlayerNames.add(p.name));
+
     teamPlayers.forEach(player => {
         const playerCard = document.createElement('div');
         playerCard.className = 'player-card';
+        playerCard.dataset.playerName = player.name; // [성능 개선] 데이터 속성으로 선수 이름 저장
         
-        // 이미 스쿼드에 있는 선수인지 확인
-        const isUsed = isPlayerInSquad(player);
+        const isUsed = squadPlayerNames.has(player.name);
         if (isUsed) {
             playerCard.classList.add('used');
         }
         
-        // 부상 여부 확인
         const isInjured = typeof injurySystem !== 'undefined' && injurySystem.isInjured(gameData.selectedTeam, player.name);
         if (isInjured) {
             playerCard.classList.add('injured');
@@ -3220,43 +3233,35 @@ function displayTeamPlayers() {
             const gamesLeft = injuryInfo ? injuryInfo.gamesRemaining : '?';
             
             playerCard.innerHTML = `
-                <div class="name">${player.name}</div>
-                <div class="details">
-                    <div>${player.position} | 능력치: ${Math.floor(player.rating)} | 나이: ${player.age}</div>
-                    <div style="color: #e74c3c; font-weight: bold; font-size: 0.8rem;">🚑 부상중 (${gamesLeft}경기)</div>
+                <div class="player-card-content">
+                    <img src="assets/players/${player.name}.png" class="player-card-image" loading="lazy" onerror="this.src='assets/players/default.png'">
+                    <div class="player-info-text">
+                        <div class="name">${player.name}</div>
+                        <div class="details">
+                            <div>${player.position} | 능력치: ${Math.floor(player.rating)} | 나이: ${player.age}</div>
+                            <div style="color: #e74c3c; font-weight: bold; font-size: 0.8rem;">🚑 부상중 (${gamesLeft}경기)</div>
+                        </div>
+                    </div>
                 </div>
             `;
         } else {
             playerCard.innerHTML = `
-                <div class="name">${player.name}</div>
-                <div class="details">
-                    <div>${player.position} | 능력치: ${Math.floor(player.rating)} | 나이: ${player.age}</div>
-                    ${isUsed ? '<div style="color: #ffd700; font-size: 0.8rem;">★ 출전 중</div>' : ''}
+                <div class="player-card-content">
+                    <img src="assets/players/${player.name}.png" class="player-card-image" loading="lazy" onerror="this.src='assets/players/default.png'">
+                    <div class="player-info-text">
+                        <div class="name">${player.name}</div>
+                        <div class="details">
+                            <div>${player.position} | 능력치: ${Math.floor(player.rating)} | 나이: ${player.age}</div>
+                            ${isUsed ? '<div style="color: #ffd700; font-size: 0.8rem;">★ 출전 중</div>' : ''}
+                        </div>
+                    </div>
                 </div>
             `;
         }
-        
-        if (!isUsed && !isInjured) {
-            playerCard.addEventListener('click', () => {
-                if (selectedPosition !== null) {
-                    assignPlayerToPosition(player);
-                }
-            });
-            
-            // ✅ 후보 선수 우클릭으로 방출 (이적료 받기) - 수정!
-            playerCard.addEventListener('contextmenu', (e) => {
-                e.preventDefault();
-                // [추가] 월드컵 모드에서는 방출 불가
-                if (gameData.isWorldCupMode) {
-                    alert("🏆 월드컵 기간에는 선수를 방출할 수 없습니다.");
-                    return;
-                }
-               releasePlayerWithFee(player, 0); // 직접 호출로 변경
-            });
-        }
-        
-        playerList.appendChild(playerCard);
+        fragment.appendChild(playerCard);
     });
+
+    playerList.appendChild(fragment); // [성능 개선] 한 번에 DOM에 추가
 }
 
 
@@ -5221,6 +5226,7 @@ function deleteSlot(slotNumber) {
 // 유스팀 선수 표시
 function displayYouthPlayers() {
     const container = document.getElementById('youthPlayerList');
+    const fragment = document.createDocumentFragment(); // [성능 개선]
     container.innerHTML = '';
     console.log('🔄 displayYouthPlayers 호출됨. 현재 gameData.youthSquad:', gameData.youthSquad);
 
@@ -5232,11 +5238,18 @@ function displayYouthPlayers() {
     gameData.youthSquad.forEach(player => {
         const playerCard = document.createElement('div');
         playerCard.className = 'player-card';
+        playerCard.dataset.playerName = player.name; // [성능 개선] 데이터 속성 추가
+
         playerCard.innerHTML = `
-            <div class="name">${player.name}</div>
-            <div class="details">
-                <div>${player.position} | 능력치: ${player.rating} | 나이: ${player.age}</div>
-                <div style="color: #2ecc71; font-size: 0.8rem;">유망주</div>
+            <div class="player-card-content">
+                <img src="assets/players/${player.name}.png" class="player-card-image" loading="lazy" onerror="this.src='assets/players/default.png'">
+                <div class="player-info-text">
+                    <div class="name">${player.name}</div>
+                    <div class="details">
+                        <div>${player.position} | 능력치: ${player.rating} | 나이: ${player.age}</div>
+                        <div style="color: #2ecc71; font-size: 0.8rem;">유망주</div>
+                    </div>
+                </div>
             </div>
         `;
         playerCard.addEventListener('click', () => {
@@ -5268,8 +5281,9 @@ function displayYouthPlayers() {
                 displayTeamPlayers();
             }
         });
-        container.appendChild(playerCard);
+        fragment.appendChild(playerCard);
     });
+    container.appendChild(fragment); // [성능 개선]
 }
 
 // 은퇴 및 환생 처리
