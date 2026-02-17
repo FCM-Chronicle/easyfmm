@@ -1614,6 +1614,32 @@ let gameData = {
 };
 
 
+// 팀 로고 매핑 (3글자 약어)
+const teamLogoCodes = {
+    // 1부
+    "바르셀로나": "FCB", "레알_마드리드": "RMA", "맨체스터_시티": "MCI", "리버풀": "LIV",
+    "토트넘_홋스퍼": "TOT", "파리_생제르맹": "PSG", "AC_밀란": "ACM", "인터_밀란": "INT",
+    "아스널": "ARS", "나폴리": "NAP", "첼시": "CHE", "바이에른_뮌헨": "BAY",
+    "아틀레티코_마드리드": "ATM", "도르트문트": "DOR",
+    // 2부
+    "유벤투스": "JUV", "뉴캐슬_유나이티드": "NEW", "아스톤_빌라": "AVL", "라이프치히": "LEI",
+    "세비야": "SEV", "아약스": "AJA", "AS_로마": "ROM", "레버쿠젠": "B04",
+    "스포르팅_CP": "SCP", "벤피카": "BEN", "셀틱": "CEL", "페예노르트": "FEY",
+    "맨체스터_유나이티드": "MUN", "올랭피크_드_마르세유": "MAR", "PSV": "PSV",
+    // 3부
+    "FC_서울": "FCS", "갈라타사라이": "GAL", "알_힐랄": "HIL", "알_이티하드": "ITT",
+    "알_나스르": "NAS", "아르헨티나_연합": "ARG", "미국_연합": "AME", "멕시코_연합": "MEX",
+    "브라질_연합": "BRA", "전북_현대": "JEO", "울산_현대": "ULS", "포항_스틸러스": "PHS",
+    "광주_FC": "GWA", "리옹": "OLY"
+};
+
+function getTeamLogoHTML(teamName) {
+    const code = teamLogoCodes[teamName];
+    if (!code || !allTeams[teamName]) return '';
+    return `<img src="assets/logo/${allTeams[teamName].league}/${code}.png" class="team-logo" alt="${teamName}">`;
+}
+
+
 
 
 // 스폰서 데이터
@@ -2190,7 +2216,7 @@ function selectTeam(teamKey) {
     gameData.currentLeague = allTeams[teamKey].league; // 팀의 리그 설정
     
     applyTeamTheme(teamKey);
-    document.getElementById('teamName').textContent = teamKey; // 한국어 팀명 직접 표시
+    document.getElementById('teamName').innerHTML = getTeamLogoHTML(teamKey) + ' ' + teamKey; // 로고 포함 표시
     
     // 자동으로 최고 능력치 선수들로 스쿼드 채우기
     autoFillSquad();
@@ -2596,17 +2622,72 @@ function renderDashboard() {
 
     // 5. 기타 카드들
     const tacticsCard = createDashboardCard('🧬 전술/DNA', 'tactics', () => `<div style="text-align:center;">현재 전술: <span style="color:#ffd700;">${gameData.currentTactic}</span></div>`);
+     // [추가] 개인 기록 카드
+    const recordsCard = createDashboardCard('🥇 개인 기록', 'records', () => {
+        let topScorerName = '-';
+        let topScorerGoals = 0;
+        
+        if (typeof leagueBasedRecordsSystem !== 'undefined') {
+            const scorers = leagueBasedRecordsSystem.getTopScorersByLeague(gameData.currentLeague, 1);
+            if (scorers.length > 0) {
+                topScorerName = scorers[0].name;
+                topScorerGoals = scorers[0].goals;
+            }
+        }
+        
+        return `
+            <div style="text-align: center;">
+                <div style="font-size: 0.9rem; color: #aaa;">현재 득점 1위</div>
+                <div style="font-size: 1.2rem; font-weight: bold; color: #e74c3c; margin: 5px 0;">${topScorerName}</div>
+                <div style="font-size: 0.9rem;">${topScorerGoals}골</div>
+            </div>
+        `;
+    });
+
+    // [추가] SNS 카드
+    const snsCard = createDashboardCard('📱 SNS', 'sns', () => {
+        let latestPost = "새로운 소식이 없습니다.";
+        if (typeof snsManager !== 'undefined' && snsManager.posts.length > 0) {
+            // HTML 태그 제거 및 길이 제한
+            const div = document.createElement("div");
+            div.innerHTML = snsManager.posts[0].content;
+            latestPost = div.textContent || div.innerText || "";
+            if (latestPost.length > 18) latestPost = latestPost.substring(0, 18) + "...";
+        }
+        return `
+            <div style="text-align: center;">
+                <div style="font-size: 0.9rem; color: #aaa;">최신 피드</div>
+                <div style="font-size: 0.95rem; margin-top: 5px;">"${latestPost}"</div>
+            </div>
+        `;
+    });
+
+    // [추가] 이적 뉴스 카드
+    const transferNewsCard = createDashboardCard('🌍 AI 이적 뉴스', 'transfer_news', () => {
+        let latestNews = "이적 소식이 없습니다.";
+        if (typeof transferSystem !== 'undefined' && transferSystem.transferNews.length > 0) {
+            const news = transferSystem.transferNews[0];
+            latestNews = `${news.name}: ${news.from} ➔ ${news.to}`;
+        }
+        return `
+            <div style="text-align: center;">
+                <div style="font-size: 0.9rem; color: #aaa;">최신 이적</div>
+                <div style="font-size: 0.95rem; margin-top: 5px;">${latestNews}</div>
+            </div>
+        `;
+    });
     const mailCard = createDashboardCard('📬 메일함', 'mail', () => {
         const unread = (typeof mailManager !== 'undefined') ? mailManager.getUnreadCount() : 0;
         return `<div style="text-align:center;">읽지 않은 메일: <span style="color:${unread > 0 ? '#e74c3c' : '#aaa'}; font-weight:bold;">${unread}통</span></div>`;
     });
-    const settingsCard = createDashboardCard('⚙️ 설정 / 저장', 'settings', () => `<div style="text-align:center;">게임 저장 및 불러오기</div>`);
+        const settingsCard = createDashboardCard('⚙️ 설정 / 저장', 'settings', () => `<div style="text-align:center;">게임 저장 및 불러오기</div>`);
 
-    container.appendChild(nextMatchCard);
-    container.appendChild(leagueCard);
     container.appendChild(squadCard);
     container.appendChild(transferCard);
     container.appendChild(tacticsCard);
+    container.appendChild(recordsCard);
+    container.appendChild(snsCard);
+    container.appendChild(transferNewsCard);
     container.appendChild(mailCard);
     container.appendChild(settingsCard);
 }
@@ -3463,8 +3544,8 @@ function updateDisplay() {
         gameData.currentSponsor ? gameData.currentSponsor.name : '없음';
     
     if (gameData.currentOpponent) {
-        document.getElementById('opponentName').textContent = 
-            teamNames[gameData.currentOpponent];
+        document.getElementById('opponentName').innerHTML = 
+            getTeamLogoHTML(gameData.currentOpponent) + ' ' + teamNames[gameData.currentOpponent];
     }
 }
 
@@ -3651,7 +3732,7 @@ function displayLeagueTable() {
         tableHTML += `
             <tr class="${isUserTeam ? 'user-team' : ''}">
                 <td>${index + 1}</td>
-                <td>${teamNames[team.team]}</td>
+                <td>${getTeamLogoHTML(team.team)} ${teamNames[team.team]}</td>
                 <td>${team.matches}</td>
                 <td>${team.wins}</td>
                 <td>${team.draws}</td>
@@ -4410,7 +4491,7 @@ function loadGame(event) {
             
             // 화면 업데이트
             console.log('=== 화면 업데이트 시작 ===');
-            document.getElementById('teamName').textContent = teamNames[gameData.selectedTeam];
+            document.getElementById('teamName').innerHTML = getTeamLogoHTML(gameData.selectedTeam) + ' ' + teamNames[gameData.selectedTeam];
             updateDisplay();
             updateFormationDisplay();
             displayTeamPlayers();
@@ -5968,10 +6049,11 @@ function renderDashboard() {
 
     // 1. 다음 경기 카드
     const nextMatchCard = createDashboardCard('🏆 다음 경기', 'match', () => {
-        const opponent = gameData.currentOpponent ? teamNames[gameData.currentOpponent] : '미정';
+        const opponentName = gameData.currentOpponent ? teamNames[gameData.currentOpponent] : '미정';
+        const opponentLogo = gameData.currentOpponent ? getTeamLogoHTML(gameData.currentOpponent) : '';
         return `
             <div style="text-align: center;">
-                <div style="font-size: 1.5rem; font-weight: bold; margin-bottom: 10px;">VS ${opponent}</div>
+                <div style="font-size: 1.5rem; font-weight: bold; margin-bottom: 10px;">VS ${opponentLogo} ${opponentName}</div>
                 <div style="color: #aaa;">${gameData.isHomeGame ? '홈 경기' : '원정 경기'}</div>
                 <div style="margin-top: 15px; color: #2ecc71; font-weight: bold;">킥오프 준비 완료</div>
             </div>
@@ -6004,7 +6086,7 @@ function renderDashboard() {
                 html += `
                     <div class="rank-row ${isMe ? 'my-team' : ''}">
                         <span>${idx + 1}위</span>
-                        <span>${team.name}</span>
+                        <span style="display: flex; align-items: center;">${getTeamLogoHTML(team.key)} ${team.name}</span>
                         <span>${team.points}pts</span>
                     </div>
                 `;
@@ -6045,6 +6127,62 @@ function renderDashboard() {
 
     // 5. 기타 카드들
     const tacticsCard = createDashboardCard('🧬 전술/DNA', 'tactics', () => `<div style="text-align:center;">현재 전술: <span style="color:#ffd700;">${gameData.currentTactic}</span></div>`);
+    
+    // [추가] 개인 기록 카드
+    const recordsCard = createDashboardCard('🥇 개인 기록', 'records', () => {
+        let topScorerName = '-';
+        let topScorerGoals = 0;
+        
+        if (typeof leagueBasedRecordsSystem !== 'undefined') {
+            const scorers = leagueBasedRecordsSystem.getTopScorersByLeague(gameData.currentLeague, 1);
+            if (scorers.length > 0) {
+                topScorerName = scorers[0].name;
+                topScorerGoals = scorers[0].goals;
+            }
+        }
+        
+        return `
+            <div style="text-align: center;">
+                <div style="font-size: 0.9rem; color: #aaa;">현재 득점 1위</div>
+                <div style="font-size: 1.2rem; font-weight: bold; color: #e74c3c; margin: 5px 0;">${topScorerName}</div>
+                <div style="font-size: 0.9rem;">${topScorerGoals}골</div>
+            </div>
+        `;
+    });
+
+    // [추가] SNS 카드
+    const snsCard = createDashboardCard('📱 SNS', 'sns', () => {
+        let latestPost = "새로운 소식이 없습니다.";
+        if (typeof snsManager !== 'undefined' && snsManager.posts.length > 0) {
+            // HTML 태그 제거 및 길이 제한
+            const div = document.createElement("div");
+            div.innerHTML = snsManager.posts[0].content;
+            latestPost = div.textContent || div.innerText || "";
+            if (latestPost.length > 18) latestPost = latestPost.substring(0, 18) + "...";
+        }
+        return `
+            <div style="text-align: center;">
+                <div style="font-size: 0.9rem; color: #aaa;">최신 피드</div>
+                <div style="font-size: 0.95rem; margin-top: 5px;">"${latestPost}"</div>
+            </div>
+        `;
+    });
+
+    // [추가] 이적 뉴스 카드
+    const transferNewsCard = createDashboardCard('🌍 AI 이적 뉴스', 'transfer_news', () => {
+        let latestNews = "이적 소식이 없습니다.";
+       if (typeof transferSystem !== 'undefined' && transferSystem.transferNews.length > 0) {
+            const news = transferSystem.transferNews[0];
+            latestNews = `${news.name}: ${news.from} ➔ ${news.to}`;
+        }
+        return `
+            <div style="text-align: center;">
+                <div style="font-size: 0.9rem; color: #aaa;">최신 이적</div>
+                <div style="font-size: 0.95rem; margin-top: 5px;">${latestNews}</div>
+            </div>
+        `;
+  });
+
     const mailCard = createDashboardCard('📬 메일함', 'mail', () => {
         const unread = (typeof mailManager !== 'undefined') ? mailManager.getUnreadCount() : 0;
         return `<div style="text-align:center;">읽지 않은 메일: <span style="color:${unread > 0 ? '#e74c3c' : '#aaa'}; font-weight:bold;">${unread}통</span></div>`;
@@ -6058,6 +6196,9 @@ function renderDashboard() {
     container.appendChild(tacticsCard);
     container.appendChild(mailCard);
     container.appendChild(settingsCard);
+    container.appendChild(recordsCard);
+    container.appendChild(snsCard);
+    container.appendChild(transferNewsCard);
 }
 
 function createDashboardCard(title, tabName, contentFn) {
