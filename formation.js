@@ -884,8 +884,8 @@ style.textContent = `
 
 .formation-container .player-slot {
     position: absolute;
-    width: 80px;
-    height: 120px;
+    width: 120px;
+    height: 70px;
     background: rgba(46, 204, 113, 0.25);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
@@ -894,7 +894,7 @@ style.textContent = `
     display: flex;
     flex-direction: column;
     align-items: center; 
-    justify-content: flex-start; 
+    justify-content: flex-end; 
     transform: translate(-50%, -50%); /* 드래그 시작 시 JS로 위치를 재계산하므로 유지 */
     color: white;
     user-select: none;
@@ -906,7 +906,7 @@ style.textContent = `
         inset 3px 3px 6px rgba(255, 255, 255, 0.3), 
         inset -3px -3px 6px rgba(0, 0, 0, 0.1);
     z-index: 10;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .formation-container .player-slot:hover {
@@ -923,11 +923,15 @@ style.textContent = `
 
 .player-slot-image {
     width: 100%;
-    height: 80px;
+    height: 135px;
     object-fit: cover;
     object-position: top;
     pointer-events: none;
     margin-bottom: 0;
+    position: absolute;
+    top: 0;
+    margin-top: -65px;
+    z-index: 20;
 }
 
 .formation-container .field .player-slot {
@@ -941,8 +945,8 @@ style.textContent = `
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
     background: linear-gradient(135deg, #f1c40f, #f39c12);
     border-color: #f1c40f;
-    width: 88px; /* scale(1.1) 효과 대체 */
-    height: 132px; /* 120 * 1.1 */
+    width: 132px; /* scale(1.1) 효과 대체 */
+    height: 77px; /* 70 * 1.1 */
 }
 
 .formation-container .player-slot .player-name {
@@ -953,10 +957,16 @@ style.textContent = `
     text-overflow: ellipsis;
     max-width: 70px;
     margin-top: 2px;
+    position: relative;
+    z-index: 30;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.8);
 }
 .formation-container .player-slot .player-rating {
     font-size: 1rem;
     margin-top: 2px;
+    position: relative;
+    z-index: 30;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.8);
 }
 
 
@@ -967,11 +977,20 @@ style.textContent = `
 @media (max-width: 768px) {
     .formation-container .player-slot {
         width: 70px;
-        height: 110px;
+        height: 50px;
+    }
+    .player-slot-image {
+        height: 95px;
+        margin-top: -45px;
     }
     .formation-container .player-slot .player-name {
-        font-size: 0.65rem;
-        max-width: 60px;
+        font-size: 0.6rem;
+        max-width: 68px;
+        white-space: normal;
+        line-height: 1.1;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
     }
     .formation-container .player-slot .player-rating {
         font-size: 0.8rem;
