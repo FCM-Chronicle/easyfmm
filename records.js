@@ -832,7 +832,7 @@ updateLeagueTableForAIMatch(team1Key, team2Key, score1, score2) {
                 const card = document.createElement('div');
                 card.className = `best11-player ${isUserPlayer ? 'user-player' : ''}`;
                 card.innerHTML = `
-                    <img src="assets/players/${data.player.name}.png" class="best11-image" loading="lazy" onerror="this.src='assets/players/default.png'">
+                    <img src="assets/players/${data.player.name}.webp" class="best11-image" loading="lazy" onerror="this.onerror=null; this.src='assets/players/default.webp'">
                     <div class="best11-rating">★${data.rating}</div>
                     <div class="best11-name">${data.player.name}</div>
                     <div class="best11-team">${teamNames[data.team] || data.team}</div>

@@ -9,6 +9,9 @@ class FormationSystem {
         this.originalDraggedPlayerInfo = null; // 드래그 시작 시 선수 정보 저장
         this.longPressTimer = null;
         this.longPressDuration = 500; // 500ms for a long press
+        this.isLongPressDrag = false; // 롱프레스 드래그 상태
+        this.startX = 0;
+        this.startY = 0;
         this.isRoleViewMode = false; // [신규] 롤 정보 보기 모드 플래그
         
         this.init();
@@ -172,6 +175,7 @@ class FormationSystem {
         slot.className = 'player-slot';
         slot.style.left = x + '%';
         slot.style.top = y + '%';
+        slot.dataset.index = index; // [추가] 교체를 위해 인덱스 정보 저장 (모든 슬롯)
     
         if (player) {
             // [추가] 역할 표시 로직
@@ -189,7 +193,7 @@ class FormationSystem {
 
             // 선수가 있는 경우
             slot.innerHTML = `
-                <img src="assets/players/${player.name}.png" class="player-slot-image" loading="lazy" onerror="this.src='assets/players/default.png'">
+                <img src="assets/players/${player.name}.webp" class="player-slot-image" loading="lazy" onerror="this.onerror=null; this.src='assets/players/default.webp'">
                 <div class="player-name">${player.name}</div>
                 <div class="player-rating">${Math.floor(player.rating)}</div>
                 ${roleDisplay ? `<div class="player-role">${roleDisplay}</div>` : ''}
@@ -216,7 +220,6 @@ class FormationSystem {
                 <div class="player-rating" style="opacity: 0.5;">-</div>
             `;
             slot.dataset.positionType = positionType;
-            slot.dataset.index = index; // 교체를 위해 인덱스 정보 저장
             slot.classList.add('empty');
     
             // [수정] 클릭 이벤트 통합 (공석 교체)
@@ -244,8 +247,6 @@ class FormationSystem {
     }
     
     onDragStart(e) {
-        if (!this.isEditMode) return;
-
         const touch = e.touches ? e.touches[0] : e;
         const target = touch.target.closest('.player-slot');
 
@@ -253,10 +254,32 @@ class FormationSystem {
 
         // GK는 움직일 수 없음
         if (target.dataset.positionType === 'GK' && this.areas.GK.contains(target)) {
-            alert('골키퍼는 교체만 가능하며, 필드 내에서 위치를 변경할 수 없습니다.');
+            if (this.isEditMode) alert('골키퍼는 교체만 가능하며, 필드 내에서 위치를 변경할 수 없습니다.');
             return;
         }
 
+        // 시작 좌표 저장 (롱프레스 감지용)
+        this.startX = touch.clientX;
+        this.startY = touch.clientY;
+
+        // 수정 모드일 때 즉시 드래그 시작
+        if (this.isEditMode) {
+            this.startDragging(e, target);
+            return;
+        }
+
+        // 롤 보기 모드일 때는 드래그 방지
+        if (this.isRoleViewMode) return;
+
+        // 롱프레스 타이머 시작
+        this.longPressTimer = setTimeout(() => {
+            if (navigator.vibrate) navigator.vibrate(50); // 햅틱 피드백
+            this.isLongPressDrag = true;
+            this.startDragging(e, target);
+        }, this.longPressDuration);
+    }
+
+    startDragging(e, target) {
         // 드래그 시작 시 원래 선수 정보 저장
         this.originalDraggedPlayerInfo = {
             name: target.dataset.playerName,
@@ -267,6 +290,8 @@ class FormationSystem {
         const rect = this.draggedPlayer.getBoundingClientRect();
         const fieldRect = this.field.getBoundingClientRect();
 
+        const touch = e.touches ? e.touches[0] : e;
+
         // 드래그 시작 시 field를 기준으로 절대 위치 설정
         this.draggedPlayer.style.left = `${touch.clientX - fieldRect.left - (this.draggedPlayer.offsetWidth / 2)}px`;
         this.draggedPlayer.style.top = `${touch.clientY - fieldRect.top - (this.draggedPlayer.offsetHeight / 2)}px`;
@@ -275,15 +300,23 @@ class FormationSystem {
         this.field.appendChild(this.draggedPlayer);
         this.draggedPlayer.classList.add('dragging');
         
-        this.offsetX = touch.clientX - rect.left;
-        this.offsetY = touch.clientY - rect.top;
-
-        e.preventDefault();
         this.offsetX = this.draggedPlayer.offsetWidth / 2;
         this.offsetY = this.draggedPlayer.offsetHeight / 2;
     }
     
     onDragMove(e) {
+        const touch = e.touches ? e.touches[0] : e;
+
+        // 롱프레스 대기 중 움직임 감지 시 타이머 취소
+        if (this.longPressTimer && !this.isLongPressDrag) {
+            const moveX = Math.abs(touch.clientX - this.startX);
+            const moveY = Math.abs(touch.clientY - this.startY);
+            if (moveX > 10 || moveY > 10) { // 10px 이상 움직이면 취소
+                clearTimeout(this.longPressTimer);
+                this.longPressTimer = null;
+            }
+        }
+
         if (!this.draggedPlayer) return;
         
         // passive: false가 제대로 동작하지 않는 브라우저를 위해 추가
@@ -291,7 +324,6 @@ class FormationSystem {
             e.preventDefault();
         }
 
-        const touch = e.touches ? e.touches[0] : e;
         const fieldRect = this.field.getBoundingClientRect();
         let x = touch.clientX - fieldRect.left - this.offsetX;
         let y = touch.clientY - fieldRect.top - this.offsetY;
@@ -305,11 +337,44 @@ class FormationSystem {
     }
     
     onDragEnd(e) {
+        if (this.longPressTimer) {
+            clearTimeout(this.longPressTimer);
+            this.longPressTimer = null;
+        }
+
+        if (this.isLongPressDrag) {
+            this.isLongPressDrag = false;
+        }
+
         if (!this.draggedPlayer) return;
 
         const touch = e.touches ? e.touches[0] : e;
         const dropX = touch.clientX;
         const dropY = touch.clientY;
+
+        // [신규] 같은 포지션 내 선수 교체 (Swap) 감지
+        this.draggedPlayer.style.display = 'none'; // 드래그 중인 요소를 숨겨서 아래 요소를 감지
+        const elemBelow = document.elementFromPoint(dropX, dropY);
+        this.draggedPlayer.style.display = ''; // 다시 표시
+
+        const targetSlot = elemBelow ? elemBelow.closest('.player-slot') : null;
+
+        if (targetSlot && targetSlot !== this.draggedPlayer) {
+            const sourcePos = this.originalDraggedPlayerInfo.positionType;
+            const targetPos = targetSlot.dataset.positionType;
+
+            // 같은 포지션 그룹이고 GK가 아닌 경우 교체 (예: MF <-> MF)
+            if (sourcePos === targetPos && sourcePos !== 'GK') {
+                const sourceIndex = parseInt(this.draggedPlayer.dataset.index);
+                const targetIndex = parseInt(targetSlot.dataset.index);
+
+                if (!isNaN(sourceIndex) && !isNaN(targetIndex)) {
+                    this.swapSquadIndices(sourcePos, sourceIndex, targetIndex);
+                    this.finalizeDrag();
+                    return;
+                }
+            }
+        }
 
         let targetArea = null;
         for (const pos in this.areas) {
@@ -385,11 +450,32 @@ class FormationSystem {
             }
         }
 
+        this.finalizeDrag(false); // false means don't need to re-render if just removed (but here we removed and re-rendered in if/else blocks mostly)
+        // Actually, the logic above handles re-rendering or removing.
+        // Let's just clean up.
         this.originalDraggedPlayerInfo = null; // 드래그 정보 초기화
         this.draggedPlayer.classList.remove('dragging');
         this.draggedPlayer = null;
     }
     
+    // [신규] 드래그 종료 후 처리 (스왑 시 사용)
+    finalizeDrag() {
+        this.draggedPlayer.remove();
+        this.displayCurrentSquad();
+        if (typeof DNAManager !== 'undefined') DNAManager.recalculateLineOVRs();
+        this.originalDraggedPlayerInfo = null;
+        this.draggedPlayer = null;
+    }
+
+    // [신규] 스쿼드 배열 내 인덱스 교체
+    swapSquadIndices(posType, idx1, idx2) {
+        const key = posType.toLowerCase();
+        const arr = gameData.squad[key];
+        if (Array.isArray(arr)) {
+            [arr[idx1], arr[idx2]] = [arr[idx2], arr[idx1]];
+        }
+    }
+
     // 포지션 검증 및 자동 교체 함수
     validateAndAutoCorrect() {
         console.log("🔍 포지션 검증 및 자동 교체 시작");
@@ -585,17 +671,57 @@ class FormationSystem {
                 playerCard.className = 'player-card'; // 기존 스타일 재사용
                 playerCard.innerHTML = `
                     <div class="player-card-content">
-                        <img src="assets/players/${candidate.name}.png" class="player-card-image" loading="lazy" onerror="this.src='assets/players/default.png'">
+                        <img src="assets/players/${candidate.name}.webp" class="player-card-image" loading="lazy" onerror="this.onerror=null; this.src='assets/players/default.webp'">
                         <div class="player-info-text">
                             <div class="name">${candidate.name}</div>
                             <div class="details">능력치: ${candidate.rating} | 나이: ${candidate.age}</div>
                         </div>
                     </div>
                 `;
-                playerCard.onclick = () => {
+                
+                // [수정] 롱프레스(방출) 및 클릭(교체) 이벤트 처리
+                let pressTimer;
+                let isLongPress = false;
+
+                const startPress = () => {
+                    isLongPress = false;
+                    pressTimer = setTimeout(() => {
+                        isLongPress = true;
+                        // 방출 함수 호출 (script.js에 정의됨)
+                        if (typeof releasePlayerWithFee === 'function') {
+                            releasePlayerWithFee(candidate);
+                            this.hideSubstitutionSheet();
+                        }
+                    }, 600); // 600ms 롱프레스
+                };
+
+                const cancelPress = () => {
+                    clearTimeout(pressTimer);
+                };
+
+                // 터치 및 마우스 이벤트 등록
+                playerCard.addEventListener('mousedown', startPress);
+                playerCard.addEventListener('touchstart', startPress, { passive: true });
+                playerCard.addEventListener('mouseup', cancelPress);
+                playerCard.addEventListener('mouseleave', cancelPress);
+                playerCard.addEventListener('touchend', cancelPress);
+                playerCard.addEventListener('touchmove', cancelPress);
+
+                playerCard.onclick = (e) => {
+                    if (isLongPress) return; // 롱프레스였으면 클릭 무시
                     this.swapPlayers(playerOut, candidate, positionType);
                     this.hideSubstitutionSheet();
                 };
+                
+                // 우클릭 이벤트 (PC 방출 편의성)
+                playerCard.oncontextmenu = (e) => {
+                    e.preventDefault();
+                    if (typeof releasePlayerWithFee === 'function') {
+                        releasePlayerWithFee(candidate);
+                        this.hideSubstitutionSheet();
+                    }
+                };
+
                 this.sheetPlayerList.appendChild(playerCard);
             });
         }

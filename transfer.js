@@ -968,7 +968,7 @@ function displayTransferPlayers() {
         
         playerCard.innerHTML = `
             <div class="player-card-content">
-                <img src="assets/players/${player.name}.png" class="player-card-image" loading="lazy" onerror="this.src='assets/players/default.png'">
+                <img src="assets/players/${player.name}.webp" class="player-card-image" loading="lazy" onerror="this.onerror=null; this.src='assets/players/default.webp'">
                 <div class="player-info-text">
                     <div class="player-name">${player.name}</div>
                     <div class="player-position">${player.position}</div>
@@ -1043,7 +1043,7 @@ function searchPlayers() {
 
 playerCard.innerHTML = `
     <div class="player-card-content">
-        <img src="assets/players/${player.name}.png" class="player-card-image" loading="lazy" onerror="this.src='assets/players/default.png'">
+        <img src="assets/players/${player.name}.webp" class="player-card-image" loading="lazy" onerror="this.onerror=null; this.src='assets/players/default.webp'">
         <div class="player-info-text">
             <div class="player-name">${player.name}</div>
             <div class="player-position">${player.position}</div>

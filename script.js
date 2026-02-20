@@ -207,7 +207,7 @@ const allTeams = {
             { name: "아슈라프 하키미", position: "DF", country: "모로코", age: 26, rating: 92 },
             { name: "프레스넬 킴펨베", position: "DF", country: "프랑스", age: 29, rating: 69 },
             { name: "루카스 베랄두", position: "DF", country: "브라질", age: 21, rating: 75 },
-            { name: "마르퀴뇨스", position: "DF", country: "브라질", age: 31, rating: 85 },
+            { name: "마르키뉴스", position: "DF", country: "브라질", age: 31, rating: 85 },
             { name: "흐비차 크바라츠헬리아", position: "FW", country: "조지아", age: 24, rating: 93 },
             { name: "파비안 루이스", position: "MF", country: "스페인", age: 29, rating: 83 },
             { name: "곤살루 하무스", position: "FW", country: "포르투갈", age: 24, rating: 75 },
@@ -221,9 +221,10 @@ const allTeams = {
             { name: "브래들리 바르콜라", position: "FW", country: "프랑스", age: 22, rating: 86 },
             { name: "워렌 자이르에메리", position: "MF", country: "프랑스", age: 19, rating: 82 },
             { name: "마트베이 사포노프", position: "GK", country: "러시아", age: 26, rating: 68 },
-            { name: "윌리안 파초", position: "DF", country: "에콰도르", age: 23, rating: 83 },
+            { name: "윌리앙 파초", position: "DF", country: "에콰도르", age: 23, rating: 83 },
             { name: "아르나우 테나스", position: "GK", country: "스페인", age: 24, rating: 72 },
-            { name: "주앙 네베스", position: "MF", country: "포르투갈", age: 20, rating: 92 }
+            { name: "주앙 네베스", position: "MF", country: "포르투갈", age: 20, rating: 92 },
+            { name: "일리야 자바르니", position: "DF", country: "우크라이나", age: 23, rating: 80 },
         ],
         description: "파리의 별들이 빛나는 세계 최고의 무대"
     },
@@ -360,16 +361,17 @@ const allTeams = {
             { name: "로베르트 산체스", position: "GK", country: "스페인", age: 27, rating: 81 },
             { name: "마르크 쿠쿠레야", position: "DF", country: "스페인", age: 27, rating: 88 },
             { name: "토신 아다라비오요", position: "DF", country: "잉글랜드", age: 27, rating: 77 },
+            { name: "조렐 하토", position: "DF", country: "네덜란드", age: 19, rating: 80 },
             { name: "알레한드로 가르나초", position: "FW", country: "아르헨티나", age: 21, rating: 78 },
             { name: "브누아 바디아실", position: "DF", country: "프랑스", age: 24, rating: 76 },
             { name: "리바이 콜윌", position: "DF", country: "잉글랜드", age: 22, rating: 84 },
+            { name: "에스테방", position: "FW", country: "브라질", age: 18, rating: 80 },
             { name: "페드루 네투", position: "FW", country: "포르투갈", age: 25, rating: 83 },
             { name: "엔소 페르난데스", position: "MF", country: "아르헨티나", age: 24, rating: 90 },
             { name: "리암 델랍", position: "FW", country: "잉글랜드", age: 22, rating: 81 },
             { name: "콜 파머", position: "MF", country: "잉글랜드", age: 23, rating: 91 },
             { name: "필립 요르겐센", position: "GK", country: "덴마크", age: 23, rating: 72 },
             { name: "다리우 이수구", position: "MF", country: "포르투갈", age: 21, rating: 73 },
-            { name: "니콜라 잭슨", position: "FW", country: "세네갈", age: 24, rating: 79 },
             { name: "안드레이 산투스", position: "MF", country: "브라질", age: 21, rating: 86 },
             { name: "마마두 사르", position: "DF", country: "프랑스", age: 19, rating: 74 },
             { name: "주앙 페드루", position: "FW", country: "브라질", age: 24, rating: 86 },
@@ -385,20 +387,22 @@ const allTeams = {
             { name: "오마리 켈리먼", position: "MF", country: "잉글랜드", age: 19, rating: 66 },
             { name: "마르크 기우", position: "FW", country: "스페인", age: 19, rating: 71 },
             { name: "가브리엘 슬로니나", position: "GK", country: "미국", age: 21, rating: 68 },
-            { name: "로메오 라비아", position: "MF", country: "벨기에", age: 21, rating: 82 },
-            { name: "제이미 기튼스", position: "FW", country: "잉글랜드", age: 20, rating: 83 }
+            { name: "로메우 라비아", position: "MF", country: "벨기에", age: 21, rating: 82 },
+            { name: "제이미 기튼스", position: "FW", country: "잉글랜드", age: 20, rating: 83 },
+            { name: "파쿤도 부오나오테", position: "MF", country: "아르헨티나", age: 21, rating: 73 },
         ],
         description: "블루스의 강력한 투지와 승부근성"
     },
+
 
     "바이에른_뮌헨": {
         league: 1,
         players: [
             { name: "마누엘 노이어", position: "GK", country: "독일", age: 39, rating: 83 },
-            { name: "레나르트 칼", position: "MF", country: "독일", age: 17, rating: 76 },
+            { name: "레나르트 칼", position: "MF", country: "독일", age: 17, rating: 80 },
             { name: "다요 우파메카노", position: "DF", country: "프랑스", age: 26, rating: 85 },
             { name: "김민재", position: "DF", country: "대한민국", age: 28, rating: 86 },
-            { name: "요나단 타", position: "DF", country: "독일", age: 29, rating: 87 },
+            { name: "요나탄 타", position: "DF", country: "독일", age: 29, rating: 87 },
             { name: "요주아 키미히", position: "MF", country: "독일", age: 30, rating: 90 },
             { name: "세르주 그나브리", position: "FW", country: "독일", age: 30, rating: 77 },
             { name: "레온 고레츠카", position: "MF", country: "독일", age: 30, rating: 85 },
@@ -414,9 +418,11 @@ const allTeams = {
             { name: "사샤 보이", position: "DF", country: "프랑스", age: 24, rating: 73 },
             { name: "스벤 울라이히", position: "GK", country: "독일", age: 36, rating: 67 },
             { name: "콘라트 라이머", position: "MF", country: "오스트리아", age: 28, rating: 81 },
-            { name: "요시프 스타니시치", position: "DF", country: "크로아티아", age: 25, rating: 76 },
+            { name: "조십 스타니시치", position: "DF", country: "크로아티아", age: 25, rating: 76 },
             { name: "알렉산다르 파블로비치", position: "MF", country: "독일", age: 21, rating: 85 },
-            { name: "파울 바너", position: "MF", country: "독일", age: 19, rating: 67 }
+            { name: "파울 바너", position: "MF", country: "독일", age: 19, rating: 67 },
+            { name: "니콜라 잭슨", position: "FW", country: "세네갈", age: 24, rating: 79 },
+            { name: "톰 비숍", position: "MF", country: "세네갈", age: 20, rating: 75 },
         ],
         description: "독일 축구의 자존심이자 뮌헨의 왕자들"
     },
@@ -644,7 +650,6 @@ const allTeams = {
             { name: "비테슬라프 야로스", position: "GK", country: "체코", age: 24, rating: 67 },
             { name: "루카스 호자", position: "DF", country: "브라질", age: 25, rating: 73 },
             { name: "안톤 고에이", position: "DF", country: "덴마크", age: 22, rating: 74 },
-            { name: "조렐 하토", position: "DF", country: "네덜란드", age: 19, rating: 84 },
             { name: "오언 베인달", position: "DF", country: "네덜란드", age: 25, rating: 71 },
             { name: "라울 모로", position: "FW", country: "스페인", age: 22, rating: 72 },
             { name: "케네스 테일러", position: "MF", country: "네덜란드", age: 23, rating: 82 },
@@ -1630,13 +1635,25 @@ const teamLogoCodes = {
     "FC_서울": "FCS", "갈라타사라이": "GAL", "알_힐랄": "HIL", "알_이티하드": "ITT",
     "알_나스르": "NAS", "아르헨티나_연합": "ARG", "미국_연합": "AME", "멕시코_연합": "MEX",
     "브라질_연합": "BRA", "전북_현대": "JEO", "울산_현대": "ULS", "포항_스틸러스": "PHS",
-    "광주_FC": "GWA", "리옹": "OLY"
+    "광주_FC": "GWA", "리옹": "OLY",
+    // [추가] 레전드 팀 로고 매핑
+    "Legend_Barcelona": "FCB", "Legend_RealMadrid": "RMA", "Legend_ManUtd": "MUN",
+    "Legend_ACMilan": "ACM", "Legend_Arsenal": "ARS", "Legend_Chelsea": "CHE",
+    "Legend_Liverpool": "LIV", "Legend_Bayern": "BAY", "Legend_Inter": "INT",
+    "Legend_Juventus": "JUV", "Legend_Ajax": "AJA", "Legend_Roma": "ROM",
+    "Legend_Dortmund": "BVB", "Legend_Napoli": "NAP"
 };
 
 function getTeamLogoHTML(teamName) {
     const code = teamLogoCodes[teamName];
     if (!code || !allTeams[teamName]) return '';
-    return `<img src="assets/logo/${allTeams[teamName].league}/${code}.png" class="team-logo" alt="${teamName}">`;
+    
+    // [수정] 레전드 팀은 별도의 폴더(legend) 사용
+    if (teamName.startsWith("Legend_")) {
+        return `<img src="assets/logo/legend/${code}.webp" class="team-logo" alt="${teamName}">`;
+    }
+    
+    return `<img src="assets/logo/${allTeams[teamName].league}/${code}.webp" class="team-logo" alt="${teamName}">`;
 }
 
 
@@ -1795,6 +1812,28 @@ function initializeGame() {
     showScreen('teamSelection');
 }
 
+// [신규] 선수 목록 클릭 핸들러
+function handlePlayerListClick(e) {
+    const card = e.target.closest('.player-card');
+    if (!card) return;
+    // 상세 정보 보기 등을 구현할 수 있음
+}
+
+// [신규] 선수 목록 우클릭 핸들러
+function handlePlayerListRightClick(e) {
+    e.preventDefault();
+    const card = e.target.closest('.player-card');
+    if (!card) return;
+
+    const playerName = card.dataset.playerName;
+    if (!playerName) return;
+
+    const player = teams[gameData.selectedTeam].find(p => p.name === playerName);
+    if (player) {
+        releasePlayerWithFee(player);
+    }
+}
+
 function setupEventListeners() {
     // [성능 개선] 이벤트 위임(Event Delegation) 적용
     const teamSelectionScreen = document.getElementById('teamSelection');
@@ -1826,7 +1865,7 @@ function setupEventListeners() {
     });
     // [수정] 홈 버튼 이벤트
     document.getElementById('homeBtn').addEventListener('click', function() {
-        showDashboard();
+        if (typeof showDashboard === 'function') showDashboard();
     });
 
     // 포지션 클릭
@@ -2531,184 +2570,6 @@ function showTab(tabName) {
     }
 }
 
-// [신규] 대시보드 표시 함수
-function showDashboard() {
-    document.getElementById('dashboard-container').style.display = 'grid';
-    document.getElementById('tab-content-area').style.display = 'none';
-    document.getElementById('homeBtn').style.display = 'none'; // 홈 화면에선 홈 버튼 숨김
-    
-    renderDashboard();
-}
-
-// [신규] 대시보드 렌더링
-function renderDashboard() {
-    const container = document.getElementById('dashboard-container');
-    container.innerHTML = '';
-
-    // 1. 다음 경기 카드
-    const nextMatchCard = createDashboardCard('🏆 다음 경기', 'match', () => {
-        const opponent = gameData.currentOpponent ? teamNames[gameData.currentOpponent] : '미정';
-        return `
-            <div style="text-align: center;">
-                <div style="font-size: 1.5rem; font-weight: bold; margin-bottom: 10px;">VS ${opponent}</div>
-                <div style="color: #aaa;">${gameData.isHomeGame ? '홈 경기' : '원정 경기'}</div>
-                <div style="margin-top: 15px; color: #2ecc71; font-weight: bold;">킥오프 준비 완료</div>
-            </div>
-        `;
-    });
-
-    // 2. 리그 순위 카드 (내 위/아래 순위 표시)
-    const leagueCard = createDashboardCard('📊 리그 순위', 'league', () => {
-        const league = gameData.currentLeague;
-        const divisionKey = `division${league}`;
-        const table = gameData.leagueData[divisionKey];
-        
-        if (!table) return '<div style="text-align:center; color:#aaa;">데이터 없음</div>';
-
-        // 순위 정렬
-        const standings = Object.keys(table).map(key => ({
-            name: teamNames[key] || key,
-            key: key,
-            ...table[key],
-            diff: table[key].goalsFor - table[key].goalsAgainst
-        })).sort((a, b) => b.points - a.points || b.diff - a.diff || b.goalsFor - a.goalsFor);
-
-        const myIndex = standings.findIndex(t => t.key === gameData.selectedTeam);
-        let html = '';
-
-        // 내 위, 나, 내 아래 표시
-        const range = [myIndex - 1, myIndex, myIndex + 1];
-        range.forEach(idx => {
-            if (standings[idx]) {
-                const team = standings[idx];
-                const isMe = idx === myIndex;
-                html += `
-                    <div class="rank-row ${isMe ? 'my-team' : ''}">
-                        <span>${idx + 1}위</span>
-                        <span>${team.name}</span>
-                        <span>${team.points}pts</span>
-                    </div>
-                `;
-            }
-        });
-        return html;
-    });
-
-    // 3. 스쿼드 요약 카드
-    const squadCard = createDashboardCard('👥 스쿼드', 'squad', () => {
-        const rating = calculateTeamRating().toFixed(1);
-        const injuredCount = gameData.injuredPlayers ? gameData.injuredPlayers.length : 0; // 수정: injuredPlayers는 배열이 아닐 수 있음. injurySystem 확인 필요하지만 일단 안전하게
-        // injurySystem이 있으면 거기서 가져옴
-        const realInjuredCount = (typeof injurySystem !== 'undefined') ? injurySystem.getInjuredPlayers(gameData.selectedTeam).length : 0;
-        
-        return `
-            <div style="display: flex; justify-content: space-around; text-align: center;">
-                <div>
-                    <div style="font-size: 0.9rem; color: #aaa;">평균 능력치</div>
-                    <div style="font-size: 1.5rem; font-weight: bold; color: #3498db;">${rating}</div>
-                </div>
-                <div>
-                    <div style="font-size: 0.9rem; color: #aaa;">부상자</div>
-                    <div style="font-size: 1.5rem; font-weight: bold; color: ${realInjuredCount > 0 ? '#e74c3c' : '#2ecc71'};">${realInjuredCount}명</div>
-                </div>
-            </div>
-        `;
-    });
-
-    // 4. 이적 시장 카드
-    const transferCard = createDashboardCard('💰 이적 시장', 'transfer', () => {
-        return `
-            <div style="text-align: center;">
-                <div style="font-size: 0.9rem; color: #aaa;">이적 자금</div>
-                <div style="font-size: 1.5rem; font-weight: bold; color: #f1c40f;">${gameData.teamMoney}억</div>
-                <div style="margin-top: 10px; font-size: 0.9rem;">새로운 인재 영입하기</div>
-            </div>
-        `;
-    });
-
-    // 5. 기타 카드들
-    const tacticsCard = createDashboardCard('🧬 전술/DNA', 'tactics', () => `<div style="text-align:center;">현재 전술: <span style="color:#ffd700;">${gameData.currentTactic}</span></div>`);
-     // [추가] 개인 기록 카드
-    const recordsCard = createDashboardCard('🥇 개인 기록', 'records', () => {
-        let topScorerName = '-';
-        let topScorerGoals = 0;
-        
-        if (typeof leagueBasedRecordsSystem !== 'undefined') {
-            const scorers = leagueBasedRecordsSystem.getTopScorersByLeague(gameData.currentLeague, 1);
-            if (scorers.length > 0) {
-                topScorerName = scorers[0].name;
-                topScorerGoals = scorers[0].goals;
-            }
-        }
-        
-        return `
-            <div style="text-align: center;">
-                <div style="font-size: 0.9rem; color: #aaa;">현재 득점 1위</div>
-                <div style="font-size: 1.2rem; font-weight: bold; color: #e74c3c; margin: 5px 0;">${topScorerName}</div>
-                <div style="font-size: 0.9rem;">${topScorerGoals}골</div>
-            </div>
-        `;
-    });
-
-    // [추가] SNS 카드
-    const snsCard = createDashboardCard('📱 SNS', 'sns', () => {
-        let latestPost = "새로운 소식이 없습니다.";
-        if (typeof snsManager !== 'undefined' && snsManager.posts.length > 0) {
-            // HTML 태그 제거 및 길이 제한
-            const div = document.createElement("div");
-            div.innerHTML = snsManager.posts[0].content;
-            latestPost = div.textContent || div.innerText || "";
-            if (latestPost.length > 18) latestPost = latestPost.substring(0, 18) + "...";
-        }
-        return `
-            <div style="text-align: center;">
-                <div style="font-size: 0.9rem; color: #aaa;">최신 피드</div>
-                <div style="font-size: 0.95rem; margin-top: 5px;">"${latestPost}"</div>
-            </div>
-        `;
-    });
-
-    // [추가] 이적 뉴스 카드
-    const transferNewsCard = createDashboardCard('🌍 AI 이적 뉴스', 'transfer_news', () => {
-        let latestNews = "이적 소식이 없습니다.";
-        if (typeof transferSystem !== 'undefined' && transferSystem.transferNews.length > 0) {
-            const news = transferSystem.transferNews[0];
-            latestNews = `${news.name}: ${news.from} ➔ ${news.to}`;
-        }
-        return `
-            <div style="text-align: center;">
-                <div style="font-size: 0.9rem; color: #aaa;">최신 이적</div>
-                <div style="font-size: 0.95rem; margin-top: 5px;">${latestNews}</div>
-            </div>
-        `;
-    });
-    const mailCard = createDashboardCard('📬 메일함', 'mail', () => {
-        const unread = (typeof mailManager !== 'undefined') ? mailManager.getUnreadCount() : 0;
-        return `<div style="text-align:center;">읽지 않은 메일: <span style="color:${unread > 0 ? '#e74c3c' : '#aaa'}; font-weight:bold;">${unread}통</span></div>`;
-    });
-        const settingsCard = createDashboardCard('⚙️ 설정 / 저장', 'settings', () => `<div style="text-align:center;">게임 저장 및 불러오기</div>`);
-
-    container.appendChild(squadCard);
-    container.appendChild(transferCard);
-    container.appendChild(tacticsCard);
-    container.appendChild(recordsCard);
-    container.appendChild(snsCard);
-    container.appendChild(transferNewsCard);
-    container.appendChild(mailCard);
-    container.appendChild(settingsCard);
-}
-
-function createDashboardCard(title, tabName, contentFn) {
-    const card = document.createElement('div');
-    card.className = 'dashboard-card';
-    card.innerHTML = `
-        <h3>${title} <span>➔</span></h3>
-        <div class="dashboard-content">${contentFn()}</div>
-    `;
-    card.onclick = () => showTab(tabName);
-    return card;
-}
-
 // ==================== [신규] 커스텀 커서 시스템 ====================
 
 const cursorStyle = document.createElement('style');
@@ -3234,7 +3095,7 @@ function displayTeamPlayers() {
             
             playerCard.innerHTML = `
                 <div class="player-card-content">
-                    <img src="assets/players/${player.name}.png" class="player-card-image" loading="lazy" onerror="this.src='assets/players/default.png'">
+                    <img src="assets/players/${player.name}.webp" class="player-card-image" loading="lazy" onerror="this.onerror=null; this.src='assets/players/default.webp'">
                     <div class="player-info-text">
                         <div class="name">${player.name}</div>
                         <div class="details">
@@ -3247,7 +3108,7 @@ function displayTeamPlayers() {
         } else {
             playerCard.innerHTML = `
                 <div class="player-card-content">
-                    <img src="assets/players/${player.name}.png" class="player-card-image" loading="lazy" onerror="this.src='assets/players/default.png'">
+                    <img src="assets/players/${player.name}.webp" class="player-card-image" loading="lazy" onerror="this.onerror=null; this.src='assets/players/default.webp'">
                     <div class="player-info-text">
                         <div class="name">${player.name}</div>
                         <div class="details">
@@ -5242,7 +5103,7 @@ function displayYouthPlayers() {
 
         playerCard.innerHTML = `
             <div class="player-card-content">
-                <img src="assets/players/${player.name}.png" class="player-card-image" loading="lazy" onerror="this.src='assets/players/default.png'">
+                <img src="assets/players/${player.name}.webp" class="player-card-image" loading="lazy" onerror="this.onerror=null; this.src='assets/players/default.webp'">
                 <div class="player-info-text">
                     <div class="name">${player.name}</div>
                     <div class="details">
