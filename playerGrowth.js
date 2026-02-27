@@ -4,6 +4,44 @@
 class PlayerGrowthSystem {
     constructor() {
         this.growthData = new Map(); // 선수별 성장 데이터 저장
+        // [이동] 고정 포텐셜 명단 (이름: 목표 오버롤)
+        this.fixedPotentials = {
+            "오현규": 95,
+            "김민수": 99,
+            "배준호": 97,
+            "앙제요안 보니": 95,
+            "조반니 레오니": 99,
+            "트레이 뇨니": 93,
+            "프란치스코 카마르다": 100,
+            "옌스 카스트로프": 99,
+            "조브 벨링엄": 99, 
+            "제라르 마르틴": 90,
+            "마르크 베르날": 91,
+            "루니 바르다그지": 89,
+            "파우 쿠바르시": 100,
+            "엔드릭": 97,
+            "리코 루이스": 89,
+            "코비 마이누": 95,
+            "아론 바우만": 98,
+            "요르디 무키오": 90,
+            "부바 상가레": 97,
+            "루카 부슈코비치": 100,
+            "에단 은와네리": 93,
+            "조시 아체암퐁": 94,
+            "맥스 다우먼": 99,
+            "리오 응구모하": 97,
+            "레나르트 칼": 101,
+            "배승균": 99,
+            "윤도영": 94,
+            "강상윤": 99,
+            "디스 얀서": 96,
+            "켄드리 파에스": 96,
+            "아산 우에드라오고": 99,
+            "백인우": 94,
+            "대릴 바콜라": 93,
+            "파트리크 도르구":99,
+            "파쿤도 부오나오테":94
+        };
     }
 
     // 게임 시작 시 25세 이하 선수들에게 성장 가능성 부여
@@ -13,7 +51,8 @@ class PlayerGrowthSystem {
         const teamPlayers = teams[gameData.selectedTeam];
         
         teamPlayers.forEach(player => {
-            if (player.age <= 25 && !this.growthData.has(player.name)) {
+            // [수정] 25세 미만만 성장 (25세 이상은 성장 안함)
+            if (player.age < 25 && !this.growthData.has(player.name)) {
                 const growthPotential = this.calculateGrowthPotential(player);
                 
                 // [수정] 포텐셜에 따라 성장 기간을 3~12개월로 다르게 설정
@@ -36,47 +75,9 @@ class PlayerGrowthSystem {
 
     // 성장 가능성 계산 (3-15 사이의 랜덤 값)
     calculateGrowthPotential(player) {
-        // [사용자 설정] 고정 포텐셜 명단 (이름: 목표 오버롤)
-        const fixedPotentials = {
-            "오현규": 95,
-            "김민수": 99,
-            "배준호": 97,
-            "앙제요안 보니": 95,
-            "조반니 레오니": 99,
-            "트레이 뇨니": 93,
-            "프란치스코 카마르다": 100,
-            "옌스 카스트로프": 99,
-            "조브 벨링엄": 99
-            "제라르 마르틴": 90,
-            "마르크 베르날": 91,
-            "루니 바르다그지": 89,
-            "파우 쿠바르시": 100,
-            "엔드릭": 97,
-            "리코 루이스": 89,
-            "코비 마이누": 95,
-            "아론 바우만": 98,
-            "요르디 무키오": 90,
-            "부바 상가레": 97,
-            "루카 부슈코비치": 100,
-            "에단 은와네리": 93,
-            "조시 아체암퐁": 97,
-            "맥스 다우먼": 99,
-            "리오 응구모하": 94,
-            "레나르트 칼": 101,
-            "배승균": 99,
-            "윤도영": 94,
-            "강상윤": 99,
-            "디스 얀서": 88,
-            "켄드리 파에스": 96,
-            "아산 우에드라오고": 99,
-            "백인우": 94,
-            "대릴 바콜라": 93,
-            "파트리크 도르구":99,
-            "파쿤도 부오나오테":94
-        };
-
-        if (fixedPotentials.hasOwnProperty(player.name)) {
-            const targetRating = fixedPotentials[player.name];
+        // [수정] this.fixedPotentials 사용
+        if (this.fixedPotentials.hasOwnProperty(player.name)) {
+            const targetRating = this.fixedPotentials[player.name];
             const growthNeeded = Math.max(0, targetRating - Math.round(player.rating));
             console.log(`🔒 ${player.name}: 고정 포텐셜 적용 (목표: ${targetRating}, 필요 성장: ${growthNeeded})`);
             return growthNeeded;
@@ -300,8 +301,16 @@ class PlayerGrowthSystem {
                 }
 
                 teamPlayers.forEach(player => {
-                    // 25세 이하 선수만 성장
-                    if (player.age <= 25) {
+                    const age = parseInt(player.age); // [수정] 나이 확실하게 숫자 변환
+
+                    // [수정] 25세 미만 선수만 성장 (25세 이상은 성장 안함)
+                    if (age < 25) {
+                        // [신규] 고정 포텐셜 체크 (AI)
+                        if (this.fixedPotentials.hasOwnProperty(player.name)) {
+                            const targetRating = this.fixedPotentials[player.name];
+                            if (player.rating >= targetRating) return; // 목표치 도달 시 성장 중단
+                        }
+
                         // 기본 성장치 (5경기당 0.3 ~ 0.7)
                         let growthAmount = 0.3 + Math.random() * 0.4;
 
@@ -371,7 +380,7 @@ class PlayerGrowthSystem {
 
     // 유스 콜업 시 성장 가능성 부여
     grantPotentialToPlayer(player) {
-        if (player.age <= 25 && !this.growthData.has(player.name)) {
+        if (player.age < 25 && !this.growthData.has(player.name)) {
             let growthPotential = this.calculateGrowthPotential(player);
             
             // 유스 콜업 보너스: 3~6 추가
@@ -509,8 +518,9 @@ function showGrowthSummary() {
     
     alert(message);
 }
-
+    
 // 경기 종료 후 성장 처리를 전역으로 노출
 window.processPostMatchGrowth = processPostMatchGrowth;
 window.showGrowthSummary = showGrowthSummary;
 window.playerGrowthSystem = playerGrowthSystem;
+    

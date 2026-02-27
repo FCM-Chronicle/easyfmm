@@ -486,15 +486,15 @@ const allTeams = {
             { name: "엠레 잔", position: "MF", country: "독일", age: 31, rating: 75 },
             { name: "율리안 뤼에르손", position: "DF", country: "노르웨이", age: 27, rating: 84 },
             { name: "카림 아데예미", position: "FW", country: "독일", age: 23, rating: 85 },
-            { name: "파비오 실바", position: "FW", country: "포르투갈", age: 23, rating: 80 }
+            { name: "파비오 실바", position: "FW", country: "포르투갈", age: 23, rating: 80 },
             { name: "실라스 오스트신스키", position: "GK", country: "폴란드", age: 21, rating: 67 },
             { name: "알렉산더 마이어", position: "GK", country: "독일", age: 34, rating: 65 },
             { name: "마르셀 로트카", position: "GK", country: "폴란드", age: 24, rating: 67 },
             { name: "콜 캠벨", position: "FW", country: "미국", age: 19, rating: 70 },
-            { name: "조브 벨링엄", position: "MF", country: "잉글랜드", age: 20, rating: 79,}
+            { name: "조브 벨링엄", position: "MF", country: "잉글랜드", age: 20, rating: 79 },
             { name: "키엘 베티엔", position: "MF", country: "독일", age: 19, rating: 67 },
             { name: "알무게라 카바르", position: "DF", country: "독일", age: 19, rating: 66 },
-            { name: "다니엘 스벤슨", position: "DF", country: "스웨덴", age: 23, rating: 79 }
+            { name: "다니엘 스벤슨", position: "DF", country: "스웨덴", age: 23, rating: 79 },
         ],
         description: "보루시아의 노란 벽과 함께하는 젊은 열정"
     },
@@ -1820,6 +1820,9 @@ document.addEventListener('DOMContentLoaded', function() {
 function initializeGame() {
     // 리그 데이터 초기화
     initializeLeagueData();
+
+    // [신규] 메인 화면 저장된 게임 슬롯 표시
+    renderMainSaveSlots();
     
     // 첫 번째 화면 표시
     showScreen('teamSelection');
@@ -1901,6 +1904,8 @@ function setupEventListeners() {
 
     // 경기 시작
     document.getElementById('startMatchBtn').addEventListener('click', startMatch);
+    // [수정] 경기 시작 (캘린더 시뮬레이션 후 시작)
+    document.getElementById('startMatchBtn').addEventListener('click', runMatchSequence);
 
     // 모달 닫기
     document.querySelector('.close').addEventListener('click', closeModal);
@@ -2474,7 +2479,8 @@ function showTab(tabName) {
     // [추가] 매치 탭 예외 처리 (대시보드에서 호출 시)
     if (tabName === 'match') {
         if (typeof startMatch === 'function') startMatch();
-        return;
+        // 탭 전환만 하고 경기 시작은 버튼으로 하도록 변경 (바로 시작하면 캘린더 효과를 못 봄)
+        // if (typeof startMatch === 'function') startMatch();
     }
 
     // 탭 버튼 활성화
@@ -2605,6 +2611,7 @@ function showTab(tabName) {
             break;
     }
 }
+
 
 // ==================== [신규] 커스텀 커서 시스템 ====================
 
@@ -4401,6 +4408,134 @@ function loadGame(event) {
     
     reader.readAsText(file);
     event.target.value = '';
+}
+
+// [신규] 메인 화면에 저장된 슬롯 렌더링
+function renderMainSaveSlots() {
+    const container = document.getElementById('mainLoadSlots');
+    const section = document.getElementById('mainLoadSection');
+    if (!container || !section) return;
+
+    container.innerHTML = '';
+    let hasSave = false;
+
+    for (let i = 1; i <= 3; i++) {
+        const slotInfo = getSlotInfo(i);
+        if (slotInfo) {
+            hasSave = true;
+            const slotDiv = document.createElement('div');
+            slotDiv.className = 'main-load-slot';
+            slotDiv.style.cssText = `
+                background: rgba(255, 255, 255, 0.1);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                border-radius: 10px;
+                padding: 15px;
+                display: flex;
+                align-items: center;
+                gap: 15px;
+                cursor: pointer;
+                transition: all 0.2s;
+            `;
+            
+            // 호버 효과
+            slotDiv.onmouseover = () => {
+                slotDiv.style.background = 'rgba(255, 255, 255, 0.2)';
+                slotDiv.style.transform = 'translateY(-3px)';
+                slotDiv.style.boxShadow = '0 5px 15px rgba(0,0,0,0.3)';
+            };
+            slotDiv.onmouseout = () => {
+                slotDiv.style.background = 'rgba(255, 255, 255, 0.1)';
+                slotDiv.style.transform = 'none';
+                slotDiv.style.boxShadow = 'none';
+            };
+
+            slotDiv.innerHTML = `
+                <div style="font-size: 2rem;">💾</div>
+                <div style="flex: 1;">
+                    <div style="color: #ffd700; font-weight: bold; font-size: 1.1rem;">${slotInfo.teamName}</div>
+                    <div style="font-size: 0.85rem; color: #ccc;">
+                        시즌 ${slotInfo.season} | ${slotInfo.matchesPlayed}경기 진행<br>
+                        <span style="color: #aaa;">${new Date(slotInfo.timestamp).toLocaleDateString()} 저장됨</span>
+                    </div>
+                </div>
+                <div style="font-size: 1.5rem; color: #2ecc71;">▶</div>
+            `;
+
+            slotDiv.onclick = () => loadFromSlot(i);
+            container.appendChild(slotDiv);
+        }
+    }
+
+    section.style.display = hasSave ? 'block' : 'none';
+}
+
+// [신규] 경기 시작 시퀀스 (캘린더 시뮬레이션 -> 경기 시작)
+function runMatchSequence() {
+    const modal = document.getElementById('calendarModal');
+    const dateEl = document.getElementById('calendarDate');
+    const eventEl = document.getElementById('calendarEvent');
+    const opponentEl = document.getElementById('calendarOpponent');
+
+    if (!modal) {
+        startMatch(); // 모달 없으면 바로 시작
+        return;
+    }
+
+    // 1. 초기화
+    modal.style.display = 'flex';
+    opponentEl.style.opacity = '0';
+    opponentEl.innerHTML = '';
+    
+    // 현재 날짜 계산 (가상: 2025년 8월 1일 개막 기준)
+    // 라운드당 3~4일 간격으로 가정
+    const baseDate = new Date(2025, 7, 1); // 8월 1일
+    const currentRound = gameData.currentRound || 1;
+    const daysPassed = (currentRound - 1) * 4; // 라운드당 4일
+    
+    let currentDate = new Date(baseDate);
+    currentDate.setDate(baseDate.getDate() + daysPassed);
+
+    // 시뮬레이션 기간 (3일 전부터 당일까지)
+    const simDays = 3;
+    let dayCount = 0;
+
+    const events = ["전술 훈련", "체력 단련", "비디오 분석", "휴식", "미디어 데이", "가벼운 훈련"];
+
+    // 2. 날짜 넘기기 애니메이션
+    const interval = setInterval(() => {
+        // 날짜 표시 업데이트
+        const displayDate = new Date(currentDate);
+        displayDate.setDate(currentDate.getDate() - (simDays - dayCount));
+        
+        const month = displayDate.getMonth() + 1;
+        const day = displayDate.getDate();
+        dateEl.textContent = `${month}월 ${day}일`;
+
+        // 이벤트 텍스트 랜덤 표시
+        if (dayCount < simDays) {
+            eventEl.textContent = events[Math.floor(Math.random() * events.length)];
+            eventEl.style.color = '#aaa';
+        } else {
+            // 경기 당일
+            eventEl.textContent = "MATCH DAY";
+            eventEl.style.color = "#e74c3c";
+            eventEl.style.fontWeight = "bold";
+            
+            // 상대팀 표시
+            const oppName = gameData.currentOpponent ? teamNames[gameData.currentOpponent] : "상대팀";
+            opponentEl.innerHTML = `VS <span style="color:#ffd700;">${oppName}</span>`;
+            opponentEl.style.opacity = '1';
+
+            clearInterval(interval);
+
+            // 3. 잠시 후 경기 시작
+            setTimeout(() => {
+                modal.style.display = 'none';
+                startMatch();
+            }, 1500);
+        }
+        dayCount++;
+    }, 400); // 0.4초마다 하루씩
 }
 
 // 이벤트 리스너 설정
