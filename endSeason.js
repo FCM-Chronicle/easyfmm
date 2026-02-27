@@ -64,7 +64,7 @@ function checkSeasonEnd() {
     }
 }
 
-function endSeason() {
+function endSeason(silent = false) {
     // 1. 현재 리그 순위 및 기본 보상 계산
     const divisionKey = `division${gameData.currentLeague}`;
     const currentLeagueData = gameData.leagueData[divisionKey];
@@ -106,8 +106,11 @@ function endSeason() {
     
     // 2. 올해의 선수상 시상
     let potyMessage = '';
-    if (typeof leagueBasedRecordsSystem !== 'undefined') {
-        const poty = leagueBasedRecordsSystem.getPlayerOfTheSeason();
+    // [수정] 전역 변수 접근 방식 변경 (안전하게 window 객체 사용)
+    const recordsSys = window.leagueBasedRecordsSystem || window.recordsSystem;
+
+    if (recordsSys) {
+        const poty = recordsSys.getPlayerOfTheSeason();
         if (poty) {
             const isMyPlayer = poty.team === gameData.selectedTeam;
             potyMessage = `\n\n🏆 [올해의 선수상]\n${poty.name} (${teamNames[poty.team] || poty.team})\nMOM 선정: ${poty.moms}회`;
@@ -148,11 +151,15 @@ function endSeason() {
     }
     
     // 4. 결과 알림 표시
-    alert(`시즌 종료!\n최종 순위: ${userPosition}위 (${achievement})\n보상: ${reward}억원${promotionMessage}${potyMessage}`);
+    if (!silent) {
+        alert(`시즌 종료!\n최종 순위: ${userPosition}위 (${achievement})\n보상: ${reward}억원${promotionMessage}${potyMessage}`);
+    }
     
     // 5. 다른 팀 승강제 현황 표시
-    if (promotionRelegationData && (promotionRelegationData.promotions.length > 0 || promotionRelegationData.relegations.length > 0)) {
-        showOtherTeamsPromotionStatus(promotionRelegationData);
+    if (!silent) {
+        if (promotionRelegationData && (promotionRelegationData.promotions.length > 0 || promotionRelegationData.relegations.length > 0)) {
+            showOtherTeamsPromotionStatus(promotionRelegationData);
+        }
     }
     
     // 6. SNS 데이터 준비 (승강제 적용 전에 데이터 수집)
@@ -177,10 +184,10 @@ function endSeason() {
         seasonResultData.relegations = promotionRelegationData.relegations;
         
         // 득점왕/도움왕 데이터 수집
-        if (typeof leagueBasedRecordsSystem !== 'undefined') {
+        if (recordsSys) {
             for (let league = 1; league <= 3; league++) {
-                const topScorer = leagueBasedRecordsSystem.getTopScorer(league);
-                const topAssister = leagueBasedRecordsSystem.getTopAssister(league);
+                const topScorer = recordsSys.getTopScorer(league);
+                const topAssister = recordsSys.getTopAssister(league);
                 if (topScorer) seasonResultData.topScorers.push(topScorer);
                 if (topAssister) seasonResultData.topAssisters.push(topAssister);
             }
@@ -211,12 +218,12 @@ function endSeason() {
         transferSystem.balanceAITeams();
     }
 
-    if (typeof leagueBasedRecordsSystem !== 'undefined') {
+    if (recordsSys) {
         const currentYear = gameData.startYear || 2025;
         const seasonName = `${currentYear}/${currentYear + 1}`;
-        leagueBasedRecordsSystem.archiveSeason(seasonName);
-        leagueBasedRecordsSystem.resetSeason();
-        leagueBasedRecordsSystem.initialize();
+        recordsSys.archiveSeason(seasonName);
+        recordsSys.resetSeason();
+        recordsSys.initialize();
     }
     
     if (typeof initializeLeagueData === 'function') {

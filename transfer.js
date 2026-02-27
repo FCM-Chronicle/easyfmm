@@ -44,7 +44,7 @@ class TransferSystem {
   { "name": "토마소 마르티넬리", "position": "GK", "country": "이탈리아", "rating": 72, "age": 18, "team": "외부리그" },
   { "name": "윤도영", "position": "FW", "country": "대한민국", "rating": 77, "age": 19, "team": "외부리그" },
   { "name": "조르조 스칼비니", "position": "DF", "country": "이탈리아", "rating": 85, "age": 21, "team": "외부리그" },
-  { "name": "오스만 디오망데", "position": "DF", "country": "코트디부아르", "rating": 83, "age": 21, "team": "외부리그" },
+  { "name": "우스망 디오망데", "position": "DF", "country": "코트디부아르", "rating": 83, "age": 21, "team": "외부리그" },
   { "name": "파비오 카발리", "position": "DF", "country": "이탈리아", "rating": 73, "age": 19, "team": "외부리그" },
   { "name": "아론 히키", "position": "DF", "country": "스코틀랜드", "rating": 80, "age": 22, "team": "외부리그" },
   { "name": "디오고 코스타", "position": "GK", "country": "포르투갈", "rating": 86, "age": 25, "team": "외부리그" },
@@ -57,7 +57,6 @@ class TransferSystem {
   { "name": "옌스 카스트로프", "position": "MF", "country": "대한민국", "rating": 80, "age": 21, "team": "외부리그" },
   { "name": "히오르히 수다코프", "position": "MF", "country": "우크라이나", "rating": 82, "age": 22, "team": "외부리그" },
   { "name": "켄드리 파에스", "position": "MF", "country": "에콰도르", "rating": 76, "age": 17, "team": "외부리그" },
-  { "name": "김민수", "position": "MF", "country": "대한민국", "rating": 73, "age": 18, "team": "외부리그" },
   { "name": "윌프리드 뇽토", "position": "FW", "country": "이탈리아", "rating": 79, "age": 20, "team": "외부리그" },
   { "name": "엘리에스 벤 세기르", "position": "FW", "country": "모로코", "rating": 80, "age": 19, "team": "외부리그" },
   { "name": "에반 퍼거슨", "position": "FW", "country": "아일랜드", "rating": 83, "age": 19, "team": "외부리그" },
@@ -65,8 +64,10 @@ class TransferSystem {
   { "name": "엄지성", "position": "FW", "country": "대한민국", "rating": 72, "age": 22, "team": "외부리그" },
   { "name": "배준호", "position": "FW", "country": "대한민국", "rating": 75, "age": 21, "team": "외부리그" },
   { "name": "아데몰라 루크먼", "position": "FW", "country": "나이지리아", "rating": 85, "age": 27, "team": "외부리그" },
+  { "name": "기성용", "position": "MF", "country": "대한민국", "rating": 80, "age": 37, "team": "외부리그" },
   { "name": "오현규", "position": "FW", "country": "대한민국", "rating": 75, "age": 23, "team": "외부리그" },
   { "name": "폴 포그바", "position": "MF", "country": "프랑스", "rating": 80, "age": 32, "team": "외부리그" },
+  { "name": "황희찬", "position": "FW", "country": "대한민국", "rating": 82, "age": 29, "team": "외부리그" },
   { "name": "델레 알리", "position": "MF", "country": "잉글랜드", "rating": 79, "age": 29, "team": "외부리그" }
 
         ];
@@ -122,7 +123,7 @@ class TransferSystem {
                             this.transferMarket.push({
                                 ...player,
                                 originalTeam: teamKey,
-                                price: this.calculatePlayerPrice(player),
+                                price: this.calculatePlayerPrice(player, teamKey),
                                 daysOnMarket: Math.floor(Math.random() * 30)
                             });
                         }
@@ -137,143 +138,172 @@ class TransferSystem {
         this.extraPlayers.forEach(player => {
             // [수정] 이미 우리 팀에 있는 선수는 제외 (중복 방지)
             if (this.isPlayerInUserTeam(player.name)) return;
-
+            
             this.transferMarket.push({
                 ...player,
                 originalTeam: "외부리그",
-                price: this.calculatePlayerPrice(player),
+                price: this.calculatePlayerPrice(player, "외부리그"),
                 daysOnMarket: Math.floor(Math.random() * 30)
             });
         });
-
-        this.shuffleTransferMarket();
+        
         console.log(`✅ [Transfer] 이적 시장 초기화 완료 (총 ${this.transferMarket.length}명)`);
     }
 
-// 선수 가격 계산 함수 수정 (레이팅 중심)
-calculatePlayerPrice(player) {
-    let price = this.basePrice;
-    
-    // 레이팅에 따른 가격 조정 (핵심)
-    let ratingMultiplier;
-    
-    if (player.rating >= 90) {
-        // 90+ 레이팅: 슈퍼스타급 (매우 비쌈)
-        ratingMultiplier = 3.5;
-    } else if (player.rating >= 85) {
-        // 85-89 레이팅: 스타급 (비쌈)
-        ratingMultiplier = 2.5;
-    } else if (player.rating >= 80) {
-        // 80-84 레이팅: 주전급 (기본가)
-        ratingMultiplier = 2;
-    } else if (player.rating >= 75) {
-        // 75-79 레이팅: 준주전급 (보통)
-        ratingMultiplier = 0.5;
-    } else if (player.rating >= 70) {
-        // 70-74 레이팅: 로테이션급 (약간 쌈)
-        ratingMultiplier = 0.3;
-    } else {
-        // 70 미만: 백업/유망주급 (매우 쌈)
-        ratingMultiplier = 0.2;
-    }
-    
-    price *= ratingMultiplier;
-    
-    // 나이에 따른 가격 조정 (간소화)
-    let ageMultiplier = 1;
-    if (player.age <= 19) {
-        ageMultiplier = 1.7; // 유망주
-    } else if (player.age <= 26) {
-        ageMultiplier = 1.5; // 황금기
-    } else if (player.age >= 35) {
-        ageMultiplier = 0.5; // 베테랑
-    }
-    
-    price *= ageMultiplier;
-    
-    // 포지션에 따른 가격 조정
-    const positionMultiplier = {
-        'GK': 1,
-        'DF': 1,
-        'MF': 1,
-        'FW': 1.2
-    };
-    
-    price *= positionMultiplier[player.position] || 1;
-    
-    // 랜덤 요소 추가 (90% ~ 120%)
-    const randomFactor = 0.9 + Math.random() * 0.2;
-    price *= randomFactor;
-    
-    return Math.round(price);
-}
-
-    // 이적 시장 섞기
-    shuffleTransferMarket() {
-        for (let i = this.transferMarket.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [this.transferMarket[i], this.transferMarket[j]] = [this.transferMarket[j], this.transferMarket[i]];
-        }
-    }
-
-    // 모든 팀에서 선수 검색 (이름 검색용)
-searchAllPlayers(name) {
-    const searchName = name.toLowerCase().trim();
-    const allPlayers = [];
-    
-    // 모든 팀에서 선수 찾기
-    Object.keys(teams).forEach(teamKey => {
-        if (teamKey !== gameData.selectedTeam) {
-            const teamPlayers = teams[teamKey];
-            teamPlayers.forEach(player => {
-                if (player.name.toLowerCase().includes(searchName)) {
-                    allPlayers.push({
-                        ...player,
-                        originalTeam: teamKey,
-                        price: this.calculatePlayerPrice(player),
-                        daysOnMarket: 0,
-                        inMarket: false
-                    });
-                }
-            });
-        }
-    });
-    
-// 외부 리그 선수들도 검색
-this.extraPlayers.forEach(player => {
-    // [수정] 이미 우리 팀에 있는 선수는 제외
-    if (this.isPlayerInUserTeam(player.name)) return;
-    if (player.name.toLowerCase().includes(searchName)) {
-        allPlayers.push({
-            ...player,
-            originalTeam: "외부리그",
-            price: this.calculatePlayerPrice(player),
-            daysOnMarket: 0,
-            inMarket: false
-        });
-    }
-});
-
-return allPlayers;
-}
-        // 선수 검색
-        searchPlayers(filters) {
-            if (filters.name && filters.name.trim()) {
-        let filteredPlayers = this.searchAllPlayers(filters.name);
+    // 선수 가격 계산 함수
+    calculatePlayerPrice(player, teamKey = null) {
+        let price = this.basePrice;
         
-        // 다른 필터 적용
+        // [수정] 리그 정보 확인 및 페널티 적용
+        let league = 1;
+        if (teamKey && typeof allTeams !== 'undefined' && allTeams[teamKey]) {
+            league = allTeams[teamKey].league;
+        } else if (player.originalTeam && typeof allTeams !== 'undefined' && allTeams[player.originalTeam]) {
+            league = allTeams[player.originalTeam].league;
+        }
+
+        if (league === 3) {
+            price *= 0.7; // 3부 리그 선수 30% 감가
+        } else if (league === 2) {
+            price *= 0.85; // 2부 리그 선수 15% 감가
+        }
+
+        // 레이팅에 따른 가격 조정 (핵심)
+        let ratingMultiplier;
+        
+        if (player.rating >= 90) {
+            ratingMultiplier = 3.0;
+        } else if (player.rating >= 85) {
+            ratingMultiplier = 2.0;
+        } else if (player.rating >= 80) {
+            ratingMultiplier = 1.2;
+        } else if (player.rating >= 75) {
+            ratingMultiplier = 0.5;
+        } else if (player.rating >= 70) {
+            ratingMultiplier = 0.2;
+        } else {
+            ratingMultiplier = 0.05;
+        }
+        
+        price *= ratingMultiplier;
+        
+        // 나이에 따른 가격 조정
+        let ageMultiplier = 1;
+        if (player.age <= 19) {
+            ageMultiplier = 1.7;
+        } else if (player.age <= 26) {
+            ageMultiplier = 1.5;
+        } else if (player.age >= 35) {
+            ageMultiplier = 0.2;
+        } else if (player.age >= 32) {
+            ageMultiplier = 0.5;
+        }
+        
+        price *= ageMultiplier;
+        
+        // 포지션에 따른 가격 조정
+        const positionMultiplier = {
+            'GK': 1, 'DF': 1, 'MF': 1, 'FW': 1.2
+        };
+        price *= positionMultiplier[player.position] || 1;
+        
+        // 랜덤 요소
+        const randomFactor = 0.9 + Math.random() * 0.2;
+        price *= randomFactor;
+        
+        // [수정] 나이 많고 오버롤 낮은 경우 1억 미만(0)으로 처리
+        if (player.rating < 70 && player.age >= 32) {
+            price *= 0.1;
+        }
+
+        return Math.round(price);
+    }
+
+    // 모든 선수 검색 (이름 검색용)
+    searchAllPlayers(searchName) {
+        const allPlayers = [];
+        const lowerSearchName = searchName.toLowerCase();
+
+        // 1. 이적 시장 선수들
+        this.transferMarket.forEach(player => {
+            if (player.name.toLowerCase().includes(lowerSearchName)) {
+                allPlayers.push({ ...player, inMarket: true });
+            }
+        });
+
+        // 2. 다른 팀 선수들 (이적 시장에 없는)
+        Object.keys(teams).forEach(teamKey => {
+            if (teamKey !== gameData.selectedTeam) {
+                teams[teamKey].forEach(player => {
+                    if (player.name.toLowerCase().includes(lowerSearchName) && 
+                        !this.transferMarket.some(p => p.name === player.name && p.originalTeam === teamKey)) {
+                        
+                        allPlayers.push({
+                            ...player,
+                            originalTeam: teamKey,
+                            price: this.calculatePlayerPrice(player, teamKey),
+                            daysOnMarket: 0,
+                            inMarket: false
+                        });
+                    }
+                });
+            }
+        });
+
+        // 3. 외부 리그 선수들 (이적 시장에 없는)
+        this.extraPlayers.forEach(player => {
+            if (player.name.toLowerCase().includes(lowerSearchName) &&
+                !this.transferMarket.some(p => p.name === player.name && p.originalTeam === "외부리그") &&
+                !this.isPlayerInUserTeam(player.name)) {
+                
+                allPlayers.push({
+                    ...player,
+                    originalTeam: "외부리그",
+                    price: this.calculatePlayerPrice(player, "외부리그"),
+                    daysOnMarket: 0,
+                    inMarket: false
+                });
+            }
+        });
+
+        return allPlayers;
+    }
+
+    // 선수 검색
+    searchPlayers(filters) {
+        if (filters.name && filters.name.trim()) {
+            let filteredPlayers = this.searchAllPlayers(filters.name);
+            
+            // 다른 필터 적용
+            if (filters.position) {
+                filteredPlayers = filteredPlayers.filter(player => player.position === filters.position);
+            }
+            if (filters.minRating) {
+                filteredPlayers = filteredPlayers.filter(player => player.rating >= filters.minRating);
+            }
+            if (filters.maxAge) {
+                filteredPlayers = filteredPlayers.filter(player => player.age <= filters.maxAge);
+            }
+            return filteredPlayers;
+        }
+        
+        let filteredPlayers = [...this.transferMarket];
+        
+        // 포지션 필터
         if (filters.position) {
             filteredPlayers = filteredPlayers.filter(player => 
                 player.position === filters.position
             );
         }
         
+        // 최소 능력치 필터
         if (filters.minRating) {
             filteredPlayers = filteredPlayers.filter(player => 
                 player.rating >= filters.minRating
             );
         }
         
+        // 최대 나이 필터
         if (filters.maxAge) {
             filteredPlayers = filteredPlayers.filter(player => 
                 player.age <= filters.maxAge
@@ -282,40 +312,6 @@ return allPlayers;
         
         return filteredPlayers;
     }
-    
-            let filteredPlayers = [...this.transferMarket];
-            
-            // 이름 검색
-            if (filters.name && filters.name.trim()) {
-                const searchName = filters.name.toLowerCase();
-                filteredPlayers = filteredPlayers.filter(player => 
-                    player.name.toLowerCase().includes(searchName)
-                );
-            }
-            
-            // 포지션 필터
-            if (filters.position) {
-                filteredPlayers = filteredPlayers.filter(player => 
-                    player.position === filters.position
-                );
-            }
-            
-            // 최소 능력치 필터
-            if (filters.minRating) {
-                filteredPlayers = filteredPlayers.filter(player => 
-                    player.rating >= filters.minRating
-                );
-            }
-            
-            // 최대 나이 필터
-            if (filters.maxAge) {
-                filteredPlayers = filteredPlayers.filter(player => 
-                    player.age <= filters.maxAge
-                );
-            }
-            
-            return filteredPlayers;
-        }
 
     // 이적 성공 확률 계산
     calculateTransferSuccessChance(player) {
@@ -493,7 +489,7 @@ return allPlayers;
             this.transferMarket.push({
                 ...player,
                 originalTeam: "외부리그",
-                price: Math.round(this.calculatePlayerPrice(player) * 0.7), // 70% 가격으로
+                price: Math.round(this.calculatePlayerPrice(player, gameData.selectedTeam) * 0.7), // 70% 가격으로
                 daysOnMarket: 0
             });
 
@@ -545,6 +541,7 @@ return allPlayers;
         }
     }
 
+            
     // AI 팀 이적 처리
     processAITransfer() {
         const availableTeams = Object.keys(teams).filter(team => team !== gameData.selectedTeam);
@@ -556,6 +553,7 @@ return allPlayers;
         if (Math.random() < 0.5) {
             const league1Teams = availableTeams.filter(t => allTeams[t] && allTeams[t].league === 1);
             if (league1Teams.length > 0) {
+            
                 buyingTeam = league1Teams[Math.floor(Math.random() * league1Teams.length)];
             } else {
                 buyingTeam = availableTeams[Math.floor(Math.random() * availableTeams.length)];
@@ -578,6 +576,7 @@ return allPlayers;
         // [수정] 3부 리그 팀은 나이 많은 선수(32세 이상)를 선호
         if (buyingLeague === 3) {
             // 1부 리그에서 영입할 때는 32세 이상만 가능하도록 강제 (젊은 선수 유출 방지)
+            
             if (sellingLeague === 1) {
                 const veterans = sellingTeamPlayers.filter(p => p.age >= 32);
                 if (veterans.length > 0) {
@@ -600,9 +599,7 @@ return allPlayers;
              }
         }
 
-        // 후보가 아직 없으면 기존 로직 (낮은 능력치 위주, 방출성 이적)
         if (!transferCandidate) {
-            // 1부 -> 3부 젊은 선수 이적 방지 조건 추가
             let candidates = sellingTeamPlayers.filter(p => p.rating < 85);
             
             // [수정] 현실성 강화: 상위 리그에서 하위 리그로의 이적 제한 강화
@@ -634,7 +631,7 @@ return allPlayers;
             console.log(`AI 이적: ${transferCandidate.name}이(가) ${teamNames[sellingTeam]}에서 ${teamNames[buyingTeam]}로 이적했습니다.`);
             
             // [추가] 이적 뉴스 기록
-            const estimatedFee = this.calculatePlayerPrice(transferCandidate);
+            const estimatedFee = this.calculatePlayerPrice(transferCandidate, sellingTeam);
             this.addTransferNews(transferCandidate, sellingTeam, buyingTeam, estimatedFee);
         }
     }
@@ -696,7 +693,7 @@ return allPlayers;
             this.transferMarket.push({
                 ...randomPlayer,
                 originalTeam: randomTeam,
-                price: this.calculatePlayerPrice(randomPlayer),
+                price: this.calculatePlayerPrice(randomPlayer, randomTeam),
                 daysOnMarket: 0
             });
         }
@@ -840,7 +837,7 @@ return allPlayers;
                     console.log(`🤖 AI 지능적 이적: ${player.name} (${teamNames[teamKey]} -> ${teamNames[buyerTeamKey]})`);
                     
                     // [추가] 이적 뉴스 기록
-                    const estimatedFee = this.calculatePlayerPrice(player);
+                    const estimatedFee = this.calculatePlayerPrice(player, teamKey);
                     this.addTransferNews(player, teamKey, buyerTeamKey, estimatedFee);
 
                     return; // 한 포지션당 한 명만 영입하고 종료
@@ -929,7 +926,7 @@ return allPlayers;
         this.aiTransferCooldown = saveData.aiTransferCooldown || 0;
         this.aiSquadManagementCooldown = saveData.aiSquadManagementCooldown || 0;
     }
-    }
+}
 
 
 

@@ -186,8 +186,8 @@ class RecordsSystem {
     const team1Rating = this.calculateAITeamRating(team1Key);
     const team2Rating = this.calculateAITeamRating(team2Key);
     const ratingDiff = team1Rating - team2Rating;
-    // [수정] 월드컵 모드일 경우 이변 확률 감소 (8% -> 2%)
-    const upsetChance = (typeof gameData !== 'undefined' && gameData.isWorldCupMode) ? 0.02 : 0.08;
+    // [수정] 이변 확률 감소 (8% -> 3%) : 강팀이 너무 자주 지는 현상 방지
+    const upsetChance = (typeof gameData !== 'undefined' && gameData.isWorldCupMode) ? 0.02 : 0.03;
     const upsetOccurs = Math.random() < upsetChance;
     let team1WinChance = 0.375;
     let team2WinChance = 0.375;
@@ -211,9 +211,9 @@ class RecordsSystem {
         }
     }
 
-    // [수정] 월드컵 모드일 경우 전력 차이 반영 비중 확대
-    const powerDivisor = (typeof gameData !== 'undefined' && gameData.isWorldCupMode) ? 50 : 150;
-    const maxAdvantage = (typeof gameData !== 'undefined' && gameData.isWorldCupMode) ? 0.45 : 0.3;
+    // [수정] 전력 차이 반영 비중 확대 (150 -> 100) : 전력 차이가 승패에 더 큰 영향을 주도록 변경
+    const powerDivisor = (typeof gameData !== 'undefined' && gameData.isWorldCupMode) ? 50 : 100;
+    const maxAdvantage = (typeof gameData !== 'undefined' && gameData.isWorldCupMode) ? 0.45 : 0.4;
 
     if (ratingDiff > 0) {
         const advantage = Math.min(maxAdvantage, ratingDiff / powerDivisor);
@@ -1196,8 +1196,13 @@ class LeagueBasedRecordsSystem extends RecordsSystem {
         const btn = document.createElement('button');
         btn.id = 'viewHistoryBtn';
         btn.className = 'btn';
-        btn.textContent = '📜 역대 기록 보기';
+        btn.textContent = '🏆 명예의 전당';
         btn.style.marginTop = '10px';
+        // 스타일 강화
+        btn.style.background = 'linear-gradient(45deg, #f1c40f, #d35400)';
+        btn.style.color = 'white';
+        btn.style.fontWeight = 'bold';
+        btn.style.boxShadow = '0 4px 15px rgba(241, 196, 15, 0.3)';
         btn.onclick = () => this.toggleHistoryView();
         
         recordsHeader.appendChild(btn);
@@ -1205,13 +1210,33 @@ class LeagueBasedRecordsSystem extends RecordsSystem {
 
     toggleHistoryView() {
         const currentView = document.querySelector('.records-content');
-        const historyView = document.getElementById('historyView');
+        let historyView = document.getElementById('historyView');
+        
+        // historyView가 없으면 생성 (안전 장치)
+        if (!historyView && currentView && currentView.parentNode) {
+            historyView = document.createElement('div');
+            historyView.id = 'historyView';
+            historyView.className = 'history-view';
+            historyView.style.display = 'none';
+            historyView.innerHTML = '<div id="historyList"></div>';
+            currentView.parentNode.insertBefore(historyView, currentView.nextSibling);
+        }
         
         if (currentView && historyView) {
             const isHistoryVisible = historyView.style.display === 'block';
             currentView.style.display = isHistoryVisible ? 'grid' : 'none';
             historyView.style.display = isHistoryVisible ? 'none' : 'block';
-            document.getElementById('viewHistoryBtn').textContent = isHistoryVisible ? '📜 역대 기록 보기' : '📊 현재 시즌 보기';
+            
+            const btn = document.getElementById('viewHistoryBtn');
+            if (btn) {
+                if (isHistoryVisible) {
+                    btn.textContent = '🏆 명예의 전당';
+                    btn.style.background = 'linear-gradient(45deg, #f1c40f, #d35400)';
+                } else {
+                    btn.textContent = '📊 현재 시즌 보기';
+                    btn.style.background = '#34495e';
+                }
+            }
             
             if (!isHistoryVisible) {
                 this.displayHistory();
@@ -1325,7 +1350,12 @@ class LeagueBasedRecordsSystem extends RecordsSystem {
         container.innerHTML = '';
         
         if (this.seasonHistory.length === 0) {
-            container.innerHTML = '<div style="text-align: center; padding: 20px; color: #aaa;">아직 기록된 시즌이 없습니다.</div>';
+            container.innerHTML = `
+                <div style="text-align: center; padding: 50px; color: #aaa;">
+                    <div style="font-size: 3rem; margin-bottom: 20px;">🏛️</div>
+                    <h3>아직 명예의 전당에 등록된 시즌이 없습니다.</h3>
+                    <p>한 시즌을 완료하면 이곳에 영광스러운 기록이 남습니다.</p>
+                </div>`;
             return;
         }
 
@@ -1337,8 +1367,12 @@ class LeagueBasedRecordsSystem extends RecordsSystem {
             if (data.poty) {
                 potyHtml = `
                     <div class="history-poty">
-                        <div class="history-label">🏆 올해의 선수</div>
-                        <div class="history-value">${data.poty.name} (${teamNames[data.poty.team] || data.poty.team})</div>
+                        <div class="poty-icon">👑</div>
+                        <div class="poty-info">
+                            <div class="history-label">올해의 선수 (Ballon d'Or)</div>
+                            <div class="history-value player-name">${data.poty.name}</div>
+                            <div class="history-sub">${teamNames[data.poty.team] || data.poty.team}</div>
+                        </div>
                     </div>
                 `;
             }
@@ -1348,17 +1382,38 @@ class LeagueBasedRecordsSystem extends RecordsSystem {
                 const leagueData = data.leagues[i];
                 if (!leagueData) continue;
 
+                // 베스트 11 HTML 생성
+                let best11Html = '';
+                if (leagueData.best11 && leagueData.best11.length > 0) {
+                    best11Html = `
+                        <div class="history-best11-section">
+                            <div class="best11-title">BEST 11</div>
+                            <div class="best11-grid">
+                    `;
+                    leagueData.best11.forEach(p => {
+                        best11Html += `
+                            <div class="best11-item">
+                                <span class="pos">${p.position}</span>
+                                <span class="name">${p.name}</span>
+                            </div>
+                        `;
+                    });
+                    best11Html += `</div></div>`;
+                }
+
                 leaguesHtml += `
                     <div class="history-league-section">
-                        <h5>${i}부 리그</h5>
+                        <h5 class="league-title">${i}부 리그</h5>
                         <div class="history-stats-grid">
                             <div class="history-stat">
-                                <span class="label">득점왕</span>
-                                <span class="value">${leagueData.topScorer ? `${leagueData.topScorer.playerName} (${leagueData.topScorer.goals}골)` : '-'}</span>
+                                <span class="label">⚽ 득점왕</span>
+                                <span class="value">${leagueData.topScorer ? `${leagueData.topScorer.playerName}` : '-'}</span>
+                                <span class="sub-value">${leagueData.topScorer ? `${leagueData.topScorer.goals}골` : ''}</span>
                             </div>
                             <div class="history-stat">
-                                <span class="label">도움왕</span>
-                                <span class="value">${leagueData.topAssister ? `${leagueData.topAssister.playerName} (${leagueData.topAssister.assists}도움)` : '-'}</span>
+                                <span class="label">👟 도움왕</span>
+                                <span class="value">${leagueData.topAssister ? `${leagueData.topAssister.playerName}` : '-'}</span>
+                                <span class="sub-value">${leagueData.topAssister ? `${leagueData.topAssister.assists}도움` : ''}</span>
                             </div>
                         </div>
                         ${best11Html}
@@ -1710,6 +1765,164 @@ recordsStyle.textContent = `
         .player-info {
             margin-left: 10px;
         }
+    }
+
+    /* 명예의 전당 스타일 */
+    .history-view {
+        padding: 10px;
+    }
+    
+    .history-card {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 15px;
+        margin-bottom: 30px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    
+    .history-header {
+        background: linear-gradient(90deg, #2c3e50, #34495e);
+        padding: 15px 20px;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .history-header h4 {
+        margin: 0;
+        color: #ffd700;
+        font-size: 1.4em;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    }
+    
+    .history-poty {
+        display: flex;
+        align-items: center;
+        padding: 20px;
+        background: linear-gradient(135deg, rgba(241, 196, 15, 0.1), rgba(211, 84, 0, 0.1));
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .poty-icon {
+        font-size: 3em;
+        margin-right: 20px;
+        filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.5));
+    }
+    
+    .poty-info .history-label {
+        color: #f39c12;
+        font-size: 0.9em;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    .poty-info .player-name {
+        font-size: 1.8em;
+        font-weight: bold;
+        color: white;
+        margin: 5px 0;
+    }
+    
+    .poty-info .history-sub {
+        color: #aaa;
+    }
+    
+    .history-leagues {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        padding: 20px;
+    }
+    
+    .history-league-section {
+        background: rgba(0,0,0,0.2);
+        border-radius: 10px;
+        padding: 15px;
+    }
+    
+    .league-title {
+        margin: 0 0 15px 0;
+        color: #3498db;
+        font-size: 1.2em;
+        border-bottom: 2px solid #3498db;
+        padding-bottom: 5px;
+        display: inline-block;
+    }
+    
+    .history-stats-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        margin-bottom: 15px;
+    }
+    
+    .history-stat {
+        background: rgba(255,255,255,0.05);
+        padding: 10px;
+        border-radius: 8px;
+        text-align: center;
+    }
+    
+    .history-stat .label {
+        display: block;
+        font-size: 0.8em;
+        color: #aaa;
+        margin-bottom: 5px;
+    }
+    
+    .history-stat .value {
+        display: block;
+        font-weight: bold;
+        color: #fff;
+        font-size: 1.1em;
+    }
+    
+    .history-stat .sub-value {
+        display: block;
+        font-size: 0.8em;
+        color: #2ecc71;
+    }
+    
+    .history-best11-section {
+        margin-top: 15px;
+        background: rgba(0,0,0,0.3);
+        border-radius: 8px;
+        padding: 10px;
+    }
+    
+    .best11-title {
+        font-size: 0.8em;
+        color: #aaa;
+        text-align: center;
+        margin-bottom: 8px;
+        font-weight: bold;
+    }
+    
+    .best11-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        justify-content: center;
+    }
+    
+    .best11-item {
+        background: rgba(255,255,255,0.1);
+        padding: 3px 8px;
+        border-radius: 4px;
+        font-size: 0.85em;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .best11-item .pos {
+        color: #f1c40f;
+        font-weight: bold;
+        font-size: 0.8em;
+    }
+    
+    .best11-item .name {
+        color: #ddd;
     }
 `;
 document.head.appendChild(recordsStyle);

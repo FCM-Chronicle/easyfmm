@@ -235,7 +235,7 @@ const LegendLeagueManager = {
                 { name: "다비드 트레제게", position: "FW", country: "프랑스", age: 26, rating: 91, isIcon: true },
                 { name: "마우로 카모라네시", position: "MF", country: "이탈리아", age: 26, rating: 88, isIcon: true }
             ],
-            description: "비앙코네리의 아이콘, 유벤투스"
+            description: "비앙코네리의 영광, 아이콘 유벤투스"
         },
         "Legend_Ajax": {
             league: 1,
@@ -283,29 +283,32 @@ const LegendLeagueManager = {
             ],
             description: "로마의 황제와 글래디에이터들, 아이콘 AS 로마"
         },
-        "Legend_Dortmund": {
+        "Legend_Tottenham": {
             league: 1,
             players: [
-                { name: "마티아스 잠머", position: "DF", country: "독일", age: 26, rating: 96, isIcon: true },
-                { name: "마르코 로이스", position: "FW", country: "독일", age: 26, rating: 94, isIcon: true },
-                { name: "마츠 훔멜스", position: "DF", country: "독일", age: 26, rating: 93, isIcon: true },
-                { name: "위르겐 콜러", position: "DF", country: "독일", age: 26, rating: 92, isIcon: true },
-                { name: "안드레아스 묄러", position: "MF", country: "독일", age: 26, rating: 91, isIcon: true },
-                { name: "스테판 샤퓌자", position: "FW", country: "스위스", age: 26, rating: 90, isIcon: true },
-                { name: "로만 바이덴펠러", position: "GK", country: "독일", age: 26, rating: 89, isIcon: true },
-                { name: "우카시 피슈체크", position: "DF", country: "폴란드", age: 26, rating: 88, isIcon: true },
-                { name: "야쿱 블라시키코프스키", position: "MF", country: "폴란드", age: 26, rating: 88, isIcon: true },
-                { name: "케빈 그로스크로이츠", position: "DF", country: "독일", age: 26, rating: 85, isIcon: true },
-                { name: "얀 콜러", position: "FW", country: "체코", age: 26, rating: 89, isIcon: true },
-                { name: "토마스 로시츠키", position: "MF", country: "체코", age: 26, rating: 91, isIcon: true },
-                { name: "데데", position: "DF", country: "브라질", age: 26, rating: 87, isIcon: true },
-                { name: "세바스티안 켈", position: "MF", country: "독일", age: 26, rating: 86, isIcon: true },
-                { name: "카를 하인츠 리들레", position: "FW", country: "독일", age: 26, rating: 89, isIcon: true },
-                { name: "슈테판 로이터", position: "DF", country: "독일", age: 26, rating: 88, isIcon: true },
-                { name: "신지 카가와", position: "MF", country: "일본", age: 26, rating: 87, isIcon: true },
-                { name: "누리 사힌", position: "MF", country: "튀르키예", age: 26, rating: 88, isIcon: true }
+                { name: "해리 케인", position: "FW", country: "잉글랜드", age: 26, rating: 96, isIcon: true },
+                { name: "손흥민", position: "FW", country: "대한민국", age: 26, rating: 96, isIcon: true },
+                { name: "가레스 베일", position: "FW", country: "웨일스", age: 26, rating: 94, isIcon: true },
+                { name: "루카 모드리치", position: "MF", country: "크로아티아", age: 26, rating: 93, isIcon: true },
+                { name: "지미 그리브스", position: "FW", country: "잉글랜드", age: 26, rating: 94, isIcon: true },
+                { name: "게리 리네커", position: "FW", country: "잉글랜드", age: 26, rating: 93, isIcon: true },
+                { name: "폴 개스코인", position: "MF", country: "잉글랜드", age: 26, rating: 91, isIcon: true },
+                { name: "글렌 호들", position: "MF", country: "잉글랜드", age: 26, rating: 91, isIcon: true },
+                { name: "레들리 킹", position: "DF", country: "잉글랜드", age: 26, rating: 90, isIcon: true },
+                { name: "얀 베르통언", position: "DF", country: "벨기에", age: 26, rating: 92, isIcon: true },
+                { name: "토비 알데르베이럴트", position: "DF", country: "벨기에", age: 26, rating: 93, isIcon: true },
+                { name: "위고 요리스", position: "GK", country: "프랑스", age: 26, rating: 91, isIcon: true },
+                { name: "팻 제닝스", position: "GK", country: "북아일랜드", age: 26, rating: 92, isIcon: true },
+                { name: "다비드 지놀라", position: "MF", country: "프랑스", age: 26, rating: 89, isIcon: true },
+                { name: "테디 셰링엄", position: "FW", country: "잉글랜드", age: 26, rating: 90, isIcon: true },
+                { name: "로비 킨", position: "FW", country: "아일랜드", age: 26, rating: 89, isIcon: true },
+                { name: "무사 뎀벨레", position: "MF", country: "벨기에", age: 26, rating: 92, isIcon: true },
+                { name: "카일 워커", position: "DF", country: "잉글랜드", age: 26, rating: 88, isIcon: true },
+                { name: "시릴 놀스", position: "DF", country: "잉글랜드", age: 26, rating: 90, isIcon: true },
+                { name: "크리스티안 에릭센", position: "MF", country: "덴마크", age: 26, rating: 92, isIcon: true },
+                { name: "델리 알리", position: "MF", country: "잉글랜드", age: 26, rating: 92, isIcon: true },
             ],
-            description: "꿀벌 군단의 아이콘, 보루시아 도르트문트"
+            description: "북런던의 자존심, 아이콘 토트넘"
         },
         "Legend_Napoli": {
             league: 1,
@@ -327,7 +330,8 @@ const LegendLeagueManager = {
                 { name: "안토니오 율리아노", position: "MF", country: "이탈리아", age: 26, rating: 88, isIcon: true },
                 { name: "주세페 브루스콜로티", position: "DF", country: "이탈리아", age: 26, rating: 87, isIcon: true },
                 { name: "디노 조프", position: "GK", country: "이탈리아", age: 26, rating: 94, isIcon: true },
-                { name: "알레망", position: "MF", country: "브라질", age: 26, rating: 88, isIcon: true }
+                { name: "알레망", position: "MF", country: "브라질", age: 26, rating: 88, isIcon: true },
+                { name: "김민재", position: "DF", country: "대한민국", age: 26, rating: 87, isIcon: true },
             ],
             description: "나폴리의 신과 아이들, 아이콘 나폴리"
         }
@@ -445,8 +449,13 @@ const LegendLeagueManager = {
             // 대표 스타 3명
             const stars = teamData.players.slice(0, 3).map(p => p.name).join(', ');
 
+            const logoHtml = typeof getTeamLogoHTML === 'function' ? getTeamLogoHTML(teamKey) : '';
+
             card.innerHTML = `
-                <h3>${window.teamNames[teamKey]}</h3>
+                <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 5px;">
+                    ${logoHtml}
+                    <h3 style="margin: 0;">${window.teamNames[teamKey]}</h3>
+                </div>
                 <div class="team-rating">오버롤: 95+</div>
                 <p class="team-description">${teamData.description}</p>
                 <div class="key-players" style="font-size: 0.8rem; color: #ffd700; margin-top: 5px;">
