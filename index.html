@@ -433,6 +433,82 @@
             transition: transform 0.2s, box-shadow 0.2s;
             cursor: pointer;
         }
+
+        /* [신규] 대시보드 Bento UI 스타일 */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-auto-rows: minmax(160px, auto);
+            gap: 20px;
+            padding: 20px 0;
+            max-width: 1400px;
+            margin: 0 auto;
+            grid-auto-flow: dense;
+        }
+
+        .dashboard-card {
+            background: rgba(30, 30, 30, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+            border-color: rgba(255, 255, 255, 0.3);
+            background: rgba(40, 40, 40, 0.8);
+            z-index: 10;
+        }
+
+        .dashboard-card h3 {
+            margin: 0 0 15px 0;
+            font-size: 1.1rem;
+            color: #888;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .dashboard-card h3 span {
+            opacity: 0;
+            transform: translateX(-10px);
+            transition: all 0.3s;
+            color: #ffd700;
+        }
+
+        .dashboard-card:hover h3 span {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .dashboard-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        /* 카드별 크기 및 스타일 지정 (Bento Layout) */
+        #dashboard-match { grid-column: span 2; grid-row: span 2; background: linear-gradient(145deg, rgba(46, 204, 113, 0.15), rgba(39, 174, 96, 0.05)); border: 1px solid rgba(46, 204, 113, 0.3); }
+        #dashboard-league { grid-column: span 2; grid-row: span 2; }
+        #dashboard-sns { grid-column: span 2; grid-row: span 1; }
+        #dashboard-transfer_news { grid-column: span 2; grid-row: span 1; }
+        #dashboard-settings { grid-column: span 2; grid-row: span 1; }
+
+        @media (max-width: 1200px) { .dashboard-grid { grid-template-columns: repeat(3, 1fr); } #dashboard-match, #dashboard-league { grid-column: span 2; } #dashboard-sns, #dashboard-transfer_news, #dashboard-settings { grid-column: span 3; } #dashboard-records { grid-column: span 2; } }
+        @media (max-width: 768px) { .dashboard-grid { grid-template-columns: 1fr; grid-auto-rows: auto; } .dashboard-card, #dashboard-match, #dashboard-league, #dashboard-sns, #dashboard-transfer_news, #dashboard-settings { grid-column: span 1; grid-row: span 1; min-height: 160px; } }
     </style>
 </head>
 <body>
