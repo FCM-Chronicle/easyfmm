@@ -472,6 +472,7 @@ const allTeams = {
             { name: "얀 코투", position: "DF", country: "브라질", age: 23, rating: 82 },
             { name: "발데마르 안톤", position: "DF", country: "독일", age: 29, rating: 78 },
             { name: "니코 슐로터베크", position: "DF", country: "독일", age: 25, rating: 86 },
+            { name: "니클라스 쥘레", position: "DF", country: "독일", age: 25, rating: 76 },
             { name: "라미 벤세바이니", position: "DF", country: "알제리", age: 30, rating: 81 },
             { name: "살리흐 외즈잔", position: "MF", country: "튀르키예", age: 27, rating: 72 },
             { name: "펠릭스 은메차", position: "MF", country: "독일", age: 24, rating: 80 },
@@ -485,13 +486,15 @@ const allTeams = {
             { name: "엠레 잔", position: "MF", country: "독일", age: 31, rating: 75 },
             { name: "율리안 뤼에르손", position: "DF", country: "노르웨이", age: 27, rating: 84 },
             { name: "카림 아데예미", position: "FW", country: "독일", age: 23, rating: 85 },
+            { name: "파비오 실바", position: "FW", country: "포르투갈", age: 23, rating: 80 }
             { name: "실라스 오스트신스키", position: "GK", country: "폴란드", age: 21, rating: 67 },
             { name: "알렉산더 마이어", position: "GK", country: "독일", age: 34, rating: 65 },
             { name: "마르셀 로트카", position: "GK", country: "폴란드", age: 24, rating: 67 },
             { name: "콜 캠벨", position: "FW", country: "미국", age: 19, rating: 70 },
+            { name: "조브 벨링엄", position: "MF", country: "잉글랜드", age: 20, rating: 79,}
             { name: "키엘 베티엔", position: "MF", country: "독일", age: 19, rating: 67 },
             { name: "알무게라 카바르", position: "DF", country: "독일", age: 19, rating: 66 },
-            { name: "다니엘 스벤슨", position: "DF", country: "스웨덴", age: 23, rating: 82 }
+            { name: "다니엘 스벤슨", position: "DF", country: "스웨덴", age: 23, rating: 79 }
         ],
         description: "보루시아의 노란 벽과 함께하는 젊은 열정"
     },

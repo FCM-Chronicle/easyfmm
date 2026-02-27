@@ -122,6 +122,25 @@ class MailManager {
                 `;
             }
         }
+        // [추가] 비서 제안 메일
+        else if (mail.type === 'secretary_advice') {
+            if (!mail.isProcessed) {
+                actionButtons = `
+                    <div class="mail-actions">
+                        <button class="btn primary" onclick="mailManager.acceptSecretaryAdvice(${mail.id})">제안 수락</button>
+                        <button class="btn" onclick="mailManager.rejectOffer(${mail.id})" style="background-color: #7f8c8d;">나중에</button>
+                    </div>
+                `;
+            } else {
+                actionButtons = `
+                    <div class="mail-actions">
+                        <div style="color: #aaa; font-style: italic; padding: 10px; border: 1px solid #444; border-radius: 5px;">
+                            ${mail.data.resultMessage || '처리된 제안입니다.'}
+                        </div>
+                    </div>
+                `;
+            }
+        }
 
         detailContainer.innerHTML = `
             <div class="mail-content-header">
@@ -284,6 +303,158 @@ class MailManager {
                 targetTeamName: offerTeamName
             }
         );
+    }
+
+    // 6. 비서 보고서 체크 및 발송 (추가)
+    checkSecretaryReport() {
+        // 3경기마다 발송 (너무 자주 오지 않도록)
+        if (gameData.matchesPlayed % 3 !== 0) return;
+
+        const rand = Math.random();
+        
+        if (rand < 0.4) {
+            this.sendTacticalAdviceMail();
+        } else if (rand < 0.7) {
+            this.sendMoraleAdviceMail();
+        } else {
+            this.sendTrainingAdviceMail();
+        }
+    }
+
+    sendTacticalAdviceMail() {
+        if (!gameData.currentOpponent) return;
+        
+        // 전술 시스템 접근
+        if (typeof TacticSystem === 'undefined') return;
+        const ts = new TacticSystem();
+        const opponentTactic = ts.getOpponentTactic(gameData.currentOpponent);
+        const recommendations = ts.getRecommendedTactic(opponentTactic);
+        
+        if (recommendations.length === 0) return;
+        
+        const recommended = recommendations[0];
+        const secretaryName = gameData.secretaryName || "비서";
+        
+        const content = `감독님, 다음 상대인 ${teamNames[gameData.currentOpponent]}의 전력 분석 보고서입니다.\n\n` +
+            `상대는 주로 '${ts.getTacticName(opponentTactic)}' 전술을 사용합니다.\n` +
+            `이에 대한 대응책으로 '${recommended.name}' 전술을 추천드립니다.\n\n` +
+            `전술을 변경하시겠습니까?`;
+            
+        this.addMail(
+            `[보고] 다음 경기 전술 제안`, 
+            secretaryName, 
+            content, 
+            'secretary_advice', 
+            { 
+                subType: 'tactic',
+                targetTactic: recommended.key,
+                tacticName: recommended.name
+            }
+        );
+    }
+
+    sendMoraleAdviceMail() {
+        if (gameData.teamMorale >= 90) return; // 사기가 이미 높으면 스킵
+        
+        const secretaryName = gameData.secretaryName || "비서";
+        const cost = 10;
+        
+        const content = `감독님, 최근 선수단의 분위기가 조금 가라앉은 것 같습니다.\n` +
+            `팀 회식을 통해 사기를 북돋우는 것이 어떨까요?\n\n` +
+            `비용: ${cost}억\n` +
+            `예상 효과: 사기 +10`;
+            
+        this.addMail(
+            `[건의] 팀 회식 제안`, 
+            secretaryName, 
+            content, 
+            'secretary_advice', 
+            { 
+                subType: 'morale',
+                cost: cost,
+                moraleBoost: 10
+            }
+        );
+    }
+
+    sendTrainingAdviceMail() {
+        const secretaryName = gameData.secretaryName || "비서";
+        const lines = ['attack', 'midfield', 'defense'];
+        const targetLine = lines[Math.floor(Math.random() * lines.length)];
+        const lineName = targetLine === 'attack' ? '공격진' : (targetLine === 'midfield' ? '미드필더진' : '수비진');
+        
+        const content = `감독님, 다음 경기를 대비해 ${lineName} 집중 훈련을 진행하는 것이 좋겠습니다.\n` +
+            `훈련을 진행하면 다음 경기에서 해당 라인의 능력치가 일시적으로 상승합니다.\n\n` +
+            `특별 훈련을 지시하시겠습니까?`;
+            
+        this.addMail(
+            `[건의] ${lineName} 집중 훈련 제안`, 
+            secretaryName, 
+            content, 
+            'secretary_advice', 
+            { 
+                subType: 'training',
+                targetLine: targetLine,
+                lineName: lineName
+            }
+        );
+    }
+
+    // 비서 제안 수락 처리
+    acceptSecretaryAdvice(mailId) {
+        const mail = this.mails.find(m => m.id === mailId);
+        if (!mail || mail.isProcessed) return;
+        
+        const data = mail.data;
+        
+        if (data.subType === 'tactic') {
+            gameData.currentTactic = data.targetTactic;
+            mail.data.resultMessage = `전술을 '${data.tacticName}'(으)로 변경했습니다.`;
+            
+            // UI 갱신 (전술 드롭다운이 있다면)
+            const tacticSelect = document.getElementById('tacticSelect');
+            if (tacticSelect) tacticSelect.value = data.targetTactic;
+            
+            alert(`전술이 '${data.tacticName}'(으)로 변경되었습니다.`);
+        } else if (data.subType === 'morale') {
+            if (gameData.teamMoney < data.cost) {
+                alert("자금이 부족합니다.");
+                return;
+            }
+            gameData.teamMoney -= data.cost;
+            gameData.teamMorale = Math.min(100, gameData.teamMorale + data.moraleBoost);
+            mail.data.resultMessage = `팀 회식을 진행했습니다. (사기 +${data.moraleBoost})`;
+            alert(`팀 회식을 진행했습니다. 사기가 올랐습니다.`);
+            if (typeof updateDisplay === 'function') updateDisplay();
+        } else if (data.subType === 'training') {
+            // 일시적 스탯 버프 (다음 경기만)
+            if (!gameData.temporaryStats) gameData.temporaryStats = {};
+            
+            const squad = gameData.squad;
+            let players = [];
+            if (data.targetLine === 'attack') players = squad.fw;
+            else if (data.targetLine === 'midfield') players = squad.mf;
+            else if (data.targetLine === 'defense') players = [...squad.df, squad.gk];
+            
+            let count = 0;
+            players.forEach(p => {
+                if (p) {
+                    if (!gameData.temporaryStats[p.name]) gameData.temporaryStats[p.name] = {};
+                    // 모든 스탯 +2 (단기 버프)
+                    const stats = ['attack', 'defense', 'technique', 'speed', 'physical', 'mentality'];
+                    stats.forEach(s => {
+                        gameData.temporaryStats[p.name][s] = (gameData.temporaryStats[p.name][s] || 0) + 2;
+                    });
+                    count++;
+                }
+            });
+            
+            mail.data.resultMessage = `${data.lineName} 집중 훈련을 완료했습니다. (다음 경기 능력치 상승)`;
+            alert(`${data.lineName} 선수(${count}명)들의 컨디션이 일시적으로 상승했습니다.`);
+        }
+        
+        mail.isProcessed = true;
+        this.openMail(mail); // UI 갱신
     }
 
     // 이적 제안 수락 처리
