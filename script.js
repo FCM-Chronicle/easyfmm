@@ -1631,6 +1631,22 @@ let gameData = {
     "리옹": "리옹"
 };
 
+// [신규] 팀 연고지 데이터
+const teamCities = {
+    "바르셀로나": "바르셀로나", "레알_마드리드": "마드리드", "맨체스터_시티": "맨체스터", "리버풀": "리버풀",
+    "토트넘_홋스퍼": "런던", "파리_생제르맹": "파리", "AC_밀란": "밀라노", "인터_밀란": "밀라노",
+    "아스널": "런던", "나폴리": "나폴리", "첼시": "런던", "바이에른_뮌헨": "뮌헨",
+    "아틀레티코_마드리드": "마드리드", "도르트문트": "도르트문트", "유벤투스": "토리노",
+    "뉴캐슬_유나이티드": "뉴캐슬", "아스톤_빌라": "버밍엄", "라이프치히": "라이프치히",
+    "세비야": "세비야", "아약스": "암스테르담", "AS_로마": "로마", "레버쿠젠": "레버쿠젠",
+    "스포르팅_CP": "리스본", "벤피카": "리스본", "셀틱": "글래스고", "페예노르트": "로테르담",
+    "맨체스터_유나이티드": "맨체스터", "올랭피크_드_마르세유": "마르세유",
+    "FC_서울": "서울", "갈라타사라이": "이스탄불", "알_힐랄": "리야드", "알_이티하드": "제다",
+    "알_나스르": "리야드", "전북_현대": "전주", "울산_현대": "울산", "포항_스틸러스": "포항",
+    "광주_FC": "광주", "리옹": "리옹", "아르헨티나_연합": "부에노스아이레스", "미국_연합": "워싱턴 D.C.",
+    "멕시코_연합": "멕시코시티", "브라질_연합": "브라질리아"
+};
+
 
 // 팀 로고 매핑 (3글자 약어)
 const teamLogoCodes = {
@@ -1771,7 +1787,7 @@ const passMessages = [
     "의 날카로운 돌파",
     "이(가) 측면을 활용합니다",
     "이(가) 수비 라인을 흔듭니다",
-    "이(가) 빈 공간을 찾아 들어갑니다",
+    "이(가) 빈 공성간을 찾아 들어갑니다",
     "의 감각적인 힐패스!",
     "이(가) 반대편으로 길게 열어줍니다",
     "이(가) 2대1 패스를 주고받습니다",
@@ -1796,6 +1812,12 @@ const passMessages = [
 // DOM 요소들
 let currentModal = null;
 let selectedPosition = null;
+
+// [신규] 팀 선택 화면 상태 관리
+let selectionState = {
+    league: 1,
+    teamIndex: 0
+};
 
 // 초기화
 document.addEventListener('DOMContentLoaded', function() {
@@ -1826,6 +1848,9 @@ function initializeGame() {
     
     // 첫 번째 화면 표시
     showScreen('teamSelection');
+
+    // [신규] 팀 선택 UI 초기화
+    renderTeamSelectionUI();
 }
 
 // [신규] 선수 목록 클릭 핸들러
@@ -1903,7 +1928,7 @@ function setupEventListeners() {
     document.getElementById('customLeagueSelect').addEventListener('change', updateCustomReplacementTeams);
 
     // 경기 시작
-    document.getElementById('startMatchBtn').addEventListener('click', startMatch);
+    // document.getElementById('startMatchBtn').addEventListener('click', startMatch);
     // [수정] 경기 시작 (캘린더 시뮬레이션 후 시작)
     document.getElementById('startMatchBtn').addEventListener('click', runMatchSequence);
 
@@ -5281,10 +5306,12 @@ function loadFromSlot(slotNumber) {
         
         // 화면 업데이트
         console.log('=== 화면 업데이트 시작 ===');
-        document.getElementById('teamName').textContent = teamNames[gameData.selectedTeam];
+        document.getElementById('teamName').innerHTML = getTeamLogoHTML(gameData.selectedTeam) + ' ' + teamNames[gameData.selectedTeam];
         updateDisplay();
         updateFormationDisplay();
         displayTeamPlayers();
+        showScreen('lobby'); // 로비 화면으로 이동
+        if (typeof showDashboard === 'function') showDashboard(); // 대시보드 표시
         console.log('기본 화면 업데이트 완료');
         
         // SNS 피드 새로고침

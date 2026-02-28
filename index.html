@@ -509,6 +509,114 @@
 
         @media (max-width: 1200px) { .dashboard-grid { grid-template-columns: repeat(3, 1fr); } #dashboard-match, #dashboard-league { grid-column: span 2; } #dashboard-sns, #dashboard-transfer_news, #dashboard-settings { grid-column: span 3; } #dashboard-records { grid-column: span 2; } }
         @media (max-width: 768px) { .dashboard-grid { grid-template-columns: 1fr; grid-auto-rows: auto; } .dashboard-card, #dashboard-match, #dashboard-league, #dashboard-sns, #dashboard-transfer_news, #dashboard-settings { grid-column: span 1; grid-row: span 1; min-height: 160px; } }
+
+        /* [신규] 팀 선택 화면 FC26 스타일 UI */
+        .team-selection-ui {
+            display: flex;
+            flex-direction: column;
+            height: 70vh;
+            max-height: 800px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .ts-body {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .ts-section {
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .ts-left { flex: 1.2; border-right: 1px solid rgba(255,255,255,0.1); align-items: center; text-align: center; }
+        .ts-center { flex: 1.5; border-right: 1px solid rgba(255,255,255,0.1); align-items: flex-start; text-align: left; }
+        .ts-right { flex: 1.3; }
+
+        /* [신규] 리그 선택기 스타일 */
+        .ts-league-selector {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px 20px;
+            border-radius: 30px;
+        }
+        .ts-league-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #ffd700;
+            min-width: 100px;
+            text-align: center;
+        }
+
+        .ts-logo-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .ts-nav-arrow {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .ts-nav-arrow:hover { background: rgba(255,255,255,0.3); }
+        .ts-nav-arrow.small {
+            width: 30px;
+            height: 30px;
+            font-size: 1rem;
+        }
+
+        .ts-team-logo { width: 180px; height: 180px; object-fit: contain; filter: drop-shadow(0 0 15px rgba(255,255,255,0.2)); }
+        .ts-team-name { font-size: 2rem; font-weight: bold; color: white; margin: 10px 0; }
+        .ts-team-stars { color: #ffd700; font-size: 1.5rem; margin-bottom: 20px; }
+
+        .ts-desc-box { margin-bottom: 30px; }
+        .ts-desc-box h3 { color: #aaa; font-size: 0.9rem; text-transform: uppercase; margin-bottom: 10px; }
+        .ts-desc-text { font-size: 1.1rem; line-height: 1.6; color: #ddd; min-height: 80px; }
+
+        .ts-info-row { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; font-size: 1.2rem; }
+        .ts-info-label { color: #aaa; font-weight: bold; width: 80px; }
+        .ts-info-value { color: white; font-weight: bold; }
+
+        .ts-budget-value { font-size: 3rem; font-weight: 800; color: #2ecc71; text-shadow: 0 0 20px rgba(46, 204, 113, 0.3); }
+
+        .ts-key-player {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .ts-kp-img { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; background: #333; }
+        .ts-kp-info div:first-child { font-weight: bold; font-size: 1.1rem; }
+        .ts-kp-info div:last-child { font-size: 0.9rem; color: #aaa; }
+        .ts-kp-ovr { margin-left: auto; font-size: 1.5rem; font-weight: bold; color: #ffd700; }
+
+        @media (max-width: 1024px) {
+            .team-selection-ui { height: auto; max-height: none; }
+            .ts-body { flex-direction: column; }
+            .ts-left, .ts-center, .ts-right { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.1); padding: 20px; }
+        }
     </style>
 </head>
 <body>
@@ -527,233 +635,67 @@
     <!-- 나만의 팀 만들기 버튼 -->
     <button id="openCreateTeamModalBtn" class="btn" style="width: 100%; max-width: 1200px; margin: 0 auto 30px; display: block; background: linear-gradient(45deg, #f1c40f, #e67e22); color: #000; font-weight: bold; font-size: 1.2rem; padding: 15px;">🛠️ 나만의 팀 만들기</button>
 
-    <!-- 1부리그 -->
-    <div class="league-section">
-        <h2 class="league-title">🏆 1부리그 - 최고의 명문 클럽들</h2>
-        <div class="teams-grid">
-            <div class="team-card" data-team="바르셀로나">
-                <h3>바르셀로나</h3>
-                <p>꿈과 열정이 살아 숨쉬는 카탈루냐의 자존심</p>
-                <div class="team-rating">★★★★★</div>
-            </div>
-            <div class="team-card" data-team="레알 마드리드">
-                <h3>레알 마드리드</h3>
-                <p>왕실의 위엄과 전통을 자랑하는 유럽 최고의 클럽</p>
-                <div class="team-rating">★★★★★</div>
-            </div>
-            <div class="team-card" data-team="맨체스터 시티">
-                <h3>맨체스터 시티</h3>
-                <p>홀란드를 앞세운 최강의 공격력, 티키타카의 완성형</p>
-                <div class="team-rating">★★★★★</div>
-            </div>
-            <div class="team-card" data-team="리버풀">
-                <h3>리버풀</h3>
-                <p>살라와 함께하는 영국 최고의 명문클럽, 게겐프레싱의 대가</p>
-                <div class="team-rating">★★★★★</div>
-            </div>
-            <div class="team-card" data-team="토트넘 홋스퍼">
-                <h3>토트넘 홋스퍼</h3>
-                <p>손흥민과 함께하는 북런던의 강호, 공격적인 축구로 유명한 팀</p>
-                <div class="team-rating">★★★★☆</div>
-            </div>
-            <div class="team-card" data-team="파리 생제르맹">
-                <h3>파리 생제르맹</h3>
-                <p>크바라츠헬리아와 이강인의 조합, 프랑스 수도의 자존심</p>
-                <div class="team-rating">★★★★★</div>
-            </div>
-            <div class="team-card" data-team="AC 밀란">
-                <h3>AC 밀란</h3>
-                <p>레앙과 함께하는 이탈리아의 명문, 로쏘네리의 부활</p>
-                <div class="team-rating">★★★★☆</div>
-            </div>
-            <div class="team-card" data-team="인터 밀란">
-                <h3>인터 밀란</h3>
-                <p>마르쿠스 튀람의 득점력, 네라주리의 강력한 공격진</p>
-                <div class="team-rating">★★★★☆</div>
-            </div>
-            <div class="team-card" data-team="아스널">
-                <h3>아스널</h3>
-                <p>사카와 외데고르의 젊은 에너지, 부활하는 런던의 거너스</p>
-                <div class="team-rating">★★★★☆</div>
-            </div>
-            <div class="team-card" data-team="나폴리">
-                <h3>나폴리</h3>
-                <p>스콧 맥토미니와 함께하는 남부 이탈리아의 열정</p>
-                <div class="team-rating">★★★★☆</div>
-            </div>
-            <div class="team-card" data-team="첼시">
-                <h3>첼시</h3>
-                <p>엔조와 젊은 재능들의 조화, 런던 블루스의 새로운 시대</p>
-                <div class="team-rating">★★★★☆</div>
-            </div>
-            <div class="team-card" data-team="바이에른 뮌헨">
-                <h3>바이에른 뮌헨</h3>
-                <p>득점 머신 해리 케인과 함께하는 독일 축구의 왕자</p>
-                <div class="team-rating">★★★★★</div>
-            </div>
-            <div class="team-card" data-team="아틀레티코 마드리드">
-                <h3>아틀레티코 마드리드</h3>
-                <p>그리즈만 알바레즈 듀오의 클래스, 빗장수비의 강력함</p>
-                <div class="team-rating">★★★★☆</div>
-            </div>
-            <div class="team-card" data-team="도르트문트">
-                <h3>도르트문트</h3>
-                <p>게겐프레싱의 완성형, 독일 축구의 젊은 피</p>
-                <div class="team-rating">★★★★☆</div>
-            </div>
-        </div>
-    </div>
+    <!-- [신규] FC26 스타일 팀 선택 UI -->
+    <div id="teamSelectionUI" class="team-selection-ui" style="max-width: 1400px; margin: 0 auto;">
+        <!-- 본문: 3단 레이아웃 -->
+        <div class="ts-body">
+            <!-- 좌측: Identity -->
+            <div class="ts-section ts-left">
+                <!-- [수정] 리그 선택기 (팀 로고 위) -->
+                <div class="ts-league-selector">
+                    <button class="ts-nav-arrow small" onclick="changeLeague(-1)">❮</button>
+                    <span id="ts-league-name" class="ts-league-name">1부 리그</span>
+                    <button class="ts-nav-arrow small" onclick="changeLeague(1)">❯</button>
+                </div>
 
-    <!-- 2부리그 -->
-    <div class="league-section">
-        <h2 class="league-title">⚽ 2부리그 - 도전하는 강호들</h2>
-        <div class="teams-grid">
-            <div class="team-card" data-team="유벤투스">
-                <h3>유벤투스</h3>
-                <p>이탈리아의 전통 강호, 흑백 줄무늬의 자존심</p>
-                <div class="team-rating">★★★★☆</div>
+                <div class="ts-logo-container">
+                    <button class="ts-nav-arrow prev" onclick="changeSelectionTeam(-1)">&#10094;</button>
+                    <div id="ts-team-logo-container">
+                        <!-- 로고 이미지 -->
+                    </div>
+                    <button class="ts-nav-arrow next" onclick="changeSelectionTeam(1)">&#10095;</button>
+                </div>
+                <div id="ts-team-name" class="ts-team-name">Team Name</div>
+                <div id="ts-team-stars" class="ts-team-stars">★★★★★</div>
+                <button id="ts-select-btn" class="btn primary" style="padding: 15px 40px; font-size: 1.2rem; margin-top: 20px;">이 팀으로 시작</button>
             </div>
-            <div class="team-card" data-team="뉴캐슬 유나이티드">
-                <h3>뉴캐슬 유나이티드</h3>
-                <p>이사크와 고든의 스피드, 영국 북동부의 야심찬 언더독</p>
-                <div class="team-rating">★★★☆☆</div>
-            </div>
-            <div class="team-card" data-team="아스톤 빌라">
-                <h3>아스톤 빌라</h3>
-                <p>버밍엄의 자존심, 전통과 혁신이 만나는 클럽</p>
-                <div class="team-rating">★★★☆☆</div>
-            </div>
-            <div class="team-card" data-team="라이프치히">
-                <h3>라이프치히</h3>
-                <p>독일의 떠오르는 신예, 젊은 에너지와 현대적 축구</p>
-                <div class="team-rating">★★★☆☆</div>
-            </div>
-            <div class="team-card" data-team="세비야">
-                <h3>세비야</h3>
-                <p>UEFA 컵의 왕자, 안달루시아의 뜨거운 열정</p>
-                <div class="team-rating">★★★☆☆</div>
-            </div>
-            <div class="team-card" data-team="아약스">
-                <h3>아약스</h3>
-                <p>토탈 풋볼의 발원지, 네덜란드 축구의 상징</p>
-                <div class="team-rating">★★★☆☆</div>
-            </div>
-            <div class="team-card" data-team="AS 로마">
-                <h3>AS 로마</h3>
-                <p>디발라의 마법같은 플레이, 이탈리아 수도의 늑대들</p>
-                <div class="team-rating">★★★☆☆</div>
-            </div>
-            <div class="team-card" data-team="레버쿠젠">
-                <h3>레버쿠젠</h3>
-                <p>비르츠와 함께하는 젊은 에너지, 독일의 떠오르는 강호</p>
-                <div class="team-rating">★★★☆☆</div>
-            </div>
-            <div class="team-card" data-team="스포르팅 CP">
-                <h3>스포르팅 CP</h3>
-                <p>포르투갈의 전통 강호, 리스본의 녹색 사자들</p>
-                <div class="team-rating">★★★☆☆</div>
-            </div>
-            <div class="team-card" data-team="벤피카">
-                <h3>벤피카</h3>
-                <p>독수리의 비상, 포르투갈 축구의 자존심</p>
-                <div class="team-rating">★★★☆☆</div>
-            </div>
-            <div class="team-card" data-team="셀틱">
-                <h3>셀틱</h3>
-                <p>스코틀랜드의 전설, 글래스고의 녹색 전사들</p>
-                <div class="team-rating">★★★☆☆</div>
-            </div>
-            <div class="team-card" data-team="페예노르트">
-                <h3>페예노르트</h3>
-                <p>로테르담의 자존심, 네덜란드의 전통 강호</p>
-                <div class="team-rating">★★★☆☆</div>
-            </div>
-            <div class="team-card" data-team="맨체스터 유나이티드">
-                <h3>맨체스터 유나이티드</h3>
-                <p>EPL 최다우승 팀, 전설적인 명문클럽의 재건</p>
-                <div class="team-rating">★★★☆☆</div>
-            </div>
-            <div class="team-card" data-team="올랭피크 드 마르세유">
-                <h3>올랭피크 드 마르세유</h3>
-                <p>프랑스 남부의 열정, 마르세유의 하얀 전사들</p>
-                <div class="team-rating">★★★☆☆</div>
-            </div>
-        </div>
-    </div>
 
-    <!-- 3부리그 -->
-    <div class="league-section">
-        <h2 class="league-title">🌟 3부리그 - 꿈을 향한 도전자들</h2>
-        <div class="teams-grid">
-            <div class="team-card" data-team="FC 서울">
-                <h3>FC 서울</h3>
-                <p>대한민국 수도의 자존심, K리그의 명문 클럽</p>
-                <div class="team-rating">★★☆☆☆</div>
+            <!-- 중앙: The Story -->
+            <div class="ts-section ts-center">
+                <div class="ts-desc-box">
+                    <h3>TEAM STORY</h3>
+                    <div id="ts-team-desc" class="ts-desc-text">
+                        팀 설명이 들어갑니다.
+                    </div>
+                </div>
+                
+                <div class="ts-info-row">
+                    <span class="ts-info-label">연고지</span>
+                    <span id="ts-team-city" class="ts-info-value">City Name</span>
+                </div>
             </div>
-            <div class="team-card" data-team="갈라타사라이">
-                <h3>갈라타사라이</h3>
-                <p>터키 이스탄불의 전설, 유럽을 놀라게 한 황금사자들</p>
-                <div class="team-rating">★★☆☆☆</div>
-            </div>
-            <div class="team-card" data-team="알 힐랄">
-                <h3>알 힐랄</h3>
-                <p>사우디아라비아의 왕자, 중동 축구의 강자</p>
-                <div class="team-rating">★★☆☆☆</div>
-            </div>
-            <div class="team-card" data-team="알 이티하드">
-                <h3>알 이티하드</h3>
-                <p>벤제마와 함께하는 사우디의 새로운 도전</p>
-                <div class="team-rating">★★☆☆☆</div>
-            </div>
-            <div class="team-card" data-team="알 나스르">
-                <h3>알 나스르</h3>
-                <p>호날두의 새로운 무대, 사우디 축구의 혁신</p>
-                <div class="team-rating">★★☆☆☆</div>
-            </div>
-            <div class="team-card" data-team="아르헨티나 연합">
-                <h3>아르헨티나 연합</h3>
-                <p>메시의 고향, 남미 축구의 예술혼이 살아있는 팀</p>
-                <div class="team-rating">★★☆☆☆</div>
-            </div>
-            <div class="team-card" data-team="미국 연합">
-                <h3>미국 연합</h3>
-                <p>북미 축구의 새로운 희망, 다양성이 만드는 힘</p>
-                <div class="team-rating">★★☆☆☆</div>
-            </div>
-            <div class="team-card" data-team="멕시코 연합">
-                <h3>멕시코 연합</h3>
-                <p>라틴 아메리카의 열정, 축제 같은 축구를 구사</p>
-                <div class="team-rating">★★☆☆☆</div>
-            </div>
-            <div class="team-card" data-team="브라질 연합">
-                <h3>브라질 연합</h3>
-                <p>삼바 축구의 본고장, 아름다운 플레이의 대가들</p>
-                <div class="team-rating">★★☆☆☆</div>
-            </div>
-            <div class="team-card" data-team="전북 현대">
-                <h3>전북 현대</h3>
-                <p>K리그의 전통 강호, 전라북도의 녹색 전사들</p>
-                <div class="team-rating">★★☆☆☆</div>
-            </div>
-            <div class="team-card" data-team="울산 현대">
-                <h3>울산 현대</h3>
-                <p>산업도시의 자존심, 아시아 챔피언의 경험</p>
-                <div class="team-rating">★★☆☆☆</div>
-            </div>
-            <div class="team-card" data-team="포항 스틸러스">
-                <h3>포항 스틸러스</h3>
-                <p>철강 도시의 단단함, K리그 초창기부터의 전통</p>
-                <div class="team-rating">★★☆☆☆</div>
-            </div>
-            <div class="team-card" data-team="광주 FC">
-                <h3>광주 FC</h3>
-                <p>새롭게 떠오르는 K리그의 다크호스</p>
-                <div class="team-rating">★★☆☆☆</div>
-            </div>
-            <div class="team-card" data-team="리옹">
-                <h3>리옹</h3>
-                <p>프랑스의 전통 강호, 아름다운 축구의 대명사</p>
-                <div class="team-rating">★★☆☆☆</div>
+
+            <!-- 우측: Key Assets -->
+            <div class="ts-section ts-right">
+                <h3 style="color: #aaa; font-size: 0.9rem; text-transform: uppercase; margin-bottom: 20px;">KEY PLAYERS</h3>
+                
+                <div id="ts-key-player-1" class="ts-key-player">
+                    <!-- JS로 채움 -->
+                </div>
+                
+                <div id="ts-key-player-2" class="ts-key-player">
+                    <!-- JS로 채움 -->
+                </div>
+
+                <div id="ts-key-player-3" class="ts-key-player">
+                    <!-- JS로 채움 -->
+                </div>
+
+                <!-- [수정] 구단 가치 -> 시작 자금으로 변경 -->
+                <div style="margin-top: 30px; background: rgba(255,255,255,0.05); padding: 20px; border-radius: 10px; text-align: center;">
+                    <div style="color: #aaa; font-size: 0.9rem; margin-bottom: 5px;">시작 자금 (Starting Budget)</div>
+                    <div id="ts-team-budget" class="ts-budget-value">1000억</div>
+                </div>
             </div>
         </div>
     </div>
@@ -1325,6 +1267,7 @@
     
 
 <script src="script.js"></script>
+<script src="start.js"></script>
 <script src="transfer.js"></script>
 <script src="sns.js"></script>
 <script src="records.js"></script>
