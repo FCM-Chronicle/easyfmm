@@ -2555,6 +2555,10 @@ function showTab(tabName) {
                 console.log('🧬 Tactics tab opened, calling DNAManager.renderUI()');
                 DNAManager.renderUI();
             }
+            // [신규] 탭이 열릴 때 세부 전술 UI도 초기화
+            if (typeof DeepTacticManager !== 'undefined') {
+                DeepTacticManager.init();
+            }
             break;
             
         case 'league':
@@ -6284,7 +6288,12 @@ function renderDashboard() {
     });
 
     // 5. 기타 카드들
-    const tacticsCard = createDashboardCard('🧬 전술/DNA', 'tactics', () => `<div style="text-align:center;">현재 전술: <span style="color:#ffd700;">${gameData.currentTactic}</span></div>`);
+    const tacticsCard = createDashboardCard('🧬 전술/DNA', 'tactics', () => `
+        <div style="text-align:center;">
+            <div style="margin-bottom:5px;">현재 전술: <span style="color:#ffd700;">${gameData.currentTactic}</span></div>
+            <div style="font-size:0.8rem; color:#aaa;">DNA 및 세부 전술 설정</div>
+        </div>
+    `);
     
     // [추가] 개인 기록 카드
     const recordsCard = createDashboardCard('🥇 개인 기록', 'records', () => {

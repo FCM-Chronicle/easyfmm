@@ -673,6 +673,9 @@ class RealMatchEngine {
         this.lastAction = 'kickoff';
         this.ballHolder = null; // [추가] 공 소유 선수 추적
         this.tickCount = 0; // [신규] 엔진 틱 카운터 (속도 조절용)
+
+        // [Deep Tactics] 초기화 확인
+        if (!gameData.deepTactics) DeepTacticManager.init();
     }
 
     assignAIRoles(tactic) {
@@ -857,10 +860,10 @@ class RealMatchEngine {
 
     // 1분 단위 시뮬레이션
     update(minute, isNewMinute) {
-        // [수정] 2. 엔진 틱 속도 조절 (3틱마다 1번씩 로직 실행 -> 약 0.6초 간격)
+        // [수정] 엔진 틱 속도 조절 (스로틀링 제거, simulateMatch 주기와 동기화)
+        // simulateMatch가 800ms마다 실행되므로 매 틱마다 로직 수행
         this.tickCount++;
-        if (this.tickCount % 3 !== 0) return;
-
+        
         if (isNewMinute) {
             this.consumeStamina();
             this.updateStaminaUI();
@@ -940,7 +943,7 @@ class RealMatchEngine {
                 // 턴오버 (수비 성공)
                 this.handleTurnover(isUserAttacking, minute);
             } else if (actionRoll < 0.85) { 
-                // [수정] 4. 패스 빈도 대폭 상향 (40% -> 65%) - 패스 위주 빌드업
+                // [Deep Tactics] 패스 생성 로직 변경
                 this.generatePassEvent(isUserAttacking, minute);
             } else if (actionRoll < 0.95) { 
                 // [수정] 4. 드리블 빈도 하향 (30% -> 10%)
@@ -987,43 +990,75 @@ class RealMatchEngine {
         }
     }
 
-    // [신규] 패스 이벤트 생성
+    // [Deep Tactics] 패스 이벤트 생성 (비율 로직 적용)
     generatePassEvent(isUser, minute) {
         const teamKey = isUser ? gameData.selectedTeam : gameData.currentOpponent;
         
-        // [수정] 1. 소유권 강제 배정 로직 제거
         if (!this.ballHolder) {
             this.ballHolder = this.getRandomPlayer(teamKey, ['MF', 'FW']);
         } else if (this.ballHolder.team !== teamKey) {
-            return; // 상대방 공이면 패스 이벤트 발생 불가 (턴오버 대기)
+            return; 
         }
-        
-        // 가까운 포지션으로 패스
-        let targetPositions = ['MF', 'FW'];
-        
-        // [수정] 공격 지역(Final Third)에서는 수비수에게 백패스 금지 (공격 흐름 유지)
-        const isAttackingZone = this.ballZone === 'user_attack' || this.ballZone === 'ai_attack';
 
-        if (this.ballHolder.position === 'GK') targetPositions = ['DF'];
-        else if (this.ballHolder.position === 'DF') targetPositions = ['MF', 'DF'];
-        else if (this.ballHolder.position === 'MF') {
-            if (isAttackingZone) {
-                targetPositions = ['FW', 'MF']; // 공격 중엔 전진/횡패스만 허용
-            } else {
-                targetPositions = ['FW', 'MF', 'DF']; // 빌드업 시엔 백패스 허용
-            }
+        // 1. 팀원 목록 가져오기
+        let teammates = [];
+        if (isUser) {
+            const squad = gameData.squad;
+            teammates = [...squad.fw, ...squad.mf, ...squad.df, squad.gk].filter(p => p && p.name !== this.ballHolder.name);
+        } else {
+            teammates = getBestEleven(teamKey).filter(p => p.name !== this.ballHolder.name);
         }
-        else if (this.ballHolder.position === 'FW') targetPositions = ['FW', 'MF'];
 
-        const receiver = this.getRandomPlayer(teamKey, targetPositions, this.ballHolder);
-        
+        if (teammates.length === 0) return;
+
+        // 2. 숏패스/롱패스 비율 결정
+        let shortRatio = 0.7; // 기본값
+        if (isUser && gameData.deepTactics) {
+            shortRatio = gameData.deepTactics.passStyle.shortRatio / 10;
+        }
+
+        // 3. 거리 기반 필터링 (VisualUnit 좌표가 없으므로 포지션 기반 추정)
+        // 숏패스: 같은 라인(MF->MF) 또는 인접 라인(DF->MF, MF->FW)
+        // 롱패스: 라인 건너뛰기(DF->FW, GK->MF/FW)
+        const posRank = { 'GK': 0, 'DF': 1, 'MF': 2, 'FW': 3 };
+        const holderRank = posRank[this.ballHolder.position];
+
+        const shortCandidates = teammates.filter(p => {
+            const targetRank = posRank[p.position];
+            return Math.abs(holderRank - targetRank) <= 1; // 인접하거나 같은 라인
+        });
+
+        const longCandidates = teammates.filter(p => {
+            const targetRank = posRank[p.position];
+            return Math.abs(holderRank - targetRank) > 1; // 라인 건너뜀
+        });
+
+        // 후보군이 비어있으면 서로 대체
+        if (shortCandidates.length === 0) shortCandidates.push(...longCandidates);
+        if (longCandidates.length === 0) longCandidates.push(...shortCandidates);
+
+        // 4. 주사위 굴리기
+        let receiver;
+        const isShortPass = Math.random() < shortRatio;
+
+        if (isShortPass) {
+            receiver = shortCandidates[Math.floor(Math.random() * shortCandidates.length)];
+        } else {
+            receiver = longCandidates[Math.floor(Math.random() * longCandidates.length)];
+        }
+
+        // 5. 이벤트 생성
         if (this.ballHolder && receiver) {
-            const msgs = [
+            const msgs = isShortPass ? [
                 `⚽ ${this.ballHolder.name}, ${receiver.name}에게 짧게 내줍니다.`,
                 `⚽ ${this.ballHolder.name}, 빈 공간의 ${receiver.name}를 보고 패스합니다.`,
-                `⚽ ${this.ballHolder.name}와 ${receiver.name}의 2대1 패스 연결!`,
-                `⚽ ${this.ballHolder.name}, ${receiver.name}에게 정확하게 배달합니다.`
+                `⚽ ${this.ballHolder.name}와 ${receiver.name}의 2대1 패스 연결!`
+            ] : [
+                `🚀 ${this.ballHolder.name}, 전방의 ${receiver.name}를 향해 길게 찹니다!`,
+                `🚀 ${this.ballHolder.name}, ${receiver.name}에게 한 번에 연결하는 롱패스!`,
+                `🚀 ${this.ballHolder.name}, 반대편 ${receiver.name}를 보고 크게 벌려줍니다.`
             ];
+            
             const msg = msgs[Math.floor(Math.random() * msgs.length)];
             
             const event = {
@@ -1031,7 +1066,8 @@ class RealMatchEngine {
                 type: 'pass',
                 description: msg,
                 from: this.ballHolder.name,
-                to: receiver.name
+                to: receiver.name,
+                isLongPass: !isShortPass // 시각화 힌트
             };
             displayEvent(event, this.matchData);
             this.ballHolder = receiver;
@@ -1084,6 +1120,15 @@ class RealMatchEngine {
         
         this.ballZone = 'midfield';
         this.ballHolder = defender; // 공 소유권 넘어감
+        
+        // [Deep Tactics] 역습 트리거 확인
+        // 수비 라인이 'deep'이고 압박이 'low'일 때 공을 뺏으면 역습 찬스
+        if (!isUserAttacking && gameData.deepTactics && gameData.deepTactics.defensiveLine === 'deep' && gameData.deepTactics.pressIntensity === 'low') {
+            this.lastAction = 'counter_attack';
+            console.log("⚡ 텐백 후 역습 발동!");
+        } else {
+            this.lastAction = 'turnover';
+        }
     }
 
     attemptGoal(isUserAttacking, atkPower, defPower, minute) {
@@ -1521,10 +1566,11 @@ function simulateMatch(matchData, matchEngine) {
             return;
         }
 
-        // [수정] 200ms마다 틱 발생, 5틱마다 1분 증가 (부드러운 진행)
+        // [수정] 800ms마다 틱 발생 (비주얼라이저 이벤트 처리 속도와 동기화)
         tickCount++;
         let isNewMinute = false;
-        if (tickCount % 5 === 0) {
+        // 1분 증가 주기 조정 (약 0.8초~1.6초당 1분)
+        if (tickCount % 1 === 0) { // 매 틱마다 1분 증가 (800ms = 1분)
             matchData.minute++;
             isNewMinute = true;
             document.getElementById('matchTime').textContent = matchData.minute + '분';
@@ -1550,7 +1596,7 @@ function simulateMatch(matchData, matchEngine) {
         }
 
         matchData.intervalId = matchInterval; // 인터벌 ID 저장
-    }, 200); // [수정] 1초 -> 0.2초 (연속적인 느낌)
+    }, 800); // [수정] 200ms -> 800ms (엔진/비주얼라이저 동기화)
 }
 
 // [신규] 기타 이벤트 생성기 (골 제외)

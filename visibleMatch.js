@@ -34,6 +34,9 @@ class VisualUnit {
         // [신규] 수비 상태 관리
         this.defenseState = 'none'; // 'none', 'pressure', 'tackle'
         this.tackleTimer = 0;
+
+        // [신규] 부드러운 회전을 위한 현재 각도 (초기값: 홈은 위(0), 어웨이는 아래(PI))
+        this.angle = this.teamType === 'home' ? 0 : Math.PI;
     }
 
     update() {
@@ -41,57 +44,54 @@ class VisualUnit {
         const dy = this.targetY - this.y;
         const dist = Math.hypot(dx, dy);
         
-        // [수정] 1. 물리 기반 관성 및 마찰력 도입
-        // 가속도(Force) 계산: 타겟 방향으로 힘 작용
-        const force = 0.04; 
-        let ax = dx * force;
-        let ay = dy * force;
+        const fatigueFactor = this.stamina < 30 ? 0.6 : 1.0;
+        // [수정] 부드러운 움직임을 위해 최대 속도 상향 및 가변 속도 적용
+        let maxSpeed = 0.8 * fatigueFactor; 
 
-        // 가속도 제한 (너무 빠른 반응 방지)
-        const maxAccel = 0.15;
-        const accelMag = Math.hypot(ax, ay);
-        if (accelMag > maxAccel) {
-            ax = (ax / accelMag) * maxAccel;
-            ay = (ay / accelMag) * maxAccel;
+        // 태클 시 속도 증가
+        if (this.defenseState === 'tackle') {
+            maxSpeed *= 1.5;
         }
+        
+        // [수정] Easing (감속) 적용: 거리에 비례하여 속도 조절 (Lerp 효과)
+        // 거리가 멀면 maxSpeed, 가까우면 천천히 도착하여 끊김 현상 제거
+        let speed = dist * 0.15; 
+        if (speed > maxSpeed) speed = maxSpeed; // 최대 속도 캡
+        
+        // 너무 느려지지 않도록 최소 속도 보장
+        if (dist > 0.5 && speed < 0.1) speed = 0.1;
 
-        // 속도에 가속도 적용
-        this.velocity.x += ax;
-        this.velocity.y += ay;
-
-        // 마찰력 적용 (감속)
-        const friction = 0.88; // 0.9에 가까울수록 미끄러짐, 낮을수록 뻑뻑함
-        this.velocity.x *= friction;
-        this.velocity.y *= friction;
-
-        // 정지 조건 (타겟에 매우 가깝고 속도가 느릴 때)
-        if (dist < 0.5 && Math.hypot(this.velocity.x, this.velocity.y) < 0.05) {
+        // 스냅 거리
+        if (dist < 0.1) {
             this.x = this.targetX;
             this.y = this.targetY;
-            this.velocity.x = 0;
-            this.velocity.y = 0;
+            this.velocity = { x: 0, y: 0 };
         } else {
-            const fatigueFactor = this.stamina < 30 ? 0.6 : 1.0;
-            let maxSpeed = 0.7 * fatigueFactor; // 최대 속도 제한
-
-            // [신규] 태클 시 속도 증가 (런지 효과)
-            if (this.defenseState === 'tackle') {
-                maxSpeed *= 1.8;
-                // 태클 시 순간 가속 추가
-                this.velocity.x += (dx / dist) * 0.2;
-                this.velocity.y += (dy / dist) * 0.2;
-            }
+            const stepX = (dx / dist) * speed;
+            const stepY = (dy / dist) * speed;
             
-            // 최대 속도 캡 (Cap)
-            const currentSpeed = Math.hypot(this.velocity.x, this.velocity.y);
-            if (currentSpeed > maxSpeed) {
-                this.velocity.x = (this.velocity.x / currentSpeed) * maxSpeed;
-                this.velocity.y = (this.velocity.y / currentSpeed) * maxSpeed;
-            }
+            this.x += stepX;
+            this.y += stepY;
+            
+            // 시각적 회전을 위해 velocity 업데이트
+            this.velocity = { x: stepX, y: stepY };
+        }
 
-            // 위치 업데이트
-            this.x += this.velocity.x;
-            this.y += this.velocity.y;
+        // [신규] 회전 각도 부드럽게 업데이트 (Lerp)
+        // 속도가 일정 수준 이상일 때만 회전하여 떨림 방지
+        const speedMag = Math.hypot(this.velocity.x, this.velocity.y);
+        if (speedMag > 0.01) {
+            // 목표 각도 계산 (이동 방향)
+            const targetAngle = Math.atan2(this.velocity.y, this.velocity.x) + Math.PI / 2;
+            
+            // 각도 보간 (최단 경로 회전)
+            let delta = targetAngle - this.angle;
+            // -PI ~ PI 범위로 정규화
+            while (delta <= -Math.PI) delta += Math.PI * 2;
+            while (delta > Math.PI) delta -= Math.PI * 2;
+            
+            // 0.15 계수로 부드럽게 회전 (값이 작을수록 더 부드럽지만 반응이 느림)
+            this.angle += delta * 0.15; 
         }
         
         if (this.tackleTimer > 0) this.tackleTimer--;
@@ -105,22 +105,17 @@ class VisualUnit {
         const baseSize = matchVisualizer.isLandscape ? height : width;
         const r = Math.max(8, baseSize * 0.03); 
 
-        // [수정] 5. 시각적 회전 처리 (이동 방향으로 회전)
-        const angle = Math.atan2(this.velocity.y, this.velocity.x) + Math.PI / 2;
-
+        // [수정] 부드러운 회전 적용 (this.angle 사용)
         ctx.save();
         
         // 회전 적용
         ctx.translate(px, py);
-        ctx.rotate(angle);
+        ctx.rotate(this.angle);
         ctx.translate(-px, -py);
 
         if (this.stamina < 30) {
             ctx.globalAlpha = 0.6;
         }
-
-        // 그림자 (회전하지 않도록 별도 처리하거나, 바둑알이라 무시 가능하지만 여기선 포함됨)
-        // 바둑알은 원형이라 회전이 티가 안 날 수 있으므로, 방향 표시(삼각형) 추가 고려
 
         // 바둑알 본체 (0,0 기준이 아니라 px, py 기준)
         ctx.beginPath();
@@ -383,8 +378,8 @@ class MatchVisualizer {
 
             // 홈팀: 아래쪽(50~100), 어웨이팀: 위쪽(0~50)
             const yCoords = teamType === 'home' 
-                ? { GK: 98, DF: 88, MF: 72, FW: 58 } // [수정] 라인 전체적으로 후퇴
-                : { GK: 2,  DF: 12, MF: 28, FW: 42 }; // [수정] 라인 전체적으로 후퇴
+                ? { GK: 98, DF: 88, MF: 72, FW: 55 } // [수정] FW 위치 조정 (58 -> 55) 간격 확보
+                : { GK: 2,  DF: 12, MF: 28, FW: 45 }; // [수정] FW 위치 조정 (42 -> 45) 간격 확보
 
             const placeLine = (linePlayers, y) => {
                 const count = linePlayers.length;
@@ -709,26 +704,32 @@ class MatchVisualizer {
     }
 
     calculateTeamShift(ballY, teamType) {
-        // 공의 위치에 따라 팀 전체 라인을 올리거나 내림
-        // Home (Red): Base 50-100. Ball at 0 -> Shift -40 (Move Up). Ball at 100 -> Shift 0.
-        // Away (Blue): Base 0-50. Ball at 100 -> Shift +40 (Move Down). Ball at 0 -> Shift 0.
+        // [Deep Tactics] 수비 라인 설정 반영
+        let lineOffset = 0;
+        if (gameData.deepTactics) {
+            if (gameData.deepTactics.defensiveLine === 'deep') lineOffset = 15; // 라인 내림 (텐백)
+            else if (gameData.deepTactics.defensiveLine === 'high') lineOffset = -15; // 라인 올림
+        }
 
         if (teamType === 'home') {
-            return -30 * (1 - ballY / 100); // [수정] 라인 이동 폭 축소 (40 -> 30)
+            // 홈팀: 아래쪽(50~100) -> 공이 위로 가면 라인 올림
+            // lineOffset: deep이면 +15 (더 아래로), high면 -15 (더 위로)
+            return (-30 * (1 - ballY / 100)) + lineOffset; 
         } else {
-            return 30 * (ballY / 100); // [수정] 라인 이동 폭 축소 (40 -> 30)
+            // 어웨이팀: 위쪽(0~50) -> 공이 아래로 가면 라인 내림
+            // lineOffset: deep이면 -15 (더 위로/자기 진영), high면 +15 (더 아래로)
+            return (30 * (ballY / 100)) - lineOffset; 
         }
     }
 
     updateTacticalMovements() {
         if (!this.ball) return;
         if (this.ball.isShooting) return; // [수정] 슈팅 중일 때는 전술 움직임 일시 정지 (선수들이 공을 지켜봄)
-        // if (this.isPausedForAnimation) return; // [수정] 얼음 현상 제거 (자연스러운 흐름 유지)
-
-        // [수정] 3. 전술 업데이트 주기 조절 (Throttling)
-        // 매 프레임 계산하지 않고 10프레임(약 0.16초)마다 타겟 갱신
+        
+        // [수정] 전술 업데이트 주기 단축 (10 -> 1)
+        // 뚝뚝 끊기는 현상을 방지하기 위해 매 프레임 타겟을 갱신하여 부드럽게 연결
         this.tacticalUpdateTimer++;
-        if (this.tacticalUpdateTimer < 10) return;
+        if (this.tacticalUpdateTimer < 1) return;
         this.tacticalUpdateTimer = 0;
 
         const ballX = this.ball.x;
@@ -831,6 +832,13 @@ class MatchVisualizer {
 
         unit.defenseState = 'none'; // 기본 상태 초기화
 
+        // [Deep Tactics] 공격 방향 설정
+        let widthFactor = 1.0;
+        if (gameData.deepTactics) {
+            if (gameData.deepTactics.attackFocus === 'wing') widthFactor = 1.5; // 측면 넓게
+            else if (gameData.deepTactics.attackFocus === 'center') widthFactor = 0.7; // 중앙 좁게
+        }
+
         // [신규] 공 소유 시 전진 로직 (자석 로직 무시)
         if (unit.hasBall) {
             vector.y = forwardDir * 40; // 골대 방향으로 강하게 전진
@@ -864,7 +872,7 @@ class MatchVisualizer {
                         vector.x = (50 - unit.x) * 0.3; // 중앙으로 좁힘
                     } else {
                         const side = unit.x < 50 ? 5 : 95;
-                        vector.x = (side - unit.x) * 0.1; // 측면 벌림
+                        vector.x = (side - unit.x) * 0.1 * widthFactor; // 측면 벌림 (Deep Tactics 반영)
                     }
                 } else {
                     vector.y = forwardDir * 10; // 빌드업 지원
@@ -872,7 +880,15 @@ class MatchVisualizer {
             } else {
                 // 역할별 오프 더 볼 움직임 (기본 위치 기준)
                 switch (unit.role) {
-                    case 'AF': vector.y = forwardDir * 15; break;
+                    case 'AF': 
+                        // [Deep Tactics] 역습 시 AF의 직선 침투
+                        // 수비 라인이 깊고 압박이 낮을 때(텐백 역습)
+                        if (gameData.deepTactics && gameData.deepTactics.defensiveLine === 'deep' && gameData.deepTactics.pressIntensity === 'low') {
+                             vector.y = forwardDir * 40; // 미친듯이 전진
+                        } else {
+                             vector.y = forwardDir * 15; 
+                        }
+                        break;
                     case 'CF': vector.y = forwardDir * 12; vector.x = (50 - unit.x) * 0.05; break;
                     case 'P': 
                         const targetY = isHome ? 10 : 90;
@@ -885,7 +901,7 @@ class MatchVisualizer {
                     case 'RD': vector.x = (50 - unit.x) * 0.15; vector.y = forwardDir * 10; break;
                     case 'W': 
                         const sideW = unit.x < 50 ? 5 : 95;
-                        vector.x = (sideW - unit.x) * 0.1;
+                        vector.x = (sideW - unit.x) * 0.1 * widthFactor; // Deep Tactics 반영
                         vector.y = forwardDir * 10;
                         break;
                     case 'IF': vector.x = (50 - unit.baseX) * 0.2; vector.y = forwardDir * 12; break; // unit.x -> unit.baseX (기준점 고정)
@@ -983,8 +999,14 @@ class MatchVisualizer {
                 const targetDefX = ballX + (50 - ballX) * 0.2; // 공과 중앙 사이
                 const targetDefY = ballY + (goalY - ballY) * defenseAggression;
                 
-                // 수비 라인 조절은 calculateTeamShift에서 처리하므로 여기선 미세 조정만
-                // vector.y = 0; // 기본적으로 라인 유지
+                // [수정] 수비 위기 시 공격수도 복귀하되 미드필더와 겹치지 않게 조정
+                if (unit.positionType === 'FW') {
+                    // 자신의 진영 방향으로 12만큼 추가 이동 (20 -> 12로 축소)
+                    vector.y = -forwardDir * 12; 
+                } else {
+                    // 수비 라인 조절은 calculateTeamShift에서 처리하므로 여기선 미세 조정만
+                    // vector.y = 0; // 기본적으로 라인 유지
+                }
             } else {
                 // [Request 3] 자기 진영 우선 복귀 (자석 로직 제거)
                 // 공을 쫓지 않고, 자신의 기본 위치(baseX, baseY + shift)를 지키되
@@ -995,7 +1017,14 @@ class MatchVisualizer {
                 
                 // 수직 컴팩트 (라인 유지)
                 // teamShift가 이미 라인을 조정했으므로 여기서는 추가적인 Y 이동을 최소화
-                vector.y = 0; 
+                
+                // [수정] 일반 수비 상황에서도 공격수 복귀 유도 (간격 유지)
+                if (unit.positionType === 'FW' && !isAttacking) {
+                    // 자신의 진영 방향으로 5만큼 추가 이동 (10 -> 5로 축소)
+                    vector.y = -forwardDir * 5;
+                } else {
+                    vector.y = 0; 
+                }
             }
         }
         return vector;
