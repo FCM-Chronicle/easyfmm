@@ -671,6 +671,7 @@ class RealMatchEngine {
         // 3. 경기 상태 초기화
         this.ballZone = 'midfield'; // midfield, user_attack, ai_attack
         this.lastAction = 'kickoff';
+        this.ballHolder = null; // [추가] 공 소유 선수 추적
     }
 
     assignAIRoles(tactic) {
@@ -678,6 +679,33 @@ class RealMatchEngine {
         if (['tikitaka', 'possession', 'lavolpiana', 'totalFootball'].includes(tactic)) return { attack: 'F9', midfield: 'DLP', defense: 'BPD' };
         if (['counter', 'longBall', 'twoLine', 'catenaccio', 'parkBus', 'gegenpress'].includes(tactic)) return { attack: 'P', midfield: 'BWM', defense: 'NCB' };
         return { attack: 'CF', midfield: 'BBM', defense: 'CD' };
+    }
+
+    // [신규] 랜덤 선수 가져오기 헬퍼 (공 소유권 로직용)
+    getRandomPlayer(teamKey, positions, excludePlayer = null) {
+        let players = [];
+        if (teamKey === gameData.selectedTeam) {
+            const squad = gameData.squad;
+            positions.forEach(pos => {
+                if (pos === 'GK' && squad.gk) players.push(squad.gk);
+                if (pos === 'DF') players.push(...squad.df.filter(p => p));
+                if (pos === 'MF') players.push(...squad.mf.filter(p => p));
+                if (pos === 'FW') players.push(...squad.fw.filter(p => p));
+            });
+        } else {
+            const all = getBestEleven(teamKey);
+            players = all.filter(p => positions.includes(p.position));
+        }
+        
+        if (excludePlayer) {
+            players = players.filter(p => p.name !== excludePlayer.name);
+        }
+        
+        if (players.length === 0) return null;
+        const player = players[Math.floor(Math.random() * players.length)];
+        // 팀 정보 추가 (비교용)
+        if (player) player.team = teamKey;
+        return player;
     }
 
     // [신규] 패스 플레이어 2명 선정 (같은 팀)
@@ -827,14 +855,14 @@ class RealMatchEngine {
     }
 
     // 1분 단위 시뮬레이션
-    update(minute) {
-        this.consumeStamina();
-        this.updateStaminaUI(); // [추가] UI 업데이트
-
-        // 1. 중원 싸움 (Midfield Battle)
+    update(minute, isNewMinute) {
+        if (isNewMinute) {
+            this.consumeStamina();
+            this.updateStaminaUI();
+        }
+        
+        // 1. 중원 싸움 (Midfield Battle) - 공이 중원에 있을 때만 발생
         if (this.ballZone === 'midfield') {
-            // 기술 + 정신력 + 수비력 평균 비교
-            // [수정] 변수 정의 (ReferenceError 방지)
             const userTech = this.getLinePower(true, 'midfield', 'technique');
             const userMental = this.getLinePower(true, 'midfield', 'mentality');
             const userMid = (userTech + userMental) / 2;
@@ -843,188 +871,191 @@ class RealMatchEngine {
             const aiMental = this.getLinePower(false, 'midfield', 'mentality');
             const aiMid = (aiTech + aiMental) / 2;
 
-            // [수정] 랜덤 변수 조정 (0~50 -> 0~35) - 미드필더 영향력 다시 상향 (너프 완화)
             const userRoll = userMid + Math.random() * 35;
             const aiRoll = aiMid + Math.random() * 35;
 
             let winnerIsUser = userRoll > aiRoll;
 
-            // [수정] 중원 싸움 패배 시에도 역습/롱볼 등으로 공격 기회를 잡을 확률 추가 (Bypass)
-            // 중원 장악이 전부가 아니도록 수정
+            // 중원 우회(Bypass) 로직
             if (!winnerIsUser) {
-                // 유저가 중원에서 밀렸을 때
-                // 롱볼, 다이렉트, 역습 전술일 경우 확률 증가
-                let bypassChance = 0.15; // [수정] 기본 15% (20%에서 하향)
+                let bypassChance = 0.15;
                 if (['longBall', 'twoLine', 'parkBus', 'catenaccio'].includes(gameData.currentTactic)) {
-                    bypassChance = 0.35; // [수정] 35% (45%에서 하향)
+                    bypassChance = 0.35;
                 }
-                
-                if (Math.random() < bypassChance) {
-                    winnerIsUser = true;
-                    // [해설] 중원 생략 공격 (가끔 출력)
-                    if (Math.random() < 0.2) {
-                        const msg = this.getRandomCommentary('midfield', 'bypass', {
-                            team: teamNames[gameData.selectedTeam]
-                        });
-                        const event = { minute: minute, type: 'midfield_bypass', description: msg };
-                        displayEvent(event, this.matchData);
-                    }
-                }
+                if (Math.random() < bypassChance) winnerIsUser = true;
             } else {
-                // AI가 중원에서 밀렸을 때 (AI도 동일하게 적용)
                 const aiTactic = this.tacticSystem.getOpponentTactic(this.matchData.homeTeam === gameData.selectedTeam ? this.matchData.awayTeam : this.matchData.homeTeam);
-                let bypassChance = 0.15; // [수정] 기본 15%
+                let bypassChance = 0.15;
                 if (['longBall', 'twoLine', 'parkBus', 'catenaccio', 'counter'].includes(aiTactic)) {
-                    bypassChance = 0.35; // [수정] 35%
+                    bypassChance = 0.35;
                 }
-                
-                if (Math.random() < bypassChance) {
-                    winnerIsUser = false;
-                    if (Math.random() < 0.2) {
-                        const aiTeamName = teamNames[gameData.currentOpponent];
-                        const msg = this.getRandomCommentary('midfield', 'bypass', {
-                            team: aiTeamName
-                        });
-                        const event = { minute: minute, type: 'midfield_bypass', description: msg };
-                        displayEvent(event, this.matchData);
-                    }
-                }
+                if (Math.random() < bypassChance) winnerIsUser = false;
             }
 
-            const winnerName = winnerIsUser ? teamNames[gameData.selectedTeam] : teamNames[gameData.currentOpponent];
-
+            // [변경] 승자가 결정되면 반드시 빌드업 이벤트 발생
             if (winnerIsUser) {
                 this.ballZone = 'user_attack';
-                this.lastAction = 'build_up'; // 지공 상황
+                this.lastAction = 'build_up';
+                this.generateBuildUpEvent(true, minute);
             } else {
                 this.ballZone = 'ai_attack';
-                this.lastAction = 'build_up'; // 지공 상황
-            }
-
-            // [해설] 중원 장악 텍스트 (압도적인 차이일 때 가끔 출력)
-            if (Math.abs(userRoll - aiRoll) > 25 && Math.random() < 0.15) {
-                const winReason = (winnerIsUser ? userTech : aiTech) > (winnerIsUser ? userMental : aiMental) 
-                    ? "정교한 패스워크" : "투지 넘치는 압박";
-                const msg = this.getRandomCommentary('midfield', 'win', {
-                    team: winnerName,
-                    reason: winReason
-                });
-                const event = {
-                    minute: minute,
-                    type: 'midfield',
-                    description: msg
-                };
-                displayEvent(event, this.matchData);
+                this.lastAction = 'build_up';
+                this.generateBuildUpEvent(false, minute);
             }
         }
         // 2. 공격 시도 (Final Third)
         else {
             const isUserAttacking = this.ballZone === 'user_attack';
-            const atkTeamName = isUserAttacking ? teamNames[gameData.selectedTeam] : teamNames[gameData.currentOpponent];
-            const defTeamName = isUserAttacking ? teamNames[gameData.currentOpponent] : teamNames[gameData.selectedTeam];
             
-            // 공격진(공격+스피드) vs 수비진(수비+피지컬)
-            // [수정] 매 순간의 랜덤성 추가 (0.85 ~ 1.15) - 전력 차이 영향 완화 및 의외성 부여
-            const atkRandom = 0.85 + Math.random() * 0.3;
-            const defRandom = 0.85 + Math.random() * 0.3;
-
-            const atkPower = (this.getLinePower(isUserAttacking, 'attack', 'attack') + this.getLinePower(isUserAttacking, 'attack', 'speed')) * atkRandom;
+            // [변경] 100% 확률로 액션 발생 (Pass, Dribble, Shoot, Turnover)
+            const actionRoll = Math.random();
             
-            const defStat = this.getLinePower(!isUserAttacking, 'defense', 'defense');
-            const phyStat = this.getLinePower(!isUserAttacking, 'defense', 'physical');
-            const defPower = (defStat + phyStat) * defRandom;
-
-            // [관문 1: 기회 창출]
-            const chanceRatio = atkPower / (atkPower + defPower); // 0.4 ~ 0.6 수준
-            
-            // [수정] 슈팅 빈도 조정 (월드컵 모드 밸런스 적용)
-            let shootFreq = 0.4;
-            if (gameData.isWorldCupMode) shootFreq = 0.32; // 월드컵 모드에서는 슈팅 빈도 20% 추가 감소
-
-            if (Math.random() < (chanceRatio * shootFreq)) {
-                // [밸런스 조정] 수비수 슈팅 블록 확률을 수비력에 비례하도록 변경 (기존 로직 유지)
-                const blockChance = (defPower / (atkPower + defPower)) * 0.2; // 평균 10% 내외
-                if (Math.random() < blockChance) {
-                    const defendingTeamName = isUserAttacking ? teamNames[gameData.currentOpponent] : teamNames[gameData.selectedTeam];
-                    const blockMsg = this.getRandomCommentary('defense', 'block', { team: defendingTeamName });
-                    const event = {
-                        minute: minute,
-                        type: 'block',
-                        description: blockMsg
-                    };
-                    displayEvent(event, this.matchData);
-                    this.ballZone = 'midfield'; // 소유권 전환
-                    this.lastAction = 'turnover';
-                    return; // 슈팅 시도 없이 턴 종료
-                }
-
-                // [관문 2: 슈팅]
-                this.attemptGoal(isUserAttacking, atkPower, defPower, minute);
+            // 확률 분포: 턴오버 20%, 패스 40%, 드리블 30%, 슈팅 10%
+            // [수정] 확률 분포 조정: 턴오버 20%, 패스 65%, 드리블 10%, 슈팅 5%
+            if (actionRoll < 0.2) {
+                // 턴오버 (수비 성공)
+                this.handleTurnover(isUserAttacking, minute);
+            } else if (actionRoll < 0.7) { 
+                // [수정] 4. 패스 빈도 상향 (40% -> 50%)
+            } else if (actionRoll < 0.85) { 
+                // [수정] 4. 패스 빈도 대폭 상향 (40% -> 65%) - 패스 위주 빌드업
+                this.generatePassEvent(isUserAttacking, minute);
+            } else if (actionRoll < 0.9) { 
+                // [수정] 4. 드리블 빈도 하향 (30% -> 20%)
+            } else if (actionRoll < 0.95) { 
+                // [수정] 4. 드리블 빈도 하향 (30% -> 10%)
+                this.generateDribbleEvent(isUserAttacking, minute);
             } else {
-                // [신규] 슈팅 기회 무산 시 패스 연결 확률 증가 (0.35 -> 0.5)
-                if (Math.random() < 0.5) {
-                    const passPlayers = this.getPassPlayers(isUserAttacking ? gameData.selectedTeam : gameData.currentOpponent);
-                    if (passPlayers) {
-                        const p1 = passPlayers[0];
-                        const p2 = passPlayers[1];
-                        const teamName = isUserAttacking ? teamNames[gameData.selectedTeam] : teamNames[gameData.currentOpponent];
-                        
-                        const passMsgs = [
-                            `⚽ ${teamName}의 ${p1.name}, ${p2.name}에게 짧게 내줍니다.`,
-                            `⚽ ${p1.name}, 빈 공간의 ${p2.name}를 보고 패스합니다.`,
-                            `⚽ ${p1.name}와 ${p2.name}의 2대1 패스 연결!`,
-                            `⚽ ${p1.name}, ${p2.name}에게 정확하게 배달합니다.`,
-                            `⚽ ${teamName}, ${p1.name}에서 ${p2.name}(으)로 이어지는 매끄러운 연계.`
-                        ];
-                        const msg = passMsgs[Math.floor(Math.random() * passMsgs.length)];
-                        
-                        const event = { minute: minute, type: 'pass', description: msg };
-                        displayEvent(event, this.matchData);
-                        return; // 공격권 유지하며 턴 종료
-                    }
-                }
-
-                // 수비 성공! -> 역습 기회 체크
-                const counterAttackingTeamIsUser = !isUserAttacking;
-
-                // 역습은 공격 라인의 스피드와 수비 라인의 스피드를 비교
-                const counterSpeed = this.getLinePower(counterAttackingTeamIsUser, 'attack', 'speed');
-                const opponentDefenseSpeed = this.getLinePower(!counterAttackingTeamIsUser, 'defense', 'speed');
-
-                // 역습 조건: 공격진 스피드가 수비진 스피드보다 20% 이상 빠르고, 50% 확률
-                if (counterSpeed > opponentDefenseSpeed * 1.2 && Math.random() < 0.5) {
-                    this.ballZone = counterAttackingTeamIsUser ? 'user_attack' : 'ai_attack';
-                    this.lastAction = 'counter_attack'; // 역습 상황으로 전환
-                    
-                    const msg = this.getRandomCommentary('defense', 'counter', {
-                        team: defTeamName
-                    });
-                    // 역습 이벤트 생성
-                    const event = {
-                        minute: minute,
-                        type: 'counter_attack',
-                        description: msg
-                    };
-                    displayEvent(event, this.matchData);
-
-                } else {
-                    // [해설] 일반 수비 성공 (가끔 출력)
-                    if (Math.random() < 0.15) {
-                        // 피지컬로 막았는지, 수비력으로 막았는지 구분
-                        const defReason = phyStat > defStat ? "강력한 몸싸움" : "지능적인 커팅";
-                        const msg = this.getRandomCommentary('defense', 'success', {
-                            team: defTeamName,
-                            reason: defReason,
-                            opponent: atkTeamName
-                        });
-                        const event = { minute: minute, type: 'defense_success', description: msg };
-                        displayEvent(event, this.matchData);
-                    }
-                    this.ballZone = 'midfield';
-                    this.lastAction = 'possession_change';
-                }
+                // 슈팅 시도
+                const atkPower = (this.getLinePower(isUserAttacking, 'attack', 'attack') + this.getLinePower(isUserAttacking, 'attack', 'speed'));
+                const defPower = (this.getLinePower(!isUserAttacking, 'defense', 'defense') + this.getLinePower(!isUserAttacking, 'defense', 'physical'));
+                this.attemptGoal(isUserAttacking, atkPower, defPower, minute);
             }
         }
+    }
+
+    // [신규] 빌드업 이벤트 생성
+    generateBuildUpEvent(isUser, minute) {
+        const teamKey = isUser ? gameData.selectedTeam : gameData.currentOpponent;
+        const teamName = teamNames[teamKey];
+        
+        // 공 소유자가 없거나 다른 팀이면 수비/미드필더 중 하나 선택
+        if (!this.ballHolder || this.ballHolder.team !== teamKey) {
+            this.ballHolder = this.getRandomPlayer(teamKey, ['DF', 'MF']);
+        }
+        
+        // 가까운 포지션으로 패스
+        let targetPositions = ['MF'];
+        if (this.ballHolder.position === 'GK') targetPositions = ['DF'];
+        else if (this.ballHolder.position === 'DF') targetPositions = ['MF', 'DF'];
+        else if (this.ballHolder.position === 'MF') targetPositions = ['FW', 'MF'];
+        
+        const receiver = this.getRandomPlayer(teamKey, targetPositions, this.ballHolder);
+        
+        if (this.ballHolder && receiver) {
+            const event = {
+                minute: minute,
+                type: 'pass',
+                description: `⚽ ${teamName} ${this.ballHolder.name}, ${receiver.name}에게 연결하며 공격을 전개합니다.`,
+                from: this.ballHolder.name,
+                to: receiver.name
+            };
+            displayEvent(event, this.matchData);
+            this.ballHolder = receiver; // 소유권 이전
+        }
+    }
+
+    // [신규] 패스 이벤트 생성
+    generatePassEvent(isUser, minute) {
+        const teamKey = isUser ? gameData.selectedTeam : gameData.currentOpponent;
+        
+        if (!this.ballHolder || this.ballHolder.team !== teamKey) {
+            this.ballHolder = this.getRandomPlayer(teamKey, ['MF', 'FW']);
+        }
+        
+        // 가까운 포지션으로 패스
+        let targetPositions = ['MF', 'FW'];
+        
+        // [수정] 공격 지역(Final Third)에서는 수비수에게 백패스 금지 (공격 흐름 유지)
+        const isAttackingZone = this.ballZone === 'user_attack' || this.ballZone === 'ai_attack';
+
+        if (this.ballHolder.position === 'GK') targetPositions = ['DF'];
+        else if (this.ballHolder.position === 'DF') targetPositions = ['MF', 'DF'];
+        else if (this.ballHolder.position === 'MF') {
+            if (isAttackingZone) {
+                targetPositions = ['FW', 'MF']; // 공격 중엔 전진/횡패스만 허용
+            } else {
+                targetPositions = ['FW', 'MF', 'DF']; // 빌드업 시엔 백패스 허용
+            }
+        }
+        else if (this.ballHolder.position === 'FW') targetPositions = ['FW', 'MF'];
+
+        const receiver = this.getRandomPlayer(teamKey, targetPositions, this.ballHolder);
+        
+        if (this.ballHolder && receiver) {
+            const msgs = [
+                `⚽ ${this.ballHolder.name}, ${receiver.name}에게 짧게 내줍니다.`,
+                `⚽ ${this.ballHolder.name}, 빈 공간의 ${receiver.name}를 보고 패스합니다.`,
+                `⚽ ${this.ballHolder.name}와 ${receiver.name}의 2대1 패스 연결!`,
+                `⚽ ${this.ballHolder.name}, ${receiver.name}에게 정확하게 배달합니다.`
+            ];
+            const msg = msgs[Math.floor(Math.random() * msgs.length)];
+            
+            const event = {
+                minute: minute,
+                type: 'pass',
+                description: msg,
+                from: this.ballHolder.name,
+                to: receiver.name
+            };
+            displayEvent(event, this.matchData);
+            this.ballHolder = receiver;
+        }
+    }
+
+    // [신규] 드리블 이벤트 생성
+    generateDribbleEvent(isUser, minute) {
+        const teamKey = isUser ? gameData.selectedTeam : gameData.currentOpponent;
+        
+        if (!this.ballHolder || this.ballHolder.team !== teamKey) {
+            this.ballHolder = this.getRandomPlayer(teamKey, ['MF', 'FW']);
+        }
+        
+        if (this.ballHolder) {
+            const msgs = [
+                `💨 ${this.ballHolder.name}, 빠른 드리블로 치고 나갑니다!`,
+                `💨 ${this.ballHolder.name}, 수비수를 제치고 전진합니다.`,
+                `💨 ${this.ballHolder.name}, 개인기로 공간을 만듭니다.`
+            ];
+            const msg = msgs[Math.floor(Math.random() * msgs.length)];
+            
+            const event = {
+                minute: minute,
+                type: 'dribble',
+                description: msg,
+                player: this.ballHolder.name
+            };
+            displayEvent(event, this.matchData);
+        }
+    }
+
+    // [신규] 턴오버(수비 성공) 처리
+    handleTurnover(isUserAttacking, minute) {
+        const defTeamKey = isUserAttacking ? gameData.currentOpponent : gameData.selectedTeam;
+        const defTeamName = teamNames[defTeamKey];
+        
+        const defender = this.getRandomPlayer(defTeamKey, ['DF', 'MF']);
+        
+        const event = {
+            minute: minute,
+            type: 'tackle',
+            description: `🛡️ ${defTeamName} ${defender ? defender.name : '수비수'}, 공을 뺏어냅니다!`,
+            player: defender ? defender.name : null
+        };
+        displayEvent(event, this.matchData);
+        
+        this.ballZone = 'midfield';
+        this.ballHolder = defender; // 공 소유권 넘어감
     }
 
     attemptGoal(isUserAttacking, atkPower, defPower, minute) {
@@ -1040,21 +1071,42 @@ class RealMatchEngine {
             isBlocked = true;
             // 블록되면 골 확률은 0
         }
+        
+        // [수정] 슈터 결정: 공을 가진 선수가 있다면 그 선수가 슈팅
+        let shooterName;
+        const attackingTeamKey = isUserAttacking ? gameData.selectedTeam : gameData.currentOpponent;
+        if (this.ballHolder && this.ballHolder.team === attackingTeamKey) {
+            shooterName = this.ballHolder.name;
+            // [수정] 수비수, 골키퍼는 슈팅 불가. 미드필더도 50% 확률로 패스 전환.
+            if (this.ballHolder.position === 'GK' || this.ballHolder.position === 'DF' || (this.ballHolder.position === 'MF' && Math.random() < 0.5)) {
+                this.generatePassEvent(isUserAttacking, minute);
+                return; 
+            }
+        } else {
+            shooterName = this.getShooter(isUserAttacking);
+        }
 
-        // [밸런스 수정] 기본 골 확률 및 전력차 영향력 하향 조정
-        let goalChance = 0.16 + (powerDiff * 0.003);
+        // [밸런스 수정] 골 확률 대폭 하향 (이벤트 빈도가 늘었으므로)
+        // 기존: 0.16 + ... -> 수정: 0.05 + ... (약 1/3 수준)
+        let goalChance = 0.05 + (powerDiff * 0.001);
+        // [밸런스 수정] 골 확률 상향 (슈팅 찬스가 줄었으므로 결정력 증가)
+        // 기존: 0.05 + ... -> 수정: 0.15 + ...
+        let goalChance = 0.15 + (powerDiff * 0.001);
         
         // [추가] 월드컵 모드일 경우 골 확률 추가 하향 (대량 득점 방지)
         if (gameData.isWorldCupMode) {
-            goalChance = 0.13 + (powerDiff * 0.002);
+            goalChance = 0.04 + (powerDiff * 0.001);
+            goalChance = 0.12 + (powerDiff * 0.001);
         }
         
-        // 최소 2%, 최대 65%로 제한
-        goalChance = Math.max(0.02, Math.min(0.65, goalChance));
+        // 최소 1%, 최대 30%로 제한
+        goalChance = Math.max(0.01, Math.min(0.30, goalChance));
+        // 최소 5%, 최대 50%로 제한
+        goalChance = Math.max(0.05, Math.min(0.50, goalChance));
 
         // 슈팅 퀄리티 텍스트 결정 (확률 기반)
-        if (goalChance >= 0.25) shootingQuality = 'decisive';
-        else if (goalChance >= 0.12) shootingQuality = 'normal';
+        if (goalChance >= 0.15) shootingQuality = 'decisive';
+        else if (goalChance >= 0.08) shootingQuality = 'normal';
         else shootingQuality = 'difficult';
 
         // 역습 보너스 적용
@@ -1092,7 +1144,8 @@ class RealMatchEngine {
             const suspenseEvent = {
                 minute: minute,
                 type: 'chance',
-                description: `🔥 ${attackingTeamName}, 결정적인 슈팅 기회! 과연?`
+                description: `🔥 ${attackingTeamName}, 결정적인 슈팅 기회! 과연?`,
+                player: shooterName // [추가] 찬스를 잡은 선수 정보 전달
             };
             const cardElement = displayEvent(suspenseEvent, this.matchData);
 
@@ -1108,19 +1161,19 @@ class RealMatchEngine {
                 cardElement.classList.remove('highlight');
 
                 // 결과 처리 및 카드 업데이트
-                this.resolveGoalOutcome(outcome, isUserAttacking, minute, shootingQuality, cardElement);
+                this.resolveGoalOutcome(outcome, isUserAttacking, minute, shootingQuality, cardElement, shooterName);
 
                 // 경기 재개
                 this.matchData.isRunning = true;
             }, 4000); // [수정] 몰입 모드 대기 시간을 2초 -> 4초로 대폭 증가
         } else {
             // 즉시 결과 처리
-            this.resolveGoalOutcome(outcome, isUserAttacking, minute, shootingQuality);
+            this.resolveGoalOutcome(outcome, isUserAttacking, minute, shootingQuality, null, shooterName);
         }
     }
 
     // [신규] 골 결과 처리 및 이벤트 표시 (분리됨)
-    resolveGoalOutcome(outcome, isUserAttacking, minute, shootingQuality, existingCardElement = null) {
+    resolveGoalOutcome(outcome, isUserAttacking, minute, shootingQuality, existingCardElement = null, shooterName = null) {
         const attackingTeamName = isUserAttacking ? teamNames[gameData.selectedTeam] : teamNames[gameData.currentOpponent];
         const defendingTeamName = isUserAttacking ? teamNames[gameData.currentOpponent] : teamNames[gameData.selectedTeam];
         
@@ -1158,7 +1211,7 @@ class RealMatchEngine {
             this.lastAction = 'turnover';
         } else {
             // 빗나감 or 선방
-            const shooterName = this.getShooter(isUserAttacking);
+            const finalShooterName = shooterName || this.getShooter(isUserAttacking);
             
             let description = '';
             let missCategory = shootingQuality === 'decisive' ? 'strong' : 'normal';
@@ -1166,17 +1219,17 @@ class RealMatchEngine {
 
             if (this.lastAction === 'counter_attack') {
                 if (isSave) {
-                    description = this.getRandomCommentary('save', 'counter', { team: defendingTeamName, player: shooterName });
+                    description = this.getRandomCommentary('save', 'counter', { team: defendingTeamName, player: finalShooterName });
                 } else {
-                    description = this.getRandomCommentary('miss', 'counter', { team: attackingTeamName, player: shooterName });
+                    description = this.getRandomCommentary('miss', 'counter', { team: attackingTeamName, player: finalShooterName });
                 }
             } else if (isSave) {
-                description = this.getRandomCommentary('save', missCategory, { team: attackingTeamName, player: shooterName });
+                description = this.getRandomCommentary('save', missCategory, { team: attackingTeamName, player: finalShooterName });
             } else {
-                description = this.getRandomCommentary('miss', missCategory, { team: attackingTeamName, player: shooterName });
+                description = this.getRandomCommentary('miss', missCategory, { team: attackingTeamName, player: finalShooterName });
             }
             
-            event = { minute: minute, type: outcome, description: description };
+            event = { minute: minute, type: outcome, description: description, shooter: finalShooterName };
 
             this.ballZone = 'midfield';
             this.lastAction = 'turnover';
@@ -1191,6 +1244,15 @@ class RealMatchEngine {
             `;
             // 이벤트 데이터에도 추가 (기록용)
             this.matchData.events.push(event);
+
+            // [신규] 시각화 엔진에 이벤트 전달 (몰입 모드에서도 애니메이션 재생)
+            if (window.matchVisualizer && typeof window.parseTextEventToVisual === 'function') {
+                const visualEvent = window.parseTextEventToVisual(event);
+                if (visualEvent) {
+                    visualEvent.domElement = existingCardElement; // DOM 연결
+                    window.matchVisualizer.processMatchEvent(visualEvent);
+                }
+            }
         } else {
             // 새 카드 생성 (일반 모드)
             displayEvent(event, this.matchData);
@@ -1425,6 +1487,7 @@ function startMatchSimulation(matchData, matchEngine, strengthDiff) {
 }
 
 function simulateMatch(matchData, matchEngine) {
+    let tickCount = 0;
     const matchInterval = setInterval(function simulationTick() { // 함수에 이름 부여
         // 경기가 90분 이상 진행되면 인터벌을 완전히 종료
         if (matchData.minute >= 90) {
@@ -1441,8 +1504,14 @@ function simulateMatch(matchData, matchEngine) {
             return;
         }
 
-        matchData.minute++;
-        document.getElementById('matchTime').textContent = matchData.minute + '분';
+        // [수정] 200ms마다 틱 발생, 5틱마다 1분 증가 (부드러운 진행)
+        tickCount++;
+        let isNewMinute = false;
+        if (tickCount % 5 === 0) {
+            matchData.minute++;
+            isNewMinute = true;
+            document.getElementById('matchTime').textContent = matchData.minute + '분';
+        }
 
         
         // ===== 부상 체크 =====
@@ -1455,7 +1524,7 @@ function simulateMatch(matchData, matchEngine) {
         }
 
         // [신규] 매치 엔진 업데이트 (골 판정 포함)
-        matchEngine.update(matchData.minute);
+        matchEngine.update(matchData.minute, isNewMinute);
 
         // [기타 이벤트] 골 외의 파울, 코너킥 등은 분위기용으로 랜덤 발생 (확률 낮춤)
         if (Math.random() < 0.05) {
@@ -1464,7 +1533,7 @@ function simulateMatch(matchData, matchEngine) {
         }
 
         matchData.intervalId = matchInterval; // 인터벌 ID 저장
-    }, 1000);
+    }, 200); // [수정] 1초 -> 0.2초 (연속적인 느낌)
 }
 
 // [신규] 기타 이벤트 생성기 (골 제외)
@@ -1900,6 +1969,8 @@ function createInjuryEvent(matchData, injuryResult) {
 function displayEvent(event, matchData) {
     const eventList = document.getElementById('eventList');
     const eventCard = document.createElement('div');
+    
+    // eventList.innerHTML = ''; // [수정] 텍스트가 사라지는 문제 해결을 위해 삭제
     
     // 이벤트 타입에 따라 클래스 추가
     eventCard.className = `event-card ${event.type}`;
@@ -2516,7 +2587,7 @@ class InjurySystem {
     }
 
     checkInjury(matchData) {
-        const injuryChance = 0.0037;  // ✅ 10경기당 1-2명 부상 (0.37%)
+        const injuryChance = 0.00005;  // [수정] 부상 확률 극소화 (0.005%)
         
         if (Math.random() < injuryChance) {
             // 1. 부상당할 팀을 50% 확률로 결정
