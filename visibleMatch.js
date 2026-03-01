@@ -179,6 +179,8 @@ class VisualBall {
         this.z = 0; // [추가] 공의 높이 (Z축)
         this.vz = 0; // [추가] 수직 속도
         this.isShooting = false; // [추가] 슈팅 상태 플래그
+        this.pendingOwner = null; // [신규] 공 도착 시 소유권을 가질 예정인 선수
+        this.isMoving = false; // [신규] 1. 공의 유령 움직임 방지 플래그
     }
 
     update() {
@@ -205,6 +207,7 @@ class VisualBall {
             this.targetY = this.y;
             this.z = 0; // 드리블 중에는 땅에 붙음
             this.isShooting = false;
+            this.isMoving = false; // 소유 중일 때는 독립 이동 안 함
         } else {
             // 패스나 슈팅 중
             if (this.z > 0 || this.vz !== 0) {
@@ -223,12 +226,23 @@ class VisualBall {
         const dist = Math.hypot(dx, dy);
         
         if (!this.owner) {
+            // [수정] 1. 유령 움직임 제거: 이동 플래그가 없으면 움직이지 않음
+            if (!this.isMoving && dist > 0.5) return;
+
             // [수정] 4. 슈팅 및 패스 속도의 '이징(Easing)' 적용
             if (dist < 0.5) {
                 this.x = this.targetX;
                 this.y = this.targetY;
                 this.z = 0; this.vz = 0; // 정지 시 바운드 리셋
                 this.isShooting = false; // [수정] 정지 시 슈팅 상태 해제
+                this.isMoving = false; // [신규] 도착 시 이동 멈춤
+                
+                // [신규] ② 도착 시 소유권 이전 (지연 제거)
+                if (this.pendingOwner) {
+                    this.owner = this.pendingOwner;
+                    this.pendingOwner.hasBall = true;
+                    this.pendingOwner = null;
+                }
             } else {
                 let moveSpeed;
                 if (this.isShooting) {
@@ -428,6 +442,11 @@ class MatchVisualizer {
     // [수정] 이벤트를 큐에 추가
     processMatchEvent(event) {
         if (!event) return;
+        // [신규] ② 핑퐁 효과 방지: 새 이벤트가 오면 기존 이동 상태(예정된 소유권) 초기화
+        if (this.ball) {
+            this.ball.pendingOwner = null;
+            this.ball.isShooting = false; // [수정] 4. 새 이벤트 발생 시 슈팅 상태 강제 해제 (동기화)
+        }
         this.eventQueue.push(event);
     }
 
@@ -496,19 +515,26 @@ class MatchVisualizer {
             this.ball.targetX = toUnit.x;
             this.ball.targetY = toUnit.y;
             
+            // [수정] 4. 비주얼라이저 동기화: 패스 시작 시 공 위치 보정
+            // 공이 멀리 떨어져 있다면(예: 골킥, 슛 미스 후) 패스하는 선수 위치로 즉시 이동
+            const distToBall = Math.hypot(this.ball.x - fromUnit.x, this.ball.y - fromUnit.y);
+            if (distToBall > 10) {
+                this.ball.x = fromUnit.x;
+                this.ball.y = fromUnit.y;
+            }
+
             toUnit.targetX = (toUnit.x + this.ball.x) / 2;
             toUnit.targetY = (toUnit.y + this.ball.y) / 2;
-
+            
+            // [수정] ② setTimeout 제거 및 도착 시 소유권 이전 설정
+            this.ball.pendingOwner = toUnit;
+            this.ball.isMoving = true; // [신규] 이동 시작
+            
             const dist = Math.hypot(toUnit.x - fromUnit.x, toUnit.y - fromUnit.y);
             if (dist > 25) {
                 this.ball.vz = 3 + Math.random(); // 롱패스는 공을 띄움
                 this.ball.z = 1;
             }
-            
-            setTimeout(() => {
-                toUnit.hasBall = true;
-                this.ball.owner = toUnit;
-            }, 500);
         }
     }
 
@@ -545,6 +571,19 @@ class MatchVisualizer {
             const goalY = isHome ? 0 : 100;
             const goalX = 50;
 
+            // [수정] 4. 슈팅 위치 현실화 및 무작위성 추가
+            // 골라인(0/100)까지 가지 않고 페널티 박스 근처(15~25 / 75~85)에서 슈팅
+            let shootY;
+            if (isHome) {
+                shootY = 12 + Math.random() * 18; // 12 ~ 30 (상대 진영)
+            } else {
+                shootY = 88 - Math.random() * 18; // 70 ~ 88 (상대 진영)
+            }
+            shooter.y = shootY;
+            
+            // 시각적 위치도 즉시 업데이트
+            shooter.x = Math.max(10, Math.min(90, shooter.x)); // 좌우도 너무 끝이 아니게
+
             // [수정] 슈팅 위치 보정 없이 현재 위치에서 슈팅
             this.ball.owner = null;
             this.ball.x = shooter.x;
@@ -553,6 +592,7 @@ class MatchVisualizer {
             this.ball.targetX = goalX;
             this.ball.targetY = goalY;
             this.ball.isShooting = true;
+            this.ball.isMoving = true; // [신규] 이동 시작
             
             this.ball.vz = 1.5 + Math.random(); // [수정] 슈팅 탄도 낮춤 (순간이동 방지)
             this.ball.z = 0; // [수정] 2 -> 0 (갑작스러운 크기 변화 방지, vz로 자연스럽게 뜨도록)
@@ -579,8 +619,15 @@ class MatchVisualizer {
             this.ball.owner = unit;
             unit.hasBall = true;
             const goalY = unit.teamType === 'home' ? 0 : 100;
-            unit.targetY = unit.y + (goalY - unit.y) * 0.2;
-            unit.targetX += (Math.random() - 0.5) * 15;
+            
+            // [수정] 1. 지그재그 및 대각선 드리블 구현
+            // 단순히 Y축 전진이 아니라, 대각선으로 파고드는 움직임
+            const forwardStep = (goalY - unit.y) * 0.25; // 전진 폭 증가
+            const sideStep = (Math.random() - 0.5) * 30; // 좌우 폭 증가 (지그재그)
+            
+            unit.targetY = unit.y + forwardStep;
+            unit.targetX = unit.x + sideStep;
+            
             unit.targetX = Math.max(5, Math.min(95, unit.targetX));
             unit.targetY = Math.max(5, Math.min(95, unit.targetY));
         }
@@ -590,10 +637,17 @@ class MatchVisualizer {
         if (event.player) {
             const unit = this.findUnit(event.player);
             if (unit) {
-                this.ball.owner = unit;
-                unit.hasBall = true;
-                unit.targetX = unit.x;
-                unit.targetY = unit.y;
+                // [수정] ③ 소유권 전환 연출 (튕겨 나갔다 잡기)
+                this.ball.owner = null;
+                // 공이 살짝 튀는 연출 (랜덤 방향 2~3 거리)
+                this.ball.targetX = unit.x + (Math.random() - 0.5) * 4;
+                this.ball.targetY = unit.y + (Math.random() - 0.5) * 4;
+                
+                // 선수가 공을 쫓아가서 잡도록 설정
+                unit.targetX = this.ball.targetX;
+                unit.targetY = this.ball.targetY;
+                this.ball.pendingOwner = unit; // 도착 시 소유
+                this.ball.isMoving = true; // [신규] 튕겨 나가는 움직임
             }
         } else {
             this.ball.owner = null;
@@ -722,6 +776,37 @@ class MatchVisualizer {
             let destX = baseX + roleVector.x;
             let destY = baseY + roleVector.y;
             
+            // [Request 1] 포지션별 전진 한계선 (Hard Limit) 설정
+            const isHome = unit.teamType === 'home';
+            if (isHome) {
+                // 홈팀 (위로 공격, Y 감소)
+                if (unit.positionType === 'DF') {
+                    if (destY < 35) destY = 35; // 수비수는 중앙선 너머 너무 깊게 가지 않음
+                } else if (unit.positionType === 'MF') {
+                    if (destY < 15) destY = 15; // 미드필더도 박스 안까지는 제한적
+                }
+            } else {
+                // 어웨이팀 (아래로 공격, Y 증가)
+                if (unit.positionType === 'DF') {
+                    if (destY > 65) destY = 65;
+                } else if (unit.positionType === 'MF') {
+                    if (destY > 85) destY = 85;
+                }
+            }
+
+            // [Request 4] 수비 라인 유지 (인간적인 오차 포함)
+            // 수비 상황이고 내가 압박하는 선수가 아니라면 라인을 맞춤
+            if (!isNearest && unit.positionType === 'DF' && ballOwnerTeam !== unit.teamType) {
+                // Y축 이동을 제한하여 라인 유지 (teamShift가 이미 라인을 조정했으므로 destY는 baseY 근처여야 함)
+                // roleVector.y가 0이어야 하지만, 혹시 모를 오차를 강제로 보정
+                const lineDeviation = destY - baseY;
+                if (Math.abs(lineDeviation) > 5) {
+                    destY = baseY + (lineDeviation * 0.2); // 라인으로 강하게 복귀
+                }
+                // 인간적인 오차 추가
+                destY += (Math.random() - 0.5) * 2;
+            }
+
             // [신규] 이벤트 주체가 아니어도 움직이게 (숨쉬기 효과)
             const time = Date.now() * 0.001;
             const noiseX = Math.sin(time + unit.noiseOffset) * 2;
@@ -823,6 +908,7 @@ class MatchVisualizer {
                     case 'LIB': vector.y = forwardDir * 6; break;
                     case 'BPD': vector.y = forwardDir * 4; break;
                     case 'NCB': vector.y = -forwardDir * 2; break;
+                    case 'CD': vector.y = forwardDir * 2; break;
                     default: 
                         // 기본적으로 대형 유지 (vector 0,0)
                         break;
@@ -899,6 +985,17 @@ class MatchVisualizer {
                 
                 // 수비 라인 조절은 calculateTeamShift에서 처리하므로 여기선 미세 조정만
                 // vector.y = 0; // 기본적으로 라인 유지
+            } else {
+                // [Request 3] 자기 진영 우선 복귀 (자석 로직 제거)
+                // 공을 쫓지 않고, 자신의 기본 위치(baseX, baseY + shift)를 지키되
+                // 공의 좌우 위치에 따라 약간만 쉬프트 (Compact defense)
+                
+                // 수평 컴팩트 (공 쪽으로 10% 쏠림)
+                vector.x = (ballX - unit.baseX) * 0.1;
+                
+                // 수직 컴팩트 (라인 유지)
+                // teamShift가 이미 라인을 조정했으므로 여기서는 추가적인 Y 이동을 최소화
+                vector.y = 0; 
             }
         }
         return vector;

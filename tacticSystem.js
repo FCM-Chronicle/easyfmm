@@ -672,6 +672,7 @@ class RealMatchEngine {
         this.ballZone = 'midfield'; // midfield, user_attack, ai_attack
         this.lastAction = 'kickoff';
         this.ballHolder = null; // [추가] 공 소유 선수 추적
+        this.tickCount = 0; // [신규] 엔진 틱 카운터 (속도 조절용)
     }
 
     assignAIRoles(tactic) {
@@ -856,13 +857,28 @@ class RealMatchEngine {
 
     // 1분 단위 시뮬레이션
     update(minute, isNewMinute) {
+        // [수정] 2. 엔진 틱 속도 조절 (3틱마다 1번씩 로직 실행 -> 약 0.6초 간격)
+        this.tickCount++;
+        if (this.tickCount % 3 !== 0) return;
+
         if (isNewMinute) {
             this.consumeStamina();
             this.updateStaminaUI();
         }
         
-        // 1. 중원 싸움 (Midfield Battle) - 공이 중원에 있을 때만 발생
-        if (this.ballZone === 'midfield') {
+        // [수정] 2. 소유권 기반의 공격권 판정
+        // 공을 가진 선수가 있다면, 그 선수의 팀이 공격 중인 것으로 간주
+        if (this.ballHolder) {
+            const isUserHolder = this.ballHolder.team === gameData.selectedTeam;
+            if (isUserHolder) {
+                this.ballZone = 'user_attack';
+            } else {
+                this.ballZone = 'ai_attack';
+            }
+        }
+
+        // 1. 중원 싸움 (공 소유자가 없을 때만)
+        if (!this.ballHolder && this.ballZone === 'midfield') {
             const userTech = this.getLinePower(true, 'midfield', 'technique');
             const userMental = this.getLinePower(true, 'midfield', 'mentality');
             const userMid = (userTech + userMental) / 2;
@@ -907,21 +923,25 @@ class RealMatchEngine {
         else {
             const isUserAttacking = this.ballZone === 'user_attack';
             
+            // [수정] 공 소유권 확인 (엄격한 체크)
+            if (this.ballHolder) {
+                const holderIsUser = this.ballHolder.team === gameData.selectedTeam;
+                // 현재 공격권과 공 소유자가 일치하지 않으면 로직 중단 (턴오버 대기)
+                if (isUserAttacking !== holderIsUser) {
+                    return; 
+                }
+            }
+
             // [변경] 100% 확률로 액션 발생 (Pass, Dribble, Shoot, Turnover)
             const actionRoll = Math.random();
             
-            // 확률 분포: 턴오버 20%, 패스 40%, 드리블 30%, 슈팅 10%
             // [수정] 확률 분포 조정: 턴오버 20%, 패스 65%, 드리블 10%, 슈팅 5%
             if (actionRoll < 0.2) {
                 // 턴오버 (수비 성공)
                 this.handleTurnover(isUserAttacking, minute);
-            } else if (actionRoll < 0.7) { 
-                // [수정] 4. 패스 빈도 상향 (40% -> 50%)
             } else if (actionRoll < 0.85) { 
                 // [수정] 4. 패스 빈도 대폭 상향 (40% -> 65%) - 패스 위주 빌드업
                 this.generatePassEvent(isUserAttacking, minute);
-            } else if (actionRoll < 0.9) { 
-                // [수정] 4. 드리블 빈도 하향 (30% -> 20%)
             } else if (actionRoll < 0.95) { 
                 // [수정] 4. 드리블 빈도 하향 (30% -> 10%)
                 this.generateDribbleEvent(isUserAttacking, minute);
@@ -939,9 +959,11 @@ class RealMatchEngine {
         const teamKey = isUser ? gameData.selectedTeam : gameData.currentOpponent;
         const teamName = teamNames[teamKey];
         
-        // 공 소유자가 없거나 다른 팀이면 수비/미드필더 중 하나 선택
-        if (!this.ballHolder || this.ballHolder.team !== teamKey) {
+        // [수정] ① 소유권 강제 변경 금지: 소유자가 없으면 할당하되, 이미 상대 팀이면 강제 변경 안 함
+        if (!this.ballHolder) {
             this.ballHolder = this.getRandomPlayer(teamKey, ['DF', 'MF']);
+        } else if (this.ballHolder.team !== teamKey) {
+            return; // 소유권이 없으면 빌드업 불가 (턴오버 기다림)
         }
         
         // 가까운 포지션으로 패스
@@ -969,8 +991,11 @@ class RealMatchEngine {
     generatePassEvent(isUser, minute) {
         const teamKey = isUser ? gameData.selectedTeam : gameData.currentOpponent;
         
-        if (!this.ballHolder || this.ballHolder.team !== teamKey) {
+        // [수정] 1. 소유권 강제 배정 로직 제거
+        if (!this.ballHolder) {
             this.ballHolder = this.getRandomPlayer(teamKey, ['MF', 'FW']);
+        } else if (this.ballHolder.team !== teamKey) {
+            return; // 상대방 공이면 패스 이벤트 발생 불가 (턴오버 대기)
         }
         
         // 가까운 포지션으로 패스
@@ -1017,8 +1042,11 @@ class RealMatchEngine {
     generateDribbleEvent(isUser, minute) {
         const teamKey = isUser ? gameData.selectedTeam : gameData.currentOpponent;
         
-        if (!this.ballHolder || this.ballHolder.team !== teamKey) {
+        // [수정] 1. 소유권 강제 배정 로직 제거
+        if (!this.ballHolder) {
             this.ballHolder = this.getRandomPlayer(teamKey, ['MF', 'FW']);
+        } else if (this.ballHolder.team !== teamKey) {
+            return; // 상대방 공이면 드리블 불가
         }
         
         if (this.ballHolder) {
@@ -1086,21 +1114,15 @@ class RealMatchEngine {
             shooterName = this.getShooter(isUserAttacking);
         }
 
-        // [밸런스 수정] 골 확률 대폭 하향 (이벤트 빈도가 늘었으므로)
-        // 기존: 0.16 + ... -> 수정: 0.05 + ... (약 1/3 수준)
-        let goalChance = 0.05 + (powerDiff * 0.001);
         // [밸런스 수정] 골 확률 상향 (슈팅 찬스가 줄었으므로 결정력 증가)
         // 기존: 0.05 + ... -> 수정: 0.15 + ...
         let goalChance = 0.15 + (powerDiff * 0.001);
         
         // [추가] 월드컵 모드일 경우 골 확률 추가 하향 (대량 득점 방지)
         if (gameData.isWorldCupMode) {
-            goalChance = 0.04 + (powerDiff * 0.001);
             goalChance = 0.12 + (powerDiff * 0.001);
         }
         
-        // 최소 1%, 최대 30%로 제한
-        goalChance = Math.max(0.01, Math.min(0.30, goalChance));
         // 최소 5%, 최대 50%로 제한
         goalChance = Math.max(0.05, Math.min(0.50, goalChance));
 
@@ -1154,18 +1176,9 @@ class RealMatchEngine {
             eventList.classList.add('dimmed');
             cardElement.classList.add('highlight');
 
-            // 4. 2초 후 결과 공개
-            setTimeout(() => {
-                // 하이라이트 해제
-                eventList.classList.remove('dimmed');
-                cardElement.classList.remove('highlight');
-
-                // 결과 처리 및 카드 업데이트
-                this.resolveGoalOutcome(outcome, isUserAttacking, minute, shootingQuality, cardElement, shooterName);
-
-                // 경기 재개
-                this.matchData.isRunning = true;
-            }, 4000); // [수정] 몰입 모드 대기 시간을 2초 -> 4초로 대폭 증가
+            // [수정] 2. 슈팅 전 4초 대기 삭제 (즉시 진행)
+            this.resolveGoalOutcome(outcome, isUserAttacking, minute, shootingQuality, cardElement, shooterName);
+            this.matchData.isRunning = true;
         } else {
             // 즉시 결과 처리
             this.resolveGoalOutcome(outcome, isUserAttacking, minute, shootingQuality, null, shooterName);
@@ -1202,6 +1215,7 @@ class RealMatchEngine {
 
             this.ballZone = 'midfield';
             this.lastAction = 'kickoff';
+            this.ballHolder = null; // [추가] 킥오프 대기 상태
         } else if (outcome === 'block') {
             // 🧱 블록
             const blockMsg = this.getRandomCommentary('defense', 'block', { team: defendingTeamName });
@@ -1231,8 +1245,11 @@ class RealMatchEngine {
             
             event = { minute: minute, type: outcome, description: description, shooter: finalShooterName };
 
+            // [수정] 3. 슛 미스/선방 후 소유권 전환 (수비 팀에게 소유권 넘김)
+            const defTeamKey = isUserAttacking ? gameData.currentOpponent : gameData.selectedTeam;
+            this.ballHolder = this.getRandomPlayer(defTeamKey, ['GK', 'DF']);
             this.ballZone = 'midfield';
-            this.lastAction = 'turnover';
+            this.lastAction = 'turnover'; // 턴오버로 처리하여 다음 틱에 빌드업 시작
         }
 
         if (existingCardElement) {
@@ -1970,7 +1987,8 @@ function displayEvent(event, matchData) {
     const eventList = document.getElementById('eventList');
     const eventCard = document.createElement('div');
     
-    // eventList.innerHTML = ''; // [수정] 텍스트가 사라지는 문제 해결을 위해 삭제
+    // [수정] 3. 이벤트 중계 표시 방식 변경 (현재 이벤트만 표시)
+    eventList.innerHTML = ''; 
     
     // 이벤트 타입에 따라 클래스 추가
     eventCard.className = `event-card ${event.type}`;
