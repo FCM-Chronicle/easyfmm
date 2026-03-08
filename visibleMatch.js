@@ -509,19 +509,11 @@ class MatchVisualizer {
             this.ball.owner = null;
             this.ball.targetX = toUnit.x;
             this.ball.targetY = toUnit.y;
-            
-            // [수정] 4. 비주얼라이저 동기화: 패스 시작 시 공 위치 보정
-            // 공이 멀리 떨어져 있다면(예: 골킥, 슛 미스 후) 패스하는 선수 위치로 즉시 이동
-            const distToBall = Math.hypot(this.ball.x - fromUnit.x, this.ball.y - fromUnit.y);
-            if (distToBall > 10) {
-                this.ball.x = fromUnit.x;
-                this.ball.y = fromUnit.y;
-            }
 
             toUnit.targetX = (toUnit.x + this.ball.x) / 2;
             toUnit.targetY = (toUnit.y + this.ball.y) / 2;
             
-            // [수정] ② setTimeout 제거 및 도착 시 소유권 이전 설정
+            // [수정] 도착 시 소유권 이전 설정
             this.ball.pendingOwner = toUnit;
             this.ball.isMoving = true; // [신규] 이동 시작
             
@@ -579,10 +571,7 @@ class MatchVisualizer {
             // 시각적 위치도 즉시 업데이트
             shooter.x = Math.max(10, Math.min(90, shooter.x)); // 좌우도 너무 끝이 아니게
 
-            // [수정] 슈팅 위치 보정 없이 현재 위치에서 슈팅
             this.ball.owner = null;
-            this.ball.x = shooter.x;
-            this.ball.y = shooter.y;
             
             this.ball.targetX = goalX;
             this.ball.targetY = goalY;
