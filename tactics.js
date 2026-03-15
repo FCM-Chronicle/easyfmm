@@ -11,58 +11,58 @@
 // 1. FM 전문 역할(Role) 데이터 시스템
 // 가이드라인에 명시된 6대 스탯 가중치를 그대로 객체로 구현합니다.
 const RoleData = {
-    // 1. 공격진 (ST, SS, LW, RW)
-    attack: {
-        AF: { name: "전진형 포워드", attack: 0.20, technique: -0.05, mobility: 0.20, defense: -0.20, physical: 0.05, mentality: 0.05, stamina: 'high' },
-        CF: { name: "센터 포워드", attack: 0.15, technique: 0.15, mobility: 0.10, defense: 0.05, physical: 0.15, mentality: 0.10, stamina: 'very_high' },
-        P:  { name: "포처", attack: 0.30, technique: -0.20, mobility: 0.10, defense: -0.50, physical: -0.05, mentality: 0.10, stamina: 'low' },
-        DLF:{ name: "딥라잉 포워드", attack: 0.05, technique: 0.25, mobility: -0.10, defense: 0.05, physical: 0.15, mentality: 0.10, stamina: 'normal' },
-        TM: { name: "타겟맨", attack: 0.10, technique: -0.15, mobility: -0.25, defense: 0.05, physical: 0.35, mentality: 0.10, stamina: 'normal' },
-        F9: { name: "펄스 나인", attack: -0.05, technique: 0.30, mobility: 0.05, defense: 0, physical: -0.20, mentality: 0.25, stamina: 'high' },
-        PF: { name: "압박형 포워드", attack: -0.05, technique: -0.05, mobility: 0.20, defense: 0.25, physical: 0.20, mentality: 0.15, stamina: 'very_high' },
-        RD: { name: "라움도이터", attack: 0.25, technique: -0.10, mobility: -0.10, defense: -0.30, physical: -0.10, mentality: 0.35, stamina: 'low' },
-        W:  { name: "윙어", attack: 0.05, technique: 0.20, mobility: 0.25, defense: -0.10, physical: -0.05, mentality: 0, stamina: 'high' },
-        IF: { name: "인사이드 포워드", attack: 0.25, technique: 0.15, mobility: 0.15, defense: -0.20, physical: -0.05, mentality: 0.05, stamina: 'high' }
-    },
-    // 2. 미드필더진 (AM, CM, DM)
-    midfield: {
-        BBM: { name: "박스 투 박스", attack: 0.10, technique: 0.05, mobility: 0.15, defense: 0.10, physical: 0.15, mentality: 0.10, stamina: 'very_high' },
-        MEZ: { name: "메짤라", attack: 0.25, technique: 0.20, mobility: 0.15, defense: -0.20, physical: -0.10, mentality: 0.05, stamina: 'very_high' },
-        DLP: { name: "딥라잉 플레이메이커", attack: -0.10, technique: 0.30, mobility: -0.15, defense: 0.15, physical: 0.05, mentality: 0.25, stamina: 'low' },
-        BWM: { name: "볼 위닝 미드필더", attack: -0.20, technique: -0.20, mobility: 0.15, defense: 0.35, physical: 0.25, mentality: 0.10, stamina: 'very_high' },
-        AP:  { name: "전진형 플레이메이커", attack: 0.15, technique: 0.30, mobility: 0, defense: -0.25, physical: -0.15, mentality: 0.25, stamina: 'normal' },
-        REG: { name: "레지스타", attack: 0.05, technique: 0.40, mobility: -0.15, defense: -0.25, physical: -0.20, mentality: 0.35, stamina: 'normal' },
-        CAR: { name: "카릴레로", attack: -0.15, technique: 0.05, mobility: 0.05, defense: 0.20, physical: 0.10, mentality: 0.15, stamina: 'high' },
-        EG:  { name: "엔간체", attack: 0.15, technique: 0.35, mobility: -0.60, defense: -0.30, physical: -0.20, mentality: 0.35, stamina: 'low' },
-        SS:  { name: "섀도우 스트라이커", attack: 0.30, technique: 0.15, mobility: 0.15, defense: -0.25, physical: -0.05, mentality: 0.15, stamina: 'high' }
-    },
-    // 3. 수비진 (FB, WB, CB)
-    defense: {
-        BPD: { name: "볼 플레잉 수비수", attack: 0.05, technique: 0.25, mobility: 0, defense: 0.15, physical: 0.05, mentality: 0.20, stamina: 'normal' },
-        CD:  { name: "중앙 수비수", attack: 0, technique: -0.05, mobility: 0, defense: 0.25, physical: 0.25, mentality: 0.10, stamina: 'normal' },
-        NCB: { name: "안정형 수비수", attack: -0.40, technique: -0.40, mobility: -0.10, defense: 0.35, physical: 0.30, mentality: 0.05, stamina: 'low' },
-        IWB: { name: "인버티드 윙백", attack: 0.05, technique: 0.25, mobility: 0.05, defense: 0.10, physical: 0, mentality: 0.20, stamina: 'high' },
-        CWB: { name: "완성형 윙백", attack: 0.25, technique: 0.20, mobility: 0.20, defense: -0.20, physical: 0, mentality: 0.05, stamina: 'very_high' },
-        LIB: { name: "리베로", attack: 0.15, technique: 0.30, mobility: 0.10, defense: 0.15, physical: 0, mentality: 0.25, stamina: 'high' },
-        FB:  { name: "풀백", attack: -0.05, technique: 0.05, mobility: 0.10, defense: 0.20, physical: 0.10, mentality: 0.05, stamina: 'normal' },
-        WB:  { name: "윙백", attack: 0.15, technique: 0.15, mobility: 0.20, defense: 0, physical: 0.05, mentality: 0.05, stamina: 'high' }
-    }
+	// 1. 공격진 (ST, SS, LW, RW)
+	attack: {
+		AF: { name: "전진형 포워드", attack: 0.20, technique: -0.05, mobility: 0.20, defense: -0.20, physical: 0.05, mentality: 0.05, stamina: 'high' },
+		CF: { name: "센터 포워드", attack: 0.15, technique: 0.15, mobility: 0.10, defense: 0.05, physical: 0.15, mentality: 0.10, stamina: 'very_high' },
+		P:  { name: "포처", attack: 0.30, technique: -0.20, mobility: 0.10, defense: -0.50, physical: -0.05, mentality: 0.10, stamina: 'low' },
+		DLF:{ name: "딥라잉 포워드", attack: 0.05, technique: 0.25, mobility: -0.10, defense: 0.05, physical: 0.15, mentality: 0.10, stamina: 'normal' },
+		TM: { name: "타겟맨", attack: 0.10, technique: -0.15, mobility: -0.25, defense: 0.05, physical: 0.35, mentality: 0.10, stamina: 'normal' },
+		F9: { name: "펄스 나인", attack: -0.05, technique: 0.30, mobility: 0.05, defense: 0, physical: -0.20, mentality: 0.25, stamina: 'high' },
+		PF: { name: "압박형 포워드", attack: -0.05, technique: -0.05, mobility: 0.20, defense: 0.25, physical: 0.20, mentality: 0.15, stamina: 'very_high' },
+		RD: { name: "라움도이터", attack: 0.25, technique: -0.10, mobility: -0.10, defense: -0.30, physical: -0.10, mentality: 0.35, stamina: 'low' },
+		W:  { name: "윙어", attack: 0.05, technique: 0.20, mobility: 0.25, defense: -0.10, physical: -0.05, mentality: 0, stamina: 'high' },
+		IF: { name: "인사이드 포워드", attack: 0.25, technique: 0.15, mobility: 0.15, defense: -0.20, physical: -0.05, mentality: 0.05, stamina: 'high' }
+	},
+	// 2. 미드필더진 (AM, CM, DM)
+	midfield: {
+		BBM: { name: "박스 투 박스", attack: 0.10, technique: 0.05, mobility: 0.15, defense: 0.10, physical: 0.15, mentality: 0.10, stamina: 'very_high' },
+		MEZ: { name: "메짤라", attack: 0.25, technique: 0.20, mobility: 0.15, defense: -0.20, physical: -0.10, mentality: 0.05, stamina: 'very_high' },
+		DLP: { name: "딥라잉 플레이메이커", attack: -0.10, technique: 0.30, mobility: -0.15, defense: 0.15, physical: 0.05, mentality: 0.25, stamina: 'low' },
+		BWM: { name: "볼 위닝 미드필더", attack: -0.20, technique: -0.20, mobility: 0.15, defense: 0.35, physical: 0.25, mentality: 0.10, stamina: 'very_high' },
+		AP:  { name: "전진형 플레이메이커", attack: 0.15, technique: 0.30, mobility: 0, defense: -0.25, physical: -0.15, mentality: 0.25, stamina: 'normal' },
+		REG: { name: "레지스타", attack: 0.05, technique: 0.40, mobility: -0.15, defense: -0.25, physical: -0.20, mentality: 0.35, stamina: 'normal' },
+		CAR: { name: "카릴레로", attack: -0.15, technique: 0.05, mobility: 0.05, defense: 0.20, physical: 0.10, mentality: 0.15, stamina: 'high' },
+		EG:  { name: "엔간체", attack: 0.15, technique: 0.35, mobility: -0.60, defense: -0.30, physical: -0.20, mentality: 0.35, stamina: 'low' },
+		SS:  { name: "섀도우 스트라이커", attack: 0.30, technique: 0.15, mobility: 0.15, defense: -0.25, physical: -0.05, mentality: 0.15, stamina: 'high' }
+	},
+	// 3. 수비진 (FB, WB, CB)
+	defense: {
+		BPD: { name: "볼 플레잉 수비수", attack: 0.05, technique: 0.25, mobility: 0, defense: 0.15, physical: 0.05, mentality: 0.20, stamina: 'normal' },
+		CD:  { name: "중앙 수비수", attack: 0, technique: -0.05, mobility: 0, defense: 0.25, physical: 0.25, mentality: 0.10, stamina: 'normal' },
+		NCB: { name: "안정형 수비수", attack: -0.40, technique: -0.40, mobility: -0.10, defense: 0.35, physical: 0.30, mentality: 0.05, stamina: 'low' },
+		IWB: { name: "인버티드 윙백", attack: 0.05, technique: 0.25, mobility: 0.05, defense: 0.10, physical: 0, mentality: 0.20, stamina: 'high' },
+		CWB: { name: "완성형 윙백", attack: 0.25, technique: 0.20, mobility: 0.20, defense: -0.20, physical: 0, mentality: 0.05, stamina: 'very_high' },
+		LIB: { name: "리베로", attack: 0.15, technique: 0.30, mobility: 0.10, defense: 0.15, physical: 0, mentality: 0.25, stamina: 'high' },
+		FB:  { name: "풀백", attack: -0.05, technique: 0.05, mobility: 0.10, defense: 0.20, physical: 0.10, mentality: 0.05, stamina: 'normal' },
+		WB:  { name: "윙백", attack: 0.15, technique: 0.15, mobility: 0.20, defense: 0, physical: 0.05, mentality: 0.05, stamina: 'high' }
+	}
 };
 
 // 2. 체력(Stamina) 소모율 데이터
 const StaminaConsumption = {
-    low: 0.12,       // 분당 소모율 추가 하향
-    normal: 0.20,
-    high: 0.28,
-    very_high: 0.35
+	low: 0.12,       // 분당 소모율 추가 하향
+	normal: 0.20,
+	high: 0.28,
+	very_high: 0.35
 };
 
 // [신규] 체력 소모 대비 효율성 데이터 (체력을 덜 쓰면 효율이 떨어짐)
 const StaminaEfficiency = {
-    low: 0.75,       // 체력 소모 낮음 -> 효율 25% 감소 (페널티)
-    normal: 1.0,     // 보통 -> 기준점
-    high: 1.05,       // 높음 -> 효율 5% 증가 (보너스)
-    very_high: 1.1   // 매우 높음 -> 효율 10% 증가 (보너스)
+	low: 0.75,       // 체력 소모 낮음 -> 효율 25% 감소 (페널티)
+	normal: 1.0,     // 보통 -> 기준점
+	high: 1.05,       // 높음 -> 효율 5% 증가 (보너스)
+	very_high: 1.1   // 매우 높음 -> 효율 10% 증가 (보너스)
 };
 
 // 3. 전술 관련 로직을 관리하는 객체 (매니저)
@@ -113,14 +113,14 @@ const TacticsManager = {
         const weight = role[mappedStatType];
         
         // [수정] 효율성 반영
-        // 최종 파워 계산 공식: (라인 기본 스탯 * (1 + 롤 가중치)) * 체력 효율
-        const staminaKey = role.stamina || 'normal';
-        const efficiency = StaminaEfficiency[staminaKey] || 1.0;
+		// 최종 파워 계산 공식: (라인 기본 스탯 * (1 + 롤 가중치)) * 체력 효율
+		const staminaKey = role.stamina || 'normal';
+		const efficiency = StaminaEfficiency[staminaKey] || 1.0;
 
-        const finalPower = baseStat * (1 + weight) * efficiency;
+		const finalPower = baseStat * (1 + weight) * efficiency;
         
-        return Math.round(finalPower); // 계산 결과는 정수로 반환
-    },
+		return Math.round(finalPower); // 계산 결과는 정수로 반환
+	},
 
     /**
      * 특정 역할의 체력 소모 키를 반환합니다.
@@ -138,7 +138,7 @@ const TacticsManager = {
      * @returns {number} 분당 체력 소모율
      */
     getStaminaConsumptionRate(staminaKey) {
-        return StaminaConsumption[staminaKey] || StaminaConsumption.normal;
+		return StaminaConsumption[staminaKey] || StaminaConsumption.normal;
     },
 
     /**
@@ -147,7 +147,7 @@ const TacticsManager = {
      * @returns {number} 효율성 계수 (예: 0.85, 1.0, 1.2)
      */
     getStaminaEfficiency(staminaKey) {
-        return StaminaEfficiency[staminaKey] || 1.0;
+		return StaminaEfficiency[staminaKey] || 1.0;
     }
 };
 
@@ -161,19 +161,25 @@ const DNAManager = {
             attack: "공격",
             speed: "스피드",
             technique: "기술",
-            physical: "피지컬"
+            physical: "피지컬",
+            defense: "수비",
+            mentality: "정신력"
         },
         midfield: {
             technique: "기술",
             attack: "공격",
             defense: "수비",
-            mentality: "정신력"
+            mentality: "정신력",
+            speed: "스피드",
+            physical: "피지컬"
         },
         defense: {
             defense: "수비",
             speed: "스피드",
             physical: "피지컬",
-            mentality: "정신력"
+            mentality: "정신력",
+            attack: "공격",
+            technique: "기술"
         }
     },
 
@@ -182,9 +188,9 @@ const DNAManager = {
         console.log('🧬 DNAManager.initialize() called.');
         if (!gameData.lineStats) {
             gameData.lineStats = {
-                attack: { ovr: 0, totalPoints: 0, usedPoints: 0, stats: { attack: 0, speed: 0, technique: 0, physical: 0 }, stamina: 100, lastUpdate: 0 },
-                midfield: { ovr: 0, totalPoints: 0, usedPoints: 0, stats: { technique: 0, attack: 0, defense: 0, mentality: 0 }, stamina: 100, lastUpdate: 0 },
-                defense: { ovr: 0, totalPoints: 0, usedPoints: 0, stats: { defense: 0, speed: 0, physical: 0, mentality: 0 }, stamina: 100, lastUpdate: 0 }
+                attack: { ovr: 0, totalPoints: 0, usedPoints: 0, stats: { attack: 0, speed: 0, technique: 0, physical: 0, defense: 0, mentality: 0 }, stamina: 100, lastUpdate: 0 },
+                midfield: { ovr: 0, totalPoints: 0, usedPoints: 0, stats: { technique: 0, attack: 0, defense: 0, mentality: 0, speed: 0, physical: 0 }, stamina: 100, lastUpdate: 0 },
+                defense: { ovr: 0, totalPoints: 0, usedPoints: 0, stats: { defense: 0, speed: 0, physical: 0, mentality: 0, attack: 0, technique: 0 }, stamina: 100, lastUpdate: 0 }
             };
         }
 
@@ -246,16 +252,17 @@ const DNAManager = {
 
     setLinePoints(line, ovr) {
         gameData.lineStats[line].ovr = ovr;
-        gameData.lineStats[line].totalPoints = ovr * 4;
+        // [수정] 6개 스탯 기준으로 총 포인트 변경 (OVR * 6)
+        gameData.lineStats[line].totalPoints = ovr * 6;
     },
 
     // 포인트를 균등하게 자동 분배 (초기화용)
     autoDistribute(line) {
         const lineData = gameData.lineStats[line];
         const total = lineData.totalPoints;
-        const statKeys = Object.keys(this.statDefinitions[line]);
-        const baseValue = Math.floor(total / 4);
-        let remainder = total % 4;
+        const statKeys = Object.keys(lineData.stats); // 6개 스탯 키
+        const baseValue = Math.floor(total / statKeys.length);
+        let remainder = total % statKeys.length;
 
         statKeys.forEach(key => {
             lineData.stats[key] = baseValue;

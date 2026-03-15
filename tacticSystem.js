@@ -1106,6 +1106,43 @@ class RealMatchEngine {
     // [신규] 턴오버(수비 성공) 처리
     handleTurnover(isUserAttacking, minute) {
         const defTeamKey = isUserAttacking ? gameData.currentOpponent : gameData.selectedTeam;
+        const atkTeamKey = isUserAttacking ? gameData.selectedTeam : gameData.currentOpponent;
+        const defTeamName = teamNames[defTeamKey];
+        
+        const defender = this.getRandomPlayer(defTeamKey, ['DF', 'MF']);
+        const attacker = this.ballHolder; // 공을 잃은 선수
+
+        // [신규] 피지컬 경합 로직
+        if (defender && attacker) {
+            const defLine = defender.position === 'DF' ? 'defense' : 'midfield';
+            const atkLine = attacker.position === 'FW' ? 'attack' : 'midfield';
+
+            const defIsUser = defTeamKey === gameData.selectedTeam;
+            const atkIsUser = atkTeamKey === gameData.selectedTeam;
+
+            const defPhysical = this.getLinePower(defIsUser, defLine, 'physical');
+            const defMental = this.getLinePower(defIsUser, defLine, 'mentality');
+            const atkPhysical = this.getLinePower(atkIsUser, atkLine, 'physical');
+            const atkMental = this.getLinePower(atkIsUser, atkLine, 'mentality');
+
+            const defScore = defPhysical * 0.6 + defMental * 0.4 + Math.random() * 20;
+            const atkScore = atkPhysical * 0.6 + atkMental * 0.4 + Math.random() * 20;
+
+            if (defScore <= atkScore) {
+                // 경합 실패, 공격권 유지
+                const event = {
+                    minute: minute,
+                    type: 'dribble',
+                    description: `💪 ${attacker.name}, 강력한 피지컬로 공을 지켜냅니다!`,
+                    player: attacker.name
+                };
+                displayEvent(event, this.matchData);
+                return; // 턴오버 로직 종료
+            }
+        }
+
+        // 경합 성공 또는 경합 로직 미실행 시 턴오버 진행
+        const defTeamKey = isUserAttacking ? gameData.currentOpponent : gameData.selectedTeam;
         const defTeamName = teamNames[defTeamKey];
         
         const defender = this.getRandomPlayer(defTeamKey, ['DF', 'MF']);
@@ -1147,9 +1184,13 @@ class RealMatchEngine {
         
         // [수정] 슈터 결정: 공을 가진 선수가 있다면 그 선수가 슈팅
         let shooterName;
+        let shooterMental = 70; // 기본 정신력
         const attackingTeamKey = isUserAttacking ? gameData.selectedTeam : gameData.currentOpponent;
         if (this.ballHolder && this.ballHolder.team === attackingTeamKey) {
             shooterName = this.ballHolder.name;
+            const shooterLine = this.ballHolder.position === 'FW' ? 'attack' : 'midfield';
+            shooterMental = this.getLinePower(isUserAttacking, shooterLine, 'mentality');
+
             // [수정] 수비수, 골키퍼는 슈팅 불가. 미드필더도 50% 확률로 패스 전환.
             if (this.ballHolder.position === 'GK' || this.ballHolder.position === 'DF' || (this.ballHolder.position === 'MF' && Math.random() < 0.5)) {
                 this.generatePassEvent(isUserAttacking, minute);
@@ -1157,19 +1198,22 @@ class RealMatchEngine {
             }
         } else {
             shooterName = this.getShooter(isUserAttacking);
+            // 슈터의 정신력 가져오기 (라인 평균)
+            const shooterLine = 'attack'; // 슈터는 보통 공격수
+            shooterMental = this.getLinePower(isUserAttacking, shooterLine, 'mentality');
         }
 
         // [밸런스 수정] 골 확률 상향 (슈팅 찬스가 줄었으므로 결정력 증가)
         // 기존: 0.05 + ... -> 수정: 0.15 + ...
-        let goalChance = 0.15 + (powerDiff * 0.001);
+        let goalChance = 0.22 + (powerDiff * 0.0012); // [밸런스] 골 결정력 상향 조정
         
         // [추가] 월드컵 모드일 경우 골 확률 추가 하향 (대량 득점 방지)
         if (gameData.isWorldCupMode) {
             goalChance = 0.12 + (powerDiff * 0.001);
         }
         
-        // 최소 5%, 최대 50%로 제한
-        goalChance = Math.max(0.05, Math.min(0.50, goalChance));
+        // 최소 8%, 최대 65%로 제한
+        goalChance = Math.max(0.08, Math.min(0.65, goalChance));
 
         // 슈팅 퀄리티 텍스트 결정 (확률 기반)
         if (goalChance >= 0.15) shootingQuality = 'decisive';
@@ -1187,6 +1231,11 @@ class RealMatchEngine {
             goalChance *= 0.8; // 체력 50% 미만 시 골 확률 20% 감소
         }
 
+        // [신규] 정신력에 따른 난수 제어 (결정력)
+        // 정신력이 100이면 노이즈 0, 50이면 +-25% 노이즈
+        const mentalNoise = (Math.random() - 0.5) * ((100 - shooterMental) / 100) * 0.5;
+        goalChance *= (1 + mentalNoise);
+
         // === 결과 결정 ===
         let outcome = 'miss';
         if (isBlocked) {
@@ -1199,35 +1248,9 @@ class RealMatchEngine {
             outcome = 'miss';
         }
 
-        // === 몰입감 모드 확인 ===
-        const immersionMode = gameData.settings ? gameData.settings.immersionMode !== false : true;
-
-        if (immersionMode) {
-            // 1. 경기 일시정지
-            this.matchData.isRunning = false;
-
-            // 2. 찬스 카드 생성 및 표시
-            const attackingTeamName = isUserAttacking ? teamNames[gameData.selectedTeam] : teamNames[gameData.currentOpponent];
-            const suspenseEvent = {
-                minute: minute,
-                type: 'chance',
-                description: `🔥 ${attackingTeamName}, 결정적인 슈팅 기회! 과연?`,
-                player: shooterName // [추가] 찬스를 잡은 선수 정보 전달
-            };
-            const cardElement = displayEvent(suspenseEvent, this.matchData);
-
-            // 3. 하이라이트 효과 적용
-            const eventList = document.getElementById('eventList');
-            eventList.classList.add('dimmed');
-            cardElement.classList.add('highlight');
-
-            // [수정] 2. 슈팅 전 4초 대기 삭제 (즉시 진행)
-            this.resolveGoalOutcome(outcome, isUserAttacking, minute, shootingQuality, cardElement, shooterName);
-            this.matchData.isRunning = true;
-        } else {
-            // 즉시 결과 처리
-            this.resolveGoalOutcome(outcome, isUserAttacking, minute, shootingQuality, null, shooterName);
-        }
+        // [수정] 몰입감 모드(일시정지 및 블러 효과) 제거 요청에 따라 관련 로직 삭제
+        // 즉시 결과 처리
+        this.resolveGoalOutcome(outcome, isUserAttacking, minute, shootingQuality, null, shooterName);
     }
 
     // [신규] 골 결과 처리 및 이벤트 표시 (분리됨)
@@ -1500,6 +1523,13 @@ function startMatch() {
     const matchEngine = new RealMatchEngine(matchData);
     
     matchData.engine = matchEngine; // [추가] 교체 시 스태미나 재계산을 위해 엔진 인스턴스 전달
+
+    // [신규] 매치엔진 아키텍처: Visualizer에 스탯 데이터 전달
+    if (window.matchVisualizer) {
+        // RealMatchEngine 생성 후 즉시 스탯 데이터 설정
+        window.matchVisualizer.setStats(matchEngine.userStats, matchEngine.aiStats);
+    }
+
     // 킥오프 버튼에 엔진 전달
     showKickoffButton(matchData, matchEngine, strengthDiff);
 }

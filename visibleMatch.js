@@ -1,10 +1,11 @@
 // c:\Users\jinuj\vsc\easyfmm\visibleMatch.js
 
 class VisualUnit {
-    constructor(id, name, role, positionType, teamType, startX, startY) {
+    constructor(id, name, role, positionType, teamType, startX, startY, stats) {
         this.id = id;
         this.name = name;
         this.role = role;
+        this.stats = stats || { attack: 70, speed: 70, technique: 70, physical: 70, defense: 70, mentality: 70 }; // [신규] 스탯
         this.positionType = positionType;
         this.teamType = teamType; // 'home' or 'away'
         
@@ -300,6 +301,10 @@ class MatchVisualizer {
         this.isProcessingEvent = false;
         this.eventDelayTimer = null;
         
+        // [신규] 라인별 스탯 저장소
+        this.homeLineStats = null;
+        this.awayLineStats = null;
+
         // [신규] 애니메이션 연출 중 일시 정지 플래그 (슛 등)
         this.isPausedForAnimation = false;
 
@@ -331,6 +336,13 @@ class MatchVisualizer {
 
         this.isRunning = false;
         this.render();
+    }
+
+    // [신규] RealMatchEngine으로부터 스탯 데이터를 받기 위한 메서드
+    setStats(userStats, aiStats) {
+        const isUserHome = gameData.isHomeGame;
+        this.homeLineStats = isUserHome ? userStats : aiStats;
+        this.awayLineStats = isUserHome ? aiStats : userStats;
     }
 
     stop() {
@@ -384,43 +396,33 @@ class MatchVisualizer {
             const placeLine = (linePlayers, y) => {
                 const count = linePlayers.length;
                 linePlayers.forEach((p, i) => { 
-                    // [수정] 1. 포메이션 데이터 완벽 동기화
-                    // formation.js에서 저장된 좌표(formationX, formationY)가 있다면 우선 사용
-                    // [추가] p 객체에 없으면 gameData.squad에서 원본을 찾아 확인 (안전 장치)
+                     // 1. 역할(Role) 결정
+                    let role = 'BBM'; // 기본값
+                    if (teamType === 'home' && gameData.playerRoles && gameData.playerRoles[p.name]) {
+                        role = gameData.playerRoles[p.name];
+                    } else {
+                        // AI 팀이거나, 유저팀이지만 역할 설정이 안된 경우 포지션 기반 기본 역할 부여
+                        if (p.position === 'FW') role = 'AF';
+                        else if (p.position === 'MF') role = 'BBM';
+                        else if (p.position === 'DF') role = 'CD';
+                        else if (p.position === 'GK') role = 'GK';
+                    }
+
+                    // 2. 포메이션 좌표 결정
                     let fX = p.formationX;
                     let fY = p.formationY;
                     
                     if (teamType === 'home' && (fX === undefined || fY === undefined)) {
-                        // gameData.squad에서 이름으로 검색
+                        
                         const squad = gameData.squad;
                         const allSquad = [squad.gk, ...squad.df, ...squad.mf, ...squad.fw].filter(sp => sp);
                         const original = allSquad.find(sp => sp.name === p.name);
-                        if (original) {
-                            fX = original.formationX;
-                            fY = original.formationY;
-                        }
-                    }
+                        if (original) { fX = original.formationX; fY = original.formationY; }
 
-                    if (fX !== undefined && fY !== undefined) {
-                        let role = 'BBM'; // 기본값
-                        if (gameData.playerRoles && gameData.playerRoles[p.name]) {
-                            role = gameData.playerRoles[p.name];
-                        }
-                        this.units.push(new VisualUnit(p.name, p.name, role, p.position, teamType, fX, fY));
-                        return;
                     }
-
-                    const x = (100 / (count + 1)) * (i + 1);
-                    let role = 'BBM';
-                    if (teamType === 'home' && gameData.playerRoles && gameData.playerRoles[p.name]) {
-                        role = gameData.playerRoles[p.name];
-                    } else {
-                        if (p.position === 'FW') role = 'AF';
-                        else if (p.position === 'MF') role = 'BBM';
-                        else if (p.position === 'DF') role = 'CD';
-                        else role = 'GK';
-                    }
-                    this.units.push(new VisualUnit(p.name, p.name, role, p.position, teamType, x, y));
+                    const startX = (fX !== undefined) ? fX : (100 / (count + 1)) * (i + 1);
+                    const startY = (fY !== undefined) ? fY : y;
+                    this.units.push(new VisualUnit(p.name, p.name, role, p.position, teamType, startX, startY));
                 });
             };
 
@@ -437,10 +439,10 @@ class MatchVisualizer {
     // [수정] 이벤트를 큐에 추가
     processMatchEvent(event) {
         if (!event) return;
-        // [신규] ② 핑퐁 효과 방지: 새 이벤트가 오면 기존 이동 상태(예정된 소유권) 초기화
-        if (this.ball) {
+        // [수정] 슈팅 중에는 공의 상태(소유 예정자)를 초기화하지 않아, 공중에서 공의 경로가 바뀌는 문제를 해결합니다.
+        // 슈팅(isShooting) 상태는 공이 멈췄을 때만 해제되도록 하여 다음 이벤트가 슈팅 애니메이션을 방해하지 못하게 합니다.
+        if (this.ball && !this.ball.isShooting) {
             this.ball.pendingOwner = null;
-            this.ball.isShooting = false; // [수정] 4. 새 이벤트 발생 시 슈팅 상태 강제 해제 (동기화)
         }
         this.eventQueue.push(event);
     }
@@ -505,6 +507,11 @@ class MatchVisualizer {
         const toUnit = this.findUnit(event.to);
 
         if (fromUnit && toUnit) {
+            // [수정] 패스 시 이전 소유자의 공 소유 상태를 명확히 해제합니다.
+            // 이로 인해 다른 선수가 공을 소유한 상태에서 패스가 시작되는 시각적 오류를 방지합니다.
+            if (this.ball.owner) {
+                this.ball.owner.hasBall = false;
+            }
             fromUnit.hasBall = false;
             this.ball.owner = null;
             this.ball.targetX = toUnit.x;
@@ -553,6 +560,11 @@ class MatchVisualizer {
     handleShoot(event) {
         const shooter = this.findUnit(event.shooter);
         if (shooter) {
+            // [수정] 슈팅 직전, 이전 소유자(예: 드리블하던 상대 선수)의 공 소유 상태를 명확히 해제합니다.
+            // 이를 통해 상대가 공을 가진 채로 우리 팀이 골을 넣는 것처럼 보이는 동기화 문제를 해결합니다.
+            if (this.ball.owner) {
+                this.ball.owner.hasBall = false;
+            }
             shooter.hasBall = false; // [수정] 슈팅 후 공 소유 해제 (얼음 방지)
             const isHome = shooter.teamType === 'home';
             const goalY = isHome ? 0 : 100;
@@ -621,6 +633,10 @@ class MatchVisualizer {
         if (event.player) {
             const unit = this.findUnit(event.player);
             if (unit) {
+                // [수정] 태클 발생 시 이전 소유자의 공 소유 상태를 명확히 해제합니다.
+                if (this.ball.owner) {
+                    this.ball.owner.hasBall = false;
+                }
                 // [수정] ③ 소유권 전환 연출 (튕겨 나갔다 잡기)
                 this.ball.owner = null;
                 // 공이 살짝 튀는 연출 (랜덤 방향 2~3 거리)
@@ -634,6 +650,9 @@ class MatchVisualizer {
                 this.ball.isMoving = true; // [신규] 튕겨 나가는 움직임
             }
         } else {
+            if (this.ball.owner) {
+                this.ball.owner.hasBall = false;
+            }
             this.ball.owner = null;
         }
     }
@@ -757,11 +776,11 @@ class MatchVisualizer {
             }
 
             const teamShift = unit.teamType === 'home' ? homeShift : awayShift;
-            let baseX = unit.baseX;
+            const baseX = unit.baseX;
             let baseY = unit.baseY + teamShift;
 
             const isNearest = (unit === nearestDefender);
-            const roleVector = this.getRoleVector(unit, ballX, ballY, ballOwnerTeam, isNearest);
+            const roleVector = this.getRoleVector(unit, ballX, ballY, ballOwnerTeam, isNearest, teamShift);
             
             let destX = baseX + roleVector.x;
             let destY = baseY + roleVector.y;
@@ -813,209 +832,117 @@ class MatchVisualizer {
         });
     }
 
-    getRoleVector(unit, ballX, ballY, ballOwnerTeam, isNearestDefender) {
+    // [수정] 매치 엔진 아키텍처에 따른 신규 AI 로직
+    getRoleVector(unit, ballX, ballY, ballOwnerTeam, isNearestDefender, teamShift) {
         const vector = { x: 0, y: 0 };
         const isAttacking = unit.teamType === ballOwnerTeam;
         const isHome = unit.teamType === 'home';
         const forwardDir = isHome ? -1 : 1; 
+        const mental = unit.stats ? unit.stats.mentality : 70;
 
-        unit.defenseState = 'none'; // 기본 상태 초기화
-
-        // [Deep Tactics] 공격 방향 설정
-        let widthFactor = 1.0;
-        if (gameData.deepTactics) {
-            if (gameData.deepTactics.attackFocus === 'wing') widthFactor = 1.5; // 측면 넓게
-            else if (gameData.deepTactics.attackFocus === 'center') widthFactor = 0.7; // 중앙 좁게
+        // 정신력 피로: 판단 지연 (낮을수록 더 자주 망설임)
+        if (Math.random() < (100 - mental) * 0.001) {
+            return { x: 0, y: 0 }; // 행동 안 함
         }
 
-        // [신규] 공 소유 시 전진 로직 (자석 로직 무시)
+        // STEP 1: 공 소유 여부 판단
         if (unit.hasBall) {
             vector.y = forwardDir * 40; // 골대 방향으로 강하게 전진
+            // 드리블 시 중앙 집중/측면 집중 전술 반영
+            if (gameData.deepTactics.attackFocus === 'center') {
+                vector.x = (50 - unit.x) * 0.1;
+            } else if (gameData.deepTactics.attackFocus === 'wing') {
+                const side = unit.baseX < 50 ? 10 : 90;
+                vector.x = (side - unit.x) * 0.1;
+            }
             return vector;
         }
 
+        // STEP 2: 공격 / 수비 상황 판단
         if (isAttacking) {
-            // [수정] 공격 시 우르르 몰려가지 않도록 기본 대형 유지
-            // 공이 있는 쪽으로 약간만 쏠림 (전체 대형의 20% 정도만 이동)
-            const formationShiftX = (ballX - 50) * 0.15; // [수정] 0.2 -> 0.15 (쏠림 완화)
-            vector.x = formationShiftX;
+            // 공격 시 오프더볼 움직임
+            const attackFocus = gameData.deepTactics.attackFocus;
+            let xWeight = 1.0;
+            if (attackFocus === 'center' && unit.x > 30 && unit.x < 70) xWeight = 1.3;
+            if (attackFocus === 'wing' && (unit.x < 20 || unit.x > 80)) xWeight = 1.4;
 
-            // [신규] 3. 빌드업 지원(Support) 로직 추가
-            // 공을 가지지 않은 주변 동료들이 패스를 받기 위해 접근
-            if (!unit.hasBall) {
-                const distToBall = Math.hypot(unit.x - ballX, unit.y - ballY);
-                // 지원 거리 (10 ~ 40) 내에 있으면 공 쪽으로 이동
-                if (distToBall < 40 && distToBall > 10) {
-                    vector.x += (ballX - unit.x) * 0.08;
-                    vector.y += (ballY - unit.y) * 0.08;
-                }
-            }
+            // 역할별 로직
+            switch (unit.role) {
+                // 공격수
+                case 'AF': vector.y = forwardDir * 15 * xWeight; break;
+                case 'CF': vector.y = forwardDir * 12; break;
+                case 'P': vector.y = forwardDir * 18; break;
+                case 'DLF': vector.y = -forwardDir * 5; break;
+                case 'TM': vector.y = forwardDir * 5; break;
+                case 'F9': vector.y = -forwardDir * 8; break;
+                case 'PF': vector.y = forwardDir * 10; vector.x = (ballX - unit.x) * 0.1; break;
+                case 'RD': vector.x = (50 - unit.x) * 0.1; break; // 공간 탐색은 더 복잡한 로직 필요
+                case 'W': vector.y = forwardDir * 10 * xWeight; const sideW = unit.baseX < 50 ? 5 : 95; vector.x = (sideW - unit.x) * 0.2; break;
+                case 'IF': vector.y = forwardDir * 14 * xWeight; vector.x = (50 - unit.x) * 0.1; break;
+                case 'SS': vector.y = forwardDir * 16; break;
 
-            // [수정] 풀백 오버래핑 로직
-            if (['FB', 'WB', 'CWB', 'IWB'].includes(unit.role)) {
-                const inAttackingHalf = isHome ? ballY < 50 : ballY > 50;
-                if (inAttackingHalf) {
-                    // 공격 진영에서는 과감하게 전진 (오버래핑)
-                    vector.y = forwardDir * 25; 
-                    if (unit.role === 'IWB') {
-                        vector.x = (50 - unit.x) * 0.3; // 중앙으로 좁힘
-                    } else {
-                        const side = unit.x < 50 ? 5 : 95;
-                        vector.x = (side - unit.x) * 0.1 * widthFactor; // 측면 벌림 (Deep Tactics 반영)
-                    }
-                } else {
-                    vector.y = forwardDir * 10; // 빌드업 지원
-                }
-            } else {
-                // 역할별 오프 더 볼 움직임 (기본 위치 기준)
-                switch (unit.role) {
-                    case 'AF': 
-                        // [Deep Tactics] 역습 시 AF의 직선 침투
-                        // 수비 라인이 깊고 압박이 낮을 때(텐백 역습)
-                        if (gameData.deepTactics && gameData.deepTactics.defensiveLine === 'deep' && gameData.deepTactics.pressIntensity === 'low') {
-                             vector.y = forwardDir * 40; // 미친듯이 전진
-                        } else {
-                             vector.y = forwardDir * 15; 
-                        }
-                        break;
-                    case 'CF': vector.y = forwardDir * 12; vector.x = (50 - unit.x) * 0.05; break;
-                    case 'P': 
-                        const targetY = isHome ? 10 : 90;
-                        vector.y = (targetY - unit.y) * 0.2; 
-                        break; // [수정] 2. 회귀 본능 강화: 역할별 로직이 없으면 기본적으로 0,0 반환하여 baseX, baseY로 복귀
-                    case 'DLF': vector.y = -forwardDir * 2; break;
-                    case 'TM': vector.y = forwardDir * 8; break;
-                    case 'F9': vector.y = -forwardDir * 5; break;
-                    case 'PF': vector.x = (ballX - unit.x) * 0.2; vector.y = forwardDir * 10; break;
-                    case 'RD': vector.x = (50 - unit.x) * 0.15; vector.y = forwardDir * 10; break;
-                    case 'W': 
-                        const sideW = unit.x < 50 ? 5 : 95;
-                        vector.x = (sideW - unit.x) * 0.1 * widthFactor; // Deep Tactics 반영
-                        vector.y = forwardDir * 10;
-                        break;
-                    case 'IF': vector.x = (50 - unit.baseX) * 0.2; vector.y = forwardDir * 12; break; // unit.x -> unit.baseX (기준점 고정)
-                    case 'BBM': vector.y = forwardDir * 8; vector.x += (ballX - unit.baseX) * 0.3; break; // 공 쪽으로 좀 더 이동
-                    case 'MEZ': 
-                        const targetX_MEZ = unit.x < 50 ? 25 : 75;
-                        vector.x = (targetX_MEZ - unit.x) * 0.1;
-                        vector.y = forwardDir * 10;
-                        break;
-                    case 'DLP': vector.y = -forwardDir * 3; break;
-                    case 'BWM': vector.x = (ballX - unit.x) * 0.15; vector.y = forwardDir * 2; break;
-                    case 'AP': vector.y = forwardDir * 10; vector.x += (ballX - unit.baseX) * 0.2; break;
-                    case 'REG': vector.y = -forwardDir * 1; break;
-                    case 'CAR': 
-                        const sideCAR = unit.x < 50 ? 20 : 80;
-                        vector.x = (sideCAR - unit.baseX) * 0.1;
-                        break;
-                    case 'EG': vector.x = 0; vector.y = 0; break;
-                    case 'SS': vector.y = forwardDir * 12; vector.x = (ballX - unit.x) * 0.1; break;
-                    case 'LIB': vector.y = forwardDir * 6; break;
-                    case 'BPD': vector.y = forwardDir * 4; break;
-                    case 'NCB': vector.y = -forwardDir * 2; break;
-                    case 'CD': vector.y = forwardDir * 2; break;
-                    default: 
-                        // 기본적으로 대형 유지 (vector 0,0)
-                        break;
-                }
+                // 미드필더
+                case 'BBM': const dynamicBaseY = (ballY + (unit.baseY + teamShift)) / 2; vector.y = (dynamicBaseY - unit.y) * 0.1; break;
+                case 'MEZ': const mezX = unit.baseX < 50 ? 25 : 75; vector.x = (mezX - unit.x) * 0.1; vector.y = forwardDir * 8; break;
+                case 'DLP': vector.y = (ballY - 10 * forwardDir - unit.y) * 0.05; break;
+                case 'BWM': vector.y = forwardDir * 5; break;
+                case 'AP': vector.y = forwardDir * 10; break;
+                case 'REG': vector.y = (ballY - 15 * forwardDir - unit.y) * 0.05; break;
+                case 'CAR': vector.y = 0; break;
+                case 'EG': vector.y = 0; vector.x = 0; break; // 움직임 최소화
+                case 'VOL': vector.y = forwardDir * 10; break;
+
+                // 수비수
+                case 'BPD': vector.y = forwardDir * 5; break;
+                case 'CD': vector.y = forwardDir * 2; break;
+                case 'NCB': vector.y = 0; break;
+                case 'LIB': vector.y = forwardDir * 8; break;
+                case 'IWB': vector.y = forwardDir * 6; vector.x = (50 - unit.x) * 0.2; break;
+                case 'CWB': vector.y = forwardDir * 15; break;
+                case 'FB': vector.y = forwardDir * 4; break;
+                case 'WB': vector.y = forwardDir * 8; break;
             }
         } else {
+            // 수비 상황
+            const pressIntensity = gameData.deepTactics.pressIntensity;
+            let pressRadius = 0;
+            if (pressIntensity === 'high') pressRadius = 30;
+            else if (pressIntensity === 'mid') pressRadius = 20;
+            else if (pressIntensity === 'low') pressRadius = 10;
+
             const distToBall = Math.hypot(unit.x - ballX, unit.y - ballY);
-            const isDangerZone = isHome ? (ballY > 60) : (ballY < 40);
 
-            // [수정] 수비 로직: 가장 가까운 선수만 압박 (나머지는 대형 유지)
-            if (isNearestDefender) { 
-                // 1. 능력치 가져오기 (DNA 연동)
-                let defenseStat = 50;
-                let mobilityStat = 50;
-                
-                // 유저 팀인지 확인
-                const isUserTeam = (unit.teamType === 'home' && gameData.isHomeGame) || (unit.teamType === 'away' && !gameData.isHomeGame);
-                
-                if (isUserTeam && gameData.lineStats) {
-                    let line = 'defense';
-                    if (unit.positionType === 'MF') line = 'midfield';
-                    else if (unit.positionType === 'FW') line = 'attack';
-                    
-                    defenseStat = gameData.lineStats[line].stats.defense || 50;
-                    mobilityStat = gameData.lineStats[line].stats.speed || 50;
-                }
+            // 압박 반경 내에 있거나, 가장 가까운 수비수일 경우 압박
+            if (isNearestDefender || distToBall < pressRadius) {
+                const decisionValue = ((unit.stats ? unit.stats.mentality : 70) * 0.6) + ((unit.stats ? unit.stats.defense : 70) * 0.4);
+                const pressureFactor = decisionValue / 100; // 0~1
 
-                // 2. 태클 트리거 (거리가 가깝고 쿨타임이 없을 때)
-                if (distToBall < 5 && unit.tackleTimer === 0) {
-                    // 태클 시도 확률 (수비 능력치 비례)
-                    if (Math.random() < (defenseStat / 2000)) { 
-                        unit.defenseState = 'tackle';
-                        unit.tackleTimer = 60; // 쿨타임 (약 1초)
-                    }
-                }
+                // 공과 우리 골대 사이의 지점을 목표로 압박
+                const goalX = 50;
+                const goalY = isHome ? 100 : 0;
+                const targetX = ballX + (goalX - ballX) * 0.2 * pressureFactor;
+                const targetY = ballY + (goalY - ballY) * 0.2 * pressureFactor;
 
-                if (unit.defenseState === 'tackle') {
-                    // 태클: 공을 향해 돌진 (기동력 비례 속도는 update에서 처리됨)
-                    vector.x = (ballX - unit.x); // 상대 위치로 직행 (baseX 무시를 위해 상대좌표 계산 필요하지만 여기선 offset 방식이므로)
-                    // getRoleVector는 offset을 반환하므로: Target - Base
-                    vector.x = ballX - unit.baseX;
-                    vector.y = ballY - unit.baseY;
-                } else {
-                    // 압박: 공 소유자와 골대 사이 길목 차단 (거리 유지)
-                    // [수정] 3. 압박(Pressure) 시퀀스 구현 (진로 차단)
-                    unit.defenseState = 'pressure';
-                    const goalX = 50;
-                    const goalY = isHome ? 100 : 0; // 수비해야 할 골대
-                    
-                    // 공에서 골대로 향하는 벡터 (수비수가 막아야 할 길목)
-                    const bgDx = goalX - ballX;
-                    const bgDy = goalY - ballY;
-                    const bgDist = Math.hypot(bgDx, bgDy);
-                    
-                    // 공 앞 10% 지점 (압박 위치) - 상대의 이동 경로 앞
-                    const pressureDist = 10; 
-                    
-                    // 공 소유자의 이동 예측 (velocity가 있다면 반영)
-                    // 여기서는 단순화하여 골대 방향 길목을 선점
-                    const targetX = ballX + (bgDx / bgDist) * pressureDist; 
-                    const targetY = ballY + (bgDy / bgDist) * pressureDist;
+                vector.x = (targetX - unit.baseX);
+                vector.y = (targetY - unit.baseY);
 
-                    vector.x = (targetX - unit.baseX);
-                    vector.y = (targetY - unit.baseY);
-                }
-            } else if (isDangerZone) {
-                const goalY = isHome ? 100 : 0; // 내 골대
-                let defenseAggression = 0.3;
-                if (['BWM', 'NCB', 'PF', 'CB'].includes(unit.role)) defenseAggression = 0.5;
-                else if (['CWB', 'WB', 'P', 'EG'].includes(unit.role)) defenseAggression = 0.15;
-
-                const targetDefX = ballX + (50 - ballX) * 0.2; // 공과 중앙 사이
-                const targetDefY = ballY + (goalY - ballY) * defenseAggression;
-                
-                // [수정] 수비 위기 시 공격수도 복귀하되 미드필더와 겹치지 않게 조정
-                if (unit.positionType === 'FW') {
-                    // 자신의 진영 방향으로 12만큼 추가 이동 (20 -> 12로 축소)
-                    vector.y = -forwardDir * 12; 
-                } else {
-                    // 수비 라인 조절은 calculateTeamShift에서 처리하므로 여기선 미세 조정만
-                    // vector.y = 0; // 기본적으로 라인 유지
+                // BWM, PF 역할은 더 공격적으로 압박
+                if (['BWM', 'PF'].includes(unit.role)) {
+                    vector.x = (ballX - unit.baseX);
+                    vector.y = (ballY - unit.baseY);
                 }
             } else {
-                // [Request 3] 자기 진영 우선 복귀 (자석 로직 제거)
-                // 공을 쫓지 않고, 자신의 기본 위치(baseX, baseY + shift)를 지키되
-                // 공의 좌우 위치에 따라 약간만 쉬프트 (Compact defense)
-                
-                // 수평 컴팩트 (공 쪽으로 10% 쏠림)
+                // 대형 유지: 공의 X좌표에 따라 살짝 이동 (컴팩트함)
                 vector.x = (ballX - unit.baseX) * 0.1;
-                
-                // 수직 컴팩트 (라인 유지)
-                // teamShift가 이미 라인을 조정했으므로 여기서는 추가적인 Y 이동을 최소화
-                
-                // [수정] 일반 수비 상황에서도 공격수 복귀 유도 (간격 유지)
-                if (unit.positionType === 'FW' && !isAttacking) {
-                    // 자신의 진영 방향으로 5만큼 추가 이동 (10 -> 5로 축소)
-                    vector.y = -forwardDir * 5;
-                } else {
-                    vector.y = 0; 
-                }
+                vector.y = 0; // Y축은 teamShift로 제어되므로 추가 이동 없음
             }
         }
+
+        // 최종적으로 정신력 기반 노이즈 추가
+        const noise = (100 - mental) / 1000; // 0 ~ 0.1
+        vector.x += (Math.random() - 0.5) * noise;
+        vector.y += (Math.random() - 0.5) * noise;
+
         return vector;
     }
 
