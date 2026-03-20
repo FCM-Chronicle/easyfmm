@@ -4635,6 +4635,7 @@ function runMatchSequence() {
 
     if (!modal) {
         startMatch(); // 모달 없으면 바로 시작
+        window.startMatch(); // 모달 없으면 바로 시작
         return;
     }
 
@@ -4689,6 +4690,7 @@ function runMatchSequence() {
             setTimeout(() => {
                 modal.style.display = 'none';
                 startMatch();
+                window.startMatch();
             }, 1500);
         }
         dayCount++;
