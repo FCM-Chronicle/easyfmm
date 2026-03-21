@@ -5,6 +5,25 @@ if (!gameData.lineRoles) {
     gameData.lineRoles = { attack: 'AF', midfield: 'BBM', defense: 'BPD' };
 }
 
+// [신규] 팀 컬러 데이터 (주요 팀)
+const TeamColors = {
+    "바르셀로나": ["#a50044", "#004170"], "레알_마드리드": "#ffffff", "맨체스터_시티": "skyblue", "리버풀": "#c8102e",
+    "토트넘_홋스퍼": "#ffffff", "파리_생제르맹": ["#004170", "#da291c"], "AC_밀란": ["#fb090b", "#000000"], "인터_밀란": ["#010e80", "#000000"],
+    "아스널": ["#ef0107", "#ffffff"], "나폴리": "skyblue", "첼시": "#034694", "바이에른_뮌헨": "#dc052d",
+    "아틀레티코_마드리드": ["#cb3524", "#ffffff"], "도르트문트": ["#fde100", "#000000"], "유벤투스": ["#000000", "#ffffff"],
+    "맨체스터_유나이티드": "#da291c", "FC_서울": ["#fc0000", "#000000"], "대한민국": "#ec0e27"
+};
+
+function getTeamColor(teamName) {
+    if (TeamColors[teamName]) return TeamColors[teamName];
+    // 팀 데이터가 없으면 이름 해시로 고유 색상 생성 (파스텔톤)
+    let hash = 0;
+    for (let i = 0; i < teamName.length; i++) {
+        hash = teamName.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return `hsl(${Math.abs(hash) % 360}, 70%, 50%)`;
+}
+
 // =========================================================================================
 // [PART 1] 유틸리티 함수 (전력 계산, 베스트 11 등)
 // =========================================================================================
@@ -205,13 +224,40 @@ function startMatch() {
     // (RealSoccerEngine은 deepenTactic.js에 정의되어 있음)
     const homeSquad = getSquadData(matchData.homeTeam);
     const awaySquad = getSquadData(matchData.awayTeam);
-    const engine = new RealSoccerEngine(homeSquad, awaySquad);
+    
+    // [수정] 양 팀의 전술 정보를 엔진에 전달
+    const homeTactic = (matchData.homeTeam === gameData.selectedTeam) ? gameData.currentTactic : tacticSystem.getOpponentTactic(matchData.homeTeam);
+    const awayTactic = (matchData.awayTeam === gameData.selectedTeam) ? gameData.currentTactic : tacticSystem.getOpponentTactic(matchData.awayTeam);
+
+    const engine = new RealSoccerEngine(homeSquad, awaySquad, homeTactic, awayTactic);
     
     matchData.engine = engine; // 엔진 참조 저장
+    
+    // [수정] 팀 컬러 가져오기 및 충돌 방지 (유니폼 색상 겹침 해결)
+    const homeColor = getTeamColor(matchData.homeTeam);
+    let awayColor = getTeamColor(matchData.awayTeam);
+
+    // 주 색상 추출 헬퍼 (배열이면 첫 번째 색상, 문자열이면 그대로)
+    const getPrimaryColor = (c) => Array.isArray(c) ? c[0] : c;
+    
+    const hPrimary = getPrimaryColor(homeColor);
+    const aPrimary = getPrimaryColor(awayColor);
+
+    // 색상이 같으면 원정 팀 색상 변경
+    if (hPrimary.toLowerCase() === aPrimary.toLowerCase()) {
+        // 홈이 흰색이면 원정은 검정, 아니면 원정은 흰색
+        if (hPrimary.toLowerCase() === '#ffffff' || hPrimary.toLowerCase() === 'white') {
+            awayColor = '#000000';
+        } else {
+            awayColor = '#ffffff';
+        }
+        console.log(`🎨 유니폼 색상 충돌 감지! 원정팀 색상을 ${awayColor}로 변경합니다.`);
+    }
 
     // 비주얼라이저 초기화
     if (window.matchVisualizer) {
-        window.matchVisualizer.init('matchVisualizerContainer', engine.players);
+        // [수정] 팀 컬러 전달
+        window.matchVisualizer.init('matchVisualizerContainer', engine.players, { home: homeColor, away: awayColor });
     } else {
         // 비주얼라이저가 없으면 캔버스 영역을 숨기거나 텍스트 모드로 동작
         console.warn("matchVisualizer not found. Playing in text mode.");
@@ -255,19 +301,28 @@ function startMatchSimulation(matchData, engine) {
 function simulateMatch(matchData, engine) {
     let tickCount = 0;
     matchData.seconds = 0; // [신규] 초 단위 정밀 시간 계산용
-    
-    const matchInterval = setInterval(function simulationTick() {
-        if (!matchData.isRunning) return;
+    const tickDuration = 60; // [수정] 140ms -> 60ms (약 16FPS 연산) : 훨씬 부드러운 움직임
+
+    // [최적화] setInterval 대신 setTimeout 재귀 호출 사용
+    // 처리 시간이 길어져도 메인 스레드를 차단하지 않도록 함
+    function gameLoop() {
+        // 경기 종료 상태면 루프 중단
+        if (matchData.isEnded) return;
+
+        // 일시정지 상태면 잠시 대기 후 다시 체크 (폴링)
+        if (!matchData.isRunning) {
+            matchData.timeoutId = setTimeout(gameLoop, 500);
+            return;
+        }
 
         // 1. 경기 종료 체크
         if (matchData.minute >= 90) {
-            clearInterval(matchInterval);
-            if (!matchData.isEnded) {
-                matchData.isEnded = true;
-                endMatch(matchData);
-            }
+            matchData.isEnded = true;
+            endMatch(matchData);
             return;
         }
+
+        const startTime = performance.now();
 
         // 2. 엔진 업데이트 (1틱 = 10초)
         const snapshot = engine.update();
@@ -307,22 +362,33 @@ function simulateMatch(matchData, engine) {
             const event = createInjuryEvent(matchData, injuryResult);
             displayEvent(event, matchData);
             if (injuryResult.isUserTeam) handleForcedSubstitution(injuryResult.player, matchData);
+            // 부상 발생 시 처리를 위해 루프는 계속 돌되 다음 턴에 isRunning 체크로 대기 상태 진입
         }
 
         // 6. 시간 업데이트
         tickCount++;
         
-        // [수정] 1틱당 10초 증가 (6틱 = 1분)
-        matchData.seconds += 10;
-        if (matchData.seconds >= 60) {
-            matchData.minute++;
-            matchData.seconds = 0;
-            document.getElementById('matchTime').textContent = matchData.minute + '분';
+        // [수정] 세레머니 중에는 시간 멈춤
+        if (!snapshot.isCelebration) {
+            matchData.seconds += 4;
+            if (matchData.seconds >= 60) {
+                matchData.minute++;
+                matchData.seconds = matchData.seconds % 60; // 남은 초 이월
+                document.getElementById('matchTime').textContent = matchData.minute + '분';
+            }
         }
 
-        matchData.intervalId = matchInterval;
+        const endTime = performance.now();
+        const elapsed = endTime - startTime;
+        
+        // 목표 시간(100ms)에서 경과 시간을 뺀 만큼 대기 (최소 0ms)
+        const nextDelay = Math.max(0, tickDuration - elapsed);
+        
+        matchData.timeoutId = setTimeout(gameLoop, nextDelay);
+    }
 
-    }, 100); // [수정] 800ms -> 100ms (부드러운 움직임을 위해 8배 빠르게 갱신)
+    // 루프 시작
+    gameLoop();
 }
 
 // [헬퍼] 스쿼드 데이터 추출 (엔진 전달용)
@@ -382,6 +448,25 @@ function convertToTextEvent(engineEvent, matchData) {
             };
         }
         return null;
+    } else if (engineEvent.type === 'throughpass') {
+        // [신규] 스루패스는 중요한 이벤트이므로 항상 출력
+        return {
+            minute: matchData.minute,
+            type: 'pass', // UI 스타일은 pass와 공유 (또는 별도 스타일 지정 가능)
+            description: engineEvent.desc || `⚡ ${engineEvent.from}, 공간을 가르는 스루패스!`
+        };
+    } else if (engineEvent.type === 'save') {
+        return {
+            minute: matchData.minute,
+            type: 'save', // CSS 스타일 필요 (없으면 일반 텍스트)
+            description: engineEvent.desc
+        };
+    } else if (engineEvent.type === 'block') {
+        return {
+            minute: matchData.minute,
+            type: 'block', 
+            description: engineEvent.desc
+        };
     }
     return null;
 }
@@ -389,8 +474,9 @@ function convertToTextEvent(engineEvent, matchData) {
 function displayEvent(event, matchData) {
     const eventList = document.getElementById('eventList');
     // 중계창이 꽉 차면 비우기 (최적화)
-    if (eventList.children.length > 5) { 
-        eventList.innerHTML = ''; 
+    // [최적화] 오래된 노드를 하나씩 제거하여 레이아웃 스래싱 방지
+    while (eventList.children.length > 5) { 
+        eventList.removeChild(eventList.firstChild); 
     }
 
     const eventCard = document.createElement('div');
@@ -454,12 +540,30 @@ function endMatch(matchData) {
     gameData.matchesPlayed++;
 
     // 최종 메시지
+    const strengthDiff = matchData.strengthDiff || { userAdvantage: false };
+    let finalMsg = `경기 종료! ${result} (${userScore}-${oppScore})`;
+    if ((result === '승리' && !strengthDiff.userAdvantage) || (result === '패배' && strengthDiff.userAdvantage)) {
+        finalMsg += result === '승리' ? `\n🎉 대이변! 불리한 전력을 뒤집고 승리!` : `\n😱 충격! 유리한 경기에서 패배...`;
+    }
+
     const finalEvent = {
         minute: 90,
         type: 'final',
-        description: `경기 종료! ${result} (${userScore}-${oppScore})`
+        description: finalMsg
     };
     displayEvent(finalEvent, matchData);
+
+    // 스폰서 처리 (경기 결과 연동)
+    if (typeof window.processSponsorAfterMatch === 'function') {
+        const matchResult = result === '승리' ? 'win' : result === '패배' ? 'loss' : 'draw';
+        window.processSponsorAfterMatch(matchResult);
+    }
+
+    // [복구] 메일 시스템 연동 (경기 결과 및 이적 제안)
+    if (!gameData.isWorldCupMode && typeof mailManager !== 'undefined') {
+        mailManager.sendMatchResultMail(matchData);
+        mailManager.checkTransferOffer();
+    }
 
     // 버튼 이벤트 연결
     const ratings = calculateMatchRatings(matchData);
@@ -467,13 +571,59 @@ function endMatch(matchData) {
         showMatchResultModal(matchData, ratings, result, userScore, oppScore, matchData.strengthDiff);
     };
 
+    // [복구] 경기 후 스카우트 활동 처리
+    if (!gameData.isWorldCupMode && gameData.hiredScout && typeof scoutingSystem !== 'undefined') {
+        const scout = scoutingSystem.scouts[gameData.hiredScout.tier];
+        if (scout && Math.random() < scout.chance) {
+            const result = scoutingSystem.scoutForPlayers(gameData.hiredScout.tier);
+            if (result.success) {
+                setTimeout(() => {
+                    alert(`[스카우트 보고서]\n${result.message}`);
+                    if(typeof displayScoutedPlayers === 'function') displayScoutedPlayers(result.players);
+                    if(typeof displayYouthPlayers === 'function') displayYouthPlayers();
+                }, 1500);
+            }
+        }
+        gameData.hiredScout.remainingMatches--;
+        if (gameData.hiredScout.remainingMatches <= 0) {
+            setTimeout(() => {
+                alert(`[계약 만료] ${scout.name}과의 계약이 만료되었습니다.`);
+                gameData.hiredScout = null;
+            }, 2000);
+        }
+    }
+
     // 후처리 (성장, 부상 회복 등)
     if (typeof processPostMatchGrowth === 'function') setTimeout(processPostMatchGrowth, 1000);
+    
+    // [중요] 개인기록 업데이트 및 AI 시뮬레이션 실행 (simulateOtherMatches 대체)
+    if (typeof updateRecordsAfterMatch === 'function') {
+        updateRecordsAfterMatch(matchData);
+    }
+
     injurySystem.removeInjuredFromSquad();
+
+    // [복구] 일시적 스탯 초기화
+    if (gameData.temporaryStats) {
+        gameData.temporaryStats = {};
+    }
     
     // 다음 라운드 준비
     gameData.currentRound++;
     setNextOpponent();
+
+    // [추가] 스태미나 회복
+    if (gameData.lineStats) {
+        ['attack', 'midfield', 'defense'].forEach(line => {
+            if (gameData.lineStats[line]) gameData.lineStats[line].stamina = 100;
+        });
+    }
+
+    // 시즌 종료 및 은퇴 처리
+    setTimeout(() => {
+        if(typeof processRetirementsAndReincarnations === 'function') processRetirementsAndReincarnations();
+        checkSeasonEnd();
+    }, 1000);
 }
 
 function updateLeagueData(matchData, points) {
@@ -539,34 +689,111 @@ function startInterview(result, userScore, opponentScore, strengthDiff) {
 }
 
 function getInterviewQuestions(result, userScore, oppScore, strengthDiff) {
-    // 간단한 질문 생성 로직
+    const scoreDiff = Math.abs(userScore - oppScore);
+    // strengthDiff가 없을 경우 대비
+    const safeStrengthDiff = strengthDiff || { userAdvantage: false, strengthGap: 0 };
+    // 이변 여부: 내가 불리한데 이겼거나, 유리한데 졌을 때
+    const isUpset = (result === '승리' && !safeStrengthDiff.userAdvantage) || 
+                   (result === '패배' && safeStrengthDiff.userAdvantage);
+    
     if (result === '승리') {
+        if (isUpset) {
+            // 업셋 승리 (불리한 전력으로 승리)
+            return [{
+                question: "객관적인 전력의 열세를 뒤집고 훌륭한 승리를 거뒀습니다. 오늘 경기의 승인(勝因)은 무엇입니까?",
+                options: [
+                    { text: "선수들의 투지가 만들어낸 기적입니다. 그들은 운동장에서 모든 것을 쏟아부었고, 불가능을 가능으로 만들었습니다.", morale: 20 },
+                    { text: "우리가 준비한 맞춤형 전술이 완벽하게 적중했습니다. 상대의 허점을 파고든 것이 주효했습니다.", morale: 15 },
+                    { text: "운이 꽤 좋았던 경기였습니다. 하지만 결과에 만족하며 승점 3점을 챙긴 것에 의의를 둡니다.", morale: 5 }
+                ]
+            }];
+        } else if (scoreDiff >= 3) {
+            // 대승 (3점차 이상)
+            return [{
+                question: "압도적인 경기력으로 대승을 거두셨습니다. 오늘 경기력에 대해 어떻게 평가하시나요?",
+                options: [
+                    { text: "완벽에 가까운 경기였습니다. 공수 모든 면에서 우리가 원하던 플레이가 나왔고, 선수들이 자랑스럽습니다.", morale: 15 },
+                    { text: "우리의 본실력을 보여준 경기였습니다. 이 기세를 몰아 다음 경기에서도 좋은 모습을 보여드리겠습니다.", morale: 10 },
+                    { text: "상대가 오늘 유독 부진했던 것 같습니다. 점수 차만큼의 실력 차이는 아니었다고 생각합니다.", morale: 0 }
+                ]
+            }];
+        } else {
+            // 일반 승리
+            return [{
+                question: "치열한 접전 끝에 귀중한 승리를 챙겼습니다. 오늘 경기를 총평해주신다면?",
+                options: [
+                    { text: "선수들이 끝까지 집중력을 잃지 않고 뛰어준 덕분입니다. 팀워크가 빛난 승리였습니다.", morale: 10 },
+                    { text: "힘든 경기였지만 결과적으로 승리했다는 것이 중요합니다. 우리는 승점 3점을 얻을 자격이 있었습니다.", morale: 7 },
+                    { text: "몇몇 장면에서는 실수가 있었지만, 결과를 가져온 것에 만족합니다. 보완할 점은 훈련을 통해 고쳐나가겠습니다.", morale: 3 }
+                ]
+            }];
+        }
+    } else if (result === '패배') {
+        if (isUpset) {
+            // 충격패 (유리한 전력으로 패배)
+            return [{
+                question: "전력상 우위가 예상되었음에도 불구하고 충격적인 패배를 당했습니다. 팬들의 실망이 클 텐데, 어떻게 생각하십니까?",
+                options: [
+                    { text: "오늘 패배의 모든 책임은 감독인 저에게 있습니다. 전술적 준비가 미흡했고, 선수들을 제대로 이끌지 못했습니다.", morale: 10 }, // 책임 감수 -> 사기 상승(보호)
+                    { text: "몇몇 선수들의 안일한 플레이가 실망스러웠습니다. 프로라면 경기장에서 증명해야 합니다. 정신력 재무장이 필요합니다.", morale: -15 }, // 선수 비난 -> 사기 하락
+                    { text: "축구에서는 일어날 수 있는 일입니다. 상대가 오늘 매우 잘 준비해왔고, 우리는 운이 따르지 않았습니다.", morale: -5 }
+                ]
+            }];
+        } else if (scoreDiff >= 3) {
+            // 대패
+            return [{
+                question: "무기력한 경기 끝에 대패를 당했습니다. 무엇이 가장 큰 문제였다고 보십니까?",
+                options: [
+                    { text: "팬 여러분께 죄송합니다. 오늘 우리는 아무것도 보여주지 못했습니다. 철저히 분석하여 다시는 이런 경기를 하지 않겠습니다.", morale: 5 },
+                    { text: "상대와의 실력 차이를 인정할 수밖에 없습니다. 우리는 아직 부족하고, 배워야 할 점이 많습니다.", morale: -5 },
+                    { text: "초반 실점 이후 팀이 급격히 무너졌습니다. 수비 조직력을 처음부터 다시 점검해야 할 것 같습니다.", morale: -10 }
+                ]
+            }];
+        } else {
+            // 일반 패배 (아쉬운 패배)
+            return [{
+                question: "아쉽게 패배하며 승점을 얻지 못했습니다. 오늘 경기에서 긍정적인 부분을 찾을 수 있었나요?",
+                options: [
+                    { text: "패배는 언제나 쓰라리지만, 선수들이 끝까지 포기하지 않고 뛴 점은 높이 평가합니다.", morale: 5 },
+                    { text: "결정력 부족이 아쉽습니다. 찬스는 만들었지만 마무리하지 못하면 이길 수 없습니다.", morale: -5 },
+                    { text: "상대가 우리보다 조금 더 이길 자격이 있었습니다. 패배를 인정하고 다음 경기를 준비하겠습니다.", morale: 0 }
+                ]
+            }];
+        }
+    }
+    
+    // 무승부
+    if (safeStrengthDiff.userAdvantage && safeStrengthDiff.strengthGap > 10) {
+        // 강한 팀이 무승부 (실망스러운 무승부)
         return [{
-            question: "훌륭한 승리였습니다. 소감은?",
+            question: "반드시 잡아야 할 경기에서 무승부에 그쳤습니다. 결과에 만족하시나요?",
             options: [
-                { text: "선수들이 잘해줬습니다.", morale: 5 },
-                { text: "전술이 완벽했습니다.", morale: 3 },
-                { text: "운이 좋았습니다.", morale: 0 }
+                { text: "전혀 만족스럽지 않습니다. 우리는 이길 수 있는 경기를 놓쳤고, 승점 2점을 잃은 기분입니다.", morale: -5 },
+                { text: "상대가 작정하고 수비적으로 나왔을 때 뚫어내지 못한 우리의 책임입니다. 더 창의적인 공격 해법을 찾아야 합니다.", morale: 0 },
+                { text: "아쉽지만 원정에서 승점 1점도 나쁘지 않습니다. 리그는 장기 레이스니까요.", morale: 2 }
             ]
         }];
-    } else if (result === '패배') {
+    } else if (!safeStrengthDiff.userAdvantage && safeStrengthDiff.strengthGap > 10) {
+        // 약한 팀이 무승부 (값진 무승부)
         return [{
-            question: "아쉬운 패배입니다. 원인이 무엇인가요?",
+            question: "강팀을 상대로 대등한 경기를 펼치며 무승부를 기록했습니다. 오늘 경기를 어떻게 보셨습니까?",
             options: [
-                { text: "제 책임입니다.", morale: 5 }, // 선수 보호 -> 사기 상승
-                { text: "선수들의 집중력이 부족했습니다.", morale: -5 },
-                { text: "상대가 강했습니다.", morale: 0 }
+                { text: "선수들이 자랑스럽습니다. 강팀을 상대로 물러서지 않고 우리의 축구를 보여줬습니다. 승리만큼 값진 무승부입니다.", morale: 10 },
+                { text: "수비적으로 잘 버텨줬습니다. 계획대로 승점을 챙길 수 있어서 다행입니다.", morale: 5 },
+                { text: "이길 수도 있었던 경기라 조금 아쉬움이 남습니다. 하지만 선수들의 자신감은 확실히 올라갔을 것입니다.", morale: 8 }
+            ]
+        }];
+    } else {
+        // 비슷한 전력 간 무승부
+        return [{
+            question: "팽팽한 접전 끝에 승부를 가리지 못했습니다. 경기 내용에 대해 어떻게 생각하십니까?",
+            options: [
+                { text: "양 팀 모두 좋은 경기를 했습니다. 무승부가 공정한 결과라고 생각합니다.", morale: 3 },
+                { text: "우리가 조금 더 우세했다고 생각하지만, 골 결정력이 아쉬웠습니다. 다음에는 반드시 승리하겠습니다.", morale: 0 },
+                { text: "팬들에게 승리를 선물하지 못해 죄송합니다. 다음 경기에서는 더 공격적인 모습으로 보답하겠습니다.", morale: 2 }
             ]
         }];
     }
-    return [{
-        question: "무승부로 끝났습니다. 만족하시나요?",
-        options: [
-            { text: "아쉽지만 승점 1점도 소중합니다.", morale: 2 },
-            { text: "이길 수 있는 경기였습니다.", morale: -2 },
-            { text: "다음 경기를 준비하겠습니다.", morale: 0 }
-        ]
-    }];
 }
 
 function handleInterview(option) {
@@ -665,8 +892,8 @@ class InjurySystem {
     constructor() { this.injuredPlayers = new Map(); }
     
     checkInjury(matchData) {
-        // 부상 확률 (0.05%)
-        if (Math.random() < 0.0005) {
+        // [수정] 부상 확률 대폭 하향 (0.05% -> 0.01%)
+        if (Math.random() < 0.0001) {
             const isUser = Math.random() < 0.5;
             const teamKey = isUser ? gameData.selectedTeam : gameData.currentOpponent;
             const squad = isUser ? [gameData.squad.gk, ...gameData.squad.df, ...gameData.squad.mf, ...gameData.squad.fw] : getBestEleven(teamKey);
@@ -718,18 +945,220 @@ function createInjuryEvent(matchData, injury) {
     };
 }
 
-// 교체 시스템 (간소화)
-function openSubstitutionModal(matchData) {
-    if (matchData.substitutionsMade >= 5) { alert('교체 횟수 초과'); return; }
-    // 기존 formation.js의 UI 사용하거나 여기에 간단히 구현
-    // 여기서는 formation.js의 showSubstitutionSheet를 활용하도록 유도
-    alert("스쿼드 탭이나 선수 카드를 클릭하여 교체를 진행하세요.");
+// [교체 시스템 구현]
+let selectedFieldPlayer = null;
+let selectedBenchPlayer = null;
+
+function createSubPlayerElement(player) {
+    const el = document.createElement('div');
+    el.className = 'substitution-player';
+    el.dataset.playerName = player.name;
+    el.innerHTML = `
+        <div class="name">${player.name} (${player.position})</div>
+        <div class="details">능력치: ${Math.floor(player.rating)}</div>
+    `;
+    return el;
 }
+
+function openSubstitutionModal(matchData, isForced = false, injuredPlayer = null) {
+    if (matchData.substitutionsMade >= 5 && !isForced) {
+        alert('교체 횟수를 모두 사용했습니다.');
+        return;
+    }
+
+    const modal = document.getElementById('substitutionModal');
+    const fieldPlayersList = document.getElementById('fieldPlayersList');
+    const benchPlayersList = document.getElementById('benchPlayersList');
+    const subsLeftEl = document.getElementById('substitutionsLeft');
+    const modalTitle = document.getElementById('substitutionModalTitle');
+
+    // 초기화
+    fieldPlayersList.innerHTML = '';
+    benchPlayersList.innerHTML = '';
+    selectedFieldPlayer = null;
+    selectedBenchPlayer = null;
+
+    subsLeftEl.textContent = `남은 교체 횟수: ${5 - matchData.substitutionsMade}`;
+    modalTitle.textContent = isForced ? `🚨 부상 선수 교체` : '선수 교체';
+
+    // 1. 현재 필드 위 선수 목록 (스쿼드 기준)
+    const squad = gameData.squad;
+    const fieldPlayers = [squad.gk, ...squad.df, ...squad.mf, ...squad.fw].filter(p => p);
+
+    fieldPlayers.forEach(player => {
+        const playerEl = createSubPlayerElement(player);
+        
+        // 부상 교체 시 부상자 자동 선택 및 강조
+        if (isForced && injuredPlayer && player.name === injuredPlayer.name) {
+            playerEl.classList.add('selected');
+            playerEl.style.borderColor = '#e74c3c'; // 빨간색 강조
+            selectedFieldPlayer = { element: playerEl, player: player };
+        } 
+        
+        // 클릭 이벤트 (부상 교체 시 부상자가 아니면 선택 불가)
+        playerEl.addEventListener('click', () => {
+            if (isForced && injuredPlayer && player.name !== injuredPlayer.name) return;
+            selectPlayerForSub(player, playerEl, 'field', matchData);
+        });
+        
+        fieldPlayersList.appendChild(playerEl);
+    });
+
+    // 2. 벤치 선수 목록 (전체 선수 중 필드/부상 제외)
+    const allPlayers = teams[gameData.selectedTeam];
+    const fieldPlayerNames = new Set(fieldPlayers.map(p => p.name));
+    
+    const benchPlayers = allPlayers.filter(p => 
+        !fieldPlayerNames.has(p.name) && 
+        (!injurySystem || !injurySystem.isInjured(gameData.selectedTeam, p.name))
+    );
+
+    benchPlayers.forEach(player => {
+        const playerEl = createSubPlayerElement(player);
+        playerEl.addEventListener('click', () => selectPlayerForSub(player, playerEl, 'bench', matchData));
+        benchPlayersList.appendChild(playerEl);
+    });
+
+    modal.style.display = 'block';
+}
+
+function selectPlayerForSub(player, element, type, matchData) {
+    // 선택 스타일 처리
+    if (type === 'field') {
+        if (selectedFieldPlayer && selectedFieldPlayer.element !== element) {
+            selectedFieldPlayer.element.classList.remove('selected');
+        }
+        element.classList.add('selected');
+        selectedFieldPlayer = { element, player };
+    } else {
+        if (selectedBenchPlayer && selectedBenchPlayer.element !== element) {
+            selectedBenchPlayer.element.classList.remove('selected');
+        }
+        element.classList.add('selected');
+        selectedBenchPlayer = { element, player };
+    }
+
+    // 둘 다 선택되면 교체 실행 확인
+    if (selectedFieldPlayer && selectedBenchPlayer) {
+        setTimeout(() => {
+            if (confirm(`${selectedFieldPlayer.player.name} ↔ ${selectedBenchPlayer.player.name} 교체하시겠습니까?`)) {
+                performSubstitution(selectedFieldPlayer.player, selectedBenchPlayer.player, matchData);
+            } else {
+                // 취소 시 선택 해제
+                if (selectedBenchPlayer) selectedBenchPlayer.element.classList.remove('selected');
+                selectedBenchPlayer = null;
+                
+                if (!matchData.isPausedForInjury) {
+                    if (selectedFieldPlayer) selectedFieldPlayer.element.classList.remove('selected');
+                    selectedFieldPlayer = null;
+                }
+            }
+        }, 100);
+    }
+}
+
+function performSubstitution(playerOut, playerIn, matchData) {
+    // 1. gameData.squad 업데이트
+    const squad = gameData.squad;
+    if (squad.gk && squad.gk.name === playerOut.name) squad.gk = playerIn;
+    else {
+        ['df', 'mf', 'fw'].forEach(pos => {
+            const idx = squad[pos].findIndex(p => p && p.name === playerOut.name);
+            if (idx !== -1) squad[pos][idx] = playerIn;
+        });
+    }
+
+    // 2. 엔진 데이터 업데이트 (SimPlayer 교체)
+    if (matchData.engine) {
+        const simPlayers = matchData.engine.players;
+        const simPlayerIndex = simPlayers.findIndex(p => p.id === playerOut.name);
+        
+        if (simPlayerIndex !== -1) {
+            const simPlayer = simPlayers[simPlayerIndex];
+            
+            // 기존 SimPlayer 객체를 새 선수 정보로 갱신
+            simPlayer.id = playerIn.name;
+            simPlayer.name = playerIn.name;
+            simPlayer.rating = playerIn.rating;
+            simPlayer.stamina = 100; 
+            
+            // 능력치 업데이트
+            simPlayer.stats = {
+                speed: playerIn.rating,
+                passing: playerIn.rating,
+                shooting: playerIn.rating,
+                defense: playerIn.rating,
+                decision: playerIn.rating
+            };
+            
+            // 역할 재설정
+            let role = 'CM';
+            if (gameData.playerRoles && gameData.playerRoles[playerIn.name]) {
+                role = gameData.playerRoles[playerIn.name];
+            } else {
+                if (playerIn.position === 'FW') role = 'AF';
+                else if (playerIn.position === 'MF') role = 'BBM';
+                else if (playerIn.position === 'DF') role = 'CD';
+                else if (playerIn.position === 'GK') role = 'GK';
+            }
+            simPlayer.role = role;
+
+            // [시각화 동기화] 비주얼라이저 유닛 업데이트
+            if (window.matchVisualizer && window.matchVisualizer.units[playerOut.name]) {
+                const unit = window.matchVisualizer.units[playerOut.name];
+                delete window.matchVisualizer.units[playerOut.name];
+                unit.id = playerIn.name;
+                unit.name = playerIn.name;
+                window.matchVisualizer.units[playerIn.name] = unit;
+            }
+        }
+        
+        // 스태미나 재계산 (엔진 메서드 호출)
+        if (typeof matchData.engine.recalculateStaminaOnSub === 'function') {
+            matchData.engine.recalculateStaminaOnSub(playerOut);
+        }
+    }
+
+    // 3. 기록 및 이벤트
+    matchData.substitutionsMade++;
+    const subEvent = {
+        minute: matchData.minute,
+        type: 'substitution',
+        description: `🔄 교체: ${playerOut.name} ➡️ ${playerIn.name}`
+    };
+    displayEvent(subEvent, matchData);
+
+    // 4. 모달 닫기 및 경기 재개
+    document.getElementById('substitutionModal').style.display = 'none';
+    selectedFieldPlayer = null;
+    selectedBenchPlayer = null;
+    
+    if (matchData.isPausedForInjury) {
+        matchData.isPausedForInjury = false;
+        matchData.isRunning = true;
+        console.log('▶️ 부상 교체 완료, 경기 재개');
+    }
+}
+
+// 모달 닫기 버튼용
+function closeSubstitutionModal() {
+    const modal = document.getElementById('substitutionModal');
+    // 강제 교체 중이 아닐 때만 닫기 허용 (matchData 접근이 어려우면 UI 상태로 판단 등 보완 필요)
+    // 여기서는 간단히 닫기만 수행
+    if (modal) modal.style.display = 'none';
+    selectedFieldPlayer = null;
+    selectedBenchPlayer = null;
+} 
 
 function handleForcedSubstitution(player, matchData) {
     matchData.isRunning = false;
-    alert(`🚨 ${player.name} 부상 발생! 교체가 필요합니다.`);
-    // 실제로는 여기서 모달을 띄워야 함
+    matchData.isPausedForInjury = true; // 부상 일시정지 플래그
+    
+    // [수정] 알림 후 즉시 모달 열기 (비동기 처리로 UI 블로킹 방지)
+    setTimeout(() => {
+        alert(`🚨 ${player.name} 부상 발생! 경기를 뛸 수 없어 교체가 필요합니다.`);
+        openSubstitutionModal(matchData, true, player);
+    }, 100);
 }
 
 // 전역 인스턴스

@@ -1,7 +1,7 @@
 // visibleMatch.js
 
 class VisualUnit {
-    constructor(id, name, teamType, x, y) {
+    constructor(id, name, teamType, x, y, color) { // [수정] color 인자 추가
         this.id = id;
         this.name = name;
         this.teamType = teamType;
@@ -15,7 +15,7 @@ class VisualUnit {
         this.targetY = y;
         
         this.hasBall = false;
-        this.color = teamType === 'home' ? '#e74c3c' : '#3498db';
+        this.color = color || (teamType === 'home' ? '#e74c3c' : '#3498db'); // [수정] 전달받은 컬러 사용
     }
 
     // ⚫ [7. 선수 이동] 보간 (Lerp) 업데이트
@@ -33,36 +33,103 @@ class VisualUnit {
 
         ctx.beginPath();
         ctx.arc(px, py, r, 0, Math.PI * 2);
-        ctx.fillStyle = this.color;
-        ctx.fill();
+        
+        // [수정] 2가지 색상일 경우 줄무늬(Stripes) 처리
+        if (Array.isArray(this.color)) {
+            ctx.save();
+            ctx.clip(); // 원형으로 클리핑
+            
+            // 배경색 (색상 1)
+            ctx.fillStyle = this.color[0];
+            ctx.fillRect(px - r, py - r, r * 2, r * 2);
+            
+            // 줄무늬 (색상 2) - 중앙에 세로 줄무늬
+            ctx.fillStyle = this.color[1];
+            ctx.fillRect(px - r / 3, py - r, 2 * r / 3, r * 2);
+            
+            ctx.restore();
+        } else {
+            ctx.fillStyle = this.color;
+            ctx.fill();
+        }
+
+        // [추가] 시인성을 위한 테두리 (흰색 유니폼 등을 위해)
+        ctx.beginPath(); // 테두리를 위한 새 경로 (이전 경로가 클리핑으로 닫혔을 수 있으므로)
+        ctx.arc(px, py, r, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
         
         if (this.hasBall) { // 공 가진 선수 표시
             ctx.strokeStyle = '#f1c40f';
-            ctx.lineWidth = 2;
+            ctx.lineWidth = 3; // [수정] 공 가진 표시 더 잘 보이게
             ctx.stroke();
         }
+
+        // [신규] 선수 이름 표시 (바둑돌 아래)
+        ctx.font = 'bold 10px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        
+        // 텍스트 외곽선 (가독성 향상)
+        ctx.lineWidth = 2.5;
+        ctx.strokeStyle = 'rgba(0,0,0,0.7)';
+        ctx.strokeText(this.name, px, py + r + 4);
+        
+        // 텍스트 채우기
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(this.name, px, py + r + 4);
     }
 }
 
 class VisualBall {
     constructor() {
         this.x = 50; this.y = 50;
+        this.z = 0; // [신규] 시각적 높이 (가짜 3D 효과)
         this.targetX = 50; this.targetY = 50;
+        this.lerpFactor = 0.2; // [신규] 공 속도 제어 변수 (기본 0.2)
+        this.state = 0; // 공 상태
     }
     update() {
-        this.x += (this.targetX - this.x) * 0.2; // 공은 선수보다 조금 더 빠르게 반응
-        this.y += (this.targetY - this.y) * 0.2;
+        this.x += (this.targetX - this.x) * this.lerpFactor; 
+        this.y += (this.targetY - this.y) * this.lerpFactor;
+        
+        // [신규] 공이 날아갈 때(IN_FLIGHT) 속도감에 따른 높이 효과 부여
+        if (this.state === 2) { // IN_FLIGHT
+            const dist = Math.hypot(this.targetX - this.x, this.targetY - this.y);
+            let targetZ = 0;
+            
+            // [수정] 거리가 멀 때만 공이 뜨도록 변경 (짧은 패스는 땅볼)
+            // 높이 계수도 3.0 -> 0.5로 대폭 낮춤 (폴짝거림 방지)
+            if (dist > 15) {
+                targetZ = Math.min(15, dist * 0.5); 
+            }
+            
+            this.z += (targetZ - this.z) * 0.1;
+        } else {
+            this.z += (0 - this.z) * 0.3; // 땅으로 착지
+        }
     }
     draw(ctx, width, height) {
         const px = (this.x / 100) * width;
         const py = (this.y / 100) * height;
         const r = Math.max(3, width * 0.008);
         
+        // [신규] 그림자 (땅에 고정)
         ctx.beginPath();
-        ctx.arc(px, py, r, 0, Math.PI * 2);
+        ctx.ellipse(px, py + r * 0.5, r * 0.8, r * 0.4, 0, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(0,0,0,0.3)';
+        ctx.fill();
+
+        // [신규] 공 본체 (Z축 적용)
+        const visualY = py - (this.z * (height / 100) * 0.5); // 화면 비율 고려
+
+        ctx.beginPath();
+        ctx.arc(px, visualY, r, 0, Math.PI * 2);
         ctx.fillStyle = '#fff';
         ctx.fill();
         ctx.strokeStyle = '#000';
+        ctx.lineWidth = 1.5; // 외곽선 조금 더 진하게
         ctx.stroke();
     }
 }
@@ -76,9 +143,10 @@ class MatchVisualizer {
         this.isRunning = false;
         this.width = 0;
         this.height = 0;
+        this.storedSpeed = null; // [신규] 패스 딜레이 대응을 위한 속도 저장
     }
 
-    init(containerId, initialPlayers) {
+    init(containerId, initialPlayers, teamColors) { // [수정] teamColors 인자 추가
         // 캔버스 셋업 (기존과 동일)
         const container = document.getElementById(containerId);
         if (!container) return;
@@ -92,10 +160,14 @@ class MatchVisualizer {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
         
+        // [수정] 팀 컬러 저장
+        this.teamColors = teamColors || {};
+
         // 유닛 생성
         this.units = {};
         initialPlayers.forEach(p => {
-            this.units[p.id] = new VisualUnit(p.id, p.name, p.teamId, p.x, p.y);
+            const color = this.teamColors[p.teamId];
+            this.units[p.id] = new VisualUnit(p.id, p.name, p.teamId, p.x, p.y, color);
         });
 
         this.resize();
@@ -104,6 +176,21 @@ class MatchVisualizer {
 
     // 엔진에서 온 데이터로 동기화
     sync(snapshot) {
+        // [수정] 공 상태 업데이트
+        this.ball.state = snapshot.ball.state; // 0:LOOSE, 1:CONTROLLED, 2:IN_FLIGHT
+
+        // [수정] 상태 기반 속도 제어 (이벤트 기반보다 더 정확함)
+        if (snapshot.ball.state === 2) { 
+            // IN_FLIGHT (패스, 슛) - 빠르고 직선적인 움직임
+            this.ball.lerpFactor = 0.45; 
+        } else if (snapshot.ball.state === 1) { 
+            // CONTROLLED (드리블) - 선수 발에 붙어다님
+            this.ball.lerpFactor = 0.6; 
+        } else {
+            // LOOSE / DEAD - 자연스러운 감속
+            this.ball.lerpFactor = 0.2;
+        }
+
         // 공 위치 업데이트
         this.ball.targetX = snapshot.ball.x;
         this.ball.targetY = snapshot.ball.y;
@@ -153,8 +240,14 @@ class MatchVisualizer {
     }
 
     drawPitch() {
-        this.ctx.fillStyle = '#27ae60';
-        this.ctx.fillRect(0, 0, this.width, this.height);
+        // [수정] 잔디 줄무늬 패턴 적용 (12개 구간)
+        const numStripes = 12;
+        const stripeWidth = this.width / numStripes;
+        
+        for (let i = 0; i < numStripes; i++) {
+            this.ctx.fillStyle = i % 2 === 0 ? '#27ae60' : '#2ecc71'; // 짙은 초록 / 밝은 초록 교차
+            this.ctx.fillRect(i * stripeWidth, 0, stripeWidth + 1, this.height);
+        }
         
         this.ctx.strokeStyle = '#ffffff'; // [수정] 라인 색상 완전한 흰색으로 변경
         this.ctx.lineWidth = 2;
@@ -176,6 +269,14 @@ class MatchVisualizer {
         // 페널티 박스 (좌우)
         this.ctx.strokeRect(this.width * 0.05, this.height * 0.25, this.width * 0.15, this.height * 0.5);
         this.ctx.strokeRect(this.width * 0.8, this.height * 0.25, this.width * 0.15, this.height * 0.5);
+
+        // [신규] 골대 그리기
+        this.ctx.lineWidth = 3;
+        // 왼쪽 골대 (경기장 밖으로 돌출)
+        this.ctx.strokeRect(this.width * 0.02, this.height * 0.44, this.width * 0.03, this.height * 0.12);
+        // 오른쪽 골대 (경기장 밖으로 돌출)
+        this.ctx.strokeRect(this.width * 0.95, this.height * 0.44, this.width * 0.03, this.height * 0.12);
+        this.ctx.lineWidth = 2; // 원래 두께로 복구
     }
 }
 

@@ -481,28 +481,28 @@ class TacticSystem {
 // ==================== [신규] AI 스탯 생성기 ====================
 const AIStatGenerator = {
     // 전술별 스탯 가중치 프리셋
-    presets: {
-        tikitaka: { 
-            attack: { attack: 0.9, speed: 0.9, technique: 1.2, physical: 0.8 },
-            midfield: { technique: 1.3, attack: 1.1, defense: 0.8, mentality: 1.2 },
-            defense: { defense: 0.9, speed: 1.0, physical: 0.9, mentality: 1.1 }
-        },
-        gegenpress: {
-            attack: { attack: 1.0, speed: 1.2, technique: 0.9, physical: 1.1 },
-            midfield: { technique: 0.9, attack: 1.0, defense: 1.2, mentality: 1.1 },
-            defense: { defense: 1.0, speed: 1.2, physical: 1.1, mentality: 1.0 }
-        },
-        counter: { // twoLine, longBall, parkBus
-            attack: { attack: 1.1, speed: 1.2, technique: 0.8, physical: 1.0 },
-            midfield: { technique: 0.8, attack: 0.8, defense: 1.3, mentality: 1.0 },
-            defense: { defense: 1.3, speed: 0.9, physical: 1.3, mentality: 1.0 }
-        },
-        balanced: { // possession, totalFootball, etc.
-            attack: { attack: 1.0, speed: 1.0, technique: 1.0, physical: 1.0 },
-            midfield: { technique: 1.0, attack: 1.0, defense: 1.0, mentality: 1.0 },
-            defense: { defense: 1.0, speed: 1.0, physical: 1.0, mentality: 1.0 }
-        }
-    },
+     presets: {
+         tikitaka: {
+             attack: { attack: 1.1, speed: 1.0, technique: 1.5, physical: 0.9, defense: 0.5, mentality: 1.0 },
+             midfield: { technique: 1.5, attack: 1.2, defense: 0.8, mentality: 1.3, speed: 0.7, physical: 0.5 },
+             defense: { defense: 1.2, speed: 1.0, physical: 1.0, mentality: 1.2, attack: 0.6, technique: 1.0 }
+         },
+         gegenpress: {
+             attack: { attack: 1.1, speed: 1.3, technique: 0.9, physical: 1.2, defense: 0.7, mentality: 0.8 },
+             midfield: { technique: 0.9, attack: 1.0, defense: 1.3, mentality: 1.2, speed: 0.9, physical: 0.7 },
+             defense: { defense: 1.2, speed: 1.3, physical: 1.2, mentality: 1.1, attack: 0.6, technique: 0.6 }
+         },
+         counter: { // twoLine, longBall, parkBus
+             attack: { attack: 1.3, speed: 1.4, technique: 0.8, physical: 1.1, defense: 0.6, mentality: 0.8 },
+             midfield: { technique: 0.8, attack: 0.8, defense: 1.5, mentality: 1.2, speed: 0.8, physical: 0.9 },
+             defense: { defense: 1.5, speed: 0.9, physical: 1.5, mentality: 1.1, attack: 0.5, technique: 0.5 }
+         },
+         balanced: { // possession, totalFootball, etc.
+             attack: { attack: 1.0, speed: 1.0, technique: 1.0, physical: 1.0, defense: 1.0, mentality: 1.0 },
+             midfield: { technique: 1.0, attack: 1.0, defense: 1.0, mentality: 1.0, speed: 1.0, physical: 1.0 },
+             defense: { defense: 1.0, speed: 1.0, physical: 1.0, mentality: 1.0, attack: 1.0, technique: 1.0 }
+         }
+     },
 
     getPreset(tactic) {
         if (['tikitaka', 'lavolpiana'].includes(tactic)) return this.presets.tikitaka;

@@ -6,41 +6,41 @@ class PlayerGrowthSystem {
         this.growthData = new Map(); // 선수별 성장 데이터 저장
         // [이동] 고정 포텐셜 명단 (이름: 목표 오버롤)
         this.fixedPotentials = {
-            "오현규": 95,
-            "김민수": 99,
-            "배준호": 97,
-            "앙제요안 보니": 95,
-            "조반니 레오니": 99,
-            "트레이 뇨니": 93,
-            "프란치스코 카마르다": 100,
-            "옌스 카스트로프": 99,
-            "조브 벨링엄": 99, 
-            "제라르 마르틴": 90,
-            "마르크 베르날": 91,
-            "루니 바르다그지": 89,
-            "파우 쿠바르시": 100,
-            "엔드릭": 97,
-            "리코 루이스": 89,
-            "코비 마이누": 95,
-            "아론 바우만": 98,
-            "요르디 무키오": 90,
-            "부바 상가레": 97,
-            "루카 부슈코비치": 100,
-            "에단 은와네리": 93,
-            "조시 아체암퐁": 94,
-            "맥스 다우먼": 99,
-            "리오 응구모하": 97,
-            "레나르트 칼": 101,
-            "배승균": 99,
-            "윤도영": 94,
-            "강상윤": 99,
-            "디스 얀서": 96,
-            "켄드리 파에스": 96,
-            "아산 우에드라오고": 99,
-            "백인우": 94,
-            "대릴 바콜라": 93,
-            "파트리크 도르구":99,
-            "파쿤도 부오나오테":94
+            "오현규": 88,
+    "김민수": 92,
+    "배준호": 90,
+    "앙제요안 보니": 88,
+    "조반니 레오니": 93,
+    "트레이 뇨니": 86,
+    "프란치스코 카마르다": 95,
+    "옌스 카스트로프": 92,
+    "조브 벨링엄": 92,
+    "제라르 마르틴": 84,
+    "마르크 베르날": 85,
+    "루니 바르다그지": 83,
+    "파우 쿠바르시": 94,
+    "엔드릭": 90,
+    "리코 루이스": 83,
+    "코비 마이누": 88,
+    "아론 바우만": 91,
+    "요르디 무키오": 84,
+    "부바 상가레": 90,
+    "루카 부슈코비치": 94,
+    "에단 은와네리": 86,
+    "조시 아체암퐁": 87,
+    "맥스 다우먼": 93,
+    "리오 응구모하": 90,
+    "레나르트 칼": 95,
+    "배승균": 92,
+    "윤도영": 87,
+    "강상윤": 92,
+    "디스 얀서": 89,
+    "켄드리 파에스": 89,
+        "아산 우에드라오고": 92,
+        "백인우": 87,
+        "대릴 바콜라": 86,
+        "파트리크 도르구": 92,
+        "파쿤도 부오나오테": 87
         };
     }
 
@@ -83,16 +83,18 @@ class PlayerGrowthSystem {
             return growthNeeded;
         }
 
-        const baseGrowth = 3 + Math.random() * 10; // 3-13 사이
+        // [밸런스 수정] 기본 성장 폭 하향 (인플레 방지)
+        // 기존: 3~13 -> 수정: 2~8
+        const baseGrowth = 2 + Math.random() * 8;
         
         // 나이에 따른 보정
         let ageModifier = 1;
         if (player.age <= 18) {
-            ageModifier = 1.5;
+            ageModifier = 1.3; // 1.5 -> 1.3
         } else if (player.age <= 21) {
-            ageModifier = 1.3;
+            ageModifier = 1.1; // 1.3 -> 1.1
         } else if (player.age <= 23) {
-            ageModifier = 1.1;
+            ageModifier = 1.0; // 1.1 -> 1.0
         } else if (player.age <= 25) {
             ageModifier = 0.8;
         }
@@ -104,8 +106,17 @@ class PlayerGrowthSystem {
             ratingModifier = 1.7;
         } else if (currentRating < 80) {
             ratingModifier = 1.4;
-        } else if (currentRating >= 90) {
-            ratingModifier = 0.8;
+        } else if (currentRating >= 88) {
+            // [밸런스 수정] 88 이상부터는 성장 속도 급감 (95 도달 어렵게)
+            ratingModifier = 0.3; 
+            // 단, 21세 이하의 초신성(Wonderkid)은 페널티를 완화하여 95 도달 가능성을 열어줌
+            if (player.age <= 21) {
+                ratingModifier = 0.6; // 초신성 보너스 (성장 둔화 완화)
+            } else {
+                ratingModifier = 0.3; // 일반적인 고능력자는 성장 거의 멈춤
+            }
+        } else if (currentRating >= 85) {
+            ratingModifier = 0.5;
         }
 
         // 세륜중학교 특별 보너스
@@ -145,7 +156,14 @@ class PlayerGrowthSystem {
             finalGrowth = Math.max(finalGrowth, gap + Math.floor(Math.random() * 5));
         }
 
-        return finalGrowth;
+        // [신규] 최종 포텐셜 상한선 체크 (일반 선수는 95를 넘기 힘들게)
+        const projectedRating = currentRating + finalGrowth;
+        const hardCap = player.isCustom || player.isIcon ? 100 : 95;
+        
+        if (projectedRating > hardCap) {
+            return Math.max(0, hardCap - currentRating);
+        }
+        return Math.round(finalGrowth);
     }
 
     // 선수 성장 처리 (5경기 = 1개월마다 호출)
@@ -224,7 +242,9 @@ class PlayerGrowthSystem {
         const oldRating = Math.floor(player.rating);
         
         // 성장 한계 설정
-        const maxRating = player.isCustom ? 105 : 104;
+        // [수정] 일반 선수는 95까지만 성장 가능 (야말급 대형 유망주도 95가 한계)
+        const maxRating = player.isCustom ? 100 : (player.isIcon ? 99 : 95);
+        
         player.rating = Math.min(maxRating, player.rating + growthAmount); // 소수점 유지
         
         const newRating = Math.floor(player.rating); // 표시는 정수로
