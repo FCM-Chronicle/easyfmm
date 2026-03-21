@@ -9,6 +9,7 @@ class RecordsSystem {
         this.initialized = false;
         this.weeklyRatings = []; // [수정] 초기화 추가
         this.currentBest11 = { 1: [], 2: [], 3: [], 4: [] }; // [수정] 4부(월드컵) 포함 초기화
+        this.lastSimulatedRound = 0; // [신규] 중복 시뮬레이션 방지용 변수
     }
 
     initialize() {
@@ -155,6 +156,13 @@ class RecordsSystem {
 }
 
     simulateAllLeaguesMatches() {
+        // [신규] 중복 실행 방지 체크
+        if (this.lastSimulatedRound === gameData.currentRound) {
+            console.log(`⚠️ [Records] ${gameData.currentRound}라운드 AI 경기는 이미 시뮬레이션 되었습니다. 스킵합니다.`);
+            return;
+        }
+        this.lastSimulatedRound = gameData.currentRound;
+
         console.log(`=== ${gameData.currentRound}라운드 AI 경기 시뮬레이션 ===`);
         
         // [수정] 현재 리그가 4부(월드컵)라면 4부까지, 아니면 3부까지 시뮬레이션
