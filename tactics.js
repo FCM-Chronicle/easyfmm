@@ -15,14 +15,15 @@ const RoleData = {
 	attack: {
 		AF: { name: "전진형 포워드", attack: 0.20, technique: -0.05, mobility: 0.20, defense: -0.20, physical: 0.05, mentality: 0.05, stamina: 'high' },
 		CF: { name: "센터 포워드", attack: 0.15, technique: 0.15, mobility: 0.10, defense: 0.05, physical: 0.15, mentality: 0.10, stamina: 'very_high' },
-		P:  { name: "포처", attack: 0.30, technique: -0.20, mobility: 0.10, defense: -0.50, physical: -0.05, mentality: 0.10, stamina: 'low' },
+		P:  { name: "포처", attack: 0.50, technique: -0.20, mobility: 0.10, defense: -0.35, physical: -0.05, mentality: 0.10, stamina: 'low' },
 		DLF:{ name: "딥라잉 포워드", attack: 0.05, technique: 0.25, mobility: -0.10, defense: 0.05, physical: 0.15, mentality: 0.10, stamina: 'normal' },
 		TM: { name: "타겟맨", attack: 0.10, technique: -0.15, mobility: -0.25, defense: 0.05, physical: 0.35, mentality: 0.10, stamina: 'normal' },
 		F9: { name: "펄스 나인", attack: -0.05, technique: 0.30, mobility: 0.05, defense: 0, physical: -0.20, mentality: 0.25, stamina: 'high' },
 		PF: { name: "압박형 포워드", attack: -0.05, technique: -0.05, mobility: 0.20, defense: 0.25, physical: 0.20, mentality: 0.15, stamina: 'very_high' },
-		RD: { name: "라움도이터", attack: 0.25, technique: -0.10, mobility: -0.10, defense: -0.30, physical: -0.10, mentality: 0.35, stamina: 'low' },
+		RD: { name: "라움도이터", attack: 0.25, technique: -0.10, mobility: -0.10, defense: -0.20, physical: -0.10, mentality: 0.35, stamina: 'low' },
 		W:  { name: "윙어", attack: 0.05, technique: 0.20, mobility: 0.25, defense: -0.10, physical: -0.05, mentality: 0, stamina: 'high' },
-		IF: { name: "인사이드 포워드", attack: 0.25, technique: 0.15, mobility: 0.15, defense: -0.20, physical: -0.05, mentality: 0.05, stamina: 'high' }
+		WP: { name: "와이드 플레이메이커", attack: 0.05, technique: 0.35, mobility: -0.10, defense: -0.10, physical: -0.10, mentality: 0.20, stamina: 'normal' },
+		IW: { name: "인버티드 윙어", attack: 0.20, technique: 0.20, mobility: 0.10, defense: -0.10, physical: 0, mentality: 0.05, stamina: 'high' }
 	},
 	// 2. 미드필더진 (AM, CM, DM)
 	midfield: {
@@ -34,13 +35,16 @@ const RoleData = {
 		REG: { name: "레지스타", attack: 0.05, technique: 0.40, mobility: -0.15, defense: -0.25, physical: -0.20, mentality: 0.35, stamina: 'normal' },
 		CAR: { name: "카릴레로", attack: -0.15, technique: 0.05, mobility: 0.05, defense: 0.20, physical: 0.10, mentality: 0.15, stamina: 'high' },
 		EG:  { name: "엔간체", attack: 0.15, technique: 0.35, mobility: -0.60, defense: -0.30, physical: -0.20, mentality: 0.35, stamina: 'low' },
-		SS:  { name: "섀도우 스트라이커", attack: 0.30, technique: 0.15, mobility: 0.15, defense: -0.25, physical: -0.05, mentality: 0.15, stamina: 'high' }
+		SS:  { name: "섀도우 스트라이커", attack: 0.30, technique: 0.15, mobility: 0.15, defense: -0.25, physical: -0.05, mentality: 0.15, stamina: 'high' },
+		ANC: { name: "앵커맨", attack: -0.20, technique: -0.10, mobility: -0.20, defense: 0.30, physical: 0.25, mentality: 0.25, stamina: 'low' },
+		DM:  { name: "수비형 미드필더", attack: -0.10, technique: 0, mobility: 0.05, defense: 0.25, physical: 0.15, mentality: 0.10, stamina: 'high' },
+		SV:  { name: "세군도 볼란테", attack: 0.15, technique: 0.10, mobility: 0.15, defense: 0.10, physical: 0.15, mentality: 0.10, stamina: 'very_high' }
 	},
 	// 3. 수비진 (FB, WB, CB)
 	defense: {
 		BPD: { name: "볼 플레잉 수비수", attack: 0.05, technique: 0.25, mobility: 0, defense: 0.15, physical: 0.05, mentality: 0.20, stamina: 'normal' },
 		CD:  { name: "중앙 수비수", attack: 0, technique: -0.05, mobility: 0, defense: 0.25, physical: 0.25, mentality: 0.10, stamina: 'normal' },
-		NCB: { name: "안정형 수비수", attack: -0.40, technique: -0.40, mobility: -0.10, defense: 0.35, physical: 0.30, mentality: 0.05, stamina: 'low' },
+		NCB: { name: "안정형 수비수", attack: -0.30, technique: -0.30, mobility: -0.10, defense: 0.45, physical: 0.35, mentality: 0.15, stamina: 'low' },
 		IWB: { name: "인버티드 윙백", attack: 0.05, technique: 0.25, mobility: 0.05, defense: 0.10, physical: 0, mentality: 0.20, stamina: 'high' },
 		CWB: { name: "완성형 윙백", attack: 0.25, technique: 0.20, mobility: 0.20, defense: -0.20, physical: 0, mentality: 0.05, stamina: 'very_high' },
 		LIB: { name: "리베로", attack: 0.15, technique: 0.30, mobility: 0.10, defense: 0.15, physical: 0, mentality: 0.25, stamina: 'high' },

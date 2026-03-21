@@ -59,11 +59,13 @@ const ROLE_RUN_TYPE = {
     AF: RUN_TYPE.STRIKER_RUN, CF: RUN_TYPE.SUPPORT_RUN, P: RUN_TYPE.STRIKER_RUN,
     DLF: RUN_TYPE.SUPPORT_RUN, TM: RUN_TYPE.HOLD_POSITION, F9: RUN_TYPE.SUPPORT_RUN,
     PF: RUN_TYPE.CHANNEL_RUN, RD: RUN_TYPE.CHANNEL_RUN, W: RUN_TYPE.WIDE_RUN, IF: RUN_TYPE.UNDERLAP_RUN,
+    WP: RUN_TYPE.SUPPORT_RUN, IW: RUN_TYPE.UNDERLAP_RUN,
     
     // 미드필더
     BBM: RUN_TYPE.STRIKER_RUN, MEZ: RUN_TYPE.UNDERLAP_RUN, DLP: RUN_TYPE.HOLD_POSITION,
     BWM: RUN_TYPE.HOLD_POSITION, AP: RUN_TYPE.SUPPORT_RUN, REG: RUN_TYPE.HOLD_POSITION,
     CAR: RUN_TYPE.SUPPORT_RUN, EG: RUN_TYPE.HOLD_POSITION, SS: RUN_TYPE.STRIKER_RUN,
+    ANC: RUN_TYPE.HOLD_POSITION, DM: RUN_TYPE.HOLD_POSITION, SV: RUN_TYPE.STRIKER_RUN,
     
     // 수비진 (빌드업 시 움직임)
     BPD: RUN_TYPE.SUPPORT_RUN, CD: RUN_TYPE.HOLD_POSITION, NCB: RUN_TYPE.HOLD_POSITION,
@@ -991,6 +993,9 @@ class RealSoccerEngine {
                     targetY = p.baseY + avoidY; // 포메이션 Y위치 + 회피
                     
                     if (behavior.runBehind) targetX += (forwardDir * 10); // 침투형은 더 깊게
+                    
+                    // [수정] 공격수 침투 속도 상향 (공수 전환 시 공격 가담 강화)
+                    moveSpeed = 0.25; 
                 } else if (p.position === 'MF') {
                     // 미드필더: 공 주변에서 패스 받을 준비 (삼각형 대형 유지)
                     // 공과 포메이션 위치의 중간 지점
@@ -1031,6 +1036,7 @@ class RealSoccerEngine {
                 // 수비 시 미드필더는 더 적극적으로 내려와서 수비 라인과 간격을 좁힘
                 if (p.position === 'MF') {
                     shiftFactor = 0.95; // [수정] 수비 가담 대폭 상향 (더 깊게 내려옴)
+                    moveSpeed = 0.22;   // [수정] 미드필더 수비 복귀 속도 상향 (적극적 가담)
                 } else if (p.position === 'FW') {
                     shiftFactor = 0.7; // [수정] 공격수도 수비 시 하프라인 아래로 내려오도록 조정 (0.5 -> 0.7)
                 } else if (p.position === 'DF') {
