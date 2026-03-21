@@ -29,7 +29,7 @@ class VisualUnit {
         // 좌표 변환 (0~100 -> 픽셀)
         const px = (this.x / 100) * width;
         const py = (this.y / 100) * height; // Top-down view
-        const r = Math.max(6, width * 0.015);
+        const r = Math.max(4, width * 0.010); // [수정] 바둑돌 크기 축소
 
         ctx.beginPath();
         ctx.arc(px, py, r, 0, Math.PI * 2);
@@ -144,6 +144,23 @@ class MatchVisualizer {
         this.width = 0;
         this.height = 0;
         this.storedSpeed = null; // [신규] 패스 딜레이 대응을 위한 속도 저장
+        this.grassPattern = null; // [신규] 잔디 텍스처 패턴
+    }
+
+    createGrassPattern() {
+        const size = 128;
+        const cvs = document.createElement('canvas');
+        cvs.width = size;
+        cvs.height = size;
+        const ctx = cvs.getContext('2d');
+        
+        // 노이즈 추가
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.04)'; // 은은한 텍스처
+        for (let i = 0; i < 600; i++) {
+            ctx.fillRect(Math.random() * size, Math.random() * size, 2, 2);
+        }
+        
+        return this.ctx.createPattern(cvs, 'repeat');
     }
 
     init(containerId, initialPlayers, teamColors) { // [수정] teamColors 인자 추가
@@ -248,6 +265,11 @@ class MatchVisualizer {
             this.ctx.fillStyle = i % 2 === 0 ? '#27ae60' : '#2ecc71'; // 짙은 초록 / 밝은 초록 교차
             this.ctx.fillRect(i * stripeWidth, 0, stripeWidth + 1, this.height);
         }
+
+        // [신규] 잔디 텍스처 오버레이
+        if (!this.grassPattern) this.grassPattern = this.createGrassPattern();
+        this.ctx.fillStyle = this.grassPattern;
+        this.ctx.fillRect(0, 0, this.width, this.height);
         
         this.ctx.strokeStyle = '#ffffff'; // [수정] 라인 색상 완전한 흰색으로 변경
         this.ctx.lineWidth = 2;
