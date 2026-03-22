@@ -1128,14 +1128,20 @@ style.textContent = `
     .formation-container .player-slot {
         width: 70px;
         height: 50px;
+        width: 76px;
+        height: 64px;
     }
     .player-slot-image {
         height: 95px;
         margin-top: -45px;
+        height: 100px;
+        margin-top: -40px;
     }
     .formation-container .player-slot .player-name {
         font-size: 0.6rem;
         max-width: 68px;
+        font-size: 0.7rem;
+        max-width: 74px;
         white-space: normal;
         line-height: 1.1;
         display: -webkit-box;
@@ -1144,10 +1150,42 @@ style.textContent = `
     }
     .formation-container .player-slot .player-rating {
         font-size: 0.8rem;
+        font-size: 0.85rem;
     }
     .field-wrapper {
         /* 모바일에서 필드 세로 길이를 약간 늘려 선수들이 겹치지 않게 함 */
         padding-top: 65%;
+    }
+
+    /* 모바일 버튼 터치 영역 및 두께 개선 */
+    .btn, button.btn {
+        padding: 12px 16px !important;
+        font-size: 1rem !important;
+        min-height: 48px; /* 터치하기 편한 최소 높이 */
+        margin-bottom: 5px; /* 버튼 간 간격 확보 */
+    }
+    
+    /* 포메이션 컨트롤 버튼들이 모바일에서 꽉 차게 보이도록 조정 */
+    .formation-controls .btn {
+        flex: 1;
+        padding: 10px 8px !important;
+        font-size: 0.9rem !important;
+        white-space: nowrap;
+    }
+
+    /* 메인 화면(대시보드) 및 탭바 UI 개선 */
+    .dashboard-card {
+        min-height: 110px !important;
+        padding: 20px 15px !important;
+    }
+
+    .tab-btn {
+        min-height: 50px !important;
+        padding: 12px 5px !important;
+    }
+    
+    .main-load-slot {
+        padding: 15px !important;
     }
 }
 `;
