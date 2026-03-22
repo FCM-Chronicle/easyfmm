@@ -109,29 +109,60 @@ class SimBall {
 }
 
 class SimPlayer {
-    constructor(data, teamId, role) {
+    constructor(data, teamId, role, lineStats, morale = 50) {
         this.id = data.name; // 고유 식별자
         this.name = data.name;
         this.position = data.position; // GK, DF, MF, FW
         this.rating = data.rating;
         this.teamId = teamId; // 'home' or 'away'
         this.role = role; // 전술 역할
-        
+
         // 시뮬레이션 상태
         this.x = 0;
         this.y = 0;
         this.baseX = 0; // 포메이션 기준 위치 (X)
         this.baseY = 0; // 포메이션 기준 위치 (Y)
         this.stamina = 100;
-        
+
         // 능력치 매핑 (0~100)
-        this.stats = {
-            speed: data.rating, // 간소화: 오버롤 기반
-            passing: data.rating,
-            shooting: data.rating,
-            defense: data.rating,
-            decision: data.rating // 지능
+        this.stats = this.mapDNAStats(data, role, lineStats, morale);
+    }
+
+    mapDNAStats(playerData, role, lineStats, morale) {
+        if (!lineStats || !lineStats.attack) { // 데이터 유효성 검사
+            // Fallback to rating if lineStats are not available
+            return { speed: playerData.rating, passing: playerData.rating, shooting: playerData.rating, defense: playerData.rating, decision: playerData.rating };
+        }
+
+        // [신규] 사기(Morale)에 따른 능력치 보정 (50기준, 10당 2% 변동)
+        // 전술 상성 승리 시 사기가 오르므로, 결과적으로 스탯이 상승함
+        const moraleFactor = 1 + ((morale - 50) * 0.002);
+
+        let line;
+        if (playerData.position === 'FW') line = 'attack';
+        else if (playerData.position === 'MF') line = 'midfield';
+        else line = 'defense'; // DF and GK
+
+        const baseStats = lineStats[line].stats;
+
+        const finalStats = {};
+        const statMapping = {
+            'passing': 'technique', 'shooting': 'attack', 'defense': 'defense', 'speed': 'speed', 'decision': 'mentality',
+            'physical': 'physical' // [신규] 피지컬 스탯 매핑 추가
         };
+
+        for (const [simStat, dnaStat] of Object.entries(statMapping)) {
+            const baseStatValue = baseStats[dnaStat] || playerData.rating; // DNA 스탯 없으면 OVR로 대체
+            
+            let statVal = TacticsManager.calculateFinalPower(baseStatValue, role, dnaStat);
+            
+            // [적용] 사기 보너스 반영
+            statVal = statVal * moraleFactor;
+
+            finalStats[simStat] = statVal;
+        }
+        
+        return finalStats;
     }
 }
 
@@ -149,6 +180,8 @@ class RealSoccerEngine {
         this.lastScorerTeam = null;
         this.homeScore = 0; // [신규] 엔진 내부 스코어 추적
         this.awayScore = 0;
+        this.userStats = null;
+        this.aiStats = null;
 
         // 선수 초기화
         this.initTeam(homeSquad, 'home', homeTactic);
@@ -158,6 +191,39 @@ class RealSoccerEngine {
         this.resetPositions('home');
     }
 
+    // [신규] AI 팀을 위한 DNA 스탯 생성
+    generateAIStats(squad) {
+        const aiStats = {
+            attack: { stats: {} },
+            midfield: { stats: {} },
+            defense: { stats: {} }
+        };
+
+        const calcAvg = (players) => players.length > 0 ? Math.round(players.reduce((sum, p) => sum + p.rating, 0) / players.length) : 70;
+
+        const fwOVR = calcAvg(squad.fw.filter(p => p));
+        const mfOVR = calcAvg(squad.mf.filter(p => p));
+        const dfOVR = calcAvg([...squad.df.filter(p => p), squad.gk].filter(p => p));
+
+        const lines = { attack: fwOVR, midfield: mfOVR, defense: dfOVR };
+
+        for (const [line, ovr] of Object.entries(lines)) {
+            const totalPoints = ovr * 6;
+            const baseValue = Math.floor(totalPoints / 6);
+            let remainder = totalPoints % 6;
+            const statKeys = ['attack', 'speed', 'technique', 'physical', 'defense', 'mentality'];
+            
+            statKeys.forEach(key => {
+                aiStats[line].stats[key] = baseValue;
+                if (remainder > 0) {
+                    aiStats[line].stats[key]++;
+                    remainder--;
+                }
+            });
+        }
+        return aiStats;
+    }
+
     initTeam(squad, teamId, tactic) {
         // [수정] 가로 모드 포메이션 좌표 설정 (Left <-> Right)
         // Home(Red): 왼쪽(0) 진영 -> 오른쪽(100)으로 공격
@@ -165,6 +231,22 @@ class RealSoccerEngine {
         
         const setupLine = (list, baseX) => {
             const height = 100; // Y축 높이
+
+            // [신규] DNA 스탯 및 사기 설정
+            const isUserTeam = (teamId === 'home' && gameData.isHomeGame) || (teamId === 'away' && !gameData.isHomeGame);
+            let lineStats;
+            let teamMorale = 50; // AI 기본 사기
+
+            if (isUserTeam) {
+                lineStats = gameData.lineStats;
+                this.userStats = lineStats;
+                teamMorale = gameData.teamMorale; // 유저 팀은 현재 사기 반영 (전술 상성 포함됨)
+            } else {
+                lineStats = this.aiStats || this.generateAIStats(squad);
+                this.aiStats = lineStats;
+                teamMorale = 50 + (Math.random() * 10 - 5); // AI는 45~55 사이 랜덤 컨디션
+            }
+
             list.forEach((p, i) => {
                 if (!p) return;
                 
@@ -179,7 +261,7 @@ class RealSoccerEngine {
                     role = this.getBestRoleForTactic(tactic, p.position, i);
                 }
 
-                const simP = new SimPlayer(p, teamId, role);
+                const simP = new SimPlayer(p, teamId, role, lineStats, teamMorale);
                 simP.baseX = baseX;
                 // Y축(상하) 균등 배치 (5~95 사이)
                 simP.baseY = (height / (list.length + 1)) * (i + 1);
@@ -497,12 +579,14 @@ class RealSoccerEngine {
         }
 
         const moveDir = isHome ? 1 : -1;
-        // [수정] 틱 레이트 상향(2.3배)에 맞춰 이동 거리 하향 조정
-        let moveSpeed = 1.0; 
+        // [수정] 스피드 스탯 반영 (기본 속도 + 스피드 스탯 보정)
+        // speed 50(기본) -> 1.0배, speed 100 -> 1.3배, speed 20 -> 0.8배
+        const speedFactor = player.stats.speed / 75; // 평균 75 기준
+        let moveSpeed = 1.0 * Math.max(0.7, Math.min(1.4, speedFactor)); 
         
         // [수정] 수비수는 드리블 거리 짧게 (안전 제일)
-        let moveDist = 2.0 + Math.random() * 2.0; // 5 -> 2
-        if (player.position === 'DF') moveDist = 0.8 + Math.random() * 0.8; // 2 -> 0.8
+        let moveDist = (2.0 + Math.random() * 2.0) * speedFactor; // 스피드가 빠르면 더 멀리 치고 나감
+        if (player.position === 'DF') moveDist = (0.8 + Math.random() * 0.8); 
 
         // [AI 버프] AI 공격진은 드리블 시 더 폭발적으로 전진
         if (isAI && (player.position === 'FW' || player.position === 'MF')) {
@@ -726,7 +810,18 @@ class RealSoccerEngine {
         // [수정] 선방 파워 재조정 (GK 버프): 0.7 -> 0.8 계수 상향 및 기본값 +5 추가
         const savePower = gkRating * (0.8 + Math.random() * 0.5) + 5; 
 
-        let isGoal = shotPower > savePower;
+        // [밸런스 수정] 골 결정 로직 변경 (확률 기반)
+        // 기존: isGoal = shotPower > savePower; (너무 극단적)
+        // 변경: 스탯 차이에 따라 확률을 계산하여, 운의 요소를 추가하고 극단적인 결과를 완화
+        const powerDiff = shotPower - savePower;
+        
+        // [밸런스] 득점률 추가 하향: 기본 확률 12%, 스탯 반영률 0.25%로 조정 (다득점 방지)
+        let goalChance = 0.12 + (powerDiff * 0.0025);
+        
+        // [밸런스] 최소/최대 확률 추가 조정 (최소 1%, 최대 55%)
+        goalChance = Math.max(0.01, Math.min(0.55, goalChance));
+
+        let isGoal = Math.random() < goalChance;
         
         this.ball.state = BallState.IN_FLIGHT;
         this.ball.owner = null;
@@ -923,7 +1018,11 @@ class RealSoccerEngine {
 
             let targetX = p.x;
             let targetY = p.y;
-            let moveSpeed = 0.15; // [수정] 틱 주기가 빨라졌으므로(100ms) 이동 속도 하향 조정 (자연스러운 움직임)
+            
+            // [신규] 이동 속도에 '스피드' 스탯 반영
+            // 기본 0.15 * (스피드 / 75) -> 스피드 100이면 약 0.2 (33% 빠름)
+            const speedFactor = p.stats.speed / 75;
+            let moveSpeed = 0.15 * Math.max(0.7, Math.min(1.4, speedFactor));
 
             // ------------------------------------
             // 상황 1: 루즈볼 (공이 주인 없을 때) - 모두가 공을 향해 뜀
@@ -995,7 +1094,7 @@ class RealSoccerEngine {
                     if (behavior.runBehind) targetX += (forwardDir * 10); // 침투형은 더 깊게
                     
                     // [수정] 공격수 침투 속도 상향 (공수 전환 시 공격 가담 강화)
-                    moveSpeed = 0.25; 
+                    moveSpeed = 0.25 * speedFactor; // 스피드 스탯 추가 반영
                 } else if (p.position === 'MF') {
                     // 미드필더: 공 주변에서 패스 받을 준비 (삼각형 대형 유지)
                     // 공과 포메이션 위치의 중간 지점
@@ -1120,9 +1219,17 @@ class RealSoccerEngine {
                     // [수정] "우르르 몰려다니는" 현상 방지: 전담 압박러(presser)이거나 초근접(8m) 상황일 때만 압박
                     // 기존 30m 범위 내 모든 선수가 압박하던 로직 제거 -> 포메이션 유지 강화
                     if (p === presser || distToBall < 8) {
-                        targetX = this.ball.x;
-                        targetY = this.ball.y;
-                        moveSpeed = 0.15; // [수정] 0.35 -> 0.15 (전력 질주)
+                        // [밸런스 수정] 수비수 압박 이동 로직 변경 (보간 -> 직접 이동)
+                        // 공격수의 드리블 속도(1.0)에 대응하기 위해 수비수의 전력 질주 속도를 설정합니다.
+                        const dx = this.ball.x - p.x;
+                        const dy = this.ball.y - p.y;
+                        const dist = Math.hypot(dx, dy);
+                        const sprintSpeed = 2.8 * speedFactor; // [밸런스] 압박 속도 재조정 (2.5 -> 2.8) - 수비 강화
+
+                        if (dist > 0) {
+                            p.x += (dx / dist) * sprintSpeed;
+                            p.y += (dy / dist) * sprintSpeed;
+                        }
                         
                         // 태클 시도
                         // [재수정] 근접 시 태클 빈도 대폭 상향 (거리 5m, 확률 50%~90%)
@@ -1133,9 +1240,6 @@ class RealSoccerEngine {
                             this.attemptTackle(p, this.ball.owner);
                         }
                         
-                        // 압박 로직은 바로 이동 적용하고 리턴
-                        p.x += (targetX - p.x) * moveSpeed;
-                        p.y += (targetY - p.y) * moveSpeed;
                         return; 
                     }
                 }
@@ -1146,9 +1250,20 @@ class RealSoccerEngine {
                 const isBeaten = p.position === 'DF' && (isHomeDef ? (this.ball.x < p.x - 2) : (this.ball.x > p.x + 2));
 
                 if (isBeaten) {
-                    targetX = this.ball.x + (isHomeDef ? -15 : 15); // 공보다 더 깊숙이 후퇴하여 길목 차단
-                    targetY = this.ball.y; // 공 라인으로 이동
-                    moveSpeed = 0.15; // [수정] 0.35 -> 0.15
+                    // [밸런스 수정] 수비수 복귀 이동 로직 변경 (보간 -> 직접 이동)
+                    const retreatTargetX = this.ball.x + (isHomeDef ? -15 : 15); // 공보다 더 깊숙이 후퇴하여 길목 차단
+                    const retreatTargetY = this.ball.y; // 공 라인으로 이동
+                    
+                    const dx = retreatTargetX - p.x;
+                    const dy = retreatTargetY - p.y;
+                    const dist = Math.hypot(dx, dy);
+                    const retreatSpeed = 2.7 * speedFactor; // [밸런스] 수비 복귀 속도 상향 (2.2 -> 2.7) - 뒷공간 커버 강화
+
+                    if (dist > 0) {
+                        p.x += (dx / dist) * retreatSpeed;
+                        p.y += (dy / dist) * retreatSpeed;
+                    }
+                    return; // [추가] 복귀가 최우선이므로 다른 움직임 로직 건너뛰기
                 }
             }
 
@@ -1399,7 +1514,8 @@ class RealSoccerEngine {
     }
 
     attemptTackle(defender, attacker) {
-        const defRoll = defender.stats.defense * Math.random();
+        // [밸런스] 수비 성공률 5% 보너스
+        const defRoll = (defender.stats.defense * 1.05) * Math.random();
         const atkRoll = attacker.stats.decision * Math.random();
 
         if (defRoll > atkRoll) {

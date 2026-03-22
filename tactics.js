@@ -96,9 +96,24 @@ const TacticsManager = {
      * @returns {number} 최종 계산된 파워 값
      */
     calculateFinalPower(baseStat, roleKey, statType) {
+        // [신규] 밸런스 패치: 스탯 효율 체감/페널티 시스템 (몰빵 방지)
+        let effectiveStat = baseStat;
+        const overloadThreshold = 110; // 이 수치를 넘으면 효율 감소
+        const weaknessThreshold = 40;  // 이 수치보다 낮으면 페널티 강화
+
+        if (baseStat > overloadThreshold) {
+            const excess = baseStat - overloadThreshold;
+            // 110을 초과하는 스탯은 효율이 50%만 적용됨 (예: 130 -> 110 + 20*0.5 = 120)
+            effectiveStat = overloadThreshold + (excess * 0.5);
+        } else if (baseStat < weaknessThreshold) {
+            const deficit = weaknessThreshold - baseStat;
+            // 40 미만인 스탯은 페널티가 1.5배로 적용됨 (예: 20 -> 40 - 20*1.5 = 10)
+            effectiveStat = weaknessThreshold - (deficit * 1.5);
+        }
+
         const role = this.getRoleData(roleKey);
         if (!role) {
-            return baseStat; // 역할이 없으면 기본 스탯 그대로 반환
+            return Math.round(effectiveStat); // 역할이 없으면 보정된 스탯 반환
         }
 
         // 가이드라인의 6대 스탯과 라인별 4대 핵심 스탯을 매핑합니다.
@@ -111,7 +126,7 @@ const TacticsManager = {
         // 해당 역할에 스탯 가중치가 정의되어 있는지 확인
         if (role[mappedStatType] === undefined) {
             // console.warn(`[TacticsManager] 역할 '${roleKey}'에 '${mappedStatType}' 스탯 가중치가 없습니다.`);
-            return baseStat;
+            return Math.round(effectiveStat);
         }
 
         const weight = role[mappedStatType];
@@ -121,7 +136,7 @@ const TacticsManager = {
 		const staminaKey = role.stamina || 'normal';
 		const efficiency = StaminaEfficiency[staminaKey] || 1.0;
 
-		const finalPower = baseStat * (1 + weight) * efficiency;
+		const finalPower = effectiveStat * (1 + weight) * efficiency;
         
 		return Math.round(finalPower); // 계산 결과는 정수로 반환
 	},
@@ -154,6 +169,36 @@ const TacticsManager = {
 		return StaminaEfficiency[staminaKey] || 1.0;
     }
 };
+
+// [신규] DNA 프리셋 데이터
+const DNAPresets = {
+    balanced: {
+        name: "밸런스형",
+        description: "모든 스탯에 균등하게 투자하여 약점이 없는 만능형입니다.",
+        ratios: { attack: 1, speed: 1, technique: 1, physical: 1, defense: 1, mentality: 1 }
+    },
+    gegenpress: {
+        name: "게겐프레싱",
+        description: "강한 압박과 빠른 공수 전환을 위해 스피드와 피지컬을 강화합니다.",
+        ratios: { attack: 1.05, speed: 1.1, technique: 0.9, physical: 1.1, defense: 1.05, mentality: 0.9 }
+    },
+    tikitaka: {
+        name: "티키타카",
+        description: "짧은 패스 위주의 점유율 축구를 위해 기술과 정신력을 극대화합니다.",
+        ratios: { attack: 0.95, speed: 0.95, technique: 1.1, physical: 0.95, defense: 0.95, mentality: 1.1 }
+    },
+    parkTheBus: {
+        name: "두 줄 수비",
+        description: "수비와 피지컬에 집중하여 상대의 공격을 질식시키고 역습을 노립니다.",
+        ratios: { attack: 0.8, speed: 0.9, technique: 0.8, physical: 1.2, defense: 1.3, mentality: 1.0 }
+    },
+    direct: {
+        name: "다이렉트 공격",
+        description: "빠른 공격수들을 활용하기 위해 공격과 스피드에 포인트를 집중합니다.",
+        ratios: { attack: 1.1, speed: 1.1, technique: 0.95, physical: 1.0, defense: 0.9, mentality: 0.95 }
+    }
+};
+
 
 // 4. DNA (라인별 스탯) 관리자
 const DNAManager = {
@@ -311,6 +356,35 @@ const DNAManager = {
         return true;
     },
 
+    // [신규] 프리셋 적용 함수
+    applyPreset(line, presetKey) {
+        const preset = DNAPresets[presetKey];
+        if (!preset) return;
+
+        const lineData = gameData.lineStats[line];
+        const totalPoints = lineData.totalPoints;
+        const ratios = preset.ratios;
+
+        // 비율 총합 계산
+        const totalRatio = Object.values(ratios).reduce((sum, ratio) => sum + ratio, 0);
+
+        let distributedPoints = 0;
+        const statKeys = Object.keys(lineData.stats);
+
+        // 비율에 따라 포인트 분배
+        statKeys.forEach(key => {
+            const points = Math.round((totalPoints * ratios[key]) / totalRatio);
+            lineData.stats[key] = points;
+            distributedPoints += points;
+        });
+
+        // 반올림 오차 보정 (가장 높은 비율의 스탯에 나머지 추가)
+        const remainder = totalPoints - distributedPoints;
+        const mainStat = Object.keys(ratios).reduce((a, b) => ratios[a] > ratios[b] ? a : b);
+        lineData.stats[mainStat] += remainder;
+        lineData.usedPoints = totalPoints;
+    },
+
     // UI 렌더링
     renderUI() {
         console.log('🧬 DNAManager.renderUI() called.');
@@ -360,6 +434,19 @@ const DNAManager = {
             // 전술 변경 시 DNA UI도 다시 렌더링하여 역할 보너스 등을 반영할 수 있음 (선택사항)
             // DNAManager.renderUI(); 
         });
+
+        // [신규] DNA 프리셋 선택 UI
+        const presetContainer = document.createElement('div');
+        presetContainer.className = 'dna-preset-container';
+        presetContainer.style.cssText = 'background: rgba(0,0,0,0.2); padding: 15px; border-radius: 10px; margin-bottom: 20px;';
+        let presetButtonsHtml = '<h4 style="color: #ffd700; margin-top: 0; margin-bottom: 10px;">💡 추천 DNA 분배 (프리셋)</h4><div style="display: flex; flex-wrap: wrap; gap: 10px;">';
+        for (const [key, preset] of Object.entries(DNAPresets)) {
+            presetButtonsHtml += `<button class="btn" onclick="DNAManager.handlePresetApply('${key}')" title="${preset.description}" style="background: #4a4a4a;">${preset.name}</button>`;
+        }
+        presetButtonsHtml += '</div><p style="font-size: 0.8rem; color: #aaa; margin-top: 10px;">* 프리셋을 적용하면 모든 라인(공격/미드/수비)의 포인트가 해당 컨셉에 맞게 재분배됩니다.</p>';
+        presetContainer.innerHTML = presetButtonsHtml;
+        container.appendChild(presetContainer);
+
 
         ['attack', 'midfield', 'defense'].forEach(line => {
             const lineData = gameData.lineStats[line];
@@ -485,6 +572,16 @@ const DNAManager = {
         }
     },
 
+    // [신규] 프리셋 적용 핸들러
+    handlePresetApply(presetKey) {
+        if (confirm(`'${DNAPresets[presetKey].name}' 프리셋을 모든 라인에 적용하시겠습니까?\n기존에 설정한 포인트는 초기화됩니다.`)) {
+            ['attack', 'midfield', 'defense'].forEach(line => {
+                this.applyPreset(line, presetKey);
+            });
+            this.renderUI(); // UI 전체 새로고침
+        }
+    },
+
     // [추가] 역할 설명 텍스트 생성
     getRoleDescription(line, roleKey) {
         const role = RoleData[line][roleKey];
@@ -513,4 +610,5 @@ const DNAManager = {
 // 이 파일을 다른 스크립트에서 사용할 수 있도록 전역으로 노출 (필요 시)
 window.RoleData = RoleData;
 window.TacticsManager = TacticsManager;
+window.DNAManager = DNAManager;Manager;
 window.DNAManager = DNAManager;
