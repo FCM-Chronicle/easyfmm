@@ -169,6 +169,15 @@ class TacticSystem {
             description: `${userTacticData.name} vs ${opponentTacticData ? opponentTacticData.name : opponentTactic}: ${result}`
         };
     }
+
+    // [신규] 모든 전술 목록 가져오기
+    getAllTactics() {
+        return Object.keys(this.tactics).map(key => ({
+            key: key,
+            name: this.tactics[key].name,
+            description: this.tactics[key].description
+        }));
+    }
 }
 
 // =========================================================================================

@@ -1951,11 +1951,6 @@ function setupEventListeners() {
     // 성장 현황 보기
     document.getElementById('showGrowthBtn').addEventListener('click', showGrowthSummary);
 
-    // 전술 변경
-    document.getElementById('tacticSelect').addEventListener('change', function() {
-        gameData.currentTactic = this.value;
-    });
-
     // [신규] 매치 엔진 가이드 모달
     const guideBtn = document.getElementById('openEngineGuideBtn');
     const guideModal = document.getElementById('engineGuideModal');
@@ -2465,6 +2460,8 @@ function showTab(tabName) {
     document.getElementById('dashboard-container').style.display = 'none';
     document.getElementById('tab-content-area').style.display = 'block';
     document.getElementById('homeBtn').style.display = 'block'; // 홈 버튼 표시
+    const lobbyTabs = document.getElementById('main-tabs');
+    if (lobbyTabs) lobbyTabs.style.display = 'flex';
     
     // 기존 탭 로직 유지
 
@@ -4794,72 +4791,18 @@ function showTeamTacticsInfo() {
         tikitaka: "티키타카"
     };
 
-    document.getElementById('tacticsModalTitle').textContent = '📋 팀별 기본 전술';
-    
-// 전술별로 그룹화
-const tacticGroups = {};
-Object.entries(teamTactics).forEach(([teamKey, tacticKey]) => {
-    if (!tacticGroups[tacticKey]) {
-        tacticGroups[tacticKey] = [];
+    // 전술 모달 닫기 함수
+    function closeTacticsModal() {
+        document.getElementById('tacticsModal').style.display = 'none';
     }
-    tacticGroups[tacticKey].push(teamNames[teamKey]);
-});
 
-let content = '<div style="max-height: 500px; overflow-y: auto;">';
-Object.entries(tacticGroups).forEach(([tacticKey, teams]) => {
-    content += `
-        <div style="background: rgba(255, 255, 255, 0.1); border-radius: 10px; padding: 20px; margin-bottom: 15px;">
-            <h4 style="color: #ffd700; font-size: 1.3rem; margin-bottom: 15px; display: flex; align-items: center;">
-                🎯 ${tacticNames[tacticKey]}
-            </h4>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
-                ${teams.map(team => 
-                    '<div style="background: rgba(255, 255, 255, 0.1); padding: 10px; border-radius: 8px; text-align: center; border: 1px solid rgba(255, 255, 255, 0.2);">' +
-                        team +
-                    '</div>'
-                ).join('')}
-            </div>
-        </div>
-    `;
-});
-
-content += `
-    <div style="background: rgba(255, 215, 0, 0.1); border: 1px solid rgba(255, 215, 0, 0.3); border-radius: 10px; padding: 15px; margin-top: 20px; text-align: center;">
-        <strong style="color: #ffd700;">💡 경기 전에 상대팀의 전술을 확인하고 대응 전술을 준비하세요!</strong>
-    </div>
-</div>`;
-
-document.getElementById('tacticsModalContent').innerHTML = content;
-document.getElementById('tacticsModal').style.display = 'block';
-
-// 전술 모달 닫기 함수
-function closeTacticsModal() {
-    document.getElementById('tacticsModal').style.display = 'none';
-}
-
-// 모달 바깥 클릭 시 닫기
-window.onclick = function(event) {
-    const tacticsModal = document.getElementById('tacticsModal');
-    if (event.target === tacticsModal) {
-        tacticsModal.style.display = 'none';
+    // 모달 바깥 클릭 시 닫기
+    window.onclick = function(event) {
+        const tacticsModal = document.getElementById('tacticsModal');
+        if (event.target === tacticsModal) {
+            tacticsModal.style.display = 'none';
+        }
     }
-}
-
-document.getElementById('tacticsModalContent').innerHTML = content;
-document.getElementById('tacticsModal').style.display = 'block';
-
-// 전술 모달 닫기 함수
-function closeTacticsModal() {
-    document.getElementById('tacticsModal').style.display = 'none';
-}
-
-// 모달 바깥 클릭 시 닫기
-window.onclick = function(event) {
-    const tacticsModal = document.getElementById('tacticsModal');
-    if (event.target === tacticsModal) {
-        tacticsModal.style.display = 'none';
-    }
-}
 
 // 팀 테마 적용 함수
 function applyTeamTheme(teamKey) {
@@ -6062,11 +6005,14 @@ function showDashboard() {
     const dashboardContainer = document.getElementById('dashboard-container');
     const tabContentArea = document.getElementById('tab-content-area');
     const homeBtn = document.getElementById('homeBtn');
+    const lobbyTabs = document.getElementById('main-tabs');
 
     if (dashboardContainer) dashboardContainer.style.display = 'grid';
     if (tabContentArea) tabContentArea.style.display = 'none';
     if (homeBtn) homeBtn.style.display = 'none'; // 홈 화면에선 홈 버튼 숨김
     
+    if (lobbyTabs) lobbyTabs.style.display = 'none';
+
     renderDashboard();
 }
 
@@ -6230,6 +6176,19 @@ function renderDashboard() {
         `;
     });
 
+    // [추가] 스폰서 카드
+    const sponsorCard = createDashboardCard('💼 스폰서', 'sponsor', () => {
+        const sponsorName = gameData.currentSponsor ? gameData.currentSponsor.name : '계약 없음';
+        const remainingMatches = gameData.sponsorRemainingMatches || 0;
+        return `
+            <div style="text-align: center; display: flex; flex-direction: column; justify-content: center; height: 100%;">
+                <div style="font-size: 0.9rem; color: #aaa;">현재 스폰서</div>
+                <div style="font-size: 1.5rem; font-weight: bold; color: #2ecc71; margin: 10px 0;">${sponsorName}</div>
+                ${gameData.currentSponsor ? `<div style="font-size: 0.9rem;">남은 계약: ${remainingMatches}경기</div>` : '<div style="font-size: 0.9rem;">새로운 계약을 찾아보세요</div>'}
+            </div>
+        `;
+    });
+
     const mailCard = createDashboardCard('📬 메일함', 'mail', () => {
         const unread = (typeof mailManager !== 'undefined') ? mailManager.getUnreadCount() : 0;
         return `<div style="text-align:center;">읽지 않은 메일: <span style="color:${unread > 0 ? '#e74c3c' : '#aaa'}; font-weight:bold;">${unread}통</span></div>`;
@@ -6241,6 +6200,7 @@ function renderDashboard() {
     container.appendChild(squadCard);
     container.appendChild(transferCard);
     container.appendChild(tacticsCard);
+    container.appendChild(sponsorCard);
     container.appendChild(youthCard);
     container.appendChild(mailCard);
     container.appendChild(settingsCard);

@@ -333,6 +333,34 @@ const DNAManager = {
 
         container.innerHTML = '';
 
+        // [신규] 메인 전술 선택 UI 추가
+        const tacticSelectionContainer = document.createElement('div');
+        tacticSelectionContainer.className = 'tactic-selection-container';
+        tacticSelectionContainer.style.marginBottom = '20px';
+
+        const tacticSystem = new TacticSystem();
+        const allTactics = tacticSystem.getAllTactics();
+
+        let tacticOptions = '';
+        allTactics.forEach(tactic => {
+            tacticOptions += `<option value="${tactic.key}" ${gameData.currentTactic === tactic.key ? 'selected' : ''}>${tactic.name}</option>`;
+        });
+
+        tacticSelectionContainer.innerHTML = `
+            <h4 style="color: #ffd700; margin-top: 0; margin-bottom: 10px;">📋 메인 전술</h4>
+            <select id="tacticSelect" style="width: 100%; padding: 10px; background: #333; color: white; border: 1px solid #555; border-radius: 5px;">
+                ${tacticOptions}
+            </select>
+        `;
+        container.appendChild(tacticSelectionContainer);
+
+        // 전술 변경 이벤트 리스너 추가
+        document.getElementById('tacticSelect').addEventListener('change', function() {
+            gameData.currentTactic = this.value;
+            // 전술 변경 시 DNA UI도 다시 렌더링하여 역할 보너스 등을 반영할 수 있음 (선택사항)
+            // DNAManager.renderUI(); 
+        });
+
         ['attack', 'midfield', 'defense'].forEach(line => {
             const lineData = gameData.lineStats[line];
             if (!lineData) {
