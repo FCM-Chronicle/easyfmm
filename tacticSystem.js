@@ -325,7 +325,12 @@ function simulateMatch(matchData, engine) {
                 
                 // [신규] 퇴장 애니메이션 시작
                 if (typeof engine.startExitAnimation === 'function') {
-                    engine.startExitAnimation();
+                    // 승리 팀 판별 ('home', 'away', or null)
+                    let winner = null;
+                    if (matchData.homeScore > matchData.awayScore) winner = 'home';
+                    else if (matchData.awayScore > matchData.homeScore) winner = 'away';
+
+                    engine.startExitAnimation(winner);
                     matchData.isExiting = true;
                 }
             }

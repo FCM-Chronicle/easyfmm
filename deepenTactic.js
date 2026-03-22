@@ -1417,39 +1417,132 @@ class RealSoccerEngine {
     }
 
     // [신규] 경기 종료 후 퇴장 애니메이션 시작
-    startExitAnimation() {
-        // [수정] 모든 선수가 같은 방향으로 퇴장 (위 또는 아래 중 랜덤 선택하여 통일)
-        const exitY = Math.random() < 0.5 ? -20 : 120;
+    startExitAnimation(winnerId = null) {
+        this.winningTeamId = winnerId;
+        this.lapAngle = 0; // 세레머니 회전 각도
 
-        this.players.forEach(p => {
-            // X축: 중앙(50) 부근 (45~55)
-            p.exitTargetX = 50 + (Math.random() - 0.5) * 10;
+        // 홈팀 승리 시에만 줄서서 한바퀴 (Phase 1 진입)
+        if (winnerId === 'home') {
+            this.postMatchPhase = 1; // 집결 단계
             
-            // Y축: 결정된 방향으로 통일
+            const homePlayers = this.players.filter(p => p.teamId === 'home');
+            
+            homePlayers.forEach((p, i) => {
+                // "너무 일자면 어색하니깐" -> 약간의 랜덤성과 간격을 주어 자연스럽게 배치
+                p.lapOrder = i * 0.2; // 선수 간 간격 (라디안)
+                p.radiusNoise = (Math.random() - 0.5) * 6; // 반지름에 약간의 불규칙성 (±3m)
+                
+                // 경기장 하단 중앙(90도 방향) 부근으로 집결 목표 설정
+                const startAngle = Math.PI / 2 + p.lapOrder; 
+                p.exitTargetX = 50 + Math.cos(startAngle) * (35 + p.radiusNoise);
+                p.exitTargetY = 50 + Math.sin(startAngle) * (30 + p.radiusNoise);
+            });
+
+            // 진 팀(원정팀)은 바로 퇴장
+            const awayPlayers = this.players.filter(p => p.teamId !== 'home');
+            awayPlayers.forEach(p => {
+                p.exitTargetX = 50 + (Math.random() - 0.5) * 40;
+                p.exitTargetY = -20; // 위쪽으로 퇴장
+            });
+
+        } else {
+            // 홈팀 패배(또는 무승부) 시 모두 바로 퇴장
+            this.initExitMovement();
+        }
+    }
+
+    // [신규] 퇴장 이동 경로 설정 (별도 분리)
+    initExitMovement() {
+        this.postMatchPhase = 3; // 퇴장 단계 (기존 2에서 3으로 변경)
+        const exitY = Math.random() < 0.5 ? -20 : 120; // 퇴장 방향
+        
+        this.players.forEach(p => {
+            p.exitTargetX = 50 + (Math.random() - 0.5) * 10;
             p.exitTargetY = exitY;
         });
     }
 
     // [신규] 퇴장 애니메이션 업데이트
     updatePostMatch() {
-        let allArrived = true;
-        this.players.forEach(p => {
-            const dx = p.exitTargetX - p.x;
-            const dy = p.exitTargetY - p.y;
-            const dist = Math.hypot(dx, dy);
+        // Phase 1: 홈팀 집결 (진 팀은 퇴장)
+        if (this.postMatchPhase === 1) {
+            let allAligned = true;
             
-            if (dist > 1) {
-                const speed = 0.7; // 퇴장 속도 상향
-                p.x += (dx / dist) * speed;
-                p.y += (dy / dist) * speed;
-                allArrived = false;
+            // 홈팀: 시작 지점(하단)으로 이동
+            this.players.forEach(p => {
+                if (p.teamId === 'home') {
+                    const dx = p.exitTargetX - p.x;
+                    const dy = p.exitTargetY - p.y;
+                    const dist = Math.hypot(dx, dy);
+                    if (dist > 3) { // 대충 근처에 오면 됨 (너무 칼같이 맞출 필요 없음)
+                        p.x += (dx / dist) * 0.8;
+                        p.y += (dy / dist) * 0.8;
+                        allAligned = false; 
+                    }
+                } else {
+                    // 원정팀: 계속 퇴장
+                    p.y -= 0.8;
+                }
+            });
+
+            if (allAligned) {
+                this.postMatchPhase = 2; // 돌기 시작
+                this.lapAngle = Math.PI / 2; // 하단(90도)에서 시작
             }
-        });
+        }
+        // Phase 2: 경기장 외곽 크게 돌기 (Lap of Honor)
+        else if (this.postMatchPhase === 2) {
+            this.lapAngle -= 0.015; // 반시계 방향으로 천천히 회전
+            
+            // 홈팀: 타원 궤도 이동
+            this.players.forEach(p => {
+                if (p.teamId === 'home') {
+                    // 현재 각도 + 개인 오프셋
+                    const currentAngle = this.lapAngle + p.lapOrder;
+                    
+                    // 경기장 외곽을 도는 타원 궤도 (가로 40, 세로 35 + 개인차)
+                    const radiusX = 40 + p.radiusNoise;
+                    const radiusY = 35 + p.radiusNoise;
+                    
+                    const targetX = 50 + Math.cos(currentAngle) * radiusX;
+                    const targetY = 50 + Math.sin(currentAngle) * radiusY;
+                    
+                    // 부드럽게 따라가기
+                    p.x += (targetX - p.x) * 0.1;
+                    p.y += (targetY - p.y) * 0.1;
+                } else {
+                    // 원정팀은 계속 퇴장 이동
+                    p.y -= 0.8; 
+                }
+            });
+
+            // 한 바퀴 다 돌면 퇴장 (시작 각도 PI/2, 반시계로 돌아서 -3PI/2까지)
+            if (this.lapAngle < -Math.PI * 1.5) { 
+                this.initExitMovement(); 
+            }
+        }
+        // Phase 3: 모두 퇴장 이동
+        else if (this.postMatchPhase === 3) {
+            this.players.forEach(p => {
+                const dx = p.exitTargetX - p.x;
+                const dy = p.exitTargetY - p.y;
+                const dist = Math.hypot(dx, dy);
+                
+                if (dist > 1) {
+                    const speed = 0.7; 
+                    p.x += (dx / dist) * speed;
+                    p.y += (dy / dist) * speed;
+                }
+            });
+        }
+        
         return this.getSnapshot();
     }
 
     isExitAnimationDone() {
-        return this.players.every(p => Math.hypot(p.exitTargetX - p.x, p.exitTargetY - p.y) < 2);
+        // 퇴장 단계(3)이고 모든 선수가 화면 밖으로 나갔는지 확인
+        if (this.postMatchPhase !== 3) return false;
+        return this.players.every(p => p.y < -10 || p.y > 110);
     }
 }
 
