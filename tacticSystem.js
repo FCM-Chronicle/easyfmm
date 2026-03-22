@@ -309,7 +309,7 @@ function simulateMatch(matchData, engine) {
     // 처리 시간이 길어져도 메인 스레드를 차단하지 않도록 함
     function gameLoop() {
         // 경기 종료 상태면 루프 중단
-        if (matchData.isEnded) return;
+        if (matchData.isEnded && !matchData.isExiting) return;
 
         // 일시정지 상태면 잠시 대기 후 다시 체크 (폴링)
         if (!matchData.isRunning) {
@@ -319,8 +319,29 @@ function simulateMatch(matchData, engine) {
 
         // 1. 경기 종료 체크
         if (matchData.minute >= 90) {
-            matchData.isEnded = true;
-            endMatch(matchData);
+            if (!matchData.isEnded) {
+                matchData.isEnded = true;
+                endMatch(matchData);
+                
+                // [신규] 퇴장 애니메이션 시작
+                if (typeof engine.startExitAnimation === 'function') {
+                    engine.startExitAnimation();
+                    matchData.isExiting = true;
+                }
+            }
+
+            // [신규] 퇴장 애니메이션 진행
+            if (matchData.isExiting) {
+                const snapshot = engine.updatePostMatch();
+                if (window.matchVisualizer) window.matchVisualizer.sync(snapshot);
+
+                if (engine.isExitAnimationDone()) {
+                    matchData.isExiting = false;
+                    return;
+                }
+                matchData.timeoutId = setTimeout(gameLoop, 60);
+                return;
+            }
             return;
         }
 

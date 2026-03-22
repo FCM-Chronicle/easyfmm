@@ -1415,6 +1415,42 @@ class RealSoccerEngine {
         const lineShift = gameData.deepTactics.defensiveLine === 'high' ? -10 : (gameData.deepTactics.defensiveLine === 'deep' ? 10 : 0);
         // (구현 생략 - 위 로직에 포함됨)
     }
+
+    // [신규] 경기 종료 후 퇴장 애니메이션 시작
+    startExitAnimation() {
+        // [수정] 모든 선수가 같은 방향으로 퇴장 (위 또는 아래 중 랜덤 선택하여 통일)
+        const exitY = Math.random() < 0.5 ? -20 : 120;
+
+        this.players.forEach(p => {
+            // X축: 중앙(50) 부근 (45~55)
+            p.exitTargetX = 50 + (Math.random() - 0.5) * 10;
+            
+            // Y축: 결정된 방향으로 통일
+            p.exitTargetY = exitY;
+        });
+    }
+
+    // [신규] 퇴장 애니메이션 업데이트
+    updatePostMatch() {
+        let allArrived = true;
+        this.players.forEach(p => {
+            const dx = p.exitTargetX - p.x;
+            const dy = p.exitTargetY - p.y;
+            const dist = Math.hypot(dx, dy);
+            
+            if (dist > 1) {
+                const speed = 0.7; // 퇴장 속도 상향
+                p.x += (dx / dist) * speed;
+                p.y += (dy / dist) * speed;
+                allArrived = false;
+            }
+        });
+        return this.getSnapshot();
+    }
+
+    isExitAnimationDone() {
+        return this.players.every(p => Math.hypot(p.exitTargetX - p.x, p.exitTargetY - p.y) < 2);
+    }
 }
 
 // 전역 노출
