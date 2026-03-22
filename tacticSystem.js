@@ -198,8 +198,10 @@ function startMatch() {
         events: [],
         isRunning: false,
         substitutionsMade: 0,
-        strengthDiff: calculateTeamStrengthDifference()
+        strengthDiff: calculateTeamStrengthDifference(),
+        isFastForward: false // [신규] 고속 모드 플래그
     };
+    window.currentMatchData = matchData; // [신규] 치트키 사용을 위해 전역 노출
 
     // 5. 전술 효과 적용
     const tacticSystem = new TacticSystem();
@@ -381,8 +383,9 @@ function simulateMatch(matchData, engine) {
         const endTime = performance.now();
         const elapsed = endTime - startTime;
         
-        // 목표 시간(100ms)에서 경과 시간을 뺀 만큼 대기 (최소 0ms)
-        const nextDelay = Math.max(0, tickDuration - elapsed);
+        // [수정] 고속 모드일 경우 딜레이를 0으로 설정하여 즉시 다음 틱 실행
+        const targetDuration = matchData.isFastForward ? 0 : tickDuration;
+        const nextDelay = Math.max(0, targetDuration - elapsed);
         
         matchData.timeoutId = setTimeout(gameLoop, nextDelay);
     }
@@ -612,10 +615,41 @@ function endMatch(matchData) {
     gameData.currentRound++;
     setNextOpponent();
 
-    // [추가] 스태미나 회복
-    if (gameData.lineStats) {
-        ['attack', 'midfield', 'defense'].forEach(line => {
-            if (gameData.lineStats[line]) gameData.lineStats[line].stamina = 100;
+    // [수정] 체력 회복 시스템 개편 (개별 선수 단위)
+    if (matchData.engine && matchData.engine.players && gameData.selectedTeam) {
+        const userTeamKey = gameData.selectedTeam;
+        const userPlayers = teams[userTeamKey];
+        
+        // 사용자의 팀이 home인지 away인지 확인
+        const userSide = matchData.homeTeam === userTeamKey ? 'home' : 'away';
+        const playedPlayerNames = new Set();
+
+        // 1. 경기 뛴 선수 체력 업데이트
+        matchData.engine.players.forEach(simPlayer => {
+            if (simPlayer.teamId === userSide) {
+                const realPlayer = userPlayers.find(p => p.name === simPlayer.name);
+                if (realPlayer) {
+                    playedPlayerNames.add(realPlayer.name);
+                    
+                    const remaining = simPlayer.stamina;
+                    let recovered = 100;
+
+                    // 요청된 회복 로직 적용
+                    if (remaining <= 40) recovered = 92;
+                    else if (remaining <= 55) recovered = 97;
+                    else if (remaining < 60) recovered = 98; // 56~59 구간 보정
+                    else recovered = 100; // 60 이상
+
+                    realPlayer.condition = recovered;
+                }
+            }
+        });
+
+        // 2. 경기 안 뛴 선수 무조건 100 회복
+        userPlayers.forEach(p => {
+            if (!playedPlayerNames.has(p.name)) {
+                p.condition = 100;
+            }
         });
     }
 
@@ -1166,3 +1200,19 @@ const injurySystem = new InjurySystem();
 window.injurySystem = injurySystem;
 window.startMatch = startMatch;
 window.handleInterview = handleInterview;
+
+// [신규] 경기 속도 조절 치트키 (Shift + F)
+document.addEventListener('keydown', (e) => {
+    if (e.shiftKey && (e.key === 'f' || e.key === 'F')) {
+        if (window.currentMatchData && window.currentMatchData.isRunning) {
+            window.currentMatchData.isFastForward = !window.currentMatchData.isFastForward;
+            
+            // 시각적 피드백 (시간 텍스트 색상 변경)
+            const timeEl = document.getElementById('matchTime');
+            if (timeEl) {
+                timeEl.style.color = window.currentMatchData.isFastForward ? '#f1c40f' : '';
+                timeEl.style.textShadow = window.currentMatchData.isFastForward ? '0 0 10px #f1c40f' : '';
+            }
+        }
+    }
+});

@@ -505,8 +505,10 @@ updateLeagueTableForAIMatch(team1Key, team2Key, score1, score2) {
     
     // 1. gameData.leagueData 업데이트 (메인 데이터 - UI 표시용)
         const divisionKey = `division${team1League}`;
+        let mainTable = null;
         if (gameData.leagueData && gameData.leagueData[divisionKey]) {
-            this.applyMatchResultToTable(gameData.leagueData[divisionKey], team1Key, team2Key, score1, score2);
+            mainTable = gameData.leagueData[divisionKey];
+            this.applyMatchResultToTable(mainTable, team1Key, team2Key, score1, score2);
     }
     
     // 2. window.leagueXTable 업데이트 (호환성 유지)
@@ -515,7 +517,9 @@ updateLeagueTableForAIMatch(team1Key, team2Key, score1, score2) {
         else if (team1League === 2) legacyTable = window.league2Table;
         else if (team1League === 3) legacyTable = window.league3Table;
     
-        if (legacyTable) {
+        // [수정] 중복 업데이트 방지: 로드된 게임의 경우 legacyTable과 mainTable이 같은 객체일 수 있음
+        // 두 객체가 다를 때만 legacyTable을 별도로 업데이트함
+        if (legacyTable && legacyTable !== mainTable) {
             this.applyMatchResultToTable(legacyTable, team1Key, team2Key, score1, score2);
         }
         

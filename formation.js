@@ -191,11 +191,20 @@ class FormationSystem {
                 }
             }
 
+            // [신규] 체력바 색상 및 너비 계산
+            const condition = (player.condition !== undefined) ? player.condition : 100;
+            let condColor = '#2ecc71'; // Green
+            if (condition < 70) condColor = '#e74c3c'; // Red
+            else if (condition < 90) condColor = '#f1c40f'; // Yellow
+
             // 선수가 있는 경우
             slot.innerHTML = `
                 <img src="assets/players/${player.name}.webp" class="player-slot-image" loading="lazy" onerror="this.onerror=null; this.src='assets/players/default.webp'">
                 <div class="player-name">${player.name}</div>
                 <div class="player-rating">${Math.floor(player.rating)}</div>
+                <div class="player-condition-bar">
+                    <div class="condition-fill" style="width: ${condition}%; background-color: ${condColor};"></div>
+                </div>
                 ${roleDisplay ? `<div class="player-role">${roleDisplay}</div>` : ''}
             `;
             slot.dataset.playerName = player.name;
@@ -929,6 +938,21 @@ const newStyle = `
     margin-top: 2px;
     line-height: 1;
     z-index: 5;
+}
+
+/* 체력바 스타일 */
+.player-condition-bar {
+    width: 80%;
+    height: 4px;
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 2px;
+    margin-top: 2px;
+    overflow: hidden;
+    z-index: 30;
+}
+.condition-fill {
+    height: 100%;
+    transition: width 0.3s ease;
 }
 `;
 

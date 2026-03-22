@@ -1,4 +1,4 @@
-// tacticSystem.js
+// tacticSystem.js 추억회상용이니깐 손보지말것
 
 // 메모리 업데이트: 포지션별 골 확률이 FW: 75%, MF: 21%, DF: 4%로 설정됨
 
@@ -819,10 +819,33 @@ class RealMatchEngine {
 
     // 체력 소모
     consumeStamina() {
+        // [신규] 롤별 분당 체력 소모율 (BBM 기준 90분 60% 소모 -> 남은 체력 40% 목표)
+        const baseRates = {
+            'BBM': 0.67, 'BWM': 0.67, 'W': 0.65, 'IW': 0.62, // 활동량 많음 (0.67 * 90 ≈ 60.3 소모)
+            'AF': 0.55, 'CF': 0.55, 'SS': 0.55, 'CM': 0.55, 'AP': 0.50, // 일반 공격/미드
+            'CD': 0.35, 'BPD': 0.35, 'NCB': 0.35, 'FB': 0.60, 'WB': 0.65, // 수비 (풀백은 높음)
+            'GK': 0.1, 'SK': 0.15, // 골키퍼
+            'DLP': 0.45, 'EG': 0.40, 'TM': 0.40, 'P': 0.35, 'F9': 0.50 // 기타
+        };
+
         const process = (isUser) => {
             const stats = isUser ? this.userStats : this.aiStats;
+            if (!stats) return;
+            const tactic = isUser ? gameData.currentTactic : (this.tacticSystem.getOpponentTactic(gameData.currentOpponent) || 'balanced');
+            
+            // [신규] 전술에 따른 체력 소모 가중치
+            let tacticMultiplier = 1.0;
+            if (tactic === 'gegenpress') tacticMultiplier = 1.25; // 게겐프레싱: 체력 소모 25% 증가
+            if (tactic === 'totalFootball') tacticMultiplier = 1.15;
+            if (tactic === 'parkBus' || tactic === 'catenaccio') tacticMultiplier = 0.85; // 수비 전술: 체력 아낌
             
             ['attack', 'midfield', 'defense'].forEach(line => {
+                if (!stats[line]) return;
+                // 체력 값 안전 장치 (데이터가 없거나 깨졌으면 100으로 초기화)
+                if (typeof stats[line].stamina !== 'number' || isNaN(stats[line].stamina)) {
+                    stats[line].stamina = 100;
+                }
+
                 let consumptionRate = 0;
 
                 if (isUser) {
@@ -837,21 +860,22 @@ class RealMatchEngine {
                         let totalRate = 0;
                         players.forEach(p => {
                             const roleKey = gameData.playerRoles?.[p.name] || (line === 'attack' ? 'AF' : line === 'midfield' ? 'BBM' : 'BPD');
-                            const staminaKey = TacticsManager.getStaminaConsumptionKey(roleKey);
-                            totalRate += TacticsManager.getStaminaConsumptionRate(staminaKey);
+                            // TacticsManager가 없거나 값이 작을 경우 내부 baseRates 사용
+                            const rate = baseRates[roleKey] || 0.5;
+                            totalRate += rate;
                         });
                         consumptionRate = totalRate / players.length;
                     } else {
-                        consumptionRate = 0.38; // 기본값
+                        consumptionRate = 0.5; // 기본값
                     }
                 } else {
                     // AI: 라인 롤 기준
                     const roleKey = this.aiRoles[line];
-                    const staminaKey = TacticsManager.getStaminaConsumptionKey(roleKey);
-                    consumptionRate = TacticsManager.getStaminaConsumptionRate(staminaKey);
+                    consumptionRate = baseRates[roleKey] || 0.5;
                 }
 
-                stats[line].stamina = Math.max(0, stats[line].stamina - consumptionRate);
+                // 최종 소모량 적용 (전술 보정 포함)
+                stats[line].stamina = Math.max(0, stats[line].stamina - (consumptionRate * tacticMultiplier));
             });
         };
         process(true);
@@ -1384,9 +1408,9 @@ class RealMatchEngine {
         const mid = document.getElementById('midStamina');
         const def = document.getElementById('defStamina');
         
-        if (atk) atk.textContent = Math.max(0, Math.floor(this.userStats.attack.stamina));
-        if (mid) mid.textContent = Math.max(0, Math.floor(this.userStats.midfield.stamina));
-        if (def) def.textContent = Math.max(0, Math.floor(this.userStats.defense.stamina));
+        if (atk && this.userStats.attack) atk.textContent = Math.floor(this.userStats.attack.stamina);
+        if (mid && this.userStats.midfield) mid.textContent = Math.floor(this.userStats.midfield.stamina);
+        if (def && this.userStats.defense) def.textContent = Math.floor(this.userStats.defense.stamina);
     }
 
     // [신규] 선수 교체 시 스태미나 재계산

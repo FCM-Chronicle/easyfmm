@@ -15,7 +15,7 @@ const allTeams = {
             { name: "마르크 안드레 테어 슈테겐", position: "GK", country: "독일", age: 33, rating: 79 },
             { name: "안드레아스 크리스텐센", position: "DF", country: "덴마크", age: 29, rating: 78 },
             { name: "가비", position: "MF", country: "스페인", age: 20, rating: 84 },
-            { name: "페르민ㅔ 로페스", position: "MF", country: "스페인", age: 22, rating: 82 },
+            { name: "페르민 로페스", position: "MF", country: "스페인", age: 22, rating: 82 },
             { name: "마르크 카사도", position: "MF", country: "스페인", age: 21, rating: 79 },
             { name: "다니 올모", position: "MF", country: "스페인", age: 27, rating: 83 },
             { name: "프렝키 더용", position: "MF", country: "네덜란드", age: 28, rating: 86 },
@@ -2504,9 +2504,7 @@ function showTab(tabName) {
 
     // [추가] 매치 탭 예외 처리 (대시보드에서 호출 시)
     if (tabName === 'match') {
-        if (typeof startMatch === 'function') startMatch();
         // 탭 전환만 하고 경기 시작은 버튼으로 하도록 변경 (바로 시작하면 캘린더 효과를 못 봄)
-        // if (typeof startMatch === 'function') startMatch();
     }
 
     // 탭 버튼 활성화
@@ -4391,7 +4389,7 @@ function runMatchSequence() {
     const simDays = 3;
     let dayCount = 0;
 
-    const events = ["전술 훈련", "체력 단련", "비디오 분석", "휴식", "미디어 데이", "가벼운 훈련"];
+    const events = ["전술 훈련", "체력 단련", "비디오 분석", "휴식", "전술 훈련", "가벼운 훈련"];
 
     // 2. 날짜 넘기기 애니메이션
     const interval = setInterval(() => {
