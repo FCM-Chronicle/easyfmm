@@ -1007,14 +1007,38 @@
             <div class="time">
                 <span id="matchTime">0분</span>
             </div>
-            <!-- [신규] 스태미나 표시기 -->
-            <div id="staminaContainer" style="margin-top: 10px; font-size: 0.9rem; background: rgba(0,0,0,0.3); padding: 5px 15px; border-radius: 15px;">
-                <span style="color: #aaa; margin-right: 10px;">체력:</span>
-                <span style="color: #e74c3c; font-weight: bold;">FW <span id="atkStamina">100</span>%</span>
-                <span style="color: #555; margin: 0 5px;">|</span>
-                <span style="color: #3498db; font-weight: bold;">MF <span id="midStamina">100</span>%</span>
-                <span style="color: #555; margin: 0 5px;">|</span>
-                <span style="color: #2ecc71; font-weight: bold;">DF <span id="defStamina">100</span>%</span>
+            <!-- [신규] 스태미나 표시기 (비주얼 업그레이드) -->
+            <div id="staminaContainer" style="margin-top: 15px; width: 90%; max-width: 500px; display: flex; gap: 10px; justify-content: center; background: rgba(0,0,0,0.4); padding: 10px; border-radius: 10px;">
+                <!-- 공격진 -->
+                <div class="stamina-group" style="flex: 1;">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px;">
+                        <span style="color: #e74c3c; font-weight: bold;">FW</span>
+                        <span id="atkStaminaText" style="color: #fff;">100%</span>
+                    </div>
+                    <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
+                        <div id="atkStaminaBar" style="width: 100%; height: 100%; background: #e74c3c; transition: width 0.5s, background-color 0.3s;"></div>
+                    </div>
+                </div>
+                <!-- 미드필더 -->
+                <div class="stamina-group" style="flex: 1;">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px;">
+                        <span style="color: #3498db; font-weight: bold;">MF</span>
+                        <span id="midStaminaText" style="color: #fff;">100%</span>
+                    </div>
+                    <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
+                        <div id="midStaminaBar" style="width: 100%; height: 100%; background: #3498db; transition: width 0.5s, background-color 0.3s;"></div>
+                    </div>
+                </div>
+                <!-- 수비진 -->
+                <div class="stamina-group" style="flex: 1;">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px;">
+                        <span style="color: #2ecc71; font-weight: bold;">DF</span>
+                        <span id="defStaminaText" style="color: #fff;">100%</span>
+                    </div>
+                    <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
+                        <div id="defStaminaBar" style="width: 100%; height: 100%; background: #2ecc71; transition: width 0.5s, background-color 0.3s;"></div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -1303,7 +1327,7 @@
     <!-- autosave.js는 script.js에 통합되었으므로 제거합니다. -->
     <!-- <script src="autosave.js"></script> -->
     <script src="mail.js"></script>
-    <script src="worldcup.js"></script>합니다. -->
+    <script src="worldcup.js"></script>
     <!-- <script src="autosave.js"></script> -->
     <script src="mail.js"></script>
     <script src="worldcup.js"></script>

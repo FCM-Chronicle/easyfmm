@@ -3267,26 +3267,36 @@ function displayTeamPlayers() {
             const injuryInfo = injurySystem.getInjuredPlayers(gameData.selectedTeam).find(i => i.name === player.name);
             const gamesLeft = injuryInfo ? injuryInfo.gamesRemaining : '?';
             
+            // 부상자는 체력바 대신 부상 표시
             playerCard.innerHTML = `
                 <div class="player-card-content">
                     <img src="assets/players/${player.name}.webp" class="player-card-image" loading="lazy" onerror="this.onerror=null; this.src='assets/players/default.webp'">
                     <div class="player-info-text">
                         <div class="name">${player.name}</div>
                         <div class="details">
-                            <div>${player.position} | 능력치: ${Math.floor(player.rating)} | 나이: ${player.age}</div>
+                            <div>${player.position} | ★${Math.floor(player.rating)}</div>
                             <div style="color: #e74c3c; font-weight: bold; font-size: 0.8rem;">🚑 부상중 (${gamesLeft}경기)</div>
                         </div>
                     </div>
                 </div>
             `;
         } else {
+            // [신규] 체력바 추가
+            const condition = (player.condition !== undefined) ? player.condition : 100;
+            let condColor = '#2ecc71';
+            if (condition < 70) condColor = '#e74c3c';
+            else if (condition < 90) condColor = '#f1c40f';
+            
             playerCard.innerHTML = `
                 <div class="player-card-content">
                     <img src="assets/players/${player.name}.webp" class="player-card-image" loading="lazy" onerror="this.onerror=null; this.src='assets/players/default.webp'">
                     <div class="player-info-text">
                         <div class="name">${player.name}</div>
                         <div class="details">
-                            <div>${player.position} | 능력치: ${Math.floor(player.rating)} | 나이: ${player.age}</div>
+                            <div>${player.position} | ★${Math.floor(player.rating)}</div>
+                            <div class="player-list-condition" style="width: 100%; height: 4px; background: rgba(255,255,255,0.2); margin-top: 4px; border-radius: 2px;">
+                                <div style="width: ${condition}%; height: 100%; background: ${condColor}; border-radius: 2px;"></div>
+                            </div>
                             ${isUsed ? '<div style="color: #ffd700; font-size: 0.8rem;">★ 출전 중</div>' : ''}
                         </div>
                     </div>
