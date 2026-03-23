@@ -709,6 +709,15 @@ class RealSoccerEngine {
                 distScore -= 40; // 뻥축구 방지 (미드필더 거쳐가도록 유도)
             }
 
+            // [신규] 최전방 공격수의 최후방 백패스 강력 억제 (경기 루즈함 방지)
+            if (player.position === 'FW' && distAfter > distBefore) {
+                if (tm.position === 'GK') {
+                    distScore -= 500; // GK에게 백패스 금지
+                } else if (tm.position === 'DF' && dist > 15) {
+                    distScore -= 150; // 수비수에게 15m 이상 백패스 금지
+                }
+            }
+
             // 3. 압박 점수 (주변에 적이 없어야 함)
             let pressureScore = 0;
             this.players.forEach(opp => {
