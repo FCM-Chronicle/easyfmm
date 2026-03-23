@@ -1554,7 +1554,7 @@ let gameData = {
     currentSponsor: null,
     matchesPlayed: 0,
     currentOpponent: null,
-    currentTactic: 'gegenpress',
+    currentTactic: 'balanced', // [수정] 기본값 'balanced' (무전술)로 변경
     isWorldCupMode: false, // [추가] 월드컵 모드 플래그 초기화
     squad: {
         // 4-3-3 포메이션 기준
@@ -1672,6 +1672,107 @@ const teamLogoCodes = {
     "Legend_Liverpool": "LIV", "Legend_Bayern": "BAY", "Legend_Inter": "INT",
     "Legend_Juventus": "JUV", "Legend_Ajax": "AJA", "Legend_Roma": "ROM",
     "Legend_Tottenham": "TOT", "Legend_Napoli": "NAP"
+};
+
+// ==================== [신규] 자동 저장 시스템 ====================
+window.AutoSaveSystem = {
+    lastLoadedSlot: 1, // 기본값 슬롯 1
+
+    init: function() {
+        // UI 이벤트 바인딩 (설정 탭)
+        const toggle = document.getElementById('autoSaveToggle');
+        if (toggle) {
+            // 기존 이벤트 제거를 위해 복제 후 교체
+            const newToggle = toggle.cloneNode(true);
+            toggle.parentNode.replaceChild(newToggle, toggle);
+            
+            newToggle.addEventListener('change', (e) => {
+                if (!gameData.settings) gameData.settings = {};
+                gameData.settings.autoSave = e.target.checked;
+                this.updateUI();
+                
+                // 켜는 순간 저장 한 번 실행
+                if (gameData.settings.autoSave) {
+                    this.triggerSave();
+                }
+            });
+        }
+        this.updateUI();
+    },
+
+    updateUI: function() {
+        const toggle = document.getElementById('autoSaveToggle');
+        const status = document.getElementById('autoSaveStatus');
+        
+        if (toggle && status) {
+            const isEnabled = gameData.settings && gameData.settings.autoSave;
+            toggle.checked = isEnabled;
+            status.textContent = isEnabled ? 
+                `자동 저장이 켜져있습니다 (슬롯 ${this.lastLoadedSlot})` : 
+                "자동 저장이 꺼져있습니다.";
+            status.style.color = isEnabled ? "#2ecc71" : "#aaa";
+        }
+    },
+
+    setLastLoadedSlot: function(slot) {
+        this.lastLoadedSlot = slot;
+        this.updateUI();
+    },
+
+    triggerSave: function() {
+        if (gameData.settings && gameData.settings.autoSave) {
+            if (typeof window.saveToSlot === 'function') {
+                console.log(`🔄 자동 저장 실행 (슬롯 ${this.lastLoadedSlot})`);
+                // silent 모드로 저장 (알림창 없이)
+                window.saveToSlot(this.lastLoadedSlot, true); 
+                this.showToast();
+            }
+        }
+    },
+
+    showToast: function() {
+        const toast = document.createElement('div');
+        toast.innerHTML = '💾 자동 저장됨';
+        toast.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(46, 204, 113, 0.9);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            z-index: 10000;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            animation: fadeUp 2s ease forwards;
+            pointer-events: none;
+        `;
+        document.body.appendChild(toast);
+        
+        // 애니메이션 스타일 추가 (중복 방지)
+        if (!document.getElementById('toast-style')) {
+            const style = document.createElement('style');
+            style.id = 'toast-style';
+            style.innerHTML = `
+                @keyframes fadeUp {
+                    0% { opacity: 0; transform: translateY(20px); }
+                    15% { opacity: 1; transform: translateY(0); }
+                    85% { opacity: 1; transform: translateY(0); }
+                    100% { opacity: 0; transform: translateY(-20px); }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        setTimeout(() => toast.remove(), 2000);
+    }
+};
+
+// 전역 헬퍼 (loadGame 등에서 호출)
+window.updateAutoSaveUI = function() {
+    if (window.AutoSaveSystem) {
+        window.AutoSaveSystem.updateUI();
+    }
 };
 
 function getTeamLogoHTML(teamName) {
@@ -1846,6 +1947,11 @@ function initializeGame() {
 
     // [신규] 메인 화면 저장된 게임 슬롯 표시
     renderMainSaveSlots();
+    
+    // [신규] 자동 저장 시스템 초기화
+    setTimeout(() => {
+        if (window.AutoSaveSystem) window.AutoSaveSystem.init();
+    }, 1000);
     
     // 첫 번째 화면 표시
     showScreen('teamSelection');
@@ -4943,6 +5049,11 @@ function saveToSlot(slotNumber, silent = false) {
     try {
         if (!silent) console.log(`=== 슬롯 ${slotNumber}에 저장 시작 ===`);
         
+        // [추가] 자동 저장 타겟 슬롯 업데이트 (수동 저장 시 해당 슬롯을 따라감)
+        if (window.AutoSaveSystem) {
+            window.AutoSaveSystem.setLastLoadedSlot(slotNumber);
+        }
+        
         // [추가] AI 선수들의 성장 데이터를 allTeams에도 반영
         if (typeof allTeams !== 'undefined' && typeof teams !== 'undefined') {
             Object.keys(teams).forEach(teamKey => {
@@ -5142,6 +5253,11 @@ function loadFromSlot(slotNumber) {
         
         console.log(`=== 슬롯 ${slotNumber}에서 불러오기 완료 ===`);
         alert(`슬롯 ${slotNumber}에서 게임을 불러왔습니다!`);
+
+        // [추가] 자동 저장 타겟 슬롯 업데이트
+        if (window.AutoSaveSystem) {
+            window.AutoSaveSystem.setLastLoadedSlot(slotNumber);
+        }
 
         // gameData 객체가 교체되었으므로 자동 저장 감지기 재설정
         if (window.autoSaveSystem) {

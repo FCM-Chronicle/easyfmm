@@ -431,6 +431,11 @@ class TransferSystem {
         // [추가] 이적 뉴스 기록
         this.addTransferNews(newPlayer, player.originalTeam, gameData.selectedTeam, player.price);
 
+        // [추가] 영입 후 자동 저장
+        if (window.AutoSaveSystem) {
+            setTimeout(() => window.AutoSaveSystem.triggerSave(), 500);
+        }
+
         return { 
             success: true, 
             message: `${player.name}을(를) ${player.price}억에 영입했습니다!`,
@@ -480,6 +485,11 @@ class TransferSystem {
             // [추가] 이적 뉴스 기록
             this.addTransferNews(player, gameData.selectedTeam, randomTeam, transferFee);
 
+            // [추가] 방출 후 자동 저장
+            if (window.AutoSaveSystem) {
+                setTimeout(() => window.AutoSaveSystem.triggerSave(), 500);
+            }
+
             return { 
                 success: true, 
                 message: `${player.name}을(를) 방출했습니다. ${teamNames[randomTeam]}로 이적했습니다.${transferFee > 0 ? ` (이적료: ${transferFee}억)` : ''}`
@@ -501,6 +511,11 @@ class TransferSystem {
             
             // [추가] 이적 뉴스 기록
             this.addTransferNews(player, gameData.selectedTeam, "외부리그", transferFee);
+
+            // [추가] 방출 후 자동 저장
+            if (window.AutoSaveSystem) {
+                setTimeout(() => window.AutoSaveSystem.triggerSave(), 500);
+            }
 
             return { 
                 success: true, 

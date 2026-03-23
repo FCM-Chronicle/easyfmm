@@ -109,7 +109,7 @@ class SimBall {
 }
 
 class SimPlayer {
-    constructor(data, teamId, role, lineStats, morale = 50) {
+    constructor(data, teamId, role, lineStats, morale = 50, tacticMultiplier = 1.0) {
         this.id = data.name; // 고유 식별자
         this.name = data.name;
         this.position = data.position; // GK, DF, MF, FW
@@ -122,13 +122,13 @@ class SimPlayer {
         this.y = 0;
         this.baseX = 0; // 포메이션 기준 위치 (X)
         this.baseY = 0; // 포메이션 기준 위치 (Y)
-        this.stamina = 100;
+        this.stamina = (data.condition !== undefined) ? data.condition : 100;
 
         // 능력치 매핑 (0~100)
-        this.stats = this.mapDNAStats(data, role, lineStats, morale);
+        this.stats = this.mapDNAStats(data, role, lineStats, morale, tacticMultiplier);
     }
 
-    mapDNAStats(playerData, role, lineStats, morale) {
+    mapDNAStats(playerData, role, lineStats, morale, tacticMultiplier) {
         if (!lineStats || !lineStats.attack) { // 데이터 유효성 검사
             // Fallback to rating if lineStats are not available
             return { speed: playerData.rating, passing: playerData.rating, shooting: playerData.rating, defense: playerData.rating, decision: playerData.rating };
@@ -159,6 +159,9 @@ class SimPlayer {
             
             // [적용] 사기 보너스 반영
             statVal = statVal * moraleFactor;
+            
+            // [적용] 전술 완성도 반영 (balanced일 경우 페널티)
+            statVal = statVal * tacticMultiplier;
 
             finalStats[simStat] = statVal;
         }
@@ -190,6 +193,23 @@ class RealSoccerEngine {
         
         // 킥오프 세팅
         this.resetPositions('home');
+    }
+
+    // [신규] 체력이 반영된 실시간 스탯 계산 헬퍼
+    getEffectiveStat(player, statName) {
+        let val = player.stats[statName];
+        if (val === undefined) return 50;
+
+        // 체력에 따른 페널티 적용
+        // 30 미만: 심각한 저하 (50%)
+        // 50 미만: 저하 (75%)
+        // 70 미만: 약간 저하 (90%)
+        let factor = 1.0;
+        if (player.stamina < 50) factor = 0.5;
+        else if (player.stamina < 60) factor = 0.75;
+        else if (player.stamina < 70) factor = 0.9;
+
+        return val * factor;
     }
 
     // [신규] AI 팀을 위한 DNA 스탯 생성
@@ -230,6 +250,10 @@ class RealSoccerEngine {
         // Home(Red): 왼쪽(0) 진영 -> 오른쪽(100)으로 공격
         // Away(Blue): 오른쪽(100) 진영 -> 왼쪽(0)으로 공격
         
+        // [신규] 전술이 'balanced'(기본)일 경우 조직력 페널티 부여
+        // 전술을 짜지 않으면 선수들이 우왕좌왕한다는 컨셉 (능력치 15% 하향)
+        const tacticMultiplier = tactic === 'balanced' ? 0.85 : 1.0;
+
         const setupLine = (list, baseX) => {
             const height = 100; // Y축 높이
 
@@ -265,7 +289,7 @@ class RealSoccerEngine {
                     role = this.getBestRoleForTactic(tactic, p.position, i);
                 }
 
-                const simP = new SimPlayer(p, teamId, role, lineStats, teamMorale);
+                const simP = new SimPlayer(p, teamId, role, lineStats, teamMorale, tacticMultiplier);
                 simP.baseX = baseX;
                 // Y축(상하) 균등 배치 (5~95 사이)
                 simP.baseY = (height / (list.length + 1)) * (i + 1);
@@ -584,8 +608,9 @@ class RealSoccerEngine {
 
         const moveDir = isHome ? 1 : -1;
         // [수정] 스피드 스탯 반영 (기본 속도 + 스피드 스탯 보정)
-        // speed 50(기본) -> 1.0배, speed 100 -> 1.3배, speed 20 -> 0.8배
-        const speedFactor = player.stats.speed / 75; // 평균 75 기준
+        // [체력 반영] 체력이 떨어진 속도로 계산
+        const effectiveSpeed = this.getEffectiveStat(player, 'speed');
+        const speedFactor = effectiveSpeed / 75; // 평균 75 기준
         let moveSpeed = 1.0 * Math.max(0.7, Math.min(1.4, speedFactor)); 
         
         // [수정] 수비수는 드리블 거리 짧게 (안전 제일)
@@ -810,7 +835,9 @@ class RealSoccerEngine {
         const distFactor = Math.max(0.7, 1.3 - (dist / 40)); // 가까우면 1.3배, 멀면 0.7배
 
         // 슈팅 파워: 능력치(80~120% 변동) * 거리보정
-        const shotPower = shooter.stats.shooting * (0.8 + Math.random() * 0.4) * distFactor;
+        // [체력 반영] 슈팅 파워에 체력 반영
+        const effectiveShooting = this.getEffectiveStat(shooter, 'shooting');
+        const shotPower = effectiveShooting * (0.8 + Math.random() * 0.4) * distFactor;
         // [수정] 선방 파워 재조정 (GK 버프): 0.7 -> 0.8 계수 상향 및 기본값 +5 추가
         const savePower = gkRating * (0.8 + Math.random() * 0.5) + 5; 
 
@@ -1025,7 +1052,9 @@ class RealSoccerEngine {
             
             // [신규] 이동 속도에 '스피드' 스탯 반영
             // 기본 0.15 * (스피드 / 75) -> 스피드 100이면 약 0.2 (33% 빠름)
-            const speedFactor = p.stats.speed / 75;
+            // [체력 반영] 오프더볼 움직임에도 체력 반영
+            const effectiveSpeed = this.getEffectiveStat(p, 'speed');
+            const speedFactor = effectiveSpeed / 75;
             let moveSpeed = 0.15 * Math.max(0.7, Math.min(1.4, speedFactor));
 
             // ------------------------------------
@@ -1473,9 +1502,9 @@ class RealSoccerEngine {
                 
                 // [수정] 거리 3m 이내, 능력치 기반 확률 체크 (틱마다 실행되므로 확률 조정)
                 if (d < 3) {
-                    // [수정] 인터셉트 확률 하향 (공격 전개 활성화를 위해 수비 너프)
-                    // 기존: 0.1 + ... -> 수정: 0.05 + ... (패스 연결 빈도 증가)
-                    const interceptChance = 0.05 + (p.stats.defense / 400); 
+                    // [체력 반영] 수비력에 체력 반영
+                    const effectiveDefense = this.getEffectiveStat(p, 'defense');
+                    const interceptChance = 0.05 + (effectiveDefense / 400); 
                     if (Math.random() < interceptChance) {
                         this.ball.state = BallState.CONTROLLED;
                         this.ball.owner = p;
@@ -1519,8 +1548,11 @@ class RealSoccerEngine {
 
     attemptTackle(defender, attacker) {
         // [밸런스] 수비 성공률 5% 보너스
-        const defRoll = (defender.stats.defense * 1.05) * Math.random();
-        const atkRoll = attacker.stats.decision * Math.random();
+        // [체력 반영] 태클 시 체력 반영된 스탯 사용
+        const defStat = this.getEffectiveStat(defender, 'defense');
+        const atkStat = this.getEffectiveStat(attacker, 'decision');
+        const defRoll = (defStat * 1.05) * Math.random();
+        const atkRoll = atkStat * Math.random();
 
         if (defRoll > atkRoll) {
             // 태클 성공 -> 소유권 전환

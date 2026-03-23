@@ -113,6 +113,7 @@ setInterval(() => updateTeamStrength(), 5000);
 class TacticSystem {
     constructor() {
         this.tactics = {
+            balanced: { name: "기본 전술 (무전술)", effective: [], ineffective: ["gegenpress", "twoLine", "lavolpiana", "longBall", "possession", "parkBus", "catenaccio", "totalFootball", "tikitaka"], description: "특별한 전술 지시가 없는 상태입니다. 조직력이 크게 떨어집니다." },
             gegenpress: { name: "게겐프레싱", effective: ["twoLine", "possession"], ineffective: ["longBall", "catenaccio"], description: "높은 압박으로 빠른 역습을 노리는 전술" },
             twoLine: { name: "다이렉트 축구", effective: ["longBall", "parkBus"], ineffective: ["gegenpress", "totalFootball"], description: "긴 패스로 상대의 공간을 파고드는 전술" },
             lavolpiana: { name: "라볼피아나", effective: ["possession", "tikitaka"], ineffective: ["catenaccio", "longBall"], description: "측면 공격과 크로스를 중심으로 한 전술" },
@@ -673,13 +674,10 @@ function endMatch(matchData) {
                     playedPlayerNames.add(realPlayer.name);
                     
                     const remaining = simPlayer.stamina;
-                    let recovered = 100;
-
-                    // 요청된 회복 로직 적용
-                    if (remaining <= 40) recovered = 92;
-                    else if (remaining <= 55) recovered = 97;
-                    else if (remaining < 60) recovered = 98; // 56~59 구간 보정
-                    else recovered = 100; // 60 이상
+                    
+                    // [수정] 체력 회복 로직 변경 (소모된 체력의 약 83% 회복)
+                    // 예: 잔여 40(소모 60) -> 회복 50 -> 결과 90
+                    const recovered = Math.min(100, Math.floor(remaining + (100 - remaining) * (5/6)));
 
                     realPlayer.condition = recovered;
                 }
@@ -1156,7 +1154,8 @@ function performSubstitution(playerOut, playerIn, matchData) {
             simPlayer.id = playerIn.name;
             simPlayer.name = playerIn.name;
             simPlayer.rating = playerIn.rating;
-            simPlayer.stamina = 100; 
+            // [수정] 교체 투입 선수 체력 반영
+            simPlayer.stamina = (playerIn.condition !== undefined) ? playerIn.condition : 100;
             
             // 능력치 업데이트
             simPlayer.stats = {
