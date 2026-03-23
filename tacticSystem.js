@@ -457,7 +457,9 @@ function convertToTextEvent(engineEvent, matchData) {
             type: 'goal',
             team: eventTeamName,
             scorer: engineEvent.scorer,
-            description: `⚽ GOAL! ${engineEvent.scorer} (${eventTeamName}) 득점! 환상적인 마무리입니다!`
+            assister: engineEvent.assister, // [추가] 어시스트 정보 전달
+            description: `⚽ GOAL! ${engineEvent.scorer} (${eventTeamName}) 득점! 환상적인 마무리입니다!` +
+                         (engineEvent.assister ? ` (도움: ${engineEvent.assister})` : '')
         };
     } else if (engineEvent.type === 'miss') {
         return {
@@ -906,7 +908,9 @@ function calculateMatchRatings(matchData) {
     const calc = (p, team, goalsAgainst) => {
         let r = 6.0 + (Math.random() * 0.4 - 0.2);
         const goals = matchData.events.filter(e => e.type === 'goal' && e.scorer === p.name).length;
+        const assists = matchData.events.filter(e => e.type === 'goal' && e.assister === p.name).length;
         r += goals * 1.5;
+        r += assists * 1.2; // [추가] 어시스트 평점 반영
         if (goalsAgainst === 0 && (p.position === 'GK' || p.position === 'DF')) r += 0.5;
         
         // 승리 보너스
@@ -916,7 +920,7 @@ function calculateMatchRatings(matchData) {
         else if (myScore < oppScore) r -= 0.2;
 
         // 최대 10점, 최소 3점 제한
-        return { player: p, rating: Math.max(3.0, Math.min(10.0, r)).toFixed(1), goals: goals };
+        return { player: p, rating: Math.max(3.0, Math.min(10.0, r)).toFixed(1), goals: goals, assists: assists };
     };
 
     const homeRatings = homePlayers.map(p => calc(p, homeTeam, matchData.awayScore));
@@ -941,8 +945,12 @@ function showMatchResultModal(matchData, ratings, result, userScore, oppScore, d
         list.forEach(r => {
             const div = document.createElement('div');
             div.className = 'rating-row';
+            let stats = '';
+            if (r.goals > 0) stats += ` ⚽(${r.goals})`;
+            if (r.assists > 0) stats += ` 👟(${r.assists})`;
+
             div.innerHTML = `
-                <span>${r.player.name}</span>
+                <span>${r.player.name}${stats}</span>
                 <span>${r.rating}</span>
             `;
             el.appendChild(div);

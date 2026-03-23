@@ -637,6 +637,9 @@ class RealSoccerEngine {
             player.x += moveDir * moveDist; 
             player.y += (Math.random() - 0.5) * 10;
         }
+
+        // 드리블을 했으므로 어시스트 체인 초기화
+        this.ball.lastOwner = null;
         
         // 경기장 밖으로 나가지 않게
         player.x = Math.max(5, Math.min(95, player.x));
@@ -881,6 +884,13 @@ class RealSoccerEngine {
             const myScore = isHome ? this.homeScore : this.awayScore;
             const oppScore = isHome ? this.awayScore : this.homeScore;
             
+            // [신규] 어시스트 기록 로직
+            let assister = null;
+            // 직전 소유자가 있고, 득점자와 같은 팀이며, 다른 선수일 경우 어시스트로 인정
+            if (this.ball.lastOwner && this.ball.lastOwner.teamId === shooter.teamId && this.ball.lastOwner.name !== shooter.name) {
+                assister = this.ball.lastOwner.name;
+            }
+            
             // 지고 있으면 빨리 복귀(Quick Restart), 아니면 세레머니
             this.celebrationType = (myScore < oppScore) ? 'quick_restart' : 'celebrate';
             this.celebrationActor = shooter;
@@ -895,10 +905,13 @@ class RealSoccerEngine {
                 this.celebrationTarget = { x: goalX, y: cornerY };
             }
 
-            this.eventsQueue.push({ type: 'goal', scorer: shooter.name, team: shooter.teamId });
+            this.eventsQueue.push({ type: 'goal', scorer: shooter.name, team: shooter.teamId, assister: assister });
             this.lastScorerTeam = shooter.teamId;
             this.celebrationTimer = 40; // [수정] 세레머니 시간 확대 (약 2.4초) - 이동 보여주기 위해
             this.ball.state = BallState.DEAD;
+
+            // 골이 들어갔으므로 어시스트 체인 초기화
+            this.ball.lastOwner = null;
         } else {
             // [수정] 슈팅 실패 시 다양한 상황 연출 (수비 블록, 펀칭, 캐칭)
             const opponentTeamId = shooter.teamId === 'home' ? 'away' : 'home';
@@ -1508,6 +1521,8 @@ class RealSoccerEngine {
                     if (Math.random() < interceptChance) {
                         this.ball.state = BallState.CONTROLLED;
                         this.ball.owner = p;
+                        // [추가] 인터셉트 시 어시스트 체인 초기화
+                        this.ball.lastOwner = null;
                         this.eventsQueue.push({ type: 'tackle', player: p.name, desc: `${p.name}, 날카로운 패스 차단!` });
                     }
                 }
@@ -1557,6 +1572,8 @@ class RealSoccerEngine {
         if (defRoll > atkRoll) {
             // 태클 성공 -> 소유권 전환
             this.ball.owner = defender;
+            // [추가] 태클 성공 시 어시스트 체인 초기화
+            this.ball.lastOwner = null;
             this.eventsQueue.push({ type: 'tackle', player: defender.name, desc: `${defender.name}의 태클 성공!` });
         }
     }
