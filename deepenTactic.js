@@ -134,9 +134,10 @@ class SimPlayer {
             return { speed: playerData.rating, passing: playerData.rating, shooting: playerData.rating, defense: playerData.rating, decision: playerData.rating };
         }
 
-        // [신규] 사기(Morale)에 따른 능력치 보정 (50기준, 10당 2% 변동)
-        // 전술 상성 승리 시 사기가 오르므로, 결과적으로 스탯이 상승함
-        const moraleFactor = 1 + ((morale - 50) * 0.002);
+        // [수정] 사기(Morale)에 따른 능력치 보정 조정 (유저 이점 제거)
+        // 기존: 10당 2% (사기 100일 때 스탯 +10% 뻥튀기 -> 유저가 너무 유리함)
+        // 변경: 10당 0.5% (사기 100일 때 스탯 +2.5% -> 합리적인 수준으로 조정)
+        const moraleFactor = 1 + ((morale - 50) * 0.0005);
 
         let line;
         if (playerData.position === 'FW') line = 'attack';
@@ -244,7 +245,10 @@ class RealSoccerEngine {
             } else {
                 lineStats = this.aiStats || this.generateAIStats(squad);
                 this.aiStats = lineStats;
-                teamMorale = 50 + (Math.random() * 10 - 5); // AI는 45~55 사이 랜덤 컨디션
+                // [수정] AI 기본 사기 상향 (유저와의 형평성 맞춤)
+                // 기존: 50 (보통) -> AI는 보너스를 거의 못 받음
+                // 변경: 70~99 사이 랜덤값으로 설정 (상당히 좋은 컨디션 ~ 최상)
+                teamMorale = 70 + Math.floor(Math.random() * 30);
             }
 
             list.forEach((p, i) => {
