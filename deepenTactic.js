@@ -837,10 +837,27 @@ class RealSoccerEngine {
         const dist = Math.abs(shooter.x - goalX);
         const distFactor = Math.max(0.7, 1.3 - (dist / 40)); // 가까우면 1.3배, 멀면 0.7배
 
-        // 슈팅 파워: 능력치(80~120% 변동) * 거리보정
+        // [신규] 슈팅 각도 보정 (비현실적 각도 슛 방지)
+        const distY = Math.abs(shooter.y - 50); // 골대 중심(50)으로부터의 Y축 거리
+        let angleFactor = 1.0;
+        
+        // 골대 폭(약 10)을 벗어난 경우 각도 계산
+        if (distY > 8) {
+            // 골대와 가까울수록(dist가 작을수록), 측면일수록(distY가 클수록) 각도가 좁아짐
+            // atan2(y, x) -> 라디안 값 반환 (0 ~ PI/2)
+            const angle = Math.atan2(distY, Math.max(1, dist)); 
+            
+            // 각도가 클수록(측면일수록) 페널티 부여
+            if (angle > 1.2) angleFactor = 0.15; // 약 68도 이상 (사각지대) -> 15% 파워
+            else if (angle > 0.9) angleFactor = 0.4; // 약 51도 이상 -> 40% 파워
+            else if (angle > 0.6) angleFactor = 0.7; // 약 34도 이상 -> 70% 파워
+            else angleFactor = 0.9;
+        }
+
+        // 슈팅 파워: 능력치(80~120% 변동) * 거리보정 * 각도보정
         // [체력 반영] 슈팅 파워에 체력 반영
         const effectiveShooting = this.getEffectiveStat(shooter, 'shooting');
-        const shotPower = effectiveShooting * (0.8 + Math.random() * 0.4) * distFactor;
+        const shotPower = effectiveShooting * (0.8 + Math.random() * 0.4) * distFactor * angleFactor;
         // [수정] 선방 파워 재조정 (GK 버프): 0.7 -> 0.8 계수 상향 및 기본값 +5 추가
         const savePower = gkRating * (0.8 + Math.random() * 0.5) + 5; 
 
