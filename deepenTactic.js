@@ -269,10 +269,9 @@ class RealSoccerEngine {
             } else {
                 lineStats = this.aiStats || this.generateAIStats(squad);
                 this.aiStats = lineStats;
-                // [수정] AI 기본 사기 상향 (유저와의 형평성 맞춤)
-                // 기존: 50+0~45 (50~95) -> 변경: 85~100 (항상 고양된 상태)
-                // AI가 유저보다 약하다고 느껴지므로, AI는 항상 최상의 컨디션으로 경기함
-                teamMorale = 85 + Math.floor(Math.random() * 16);
+                // [수정] AI 기본 사기 하향 (너무 강함)
+                // 85~100 -> 60~90 (적당히 좋은 상태)
+                teamMorale = 60 + Math.floor(Math.random() * 31);
             }
 
             list.forEach((p, i) => {
@@ -509,7 +508,7 @@ class RealSoccerEngine {
 
         // 1. 슛 (찬스 파이프라인)
         let shootThreshold = 30;
-        if (isAI) shootThreshold = 38; // [AI 버프] 35m -> 38m (더 먼 거리에서도 과감하게 슈팅)
+        if (isAI) shootThreshold = 32; // [AI 너프] 38m -> 32m (중거리 슛 남발 방지)
 
         if (distToGoal < shootThreshold) { 
             // 거리가 가까울수록 슈팅 확률 대폭 상승
@@ -517,8 +516,8 @@ class RealSoccerEngine {
             if (distToGoal < 20) shootChance = 0.7; // [수정] 20m: 60% -> 70%
             if (distToGoal < 12) shootChance = 0.95; // [수정] 12m: 90% -> 95%
 
-            // [AI 버프] AI는 슈팅 확률 추가 보정 (+15%) - 더 자주 슈팅함
-            if (isAI) shootChance += 0.15;
+            // [AI 너프] 슈팅 확률 보정 감소 (+15% -> +5%)
+            if (isAI) shootChance += 0.05;
 
             if (Math.random() < shootChance) {
                 this.attemptShoot(player, goalX);
@@ -619,7 +618,7 @@ class RealSoccerEngine {
 
         // [AI 버프] AI 공격진은 드리블 시 더 폭발적으로 전진
         if (isAI && (player.position === 'FW' || player.position === 'MF')) {
-            moveDist *= 1.5; // 40% -> 50% 더 멀리 이동 (치고 달리기 강화)
+            moveDist *= 1.1; // [AI 너프] 1.5 -> 1.1 (과도한 돌파 억제)
         }
 
         // [신규] 공간이 열려있어서 드리블을 선택한 경우(passProb가 낮음), 과감하게 치고 달림
@@ -688,7 +687,7 @@ class RealSoccerEngine {
                 
                 // [AI 버프] AI는 전진 패스에 더 높은 가산점을 줌 (공격적 운영)
                 if (isAI && forwardScore > 0) {
-                    forwardScore *= 1.8; // 1.5 -> 1.8 (더욱 공격적인 패스 선택)
+                    forwardScore *= 1.2; // [AI 너프] 1.8 -> 1.2 (패스 선택지 다양화)
                 }
             }
 
