@@ -605,6 +605,12 @@ function endMatch(matchData) {
 
     // 버튼 이벤트 연결
     const ratings = calculateMatchRatings(matchData);
+    
+    // [신규] 유저 팀 평점 기록 시스템에 등록 (베스트 11 선정용)
+    if (typeof recordsSystem !== 'undefined') {
+        recordsSystem.processMatchRatings(ratings, matchData);
+    }
+
     document.getElementById('endMatchBtn').onclick = () => {
         showMatchResultModal(matchData, ratings, result, userScore, oppScore, matchData.strengthDiff);
     };
@@ -911,7 +917,8 @@ function calculateMatchRatings(matchData) {
         if (myScore > oppScore) r += 0.3;
         else if (myScore < oppScore) r -= 0.2;
 
-        return { player: p, rating: r.toFixed(1), goals: goals };
+        // 최대 10점, 최소 3점 제한
+        return { player: p, rating: Math.max(3.0, Math.min(10.0, r)).toFixed(1), goals: goals };
     };
 
     const homeRatings = homePlayers.map(p => calc(p, homeTeam, matchData.awayScore));

@@ -294,7 +294,7 @@ class RecordsSystem {
 // AI 경기 평점 시뮬레이션
 simulateAIMatchRatings(team1Key, team2Key, goals, score1, score2) {
     const calcRating = (player, teamKey, goalsConceded) => {
-        let rating = 6.0;
+        let rating = 6.5;
         // 득점/도움 반영
         const playerGoals = goals.filter(g => g.scorer === player.name).length;
         const playerAssists = goals.filter(g => g.assister === player.name).length;

@@ -248,7 +248,7 @@ class RealSoccerEngine {
                 // [수정] AI 기본 사기 상향 (유저와의 형평성 맞춤)
                 // 기존: 50 (보통) -> AI는 보너스를 거의 못 받음
                 // 변경: 70~99 사이 랜덤값으로 설정 (상당히 좋은 컨디션 ~ 최상)
-                teamMorale = 70 + Math.floor(Math.random() * 30);
+                teamMorale = 50 + Math.floor(Math.random() * 45);
             }
 
             list.forEach((p, i) => {
