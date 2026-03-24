@@ -430,6 +430,7 @@ function simulateMatch(matchData, engine) {
     gameLoop();
 }
 
+
 // [헬퍼] 스쿼드 데이터 추출 (엔진 전달용)
 function getSquadData(teamKey) {
     if (teamKey === gameData.selectedTeam) {
@@ -445,6 +446,8 @@ function getSquadData(teamKey) {
     }
 }
 
+
+
 // [헬퍼] 엔진 이벤트를 텍스트 이벤트로 변환
 function convertToTextEvent(engineEvent, matchData) {
     const homeName = teamNames[matchData.homeTeam];
@@ -452,36 +455,42 @@ function convertToTextEvent(engineEvent, matchData) {
     const eventTeamName = engineEvent.team === 'home' ? homeName : awayName;
 
     if (engineEvent.type === 'goal') {
+        const data = { scorer: engineEvent.scorer, team: eventTeamName };
+        let description = getRandomCommentary('goal', data);
+        if (engineEvent.assister) description += ` (도움: ${engineEvent.assister})`;
         return {
             minute: matchData.minute,
             type: 'goal',
             team: eventTeamName,
             scorer: engineEvent.scorer,
             assister: engineEvent.assister, // [추가] 어시스트 정보 전달
-            description: `⚽ GOAL! ${engineEvent.scorer} (${eventTeamName}) 득점! 환상적인 마무리입니다!` +
-                         (engineEvent.assister ? ` (도움: ${engineEvent.assister})` : '')
+            description: description
         };
     } else if (engineEvent.type === 'miss') {
+        const data = { shooter: engineEvent.shooter };
         return {
             minute: matchData.minute,
             type: 'miss',
-            description: `🥅 ${engineEvent.shooter}의 슈팅이 빗나갑니다. 아쉬운 기회네요.`
+            description: getRandomCommentary('miss', data)
         };
     } else if (engineEvent.type === 'dribble') {
+        const data = { player: engineEvent.player };
         return {
             minute: matchData.minute,
             type: 'dribble',
-            description: `💨 ${engineEvent.player}, 화려한 드리블로 돌파합니다!`
+            description: getRandomCommentary('dribble', data)
         };
     } else if (engineEvent.type === 'tackle') {
+        const data = { player: engineEvent.player };
         return {
             minute: matchData.minute,
             type: 'tackle',
-            description: engineEvent.desc || `🛡️ ${engineEvent.player}, 멋진 태클로 공을 뺏어냅니다.`
+            description: getRandomCommentary('tackle', data)
         };
     } else if (engineEvent.type === 'pass') {
         // 패스는 너무 자주 나오므로 30% 확률로만 로그 출력
         if (Math.random() < 0.3) {
+            // 패스는 성공/실패 여부가 엔진 desc에 포함되어 있으므로 engineEvent.desc를 우선 사용
             return {
                 minute: matchData.minute,
                 type: 'pass',
@@ -491,22 +500,25 @@ function convertToTextEvent(engineEvent, matchData) {
         return null;
     } else if (engineEvent.type === 'throughpass') {
         // [신규] 스루패스는 중요한 이벤트이므로 항상 출력
+        const data = { from: engineEvent.from, to: engineEvent.to };
         return {
             minute: matchData.minute,
             type: 'pass', // UI 스타일은 pass와 공유 (또는 별도 스타일 지정 가능)
-            description: engineEvent.desc || `⚡ ${engineEvent.from}, 공간을 가르는 스루패스!`
+            description: getRandomCommentary('throughpass', data)
         };
     } else if (engineEvent.type === 'save') {
+        const data = { gk: engineEvent.gk, shooter: engineEvent.shooter };
         return {
             minute: matchData.minute,
             type: 'save', // CSS 스타일 필요 (없으면 일반 텍스트)
-            description: engineEvent.desc
+            description: getRandomCommentary('save', data)
         };
     } else if (engineEvent.type === 'block') {
+        const data = { blocker: engineEvent.blocker, shooter: engineEvent.shooter };
         return {
             minute: matchData.minute,
             type: 'block', 
-            description: engineEvent.desc
+            description: getRandomCommentary('block', data)
         };
     }
     return null;
