@@ -615,32 +615,115 @@ createPostElement(post) {
     return postEl;
 }
 
-// toggleComments 함수 - SNSManager 클래스 안에 추가
-toggleComments(postId) {
+// [신규] Groq API 호출 함수
+async callGroqForComments(postContent) {
+    const apiKey = "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";
+    
+    try {
+        const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${apiKey}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                messages: [
+                    { 
+                        role: "system", 
+                        content: "너는 해당 sns게시물에 대한 축구 온라인 커뮤니티 유저의 반응을 모아주는 ai야. 니가 상상해서 사람들의 반응이 어떨지 매우 사실적으로/AI말투 쓰지 말고 진짜 사람처럼 해서 댓글을 3개 생성해. 번호나 따옴표 없이 오직 댓글 내용만 줄바꿈으로 구분해서 작성해." 
+                    },
+                    { 
+                        role: "user", 
+                        content: `게시물 내용: "${postContent}"` 
+                    }
+                ],
+                model: "llama3-8b-8192",
+                temperature: 0.7,
+                max_tokens: 200
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`Groq API Error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const content = data.choices[0].message.content;
+        
+        // 줄바꿈으로 나누고 빈 줄 및 불필요한 기호 제거
+        return content.split('\n')
+            .map(line => line.trim().replace(/^\d+[\.\)]\s*/, '').replace(/^["'-]/, '').replace(/["']$/, ''))
+            .filter(line => line.length > 0);
+    } catch (error) {
+        console.warn("Groq API 호출 실패 (기존 방식 사용):", error);
+        return null; // 실패 시 null 반환 -> 기존 방식 사용
+    }
+}
+
+// [수정] 댓글 토글 (AI 연동 및 캐싱 적용)
+async toggleComments(postId) {
     const commentsSection = document.getElementById(`comments-${postId}`);
     if (!commentsSection) return;
     
     if (commentsSection.style.display === 'none') {
-        // 댓글 표시
         const post = this.posts.find(p => p.id === postId);
         if (!post) return;
         
-        const comments = this.generateComments(post);
-        commentsSection.innerHTML = comments.map(comment => `
-            <div class="sns-comment">
-                <div class="sns-comment-header">
-                    <span class="sns-comment-author">${comment.author}</span>
-                    <span class="sns-comment-time">${this.formatTimeAgo(comment.timestamp)}</span>
-                </div>
-                <div class="sns-comment-text">${comment.text}</div>
-                <div class="sns-comment-likes">❤️ ${comment.likes}</div>
-            </div>
-        `).join('');
         commentsSection.style.display = 'block';
+        
+        // 1. 캐싱된 댓글이 있으면 바로 표시 (API 낭비 방지)
+        if (post.generatedComments) {
+            this.renderComments(commentsSection, post.generatedComments);
+            return;
+        }
+
+        // 2. 로딩 표시
+        commentsSection.innerHTML = '<div style="padding:15px; color:#aaa; text-align:center; font-size:0.9em;">💬 베댓 생성 중...</div>';
+
+        // 3. AI 호출 시도
+        // HTML 태그 제거하고 텍스트만 추출
+        const tempDiv = document.createElement("div");
+        tempDiv.innerHTML = post.content;
+        const cleanContent = tempDiv.textContent || tempDiv.innerText || "";
+
+        const aiCommentsText = await this.callGroqForComments(cleanContent);
+        let finalComments = [];
+
+        if (aiCommentsText && aiCommentsText.length > 0) {
+            // AI 응답 사용 (최대 3개)
+            finalComments = aiCommentsText.slice(0, 3).map((text, index) => ({
+                id: Math.random().toString(36).substr(2, 9),
+                author: this.generateRandomUsername(), // 닉네임은 기존 방식
+                text: text,
+                likes: Math.floor(Math.random() * 100) + 1,
+                timestamp: post.timestamp + (index + 1) * 60000
+            }));
+        } else {
+            // 실패 시 기존 템플릿 방식 사용
+            finalComments = this.generateComments(post);
+        }
+
+        // 4. 저장 및 렌더링
+        post.generatedComments = finalComments;
+        this.renderComments(commentsSection, finalComments);
+
     } else {
-        // 댓글 숨김
         commentsSection.style.display = 'none';
     }
+}
+
+// [신규] 댓글 렌더링 헬퍼
+renderComments(container, comments) {
+    container.innerHTML = comments.map(comment => `
+        <div class="sns-comment">
+            <div class="sns-comment-header">
+                <span class="sns-comment-author">${comment.author}</span>
+                <span class="sns-comment-time">${this.formatTimeAgo(comment.timestamp)}</span>
+            </div>
+            <div class="sns-comment-text">${comment.text}</div>
+            <div class="sns-comment-likes">❤️ ${comment.likes}</div>
+        </div>
+    `).join('');
 }
 
     formatTimeAgo(timestamp) {
