@@ -537,7 +537,7 @@ class RealSoccerEngine {
                 passProb = 0.95;
             } else {
                 // 막혀있지만 압박은 없음 -> 횡드리블이나 소유 (패스 확률 낮춤 30%)
-                passProb = 0.30; 
+                passProb = 0.10; 
             }
         } else {
             // 뚫려있으면 드리블 우선 (패스 확률 20%로 낮춤 -> 드리블 80%)
@@ -548,7 +548,7 @@ class RealSoccerEngine {
             } else {
                 // [수정] 미드필더/공격수는 전방이 열려있으면 드리블을 더 길게 가져가도록 패스 확률 대폭 하향
                 // 기존 0.2 (20%) -> 0.05 (5%). 약 20틱(실제 시간 2초 내외) 정도 드리블할 확률이 높음.
-                passProb = 0.05;
+                passProb = 0.02;
 
                 // [전술 반영] 티키타카일 경우 패스 빈도 상향 (원터치 패스 유지)
                 if (typeof gameData !== 'undefined' && gameData.currentTactic === 'tikitaka') {
@@ -630,11 +630,11 @@ class RealSoccerEngine {
         if (isBlocked && !underPressure) {
             // [신규] 앞이 막혔지만 압박이 없으면 횡드리블 (공간 창출)
             player.x += moveDir * (Math.random() * 0.8); // 2 -> 0.8
-            player.y += (Math.random() < 0.5 ? 3.5 : -3.5) + (Math.random() * 1.5); // 8 -> 3.5
+            player.y += (Math.random() < 0.5 ? 6.5 : -6.5) + (Math.random() * 2.0);
         } else {
             // 기본 전진 드리블
             player.x += moveDir * moveDist; 
-            player.y += (Math.random() - 0.5) * 10;
+            player.y += (Math.random() - 0.5) * 18;
         }
 
         // 드리블을 했으므로 어시스트 체인 초기화
