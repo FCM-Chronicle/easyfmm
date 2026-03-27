@@ -1552,6 +1552,7 @@ let gameData = {
     teamMoney: 1000,
     teamMorale: 80,
     currentSponsor: null,
+    gameMode: 'direct', // [신규] 게임 모드: 'direct' (기본), 'longtime' (하드모드)
     matchesPlayed: 0,
     currentOpponent: null,
     currentTactic: 'balanced', // [수정] 기본값 'balanced' (무전술)로 변경
@@ -1956,6 +1957,9 @@ function initializeGame() {
     // 첫 번째 화면 표시
     showScreen('teamSelection');
 
+    // [신규] 게임 모드 선택 UI 추가
+    addGameModeSelectorUI();
+
     // [신규] 팀 선택 UI 초기화
     renderTeamSelectionUI();
 }
@@ -1980,6 +1984,54 @@ function handlePlayerListRightClick(e) {
     if (player) {
         releasePlayerWithFee(player);
     }
+}
+
+// [신규] 게임 모드 선택 UI 생성 함수
+function addGameModeSelectorUI() {
+    const screen = document.getElementById('teamSelection');
+    if (!screen || document.getElementById('gameModeSelector')) return;
+
+    const selector = document.createElement('div');
+    selector.id = 'gameModeSelector';
+    selector.style.cssText = `
+        display: flex;
+        justify-content: center;
+        padding: 20px;
+        margin-bottom: 20px;
+        animation: fadeIn 0.5s ease;
+    `;
+
+    selector.innerHTML = `
+        <div class="glass" style="display: flex; align-items: center; gap: 20px; padding: 10px 30px; border-radius: 50px; background: rgba(31, 31, 69, 0.9);">
+            <span style="font-weight: bold; color: #ffd700;">🎮 모드 설정:</span>
+            <div style="display: flex; gap: 10px;">
+                <button id="btn-mode-direct" class="btn primary" style="padding: 8px 20px; font-size: 0.9rem;">다이렉트 모드</button>
+                <button id="btn-mode-longtime" class="btn" style="padding: 8px 20px; font-size: 0.9rem; background: rgba(255,255,255,0.1);">롱타임 모드</button>
+            </div>
+        </div>
+    `;
+
+    // h1 다음에 삽입
+    const h1 = screen.querySelector('h1');
+    if (h1) h1.after(selector);
+    else screen.prepend(selector);
+
+    const btnDirect = document.getElementById('btn-mode-direct');
+    const btnLong = document.getElementById('btn-mode-longtime');
+
+    btnDirect.onclick = () => {
+        gameData.gameMode = 'direct';
+        btnDirect.classList.add('primary');
+        btnLong.classList.remove('primary');
+        btnLong.style.background = 'rgba(255,255,255,0.1)';
+    };
+
+    btnLong.onclick = () => {
+        gameData.gameMode = 'longtime';
+        btnLong.classList.add('primary');
+        btnDirect.classList.remove('primary');
+        btnDirect.style.background = 'rgba(255,255,255,0.1)';
+    };
 }
 
 function setupEventListeners() {
@@ -3841,15 +3893,18 @@ function processSponsorAfterMatch(matchResult) {
     const sponsor = gameData.currentSponsor;
     let payment = 0;
     
-    // 경기 결과에 따른 보너스 지급
-    if (matchResult === 'win') {
-        payment = sponsor.payPerWin;
-        gameData.teamMoney += payment;
-        console.log(`스폰서 승리 보너스: ${payment}억원`);
-    } else if (matchResult === 'loss') {
-        payment = sponsor.payPerLoss;
-        gameData.teamMoney += payment;
-        console.log(`스폰서 패배 보상: ${payment}억원`);
+    // [수정] 롱타임 모드일 경우 경기 후 보너스 지급 생략 (계약 체결시에만 수령)
+    if (gameData.gameMode !== 'longtime') {
+        // 경기 결과에 따른 보너스 지급
+        if (matchResult === 'win') {
+            payment = sponsor.payPerWin;
+            gameData.teamMoney += payment;
+            console.log(`스폰서 승리 보너스: ${payment}억원`);
+        } else if (matchResult === 'loss') {
+            payment = sponsor.payPerLoss;
+            gameData.teamMoney += payment;
+            console.log(`스폰서 패배 보상: ${payment}억원`);
+        }
     }
     
     // 계약 기간 감소
@@ -5379,7 +5434,9 @@ function processRetirementsAndReincarnations() {
 
         for (let i = teamPlayers.length - 1; i >= 0; i--) {
             const player = teamPlayers[i];
-            if (player.age >= 34 && Math.random() < 0.05) { // 34세 이상, 5% 확률
+            // 34세 기준 기본 1% 확률, 나이가 들수록 매년 0.5%씩 은퇴 확률 증가
+            const retirementChance = 0.01 + (player.age - 34) * 0.005;
+            if (player.age >= 34 && Math.random() < retirementChance) {
                 retiredPlayers.push(player);
                 
                 // 1. 팀에서 선수 제거

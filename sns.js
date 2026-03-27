@@ -630,7 +630,7 @@ async callGroqForComments(postContent) {
                 messages: [
                     { 
                         role: "system", 
-                        content: "너는 해당 sns게시물에 대한 축구 온라인 커뮤니티 유저의 반응을 모아주는 ai야. 니가 상상해서 사람들의 반응이 어떨지 매우 사실적으로/AI말투 쓰지 말고 진짜 사람처럼 해서 댓글을 3개 생성해. 번호나 따옴표 없이 오직 댓글 내용만 줄바꿈으로 구분해서 작성해." 
+                            content: "너는 축구 커뮤니티(펨코, 디시 등) 활동을 많이 하는 유저야. 주어진 SNS 게시글에 달릴 법한 베스트 댓글 3개를 한국어로 작성해줘. 말투는 AI 티 내지 말고 진짜 커뮤니티 유저처럼 사실적으로 써줘. 번호나 따옴표 없이 오직 댓글 내용만 줄바꿈으로 구분해." 
                     },
                     { 
                         role: "user", 
@@ -644,7 +644,9 @@ async callGroqForComments(postContent) {
         });
 
         if (!response.ok) {
-            throw new Error(`Groq API Error: ${response.status}`);
+                const errorData = await response.json().catch(() => ({}));
+                console.error("❌ Groq API 응답 에러:", response.status, errorData);
+                throw new Error(`Groq API Error: ${response.status} - ${JSON.stringify(errorData)}`);
         }
 
         const data = await response.json();
@@ -698,13 +700,15 @@ async toggleComments(postId) {
                 likes: Math.floor(Math.random() * 100) + 1,
                 timestamp: post.timestamp + (index + 1) * 60000
             }));
+                
+                // 4. AI 성공 시에만 저장(캐싱)
+                post.generatedComments = finalComments;
         } else {
             // 실패 시 기존 템플릿 방식 사용
             finalComments = this.generateComments(post);
+                // 주의: 실패한 경우는 post.generatedComments에 저장하지 않음 (다음 클릭 시 재시도 가능하게)
         }
 
-        // 4. 저장 및 렌더링
-        post.generatedComments = finalComments;
         this.renderComments(commentsSection, finalComments);
 
     } else {

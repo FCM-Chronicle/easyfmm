@@ -208,6 +208,11 @@ class PlayerGrowthSystem {
         // 12개월로 나눈 월별 성장량 그대로 사용
         let growthAmount = growthInfo.monthlyGrowth;
 
+        // [신규] 롱타임 모드일 경우 성장 속도 40% 감속
+        if (gameData.gameMode === 'longtime') {
+            growthAmount *= 0.6;
+        }
+
         // 남은 성장량을 초과하지 않도록
         growthAmount = Math.min(growthAmount, growthInfo.remainingGrowth);
         
