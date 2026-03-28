@@ -1,5 +1,6 @@
+// Vercel Serverless Function
 export default async function handler(request, response) {
-    // CORS 헤더 설정 (GitHub Pages 등 다른 도메인에서 호출할 수 있도록 허용)
+    // CORS 헤더 설정
     response.setHeader('Access-Control-Allow-Credentials', true);
     response.setHeader('Access-Control-Allow-Origin', '*');
     response.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
@@ -12,12 +13,12 @@ export default async function handler(request, response) {
         return response.status(200).end();
     }
 
-    // Vercel 설정에서 등록할 환경 변수
+    // Vercel Dashboard의 Settings > Environment Variables에 등록된 값을 읽습니다.
     const apiKey = process.env.GROQ_API_KEY;
 
     if (!apiKey) {
-        console.error("GROQ_API_KEY is missing in environment variables!");
-        return response.status(500).json({ error: "서버 설정 오류: API 키가 없습니다." });
+        console.error("❌ 서버 환경 변수에 GROQ_API_KEY가 설정되어 있지 않습니다.");
+        return response.status(500).json({ error: "API 키 설정 누락" });
     }
 
     try {
@@ -30,13 +31,15 @@ export default async function handler(request, response) {
             body: JSON.stringify(request.body)
         });
 
-        const data = await groqResponse.json();
-        return response.status(groqResponse.status).json(data);
+        const data = await groqResponse.json().catch(() => ({}));
+
+        if (!groqResponse.ok) {
+            console.error("Groq API Error Response:", data);
+            return response.status(groqResponse.status).json(data);
+        }
+
+        return response.status(200).json(data);
     } catch (error) {
-        console.error("Vercel Proxy Error:", error);
-        return response.status(500).json({ 
-            error: "AI 요청 전달 실패", 
-            details: error.message 
-        });
+        return response.status(500).json({ error: "Proxy 서버 내부 오류", details: error.message });
     }
 }

@@ -619,6 +619,7 @@ createPostElement(post) {
 async callGroqForComments(postContent) {
     try {
         // 직접 호출 대신 내부 프록시 API(/api/groq) 호출
+        // 보안을 위해 API 키가 숨겨진 서버(Vercel Function)를 호출합니다.
         const response = await fetch("/api/groq", {
             method: "POST",
             headers: {
