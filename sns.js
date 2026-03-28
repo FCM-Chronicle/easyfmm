@@ -635,7 +635,7 @@ async callGroqForComments(postContent) {
                         content: `게시물 내용: "${postContent}"` 
                     }
                 ],
-                model: "llama-3.1-8b-8192", // 지원 중단된 모델을 새로운 모델로 변경
+                model: "llama-3.1-8b-instant", // 정확한 최신 모델 ID로 수정
                 temperature: 0.7,
                 max_tokens: 200
             })
