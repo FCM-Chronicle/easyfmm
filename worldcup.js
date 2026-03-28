@@ -10,6 +10,7 @@ const WorldCupManager = {
     isEliminated: false, // 유저 탈락 여부
     currentCallUpSort: 'ovr', // [추가] 차출 탭 정렬 기준 (ovr, name)
     currentSlotIndex: null, // 현재 플레이 중인 슬롯 번호
+    // 해보자
 
     // [수정] 언어권별 이름 데이터베이스 (한글 표기)
     // 주요 국가(한국, 잉글랜드, 스페인, 독일, 이탈리아, 네덜란드)는 제외됨
