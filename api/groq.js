@@ -15,6 +15,11 @@ export default async function handler(request, response) {
     // Vercel 설정에서 등록할 환경 변수
     const apiKey = process.env.GROQ_API_KEY;
 
+    if (!apiKey) {
+        console.error("GROQ_API_KEY is missing in environment variables!");
+        return response.status(500).json({ error: "서버 설정 오류: API 키가 없습니다." });
+    }
+
     try {
         const groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
             method: "POST",
