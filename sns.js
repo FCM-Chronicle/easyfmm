@@ -617,13 +617,11 @@ createPostElement(post) {
 
 // [신규] Groq API 호출 함수
 async callGroqForComments(postContent) {
-    const apiKey = "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";
-    
     try {
-        const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        // 직접 호출 대신 내부 프록시 API(/api/groq) 호출
+        const response = await fetch("/api/groq", {
             method: "POST",
             headers: {
-                "Authorization": `Bearer ${apiKey}`,
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
