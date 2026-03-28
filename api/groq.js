@@ -14,15 +14,15 @@ export default async function handler(request, response) {
     }
 
     // Vercel Dashboard의 Settings > Environment Variables에 등록된 값을 읽습니다.
-    const apiKey = process.env.GROQ_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY;
 
     if (!apiKey) {
-        console.error("❌ 서버 환경 변수에 GROQ_API_KEY가 설정되어 있지 않습니다.");
+        console.error("❌ 서버 환경 변수에 GEMINI_API_KEY가 설정되어 있지 않습니다.");
         return response.status(500).json({ error: "API 키 설정 누락" });
     }
 
     try {
-        const groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        const geminiResponse = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
             method: "POST",
             headers: {
                 "Authorization": `Bearer ${apiKey}`,
@@ -31,11 +31,11 @@ export default async function handler(request, response) {
             body: JSON.stringify(request.body)
         });
 
-        const data = await groqResponse.json().catch(() => ({}));
+        const data = await geminiResponse.json().catch(() => ({}));
 
-        if (!groqResponse.ok) {
-            console.error("Groq API Error Response:", data);
-            return response.status(groqResponse.status).json(data);
+        if (!geminiResponse.ok) {
+            console.error("Gemini API Error Response:", data);
+            return response.status(geminiResponse.status).json(data);
         }
 
         return response.status(200).json(data);

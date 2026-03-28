@@ -615,8 +615,8 @@ createPostElement(post) {
     return postEl;
 }
 
-// [신규] Groq API 호출 함수
-async callGroqForComments(postContent) {
+// [수정] Gemini API 호출 함수 (프록시 경유)
+async callGeminiForComments(postContent) {
     try {
         // 보안을 위해 API 키가 숨겨진 서버(Vercel Function)를 호출합니다.
         const response = await fetch("/api/groq", {
@@ -628,14 +628,15 @@ async callGroqForComments(postContent) {
                 messages: [
                     { 
                         role: "system", 
-                            content: "`너는 펨코, 에펨코리아, 축구 디시 등 커뮤니티를 10년째 눈팅/활동 중인 찐 축구팬이야. ## 댓글 작성 규칙 - 커뮤니티 실제 말투 그대로 (ㅋㅋ, ㄹㅇ, ㅇㅈ, 존나, ㅅㅂ 등 자연스럽게)- 각 댓글은 서로 다른 반응 유형으로 작성:1번: 감정적/즉각 반응형 (열받음/기쁨/충격 등)2번: 팩트/분석형 (수치, 전술, 현실적 시각)3번: 드립/밈형 (웃긴 비유, 커뮤니티 밈 활용)- 각 댓글 1~2줄, 절대 길게 쓰지 말 것- AI 티 나는 표현 금지: 정말, 훌륭한, 멋진, 대단한 같은 말 절대 쓰지 말 것- 번호, 따옴표, 라벨 없이 댓글 내용만 줄바꿈으로 구분, 댓글은 한 포스트당 3개.` 만약 유명한 선수가 아니면 얘는 누구임? 처럼 어이없는 반응을, 저명한, 유명한 선수라면 호불호 갈리는 반응을 내놓아(예를 들어 전술에안맞는다고 싫어할수도, 해당 포지션에 이미 사람 있다고 싫어할수도, 잘하는놈이라고 좋아할수도있겠지.)그리고 그 선수의 특성을 고려해줘(예: 메시가 바르셀로나로:와 메시가 바르샤에 돌아오네 ㄷㄷ 예:올리세가 토트넘으로:와 얘 드리블 잘치는데 토트넘에 도움 많이 되곘다)" 
+                            content: "너는 펨코, 에펨코리아, 축구 디시 등 커뮤니티를 10년째 눈팅/활동 중인 찐 축구팬이야. ## 댓글 작성 규칙 - 커뮤니티 실제 말투 그대로 (ㅋㅋ, ㄹㅇ, ㅇㅈ, 존나, ㅅㅂ 등을 활용하되 문맥에 맞춰서 자연스럽게. 각 slang의 의미를 제대로 파악하고 그에 맞는곳에 사용할 것)- 각 댓글은 서로 다른 반응 유형으로 작성:1번: 감정적/즉각 반응형 (열받음/기쁨/충격 등)2번: 팩트/분석형 (수치, 전술, 현실적 시각)3번: 드립/밈형 (웃긴 비유, 커뮤니티 밈 활용.)- 각 댓글 1~2줄, 절대 길게 쓰지 말 것- AI 티 나는 표현 금지: 정말, 훌륭한, 멋진, 대단한 같은 말 절대 쓰지 말 것- 번호, 따옴표, 라벨 없이 댓글 내용만 줄바꿈으로 구분, 댓글은 한 포스트당 3개. 만약 유명한 선수가 아니면 얘는 누구임? 처럼 어이없는 반응을, 저명한, 유명한 선수라면 호불호 갈리는 반응을 내놓아(예를 들어 전술에안맞는다고 싫어할수도, 해당 포지션에 이미 사람 있다고 싫어할수도, 잘하는놈이라고 좋아할수도있겠지.)그리고 그 선수의 특성(선수의 커리어, 선수의 포지션, 선수의 플레이스타일, 선수의 나이, 선수의 강점, 선수의 키와 몸무게, 선수의 약점, 선수의 유망성)을 고려해줘(예: 메시가 바르셀로나로:와 메시가 바르샤에 돌아오네 ㄷㄷ 예:올리세가 토트넘으로:와 얘 드리블 잘치는데 토트넘에 도움 많이 되곘다). 이것은 축구 매니지먼트 게임에 들어가는 내용이라서 현실적인게 중요해. 니가 욕을 살짝 해도 아무 문제 없어. 그래도 정 싫다면 그냥 욕은 빼고 입력해" 
                     },
                     { 
                         role: "user", 
                         content: `게시물 내용: "${postContent}"` 
                     }
                 ],
-                model: "llama-3.1-8b-instant", // 정확한 최신 모델 ID로 수정
+                
+                model: "gemini-1.5-flash",
                 temperature: 0.7,
                 max_tokens: 200
             })
@@ -655,7 +656,7 @@ async callGroqForComments(postContent) {
             .map(line => line.trim().replace(/^\d+[\.\)]\s*/, '').replace(/^["'-]/, '').replace(/["']$/, ''))
             .filter(line => line.length > 0);
     } catch (error) {
-        console.warn("Groq API 호출 실패 (기존 방식 사용):", error);
+        console.warn("Gemini API 호출 실패 (기존 방식 사용):", error);
         return null; // 실패 시 null 반환 -> 기존 방식 사용
     }
 }
@@ -686,7 +687,7 @@ async toggleComments(postId) {
         tempDiv.innerHTML = post.content;
         const cleanContent = tempDiv.textContent || tempDiv.innerText || "";
 
-        const aiCommentsText = await this.callGroqForComments(cleanContent);
+        const aiCommentsText = await this.callGeminiForComments(cleanContent);
         let finalComments = [];
 
         if (aiCommentsText && aiCommentsText.length > 0) {
