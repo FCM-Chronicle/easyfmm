@@ -122,6 +122,30 @@ class MailManager {
                 `;
             }
         }
+        // [추가] 유저가 직접 올린 이적 명단 오퍼 처리
+        else if (mail.type === 'user_transfer_list_offers') {
+            if (!mail.isProcessed) {
+                let offersHtml = mail.data.offers.map(offer => `
+                    <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                            <strong style="color: #ffd700;">${offer.teamName}</strong>
+                            <span style="color: #2ecc71; font-weight: bold;">${offer.fee}억</span>
+                        </div>
+                        <p style="font-size: 0.85rem; color: #ccc; margin: 0 0 10px 0;">"${offer.message}"</p>
+                        <button class="btn primary" style="width: 100%; padding: 5px;" onclick="transferSystem.acceptUserOffer('${mail.data.playerName}', '${offer.teamKey}', ${offer.fee}, ${mail.id})">이 제안 수락</button>
+                    </div>
+                `).join('');
+                
+                actionButtons = `
+                    <div class="mail-actions" style="display: block;">
+                        ${offersHtml}
+                        <button class="btn" style="width: 100%; background: #e74c3c; margin-top: 5px;" onclick="transferSystem.rejectUserOffer('${mail.data.playerName}', ${mail.id})">모든 제안 거절 및 명단 제외</button>
+                    </div>
+                `;
+            } else {
+                actionButtons = `<div class="mail-actions"><div style="color: #aaa; font-style: italic; padding: 10px; border: 1px solid #444; border-radius: 5px;">${mail.data.resultMessage}</div></div>`;
+            }
+        }
         // [추가] 비서 제안 메일
         else if (mail.type === 'secretary_advice') {
             if (!mail.isProcessed) {
@@ -259,6 +283,11 @@ class MailManager {
 
     // 5. 이적 제안 체크 및 발송 (특수 상황)
     checkTransferOffer() {
+        // [수정] 유저가 직접 명단에 올린 선수가 대기 중이면 무작위 오퍼는 잠시 중단 (혼동 방지)
+        const hasPendingUserOffer = gameData.userTransferList && 
+            gameData.userTransferList.some(entry => !entry.isOfferSent);
+        if (hasPendingUserOffer) return;
+
         // 시즌당 약 3번 -> 약 8% 확률 (경기당)
         if (Math.random() > 0.08) return;
         
@@ -277,8 +306,8 @@ class MailManager {
             basePrice = targetPlayer.rating * 10; // fallback
         }
         
-        const bonus = Math.floor(Math.random() * 201) + 100; // 100 ~ 300
-        const offerPrice = basePrice + bonus;
+        const priceFactor = 0.9 + (Math.random() * 0.15); // 90% ~ 105% (시장가 근처)
+        const offerPrice = Math.round(basePrice * priceFactor);
         
         // 제안 팀 (랜덤)
         const otherTeams = Object.keys(teams).filter(t => t !== gameData.selectedTeam);
@@ -288,8 +317,8 @@ class MailManager {
         const content = `다른 구단으로부터 우리 선수에 대한 이적 제안이 도착했습니다.\n\n` +
             `대상 선수: ${targetPlayer.name} (${targetPlayer.position}, ${targetPlayer.rating})\n` +
             `제안 구단: ${offerTeamName}\n` +
-            `제안 금액: ${offerPrice}억 (시장가치 대비 +${bonus}억)\n\n` +
-            `이 제안을 수락하시겠습니까? 수락 시 선수는 즉시 팀을 떠나며 이적료가 지급됩니다.`;
+            `제안 금액: ${offerPrice}억\n\n` +
+            `현재 시장 상황을 고려했을 때 적정한 수준의 제안입니다. 이 제안을 수락하시겠습니까?`;
             
         this.addMail(
             `[제안] ${targetPlayer.name} 이적 제안 도착`, 

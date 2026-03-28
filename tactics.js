@@ -610,5 +610,4 @@ const DNAManager = {
 // 이 파일을 다른 스크립트에서 사용할 수 있도록 전역으로 노출 (필요 시)
 window.RoleData = RoleData;
 window.TacticsManager = TacticsManager;
-window.DNAManager = DNAManager;Manager;
 window.DNAManager = DNAManager;

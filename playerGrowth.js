@@ -511,6 +511,10 @@ function initializePlayerGrowth() {
 function processPostMatchGrowth() {
     playerGrowthSystem.processPlayerGrowth();
     playerGrowthSystem.processAllTeamsGrowth();
+    
+    // [신규] 성장으로 인한 주급 변동 반영
+    if (typeof calculateTotalWages === 'function') calculateTotalWages();
+
     // playerGrowthSystem.normalizeOurTeamRatings(); // [수정] 소수점 유지를 위해 주석 처리
 
     // [추가] 성장 후 DNA 포인트 재계산 (실시간 반영)

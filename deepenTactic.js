@@ -397,8 +397,13 @@ class RealSoccerEngine {
     // ============================================================
     // 🟣 [핵심] 메인 틱 업데이트 함수 (1틱 = 1분 흐름 시뮬레이션)
     // ============================================================
-    update() {
+    update(minute, isNewMinute) {
         this.eventsQueue = []; // 이벤트 초기화
+
+        // [신규] 매 분마다 체력 소모 로직 실행
+        if (isNewMinute) {
+            this.consumeStamina();
+        }
 
         // [신규] 득점 후 세레머니/리플레이 딜레이 처리 (공이 골망에 머무름)
         if (this.celebrationTimer > 0) {
@@ -474,6 +479,16 @@ class RealSoccerEngine {
         this.adjustDefensiveLines();
 
         return this.getSnapshot();
+    }
+
+    // [신규] 엔진 내부 체력 소모 로직
+    consumeStamina() {
+        const rates = { 'FW': 0.6, 'MF': 0.7, 'DF': 0.4, 'GK': 0.1 };
+        this.players.forEach(p => {
+            const rate = rates[p.position] || 0.5;
+            // 랜덤 변수 ±20% 적용하여 체력 소모의 다양성 부여
+            p.stamina = Math.max(0, p.stamina - (rate * (0.8 + Math.random() * 0.4)));
+        });
     }
 
     // [신규] 현재 상태 스냅샷 반환 헬퍼 (중복 코드 제거)

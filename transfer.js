@@ -428,6 +428,9 @@ class TransferSystem {
             mailManager.addMail(`[영입] ${player.name} 영입 완료`, '스카우트 팀장', content);
         }
 
+        // [신규] 영입 후 주급 재계산
+        if (typeof calculateTotalWages === 'function') calculateTotalWages();
+
         // [추가] 이적 뉴스 기록
         this.addTransferNews(newPlayer, player.originalTeam, gameData.selectedTeam, player.price);
 
@@ -482,6 +485,9 @@ class TransferSystem {
                 mailManager.addMail(`[이적] ${player.name} 이적 완료`, '단장', content);
             }
             
+            // [신규] 방출 후 주급 재계산
+            if (typeof calculateTotalWages === 'function') calculateTotalWages();
+
             // [추가] 이적 뉴스 기록
             this.addTransferNews(player, gameData.selectedTeam, randomTeam, transferFee);
 
@@ -651,8 +657,129 @@ class TransferSystem {
         }
     }
 
+    // [수정] 유저 선수를 위한 제안 생성 후 메일로 발송
+    processUserTransferOffers(player) {
+        const marketValue = this.calculatePlayerPrice(player, gameData.selectedTeam);
+        const offers = [];
+        const allOtherTeams = Object.keys(allTeams).filter(t => t !== gameData.selectedTeam);
+
+        // 1. 빅클럽 제안
+        const richTeams = allOtherTeams.filter(t => (allTeams[t].budget || 0) >= 1000 || allTeams[t].league === 1);
+        const bigSpender = richTeams.length > 0 ? richTeams[Math.floor(Math.random() * richTeams.length)] : allOtherTeams[0];
+        offers.push({
+            teamKey: bigSpender,
+            teamName: teamNames[bigSpender] || bigSpender,
+            fee: Math.round(marketValue * (1.0 + Math.random() * 0.1)), // 100% ~ 110%
+            message: "우리는 해당 선수의 가치를 높게 평가하며, 시장가에 준하는 금액을 제시합니다."
+        });
+
+        // 2. 같은 리그 라이벌 혹은 중위권
+        const sameLeague = allOtherTeams.filter(t => allTeams[t].league === gameData.currentLeague && t !== bigSpender);
+        const rational = sameLeague.length > 0 ? sameLeague[Math.floor(Math.random() * sameLeague.length)] : allOtherTeams[1 % allOtherTeams.length];
+        offers.push({
+            teamKey: rational,
+            teamName: teamNames[rational] || rational,
+            fee: Math.round(marketValue * (0.85 + Math.random() * 0.1)), // 85% ~ 95%
+            message: "이적 명단에 올라온 만큼, 합리적인 수준의 할인을 기대하고 있습니다."
+        });
+
+        // 3. 포지션 부족 팀
+        const needy = allOtherTeams.filter(t => {
+            if (t === bigSpender || t === rational) return false;
+            const pCount = teams[t].filter(p => p.position === player.position).length;
+            return pCount <= 4;
+        });
+        const needyTeam = needy.length > 0 ? needy[Math.floor(Math.random() * needy.length)] : allOtherTeams[2 % allOtherTeams.length];
+        offers.push({
+            teamKey: needyTeam,
+            teamName: teamNames[needyTeam] || needyTeam,
+            fee: Math.round(marketValue * (0.75 + Math.random() * 0.15)), // 75% ~ 90%
+            message: `현재 팀 사정이 넉넉지 않아 최대로 제안할 수 있는 금액은 여기까지입니다.`
+        });
+
+        // 메일 발송
+        if (typeof mailManager !== 'undefined') {
+            const mailTitle = `[이적 오퍼] ${player.name}에 대한 제안이 도착했습니다`;
+            const mailContent = `${player.name} 선수에 대해 3개 구단이 영입 의사를 밝혀왔습니다. 아래 제안 중 하나를 선택해 주세요.`;
+            mailManager.addMail(mailTitle, "비서 김지수", mailContent, 'user_transfer_list_offers', {
+                playerName: player.name,
+                offers: offers
+            });
+        }
+    }
+
+    // [수정] 제안 수락 처리 (메일 연동)
+    acceptUserOffer(playerName, targetTeamKey, fee, mailId) {
+        const teamPlayers = teams[gameData.selectedTeam];
+        const playerIndex = teamPlayers.findIndex(p => p.name === playerName);
+
+        if (playerIndex === -1) {
+            alert("해당 선수가 팀에 없습니다.");
+            return;
+        }
+
+        // 메일 상태 업데이트
+        if (mailId && typeof mailManager !== 'undefined') {
+            const mail = mailManager.mails.find(m => m.id === mailId);
+            if (mail) {
+                mail.isProcessed = true;
+                mail.data.resultMessage = `${teamNames[targetTeamKey] || targetTeamKey}로의 이적을 수락했습니다. (${fee}억 수령)`;
+            }
+        }
+
+        const player = teamPlayers[playerIndex];
+        teamPlayers.splice(playerIndex, 1);
+        if (typeof removePlayerFromSquad === 'function') removePlayerFromSquad(player);
+
+        gameData.teamMoney += fee;
+        if (teams[targetTeamKey]) teams[targetTeamKey].push({ ...player });
+
+        // 리스트에서 제거
+        gameData.userTransferList = gameData.userTransferList.filter(entry => entry.player.name !== playerName);
+        this.addTransferNews(player, gameData.selectedTeam, targetTeamKey, fee);
+
+        alert(`${player.name} 선수가 ${teamNames[targetTeamKey] || targetTeamKey}로 이적했습니다!\n이적료 ${fee}억원을 받았습니다.`);
+        
+        this.refreshAllUI();
+        if (typeof mailManager !== 'undefined') mailManager.renderList();
+    }
+
+    // [신규] 제안 거절 및 명단 제외 (메일용)
+    rejectUserOffer(playerName, mailId) {
+        const mail = mailManager.mails.find(m => m.id === mailId);
+        if (mail) {
+            mail.isProcessed = true;
+            mail.data.resultMessage = `모든 제안을 거절하고 명단에서 내렸습니다.`;
+        }
+        gameData.userTransferList = gameData.userTransferList.filter(entry => entry.player.name !== playerName);
+        alert(`${playerName} 선수를 이적 명단에서 제외했습니다.`);
+        mailManager.renderList();
+    }
+
+    // [헬퍼] 모든 UI 갱신
+    refreshAllUI() {
+        if (typeof updateDisplay === 'function') updateDisplay();
+        if (typeof displayTeamPlayers === 'function') displayTeamPlayers();
+        if (typeof updateFormationDisplay === 'function') updateFormationDisplay();
+        if (typeof calculateTotalWages === 'function') calculateTotalWages();
+    }
+
     // 이적 시장 업데이트 (매일/매경기)
     updateTransferMarket() {
+        // [수정] 유저가 직접 리스트에 올린 선수 처리 로직 (100% 발송)
+        if (gameData.userTransferList && gameData.userTransferList.length > 0) {
+            gameData.userTransferList.forEach(entry => {
+                if (entry.waitRounds > 0) {
+                    entry.waitRounds--;
+                }
+                // waitRounds가 0이 되는 즉시 메일 발송
+                if (entry.waitRounds === 0 && !entry.isOfferSent) {
+                    this.processUserTransferOffers(entry.player);
+                    entry.isOfferSent = true; // 중복 발송 방지
+                }
+            });
+        }
+
         // 시장에 있는 선수들의 일수 증가
         this.transferMarket.forEach(player => {
             player.daysOnMarket++;
@@ -978,6 +1105,9 @@ function displayTransferPlayers() {
         const teamInfo = player.originalTeam === "외부리그" ? 
             "외부리그" : teamNames[player.originalTeam];
         
+        // 주급 계산 (script.js의 함수 활용)
+        const wage = typeof calculatePlayerWage === 'function' ? calculatePlayerWage(player) : (Math.pow(player.rating / 75, 5) * 0.5).toFixed(2);
+
         playerCard.innerHTML = `
             <div class="player-card-content">
                 <img src="assets/players/${player.name}.webp" class="player-card-image" loading="lazy" onerror="this.onerror=null; this.src='assets/players/default.webp'">
@@ -988,6 +1118,7 @@ function displayTransferPlayers() {
                     <div class="player-age">나이: ${player.age}</div>
                     <div class="player-team">소속: ${teamInfo}</div>
                     <div class="transfer-price">${player.price}억</div>
+                    <div style="color: #e74c3c; font-weight: bold; font-size: 0.9rem; margin-top: 2px;">요구 주급: ${wage}억</div>
                     <div class="market-days">시장 ${player.daysOnMarket}일째</div>
                 </div>
             </div>
@@ -1049,6 +1180,9 @@ function searchPlayers() {
         const teamInfo = player.originalTeam === "외부리그" ? 
             "외부리그" : teamNames[player.originalTeam];
         
+        // 주급 계산
+        const wage = typeof calculatePlayerWage === 'function' ? calculatePlayerWage(player) : (Math.pow(player.rating / 75, 5) * 0.5).toFixed(2);
+
         const marketStatus = player.inMarket ? 
     `<div class="market-days">시장 ${player.daysOnMarket}일째</div>` : 
     `<div class="market-status" style="color: #f39c12;">⚠️ 이적 시장에 없음</div>`;
@@ -1063,6 +1197,7 @@ playerCard.innerHTML = `
             <div class="player-age">나이: ${player.age}</div>
             <div class="player-team">소속: ${teamInfo}</div>
             <div class="transfer-price">${player.price}억</div>
+            <div style="color: #e74c3c; font-weight: bold; font-size: 0.9rem; margin-top: 2px;">요구 주급: ${wage}억</div>
             ${marketStatus}
         </div>
     </div>

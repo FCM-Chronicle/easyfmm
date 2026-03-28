@@ -5,6 +5,7 @@ const allTeams = {
     // 1부 리그
     "바르셀로나": {
         league: 1,
+        budget: 800,
         players: [
             { name: "페드리", position: "MF", country: "스페인", age: 22, rating: 89 },
             { name: "로베르트 레반도프스키", position: "FW", country: "폴란드", age: 36, rating: 90 },
@@ -36,6 +37,7 @@ const allTeams = {
 
     "레알_마드리드": {
         league: 1,
+        budget: 1500,
         players: [
             { name: "티보 쿠르투아", position: "GK", country: "벨기에", age: 33, rating: 89 },
             { name: "다니 카르바할", position: "DF", country: "스페인", age: 33, rating: 83 },
@@ -65,6 +67,7 @@ const allTeams = {
 
     "맨체스터_시티": {
         league: 1,
+        budget: 2200,
         players: [
             { name: "제임스 트래포드", position: "GK", country: "잉글랜드", age: 22, rating: 81 },
             { name: "잔루이지 돈나룸마", position: "GK", country: "이탈리아", age: 26, rating: 87 },
@@ -101,6 +104,7 @@ const allTeams = {
 
     "맨체스터_유나이티드": {
         league: 2,
+        budget: 1500,
         players: [
             { name: "알타이 바인드르", position: "GK", country: "튀르키예", age: 27, rating: 69 },
             { name: "센느 라멘스", position: "GK", country: "벨기에", age: 23, rating: 85 },
@@ -131,6 +135,7 @@ const allTeams = {
 
     "리버풀": {
         league: 1,
+        budget: 1200,
         players: [
             { name: "알리송 베케르", position: "GK", country: "브라질", age: 32, rating: 86 },
             { name: "리오 응구모하", position: "GK", country: "잉글랜드", age: 17, rating: 69 },
@@ -168,6 +173,7 @@ const allTeams = {
 
     "토트넘_홋스퍼": {
         league: 1,
+        budget: 1000,
         players: [
             { name: "굴리엘모 비카리오", position: "GK", country: "이탈리아", age: 28, rating: 84 },
             { name: "케빈 단소", position: "DF", country: "오스트리아", age: 26, rating: 81 },
@@ -209,6 +215,7 @@ const allTeams = {
 
     "파리_생제르맹": {
         league: 1,
+        budget: 2500,
         players: [
             { name: "루카 슈발리에", position: "GK", country: "프랑스", age: 24, rating: 85 },
             { name: "아슈라프 하키미", position: "DF", country: "모로코", age: 26, rating: 92 },
@@ -238,6 +245,7 @@ const allTeams = {
 
     "AC_밀란": {
         league: 1,
+        budget: 700,
         players: [
             { name: "피에트로 테라치아노", position: "GK", country: "이탈리아", age: 21, rating: 67 },
             { name: "크리스토퍼 은쿤쿠", position: "FW", country: "프랑스", age: 27, rating: 75 },
@@ -269,6 +277,7 @@ const allTeams = {
 
     "인터_밀란": {
         league: 1,
+        budget: 750,
         players: [
             { name: "얀 조머", position: "GK", country: "스위스", age: 36, rating: 83 },
             { name: "덴젤 둠프리스", position: "DF", country: "네덜란드", age: 29, rating: 87 },
@@ -302,6 +311,7 @@ const allTeams = {
 
     "아스널": {
         league: 1,
+        budget: 1100,
         players: [
             { name: "다비드 라야", position: "GK", country: "스페인", age: 29, rating: 85 },
             { name: "윌리엄 살리바", position: "DF", country: "프랑스", age: 24, rating: 85 },
@@ -334,6 +344,7 @@ const allTeams = {
 
     "나폴리": {
         league: 1,
+        budget: 650,
         players: [
             { name: "알렉스 메렛", position: "GK", country: "이탈리아", age: 28, rating: 83 },
             { name: "알레산드로 부온조르노", position: "DF", country: "이탈리아", age: 26, rating: 85 },
@@ -366,6 +377,7 @@ const allTeams = {
 
     "첼시": {
         league: 1,
+        budget: 1800,
         players: [
             { name: "로베르트 산체스", position: "GK", country: "스페인", age: 27, rating: 81 },
             { name: "마르크 쿠쿠레야", position: "DF", country: "스페인", age: 27, rating: 88 },
@@ -407,6 +419,7 @@ const allTeams = {
 
     "바이에른_뮌헨": {
         league: 1,
+        budget: 1400,
         players: [
             { name: "마누엘 노이어", position: "GK", country: "독일", age: 39, rating: 83 },
             { name: "레나르트 칼", position: "MF", country: "독일", age: 17, rating: 80 },
@@ -431,13 +444,14 @@ const allTeams = {
             { name: "알렉산다르 파블로비치", position: "MF", country: "독일", age: 21, rating: 85 },
             { name: "파울 바너", position: "MF", country: "독일", age: 19, rating: 67 },
             { name: "니콜라 잭슨", position: "FW", country: "세네갈", age: 24, rating: 79 },
-            { name: "톰 비숍", position: "MF", country: "세네갈", age: 20, rating: 75 },
+            { name: "톰 비숍", position: "MF", country: "독일", age: 20, rating: 75 },
         ],
         description: "독일 축구의 자존심이자 뮌헨의 왕자들"
     },
 
     "아틀레티코_마드리드": {
         league: 1,
+        budget: 850,
         players: [
             { name: "후안 무소", position: "GK", country: "아르헨티나", age: 31, rating: 70 },
             { name: "호세 히메네스", position: "DF", country: "우루과이", age: 30, rating: 84 },
@@ -468,6 +482,7 @@ const allTeams = {
 
     "도르트문트": {
         league: 1,
+        budget: 900,
         players: [
             { name: "그레고어 코벨", position: "GK", country: "스위스", age: 27, rating: 85 },
             { name: "얀 코투", position: "DF", country: "브라질", age: 23, rating: 82 },
@@ -503,6 +518,7 @@ const allTeams = {
     // 2부 리그
     "유벤투스": {
         league: 2,
+        budget: 800,
         players: [
             { name: "마티아 페린", position: "GK", country: "이탈리아", age: 35, rating: 72 },
             { name: "로이스 오펜다", position: "FW", country: "벨기에", age: 25, rating: 87 },
@@ -536,6 +552,7 @@ const allTeams = {
 
     "뉴캐슬_유나이티드": {
         league: 2,
+        budget: 1300,
         players: [
             { name: "마르틴 두브라프카", position: "GK", country: "슬로바키아", age: 36, rating: 71 },
             { name: "키어런 트리피어", position: "DF", country: "잉글랜드", age: 34, rating: 82 },
@@ -571,6 +588,7 @@ const allTeams = {
 
     "아스톤_빌라": {
         league: 2,
+        budget: 700,
         players: [
             { name: "매티 캐시", position: "DF", country: "폴란드", age: 27, rating: 83 },
             { name: "악셀 디사시", position: "DF", country: "프랑스", age: 27, rating: 77 },
@@ -602,6 +620,7 @@ const allTeams = {
 
     "라이프치히": {
         league: 2,
+        budget: 600,
         players: [
             { name: "페테르 굴라치", position: "GK", country: "헝가리", age: 35, rating: 81 },
             { name: "뤼츠하럴 헤이르트라위다", position: "DF", country: "네덜란드", age: 25, rating: 83 },
@@ -630,6 +649,7 @@ const allTeams = {
 
     "세비야": {
         league: 2,
+        budget: 450,
         players: [
             { name: "알바로 페르난데스", position: "GK", country: "스페인", age: 27, rating: 73 },
             { name: "아드리아 페드로사", position: "DF", country: "스페인", age: 27, rating: 76 },
@@ -659,6 +679,7 @@ const allTeams = {
 
     "아약스": {
         league: 2,
+        budget: 350,
         players: [
             { name: "비테슬라프 야로스", position: "GK", country: "체코", age: 24, rating: 67 },
             { name: "루카스 호자", position: "DF", country: "브라질", age: 25, rating: 73 },
@@ -702,6 +723,7 @@ const allTeams = {
 
     "AS_로마": {
         league: 2,
+        budget: 500,
         players: [
             { name: "데빈 렌스", position: "DF", country: "네덜란드", age: 22, rating: 75 },
             { name: "앙헬리뇨", position: "DF", country: "스페인", age: 28, rating: 82 },
@@ -735,6 +757,7 @@ const allTeams = {
 
     "레버쿠젠": {
         league: 2,
+        budget: 550,
         players: [
             { name: "루카시 흐라데츠키", position: "GK", country: "핀란드", age: 35, rating: 82 },
             { name: "피에로 잉카피에", position: "DF", country: "에콰도르", age: 23, rating: 83 },
@@ -767,6 +790,7 @@ const allTeams = {
 
     "스포르팅_CP": {
         league: 2,
+        budget: 300,
         players: [
             { name: "프랑코 이스라엘", position: "GK", country: "우루과이", age: 25, rating: 72 },
             { name: "마테우스 헤이스", position: "DF", country: "브라질", age: 30, rating: 74 },
@@ -797,6 +821,7 @@ const allTeams = {
 
     "벤피카": {
         league: 2,
+        budget: 320,
         players: [
             { name: "아나톨리 트루빈", position: "GK", country: "우크라이나", age: 24, rating: 79 },
             { name: "안토니우 실바", position: "DF", country: "포르투갈", age: 21, rating: 84 },
@@ -832,6 +857,7 @@ const allTeams = {
 
     "셀틱": {
         league: 2,
+        budget: 200,
         players: [
             { name: "카스페르 슈마이켈", position: "GK", country: "덴마크", age: 38, rating: 72 },
             { name: "앨리스테어 존스턴", position: "DF", country: "캐나다", age: 26, rating: 81 },
@@ -866,6 +892,7 @@ const allTeams = {
 
     "페예노르트": {
         league: 2,
+        budget: 250,
         players: [
             { name: "저스틴 베일로", position: "GK", country: "네덜란드", age: 27, rating: 67 },
             { name: "배승균", position: "MF", country: "대한민국", age: 18, rating: 66 },
@@ -934,6 +961,7 @@ const allTeams = {
 
     "올랭피크_드_마르세유": {
         league: 2,
+        budget: 400,
         players: [
             { name: "헤로니모 룰리", position: "GK", country: "아르헨티나", age: 33, rating: 78 },
             { name: "파쿤도 메디나", position: "DF", country: "아르헨티나", age: 26, rating: 83 },
@@ -970,6 +998,7 @@ const allTeams = {
     // 3부 리그 시작
     "FC_서울": {
         league: 3,
+        budget: 50,
         players: [
             { name: "이상민", position: "DF", country: "대한민국", age: 27, rating: 75 },
             { name: "야잔", position: "DF", country: "요르단", age: 29, rating: 78 },
@@ -1014,6 +1043,7 @@ const allTeams = {
 
     "갈라타사라이": {
         league: 3,
+        budget: 150,
         players: [
             { name: "페르난도 무슬레라", position: "GK", country: "우루과이", age: 39, rating: 74 },
             { name: "이스마일 자콥스", position: "DF", country: "세네갈", age: 25, rating: 76 },
@@ -1053,6 +1083,7 @@ const allTeams = {
 
     "알_힐랄": {
         league: 3,
+        budget: 1200,
         players: [
             { name: "야신 부누", position: "GK", country: "모로코", age: 34, rating: 79 },
             { name: "모하메드 알 오와이스", position: "GK", country: "사우디아라비아", age: 33, rating: 76 },
@@ -1086,6 +1117,7 @@ const allTeams = {
 
     "알_이티하드": {
         league: 3,
+        budget: 900,
         players: [
             { name: "카림 벤제마", position: "FW", country: "프랑스", age: 37, rating: 83 },
             { name: "은골로 캉테", position: "MF", country: "프랑스", age: 34, rating: 80 },
@@ -1118,6 +1150,7 @@ const allTeams = {
 
     "알_나스르": {
         league: 3,
+        budget: 1000,
         players: [
             { name: "크리스티아누 호날두", position: "FW", country: "포르투갈", age: 40, rating: 86 },
             { name: "사디오 마네", position: "FW", country: "세네갈", age: 33, rating: 82 },
@@ -1150,6 +1183,7 @@ const allTeams = {
 
     "아르헨티나_연합": {
         league: 3,
+        budget: 100,
         players: [
             { name: "프랑코 아르마니", position: "GK", country: "아르헨티나", age: 38, rating: 74 },
             { name: "세르히오 로메로", position: "GK", country: "아르헨티나", age: 38, rating: 73 },
@@ -1182,6 +1216,7 @@ const allTeams = {
 
     "미국_연합": {
         league: 3,
+        budget: 350,
         players: [
             { name: "리오넬 메시", position: "FW", country: "아르헨티나", age: 38, rating: 88 },
             { name: "루이스 수아레스", position: "FW", country: "우루과이", age: 38, rating: 81 },
@@ -1214,6 +1249,7 @@ const allTeams = {
 
     "멕시코_연합": {
         league: 3,
+        budget: 120,
         players: [
         { name: "세르히오 라모스", position: "DF", country: "스페인", age: 39, rating: 78 },
         { name: "루이스 말라곤", position: "GK", country: "멕시코", age: 28, rating: 74 },
@@ -1243,6 +1279,7 @@ const allTeams = {
         },
             "브라질_연합": {
         league: 3,
+        budget: 150,
         players: [
             { name: "베베르통", position: "GK", country: "브라질", age: 37, rating: 74 },
             { name: "카시우", position: "GK", country: "브라질", age: 38, rating: 72 },
@@ -1275,6 +1312,7 @@ const allTeams = {
 
     "전북_현대": {
         league: 3,
+        budget: 60,
         players: [
             { name: "김정훈", position: "GK", country: "대한민국", age: 24, rating: 72 },
             { name: "김영빈", position: "DF", country: "대한민국", age: 33, rating: 74 },
@@ -1328,6 +1366,7 @@ const allTeams = {
 
     "울산_현대": {
         league: 3,
+        budget: 70,
         players: [
             { name: "조현택", position: "DF", country: "대한민국", age: 24, rating: 72 },
             { name: "강민우", position: "DF", country: "대한민국", age: 19, rating: 67 },
@@ -1364,6 +1403,7 @@ const allTeams = {
 
     "포항_스틸러스": {
         league: 3,
+        budget: 40,
         players: [
             { name: "윤평국", position: "GK", country: "대한민국", age: 33, rating: 74 },
             { name: "어정원", position: "DF", country: "대한민국", age: 26, rating: 72 },
@@ -1409,6 +1449,7 @@ const allTeams = {
 
     "광주_FC": {
         league: 3,
+        budget: 20,
         players: [
             { name: "김경민", position: "GK", country: "대한민국", age: 33, rating: 73 },
             { name: "조성권", position: "DF", country: "대한민국", age: 24, rating: 70 },
@@ -1451,6 +1492,7 @@ const allTeams = {
 
     "리옹": {
         league: 3,
+        budget: 250,
         players: [
             { name: "루카스 페리", position: "GK", country: "브라질", age: 27, rating: 76 },
             { name: "니콜라스 탈리아피코", position: "DF", country: "아르헨티나", age: 32, rating: 78 },
@@ -1552,6 +1594,7 @@ let gameData = {
     teamMoney: 1000,
     teamMorale: 80,
     currentSponsor: null,
+    totalWeeklyWage: 0, // [신규] 팀 주급 총합
     gameMode: 'direct', // [신규] 게임 모드: 'direct' (기본), 'longtime' (하드모드)
     matchesPlayed: 0,
     currentOpponent: null,
@@ -1584,7 +1627,8 @@ let gameData = {
     playerRoles: {}, // [추가] 선수별 역할 데이터 초기화
     temporaryStats: {}, // [신규] 일시적 스탯 버프/디버프 저장소
     secretaryName: "김지수", // [신규] 비서 이름 (secretary.js에서 사용)
-    losingStreak: 0 // [신규] 연패 기록
+    losingStreak: 0, // [신규] 연패 기록
+    userTransferList: [] // [신규] 유저가 이적 명단에 올린 선수들
 };
 
 
@@ -2467,14 +2511,18 @@ function selectTeam(teamKey) {
     gameData.selectedTeam = teamKey;
     gameData.currentLeague = allTeams[teamKey].league; // 팀의 리그 설정
     
-    // [수정] 리그별 시작 자금 설정 (3부 리그 10억)
-    if (gameData.currentLeague === 3) {
-        gameData.teamMoney = 10;
+    // [수정] 팀별 고유 시작 자금 적용 (budget 속성이 있으면 사용, 없으면 리그별 기본값)
+    if (allTeams[teamKey].budget !== undefined) {
+        gameData.teamMoney = allTeams[teamKey].budget;
     } else {
-        gameData.teamMoney = 1000; // 1, 2부 리그 기본값
+        gameData.teamMoney = (gameData.currentLeague === 3) ? 10 : 1000;
     }
     
     applyTeamTheme(teamKey);
+
+    // [신규] 초기 주급 계산
+    calculateTotalWages();
+    
     document.getElementById('teamName').innerHTML = getTeamLogoHTML(teamKey) + ' ' + teamKey; // 로고 포함 표시
     
     // 자동으로 최고 능력치 선수들로 스쿼드 채우기
@@ -3364,83 +3412,22 @@ function displayTeamPlayers() {
 
 
 // 이적료를 받고 선수 방출
-function releasePlayerWithFee(player, transferFee) {
+function releasePlayerWithFee(player) {
     const teamPlayers = teams[gameData.selectedTeam];
-    const playerIndex = teamPlayers.findIndex(p => 
-        p.name === player.name && p.position === player.position
-    );
-    
-    if (playerIndex === -1) {
-        alert("해당 선수를 찾을 수 없습니다.");
-        return;
-    }
-    
-    // ✅ 최소 인원 체크 (16명 이상 유지)
     if (teamPlayers.length <= 16) {
-        alert("팀 인원이 최소 16명 이상이어야 합니다!\n더 이상 선수를 방출할 수 없습니다.");
+        alert("팀 인원이 최소 16명 이상이어야 합니다!\n더 이상 선수를 이적 명단에 올릴 수 없습니다.");
         return;
     }
-    
-    // === 이적료 계산 ===
-    let playerCost = 0;
-    if (typeof transferSystem !== 'undefined') {
-        // 변경된 가격 정책 적용 (시장 가치 계산)
-        const marketValue = transferSystem.calculatePlayerPrice(player, gameData.selectedTeam);
-        // 방출 시에는 시장가보다 낮게 책정 (예: 100% 다 받음 or 약간의 페널티, 여기선 그대로 반영하거나 약간 낮춤)
-        playerCost = Math.round(marketValue * 0.5); // 방출 시 시장가의 50%만 회수
-    } else {
-        playerCost = Math.round(player.rating * 2); // Fallback
-    }
-    
-    // === 사용자에게 확인 받기 ===
-    const confirmMessage = `${player.name}을(를) 방출하시겠습니까?\n\n` +
-                          `능력치: ${player.rating} | 나이: ${player.age}\n` +
-                          `받을 수 있는 이적료: ${playerCost}억원\n` +
-                          `현재 팀 인원: ${teamPlayers.length}명 → ${teamPlayers.length - 1}명`;
-    
-    if (!confirm(confirmMessage)) {
+
+    if (gameData.userTransferList.some(entry => entry.player.name === player.name)) {
+        alert("이미 이적 명단에 올라가 있는 선수입니다.");
         return;
     }
-    
-    // === 방출 처리 ===
-    teamPlayers.splice(playerIndex, 1);
-    removePlayerFromSquad(player);
-    gameData.teamMoney += playerCost;
-    
-    const availableTeams = Object.keys(teams).filter(team => team !== gameData.selectedTeam);
-    if (availableTeams.length > 0) {
-        const randomTeam = availableTeams[Math.floor(Math.random() * availableTeams.length)];
-        
-        teams[randomTeam].push({
-            name: player.name,
-            position: player.position,
-            rating: player.rating,
-            age: player.age
-        });
-        
-        // [추가] 이적 뉴스에 기록
-        if (typeof transferSystem !== 'undefined') {
-            transferSystem.addTransferNews(player, gameData.selectedTeam, randomTeam, playerCost);
-        }
-        
-        alert(`${player.name}을(를) 방출했습니다!\n${teamNames[randomTeam]}로 이적했습니다.\n이적료 ${playerCost}억원을 받았습니다.`);
-    } else {
-        // [추가] 이적 뉴스에 기록 (외부리그)
-        if (typeof transferSystem !== 'undefined') {
-            transferSystem.addTransferNews(player, gameData.selectedTeam, "외부리그", playerCost);
-        }
-        
-        alert(`${player.name}을(를) 방출했습니다!\n외부리그로 이적했습니다.\n이적료 ${playerCost}억원을 받았습니다.`);
-    }
-    
-    updateDisplay();
-    displayTeamPlayers();
-    updateFormationDisplay();
-    
-    if (typeof transferSystem !== 'undefined') {
-        transferSystem.transferMarket = transferSystem.transferMarket.filter(p => 
-            !(p.name === player.name && p.position === player.position)
-        );
+
+    if (confirm(`${player.name} 선수를 이적 명단에 올리시겠습니까?\n다음 경기 종료 후 메일함으로 영입 제안이 도착합니다.`)) {
+        // waitRounds를 1로 설정하여 다음 업데이트 때 오퍼가 오도록 함
+        gameData.userTransferList.push({ player: JSON.parse(JSON.stringify(player)), waitRounds: 1, isOfferSent: false });
+        alert("이적 명단에 등록되었습니다. 비서가 오퍼를 정리해서 메일로 보내줄 것입니다.");
     }
 }
 
@@ -3596,11 +3583,32 @@ function closeModal() {
     // selectedPosition = null; // formation.js의 교체 로직과 충돌하므로 주석 처리
 }
 
+// [신규] 개별 선수 주급 계산 (오버롤 및 나이 비례)
+function calculatePlayerWage(player) {
+    // 오버롤 75 기준 주급 0.5억. 오버롤이 높을수록 가파르게 상승 (^5)
+    const base = Math.pow(player.rating / 75, 5) * 0.5;
+    // 32세 이상 노련한 선수는 주급 20% 감가
+    const ageModifier = player.age >= 32 ? 0.8 : 1.0;
+    return Math.max(0.1, parseFloat((base * ageModifier).toFixed(2)));
+}
+
+// [신규] 팀 전체 주급 총합 계산
+function calculateTotalWages() {
+    if (!gameData.selectedTeam || !teams[gameData.selectedTeam]) return 0;
+    const total = teams[gameData.selectedTeam].reduce((sum, p) => sum + calculatePlayerWage(p), 0);
+    gameData.totalWeeklyWage = parseFloat(total.toFixed(1));
+    return gameData.totalWeeklyWage;
+}
+
 function updateDisplay() {
     document.getElementById('teamMoney').textContent = gameData.teamMoney + '억';
     document.getElementById('teamMorale').textContent = gameData.teamMorale;
     document.getElementById('currentSponsor').textContent = 
         gameData.currentSponsor ? gameData.currentSponsor.name : '없음';
+    
+    // [신규] 주급 표시 업데이트 (HTML에 totalWages ID가 있다고 가정)
+    const wageEl = document.getElementById('totalWages');
+    if (wageEl) wageEl.textContent = gameData.totalWeeklyWage + '억';
     
     if (gameData.currentOpponent) {
         document.getElementById('opponentName').innerHTML = 
@@ -3943,154 +3951,6 @@ function expireSponsorContract() {
     updateDisplay();
 }
 
-function endMatch(matchData) {
-    document.getElementById('endMatchBtn').style.display = 'block';
-    
-    // 경기 결과 계산
-    const userScore = matchData.homeScore;
-    const opponentScore = matchData.awayScore;
-    let result = '';
-    let moraleChange = 0;
-    let points = 0;
-    
-    // 전력 차이에 따른 결과 반영
-    const strengthDiff = matchData.strengthDiff;
-    const expectation = strengthDiff.userAdvantage ? '승리' : '패배';
-    const isUpset = (result === '승리' && !strengthDiff.userAdvantage) || 
-                   (result === '패배' && strengthDiff.userAdvantage);
-    
-    if (userScore > opponentScore) {
-        result = '승리';
-        if (strengthDiff.userAdvantage) {
-            // 예상된 승리
-            moraleChange = Math.floor(Math.random() * 8) + 5; // 5-12
-        } else {
-            // 예상 밖 승리 (업셋)
-            moraleChange = Math.floor(Math.random() * 15) + 10; // 10-24
-        }
-        points = 3;
-        
-        // 기본 경기 수익
-        gameData.teamMoney += 50; // 승리 시 50억
-        
-        // 스폰서 보너스
-        if (gameData.currentSponsor) {
-            gameData.teamMoney += gameData.currentSponsor.payPerWin;
-        }
-    } else if (userScore < opponentScore) {
-        result = '패배';
-        if (!strengthDiff.userAdvantage) {
-            // 예상된 패배
-            moraleChange = -(Math.floor(Math.random() * 8) + 3); // -3 to -10
-        } else {
-            // 예상 밖 패배 (충격적 패배)
-            moraleChange = -(Math.floor(Math.random() * 15) + 10); // -10 to -24
-        }
-        points = 0;
-        
-        // 기본 경기 수익
-        gameData.teamMoney += 10; // 패배 시 10억
-        
-        // 스폰서 보너스
-        if (gameData.currentSponsor) {
-            gameData.teamMoney += gameData.currentSponsor.payPerLoss;
-        }
-    } else {
-        result = '무승부';
-        if (strengthDiff.strengthGap < 5) {
-            // 비슷한 전력 간 무승부
-            moraleChange = Math.floor(Math.random() * 3) - 1; // -1 to 1
-        } else if (strengthDiff.userAdvantage) {
-            // 강한 팀이 무승부 (실망)
-            moraleChange = -(Math.floor(Math.random() * 5) + 2); // -2 to -6
-        } else {
-            // 약한 팀이 무승부 (선전)
-            moraleChange = Math.floor(Math.random() * 8) + 3; // 3-10
-        }
-        points = 1;
-        
-        // 기본 경기 수익
-        gameData.teamMoney += 15; // 무승부 시 15억
-        
-        // 스폰서 보너스 (승리의 절반)
-        if (gameData.currentSponsor) {
-            gameData.teamMoney += Math.floor(gameData.currentSponsor.payPerWin / 2);
-        }
-    }
-    
-    // 리그 데이터 업데이트
-    updateLeagueData(matchData, points);
-    
-    // 사기 업데이트
-    gameData.teamMorale = Math.max(0, Math.min(100, gameData.teamMorale + moraleChange));
-    
-    // 경기 수 증가
-    gameData.matchesPlayed++;
-    
-    // 경기 종료 메시지 (이변 여부 반영)
-    let finalMessage = `경기 종료! ${result} (${userScore}-${opponentScore})`;
-    
-    if (isUpset) {
-        if (result === '승리') {
-            finalMessage += `\n🎉 대이변! 전력상 불리했던 경기에서 승리!`;
-        } else if (result === '패배') {
-            finalMessage += `\n😱 충격! 전력상 유리했던 경기에서 패배...`;
-        }
-    }
-    
-    finalMessage += `\n${strengthDiff.userAdvantage ? '전력상 유리했던' : '전력상 불리했던'} 경기에서 ${result}`;
-    finalMessage += `\n사기 변화: ${moraleChange > 0 ? '+' : ''}${moraleChange}`;
-    
-    const finalEvent = {
-        minute: 90,
-        type: 'final',
-        description: finalMessage
-    };
-    displayEvent(finalEvent, matchData);
-    
-    // 스폰서 처리 (수정된 부분)
-    if (typeof window.processSponsorAfterMatch === 'function') {
-        const matchResult = result === '승리' ? 'win' : result === '패배' ? 'loss' : 'draw';
-        window.processSponsorAfterMatch(matchResult);
-    }
-    
-    // 경기 종료 버튼 이벤트
-    document.getElementById('endMatchBtn').onclick = () => {
-        // 인터뷰 화면으로 이동
-        startInterview(result, userScore, opponentScore, strengthDiff);
-    };
-    
-    // 선수 성장 처리
-    if (typeof processPostMatchGrowth === 'function') {
-        setTimeout(() => {
-            processPostMatchGrowth();
-        }, 2000);
-    }
-
-    // 개인기록 업데이트
-    if (typeof updateRecordsAfterMatch === 'function') {
-        updateRecordsAfterMatch(matchData);
-    }
-    
-    // AI 팀들 경기 시뮬레이션
-    simulateOtherMatches();
-
-    // [추가] 경기 종료 후 유저 팀 스태미나 100으로 회복
-    if (gameData.lineStats) {
-        ['attack', 'midfield', 'defense'].forEach(line => {
-            if (gameData.lineStats[line]) {
-                gameData.lineStats[line].stamina = 100;
-            }
-        });
-        console.log('🔋 유저 팀 스태미나 100으로 회복 완료');
-    }
-
-    // 시즌 종료 후 처리
-    setTimeout(() => {
-        processRetirementsAndReincarnations(); // 은퇴 및 환생 처리
-        checkSeasonEnd(); // 시즌 종료 조건 체크
-    }, 1000);
-}
 
 // 저장/불러오기에 스폰서 데이터 포함 확인
 function checkSponsorDataInSave() {
@@ -6276,9 +6136,10 @@ function renderDashboard() {
     const transferCard = createDashboardCard('💰 이적 시장', 'transfer', () => {
         return `
             <div style="text-align: center; display: flex; flex-direction: column; justify-content: center; height: 100%;">
-                <div style="font-size: 0.9rem; color: #aaa;">이적 자금</div>
-                <div style="font-size: 2.5rem; font-weight: bold; color: #f1c40f; margin: 10px 0;">${gameData.teamMoney}억</div>
-                <div style="font-size: 0.9rem;">새로운 인재 영입하기</div>
+                <div style="font-size: 0.85rem; color: #aaa;">이적 자금 / 총 주급</div>
+                <div style="font-size: 2.2rem; font-weight: bold; color: #f1c40f; margin: 5px 0;">${gameData.teamMoney}억</div>
+                <div style="font-size: 1.1rem; color: #e74c3c; font-weight: bold;">주급: ${gameData.totalWeeklyWage}억</div>
+                <div style="font-size: 0.75rem; color: #aaa; margin-top: 5px;">연간 예상 지출: ${Math.round(gameData.totalWeeklyWage * 52)}억</div>
             </div>
         `;
     });

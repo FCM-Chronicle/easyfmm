@@ -363,7 +363,15 @@ function simulateMatch(matchData, engine) {
         const startTime = performance.now();
 
         // 2. 엔진 업데이트 (1틱 = 10초)
-        const snapshot = engine.update();
+        // [수정] 현재 분과 1분 경과 여부(seconds가 0일 때)를 엔진에 전달하여 체력 소모 로직 트리거
+        const snapshot = engine.update(matchData.minute, matchData.seconds === 0);
+
+        // [추가] 경기 중 실시간 라인 체력(숫자) 업데이트
+        if (gameData.lineStats) {
+            if (document.getElementById('atkStamina')) document.getElementById('atkStamina').textContent = Math.floor(gameData.lineStats.attack.stamina);
+            if (document.getElementById('midStamina')) document.getElementById('midStamina').textContent = Math.floor(gameData.lineStats.midfield.stamina);
+            if (document.getElementById('defStamina')) document.getElementById('defStamina').textContent = Math.floor(gameData.lineStats.defense.stamina);
+        }
 
         // 3. 비주얼라이저 동기화
         if (window.matchVisualizer) {
@@ -446,7 +454,55 @@ function getSquadData(teamKey) {
     }
 }
 
+// [신규] 해설 멘트 데이터 및 생성 함수
+const MatchCommentaryData = {
+    goal: [
+        "⚽ {team} {scorer}의 환상적인 골!",
+        "⚽ {team} {scorer}가 골망을 가릅니다!",
+        "⚽ {team} {scorer}, 결정적인 득점 성공!",
+        "⚽ {team} {scorer}, 박스 안에서 침착하게 마무리합니다!"
+    ],
+    miss: [
+        "🥅 {shooter}의 슈팅이 골대를 벗어납니다.",
+        "🥅 {shooter}, 아쉬운 실축입니다.",
+        "🥅 {shooter}, 결정적인 찬스를 날려버립니다."
+    ],
+    dribble: [
+        "💨 {player}의 화려한 드리블 돌파!",
+        "💨 {player}가 수비진을 휘젓습니다.",
+        "💨 {player}의 개인기가 돋보이는 장면입니다!"
+    ],
+    tackle: [
+        "🛡️ {player}의 깔끔한 태클 성공!",
+        "🛡️ {player}가 공을 뺏어냅니다.",
+        "🛡️ {player}의 투지 넘치는 수비!"
+    ],
+    throughpass: [
+        "⚡ {from}의 날카로운 패스, {to}에게 연결됩니다!",
+        "⚡ {from}의 자로 잰 듯한 스루패스!",
+        "⚡ {from}이 수비 뒷공간을 완벽하게 허물었습니다!"
+    ],
+    save: [
+        "🧤 {gk}의 슈퍼 세이브! {shooter}의 슛을 막아냅니다.",
+        "🧤 {gk}가 팀을 위기에서 구합니다!",
+        "🧤 {gk}, 엄청난 반사신경으로 쳐냅니다!"
+    ],
+    block: [
+        "🧱 {blocker}가 몸을 날려 {shooter}의 슛을 차단합니다!",
+        "🧱 {blocker}의 육탄 방어!",
+        "🧱 수비벽에 막히는 {shooter}의 슈팅!"
+    ]
+};
 
+function getRandomCommentary(type, data) {
+    const templates = MatchCommentaryData[type];
+    if (!templates) return "경기 진행 중...";
+    let template = templates[Math.floor(Math.random() * templates.length)];
+    for (const key in data) {
+        template = template.replace(new RegExp(`{${key}}`, 'g'), data[key]);
+    }
+    return template;
+}
 
 // [헬퍼] 엔진 이벤트를 텍스트 이벤트로 변환
 function convertToTextEvent(engineEvent, matchData) {
@@ -689,7 +745,7 @@ function endMatch(matchData) {
                     
                     const remaining = simPlayer.stamina;
                     
-                    // [수정] 체력 회복 로직 변경 (소모된 체력의 약 83% 회복)
+                    // [복구] 체력 회복 로직 (소모된 체력의 약 83% 회복)
                     // 예: 잔여 40(소모 60) -> 회복 50 -> 결과 90
                     const recovered = Math.min(100, Math.floor(remaining + (100 - remaining) * (5/6)));
 
@@ -698,10 +754,11 @@ function endMatch(matchData) {
             }
         });
 
-        // 2. 경기 안 뛴 선수 무조건 100 회복
+        // 2. 경기 안 뛴 선수 점진적 회복 (+25)
         userPlayers.forEach(p => {
             if (!playedPlayerNames.has(p.name)) {
-                p.condition = 100;
+                const current = p.condition !== undefined ? p.condition : 100;
+                p.condition = Math.min(100, current + 25);
             }
         });
     }
