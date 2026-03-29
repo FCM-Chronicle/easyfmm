@@ -1965,25 +1965,6 @@ let selectionState = {
 };
 
 // 초기화
-document.addEventListener('DOMContentLoaded', function() {
-    initializeGame();
-    setupEventListeners();
-
-    // ✅ 여기에 추가!
-    // addReleasePlayerOption();
-
-            // 이적 시스템 초기화 호출
-            if (typeof initTransfer === 'function') {
-                initTransfer();
-            }
-            
-            // [신규] 자동 스크롤 시스템 초기화
-            AutoScrollSystem.init();
-
-            // [신규] 커스텀 커서 초기화
-            window.customCursorInstance = new CustomCursor();
-});
-
 function initializeGame() {
     // 리그 데이터 초기화
     initializeLeagueData();
@@ -1991,14 +1972,6 @@ function initializeGame() {
     // [신규] 메인 화면 저장된 게임 슬롯 표시
     renderMainSaveSlots();
     
-    // [신규] 자동 저장 시스템 초기화
-    setTimeout(() => {
-        if (window.AutoSaveSystem) window.AutoSaveSystem.init();
-    }, 1000);
-    
-    // 첫 번째 화면 표시
-    showScreen('teamSelection');
-
     // [신규] 게임 모드 선택 UI 추가
     addGameModeSelectorUI();
 

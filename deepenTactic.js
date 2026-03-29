@@ -612,20 +612,20 @@ class RealSoccerEngine {
         // 3. 드리블 (전진)
         // [신규] 수비수가 앞에 있으면 돌파 시도 or 뺏김
         const nearestDef = this.findNearestDefender(player);
-        if (nearestDef && nearestDef.dist < 5) {
+        if (nearestDef && nearestDef.dist < 7) { // 감지 거리 확대 (5m -> 7m)
             // 수비수가 5m 이내로 붙음 -> 돌파 시도
             // [신규] 개인기(Skill Move) 시도 체크
-            if (typeof SkillMoveManager !== 'undefined' && Math.random() < 0.25) { // 25% 확률로 개인기 시도
+            if (typeof SkillMoveManager !== 'undefined' && Math.random() < 0.5) { // 빈도 상향 (25% -> 50%)
                 const result = SkillMoveManager.attemptSkillMove(player, nearestDef.player);
                 if (result) {
                     if (result.success) {
-                        this.eventsQueue.push({ type: 'dribble', player: player.name, desc: `✨ ${player.name}${result.move.desc}` });
+                        this.eventsQueue.push({ type: 'dribble', player: player.name, desc: `${player.name}${result.move.desc}`, skillId: result.move.id });
                         // 성공 시 수비수를 제치고 8m 추가 전진
-                        player.x += (isHome ? 8 : -8);
+                        player.x += (isHome ? 10 : -10); // 돌파 거리 상향
                         this.ball.x = player.x;
                         return;
                     } else {
-                        this.eventsQueue.push({ type: 'tackle', player: nearestDef.player.name, desc: `🛡️ ${nearestDef.player.name}, ${player.name}의 ${result.move.name}를 읽어내고 차단합니다!` });
+                        this.eventsQueue.push({ type: 'tackle', player: nearestDef.player.name, desc: `${nearestDef.player.name} 선수가 길목을 정확히 지켰습니다! ${player.name}의 ${result.move.name}를 완벽하게 차단합니다!` });
                         this.ball.owner = nearestDef.player;
                         this.ball.lastOwner = null;
                         return;

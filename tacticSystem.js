@@ -286,7 +286,7 @@ function showKickoffButton(matchData, engine) {
     kickoffInfo.innerHTML = `
         <div class="event-time">준비 완료</div>
         <div>경기 시작 준비가 완료되었습니다.</div>
-        <button id="kickoffBtn" class="btn primary" style="margin-top: 10px;">⚽ 킥오프</button>
+        <button id="kickoffBtn" class="btn primary" style="margin-top: 15px; padding: 12px 30px; font-size: 1.1rem; font-weight: bold; width: 100%;">⚽ 킥오프</button>
     `;
     eventList.appendChild(kickoffInfo);
 
@@ -381,6 +381,12 @@ function simulateMatch(matchData, engine) {
         // 4. 이벤트 처리 (텍스트 로그 변환 및 점수 업데이트)
         if (snapshot.events && snapshot.events.length > 0) {
             snapshot.events.forEach(engineEvent => {
+                // [신규] 개인기 발동 시 시각적 효과 트리거
+                if (engineEvent.type === 'dribble' && engineEvent.desc && window.matchVisualizer) {
+                    const unit = window.matchVisualizer.units[engineEvent.player];
+                    if (unit) unit.triggerSkillEffect(engineEvent.skillId);
+                }
+
                 // 엔진 이벤트를 텍스트 이벤트로 변환
                 const textEvent = convertToTextEvent(engineEvent, matchData);
                 
@@ -457,40 +463,40 @@ function getSquadData(teamKey) {
 // [신규] 해설 멘트 데이터 및 생성 함수
 const MatchCommentaryData = {
     goal: [
-        "⚽ {team} {scorer}의 환상적인 골!",
-        "⚽ {team} {scorer}가 골망을 가릅니다!",
-        "⚽ {team} {scorer}, 결정적인 득점 성공!",
-        "⚽ {team} {scorer}, 박스 안에서 침착하게 마무리합니다!"
+        "골! 득점 성공입니다! {team}의 {scorer} 선수가 골망을 흔듭니다!",
+        "그대로 들어갑니다! {scorer}, 환상적인 마무리로 팀에 선제골을 안깁니다!",
+        "막을 수 없습니다! {scorer}의 발 끝에서 결정적인 골이 터져 나옵니다!",
+        "완벽한 득점입니다! {scorer}, 박스 안에서 침착하게 구석을 찔렀습니다!"
     ],
     miss: [
-        "🥅 {shooter}의 슈팅이 골대를 벗어납니다.",
-        "🥅 {shooter}, 아쉬운 실축입니다.",
-        "🥅 {shooter}, 결정적인 찬스를 날려버립니다."
+        "슈팅이 골대를 벗어납니다! {shooter} 선수, 정말 아쉬운 표정을 짓고 있습니다.",
+        "허공을 가르는 슈팅! {shooter}, 결정적인 찬스를 이렇게 날려버리나요?",
+        "골문을 외면합니다. {shooter}의 슈팅이 아슬아슬하게 나갔습니다."
     ],
     dribble: [
-        "💨 {player}의 화려한 드리블 돌파!",
-        "💨 {player}가 수비진을 휘젓습니다.",
-        "💨 {player}의 개인기가 돋보이는 장면입니다!"
+        "치고 달립니다! {player}의 저돌적인 돌파, 수비진이 당황하고 있습니다!",
+        "수비수들을 완전히 흔들어 놓습니다! {player}의 화려한 발재간이 돋보입니다.",
+        "공간이 열립니다! {player} 선수, 개인기로 수비 한 명을 가볍게 벗겨냅니다!"
     ],
     tackle: [
-        "🛡️ {player}의 깔끔한 태클 성공!",
-        "🛡️ {player}가 공을 뺏어냅니다.",
-        "🛡️ {player}의 투지 넘치는 수비!"
+        "정확한 태클입니다! {player}가 깔끔하게 소유권을 되찾아옵니다.",
+        "끊어냅니다! {player}의 투지 넘치는 수비가 팀을 위기에서 구합니다.",
+        "정말 영리한 수비군요. {player}, 반칙 없이 공만 쏙 빼냅니다."
     ],
     throughpass: [
-        "⚡ {from}의 날카로운 패스, {to}에게 연결됩니다!",
-        "⚡ {from}의 자로 잰 듯한 스루패스!",
-        "⚡ {from}이 수비 뒷공간을 완벽하게 허물었습니다!"
+        "찌릅니다! {from}의 날카로운 패스가 수비 라인을 완전히 무너뜨립니다!",
+        "자로 잰 듯한 패스네요. {to} 선수에게 결정적인 기회가 배달됩니다!",
+        "기가 막힌 패스입니다! {from}이 수비 뒷공간을 완벽하게 허물어버립니다."
     ],
     save: [
-        "🧤 {gk}의 슈퍼 세이브! {shooter}의 슛을 막아냅니다.",
-        "🧤 {gk}가 팀을 위기에서 구합니다!",
-        "🧤 {gk}, 엄청난 반사신경으로 쳐냅니다!"
+        "이걸 막아내나요! {gk}의 슈퍼 세이브, 팀을 절체절명의 위기에서 구합니다!",
+        "엄청난 선방입니다! {gk}, 동물적인 반사신경으로 슈팅을 쳐냅니다!",
+        "골문을 사수하는 {gk}! 오늘 컨디션이 정말 최고조에 달해 있군요."
     ],
     block: [
-        "🧱 {blocker}가 몸을 날려 {shooter}의 슛을 차단합니다!",
-        "🧱 {blocker}의 육탄 방어!",
-        "🧱 수비벽에 막히는 {shooter}의 슈팅!"
+        "몸을 던져서 막아냅니다! {blocker}의 헌신적인 수비, 박수가 절로 나옵니다!",
+        "육탄 방어입니다! {shooter}의 강력한 슛이 수비벽에 막히고 맙니다.",
+        "수비수 몸 맞고 굴절됩니다! {blocker} 선수가 길목을 잘 지키고 있었군요."
     ]
 };
 
@@ -534,7 +540,8 @@ function convertToTextEvent(engineEvent, matchData) {
         return {
             minute: matchData.minute,
             type: 'dribble',
-            description: getRandomCommentary('dribble', data)
+            // 엔진에서 보낸 전용 desc(개인기 멘트)가 있으면 그것을 사용, 없으면 일반 멘트 사용
+            description: engineEvent.desc || getRandomCommentary('dribble', data)
         };
     } else if (engineEvent.type === 'tackle') {
         const data = { player: engineEvent.player };
@@ -582,24 +589,15 @@ function convertToTextEvent(engineEvent, matchData) {
 
 function displayEvent(event, matchData) {
     const eventList = document.getElementById('eventList');
-    // 중계창이 꽉 차면 비우기 (최적화)
-    // [최적화] 오래된 노드를 하나씩 제거하여 레이아웃 스래싱 방지
-    while (eventList.children.length > 5) { 
-        eventList.removeChild(eventList.firstChild); 
-    }
+    if (!eventList) return;
 
-    const eventCard = document.createElement('div');
-    eventCard.className = `event-card ${event.type}`;
-    eventCard.innerHTML = `
-        <div class="event-time">${event.minute}분</div>
-        <div>${event.description}</div>
+    // 기존 리스트 방식을 버리고 최신 이벤트 하나만 덮어씌움
+    eventList.innerHTML = `
+        <div class="event-card ${event.type}" style="animation: none; margin: 0; padding: 12px; background: rgba(0,0,0,0.6); border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 15px; font-size: 1.1rem; border: 1px solid rgba(255,255,255,0.1); width: 100%; box-sizing: border-box;">
+            <span class="event-time" style="color: #ffd700; font-weight: bold; white-space: nowrap; min-width: 45px;">${event.minute}분</span>
+            <span style="color: #fff; text-align: center; line-height: 1.4;">${event.description}</span>
+        </div>
     `;
-    eventList.appendChild(eventCard);
-    
-    // 자동 스크롤
-    if (window.AutoScrollSystem && !window.AutoScrollSystem.isPaused) {
-        eventList.scrollTop = eventList.scrollHeight;
-    }
     
     matchData.events.push(event);
 }

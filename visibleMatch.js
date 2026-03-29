@@ -15,6 +15,8 @@ class VisualUnit {
         this.targetY = y;
         
         this.hasBall = false;
+        this.skillEffectTimer = 0; // 개인기 효과 타이머
+        this.activeSkillId = null; // 현재 진행 중인 개인기 ID
         this.color = color || (teamType === 'home' ? '#e74c3c' : '#3498db'); // [수정] 전달받은 컬러 사용
     }
 
@@ -23,16 +25,59 @@ class VisualUnit {
         // 매 프레임 목표 위치로 15%씩 이동 (부드러운 감속)
         this.x += (this.targetX - this.x) * 0.15;
         this.y += (this.targetY - this.y) * 0.15;
+
+        if (this.skillEffectTimer > 0) {
+            this.skillEffectTimer--;
+            if (this.skillEffectTimer === 0) this.activeSkillId = null;
+        }
     }
 
     draw(ctx, width, height) {
         // 좌표 변환 (0~100 -> 픽셀)
-        const px = (this.x / 100) * width;
-        const py = (this.y / 100) * height; // Top-down view
-        const r = Math.max(4, width * 0.010); // [수정] 바둑돌 크기 축소
+        let px = (this.x / 100) * width;
+        let py = (this.y / 100) * height;
+        let r = Math.max(4, width * 0.010);
+        let rotation = 0;
+
+        // [신규] 개인기별 특수 모션 계산
+        if (this.skillEffectTimer > 0 && this.activeSkillId) {
+            const progress = 1 - (this.skillEffectTimer / 45); // 0.0 ~ 1.0
+            
+            ctx.save();
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = "#f1c40f"; // 황금색 광채
+            r *= 1.2;
+
+            switch(this.activeSkillId) {
+                case 'MARSEILLE_TURN':
+                case 'ROULETTE':
+                    // 한 바퀴 돌기 (360도 회전)
+                    rotation = progress * Math.PI * 2;
+                    break;
+                case 'ELASTICO':
+                    // 좌우로 쉭쉭 (지그재그 오프셋)
+                    px += Math.sin(progress * Math.PI * 4) * (r * 1.5);
+                    break;
+                case 'LA_CROQUETA':
+                    // 왼쪽/오른쪽 후 앞으로 (사이드 스텝)
+                    const sideStep = (progress < 0.5) ? (progress * 2) * (r * 2) : (r * 2);
+                    const forwardStep = (progress >= 0.5) ? ((progress - 0.5) * 2) * (r * 2) : 0;
+                    py += sideStep;
+                    px += (this.teamType === 'home' ? forwardStep : -forwardStep);
+                    break;
+                default:
+                    // 기타 기술은 진동 효과
+                    px += (Math.random() - 0.5) * 5;
+                    py += (Math.random() - 0.5) * 5;
+            }
+        }
+
+        ctx.save();
+        ctx.translate(px, py);
+        ctx.rotate(rotation);
 
         ctx.beginPath();
-        ctx.arc(px, py, r, 0, Math.PI * 2);
+        ctx.arc(0, 0, r, 0, Math.PI * 2);
         
         // [수정] 2가지 색상일 경우 줄무늬(Stripes) 처리
         if (Array.isArray(this.color)) {
@@ -41,11 +86,11 @@ class VisualUnit {
             
             // 배경색 (색상 1)
             ctx.fillStyle = this.color[0];
-            ctx.fillRect(px - r, py - r, r * 2, r * 2);
+            ctx.fillRect(-r, -r, r * 2, r * 2);
             
             // 줄무늬 (색상 2) - 중앙에 세로 줄무늬
             ctx.fillStyle = this.color[1];
-            ctx.fillRect(px - r / 3, py - r, 2 * r / 3, r * 2);
+            ctx.fillRect(-r / 3, -r, 2 * r / 3, r * 2);
             
             ctx.restore();
         } else {
@@ -54,15 +99,15 @@ class VisualUnit {
         }
 
         // [추가] 시인성을 위한 테두리 (흰색 유니폼 등을 위해)
-        ctx.beginPath(); // 테두리를 위한 새 경로 (이전 경로가 클리핑으로 닫혔을 수 있으므로)
-        ctx.arc(px, py, r, 0, Math.PI * 2);
+        ctx.beginPath(); 
+        ctx.arc(0, 0, r, 0, Math.PI * 2); // px, py 대신 0, 0 사용
         ctx.strokeStyle = 'rgba(0,0,0,0.3)';
         ctx.lineWidth = 1;
         ctx.stroke();
         
         if (this.hasBall) { // 공 가진 선수 표시
             ctx.strokeStyle = '#f1c40f';
-            ctx.lineWidth = 3; // [수정] 공 가진 표시 더 잘 보이게
+            ctx.lineWidth = 3;
             ctx.stroke();
         }
 
@@ -71,14 +116,26 @@ class VisualUnit {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
         
-        // 텍스트 외곽선 (가독성 향상)
+        // 텍스트 외곽선 (translate 외부 좌표계 기준이므로 px, py 유지)
         ctx.lineWidth = 2.5;
         ctx.strokeStyle = 'rgba(0,0,0,0.7)';
-        ctx.strokeText(this.name, px, py + r + 4);
+        ctx.strokeText(this.name, 0, r + 4); // 0, r + 4로 수정
         
         // 텍스트 채우기
         ctx.fillStyle = '#ffffff';
-        ctx.fillText(this.name, px, py + r + 4);
+        ctx.fillText(this.name, 0, r + 4); // 0, r + 4로 수정
+
+        ctx.restore(); // 회전/이동 컨텍스트 복구
+
+        if (this.skillEffectTimer > 0) {
+            ctx.restore(); // 개인기 발광 효과 컨텍스트 복구
+        }
+    }
+
+    // [신규] 개인기 시각 효과 트리거
+    triggerSkillEffect(skillId) {
+        this.skillEffectTimer = 45; // 약 0.7초 유지
+        this.activeSkillId = skillId;
     }
 }
 

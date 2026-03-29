@@ -780,7 +780,7 @@
                                 <span class="match-time">킥오프 예정</span>
                             </div>
                         </div>
-                        <button id="startMatchBtn" class="btn primary">⚽ 경기 시작</button>
+                        <button id="startMatchBtn" class="btn primary" style="padding: 15px 40px; font-size: 1.2rem; font-weight: bold;">⚽ 경기 시작</button>
                     </div>
                 </div>
                 
@@ -1007,8 +1007,8 @@
             <div class="time">
                 <span id="matchTime">0분</span>
             </div>
-            <!-- [신규] 스태미나 표시기 (비주얼 업그레이드) -->
-            <div id="staminaContainer" style="margin-top: 15px; width: 90%; max-width: 500px; display: flex; gap: 10px; justify-content: center; background: rgba(0,0,0,0.4); padding: 10px; border-radius: 10px;">
+            <!-- 스태미나 표시기 -->
+            <div id="staminaContainer" style="margin-top: 15px; width: 90%; max-width: 500px; display: flex; gap: 10px; justify-content: center; background: rgba(0,0,0,0.4); padding: 10px; border-radius: 10px; margin-left: auto; margin-right: auto;">
                 <!-- 공격진 -->
                 <div class="stamina-group" style="flex: 1;">
                     <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px;">
@@ -1042,11 +1042,14 @@
             </div>
         </div>
 
-        <!-- [신규] 경기장 시각화 영역 추가 -->
-        <div id="matchVisualizerContainer" style="width: 100%; height: 600px; position: relative; background: #27ae60; margin: 20px 0; border-radius: 10px; overflow: hidden; border: 2px solid rgba(255,255,255,0.1);"></div>
+        <!-- 경기장 시각화 영역 -->
+        <div id="matchVisualizerContainer" style="width: 100%; height: 600px; position: relative; background: #27ae60; margin: 20px 0 10px 0; border-radius: 10px; overflow: hidden; border: 2px solid rgba(255,255,255,0.1);"></div>
         
-        <div class="match-events">
-            <div id="eventList"></div>
+        <!-- 중계창 (단일 라인 전광판 스타일) -->
+        <div class="match-events" style="height: 60px; overflow: hidden; display: flex; align-items: center; justify-content: center; padding: 0 10px;">
+            <div id="eventList" style="width: 100%; max-width: 800px;">
+                <div style="text-align: center; color: #aaa;">경기를 시작해 주세요.</div>
+            </div>
         </div>
         
         <div class="match-controls" style="text-align: center; margin-top: 20px; display: flex; justify-content: center; gap: 15px;">
@@ -1309,6 +1312,9 @@
     <!-- 라이브러리 -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
+    <!-- 로딩 매니저 (가장 먼저 실행되어 화면을 덮어야 함) -->
+    <script src="loadManager.js"></script>
+
     <!-- 핵심 데이터 및 시스템 (순서 중요) -->
     <script src="script.js"></script>
     <script src="tactics.js"></script>
