@@ -75,8 +75,8 @@ function renderTeamSelectionUI() {
         cityEl.textContent = city;
     }
 
-    // 시작 자금 설정 (3부 리그는 10억, 나머지는 1000억)
-    const budget = league === 3 ? "10억" : "1000억";
+    // 시작 자금 설정 (데이터에 정의된 팀별 실제 예산 표시)
+    const budget = (teamData.budget !== undefined ? teamData.budget : (league === 3 ? 10 : 1000)) + "억";
     const budgetEl = document.getElementById('ts-team-budget');
     if (budgetEl) budgetEl.textContent = budget;
 
