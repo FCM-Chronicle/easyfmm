@@ -548,11 +548,11 @@ class RealSoccerEngine {
         // 내 앞(골대 방향)이 막혀있는지 확인
         if (isBlocked) {
             if (underPressure) {
-                // 막혀있고 압박까지 받으면 패스 우선 (95%)
-                passProb = 0.95;
+                // [수정] 압박 시 패스 확률 하향 (95% -> 75%)하여 드리블 시도 증가
+                passProb = 0.75;
             } else {
-                // 막혀있지만 압박은 없음 -> 횡드리블이나 소유 (패스 확률 낮춤 30%)
-                passProb = 0.10; 
+                // [수정] 앞이 막혔지만 압박이 없을 때 패스 확률 하향 (10% -> 5%)
+                passProb = 0.05; 
             }
         } else {
             // 뚫려있으면 드리블 우선 (패스 확률 20%로 낮춤 -> 드리블 80%)
@@ -614,6 +614,25 @@ class RealSoccerEngine {
         const nearestDef = this.findNearestDefender(player);
         if (nearestDef && nearestDef.dist < 5) {
             // 수비수가 5m 이내로 붙음 -> 돌파 시도
+            // [신규] 개인기(Skill Move) 시도 체크
+            if (typeof SkillMoveManager !== 'undefined' && Math.random() < 0.25) { // 25% 확률로 개인기 시도
+                const result = SkillMoveManager.attemptSkillMove(player, nearestDef.player);
+                if (result) {
+                    if (result.success) {
+                        this.eventsQueue.push({ type: 'dribble', player: player.name, desc: `✨ ${player.name}${result.move.desc}` });
+                        // 성공 시 수비수를 제치고 8m 추가 전진
+                        player.x += (isHome ? 8 : -8);
+                        this.ball.x = player.x;
+                        return;
+                    } else {
+                        this.eventsQueue.push({ type: 'tackle', player: nearestDef.player.name, desc: `🛡️ ${nearestDef.player.name}, ${player.name}의 ${result.move.name}를 읽어내고 차단합니다!` });
+                        this.ball.owner = nearestDef.player;
+                        this.ball.lastOwner = null;
+                        return;
+                    }
+                }
+            }
+
             if (Math.random() < 0.4) { // 40% 확률로 태클 당함
                 this.attemptTackle(nearestDef.player, player);
                 return;
@@ -1391,7 +1410,7 @@ class RealSoccerEngine {
     // [신규] 전방 수비벽 감지 (드리블 vs 패스 판단용)
     checkFrontalBlock(player, goalX) {
         const forwardDir = player.teamId === 'home' ? 1 : -1; // 홈(100방향), 어웨이(0방향)
-        const checkDist = 15; // 전방 15m 확인
+        const checkDist = 10; // [수정] 감지 거리를 15m에서 10m로 축소하여 드리블 기회 확대
         const checkWidth = 6; // 좌우 6m 확인
 
         // 내 앞의 사각형 영역 정의
