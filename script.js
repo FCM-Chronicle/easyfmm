@@ -609,9 +609,11 @@ const allTeams = {
             { name: "모건 로저스", position: "FW", country: "잉글랜드", age: 23, rating: 86 },
             { name: "코트니 호즈", position: "DF", country: "잉글랜드", age: 30, rating: 71 },
             { name: "레온 베일리", position: "FW", country: "자메이카", age: 27, rating: 82 },
-            { name: "제이콥 램지", position: "MF", country: "잉글랜드", age: 24, rating: 79 },
             { name: "부바카르 카마라", position: "MF", country: "프랑스", age: 25, rating: 82 },
-            { name: "올리비에르 지크", position: "GK", country: "폴란드", age: 21, rating: 67 }
+            { name: "올리비에르 지크", position: "GK", country: "폴란드", age: 21, rating: 67 },
+            { name: "사무엘 일링-주니어", position: "FW", country: "잉글랜드", age: 22, rating: 74 },
+            { name: "빅토르 린델뢰프", position: "DF", country: "스웨덴", age: 31, rating: 80 },
+            { name: "에반 게상", position: "FW", country: "코트디부아르", age: 24, rating: 82 },
         ],
         description: "빌라 파크의 자존심을 되찾기 위한 클라렛과 블루의 부활"
     },
@@ -2679,6 +2681,10 @@ function showTab(tabName) {
     // [추가] 매치 탭 예외 처리 (대시보드에서 호출 시)
     if (tabName === 'match') {
         // 탭 전환만 하고 경기 시작은 버튼으로 하도록 변경 (바로 시작하면 캘린더 효과를 못 봄)
+        
+        // [추가] 전술 동기화 (DNA 탭에서 바뀐 전술 반영)
+        const matchTacticSelect = document.getElementById('tacticSelect');
+        if (matchTacticSelect) matchTacticSelect.value = gameData.currentTactic;
     }
 
     // 탭 버튼 활성화
@@ -6116,12 +6122,16 @@ function renderDashboard() {
     });
 
     // 5. 기타 카드들
-    const tacticsCard = createDashboardCard('🧬 전술/DNA', 'tactics', () => `
-        <div style="text-align:center;">
-            <div style="margin-bottom:5px;">현재 전술: <span style="color:#ffd700;">${gameData.currentTactic}</span></div>
-            <div style="font-size:0.8rem; color:#aaa;">DNA 및 세부 전술 설정</div>
-        </div>
-    `);
+    const tacticsCard = createDashboardCard('🧬 전술/DNA', 'tactics', () => {
+        const ts = (typeof TacticSystem !== 'undefined') ? new TacticSystem() : null;
+        const tacticName = (ts && ts.tactics[gameData.currentTactic]) ? ts.tactics[gameData.currentTactic].name : gameData.currentTactic;
+        return `
+            <div style="text-align:center;">
+                <div style="margin-bottom:5px;">현재 전술: <span style="color:#ffd700;">${tacticName}</span></div>
+                <div style="font-size:0.8rem; color:#aaa;">DNA 및 세부 전술 설정</div>
+            </div>
+        `;
+    });
     
     // [추가] 개인 기록 카드
     const recordsCard = createDashboardCard('🥇 개인 기록', 'records', () => {
@@ -6328,3 +6338,4 @@ function simulateAllMatchesInRound(round) {
     if (typeof updateTransferMarketPostMatch === 'function') updateTransferMarketPostMatch();
     if (typeof processRetirementsAndReincarnations === 'function') processRetirementsAndReincarnations();
 }
+    

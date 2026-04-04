@@ -13,7 +13,7 @@ class VisualUnit {
         // 목표 위치 (엔진에서 받음)
         this.targetX = x;
         this.targetY = y;
-        
+
         this.hasBall = false;
         this.skillEffectTimer = 0; // 개인기 효과 타이머
         this.activeSkillId = null; // 현재 진행 중인 개인기 ID
@@ -22,9 +22,10 @@ class VisualUnit {
 
     // ⚫ [7. 선수 이동] 보간 (Lerp) 업데이트
     update() {
-        // 매 프레임 목표 위치로 15%씩 이동 (부드러운 감속)
-        this.x += (this.targetX - this.x) * 0.15;
-        this.y += (this.targetY - this.y) * 0.15;
+        // 가속도 효과 제거: 단순 보간(Lerp) 방식으로 변경
+        const lerpFactor = 0.2; 
+        this.x += (this.targetX - this.x) * lerpFactor;
+        this.y += (this.targetY - this.y) * lerpFactor;
 
         if (this.skillEffectTimer > 0) {
             this.skillEffectTimer--;
@@ -144,12 +145,13 @@ class VisualBall {
         this.x = 50; this.y = 50;
         this.z = 0; // [신규] 시각적 높이 (가짜 3D 효과)
         this.targetX = 50; this.targetY = 50;
-        this.lerpFactor = 0.2; // [신규] 공 속도 제어 변수 (기본 0.2)
+        this.accelFactor = 0.1; 
         this.state = 0; // 공 상태
     }
     update() {
-        this.x += (this.targetX - this.x) * this.lerpFactor; 
-        this.y += (this.targetY - this.y) * this.lerpFactor;
+        // 가속도 효과 제거: 단순 보간(Lerp) 방식으로 변경
+        this.x += (this.targetX - this.x) * this.accelFactor;
+        this.y += (this.targetY - this.y) * this.accelFactor;
         
         // [신규] 공이 날아갈 때(IN_FLIGHT) 속도감에 따른 높이 효과 부여
         if (this.state === 2) { // IN_FLIGHT
@@ -256,13 +258,13 @@ class MatchVisualizer {
         // [수정] 상태 기반 속도 제어 (이벤트 기반보다 더 정확함)
         if (snapshot.ball.state === 2) { 
             // IN_FLIGHT (패스, 슛) - 빠르고 직선적인 움직임
-            this.ball.lerpFactor = 0.45; 
+            this.ball.accelFactor = 0.12; // 가속도 모델 수치로 변환
         } else if (snapshot.ball.state === 1) { 
             // CONTROLLED (드리블) - 선수 발에 붙어다님
-            this.ball.lerpFactor = 0.6; 
+            this.ball.accelFactor = 0.35; // 드리블 시에는 즉각적으로 따라붙음
         } else {
             // LOOSE / DEAD - 자연스러운 감속
-            this.ball.lerpFactor = 0.2;
+            this.ball.accelFactor = 0.08;
         }
 
         // 공 위치 업데이트

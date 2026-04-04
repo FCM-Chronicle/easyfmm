@@ -766,18 +766,34 @@ class TransferSystem {
 
     // 이적 시장 업데이트 (매일/매경기)
     updateTransferMarket() {
-        // [수정] 유저가 직접 리스트에 올린 선수 처리 로직 (100% 발송)
+        // 유저가 직접 리스트에 올린 선수 처리 로직
         if (gameData.userTransferList && gameData.userTransferList.length > 0) {
-            gameData.userTransferList.forEach(entry => {
+            // [수정] 오퍼 발생 확률 적용을 위해 역순 순회 (실패 시 리스트 제거)
+            for (let i = gameData.userTransferList.length - 1; i >= 0; i--) {
+                const entry = gameData.userTransferList[i];
                 if (entry.waitRounds > 0) {
                     entry.waitRounds--;
                 }
-                // waitRounds가 0이 되는 즉시 메일 발송
+                // waitRounds가 0이 되는 즉시 확률 체크 후 발송
                 if (entry.waitRounds === 0 && !entry.isOfferSent) {
-                    this.processUserTransferOffers(entry.player);
-                    entry.isOfferSent = true; // 중복 발송 방지
+                    // [수정] 오퍼가 올 확률을 40%로 하향 (안 올 가능성 60%로 상향)
+                    if (Math.random() < 0.4) {
+                        this.processUserTransferOffers(entry.player);
+                        entry.isOfferSent = true; // 중복 발송 방지
+                    } else {
+                        // 관심 구단 없음 안내 메일 발송
+                        if (typeof mailManager !== 'undefined') {
+                            mailManager.addMail(
+                                `[이적 소식] ${entry.player.name} 관심 구단 없음`,
+                                "비서 김지수",
+                                `${entry.player.name} 선수를 이적 명단에 올렸으나, 현재 영입 제의를 보낸 구단이 없습니다.\n\n선수의 현재 가치나 주급 수준이 타 구단들에 부담이 될 수 있습니다. 명단에서 제외하거나 나중에 다시 시도해 주세요.`
+                            );
+                        }
+                        // 제안이 오지 않은 경우 리스트에서 제거하여 나중에 다시 등록 가능하게 함
+                        gameData.userTransferList.splice(i, 1);
+                    }
                 }
-            });
+            }
         }
 
         // 시장에 있는 선수들의 일수 증가

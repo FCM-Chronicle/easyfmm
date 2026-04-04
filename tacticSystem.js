@@ -381,12 +381,6 @@ function simulateMatch(matchData, engine) {
         // 4. 이벤트 처리 (텍스트 로그 변환 및 점수 업데이트)
         if (snapshot.events && snapshot.events.length > 0) {
             snapshot.events.forEach(engineEvent => {
-                // [신규] 개인기 발동 시 시각적 효과 트리거
-                if (engineEvent.type === 'dribble' && engineEvent.desc && window.matchVisualizer) {
-                    const unit = window.matchVisualizer.units[engineEvent.player];
-                    if (unit) unit.triggerSkillEffect(engineEvent.skillId);
-                }
-
                 // 엔진 이벤트를 텍스트 이벤트로 변환
                 const textEvent = convertToTextEvent(engineEvent, matchData);
                 

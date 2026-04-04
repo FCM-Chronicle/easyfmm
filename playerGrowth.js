@@ -138,7 +138,13 @@ class PlayerGrowthSystem {
             console.log(`🛠️ 커스텀 ${player.name}에게 한계 돌파 성장 보너스 적용`);
         }
 
-        let finalGrowth = Math.round(baseGrowth * ageModifier * ratingModifier * teamModifier);
+        // [신규] 20세 이하 & 오버롤 75 이하 유망주 특별 보너스
+        let wonderkidBonus = 1.0;
+        if (player.age <= 20 && currentRating <= 75) {
+            wonderkidBonus = 1.5; // 성장 잠재력 50% 추가 부여
+        }
+
+        let finalGrowth = Math.round(baseGrowth * ageModifier * ratingModifier * teamModifier * wonderkidBonus);
         
         // 세륜중학교 선수들은 최소 성장 보장
         if (gameData.selectedTeam === 'seryu3') {

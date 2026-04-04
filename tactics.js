@@ -339,10 +339,10 @@ const DNAManager = {
         }
 
         // [추가] 밸런스 붕괴 방지 (최소/최대 제한)
-        // 최소값: 평균(OVR)의 30% 미만으로 떨어질 수 없음
-        const minLimit = Math.floor(lineData.ovr * 0.3);
+        // [수정] 최소값: 평균(OVR)에서 30포인트 이상 낮출 수 없음
+        const minLimit = Math.max(0, lineData.ovr - 30);
         if (currentVal + change < minLimit) {
-            alert(`특정 스탯을 너무 낮게 설정할 수 없습니다. (최소 ${minLimit})`);
+            alert(`특정 스탯을 평균(${lineData.ovr})보다 30포인트 이상 낮게 설정할 수 없습니다. (최소 ${minLimit})`);
             return false;
         }
         // 최대값: 평균(OVR)의 170% 초과할 수 없음
@@ -424,17 +424,25 @@ const DNAManager = {
 
         tacticSelectionContainer.innerHTML = `
             <h4 style="color: #ffd700; margin-top: 0; margin-bottom: 10px;">📋 메인 전술</h4>
-            <select id="tacticSelect" style="width: 100%; padding: 10px; background: #333; color: white; border: 1px solid #555; border-radius: 5px;">
+            <select id="dnaTacticSelect" style="width: 100%; padding: 10px; background: #333; color: white; border: 1px solid #555; border-radius: 5px;">
                 ${tacticOptions}
             </select>
         `;
         container.appendChild(tacticSelectionContainer);
 
         // 전술 변경 이벤트 리스너 추가
-        document.getElementById('tacticSelect').addEventListener('change', function() {
+        document.getElementById('dnaTacticSelect').addEventListener('change', function() {
             gameData.currentTactic = this.value;
-            // 전술 변경 시 DNA UI도 다시 렌더링하여 역할 보너스 등을 반영할 수 있음 (선택사항)
-            // DNAManager.renderUI(); 
+            
+            // [추가] 경기 탭의 전술 선택 드롭다운과 동기화
+            const matchTacticSelect = document.getElementById('tacticSelect');
+            if (matchTacticSelect) matchTacticSelect.value = this.value;
+
+            // [추가] 전술 변경 시 자동 저장 및 UI 즉시 갱신
+            if (typeof window.triggerAutoSave === 'function') {
+                window.triggerAutoSave();
+            }
+            DNAManager.renderUI(); 
         });
 
         // [신규] DNA 프리셋 선택 UI
@@ -580,7 +588,22 @@ const DNAManager = {
             ['attack', 'midfield', 'defense'].forEach(line => {
                 this.applyPreset(line, presetKey);
             });
-            this.renderUI(); // UI 전체 새로고침
+
+            // [추가] 프리셋 적용 시 메인 전술 드롭다운도 자동으로 동기화 (사용자 편의성)
+            const tacticMapping = { 'parkTheBus': 'parkBus', 'direct': 'twoLine' };
+            const mappedTactic = tacticMapping[presetKey] || presetKey;
+            
+            const ts = new TacticSystem();
+            if (ts.tactics[mappedTactic]) {
+                gameData.currentTactic = mappedTactic;
+            }
+
+            this.renderUI(); // UI 전체 새로고침 (차트 및 수치 반영)
+            
+            // [추가] 변경 사항 즉시 저장
+            if (typeof window.triggerAutoSave === 'function') {
+                window.triggerAutoSave();
+            }
         }
     },
 
