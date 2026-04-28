@@ -28,64 +28,6 @@ function getTeamColor(teamName) {
 // [PART 1] 유틸리티 함수 (전력 계산, 베스트 11 등)
 // =========================================================================================
 
-function calculateUserTeamRating() {
-    const squad = gameData.squad;
-    let totalRating = 0;
-    let playerCount = 0;
-
-    if (squad.gk) { totalRating += squad.gk.rating; playerCount++; }
-    squad.df.forEach(p => { if (p) { totalRating += p.rating; playerCount++; } });
-    squad.mf.forEach(p => { if (p) { totalRating += p.rating; playerCount++; } });
-    squad.fw.forEach(p => { if (p) { totalRating += p.rating; playerCount++; } });
-
-    return playerCount > 0 ? totalRating / playerCount : 0;
-}
-
-function getBestEleven(teamKey) {
-    const teamPlayers = teams[teamKey];
-    if (!teamPlayers) return [];
-
-    const gks = teamPlayers.filter(p => p.position === 'GK').sort((a, b) => b.rating - a.rating);
-    const dfs = teamPlayers.filter(p => p.position === 'DF').sort((a, b) => b.rating - a.rating);
-    const mfs = teamPlayers.filter(p => p.position === 'MF').sort((a, b) => b.rating - a.rating);
-    const fws = teamPlayers.filter(p => p.position === 'FW').sort((a, b) => b.rating - a.rating);
-
-    const best11 = [];
-    if (gks.length > 0) best11.push(gks[0]);
-    for (let i = 0; i < 4 && i < dfs.length; i++) best11.push(dfs[i]);
-    for (let i = 0; i < 3 && i < mfs.length; i++) best11.push(mfs[i]);
-    for (let i = 0; i < 3 && i < fws.length; i++) best11.push(fws[i]);
-
-    // 부족한 인원 채우기
-    if (best11.length < 11) {
-        const remaining = teamPlayers.filter(p => !best11.includes(p)).sort((a, b) => b.rating - a.rating);
-        for (let i = 0; i < remaining.length && best11.length < 11; i++) {
-            best11.push(remaining[i]);
-        }
-    }
-    return best11;
-}
-
-function calculateOpponentTeamRating(teamKey) {
-    const topPlayers = getBestEleven(teamKey);
-    if (topPlayers.length === 0) return 70;
-    const totalRating = topPlayers.reduce((sum, player) => sum + player.rating, 0);
-    return totalRating / topPlayers.length;
-}
-
-function calculateTeamStrengthDifference() {
-    const userRating = calculateUserTeamRating();
-    const opponentRating = calculateOpponentTeamRating(gameData.currentOpponent);
-    const difference = userRating - opponentRating;
-    
-    return {
-        userRating: userRating,
-        opponentRating: opponentRating,
-        difference: difference,
-        strengthGap: Math.abs(difference),
-        userAdvantage: difference > 0
-    };
-}
 
 function updateTeamStrength() {
     if (gameData.selectedTeam && gameData.currentOpponent) {
