@@ -76,7 +76,21 @@ const TeamUtils = {
 
 // 하위 호환성을 위해 전역 변수로 노출 (기존 코드 대응)
 window.TeamUtils = TeamUtils;
-window.calculateTeamRating = TeamUtils.calculateRating;
+window.calculateTeamRating = (playersOrSquad) => {
+    if (typeof playersOrSquad === 'string') {
+        return TeamUtils.calculateRating(TeamUtils.getBestEleven(playersOrSquad));
+    }
+
+    if (playersOrSquad !== undefined) {
+        return TeamUtils.calculateRating(playersOrSquad);
+    }
+
+    if (typeof gameData !== 'undefined' && gameData.squad) {
+        return TeamUtils.calculateRating(gameData.squad);
+    }
+
+    return 0;
+};
 window.getBestEleven = TeamUtils.getBestEleven;
 window.calculateUserTeamRating = () => TeamUtils.calculateRating(gameData.squad);
 window.calculateOpponentTeamRating = (teamKey) => TeamUtils.calculateRating(TeamUtils.getBestEleven(teamKey));

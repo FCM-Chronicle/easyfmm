@@ -336,18 +336,18 @@ class TransferSystem {
     // 선수 영입
     signPlayer(player) {
         // 오퍼 기록 데이터 초기화
-        if (!gameData.transferOffers) {
-            gameData.transferOffers = {};
-        }
+        const transferOffers = window.GameState ? window.GameState.ensureTransferOffers() : (gameData.transferOffers ||= {});
 
         const playerKey = `${player.name}_${player.originalTeam}`;
         
         // 해당 선수에 대한 오퍼 기록이 없으면 생성
-        if (!gameData.transferOffers[playerKey]) {
-            gameData.transferOffers[playerKey] = { attempts: 0, lastFailedMatch: -100 };
+        if (!transferOffers[playerKey]) {
+            const initialOffer = { attempts: 0, lastFailedMatch: -100 };
+            if (window.GameState) window.GameState.setTransferOffer(playerKey, initialOffer);
+            else transferOffers[playerKey] = initialOffer;
         }
 
-        const offerData = gameData.transferOffers[playerKey];
+        const offerData = window.GameState ? window.GameState.getTransferOffer(playerKey) : transferOffers[playerKey];
 
         // 쿨타임 체크 (2번 실패 시 10경기 제한)
         if (offerData.attempts >= 2) {
@@ -368,12 +368,14 @@ class TransferSystem {
             return { success: false, message: "이미 우리 팀에 소속된 선수입니다." };
         }
 
-        if (gameData.teamMoney < player.price) {
+        const currentMoney = window.GameState ? window.GameState.get().teamMoney : gameData.teamMoney;
+        if (currentMoney < player.price) {
             return { success: false, message: "자금이 부족합니다!" };
         }
         
         // 팀 인원 제한 확인 (50명 제한)
-        if (teams[gameData.selectedTeam].length >= 50) {
+        const selectedTeamPlayers = window.GameState ? window.GameState.getSelectedTeamPlayers() : teams[gameData.selectedTeam];
+        if (selectedTeamPlayers.length >= 50) {
             return { success: false, message: "팀 인원이 가득 찼습니다! (최대 50명)" };
         }
 
@@ -393,7 +395,8 @@ class TransferSystem {
         }
         
         // 영입 처리
-        gameData.teamMoney -= player.price;
+        if (window.GameState) window.GameState.spendTeamMoney(player.price);
+        else gameData.teamMoney -= player.price;
         
         // 선수를 팀에 추가
         const newPlayer = {
@@ -403,13 +406,14 @@ class TransferSystem {
             age: player.age
         };
         
-        teams[gameData.selectedTeam].push(newPlayer);
+        selectedTeamPlayers.push(newPlayer);
         
         // 이적 시장에서 제거
         this.transferMarket = this.transferMarket.filter(p => p !== player);
 
         // 성공 시 오퍼 기록 삭제 (나중에 다시 영입할 수도 있으므로)
-        delete gameData.transferOffers[playerKey];
+        if (window.GameState) window.GameState.clearTransferOffer(playerKey);
+        else delete gameData.transferOffers[playerKey];
         
         // AI 팀에서 선수 제거 (외부리그가 아닌 경우)
         if (player.originalTeam !== "외부리그") {
@@ -448,7 +452,7 @@ class TransferSystem {
 
     // 선수 방출
     releasePlayer(player, transferFee = 0) {
-        const teamPlayers = teams[gameData.selectedTeam];
+        const teamPlayers = window.GameState ? window.GameState.getSelectedTeamPlayers() : teams[gameData.selectedTeam];
         const playerIndex = teamPlayers.findIndex(p => 
             p.name === player.name && p.position === player.position
         );
@@ -464,7 +468,8 @@ class TransferSystem {
         teamPlayers.splice(playerIndex, 1);
         
         // 이적료 받기
-        gameData.teamMoney += transferFee;
+        if (window.GameState) window.GameState.addTeamMoney(transferFee);
+        else gameData.teamMoney += transferFee;
         
         // 무작위 팀으로 이적시키기
         const availableTeams = Object.keys(teams).filter(team => team !== gameData.selectedTeam);
@@ -532,21 +537,25 @@ class TransferSystem {
 
     // 스쿼드에서 선수 제거
     removePlayerFromSquad(player) {
-        if (gameData.squad.gk && gameData.squad.gk.name === player.name) {
-            gameData.squad.gk = null;
+        if (window.GameState) {
+            window.GameState.removePlayerFromUserSquad(player.name);
+        } else {
+            if (gameData.squad.gk && gameData.squad.gk.name === player.name) {
+                gameData.squad.gk = null;
+            }
+            
+            gameData.squad.df = gameData.squad.df.map(p => 
+                p && p.name === player.name ? null : p
+            );
+            
+            gameData.squad.mf = gameData.squad.mf.map(p => 
+                p && p.name === player.name ? null : p
+            );
+            
+            gameData.squad.fw = gameData.squad.fw.map(p => 
+                p && p.name === player.name ? null : p
+            );
         }
-        
-        gameData.squad.df = gameData.squad.df.map(p => 
-            p && p.name === player.name ? null : p
-        );
-        
-        gameData.squad.mf = gameData.squad.mf.map(p => 
-            p && p.name === player.name ? null : p
-        );
-        
-        gameData.squad.fw = gameData.squad.fw.map(p => 
-            p && p.name === player.name ? null : p
-        );
         
         // [추가] 스쿼드에서 제거되었으므로 DNA 포인트 재계산
         if (typeof DNAManager !== 'undefined') DNAManager.recalculateLineOVRs();
@@ -731,11 +740,13 @@ class TransferSystem {
         teamPlayers.splice(playerIndex, 1);
         if (typeof removePlayerFromSquad === 'function') removePlayerFromSquad(player);
 
-        gameData.teamMoney += fee;
+        if (window.GameState) window.GameState.addTeamMoney(fee);
+        else gameData.teamMoney += fee;
         if (teams[targetTeamKey]) teams[targetTeamKey].push({ ...player });
 
         // 리스트에서 제거
-        gameData.userTransferList = gameData.userTransferList.filter(entry => entry.player.name !== playerName);
+        if (window.GameState) window.GameState.removeUserTransferListByPlayer(playerName);
+        else gameData.userTransferList = gameData.userTransferList.filter(entry => entry.player.name !== playerName);
         this.addTransferNews(player, gameData.selectedTeam, targetTeamKey, fee);
 
         alert(`${player.name} 선수가 ${teamNames[targetTeamKey] || targetTeamKey}로 이적했습니다!\n이적료 ${fee}억원을 받았습니다.`);
@@ -751,7 +762,8 @@ class TransferSystem {
             mail.isProcessed = true;
             mail.data.resultMessage = `모든 제안을 거절하고 명단에서 내렸습니다.`;
         }
-        gameData.userTransferList = gameData.userTransferList.filter(entry => entry.player.name !== playerName);
+        if (window.GameState) window.GameState.removeUserTransferListByPlayer(playerName);
+        else gameData.userTransferList = gameData.userTransferList.filter(entry => entry.player.name !== playerName);
         alert(`${playerName} 선수를 이적 명단에서 제외했습니다.`);
         mailManager.renderList();
     }
@@ -767,10 +779,11 @@ class TransferSystem {
     // 이적 시장 업데이트 (매일/매경기)
     updateTransferMarket() {
         // 유저가 직접 리스트에 올린 선수 처리 로직
-        if (gameData.userTransferList && gameData.userTransferList.length > 0) {
+        const userTransferList = window.GameState ? window.GameState.getUserTransferList() : gameData.userTransferList;
+        if (userTransferList && userTransferList.length > 0) {
             // [수정] 오퍼 발생 확률 적용을 위해 역순 순회 (실패 시 리스트 제거)
-            for (let i = gameData.userTransferList.length - 1; i >= 0; i--) {
-                const entry = gameData.userTransferList[i];
+            for (let i = userTransferList.length - 1; i >= 0; i--) {
+                const entry = userTransferList[i];
                 if (entry.waitRounds > 0) {
                     entry.waitRounds--;
                 }
@@ -790,7 +803,7 @@ class TransferSystem {
                             );
                         }
                         // 제안이 오지 않은 경우 리스트에서 제거하여 나중에 다시 등록 가능하게 함
-                        gameData.userTransferList.splice(i, 1);
+                        userTransferList.splice(i, 1);
                     }
                 }
             }
@@ -1144,7 +1157,8 @@ function displayTransferPlayers() {
             const result = transferSystem.signPlayer(player);
             
             if (result.success) {
-                gameData.teamMoney = Math.max(0, gameData.teamMoney);
+                if (window.GameState) window.GameState.clampTeamMoney();
+                else gameData.teamMoney = Math.max(0, gameData.teamMoney);
                 updateDisplay();
                 
                 alert(result.message);
@@ -1223,7 +1237,8 @@ playerCard.innerHTML = `
             const result = transferSystem.signPlayer(player);
             
             if (result.success) {
-                gameData.teamMoney = Math.max(0, gameData.teamMoney);
+                if (window.GameState) window.GameState.clampTeamMoney();
+                else gameData.teamMoney = Math.max(0, gameData.teamMoney);
                 updateDisplay();
                 
                 alert(result.message);
@@ -1405,19 +1420,17 @@ function initTransfer() {
         
         // [안전 장치] 초기화 함수들을 개별 try-catch로 감싸서 하나가 실패해도 나머지는 실행되도록 함
         try { initializeTransferSystem(); } catch(e) { console.error('❌ 이적 시장 초기화 실패:', e); }
-        
+
         // 경기 종료 후 이적 시장 업데이트 연결
-        if (typeof window.endMatch === 'function') {
-            const originalEndMatch = window.endMatch;
-            window.endMatch = function(matchData) {
-                if (originalEndMatch) originalEndMatch.call(this, matchData);
-                // 안전하게 실행
+        if (window.GameEventBus && !initTransfer.matchEndListenerRegistered) {
+            window.GameEventBus.on('match:end', () => {
                 setTimeout(() => {
-                    try { updateTransferMarketPostMatch(); } 
+                    try { updateTransferMarketPostMatch(); }
                     catch(e) { console.error('❌ 경기 후 이적 시장 업데이트 실패:', e); }
                 }, 3000);
-            };
-            console.log('🔗 [Transfer] endMatch 함수 연결 완료');
+            });
+            initTransfer.matchEndListenerRegistered = true;
+            console.log('🔗 [Transfer] match:end 이벤트 연결 완료');
         }
         console.log('✅ transfer.js: 모든 초기화 완료');
     } catch (error) {

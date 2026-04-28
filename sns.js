@@ -1071,19 +1071,17 @@ function showSNSTab() {
 
 // 기존 게임과의 연동 함수들
 function initializeSNSSystem() {
-    // 기존 경기 종료 함수 확장
-    if (typeof window.endMatch === 'function') {
-        const originalEndMatch = window.endMatch;
-        window.endMatch = function(matchData) {
-            originalEndMatch.call(this, matchData);
-            // 경기 후 SNS 포스트 생성
+    // 경기 종료 후 SNS 포스트 생성
+    if (window.GameEventBus && !initializeSNSSystem.matchEndListenerRegistered) {
+        window.GameEventBus.on('match:end', (matchData) => {
             setTimeout(() => {
                 snsManager.onMatchEnd(matchData);
                 if (document.getElementById('snsFeed')) {
                     snsManager.displayFeed();
                 }
             }, 2000);
-        };
+        });
+        initializeSNSSystem.matchEndListenerRegistered = true;
     }
 
     // 기존 이적 함수 확장
