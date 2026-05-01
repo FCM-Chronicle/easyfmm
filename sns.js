@@ -375,25 +375,24 @@ generateMatchPost(matchData) {
         }
     }
 
-    // 득점자 정보 추가
-    const goalScorers = this.extractGoalScorers(matchData.events);
-    let goalInfo = '';
-    if (goalScorers.length > 0) {
-        goalInfo = `\n득점: ${goalScorers.join(', ')}`;
-    }
-
     // 해시태그 생성
     const hashtags = this.generateHashtags(homeTeam, awayTeam, matchData);
+    const goalScorers = this.extractGoalScorers(matchData.events);
 
     const post = {
         id: this.postIdCounter++,
         type: 'match_result',
-        content: this.fillTemplate(template, templateData) + goalInfo,
+        content: this.fillTemplate(template, templateData),
         hashtags: hashtags,
         timestamp: Date.now(),
         likes: Math.floor(Math.random() * 1000) + 100,
         comments: Math.floor(Math.random() * 200) + 10,
-        shares: Math.floor(Math.random() * 50) + 5
+        shares: Math.floor(Math.random() * 50) + 5,
+        homeTeam: homeTeam,
+        awayTeam: awayTeam,
+        homeScore: homeScore,
+        awayScore: awayScore,
+        goalScorers: goalScorers.join(', ')
     };
 
     this.posts.unshift(post);
@@ -428,7 +427,10 @@ generateMatchPost(matchData) {
             timestamp: Date.now(),
             likes: Math.floor(Math.random() * 500) + 50,
             comments: Math.floor(Math.random() * 100) + 5,
-            shares: Math.floor(Math.random() * 30) + 2
+            shares: Math.floor(Math.random() * 30) + 2,
+            playerName: playerName,
+            toTeam: toTeam,
+            transferFee: templateData.transferFee
         };
 
         this.posts.unshift(post);
@@ -481,7 +483,9 @@ generateAIMatchPreview() {
             timestamp: Date.now(),
             likes: Math.floor(Math.random() * 300) + 30,
             comments: Math.floor(Math.random() * 80) + 5,
-            shares: Math.floor(Math.random() * 20) + 1
+            shares: Math.floor(Math.random() * 20) + 1,
+            team1: team1,
+            team2: team2
         };
 
         this.posts.unshift(post);
@@ -584,24 +588,117 @@ generateAIMatchPreview() {
 
 createPostElement(post) {
     const postEl = document.createElement('div');
-    postEl.className = `sns-post sns-post-${post.type}`;
+    postEl.className = `insta-post post-${post.type}`;
     
     const timeAgo = this.formatTimeAgo(post.timestamp);
+
+    // 포스트 타입에 따라 '게시자(프로필)' 팀을 명확히 결정
+    let postingTeam = gameData.selectedTeam;
+    if (post.type === 'match_result') postingTeam = post.homeTeam;
+    else if (post.type === 'match_preview') postingTeam = post.team1;
+    else if (post.type === 'transfer_confirmed' || post.type === 'transfer_rumor') postingTeam = post.toTeam;
+
+    const teamName = this.getTeamName(postingTeam);
+    const stadium = post.type === 'match_result' || post.type === 'match_preview' ? "📍 Official Stadium" : "⚽ Transfer Market";
+
+    let mediaHtml = '';
+    if (post.type === 'match_result') {
+        const homeLogo = getTeamLogoHTML(post.homeTeam);
+        const awayLogo = getTeamLogoHTML(post.awayTeam);
+        const bgUrl = `assets/bg/${post.homeTeam}.png`;
+
+        mediaHtml = `
+            <div class="insta-media match-result-card" style="background-image: url('${bgUrl}'), url('assets/bg/basic.png');">
+                <div class="media-overlay-dark"></div>
+                <div class="media-content">
+                    <div class="result-score-row">
+                        <div class="result-team">
+                            ${homeLogo}
+                            <span class="score-num">${post.homeScore}</span>
+                        </div>
+                        <div class="score-vs">:</div>
+                        <div class="result-team">
+                            <span class="score-num">${post.awayScore}</span>
+                            ${awayLogo}
+                        </div>
+                    </div>
+                    <div class="result-scorers">${post.goalScorers ? '⚽ ' + post.goalScorers : ''}</div>
+                </div>
+            </div>
+        `;
+    } else if (post.type === 'transfer_confirmed' || post.type === 'transfer_rumor') {
+        const toTeamName = this.getTeamName(post.toTeam);
+        const bgUrl = `assets/bg/${post.toTeam}.png`;
+        const logoHtml = getTeamLogoHTML(post.toTeam);
+
+        mediaHtml = `
+            <div class="insta-media transfer-graphic-card" style="background-image: url('${bgUrl}'), url('assets/bg/basic.png');">
+                <div class="transfer-card-overlay"></div>
+                <img src="assets/players/${post.playerName}.webp" class="transfer-card-player" onerror="this.src='assets/players/default.webp'">
+                <div class="transfer-card-price-badge">${post.transferFee}</div>
+                <div class="transfer-card-footer">
+                    <div class="transfer-footer-top">
+                        ${logoHtml}
+                        <span class="transfer-official-tag">[OFFICIAL]</span>
+                    </div>
+                    <div class="transfer-main-headline">
+                        ${post.playerName}, ${toTeamName}으로 이적
+                    </div>
+                </div>
+            </div>
+        `;
+    } else if (post.type === 'match_preview') {
+        const bgUrl = `assets/bg/${post.team1}.png`;
+        mediaHtml = `
+            <div class="insta-media preview-graphic-card" style="background-image: url('${bgUrl}'), url('assets/bg/basic.png');">
+                <div class="media-overlay-dark"></div>
+                <div class="preview-headline">NEXT MATCH</div>
+                <div class="preview-teams-row">
+                    ${getTeamLogoHTML(post.team1)}
+                    <span class="vs-text">VS</span>
+                    ${getTeamLogoHTML(post.team2)}
+                </div>
+            </div>
+        `;
+    }
     
     postEl.innerHTML = `
-        <div class="sns-post-content">
-            ${post.content}
-        </div>
-        <div class="sns-post-hashtags">
-            ${post.hashtags.map(tag => `<span class="hashtag">${tag}</span>`).join(' ')}
-        </div>
-        <div class="sns-post-footer">
-            <span class="sns-time">${timeAgo}</span>
-            <div class="sns-interactions">
-                <span class="sns-likes">❤️ ${post.likes}</span>
-                <button class="sns-comments-btn" data-post-id="${post.id}">💬 ${post.comments}</button>
-                <span class="sns-shares">📤 ${post.shares}</span>
+        <div class="insta-header">
+            <div class="insta-profile-pic">
+                ${getTeamLogoHTML(postingTeam)}
             </div>
+            <div class="insta-header-text">
+                <div class="insta-username">${teamName}</div>
+                <div class="insta-location">${stadium}</div>
+            </div>
+            <div class="insta-more">•••</div>
+        </div>
+        
+        ${mediaHtml}
+
+        <div class="insta-actions">
+            <div class="actions-left">
+                <span class="action-icon">❤️</span>
+                <span class="action-icon sns-comments-btn" data-post-id="${post.id}">💬</span>
+                <span class="action-icon">✈️</span>
+            </div>
+            <div class="actions-right">
+                <span class="action-icon">🔖</span>
+            </div>
+        </div>
+
+        <div class="insta-content">
+            <div class="insta-likes-count">좋아요 ${post.likes.toLocaleString()}개</div>
+            <div class="insta-caption">
+                <span class="insta-username">${teamName}</span> ${post.content}
+            </div>
+            <div class="insta-hashtags">
+                ${post.hashtags.join(' ')}
+            </div>
+            <div class="insta-view-comments sns-comments-btn" data-post-id="${post.id}">
+                댓글 ${post.comments}개 모두 보기
+            </div>
+            <div class="insta-time">${timeAgo.toUpperCase()}</div>
         </div>
         <div class="sns-comments-section" id="comments-${post.id}" style="display: none;"></div>
     `;
@@ -1071,19 +1168,17 @@ function showSNSTab() {
 
 // 기존 게임과의 연동 함수들
 function initializeSNSSystem() {
-    // 기존 경기 종료 함수 확장
-    if (typeof window.endMatch === 'function') {
-        const originalEndMatch = window.endMatch;
-        window.endMatch = function(matchData) {
-            originalEndMatch.call(this, matchData);
-            // 경기 후 SNS 포스트 생성
+    // 경기 종료 후 SNS 포스트 생성
+    if (window.GameEventBus && !initializeSNSSystem.matchEndListenerRegistered) {
+        window.GameEventBus.on('match:end', (matchData) => {
             setTimeout(() => {
                 snsManager.onMatchEnd(matchData);
                 if (document.getElementById('snsFeed')) {
                     snsManager.displayFeed();
                 }
             }, 2000);
-        };
+        });
+        initializeSNSSystem.matchEndListenerRegistered = true;
     }
 
     // 기존 이적 함수 확장

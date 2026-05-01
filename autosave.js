@@ -142,13 +142,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, 1000);
 
-    // 5. 경기 종료 감지 Hook
-    // records.js의 updateRecordsAfterMatch 함수가 경기 후 호출되므로 이를 감쌈
-    const originalUpdateRecords = window.updateRecordsAfterMatch;
-    window.updateRecordsAfterMatch = function(...args) {
-        if (originalUpdateRecords) originalUpdateRecords.apply(this, args);
-        triggerAutoSave(); // 경기 기록 업데이트 후 자동 저장
-    };
+    // 5. 경기 기록 업데이트 감지
+    if (window.GameEventBus) {
+        window.GameEventBus.on('records:updated', () => {
+            triggerAutoSave();
+        });
+    }
 
     // 6. 외부에서 UI 업데이트를 위한 함수 노출
     window.updateAutoSaveUI = function() {

@@ -622,6 +622,171 @@
             .ts-body { flex-direction: column; }
             .ts-left, .ts-center, .ts-right { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.1); padding: 20px; }
         }
+
+        /* ============================================================
+           INSTAGRAM STYLE SNS UI
+        ============================================================ */
+        #snsFeed {
+            background: #000;
+            padding: 0;
+            max-width: 550px;
+            margin: 0 auto;
+        }
+
+        .insta-post {
+            background: #000;
+            border-bottom: 1px solid #262626;
+            margin-bottom: 25px;
+            color: white;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        .insta-header {
+            display: flex;
+            align-items: center;
+            padding: 14px;
+            gap: 12px;
+        }
+
+        .insta-profile-pic .team-logo {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            border: 1px solid #333;
+            object-fit: cover;
+            background: #fff;
+        }
+
+        .insta-username {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .insta-location {
+            font-size: 0.75rem;
+            color: #aaa;
+        }
+
+        .insta-more { margin-left: auto; color: #fff; cursor: pointer; letter-spacing: 2px; }
+
+        /* 메인 미디어 공통 (1:1 정사각형) */
+        .insta-media {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            overflow: hidden;
+        }
+
+        .media-overlay-dark {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 1;
+        }
+
+        /* --- 이적 전용 카드 (TRANSFER) --- */
+        .transfer-card-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.3) 40%, transparent 70%);
+            z-index: 1;
+        }
+
+        .transfer-card-player {
+            position: absolute;
+            height: 90%;
+            bottom: 5%;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2;
+            filter: drop-shadow(0 20px 40px rgba(0,0,0,0.9));
+        }
+       .transfer-card-price-badge {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            background: linear-gradient(135deg, #ffd700, #f39c12);
+            color: #000;
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-weight: 900;
+            font-size: 1.2rem;
+            z-index: 4;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+            transform: rotate(2deg);
+            border: 2px solid #000;
+        }
+
+        .transfer-card-footer {
+            position: relative;
+            z-index: 3;
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .transfer-footer-top {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .transfer-footer-top .team-logo {
+            width: 45px;
+            height: 45px;
+            background: white;
+            border-radius: 50%;
+            padding: 4px;
+            box-shadow: 0 0 15px rgba(255,255,255,0.4);
+        }
+
+        .transfer-official-tag {
+            color: #ffd700;
+            font-size: 1.2rem;
+            font-weight: 900;
+            letter-spacing: 2px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .transfer-main-headline {
+            color: #fff;
+            font-size: 2rem;
+            font-weight: 900; /* 매우 두꺼운 볼드체 */
+            line-height: 1.1;
+            text-shadow: 0 4px 10px rgba(0,0,0,0.8);
+            word-break: keep-all;
+        }
+
+        /* --- 경기 결과 전용 카드 (RESULT) --- */
+        .media-content { position: relative; z-index: 2; padding: 20px; width: 100%; text-align: center; }
+        .result-score-row { display: flex; align-items: center; justify-content: center; gap: 25px; margin-bottom: 40px; }
+        .result-team { display: flex; flex-direction: column; align-items: center; gap: 15px; }
+        .result-team .team-logo { width: 80px; height: 80px; filter: drop-shadow(0 0 15px rgba(255,255,255,0.3)); }
+        .score-num { font-size: 4.5rem; font-weight: 900; color: #fff; }
+        .score-vs { font-size: 2.5rem; font-weight: 200; color: rgba(255,255,255,0.5); }
+        .result-scorers { font-size: 0.9rem; color: #ccc; background: rgba(0,0,0,0.5); padding: 8px 15px; border-radius: 20px; display: inline-block; }
+
+        /* --- 인스타 하단 인터랙션 --- */
+        .insta-actions { display: flex; justify-content: space-between; padding: 12px 14px; }
+        .action-icon { font-size: 1.6rem; margin-right: 16px; cursor: pointer; }
+
+        .insta-content { padding: 0 14px 14px; }
+        .insta-likes-count { font-weight: 700; font-size: 0.95rem; margin-bottom: 8px; }
+        .insta-caption { font-size: 0.95rem; line-height: 1.4; margin-bottom: 6px; }
+        .insta-hashtags { font-size: 0.95rem; color: #00376b; margin-bottom: 8px; }
+        .insta-view-comments { color: #8e8e8e; font-size: 0.9rem; cursor: pointer; margin-bottom: 8px; }
+        .insta-time { font-size: 0.7rem; color: #8e8e8e; letter-spacing: 0.2px; }
+
+        .sns-comments-section { background: #000; border-top: 1px solid #1a1a1a; padding: 10px 0; }
+        .sns-comment { padding: 4px 14px; font-size: 0.9rem; }
+        .sns-comment-author { font-weight: 700; margin-right: 8px; }
     </style>
 </head>
 <body>

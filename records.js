@@ -1538,6 +1538,9 @@ function updateRecordsAfterMatch(matchEvents) {
     }
     if (leagueBasedRecordsSystem) {
         leagueBasedRecordsSystem.recordUserMatchStats(matchEvents);
+        if (window.GameEventBus) {
+            window.GameEventBus.emit('records:updated', matchEvents);
+        }
     }
 }
 

@@ -159,7 +159,11 @@ function startMatch() {
     const tacticSystem = new TacticSystem();
     const opponentTactic = tacticSystem.getOpponentTactic(gameData.currentOpponent);
     const tacticEffect = tacticSystem.calculateTacticEffect(gameData.currentTactic, opponentTactic);
-    gameData.teamMorale = Math.max(0, Math.min(100, gameData.teamMorale + tacticEffect));
+    if (window.GameState) {
+        window.GameState.adjustTeamMorale(tacticEffect);
+    } else {
+        gameData.teamMorale = Math.max(0, Math.min(100, gameData.teamMorale + tacticEffect));
+    }
 
     // 6. UI 업데이트
     document.getElementById('homeTeam').textContent = teamNames[matchData.homeTeam];
@@ -363,6 +367,9 @@ function simulateMatch(matchData, engine) {
                 matchData.minute++;
                 matchData.seconds = matchData.seconds % 60; // 남은 초 이월
                 document.getElementById('matchTime').textContent = matchData.minute + '분';
+                if (window.ScoreboardUI) {
+                    window.ScoreboardUI.updateTime(matchData.minute, matchData.seconds);
+                }
             }
         }
 
@@ -562,25 +569,50 @@ function endMatch(matchData) {
     
     // 자금 및 사기 보상
     if (result === '승리') {
-        gameData.teamMoney += 50;
-        gameData.teamMorale = Math.min(100, gameData.teamMorale + 5);
+        if (window.GameState) {
+            window.GameState.addTeamMoney(50);
+            window.GameState.adjustTeamMorale(5);
+        } else {
+            gameData.teamMoney += 50;
+            gameData.teamMorale = Math.min(100, gameData.teamMorale + 5);
+        }
     } else if (result === '무승부') {
-        gameData.teamMoney += 15;
+        if (window.GameState) {
+            window.GameState.addTeamMoney(15);
+        } else {
+            gameData.teamMoney += 15;
+        }
     } else {
-        gameData.teamMoney += 10;
-        gameData.teamMorale = Math.max(0, gameData.teamMorale - 3);
+        if (window.GameState) {
+            window.GameState.addTeamMoney(10);
+            window.GameState.adjustTeamMorale(-3);
+        } else {
+            gameData.teamMoney += 10;
+            gameData.teamMorale = Math.max(0, gameData.teamMorale - 3);
+        }
     }
 
     // 스폰서 보너스
     if (gameData.currentSponsor) {
-        if (result === '승리') gameData.teamMoney += gameData.currentSponsor.payPerWin;
-        else if (result === '패배') gameData.teamMoney += gameData.currentSponsor.payPerLoss;
-        else gameData.teamMoney += Math.floor(gameData.currentSponsor.payPerWin / 2);
+        if (result === '승리') {
+            if (window.GameState) window.GameState.addTeamMoney(gameData.currentSponsor.payPerWin);
+            else gameData.teamMoney += gameData.currentSponsor.payPerWin;
+        }
+        else if (result === '패배') {
+            if (window.GameState) window.GameState.addTeamMoney(gameData.currentSponsor.payPerLoss);
+            else gameData.teamMoney += gameData.currentSponsor.payPerLoss;
+        }
+        else {
+            const drawBonus = Math.floor(gameData.currentSponsor.payPerWin / 2);
+            if (window.GameState) window.GameState.addTeamMoney(drawBonus);
+            else gameData.teamMoney += drawBonus;
+        }
     }
 
     // 리그 데이터 업데이트
     updateLeagueData(matchData, points);
-    gameData.matchesPlayed++;
+    if (window.GameState) window.GameState.incrementMatchesPlayed();
+    else gameData.matchesPlayed++;
 
     // 최종 메시지
     const strengthDiff = matchData.strengthDiff || { userAdvantage: false };
@@ -654,11 +686,13 @@ function endMatch(matchData) {
 
     // [복구] 일시적 스탯 초기화
     if (gameData.temporaryStats) {
-        gameData.temporaryStats = {};
+        if (window.GameState) window.GameState.clearTemporaryStats();
+        else gameData.temporaryStats = {};
     }
     
     // 다음 라운드 준비
-    gameData.currentRound++;
+    if (window.GameState) window.GameState.advanceRound();
+    else gameData.currentRound++;
     setNextOpponent();
 
     // [수정] 체력 회복 시스템 개편 (개별 선수 단위)
@@ -698,6 +732,10 @@ function endMatch(matchData) {
     }
 
     // 시즌 종료 및 은퇴 처리
+    if (window.GameEventBus) {
+        window.GameEventBus.emit('match:end', matchData);
+    }
+
     setTimeout(() => {
         if(typeof processRetirementsAndReincarnations === 'function') processRetirementsAndReincarnations();
         checkSeasonEnd();
@@ -876,7 +914,8 @@ function getInterviewQuestions(result, userScore, oppScore, strengthDiff) {
 
 function handleInterview(option) {
     const moraleChange = parseInt(document.querySelector(`[data-option="${option}"]`).dataset.morale);
-    gameData.teamMorale = Math.max(0, Math.min(100, gameData.teamMorale + moraleChange));
+    if (window.GameState) window.GameState.adjustTeamMorale(moraleChange);
+    else gameData.teamMorale = Math.max(0, Math.min(100, gameData.teamMorale + moraleChange));
     
     checkSeasonEnd();
     showScreen('lobby');
@@ -964,6 +1003,19 @@ function showMatchResultModal(matchData, ratings, result, userScore, oppScore, d
     
     document.getElementById('confirmResultBtn').onclick = () => {
         modal.style.display = 'none';
+        if (gameData.isWorldCupMode && typeof WorldCupManager !== 'undefined') {
+            WorldCupManager.handleMatchEnd(matchData);
+
+            if (!WorldCupManager.isEliminated) {
+                if (typeof setNextOpponent === 'function') setNextOpponent();
+                if (typeof showScreen === 'function') showScreen('lobby');
+                if (typeof updateDisplay === 'function') updateDisplay();
+            } else if (typeof showScreen === 'function') {
+                showScreen('lobby');
+            }
+            return;
+        }
+
         startInterview(result, userScore, oppScore, diff);
     };
     modal.style.display = 'block';

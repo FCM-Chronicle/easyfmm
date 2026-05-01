@@ -1104,7 +1104,7 @@ const allTeams = {
     { name: "강주혁", position: "FW", country: "대한민국", age: 18, rating: 67 },
     { name: "이한도", position: "DF", country: "대한민국", age: 31, rating: 76 },
     { name: "최철원", position: "GK", country: "대한민국", age: 31, rating: 74 },
-    { name: "김진수", position: "DF", country: "대한민국", age: 33, rating: 73 },
+    { name: "김진수", position: "DF", country: "대한민국", age: 33, rating: 75 },
     { name: "조영광", position: "DF", country: "대한민국", age: 21, rating: 68 },
     { name: "임준섭", position: "GK", country: "대한민국", age: 21, rating: 67 },
     { name: "허동민", position: "MF", country: "대한민국", age: 21, rating: 69 },
@@ -1136,7 +1136,7 @@ const allTeams = {
     { name: "송민규", position: "MF", country: "대한민국", age: 26, rating: 78 },
     { name: "로스", position: "DF", country: "스페인", age: 30, rating: 75 },
     { name: "손정범", position: "MF", country: "대한민국", age: 18, rating: 75 }
-]
+],
         description: "대한민국 수도의 자존심, 끊임없는 도전정신"
     },
 
@@ -1218,7 +1218,7 @@ const allTeams = {
 	{ name: "술탄 만다쉬", position: "FW", country: "사우디아라비아", age: 31, rating: 69 },
 	{ name: "카데르 메이테", position: "FW", country: "코트디부아르", age: 18, rating: 74 },
 	{ name: "카림 벤제마", position: "FW", country: "프랑스", age: 38, rating: 82 }
-]
+],
         description: "사우디아라비아의 킹 클럽이 보여주는 중동 축구의 힘"
     },
 
@@ -1254,7 +1254,7 @@ const allTeams = {
 	{ name: "유세프 엔네시리", position: "FW", country: "모로코", age: 28, rating: 80 },
 	{ name: "조지 일레니헤나", position: "FW", country: "나이지리아", age: 19, rating: 74 },
 	{ name: "살레 알 셰흐리", position: "FW", country: "사우디아라비아", age: 32, rating: 71 }
-]
+],
         description: "벤제마가 이끄는 알 이티하드의 새로운 도전"
     },
 
@@ -1292,7 +1292,7 @@ const allTeams = {
 	{ name: "웨슬리 가소바", position: "FW", country: "브라질", age: 21, rating: 75 },
 	{ name: "압둘라흐만 수퍄니", position: "FW", country: "사우디아라비아", age: 25, rating: 65 },
 	{ name: "사아드 알 나세르", position: "FW", country: "사우디아라비아", age: 25, rating: 67 }
-]
+],
         description: "크리스티아누 호날두가 새로운 도전을 펼치는 무대"
     },
 
@@ -1484,7 +1484,7 @@ const allTeams = {
 	{ name: "박지수", position: "DF", country: "대한민국", age: 32, rating: 78 },
 	{ name: "맹성웅", position: "MF", country: "대한민국", age: 28, rating: 73 },
 	{ name: "이동준", position: "FW", country: "대한민국", age: 29, rating: 76 },
-	{ name: "오베르단", position: "MF", country: "브라질", age: 31, rating: 77 },
+	{ name: "오베르당", position: "MF", country: "브라질", age: 31, rating: 77 },
 	{ name: "김승섭", position: "FW", country: "대한민국", age: 30, rating: 71 },
 	{ name: "김하준", position: "DF", country: "대한민국", age: 24, rating: 68 },
 	{ name: "박주영", position: "FW", country: "대한민국", age: 23, rating: 69 },
@@ -1496,7 +1496,7 @@ const allTeams = {
 	{ name: "최진웅", position: "DF", country: "대한민국", age: 22, rating: 66 },
 	{ name: "김예건", position: "MF", country: "대한민국", age: 18, rating: 63 },
 	{ name: "모따", position: "FW", country: "브라질", age: 30, rating: 77 }
-]
+],
         description: "한국 축구의 명문, 전북의 자부심과 전통"
     },
 
@@ -1537,7 +1537,7 @@ const allTeams = {
 	{ name: "심상민", position: "DF", country: "대한민국", age: 33, rating: 71 },
 	{ name: "벤지", position: "FW", country: "미국", age: 29, rating: 73 },
 	{ name: "야고", position: "FW", country: "브라질", age: 27, rating: 75 }
-]
+],
         description: "공업도시 울산의 자존심, 현대의 힘찬 질주"
     },
 
@@ -1586,7 +1586,7 @@ const allTeams = {
 	{ name: "이헌재", position: "FW", country: "대한민국", age: 20, rating: 66 },
 	{ name: "완델손", position: "DF", country: "브라질", age: 37, rating: 70 },
 	{ name: "권능", position: "GK", country: "대한민국", age: 21, rating: 65 }
-]
+],
         description: "철강도시 포항의 강철 같은 의지와 투혼"
     },
 
@@ -1627,7 +1627,7 @@ const allTeams = {
 	{ name: "정규민", position: "MF", country: "대한민국", age: 19, rating: 64 },
 	{ name: "문민서", position: "MF", country: "대한민국", age: 22, rating: 67 },
 	{ name: "홍용준", position: "MF", country: "대한민국", age: 23, rating: 68 }
-]
+],
         
         description: "광주의 열정과 호남의 축구 정신을 이어가는 팀"
     },
@@ -1666,7 +1666,7 @@ const allTeams = {
 	{ name: "로만 야렘추크", position: "FW", country: "우크라이나", age: 31, rating: 75 },
 	{ name: "노함 카마라", position: "DF", country: "프랑스", age: 19, rating: 65 },
 	{ name: "노아 나르티", position: "MF", country: "덴마크", age: 21, rating: 68 }
-]
+],
         description: "프랑스 축구의 명문 리옹의 영광 재건을 위한 도전"
     }
     }

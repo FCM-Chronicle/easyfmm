@@ -1,6 +1,23 @@
 // c:\Users\jinuj\vsc\easyfmm\legendLeague.js
 
 const LegendLeagueManager = {
+    legendLogoCodes: {
+        Legend_Barcelona: "FCB",
+        Legend_RealMadrid: "RMA",
+        Legend_ManUtd: "MUN",
+        Legend_ACMilan: "ACM",
+        Legend_Arsenal: "ARS",
+        Legend_Chelsea: "CHE",
+        Legend_Liverpool: "LIV",
+        Legend_Bayern: "BAY",
+        Legend_Inter: "INT",
+        Legend_Juventus: "JUV",
+        Legend_Ajax: "AJA",
+        Legend_Roma: "ROM",
+        Legend_Tottenham: "TOT",
+        Legend_Napoli: "NAP"
+    },
+
     // 레전드 팀 데이터 정의
     legendTeams: {
         "Legend_Barcelona": {
@@ -390,7 +407,9 @@ const LegendLeagueManager = {
             window.allTeams[teamKey] = {
                 league: 1, // 모든 레전드 팀은 1부 리그
                 players: window.teams[teamKey],
-                description: teamData.description
+                description: teamData.description,
+                displayName: window.teamNames[teamKey],
+                logoCode: this.legendLogoCodes[teamKey] || "DFT"
             };
         });
 
