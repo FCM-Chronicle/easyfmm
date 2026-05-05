@@ -190,6 +190,7 @@ class RealSoccerEngine {
         this.awayScore = 0;
         this.userStats = null;
         this.aiStats = null;
+        this.lastAction = 'normal'; // [신규] 역습 트리거 추적용
 
         // 선수 초기화
         this.initTeam(homeSquad, 'home', homeTactic);
@@ -293,6 +294,7 @@ class RealSoccerEngine {
                 }
 
                 const simP = new SimPlayer(p, teamId, role, lineStats, teamMorale, tacticMultiplier);
+                simP.currentBaseX = baseX; // [신규] 전술에 따른 가변 기준점
                 simP.baseX = baseX;
                 // Y축(상하) 균등 배치 (5~95 사이)
                 simP.baseY = (height / (list.length + 1)) * (i + 1);
@@ -427,7 +429,7 @@ class RealSoccerEngine {
         // 1. 공 상태 처리
         if (this.ball.state === BallState.IN_FLIGHT) {
             // [수정] 공 이동 속도 시뮬레이션 (즉시 도착 방지)
-            const ballSpeed = 7; // [수정] 패스 속도 상향 (3 -> 7)
+            const ballSpeed = 11; // [재수정] 패스/슈팅 속도 대폭 상향 (7 -> 11)
             const dx = this.ball.targetPos.x - this.ball.x;
             const dy = this.ball.targetPos.y - this.ball.y;
             const dist = Math.hypot(dx, dy);
@@ -466,7 +468,20 @@ class RealSoccerEngine {
             });
 
             // [수정] 소유 획득 거리 축소 (10 -> 2.5): 선수가 공에 "닿아야" 소유 인정
-            if (nearest && minDst < 2.5) {
+            if (nearest && minDst < 5) { // Increased pickup radius from 2.5 to 5
+                const isBallInOwnHalf = (nearest.teamId === 'home' && this.ball.x < 50) ||
+                                        (nearest.teamId === 'away' && this.ball.x > 50);
+
+                // [트리거] 공을 뺏었을 때 역습 조건 확인
+                const isUserGained = (nearest.teamId === 'home' && gameData.isHomeGame) || (nearest.teamId === 'away' && !gameData.isHomeGame);
+                const dt = gameData.deepTactics || { defensiveLine: 'standard' };
+                // [수정] this.ballZone 대신 공이 자기 진영에 있는지 여부로 판단
+                if (dt.defensiveLine === 'deep' && isBallInOwnHalf) {
+                    this.lastAction = 'counter_attack';
+                } else {
+                    this.lastAction = 'normal';
+                }
+
                 this.ball.state = BallState.CONTROLLED;
                 this.ball.owner = nearest;
                 this.ball.x = nearest.x; // 공을 발밑으로
@@ -567,13 +582,13 @@ class RealSoccerEngine {
                 // 압박이 없으면 수비수도 조금 몰고 올라감 (빌드업)
                 passProb = underPressure ? 0.98 : 0.4; 
             } else {
-                // [수정] 미드필더/공격수는 전방이 열려있으면 드리블을 더 길게 가져가도록 패스 확률 대폭 하향
-                // 기존 0.2 (20%) -> 0.05 (5%). 약 20틱(실제 시간 2초 내외) 정도 드리블할 확률이 높음.
-                passProb = 0.02;
+                // [재수정] 패스 확률 상향 (0.02 -> 0.15) 하여 주변 동료와의 연계 플레이(Link-up) 강화
+                // 너무 낮은 패스 확률은 팀원들을 무시하는 독주로 이어짐
+                passProb = 0.15;
 
                 // [전술 반영] 티키타카일 경우 패스 빈도 상향 (원터치 패스 유지)
                 if (typeof gameData !== 'undefined' && gameData.currentTactic === 'tikitaka') {
-                    passProb = 0.25;
+                    passProb = 0.45;
                 }
 
                 // [AI 버프] AI는 공간이 있으면 드리블 돌파를 더 선호 (패스 확률 낮춤)
@@ -633,11 +648,16 @@ class RealSoccerEngine {
         // [체력 반영] 체력이 떨어진 속도로 계산
         const effectiveSpeed = this.getEffectiveStat(player, 'speed');
         const speedFactor = effectiveSpeed / 75; // 평균 75 기준
-        let moveSpeed = 1.0 * Math.max(0.7, Math.min(1.4, speedFactor)); 
+        let moveSpeed = 0.7 * Math.max(0.7, Math.min(1.4, speedFactor)); // [속도조절] 온더볼 속도 추가 하향
         
         // [수정] 수비수는 드리블 거리 짧게 (안전 제일)
-        let moveDist = (0.8 + Math.random() * 0.8) * speedFactor; // [밸런스] 드리블 보폭 축소 (2.0 -> 0.8)
+        let moveDist = (0.25 + Math.random() * 0.3) * speedFactor; // [속도조절] 드리블 보폭 소폭 축소
         if (player.position === 'DF') moveDist = (0.5 + Math.random() * 0.5); 
+
+        // [신규] 미드필더 전진 드리블 강화 (공 운반)
+        if (player.position === 'MF' && !underPressure && !isBlocked) {
+            moveDist += 0.6; // 공간이 있으면 더 멀리 치고 나감
+        }
 
         // [AI 버프] AI 공격진은 드리블 시 더 폭발적으로 전진
         if (isAI && (player.position === 'FW' || player.position === 'MF')) {
@@ -705,8 +725,8 @@ class RealSoccerEngine {
                 forwardScore *= 0.5;
             } else {
                 forwardScore *= 3.0; // [수정] 전진 패스 선호도 증가
-                // [수정] 백패스(골대와 멀어지는 패스)에 대한 페널티 강화
-                if (distAfter > distBefore) forwardScore -= 15; 
+                // [재수정] 백패스 페널티 대폭 강화 (40 -> 80) 하여 의미 없는 백패스 방지
+                if (distAfter > distBefore) forwardScore -= 80; 
                 
                 // [AI 버프] AI는 전진 패스에 더 높은 가산점을 줌 (공격적 운영)
                 if (isAI && forwardScore > 0) {
@@ -753,12 +773,16 @@ class RealSoccerEngine {
             // 안전 모드에서는 압박 회피가 최우선 (뺏기면 안됨)
             if (mode === 'safe') pressureScore *= 2.0;
 
-            // [신규] 4. 패스 루프 방지 (직전 패스해준 사람에게 다시 주는 것 감점)
+            // [수정] 4. 패스 루프 방지 (직전 패스해준 사람에게 다시 주는 것 감점)
             let loopPenalty = 0;
             if (this.ball.lastOwner === tm) {
-                // 공격 모드일 땐 전진해야 하므로 리턴 패스 대폭 감점 (-60)
-                // 안전 모드일 땐 줄 곳 없으면 리턴 줄 수도 있으니 소폭 감점 (-20)
-                loopPenalty = mode === 'aggressive' ? 60 : 20;
+                // [밸런스] 리턴 패스 페널티 대폭 강화 (60 -> 150)
+                loopPenalty = mode === 'aggressive' ? 150 : 40;
+            }
+
+            // [신규] 4-1. 미드필더의 의미 없는 백패스 방지 (수비수에게 돌려주기 억제)
+            if (mode === 'aggressive' && player.position === 'MF' && tm.position === 'DF') {
+                loopPenalty += 80; 
             }
 
             // [신규] 5. 빌드업 보너스 (DF -> MF 연결 장려)
@@ -769,7 +793,13 @@ class RealSoccerEngine {
             }
             if (player.position === 'GK' && tm.position === 'DF') positionBonus = 5;
 
-            const totalScore = forwardScore + distScore + pressureScore - loopPenalty + positionBonus;
+            // [신규] 6. 연계 플레이 보너스 (내려오는 공격수나 전진하는 미드필더 선호)
+            let linkupBonus = 0;
+            const targetBehavior = this.getRoleBehavior(tm.role);
+            if (targetBehavior.comeShort && tm.position === 'FW') linkupBonus += 35;
+            if (targetBehavior.attackBias > 0.2 && tm.position === 'MF') linkupBonus += 20;
+
+            const totalScore = forwardScore + distScore + pressureScore - loopPenalty + positionBonus + linkupBonus;
             
             if (totalScore > maxScore) {
                 maxScore = totalScore;
@@ -902,6 +932,11 @@ class RealSoccerEngine {
         
         // [밸런스] 최소/최대 확률 추가 조정 (최소 1%, 최대 55%)
         goalChance = Math.max(0.01, Math.min(0.55, goalChance));
+
+        // [수정] 역습 보너스 하향 (1.5 -> 1.2)
+        if (this.lastAction === 'counter_attack') {
+            goalChance *= 1.2;
+        }
 
         let isGoal = Math.random() < goalChance;
         
@@ -1065,6 +1100,7 @@ class RealSoccerEngine {
     // 오프 더 볼 움직임 (간단화)
     processOffBallAI() {
         const attackingTeam = this.ball.owner ? this.ball.owner.teamId : null;
+        let isChasingLooseBall = false; // Declare and initialize at the beginning of the function
         
         // [신규] AI 팀인지 확인
         let isAttackingAI = false;
@@ -1108,18 +1144,29 @@ class RealSoccerEngine {
         this.players.forEach(p => {
             if (p === this.ball.owner) return; // 공 가진 사람은 processBallCarrierAI에서 처리
 
+            const dt = gameData.deepTactics || { pressIntensity: 'mid', defensiveLine: 'standard' };
             // [신규] 역할별 행동 특성 미리 가져오기
             const behavior = this.getRoleBehavior(p.role);
 
             let targetX = p.x;
             let targetY = p.y;
             
+            // [전술 반영] 압박 강도에 따른 감지 범위 및 적극성 조절
+            let pressDetectDist = 8;
+            let sprintBonus = 1.0;
+            if (dt.pressIntensity === 'high') {
+                pressDetectDist = 20; // 20m까지 압박 시도
+                sprintBonus = 1.2;    // 압박 시 속도 20% 증가
+            } else if (dt.pressIntensity === 'low') {
+                pressDetectDist = 4;  // 아주 가까울 때만 압박
+            }
+
             // [신규] 이동 속도에 '스피드' 스탯 반영
             // 기본 0.15 * (스피드 / 75) -> 스피드 100이면 약 0.2 (33% 빠름)
             // [체력 반영] 오프더볼 움직임에도 체력 반영
             const effectiveSpeed = this.getEffectiveStat(p, 'speed');
             const speedFactor = effectiveSpeed / 75;
-            let moveSpeed = 0.35 * Math.max(0.7, Math.min(1.4, speedFactor)); // [밸런스] 오프더볼 기본 속도 상향 (0.15 -> 0.35)
+            let moveSpeed = 1.0 * Math.max(0.7, Math.min(1.4, speedFactor)); // [속도조절] 오프더볼 기본 속도 소폭 하향 (1.2 -> 1.0)
 
             // ------------------------------------
             // 상황 1: 루즈볼 (공이 주인 없을 때) - 모두가 공을 향해 뜀
@@ -1131,21 +1178,18 @@ class RealSoccerEngine {
                 if (isNearest) {
                     targetX = this.ball.x;
                     targetY = this.ball.y;
-                    moveSpeed = 0.55; // [밸런스] 루즈볼 추격 속도 상향
-                } else {
-                    // 나머지는 자기 포메이션 위치를 지키되, 공 쪽을 주시 (약간 이동)
-                    const ballInfluence = 0.15; // 15% 정도만 공 쪽으로 쏠림
-                    targetX = p.baseX + (this.ball.x - p.baseX) * ballInfluence;
-                    targetY = p.baseY + (this.ball.y - p.baseY) * ballInfluence;
-                    moveSpeed = 0.15; // 천천히 이동
+                    moveSpeed = 1.1; // [속도조절] 루즈볼 추격 속도 하향 (1.3 -> 1.1)
+                    isChasingLooseBall = true; // 루즈볼을 쫓는 중임을 표시
                 }
-            } 
-            // ------------------------------------
-            // 상황 2: 우리 팀이 공격 중 (공격 오프더볼)
-            // ------------------------------------
-            else if (p.teamId === attackingTeam) {
+                // [수정] 루즈볼일 때도 나머지는 공의 위치에 따른 공수 대형을 유지함 (서성이는 현상 방지)
+            }
+
+            // [수정] 공 소유권 여부와 상관없이 공의 위치를 기준으로 공격/수비 상황 판단
+            const isHome = p.teamId === 'home';
+            const isTeamAttacking = attackingTeam ? (p.teamId === attackingTeam) : (isHome ? this.ball.x > 50 : this.ball.x < 50);
+
+            if (isTeamAttacking) {
                 // [공격 시] 침투, 지원, 오버래핑
-                const isHome = p.teamId === 'home';
                 const forwardDir = isHome ? 1 : -1; // [수정] 홈(1), 어웨이(-1)
                 
                 // [신규] Give & Go 움직임 (패스하고 전방 침투)
@@ -1159,7 +1203,7 @@ class RealSoccerEngine {
                     targetX = p.x + (forwardDir * 15);
                     // Y축은 공 방향으로 약간 좁혀 들어감 (지원)
                     targetY = p.y + (this.ball.y - p.y) * 0.3;
-                    moveSpeed = 0.4; // [밸런스] Give & Go 침투 속도 상향
+                    moveSpeed = 0.8; // [속도조절] 침투 속도 하향 (0.9 -> 0.8)
                 } 
                 // 1. 기본 위치 로직 (기존 유지)
                 else if (p.position === 'FW') {
@@ -1180,17 +1224,22 @@ class RealSoccerEngine {
                         avoidY = (p.y - nearestDefender.y) > 0 ? 5 : -5;
                     }
 
-                    // [AI 버프] AI 공격수는 더 깊숙이 침투 (20m -> 25m)
+                    // [수정] 기본 침투 거리 설정
                     let pushDistance = 20;
                     if (isAttackingAI) pushDistance = 25;
+
+                    // [신규] 연계형 공격수(F9, DLF 등) 내려오는 움직임 구현
+                    if (behavior.comeShort) {
+                        pushDistance = 2; // 공 근처로 내려와서 대기하며 연계 유도
+                    }
 
                     targetX = this.ball.x + (forwardDir * pushDistance); // 공보다 앞 (X축)
                     targetY = p.baseY + avoidY; // 포메이션 Y위치 + 회피
                     
                     if (behavior.runBehind) targetX += (forwardDir * 10); // 침투형은 더 깊게
                     
-                    // [수정] 공격수 침투 속도 상향 (공수 전환 시 공격 가담 강화)
-                    moveSpeed = 0.25 * speedFactor; // 스피드 스탯 추가 반영
+                    // [수정] 공격수 침투 속도 상향 (전술 반영)
+                    moveSpeed = 0.6 * speedFactor * sprintBonus; // [속도조절] 0.7 -> 0.6
                 } else if (p.position === 'MF') {
                     // 미드필더: 공 주변에서 패스 받을 준비 (삼각형 대형 유지)
                     // [수정] 역할 성향(attackBias/defenseBias) 반영
@@ -1204,8 +1253,10 @@ class RealSoccerEngine {
                     targetX = (p.baseX * (1 - ballWeight)) + (this.ball.x * ballWeight);
                     targetY = (p.baseY * (1 - ballWeight)) + (this.ball.y * ballWeight);
 
-                    // 공격적인 미드필더는 공격수처럼 전방 침투 시도
-                    if (attackBias > 0.3) targetX += (forwardDir * attackBias * 12);
+                    // [수정] 공격적인 미드필더(BBM, MEZ, AP 등)의 전진성 대폭 강화
+                    if (attackBias > 0.2) {
+                        targetX += (forwardDir * attackBias * 22); // 공격수 라인까지 적극 가담
+                    }
                     
                     // 너무 뭉치지 않게 산개 (Y축 기준)
                     if (Math.abs(p.y - this.ball.y) < 3) targetY += (p.y > 50 ? 4 : -4);
@@ -1234,28 +1285,35 @@ class RealSoccerEngine {
                 // ------------------------------------
                 // 1. 기본 수비 블록 형성 (공 위치에 따라 전체 이동)
                 // [수정] 라인 간격 조정을 위한 이동 계수 차등 적용 (Compactness)
-                let shiftFactor = 0.7;
+                let shiftFactor = 0.8;
                 // [신규] Y축(폭) 이동 계수: 수비수는 대형 유지를 위해 공 쪽으로 덜 쏠리게 함
                 let yShiftFactor = 0.2;
+                
+                const isHomeDef = p.teamId === 'home'; // 변수 선언을 이 위치로 이동
+                const myGoalX = isHomeDef ? 0 : 100;
+                const inMyBox = isHomeDef ? (this.ball.x < 22) : (this.ball.x > 78);
                 
                 // 수비 시 미드필더는 더 적극적으로 내려와서 수비 라인과 간격을 좁힘
                 if (p.position === 'MF') {
                     const defenseBias = behavior.defenseBias || 0;
                     const attackBias = behavior.attackBias || 0;
 
-                    // 기본 0.95. 수비적일수록 더 깊게 복귀, 공격적일수록 약간 위에서 대기
-                    shiftFactor = 0.95 + (defenseBias * 0.1) - (attackBias * 0.2);
-                    shiftFactor = Math.max(0.6, Math.min(1.1, shiftFactor));
-                    moveSpeed = 0.22 * (1 + defenseBias); // 수비적일수록 복귀 속도 상향
+                    // [수정] 미드필더 수비 가담: 수비수 바로 앞까지 대폭 후퇴
+                    // shiftFactor를 높여 공이 우리 진영으로 올 때 수비수들과 보조를 맞춰 깊숙이 내려옴
+                    shiftFactor = 1.25 + (defenseBias * 0.4); 
+                    shiftFactor = Math.max(1.1, Math.min(1.6, shiftFactor));
+                    moveSpeed = 1.1 * (1 + defenseBias) * sprintBonus; 
                 } else if (p.position === 'FW') {
-                    shiftFactor = 0.7; // [수정] 공격수도 수비 시 하프라인 아래로 내려오도록 조정 (0.5 -> 0.7)
+                    // [수정] 공격수 수비 가담: 하프라인 부근(50)까지만 내려와서 역습 대기
+                    shiftFactor = 0.45; 
+                    moveSpeed = 0.85 * sprintBonus;
                 } else if (p.position === 'DF') {
                     shiftFactor = 0.75; // [수정] 수비 라인이 공을 따라 유기적으로 이동하도록 상향 (0.4 -> 0.75)
                     yShiftFactor = 0.05; // [수정] 수비 폭을 더 넓게 유지 (0.1 -> 0.05) - 뭉침 방지
                 }
 
                 const ballXShift = (this.ball.x - 50) * shiftFactor; 
-                let formationX = p.baseX + ballXShift;
+                let formationX = p.currentBaseX + ballXShift;
                 let formationY = p.baseY + (this.ball.y - 50) * yShiftFactor; 
 
                 // 2. 대인 마크 (내 구역에 들어온 공격수 마크)
@@ -1279,10 +1337,20 @@ class RealSoccerEngine {
                 if (markTarget && p.position !== 'GK') {
                     // 마크 대상과 골대 사이를 막아서는 위치
                     const goalX = p.teamId === 'home' ? 0 : 100; // 내 골대 (Home defends 0)
-                    // 상대와 내 골대 사이 8:2 지점
-                    targetX = markTarget.x + (goalX - markTarget.x) * 0.1; 
+
+                        // [수정] 페널티 박스 안이거나 슈팅 위협 시 물러나지 않고 직접 압박
+                    const distToGoal = Math.abs(this.ball.x - goalX);
+                    const isShootingThreat = distToGoal < 35; // 35m 이내면 위험 지역
+
+                        if ((inMyBox || isShootingThreat) && markTarget === this.ball.owner) {
+                            targetX = markTarget.x; // 직접 돌진
+                            moveSpeed = 0.9 * speedFactor; // 박스 안에서는 더 빠르게 반응
+                    } else {
+                            // 상대와 내 골대 사이 9.8 : 0.2 지점 (거의 딱 붙어서 대기)
+                            targetX = markTarget.x + (goalX - markTarget.x) * 0.02; 
+                            moveSpeed = 0.6;
+                    }
                     targetY = markTarget.y; 
-                    moveSpeed = 0.06; // [수정] 0.15 -> 0.06
 
                     // [신규] 수비 라인 정렬 (Line Discipline)
                     // 수비수(DF)는 대인 마크 시에도 라인 유지를 최우선으로 함
@@ -1323,19 +1391,23 @@ class RealSoccerEngine {
                 }
 
                 // 3. 압박 (Pressing)
-                // [수정] 골키퍼는 압박 하러 뛰쳐나가지 않음
                 if (this.ball.owner && p.position !== 'GK') {
                     const distToBall = Math.hypot(p.x - this.ball.x, p.y - this.ball.y);
                     
-                    // [수정] "우르르 몰려다니는" 현상 방지: 전담 압박러(presser)이거나 초근접(8m) 상황일 때만 압박
-                    // 기존 30m 범위 내 모든 선수가 압박하던 로직 제거 -> 포메이션 유지 강화
-                    if (p === presser || distToBall < 8) {
+                    // [신규] 페널티 박스 안 수비수 강제 압박 / 박스 밖 미드필더 강제 압박
+                    let forcePress = false;
+                    if (inMyBox && p.position === 'DF' && distToBall < 15) forcePress = true;
+                    if (!inMyBox && p.position === 'MF' && distToBall < 18) forcePress = true;
+
+                    // [수정] 전술 지시 또는 구역별 강제 압박 상황인 경우 수행
+                    if (p === presser || distToBall < pressDetectDist || forcePress) {
                         // [밸런스 수정] 수비수 압박 이동 로직 변경 (보간 -> 직접 이동)
                         // 공격수의 드리블 속도(1.0)에 대응하기 위해 수비수의 전력 질주 속도를 설정합니다.
                         const dx = this.ball.x - p.x;
                         const dy = this.ball.y - p.y;
                         const dist = Math.hypot(dx, dy);
-                        const sprintSpeed = 2.8 * speedFactor; // [밸런스] 압박 속도 재조정 (2.5 -> 2.8) - 수비 강화
+                        // [수정] 압박 속도 상향 (추격 능력 강화)
+                        const sprintSpeed = 3.4 * speedFactor * (dt.pressIntensity === 'high' ? 1.15 : 1.0); 
 
                         if (dist > 0) {
                             p.x += (dx / dist) * sprintSpeed;
@@ -1355,20 +1427,19 @@ class RealSoccerEngine {
                     }
                 }
 
-                // [신규] 4. 수비 복귀 (Retreat): 수비수가 뚫렸으면 뒤도 안보고 복귀
-                const isHomeDef = p.teamId === 'home';
-                // 홈팀은 공이 나보다 왼쪽(0쪽)에 있으면 뚫림, 원정팀은 오른쪽(100쪽)에 있으면 뚫림
-                const isBeaten = p.position === 'DF' && (isHomeDef ? (this.ball.x < p.x - 2) : (this.ball.x > p.x + 2));
+                
+                // [수정] 4. 수비 복귀 (Retreat) 로직 최적화: 공이 수비수 뒤로 완전히 빠졌을 때만 긴급 복귀
+                const isDeepBeaten = p.position === 'DF' && (isHomeDef ? (this.ball.x < p.x - 8) : (this.ball.x > p.x + 8)) && !inMyBox;
 
-                if (isBeaten) {
+                if (isDeepBeaten) {
                     // [밸런스 수정] 수비수 복귀 이동 로직 변경 (보간 -> 직접 이동)
-                    const retreatTargetX = this.ball.x + (isHomeDef ? -15 : 15); // 공보다 더 깊숙이 후퇴하여 길목 차단
+                    const retreatTargetX = this.ball.x + (isHomeDef ? -8 : 8); // 15 -> 8로 조정
                     const retreatTargetY = this.ball.y; // 공 라인으로 이동
                     
                     const dx = retreatTargetX - p.x;
                     const dy = retreatTargetY - p.y;
                     const dist = Math.hypot(dx, dy);
-                    const retreatSpeed = 2.7 * speedFactor; // [밸런스] 수비 복귀 속도 상향 (2.2 -> 2.7) - 뒷공간 커버 강화
+                    const retreatSpeed = 2.8 * speedFactor; // [속도조절] 긴급 복귀 속도 하향 (3.2 -> 2.8)
 
                     if (dist > 0) {
                         p.x += (dx / dist) * retreatSpeed;
@@ -1409,8 +1480,8 @@ class RealSoccerEngine {
 
             // 실제 이동 적용
             // [수정] 부드러운 가속도와 관성을 적용한 물리 기반 이동
-            const accelX = (targetX - p.x) * moveSpeed * 0.1;
-            const accelY = (targetY - p.y) * moveSpeed * 0.1;
+            const accelX = (targetX - p.x) * moveSpeed * 0.12; // [속도조절] 물리 반응성 소폭 하향 (0.15 -> 0.12)
+            const accelY = (targetY - p.y) * moveSpeed * 0.12;
 
             p.vx = (p.vx + accelX) * 0.7; // 이전 속도 유지(관성) + 가속도 - 저항
             p.vy = (p.vy + accelY) * 0.7;
@@ -1659,10 +1730,23 @@ class RealSoccerEngine {
     }
 
     adjustDefensiveLines() {
-        // processOffBallAI에서 이미 공 위치 기반 라인 조정을 수행함.
-        // 추가적인 전술적 라인 조정(Deep/High)은 여기서 가능
-        const lineShift = gameData.deepTactics.defensiveLine === 'high' ? -10 : (gameData.deepTactics.defensiveLine === 'deep' ? 10 : 0);
-        // (구현 생략 - 위 로직에 포함됨)
+        // [구현] 세부 전술 설정에 따른 실제 수비 라인 좌표 이동
+        const dt = gameData.deepTactics || { defensiveLine: 'standard' };
+        
+        // High: 라인 전진 (+10), Deep: 라인 후퇴 (-10)
+        // 홈팀(0->100공격) 기준 수비라인은 20. High면 30으로, Deep이면 10으로.
+        let shift = 0;
+        if (dt.defensiveLine === 'high') shift = 12;
+        else if (dt.defensiveLine === 'deep') shift = -12;
+
+        this.players.forEach(p => {
+            if (p.position === 'DF') {
+                const teamDir = p.teamId === 'home' ? 1 : -1;
+                p.currentBaseX = p.baseX + (shift * teamDir);
+            } else {
+                p.currentBaseX = p.baseX;
+            }
+        });
     }
 
     // [신규] 경기 종료 후 퇴장 애니메이션 시작
