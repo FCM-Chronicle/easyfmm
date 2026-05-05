@@ -408,6 +408,15 @@ class RealSoccerEngine {
     }
     if (this.ball.state !== BallState.DEAD) this._deadTicks = 0;
 
+    if (this.ball.state === BallState.IN_FLIGHT) {
+        const tx = this.ball.targetPos ? this.ball.targetPos.x : null;
+        const ty = this.ball.targetPos ? this.ball.targetPos.y : null;
+        if (tx === null || tx === undefined || isNaN(tx) || isNaN(ty)) {
+            this.ball.state = BallState.LOOSE;
+            this.ball.owner = null;
+        }
+    }
+
     if (this.ball.state === BallState.LOOSE && !this.pendingShot) {
         this._looseTicks = (this._looseTicks || 0) + 1;
         if (this._looseTicks >= 5) {
