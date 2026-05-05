@@ -1438,22 +1438,21 @@ class RealSoccerEngine {
                 // [수정] 4. 수비 복귀 (Retreat) 로직 최적화: 공이 수비수 뒤로 완전히 빠졌을 때만 긴급 복귀
                 const isDeepBeaten = p.position === 'DF' && (isHomeDef ? (this.ball.x < p.x - 8) : (this.ball.x > p.x + 8)) && !inMyBox;
 
-                if (isDeepBeaten) {
-                    // [밸런스 수정] 수비수 복귀 이동 로직 변경 (보간 -> 직접 이동)
-                    const retreatTargetX = this.ball.x + (isHomeDef ? -8 : 8); // 15 -> 8로 조정
-                    const retreatTargetY = this.ball.y; // 공 라인으로 이동
-                    
-                    const dx = retreatTargetX - p.x;
-                    const dy = retreatTargetY - p.y;
-                    const dist = Math.hypot(dx, dy);
-                    const retreatSpeed = 2.8 * speedFactor; // [속도조절] 긴급 복귀 속도 하향 (3.2 -> 2.8)
+if (isDeepBeaten) {
+    const retreatTargetX = isHomeDef ? Math.max(p.baseX, this.ball.x - 8) : Math.min(p.baseX, this.ball.x + 8);
+    const retreatTargetY = p.baseY;
 
-                    if (dist > 0) {
-                        p.x += (dx / dist) * retreatSpeed;
-                        p.y += (dy / dist) * retreatSpeed;
-                    }
-                    return; // [추가] 복귀가 최우선이므로 다른 움직임 로직 건너뛰기
-                }
+    const dx = retreatTargetX - p.x;
+    const dy = retreatTargetY - p.y;
+    const dist = Math.hypot(dx, dy);
+    const retreatSpeed = 2.8 * speedFactor;
+
+    if (dist > 0.5) {
+        p.x += (dx / dist) * retreatSpeed;
+        p.y += (dy / dist) * retreatSpeed;
+    }
+    return;
+}
             }
 
             // [신규] 아군끼리 너무 뭉치지 않게 거리 벌리기 (Separation)
