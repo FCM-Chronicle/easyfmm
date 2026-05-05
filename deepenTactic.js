@@ -408,6 +408,27 @@ class RealSoccerEngine {
     }
     if (this.ball.state !== BallState.DEAD) this._deadTicks = 0;
 
+    if (this.ball.state === BallState.LOOSE && !this.pendingShot) {
+        this._looseTicks = (this._looseTicks || 0) + 1;
+        if (this._looseTicks >= 5) {
+            this._looseTicks = 0;
+            let nearest = null;
+            let minDst = 999;
+            this.players.forEach(p => {
+                const d = Math.hypot(p.x - this.ball.x, p.y - this.ball.y);
+                if (d < minDst) { minDst = d; nearest = p; }
+            });
+            if (nearest) {
+                this.ball.state = BallState.CONTROLLED;
+                this.ball.owner = nearest;
+                this.ball.x = nearest.x;
+                this.ball.y = nearest.y;
+            }
+        }
+    } else {
+        this._looseTicks = 0;
+    }
+
     if (isNewMinute) {
         this.consumeStamina();
     }
@@ -478,6 +499,7 @@ class RealSoccerEngine {
 
     return this.getSnapshot();
 }
+    
     // [신규] 엔진 내부 체력 소모 로직
     consumeStamina() {
         const rates = { 'FW': 0.6, 'MF': 0.7, 'DF': 0.4, 'GK': 0.1 };
