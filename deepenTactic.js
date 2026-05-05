@@ -406,141 +406,84 @@ class RealSoccerEngine {
     // 🟣 [핵심] 메인 틱 업데이트 함수 (1틱 = 1분 흐름 시뮬레이션)
     // ============================================================
     update(minute, isNewMinute) {
-        this.eventsQueue = []; // 이벤트 초기화
-        if (this.ball.state === BallState.IN_FLIGHT) {
-    // ← 추가: 공이 너무 오래 날아가면 강제 착지
-    if (!this.ballFlightTimer) this.ballFlightTimer = 0;
-    this.ballFlightTimer++;
-    
-    if (this.ballFlightTimer > 30) { // 30틱 이상 비행 중이면 강제 처리
-        console.warn('⚠️ 공 강제 착지');
-        this.ball.x = this.ball.targetPos.x;
-        this.ball.y = this.ball.targetPos.y;
-        this.ball.state = BallState.LOOSE;
-        this.ballFlightTimer = 0;
-        if (this.pendingShot) {
-            this.handleShotResult();
-            return this.getSnapshot();
-        }
+    this.eventsQueue = [];
+
+    // 매 분마다 체력 소모
+    if (isNewMinute) {
+        this.consumeStamina();
     }
 
-    const ballSpeed = 11;
-    // ... 기존 코드 유지
-
-        // [신규] 매 분마다 체력 소모 로직 실행
-        if (isNewMinute) {
-            this.consumeStamina();
+    // 세레머니 처리
+    if (this.celebrationTimer > 0) {
+        this.processCelebrationMovement();
+        this.celebrationTimer--;
+        if (this.celebrationTimer <= 0) {
+            const nextKickoff = this.lastScorerTeam === 'home' ? 'away' : 'home';
+            this.resetPositions(nextKickoff);
         }
-
-        // [신규] 득점 후 세레머니/리플레이 딜레이 처리 (공이 골망에 머무름)
-        if (this.celebrationTimer > 0) {
-            this.processCelebrationMovement(); // [신규] 세레머니 움직임 처리
-            this.celebrationTimer--;
-            if (this.celebrationTimer <= 0) {
-                // 타이머 종료 후 킥오프 위치로 리셋
-                const nextKickoff = this.lastScorerTeam === 'home' ? 'away' : 'home';
-                this.resetPositions(nextKickoff);
-            }
-            // 세레머니 중에는 상태 유지 (공/선수 멈춤)
-            return this.getSnapshot();
-        }
-
-        // 1. 공 상태 처리
-        if (this.ball.state === BallState.IN_FLIGHT) {
-            // [수정] 공 이동 속도 시뮬레이션 (즉시 도착 방지)
-            const ballSpeed = 11; // [재수정] 패스/슈팅 속도 대폭 상향 (7 -> 11)
-            const dx = this.ball.targetPos.x - this.ball.x;
-            const dy = this.ball.targetPos.y - this.ball.y;
-            const dist = Math.hypot(dx, dy);
-
-            if (dist <= ballSpeed) {
-                // [도착] 목표 지점 도달
-                this.ball.x = this.ball.targetPos.x;
-                this.ball.y = this.ball.targetPos.y;
-                this.ball.state = BallState.LOOSE; // 도착 후 루즈볼 상태
-                this.ballFlightTimer = 0; // ← 추가
-
-                // 슛 결과 처리
-                if (this.pendingShot) {
-                    this.handleShotResult();
-                    return this.getSnapshot();
-                }
-            } else {
-                // [이동 중] 목표 방향으로 이동
-                const ratio = ballSpeed / dist;
-                this.ball.x += dx * ratio;
-                this.ball.y += dy * ratio;
-
-                // 이동 중 인터셉트 체크
-                this.checkInterception();
-                if (this.ball.state === BallState.IN_FLIGHT) {
-                    
-    // ← 추가: 공이 너무 오래 날아가면 강제 착지
-    if (!this.ballFlightTimer) this.ballFlightTimer = 0;
-    this.ballFlightTimer++;
-    
-    if (this.ballFlightTimer > 30) { // 30틱 이상 비행 중이면 강제 처리
-        console.warn('⚠️ 공 강제 착지');
-        this.ball.x = this.ball.targetPos.x;
-        this.ball.y = this.ball.targetPos.y;
-        this.ball.state = BallState.LOOSE;
-        this.ballFlightTimer = 0;
-        if (this.pendingShot) {
-            this.handleShotResult();
-            return this.getSnapshot();
-        }
-    }
-
-    const ballSpeed = 11;
-    // ... 기존 코드 유지
-            }
-        }
-
-        // 2. 공 소유권 판정 (LOOSE 상태일 때)
-        if (this.ball.state === BallState.LOOSE) {
-            // 가장 가까운 선수 찾기
-            let nearest = null;
-            let minDst = 999;
-            
-            this.players.forEach(p => {
-                const d = Math.hypot(p.x - this.ball.x, p.y - this.ball.y);
-                if (d < minDst) { minDst = d; nearest = p; }
-            });
-
-            // [수정] 소유 획득 거리 축소 (10 -> 2.5): 선수가 공에 "닿아야" 소유 인정
-            if (nearest && minDst < 5) { // Increased pickup radius from 2.5 to 5
-                const isBallInOwnHalf = (nearest.teamId === 'home' && this.ball.x < 50) ||
-                                        (nearest.teamId === 'away' && this.ball.x > 50);
-
-                // [트리거] 공을 뺏었을 때 역습 조건 확인
-                const isUserGained = (nearest.teamId === 'home' && gameData.isHomeGame) || (nearest.teamId === 'away' && !gameData.isHomeGame);
-                const dt = gameData.deepTactics || { defensiveLine: 'standard' };
-                // [수정] this.ballZone 대신 공이 자기 진영에 있는지 여부로 판단
-                if (dt.defensiveLine === 'deep' && isBallInOwnHalf) {
-                    this.lastAction = 'counter_attack';
-                } else {
-                    this.lastAction = 'normal';
-                }
-
-                this.ball.state = BallState.CONTROLLED;
-                this.ball.owner = nearest;
-                this.ball.x = nearest.x; // 공을 발밑으로
-                this.ball.y = nearest.y;
-            }
-        }
-
-        // 3. 선수 AI 행동 (소유자 vs 비소유자)
-        if (this.ball.state === BallState.CONTROLLED && this.ball.owner) {
-            this.processBallCarrierAI(this.ball.owner);
-        }
-        // [수정] 공 소유 여부와 상관없이 나머지 선수들의 오프더볼 움직임은 항상 실행
-        this.processOffBallAI();
-
-        // 4. 수비 라인 조정
-        this.adjustDefensiveLines();
-
         return this.getSnapshot();
     }
+
+    // 1. 공 상태 처리
+    if (this.ball.state === BallState.IN_FLIGHT) {
+        const ballSpeed = 11;
+        const dx = this.ball.targetPos.x - this.ball.x;
+        const dy = this.ball.targetPos.y - this.ball.y;
+        const dist = Math.hypot(dx, dy);
+
+        if (dist <= ballSpeed) {
+            this.ball.x = this.ball.targetPos.x;
+            this.ball.y = this.ball.targetPos.y;
+            this.ball.state = BallState.LOOSE;
+
+            if (this.pendingShot) {
+                this.handleShotResult();
+                return this.getSnapshot();
+            }
+        } else {
+            const ratio = ballSpeed / dist;
+            this.ball.x += dx * ratio;
+            this.ball.y += dy * ratio;
+            this.checkInterception();
+        }
+    }
+
+    // 2. 공 소유권 판정
+    if (this.ball.state === BallState.LOOSE) {
+        let nearest = null;
+        let minDst = 999;
+        this.players.forEach(p => {
+            const d = Math.hypot(p.x - this.ball.x, p.y - this.ball.y);
+            if (d < minDst) { minDst = d; nearest = p; }
+        });
+
+        if (nearest && minDst < 5) {
+            const isBallInOwnHalf = (nearest.teamId === 'home' && this.ball.x < 50) ||
+                                    (nearest.teamId === 'away' && this.ball.x > 50);
+            const dt = gameData.deepTactics || { defensiveLine: 'standard' };
+            if (dt.defensiveLine === 'deep' && isBallInOwnHalf) {
+                this.lastAction = 'counter_attack';
+            } else {
+                this.lastAction = 'normal';
+            }
+            this.ball.state = BallState.CONTROLLED;
+            this.ball.owner = nearest;
+            this.ball.x = nearest.x;
+            this.ball.y = nearest.y;
+        }
+    }
+
+    // 3. 선수 AI 행동
+    if (this.ball.state === BallState.CONTROLLED && this.ball.owner) {
+        this.processBallCarrierAI(this.ball.owner);
+    }
+    this.processOffBallAI();
+
+    // 4. 수비 라인 조정
+    this.adjustDefensiveLines();
+
+    return this.getSnapshot();
+}
 
     // [신규] 엔진 내부 체력 소모 로직
     consumeStamina() {
