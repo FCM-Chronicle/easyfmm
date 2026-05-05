@@ -407,6 +407,25 @@ class RealSoccerEngine {
     // ============================================================
     update(minute, isNewMinute) {
         this.eventsQueue = []; // 이벤트 초기화
+        if (this.ball.state === BallState.IN_FLIGHT) {
+    // ← 추가: 공이 너무 오래 날아가면 강제 착지
+    if (!this.ballFlightTimer) this.ballFlightTimer = 0;
+    this.ballFlightTimer++;
+    
+    if (this.ballFlightTimer > 30) { // 30틱 이상 비행 중이면 강제 처리
+        console.warn('⚠️ 공 강제 착지');
+        this.ball.x = this.ball.targetPos.x;
+        this.ball.y = this.ball.targetPos.y;
+        this.ball.state = BallState.LOOSE;
+        this.ballFlightTimer = 0;
+        if (this.pendingShot) {
+            this.handleShotResult();
+            return this.getSnapshot();
+        }
+    }
+
+    const ballSpeed = 11;
+    // ... 기존 코드 유지
 
         // [신규] 매 분마다 체력 소모 로직 실행
         if (isNewMinute) {
@@ -439,6 +458,7 @@ class RealSoccerEngine {
                 this.ball.x = this.ball.targetPos.x;
                 this.ball.y = this.ball.targetPos.y;
                 this.ball.state = BallState.LOOSE; // 도착 후 루즈볼 상태
+                this.ballFlightTimer = 0; // ← 추가
 
                 // 슛 결과 처리
                 if (this.pendingShot) {
@@ -453,6 +473,26 @@ class RealSoccerEngine {
 
                 // 이동 중 인터셉트 체크
                 this.checkInterception();
+                if (this.ball.state === BallState.IN_FLIGHT) {
+                    
+    // ← 추가: 공이 너무 오래 날아가면 강제 착지
+    if (!this.ballFlightTimer) this.ballFlightTimer = 0;
+    this.ballFlightTimer++;
+    
+    if (this.ballFlightTimer > 30) { // 30틱 이상 비행 중이면 강제 처리
+        console.warn('⚠️ 공 강제 착지');
+        this.ball.x = this.ball.targetPos.x;
+        this.ball.y = this.ball.targetPos.y;
+        this.ball.state = BallState.LOOSE;
+        this.ballFlightTimer = 0;
+        if (this.pendingShot) {
+            this.handleShotResult();
+            return this.getSnapshot();
+        }
+    }
+
+    const ballSpeed = 11;
+    // ... 기존 코드 유지
             }
         }
 
