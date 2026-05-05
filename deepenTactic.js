@@ -360,60 +360,58 @@ class RealSoccerEngine {
     }
 
     resetPositions(kickoffTeamId = null) {
-        this.ball.x = 50; this.ball.y = 50;
-        this.ball.lastOwner = null; // [신규] 초기화
-        
-        let kicker = null;
-        if (kickoffTeamId) {
-            kicker = this.players.find(p => p.teamId === kickoffTeamId && p.position === 'FW');
-            if (!kicker) kicker = this.players.find(p => p.teamId === kickoffTeamId && p.position === 'MF');
-            if (!kicker) kicker = this.players.find(p => p.teamId === kickoffTeamId);
-        }
-
-        if (kicker) {
-            this.ball.state = BallState.CONTROLLED;
-            this.ball.owner = kicker;
-            kicker.x = 50;
-            kicker.y = 50;
-        } else {
-            this.ball.state = BallState.LOOSE;
-            this.ball.owner = null;
-        }
-        
-        this.players.forEach(p => {
-            if (p !== kicker) {
-                // [수정] 킥오프 시 하프라인(50)을 넘지 않도록 자기 진영으로 복귀
-                p.y = p.baseY;
-                // [추가] 킥오프 시 속도 초기화
-                p.vx = 0; p.vy = 0;
-                
-                if (p.teamId === 'home') {
-                    // 홈팀(왼쪽, 0~50)은 48을 넘지 않게 (FW도 하프라인 뒤로)
-                    // [수정] 미드필더는 센터 서클(약 10m 반경) 밖인 40까지 물러나게 함
-                    const maxLine = p.position === 'MF' ? 40 : 48;
-                    p.x = Math.min(p.baseX, maxLine);
-                } else {
-                    // 원정팀(오른쪽, 50~100)은 52보다 작아지지 않게
-                    // [수정] 미드필더는 센터 서클 밖인 60까지 물러나게 함
-                    const minLine = p.position === 'MF' ? 60 : 52;
-                    p.x = Math.max(p.baseX, minLine);
-                }
-            }
-        });
+    this.ball.x = 50; this.ball.y = 50;
+    this.ball.lastOwner = null;
+    
+    let kicker = null;
+    if (kickoffTeamId) {
+        kicker = this.players.find(p => p.teamId === kickoffTeamId && p.position === 'FW');
+        if (!kicker) kicker = this.players.find(p => p.teamId === kickoffTeamId && p.position === 'MF');
+        if (!kicker) kicker = this.players.find(p => p.teamId === kickoffTeamId);
     }
 
+    if (kicker) {
+        this.ball.state = BallState.CONTROLLED;
+        this.ball.owner = kicker;
+        kicker.x = 50;
+        kicker.y = 50;
+    } else {
+        this.ball.state = BallState.LOOSE;
+        this.ball.owner = null;
+    }
+    
+    this.players.forEach(p => {
+        if (p !== kicker) {
+            p.y = p.baseY;
+            p.vx = 0; p.vy = 0;
+            
+            if (p.teamId === 'home') {
+                const maxLine = p.position === 'MF' ? 40 : 48;
+                p.x = Math.min(p.baseX, maxLine);
+            } else {
+                const minLine = p.position === 'MF' ? 60 : 52;
+                p.x = Math.max(p.baseX, minLine);
+            }
+        }
+    });
+}
     // ============================================================
     // 🟣 [핵심] 메인 틱 업데이트 함수 (1틱 = 1분 흐름 시뮬레이션)
     // ============================================================
     update(minute, isNewMinute) {
     this.eventsQueue = [];
 
-    // 매 분마다 체력 소모
+    if (this.ball.state === BallState.DEAD && this.celebrationTimer <= 0 && !this.pendingShot) {
+        this._deadTicks = (this._deadTicks || 0) + 1;
+        if (this._deadTicks >= 2) { this._deadTicks = 0; this.resetPositions(this.lastScorerTeam === 'home' ? 'away' : 'home'); }
+        return this.getSnapshot();
+    }
+    if (this.ball.state !== BallState.DEAD) this._deadTicks = 0;
+
     if (isNewMinute) {
         this.consumeStamina();
     }
 
-    // 세레머니 처리
     if (this.celebrationTimer > 0) {
         this.processCelebrationMovement();
         this.celebrationTimer--;
@@ -424,7 +422,6 @@ class RealSoccerEngine {
         return this.getSnapshot();
     }
 
-    // 1. 공 상태 처리
     if (this.ball.state === BallState.IN_FLIGHT) {
         const ballSpeed = 11;
         const dx = this.ball.targetPos.x - this.ball.x;
@@ -448,7 +445,6 @@ class RealSoccerEngine {
         }
     }
 
-    // 2. 공 소유권 판정
     if (this.ball.state === BallState.LOOSE) {
         let nearest = null;
         let minDst = 999;
@@ -473,18 +469,15 @@ class RealSoccerEngine {
         }
     }
 
-    // 3. 선수 AI 행동
     if (this.ball.state === BallState.CONTROLLED && this.ball.owner) {
         this.processBallCarrierAI(this.ball.owner);
     }
     this.processOffBallAI();
 
-    // 4. 수비 라인 조정
     this.adjustDefensiveLines();
 
     return this.getSnapshot();
 }
-
     // [신규] 엔진 내부 체력 소모 로직
     consumeStamina() {
         const rates = { 'FW': 0.6, 'MF': 0.7, 'DF': 0.4, 'GK': 0.1 };
