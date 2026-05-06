@@ -1242,6 +1242,7 @@ class RealSoccerEngine {
 
                     targetX = this.ball.x + (forwardDir * pushDistance); // 공보다 앞 (X축)
                     targetY = p.baseY + avoidY; // 포메이션 Y위치 + 회피
+                    targetY = Math.max(5, Math.min(95, targetY)); // 터치라인 이탈 방지
                     
                     if (behavior.runBehind) targetX += (forwardDir * 10); // 침투형은 더 깊게
                     
