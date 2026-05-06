@@ -9,7 +9,9 @@
  *   #scoreDisplay              – "0 - 0" 형식 점수 텍스트
  *   #matchTime                 – "0분" 형식 경기 시간 텍스트
  *   #homeTeam / #awayTeam      – 팀 이름
- *   CSS 변수 --team-primary / --team-secondary  (style.css 팀 테마)
+ *   CSS 변수:
+ *     홈팀: --team-primary / --team-secondary
+ *     어웨이팀: --away-team-primary / --away-team-secondary
  */
 
 (function () {
@@ -19,13 +21,12 @@
      1. CSS 주입
   ───────────────────────────────────────── */
   const STYLE = `
-    /* Google Fonts – Barlow Condensed (숫자/이름), Noto Sans KR (한글) */
-    @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&family=Noto+Sans+KR:wght@700;900&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;900&family=Noto+Sans+KR:wght@700;900&display=swap');
 
     /* ── 스코어보드 래퍼 ── */
     #ingame-scoreboard {
       position: absolute;
-      top: 18px;
+      top: 14px;
       left: 50%;
       transform: translateX(-50%);
       z-index: 100;
@@ -35,95 +36,82 @@
       pointer-events: none;
       user-select: none;
       font-family: 'Barlow Condensed', 'Noto Sans KR', sans-serif;
-      filter: drop-shadow(0 6px 24px rgba(0,0,0,0.55));
+      filter: drop-shadow(0 4px 18px rgba(0,0,0,0.6));
     }
 
     /* ── 메인 바 ── */
     #sb-main-bar {
       display: flex;
       align-items: stretch;
-      height: 52px;
-      border-radius: 50px;
+      height: 48px;
+      border-radius: 6px 6px 0 0;
       overflow: hidden;
-      min-width: 340px;
-      max-width: 520px;
-      width: clamp(300px, 42vw, 480px);
+      width: clamp(300px, 42vw, 500px);
       box-shadow:
-        0 2px 0 rgba(255,255,255,0.18) inset,
-        0 -2px 0 rgba(0,0,0,0.25) inset,
-        0 8px 32px rgba(0,0,0,0.5),
-        0 2px 8px rgba(0,0,0,0.4);
+        0 4px 20px rgba(0,0,0,0.55),
+        0 1px 0 rgba(255,255,255,0.08) inset;
     }
 
-    /* ── 홈 / 어웨이 팀 영역 ── */
-    .sb-team {
+    /* ── 홈 팀 영역 ── */
+    #sb-home {
       flex: 1;
       display: flex;
       align-items: center;
-      justify-content: center;
-      padding: 0 16px;
-      font-size: clamp(0.8rem, 1.8vw, 1rem);
+      justify-content: flex-end;
+      padding: 0 14px;
+      font-size: clamp(0.78rem, 1.7vw, 0.98rem);
       font-weight: 900;
-      letter-spacing: 0.03em;
+      letter-spacing: 0.04em;
       text-transform: uppercase;
       overflow: hidden;
       white-space: nowrap;
       text-overflow: ellipsis;
-      position: relative;
+      /* ✅ 홈팀 전용 CSS 변수 사용 */
+      background: var(--sb-home-bg, #5c1a1a);
+      color: var(--sb-home-txt, #ffffff);
+      text-shadow: 0 1px 3px rgba(0,0,0,0.5);
     }
 
-    /* 홈: 팀 1번색 배경, 2번색 텍스트 */
-    #sb-home {
-      background: var(--sb-home-bg, #1a3a6e);
-      color: var(--sb-home-txt, #ffd700);
-      /* 오른쪽 끝은 센터 박스에 자연스럽게 이어짐 */
-      text-shadow: 0 1px 4px rgba(0,0,0,0.4);
-      border-right: 1px solid rgba(0,0,0,0.2);
-    }
-
-    /* 어웨이: 팀 1번색 배경, 2번색 텍스트 */
+    /* ── 어웨이 팀 영역 ── */
     #sb-away {
-      background: var(--sb-away-bg, #8b1a1a);
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 0 14px;
+      font-size: clamp(0.78rem, 1.7vw, 0.98rem);
+      font-weight: 900;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      /* ✅ 어웨이팀 전용 CSS 변수 사용 (홈팀과 완전히 분리) */
+      background: var(--sb-away-bg, #1a2d5c);
       color: var(--sb-away-txt, #ffffff);
-      text-shadow: 0 1px 4px rgba(0,0,0,0.4);
-      border-left: 1px solid rgba(0,0,0,0.2);
+      text-shadow: 0 1px 3px rgba(0,0,0,0.5);
     }
 
     /* ── 중앙 점수 영역 ── */
     #sb-center {
       display: flex;
       align-items: center;
-      gap: 6px;
-      padding: 0 14px;
-      background: #1a0d2e;       /* 진한 보라 */
-      background: linear-gradient(160deg, #23103a 0%, #150926 100%);
+      gap: 4px;
+      padding: 0 16px;
+      background: #111827;
       flex-shrink: 0;
       position: relative;
-      box-shadow:
-        2px 0 8px rgba(0,0,0,0.4) inset,
-        -2px 0 8px rgba(0,0,0,0.4) inset;
-    }
-
-    /* 리그 로고 자리 (작은 원) */
-    #sb-league-icon {
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      background: radial-gradient(circle, #ffd700 0%, #f39c12 100%);
-      flex-shrink: 0;
-      box-shadow: 0 0 6px rgba(255,215,0,0.6);
     }
 
     /* 점수 숫자 */
     #sb-score-home,
     #sb-score-away {
-      font-size: clamp(1.4rem, 3.5vw, 2rem);
+      font-size: clamp(1.5rem, 3.6vw, 2.1rem);
       font-weight: 900;
       color: #ffffff;
       line-height: 1;
       letter-spacing: -0.02em;
-      text-shadow: 0 0 12px rgba(255,255,255,0.3);
-      min-width: 26px;
+      min-width: 24px;
       text-align: center;
       transition: transform 0.15s cubic-bezier(0.34,1.56,0.64,1),
                   color 0.15s;
@@ -131,39 +119,37 @@
 
     #sb-score-home.scored,
     #sb-score-away.scored {
-      transform: scale(1.35);
+      transform: scale(1.4);
       color: #ffd700;
     }
 
     #sb-dash {
-      font-size: clamp(1rem, 2.5vw, 1.4rem);
-      color: rgba(255,255,255,0.35);
+      font-size: clamp(1rem, 2.4vw, 1.3rem);
+      color: rgba(255,255,255,0.4);
       font-weight: 700;
+      margin: 0 2px;
     }
 
     /* ── 시간 박스 ── */
     #sb-timer-box {
-      background: linear-gradient(160deg, #23103a 0%, #150926 100%);
-      color: #ffffff;
-      font-size: clamp(0.7rem, 1.4vw, 0.88rem);
+      background: #111827;
+      color: #e2e8f0;
+      font-size: clamp(0.72rem, 1.4vw, 0.88rem);
       font-weight: 700;
-      letter-spacing: 0.08em;
-      padding: 4px 18px 6px;
-      border-radius: 0 0 14px 14px;
-      box-shadow:
-        0 6px 16px rgba(0,0,0,0.45),
-        0 1px 0 rgba(255,255,255,0.07) inset;
-      /* 상단은 메인 바에 딱 붙음 */
-      margin-top: 0;
-      min-width: 76px;
+      letter-spacing: 0.1em;
+      padding: 4px 22px 5px;
+      border-radius: 0 0 6px 6px;
+      width: 100%;
+      box-sizing: border-box;
       text-align: center;
-      border-top: 1px solid rgba(255,255,255,0.06);
+      border-top: 1px solid rgba(255,255,255,0.07);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.4);
     }
 
-    /* 득점 플래시 애니메이션 */
+    /* 득점 플래시 */
     @keyframes sb-goal-flash {
       0%   { box-shadow: 0 0 0 0 rgba(255,215,0,0.9); }
-      50%  { box-shadow: 0 0 0 14px rgba(255,215,0,0); }
+      50%  { box-shadow: 0 0 0 16px rgba(255,215,0,0); }
       100% { box-shadow: 0 0 0 0 rgba(255,215,0,0); }
     }
 
@@ -188,14 +174,13 @@
     sb.id = "ingame-scoreboard";
     sb.innerHTML = `
       <div id="sb-main-bar">
-        <div class="sb-team" id="sb-home">홈팀</div>
+        <div id="sb-home">홈팀</div>
         <div id="sb-center">
-          <div id="sb-league-icon"></div>
           <span id="sb-score-home">0</span>
           <span id="sb-dash">–</span>
           <span id="sb-score-away">0</span>
         </div>
-        <div class="sb-team" id="sb-away">어웨이팀</div>
+        <div id="sb-away">어웨이팀</div>
       </div>
       <div id="sb-timer-box">00:00</div>
     `;
@@ -203,115 +188,136 @@
   }
 
   /* ─────────────────────────────────────────
-     3. 팀 색상 읽기
-     style.css 의 --team-primary/--team-secondary,
-     또는 body 클래스의 CSS 변수를 읽어서 스코어보드에 적용
+     3. 팀 색상 적용
+     홈팀:   --team-primary  / --team-secondary
+     어웨이: --away-team-primary / --away-team-secondary
+     ✅ 각 팀이 완전히 독립된 CSS 변수를 사용하도록 수정
+        (기존 코드에서 어웨이가 홈팀 변수를 참조하던 버그 해결)
   ───────────────────────────────────────── */
   function applyTeamColors() {
-    const root = document.documentElement;
-    const body = document.body;
-
-    // getComputedStyle 로 현재 활성화된 변수 읽기
-    const cs = getComputedStyle(body);
-    const p1 = cs.getPropertyValue("--team-primary").trim()  || "#1a3a6e";
-    const p2 = cs.getPropertyValue("--team-secondary").trim() || "#ffd700";
-
-    // 어웨이는 팀 색상이 없으니 p1/p2 의 보색-feel 어두운 버전 fallback
     const sbEl = document.getElementById("ingame-scoreboard");
     if (!sbEl) return;
 
-    // CSS 변수를 스코어보드 루트에 설정
-    sbEl.style.setProperty("--sb-home-bg",  p1);
-    sbEl.style.setProperty("--sb-home-txt", p2);
+    const cs = getComputedStyle(document.body);
 
-    // 어웨이팀용: 약간 어둡게 변환 (p1을 약간 변형해서 구분)
-    sbEl.style.setProperty("--sb-away-bg",  darkenColor(p1, 0.35));
-    sbEl.style.setProperty("--sb-away-txt", p2);
-  }
+    // 홈팀 색상
+    const homePrimary   = cs.getPropertyValue("--team-primary").trim()     || "#5c1a1a";
+    const homeSecondary = cs.getPropertyValue("--team-secondary").trim()   || "#ffffff";
 
-  /** hex/rgb 색을 어둡게 만드는 헬퍼 */
-  function darkenColor(color, amount) {
-    // hex 처리
-    if (color.startsWith("#")) {
-      let r = parseInt(color.slice(1,3),16);
-      let g = parseInt(color.slice(3,5),16);
-      let b = parseInt(color.slice(5,7),16);
-      r = Math.max(0, Math.round(r * (1 - amount)));
-      g = Math.max(0, Math.round(g * (1 - amount)));
-      b = Math.max(0, Math.round(b * (1 - amount)));
-      return `rgb(${r},${g},${b})`;
-    }
-    // rgba/rgb 처리
-    const m = color.match(/[\d.]+/g);
-    if (m && m.length >= 3) {
-      return `rgb(${Math.max(0,Math.round(m[0]*(1-amount)))},${Math.max(0,Math.round(m[1]*(1-amount)))},${Math.max(0,Math.round(m[2]*(1-amount)))})`;
-    }
-    return color;
+    // ✅ 어웨이팀 색상 — 홈팀 변수와 완전히 분리된 별도 변수 사용
+    const awayPrimary   = cs.getPropertyValue("--away-team-primary").trim()   || "#1a2d5c";
+    const awaySecondary = cs.getPropertyValue("--away-team-secondary").trim() || "#ffffff";
+
+    sbEl.style.setProperty("--sb-home-bg",  homePrimary);
+    sbEl.style.setProperty("--sb-home-txt", homeSecondary);
+    sbEl.style.setProperty("--sb-away-bg",  awayPrimary);
+    sbEl.style.setProperty("--sb-away-txt", awaySecondary);
   }
 
   /* ─────────────────────────────────────────
-     4. 기존 DOM 에서 데이터 동기화
+     4. 데이터 동기화
   ───────────────────────────────────────── */
-  let lastScore = "";
   let syncInterval = null;
+  let prevHomeScore = -1;
+  let prevAwayScore = -1;
 
   function syncData() {
+    // 팀 이름
+    const homeTeamEl = document.getElementById("homeTeam");
+    const awayTeamEl = document.getElementById("awayTeam");
     const sbHome = document.getElementById("sb-home");
     const sbAway = document.getElementById("sb-away");
-    const sbScoreHome = document.getElementById("sb-score-home");
-    const sbScoreAway = document.getElementById("sb-score-away");
-    const sbTimer    = document.getElementById("sb-timer-box");
-    const sbCenter   = document.getElementById("sb-center");
+    if (homeTeamEl && sbHome) sbHome.textContent = homeTeamEl.textContent.trim() || "홈팀";
+    if (awayTeamEl && sbAway) sbAway.textContent = awayTeamEl.textContent.trim() || "어웨이팀";
 
-    if (!sbHome) return;
-
-    // ─ 팀 이름 ─
-    const homeEl = document.getElementById("homeTeam");
-    const awayEl = document.getElementById("awayTeam");
-    if (homeEl) sbHome.textContent = homeEl.textContent.trim();
-    if (awayEl) sbAway.textContent = awayEl.textContent.trim();
-
-    // ─ 점수 ─
+    // 점수 파싱 (#scoreDisplay "0 - 0" 형식)
     const scoreEl = document.getElementById("scoreDisplay");
     if (scoreEl) {
-      const raw = scoreEl.textContent.replace(/\s/g, "");
-      // 형식: "2 - 1" 또는 "2-1"
-      const parts = raw.split(/[-–]/);
-      if (parts.length === 2) {
-        const hs = parts[0].trim();
-        const as = parts[1].trim();
+      const parts = scoreEl.textContent.split(/[-–]/);
+      const h = parseInt(parts[0]) || 0;
+      const a = parseInt(parts[1]) || 0;
 
-        if (raw !== lastScore) {
-          // 득점 애니메이션
-          const prevParts = lastScore.split(/[-–]/);
-          if (prevParts[0] && hs !== prevParts[0].trim()) flashScore(sbScoreHome, sbCenter);
-          if (prevParts[1] && as !== prevParts[1].trim()) flashScore(sbScoreAway, sbCenter);
-          lastScore = raw;
+      const sbScoreHome = document.getElementById("sb-score-home");
+      const sbScoreAway = document.getElementById("sb-score-away");
+      const sbCenter    = document.getElementById("sb-center");
+
+      if (sbScoreHome && sbScoreAway && sbCenter) {
+        if (h !== prevHomeScore) {
+          sbScoreHome.textContent = h;
+          if (prevHomeScore !== -1) flashScore(sbScoreHome, sbCenter);
+          prevHomeScore = h;
         }
-
-        sbScoreHome.textContent = hs;
-        sbScoreAway.textContent = as;
+        if (a !== prevAwayScore) {
+          sbScoreAway.textContent = a;
+          if (prevAwayScore !== -1) flashScore(sbScoreAway, sbCenter);
+          prevAwayScore = a;
+        }
       }
     }
+  }
 
-    // ─ 경기 시간 ─
-    const timeEl = document.getElementById("matchTime");
-    if (timeEl && sbTimer) {
-      const raw = timeEl.textContent.trim(); // e.g. "45분" or "45"
-      const mins = parseInt(raw) || 0;
-      const mm = String(Math.floor(mins)).padStart(2,"0");
-      const ss = "00"; // 원본에 초 정보 없으면 00
-      sbTimer.textContent = `${mm}:${ss}`;
+  /* ─────────────────────────────────────────
+     5. 실시간 타이머
+  ───────────────────────────────────────── */
+  let timerSec = 0;
+  let lastMinValue = -1;
+  let timerRAF = null;
+  let lastRAFTime = null;
+
+  function startInternalTimer() {
+    if (timerRAF) cancelAnimationFrame(timerRAF);
+    lastRAFTime = null;
+
+    function tick(now) {
+      if (lastRAFTime === null) lastRAFTime = now;
+      const delta = now - lastRAFTime;
+
+      if (delta >= 1000) {
+        lastRAFTime = now - (delta % 1000);
+
+        const timeEl = document.getElementById("matchTime");
+        if (timeEl) {
+          const mins = parseInt(timeEl.textContent) || 0;
+          if (mins !== lastMinValue) {
+            timerSec = mins * 60;
+            lastMinValue = mins;
+          } else {
+            timerSec++;
+          }
+        }
+
+        if (timerSec > 5999) timerSec = 5999;
+
+        const sbTimer = document.getElementById("sb-timer-box");
+        if (sbTimer) {
+          const mm = String(Math.floor(timerSec / 60)).padStart(2, "0");
+          const ss = String(timerSec % 60).padStart(2, "0");
+          sbTimer.textContent = `${mm}:${ss}`;
+        }
+      }
+
+      timerRAF = requestAnimationFrame(tick);
     }
 
-    // ─ 팀 색상 재적용 (팀 변경 시 대응) ─
-    applyTeamColors();
+    timerRAF = requestAnimationFrame(tick);
+  }
+
+  function stopInternalTimer() {
+    if (timerRAF) { cancelAnimationFrame(timerRAF); timerRAF = null; }
+  }
+
+  function resetTimer() {
+    stopInternalTimer();
+    timerSec = 0;
+    lastMinValue = -1;
+    const sbTimer = document.getElementById("sb-timer-box");
+    if (sbTimer) sbTimer.textContent = "00:00";
   }
 
   function flashScore(el, center) {
     el.classList.remove("scored");
     center.classList.remove("goal-flash");
-    void el.offsetWidth; // reflow
+    void el.offsetWidth;
     el.classList.add("scored");
     center.classList.add("goal-flash");
     setTimeout(() => {
@@ -321,25 +327,22 @@
   }
 
   /* ─────────────────────────────────────────
-     5. 경기장 컨테이너에 삽입
+     6. 경기장 컨테이너에 삽입
   ───────────────────────────────────────── */
   function insertScoreboard() {
     const container = document.getElementById("matchVisualizerContainer");
     if (!container) return false;
-    if (document.getElementById("ingame-scoreboard")) return true; // 이미 있음
+    if (document.getElementById("ingame-scoreboard")) return true;
 
-    // 경기장 컨테이너가 position: relative 인지 확인
     const cs = getComputedStyle(container);
-    if (cs.position === "static") {
-      container.style.position = "relative";
-    }
+    if (cs.position === "static") container.style.position = "relative";
 
     const sb = buildScoreboard();
     container.appendChild(sb);
     applyTeamColors();
     syncData();
+    startInternalTimer();
 
-    // 주기적 동기화 (100ms)
     if (syncInterval) clearInterval(syncInterval);
     syncInterval = setInterval(syncData, 100);
 
@@ -347,31 +350,29 @@
   }
 
   /* ─────────────────────────────────────────
-     6. MutationObserver – 경기장이 나타나면 삽입
+     7. MutationObserver – 경기장이 나타나면 삽입
   ───────────────────────────────────────── */
   function watchForContainer() {
-    // 이미 존재하면 즉시 삽입
     if (insertScoreboard()) return;
 
     const observer = new MutationObserver(() => {
-      if (insertScoreboard()) {
-        observer.disconnect();
-      }
+      if (insertScoreboard()) observer.disconnect();
     });
 
     observer.observe(document.body, { childList: true, subtree: true });
   }
 
   /* ─────────────────────────────────────────
-     7. body 클래스 변경 감지 (팀 전환 시 색상 갱신)
+     8. body 속성 변경 감지 (팀 전환 시 색상 갱신)
   ───────────────────────────────────────── */
-  const bodyClassObserver = new MutationObserver(() => {
-    applyTeamColors();
+  const bodyClassObserver = new MutationObserver(() => applyTeamColors());
+  bodyClassObserver.observe(document.body, {
+    attributes: true,
+    attributeFilter: ["class", "style"],
   });
-  bodyClassObserver.observe(document.body, { attributes: true, attributeFilter: ["class", "style"] });
 
   /* ─────────────────────────────────────────
-     8. 초기화
+     9. 초기화
   ───────────────────────────────────────── */
   injectStyle();
 
@@ -381,7 +382,7 @@
     watchForContainer();
   }
 
-  // 경기 화면 전환 감지 (screen 클래스 토글)
+  // 경기 화면 전환 감지
   const screenObserver = new MutationObserver(() => {
     const matchScreen = document.getElementById("matchScreen");
     if (matchScreen && matchScreen.classList.contains("active")) {
@@ -392,6 +393,10 @@
       }, 300);
     }
   });
-  screenObserver.observe(document.body, { subtree: true, attributes: true, attributeFilter: ["class"] });
+  screenObserver.observe(document.body, {
+    subtree: true,
+    attributes: true,
+    attributeFilter: ["class"],
+  });
 
 })();
