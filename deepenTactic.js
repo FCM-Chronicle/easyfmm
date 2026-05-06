@@ -1064,8 +1064,8 @@ class RealSoccerEngine {
 
                     // [수정] 침투 깊이: 20→8 (공격수가 공보다 8m 앞까지만 전진)
                     //         AI도 동일하게 10으로 제한 (기존 25 제거)
-                    let pushDistance = 8;
-                    if (isAttackingAI) pushDistance = 10;
+                    let pushDistance = 15;
+                    if (isAttackingAI) pushDistance = 15;
 
                     // 연계형 공격수는 내려와서 받음 (pushDistance 무시)
                     if (behavior.comeShort) {
