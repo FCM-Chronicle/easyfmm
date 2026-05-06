@@ -1482,16 +1482,9 @@ if (isDeepBeaten) {
                 }
             }
 
-            // 경기장 범위 제한 (수비수는 골라인 근처 진입 금지)
-            targetY = Math.max(3, Math.min(97, targetY));
-            if (p.position === 'DF') {
-                targetX = Math.max(6, Math.min(94, targetX)); // 수비수 골라인 접근 제한
-            } else if (p.position === 'GK') {
-                const isHomeGK = p.teamId === 'home';
-                targetX = isHomeGK ? Math.max(3, Math.min(15, targetX)) : Math.max(85, Math.min(97, targetX));
-            } else {
-                targetX = Math.max(3, Math.min(97, targetX));
-            }
+            // 경기장 범위 제한
+            targetY = Math.max(2, Math.min(98, targetY));
+            targetX = Math.max(2, Math.min(98, targetX));
                 
             // [신규] 기계적인 움직임 방지를 위한 노이즈(Noise) 추가
             // 목표 지점에 ±2m 정도의 무작위성을 부여하여 자연스러운 곡선/흔들림 연출
