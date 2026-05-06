@@ -1387,14 +1387,17 @@ class RealSoccerEngine {
                 // [신규] 골키퍼 위치 고정 (골대 앞 사수)
                 if (p.position === 'GK') {
                     const isHomeGK = p.teamId === 'home';
-                    const goalX = isHomeGK ? 5 : 95; // 기본 골대 앞 위치
+                    const goalLineX = isHomeGK ? 3 : 97; // 절대 넘으면 안 되는 골라인
+                    const goalX = isHomeGK ? 5 : 95;     // 기본 포지션
                     
-                    // 공의 위치에 따라 좌우(Y축)로만 살짝 이동하고 앞으로 튀어나가지 않음
-                    // 공이 멀리 있으면 골대 앞 중앙, 가까우면 각도 좁히기
-                    targetX = goalX + (this.ball.x - goalX) * 0.1; // 아주 조금만 앞으로
-                    targetX = isHomeGK ? Math.min(targetX, 15) : Math.max(targetX, 85); // 페널티 박스 안쪽으로 제한
+                    targetX = goalX + (this.ball.x - goalX) * 0.1;
+                    // 골라인 안쪽으로 강제 클램프 (절대 골라인 밖으로 못 나감)
+                    targetX = isHomeGK
+                        ? Math.max(goalLineX, Math.min(targetX, 15))
+                        : Math.min(goalLineX, Math.max(targetX, 85));
                     
-                    targetY = 50 + (this.ball.y - 50) * 0.3; // 공 방향으로 Y축 이동
+                    targetY = 50 + (this.ball.y - 50) * 0.3;
+                    targetY = Math.max(35, Math.min(65, targetY)); // 골문 범위 내로 Y축 제한
                 }
 
                 // 3. 압박 (Pressing)
