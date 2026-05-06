@@ -690,7 +690,7 @@ class RealSoccerEngine {
         // 드리블을 했으므로 어시스트 체인 초기화
         this.ball.lastOwner = null;
         
-        //  밖으로 나가지 않게
+        // 경기장 밖으로 나가지 않게
         player.x = Math.max(5, Math.min(95, player.x));
         player.y = Math.max(2, Math.min(98, player.y));
 
@@ -1242,7 +1242,6 @@ class RealSoccerEngine {
 
                     targetX = this.ball.x + (forwardDir * pushDistance); // 공보다 앞 (X축)
                     targetY = p.baseY + avoidY; // 포메이션 Y위치 + 회피
-                    targetY = Math.max(5, Math.min(95, targetY)); // 터치라인 이탈 방지
                     
                     if (behavior.runBehind) targetX += (forwardDir * 10); // 침투형은 더 깊게
                     
@@ -1388,17 +1387,14 @@ class RealSoccerEngine {
                 // [신규] 골키퍼 위치 고정 (골대 앞 사수)
                 if (p.position === 'GK') {
                     const isHomeGK = p.teamId === 'home';
-                    const goalLineX = isHomeGK ? 3 : 97; // 절대 넘으면 안 되는 골라인
-                    const goalX = isHomeGK ? 5 : 95;     // 기본 포지션
+                    const goalX = isHomeGK ? 5 : 95; // 기본 골대 앞 위치
                     
-                    targetX = goalX + (this.ball.x - goalX) * 0.1;
-                    // 골라인 안쪽으로 강제 클램프 (절대 골라인 밖으로 못 나감)
-                    targetX = isHomeGK
-                        ? Math.max(goalLineX, Math.min(targetX, 15))
-                        : Math.min(goalLineX, Math.max(targetX, 85));
+                    // 공의 위치에 따라 좌우(Y축)로만 살짝 이동하고 앞으로 튀어나가지 않음
+                    // 공이 멀리 있으면 골대 앞 중앙, 가까우면 각도 좁히기
+                    targetX = goalX + (this.ball.x - goalX) * 0.1; // 아주 조금만 앞으로
+                    targetX = isHomeGK ? Math.min(targetX, 15) : Math.max(targetX, 85); // 페널티 박스 안쪽으로 제한
                     
-                    targetY = 50 + (this.ball.y - 50) * 0.3;
-                    targetY = Math.max(35, Math.min(65, targetY)); // 골문 범위 내로 Y축 제한
+                    targetY = 50 + (this.ball.y - 50) * 0.3; // 공 방향으로 Y축 이동
                 }
 
                 // 3. 압박 (Pressing)
@@ -1443,12 +1439,7 @@ class RealSoccerEngine {
                 const isDeepBeaten = p.position === 'DF' && (isHomeDef ? (this.ball.x < p.x - 8) : (this.ball.x > p.x + 8)) && !inMyBox;
 
 if (isDeepBeaten) {
-    // 복귀 목표: baseX 기준으로, 절대 골라인 5 / 95 이내로는 들어가지 않음
-    const safeMinX = isHomeDef ? 5 : 5;
-    const safeMaxX = isHomeDef ? 95 : 95;
-    const retreatTargetX = isHomeDef
-        ? Math.max(Math.max(p.baseX, safeMinX), this.ball.x - 8)
-        : Math.min(Math.min(p.baseX, safeMaxX), this.ball.x + 8);
+    const retreatTargetX = isHomeDef ? Math.max(p.baseX, this.ball.x - 8) : Math.min(p.baseX, this.ball.x + 8);
     const retreatTargetY = p.baseY;
 
     const dx = retreatTargetX - p.x;
@@ -1460,10 +1451,10 @@ if (isDeepBeaten) {
         p.x += (dx / dist) * retreatSpeed;
         p.y += (dy / dist) * retreatSpeed;
     }
-    // X축 하드 클램프 (골라인 절대 돌파 금지)
-    p.x = Math.max(5, Math.min(95, p.x));
     return;
 }
+            }
+
             // [신규] 아군끼리 너무 뭉치지 않게 거리 벌리기 (Separation)
             // 주변 아군을 확인하여 너무 가까우면 반대 방향으로 밀어냄
             const teammates = this.players.filter(tm => tm.teamId === p.teamId && tm !== p);
@@ -1485,7 +1476,7 @@ if (isDeepBeaten) {
             // 경기장 범위 제한
             targetY = Math.max(2, Math.min(98, targetY));
             targetX = Math.max(2, Math.min(98, targetX));
-                
+
             // [신규] 기계적인 움직임 방지를 위한 노이즈(Noise) 추가
             // 목표 지점에 ±2m 정도의 무작위성을 부여하여 자연스러운 곡선/흔들림 연출
             if (!isLooseBall) { // 루즈볼 경합 때는 정확하게 가야 하므로 제외
