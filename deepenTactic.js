@@ -1739,12 +1739,17 @@ processBallCarrierAI(player) {
 
             const tickFactor  = isSlowTick ? 0.5 : 1.0;
             const isFW        = (p.position === 'FW');
-            const accelCoef   = isFW ? 0.28 : (0.10 * tickFactor);
-            const dampCoef    = isFW ? 0.82 : 0.70;
+            const accelCoef   = isFW ? 0.15 : (0.10 * tickFactor);
+            const dampCoef    = isFW ? 0.75 : 0.70;
             const accelX = (targetX - p.x) * moveSpeed * accelCoef;
             const accelY = (targetY - p.y) * moveSpeed * accelCoef;
             p.vx = (p.vx + accelX) * dampCoef; p.vy = (p.vy + accelY) * dampCoef;
             p.x += p.vx; p.y += p.vy;
+    
+            // ★ 추가: 경기장 밖으로 나가지 못하게 강제 고정 (0~100 사이)
+            p.x = Math.max(2, Math.min(98, p.x));
+            p.y = Math.max(2, Math.min(98, p.y));
+
         });
     }
 
