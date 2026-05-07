@@ -1500,8 +1500,8 @@ processBallCarrierAI(player) {
             if (!isTeamAttacking && p.position === 'FW') {
                 const holdLineX = isHome ? 65 : 35;
                 targetX = isHome
-                    ? Math.max(holdLineX, p.baseX * 0.85 + this.ball.x * 0.03)
-                    : Math.min(holdLineX, p.baseX * 0.85 + this.ball.x * 0.03);
+                    ? Math.max(holdLineX, p.baseX * 0.72 + this.ball.x * 0.03)
+                    : Math.min(holdLineX, p.baseX * 0.72 + this.ball.x * 0.03);
                 targetY = p.baseY + (this.ball.y - p.baseY) * 0.05;
                 moveSpeed = 0.3;
 
