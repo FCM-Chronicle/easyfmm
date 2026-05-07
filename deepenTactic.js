@@ -1110,7 +1110,7 @@ class RealSoccerEngine {
                     targetY = (p.baseY * (1 - ballWeight)) + (this.ball.y * ballWeight);
 
                     if (attackBias > 0.2) {
-                        targetX += (forwardDir * attackBias * 22);
+                        targetX += (forwardDir * attackBias * 17);
                     }
                     
                     if (Math.abs(p.y - this.ball.y) < 3) targetY += (p.y > 50 ? 4 : -4);
