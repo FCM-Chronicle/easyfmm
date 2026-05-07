@@ -499,8 +499,8 @@ class RealSoccerEngine {
         const isBlocked = this.checkFrontalBlock(player, goalX);
 
         if (isBlocked) {
-            // 막혀 있어도 옆이나 뒤로 패스해서 탈출 시도
-            passProb = underPressure ? 0.85 : 0.55;
+            // 막혀 있으면 드리블 돌파 우선, 압박받을 때만 패스
+            passProb = underPressure ? 0.70 : 0.20;
         } else {
             if (player.position === 'DF' || player.position === 'GK') {
                 passProb = underPressure ? 0.98 : 0.4; 
@@ -560,8 +560,9 @@ class RealSoccerEngine {
         }
 
         if (isBlocked && !underPressure) {
-            player.x += moveDir * (Math.random() * 0.8);
-            player.y += (Math.random() < 0.5 ? 6.5 : -6.5) + (Math.random() * 2.0);
+            // 드리블 돌파: 전방으로 더 과감하게 전진
+            player.x += moveDir * (1.2 + Math.random() * 0.8);
+            player.y += (Math.random() < 0.5 ? 4.0 : -4.0) + (Math.random() * 1.5);
         } else {
             player.x += moveDir * moveDist; 
             player.y += (Math.random() - 0.5) * 4;
@@ -602,8 +603,8 @@ class RealSoccerEngine {
             if (mode === 'safe') {
                 forwardScore *= 0.3;
             } else {
-                forwardScore *= 3.0;
-                if (distAfter > distBefore) forwardScore -= 40;  // 80→40: 백패스 허용도 살짝 올림
+                forwardScore *= 4.5;                 // 전방 패스 가중치 대폭 상향
+                if (distAfter > distBefore) forwardScore -= 120;  // 백패스는 강하게 억제
                 if (isAI && forwardScore > 0) forwardScore *= 1.2;
             }
 
@@ -1314,7 +1315,7 @@ class RealSoccerEngine {
                 const d = Math.hypot(p.x - this.ball.x, p.y - this.ball.y);
                 if (d < 3) {
                     const effectiveDefense = this.getEffectiveStat(p, 'defense');
-                    const interceptChance = 0.05 + (effectiveDefense / 400); 
+                    const interceptChance = 0.02 + (effectiveDefense / 600);  // 0.05/400 → 0.02/600
                     if (Math.random() < interceptChance) {
                         this.ball.state = BallState.CONTROLLED;
                         this.ball.owner = p;
@@ -1359,8 +1360,9 @@ class RealSoccerEngine {
     attemptTackle(defender, attacker) {
         const defStat = this.getEffectiveStat(defender, 'defense');
         const atkStat = this.getEffectiveStat(attacker, 'decision');
-        const defRoll = (defStat * 1.05) * Math.random();
-        const atkRoll = atkStat * Math.random();
+        // 드리블 돌파 유리하게: 수비 가중치 낮추고 공격 가중치 올림
+        const defRoll = (defStat * 0.80) * Math.random();
+        const atkRoll = (atkStat * 1.10) * Math.random();
 
         if (defRoll > atkRoll) {
             this.ball.owner = defender;
