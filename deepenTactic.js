@@ -1936,17 +1936,20 @@ targetX = rawTargetX;
     }
 
     adjustDefensiveLines() {
-        const dt = gameData.deepTactics || { defensiveLine:'standard' };
-        let shift = -6;
-        if (dt.defensiveLine === 'high') shift = 8;
-        else if (dt.defensiveLine === 'deep') shift = -16;
+    const dt = gameData.deepTactics || { defensiveLine:'standard' };
+    let shift = -6;
+    if (dt.defensiveLine === 'high') shift = 8;
+    else if (dt.defensiveLine === 'deep') shift = -16;
 
-        this.players.forEach(p => {
-            p.currentBaseX = p.position === 'DF'
-                ? p.baseX + (shift * (p.teamId === 'home' ? 1 : -1))
-                : p.baseX;
-        });
-    }
+    this.players.forEach(p => {
+        // ★ 핵심: 수비수가 아니더라도 baseX가 바뀌면 currentBaseX에 즉시 반영되게 함
+        if (p.position === 'DF') {
+            p.currentBaseX = p.baseX + (shift * (p.teamId === 'home' ? 1 : -1));
+        } else {
+            p.currentBaseX = p.baseX; // 공격수/미드필더도 baseX를 동기화
+        }
+    });
+}
 
     startExitAnimation(winnerId = null) {
         this.winningTeamId = winnerId;
