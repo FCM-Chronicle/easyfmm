@@ -845,8 +845,8 @@ processBallCarrierAI(player) {
         if (distToGoal < shootThreshold && !isStabilizing) {
             let shootChance = shootChanceBase;
 
-            const behavior this.getRoleBehavior(player.role)
-            if (behavior.shootBias.) shootChance += behavior.shootBias;
+            const behavior = this.getRoleBehavior(player.role)
+            if (behavior.shootBias) shootChance += behavior.shootBias;
 
             if (distToGoal < 20) shootChance = Math.max(shootChanceBase, 0.7);
             if (distToGoal < 12) shootChance = 0.95;
