@@ -261,7 +261,7 @@ class MatchVisualizer {
             this.ball.accelFactor = 0.12; // 가속도 모델 수치로 변환
         } else if (snapshot.ball.state === 1) { 
             // CONTROLLED (드리블) - 선수 발에 붙어다님
-            this.ball.accelFactor = 0.35; // 드리블 시에는 즉각적으로 따라붙음
+            this.ball.accelFactor = 0.9; // 드리블 시에는 즉각적으로 따라붙음
         } else {
             // LOOSE / DEAD - 자연스러운 감속
             this.ball.accelFactor = 0.08;
