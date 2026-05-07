@@ -417,10 +417,10 @@ class RealSoccerEngine {
 
         if (teamId === 'home') {
             if (squad.gk) setupLine([squad.gk], 5);
-            setupLine(squad.df, 20); setupLine(squad.mf, 45); setupLine(squad.fw, 70);
+            setupLine(squad.df, 20); setupLine(squad.mf, 45); setupLine(squad.fw, 78);
         } else {
             if (squad.gk) setupLine([squad.gk], 95);
-            setupLine(squad.df, 80); setupLine(squad.mf, 55); setupLine(squad.fw, 30);
+            setupLine(squad.df, 80); setupLine(squad.mf, 55); setupLine(squad.fw, 22);
         }
     }
 
@@ -1251,7 +1251,7 @@ class RealSoccerEngine {
             if (!isTeamAttacking && p.position === 'FW') {
                 const forwardDir = isHome ? 1 : -1;
                 // FW는 수비 시 상대 진영 절반 근처에서 역습 대기
-                const holdLineX = isHome ? 58 : 42;
+                const holdLineX = isHome ? 65 : 35;
                 targetX = isHome
                     ? Math.max(holdLineX, p.baseX * 0.7 + this.ball.x * 0.05)
                     : Math.min(holdLineX, p.baseX * 0.7 + this.ball.x * 0.05);
@@ -1289,7 +1289,7 @@ class RealSoccerEngine {
                     });
                     if (nearestDefender && minD < 5) avoidY = (p.y - nearestDefender.y) > 0 ? 5 : -5;
 
-                    let pushDistance = 32;
+                    let pushDistance = 45;
                     if (isAttackingAI) pushDistance = 32;
                     if (behavior.comeShort) pushDistance = 8;
                     if (behavior.runBehind) pushDistance = 38;
