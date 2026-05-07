@@ -2863,16 +2863,3 @@ body.team-브라질_연합 {
     height: 20px;
     margin-right: 5px;
  }
-
-@media (orientation: portrait) {
-    #matchVisualizerContainer {
-        height: 60vw;
-    }
-    #matchVisualizerContainer canvas {
-        transform: rotate(90deg);
-        transform-origin: center center;
-        width: 100vh;
-        height: 60vw;
-    }
-}
-
