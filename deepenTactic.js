@@ -1508,8 +1508,8 @@ processBallCarrierAI(player) {
                 targetX = Math.max(2, Math.min(98, targetX + intentOffset.x));
                 targetY = Math.max(2, Math.min(98, targetY + intentOffset.y));
 
-                const accelX = (targetX - p.x) * moveSpeed * 0.10;
-                const accelY = (targetY - p.y) * moveSpeed * 0.10;
+                const accelX = (targetX - p.x) * moveSpeed * 0.08;
+                const accelY = (targetY - p.y) * moveSpeed * 0.08;
                 p.vx = (p.vx + accelX) * 0.7; p.vy = (p.vy + accelY) * 0.7;
                 p.x += p.vx; p.y += p.vy;
                 return;
@@ -1543,8 +1543,8 @@ processBallCarrierAI(player) {
                         // ★ 수비 뒷공간으로 침투 — 수비라인 바로 뒤를 목표로
                         const defLineX = this.getDefensiveLineX(isHome ? 'away' : 'home');
                         targetX = isHome
-                            ? Math.min(defLineX + 8, 93)
-                            : Math.max(defLineX - 8, 7);
+                            ? Math.min(defLineX + 4, 93)
+                            : Math.max(defLineX - 4, 7);
                         targetY = Math.max(5, Math.min(95, p.baseY + avoidY + (Math.random() - 0.5) * 10));
                         moveSpeed = 1.1 * speedFactor * sprintBonus;
 
@@ -1567,7 +1567,7 @@ processBallCarrierAI(player) {
 
                     } else {
                         // 기존 로직 (침투 명령 없을 때)
-                        let pushDistance = 36;
+                        let pushDistance = 33;
                         if (behavior.comeShort) pushDistance = 10;
                         if (behavior.runBehind)  pushDistance = 48;
 
@@ -1739,8 +1739,8 @@ processBallCarrierAI(player) {
 
             const tickFactor  = isSlowTick ? 0.5 : 1.0;
             const isFW        = (p.position === 'FW');
-            const accelCoef   = isFW ? 0.15 : (0.10 * tickFactor);
-            const dampCoef    = isFW ? 0.75 : 0.70;
+            const accelCoef   = isFW ? 0.12 : (0.10 * tickFactor);
+            const dampCoef    = isFW ? 0.70 : 0.70;
             const accelX = (targetX - p.x) * moveSpeed * accelCoef;
             const accelY = (targetY - p.y) * moveSpeed * accelCoef;
             p.vx = (p.vx + accelX) * dampCoef; p.vy = (p.vy + accelY) * dampCoef;
