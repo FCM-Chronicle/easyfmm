@@ -499,14 +499,16 @@ class RealSoccerEngine {
         const isBlocked = this.checkFrontalBlock(player, goalX);
 
         if (isBlocked) {
-            passProb = underPressure ? 0.75 : 0.05; 
+            // 막혀 있어도 옆이나 뒤로 패스해서 탈출 시도
+            passProb = underPressure ? 0.85 : 0.55;
         } else {
             if (player.position === 'DF' || player.position === 'GK') {
                 passProb = underPressure ? 0.98 : 0.4; 
             } else {
-                passProb = 0.15;
-                if (typeof gameData !== 'undefined' && gameData.currentTactic === 'tikitaka') passProb = 0.45;
-                if (isAI && !isBlocked) passProb -= 0.15; 
+                // FW/MF: 전방 패스 우선 — 패스 확률을 높여야 공이 앞으로 전진
+                passProb = 0.55;
+                if (typeof gameData !== 'undefined' && gameData.currentTactic === 'tikitaka') passProb = 0.75;
+                if (isAI && !isBlocked) passProb -= 0.05;
             }
         }
 
@@ -598,17 +600,18 @@ class RealSoccerEngine {
             let forwardScore = (distBefore - distAfter); 
             
             if (mode === 'safe') {
-                forwardScore *= 0.5;
+                forwardScore *= 0.3;
             } else {
                 forwardScore *= 3.0;
-                if (distAfter > distBefore) forwardScore -= 80; 
+                if (distAfter > distBefore) forwardScore -= 40;  // 80→40: 백패스 허용도 살짝 올림
                 if (isAI && forwardScore > 0) forwardScore *= 1.2;
             }
 
             const dist = Math.hypot(player.x - tm.x, player.y - tm.y);
             let distScore = 0;
-            if (dist < 10) distScore = -50;
-            else if (dist > 25) distScore = -(dist - 25) * 2.0;
+            if (dist < 5) distScore = -30;           // 너무 바짝 붙어있을 때만 패널티
+            else if (dist < 10) distScore = 10;      // 단거리 패스도 허용
+            else if (dist > 35) distScore = -(dist - 35) * 2.0;
             else distScore = 20;
 
             if (dist > 20 && distAfter > distBefore) distScore -= 100;
