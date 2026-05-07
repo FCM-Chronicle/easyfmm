@@ -921,13 +921,10 @@ class RealSoccerEngine {
             let moveSpeed = 1.0 * Math.max(0.7, Math.min(1.4, speedFactor));
 
             // ─── GK: 항상 골라인 근처 고정 ───────────────────────────────────
-            // 공격/수비 상황 모두 GK 블록 하나로 통합 처리
             if (p.position === 'GK') {
                 const isHomeGK = p.teamId === 'home';
-                // [수정] 공격 시에도 GK는 페널티 박스 앞까지만 나옴
-                //        Home GK: x=3~12, Away GK: x=88~97
                 const goalLineX  = isHomeGK ? 3  : 97;
-                const maxAdvance = isHomeGK ? 12 : 88; // 기존보다 좁힘 (기존 15/85)
+                const maxAdvance = isHomeGK ? 12 : 88;
 
                 targetX = isHomeGK
                     ? Math.max(goalLineX, Math.min(maxAdvance, p.x + (this.ball.x - p.x) * 0.05))
@@ -936,7 +933,6 @@ class RealSoccerEngine {
                 targetY = 50 + (this.ball.y - 50) * 0.25;
                 targetY = Math.max(38, Math.min(62, targetY));
 
-                // GK는 이동 계산 후 바로 적용하고 리턴
                 const accelX = (targetX - p.x) * 0.15;
                 const accelY = (targetY - p.y) * 0.15;
                 p.vx = (p.vx + accelX) * 0.7;
@@ -964,7 +960,6 @@ class RealSoccerEngine {
                 const forwardDir = isHome ? 1 : -1;
                 
                 const isLastPasser = (p === this.ball.lastOwner);
-                // [수정] isRearDefender 에 GK 제거 (GK는 위에서 이미 리턴됨)
                 const isRearDefender = p.position === 'DF' && ['CD', 'BPD', 'NCB'].includes(p.role);
 
                 if (isLastPasser && !isRearDefender) {
@@ -987,25 +982,28 @@ class RealSoccerEngine {
                         avoidY = (p.y - nearestDefender.y) > 0 ? 5 : -5;
                     }
 
-                    let pushDistance = 22;
-                    if (isAttackingAI) pushDistance = 22;
-                    if (behavior.comeShort) pushDistance = 2;
+                    // [수정] pushDistance 증가: 공격수가 더 깊이 전진하도록
+                    let pushDistance = 32;
+                    if (isAttackingAI) pushDistance = 32;
+                    if (behavior.comeShort) pushDistance = 8;
+                    if (behavior.runBehind) pushDistance = 38;
 
                     const rawTargetX = this.ball.x + (forwardDir * pushDistance);
                     const defLineX = this.getDefensiveLineX(isHome ? 'away' : 'home');
 
+                    // [수정] 오프사이드 트랩 클램프 완화: defLineX ± 5 (기존 -3)
                     if (isHome) {
-                        targetX = Math.min(rawTargetX, defLineX - 3);
+                        targetX = Math.min(rawTargetX, defLineX + 5);
                     } else {
-                        targetX = Math.max(rawTargetX, defLineX + 3);
+                        targetX = Math.max(rawTargetX, defLineX - 5);
                     }
 
                     targetY = p.baseY + avoidY;
                     targetY = Math.max(5, Math.min(95, targetY));
                     
                     if (behavior.runBehind) {
-                        if (isHome) targetX = Math.min(targetX + 5, defLineX - 1);
-                        else         targetX = Math.max(targetX - 5, defLineX + 1);
+                        if (isHome) targetX = Math.min(targetX + 5, defLineX + 8);
+                        else         targetX = Math.max(targetX - 5, defLineX - 8);
                     }
                     
                     moveSpeed = 0.6 * speedFactor * sprintBonus;
@@ -1015,16 +1013,15 @@ class RealSoccerEngine {
                     const defenseBias = behavior.defenseBias || 0;
 
                     let ballWeight = 0.6 + (attackBias * 0.4) - (defenseBias * 0.3);
-                    ballWeight = Math.max(0.2, Math.min(0.70, ballWeight)); // [수정] 0.95→0.70
+                    ballWeight = Math.max(0.2, Math.min(0.70, ballWeight));
 
                     targetX = (p.baseX * (1 - ballWeight)) + (this.ball.x * ballWeight);
                     targetY = (p.baseY * (1 - ballWeight)) + (this.ball.y * ballWeight);
 
                     if (attackBias > 0.2) {
-                        targetX += (forwardDir * attackBias * 10); // [수정] 17→10
+                        targetX += (forwardDir * attackBias * 10);
                     }
 
-                    // [수정] 미드필더가 공격수 최전방 X보다 앞으로 나가지 못하도록 캡
                     const fwPlayers = this.players.filter(fw => fw.teamId === p.teamId && fw.position === 'FW');
                     if (fwPlayers.length > 0) {
                         const fwFrontX = isHome
@@ -1037,7 +1034,7 @@ class RealSoccerEngine {
                     if (Math.abs(p.y - this.ball.y) < 3) targetY += (p.y > 50 ? 4 : -4);
 
                 } else {
-                    // DF: 공격 시 전진 한계 — baseX + 10 (기존 +15에서 축소)
+                    // DF 공격 시 전진 한계
                     if (isHome) {
                         const maxAdvanceX = p.baseX + 10;
                         targetX = Math.min(maxAdvanceX, this.ball.x - 25);
@@ -1073,7 +1070,6 @@ class RealSoccerEngine {
                     shiftFactor = 0.45; 
                     moveSpeed = 0.85 * sprintBonus;
                 } else if (p.position === 'DF') {
-                    // [수정] shiftFactor 0.4→0.25 (더 완만하게 내려감)
                     shiftFactor = 0.25;
                     yShiftFactor = 0.05;
                 }
@@ -1081,9 +1077,6 @@ class RealSoccerEngine {
                 const ballXShift = (this.ball.x - 50) * shiftFactor;
                 let formationX = p.currentBaseX + ballXShift;
 
-                // [수정] DF 후퇴 클램프: ±12→±8 (더 좁게 제한)
-                //        home DF baseX=20 기준: 12~28 사이로만 이동
-                //        away DF baseX=80 기준: 72~88 사이로만 이동
                 if (p.position === 'DF') {
                     formationX = Math.max(p.baseX - 8, Math.min(p.baseX + 8, formationX));
                 }
@@ -1156,7 +1149,6 @@ class RealSoccerEngine {
                     }
                 }
 
-                // [수정] 긴급 복귀 트리거: 15m→20m (더 보수적으로 완화)
                 const isDeepBeaten = p.position === 'DF' && 
                     (isHomeDef ? (this.ball.x < p.x - 20) : (this.ball.x > p.x + 20)) && 
                     !inMyBox;
@@ -1376,9 +1368,10 @@ class RealSoccerEngine {
 
     adjustDefensiveLines() {
         const dt = gameData.deepTactics || { defensiveLine: 'standard' };
-        let shift = 0;
-        if (dt.defensiveLine === 'high') shift = 12;
-        else if (dt.defensiveLine === 'deep') shift = -12;
+        // [수정] standard 기본값을 -6으로 내림 (기존 0)
+        let shift = -6;
+        if (dt.defensiveLine === 'high') shift = 8;
+        else if (dt.defensiveLine === 'deep') shift = -16;
 
         this.players.forEach(p => {
             if (p.position === 'DF') {
