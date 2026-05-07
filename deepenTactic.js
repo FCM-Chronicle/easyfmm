@@ -1521,7 +1521,7 @@ processBallCarrierAI(player) {
                 const isRearDefender = p.position === 'DF' && ['CD','BPD','NCB'].includes(p.role);
 
                 if (isLastPasser && !isRearDefender) {
-                    targetX = p.x + (forwardDir * 12);
+                    targetX = p.x + (forwardDir * 8);
                     targetY = p.y + (this.ball.y - p.y) * 0.3;
                     moveSpeed = 0.7;
 
@@ -1567,7 +1567,7 @@ processBallCarrierAI(player) {
 
                     } else {
                         // 기존 로직 (침투 명령 없을 때)
-                        let pushDistance = 42;
+                        let pushDistance = 36;
                         if (behavior.comeShort) pushDistance = 10;
                         if (behavior.runBehind)  pushDistance = 48;
 
@@ -1595,7 +1595,7 @@ processBallCarrierAI(player) {
                     if (Math.abs(p.y - this.ball.y) < 3) targetY += p.y > 50 ? 4 : -4;
 
                     // ★ 대형 전체 전진: 공 소유 시 MF 라인을 5~8 전진
-                    const lineAdvance = isHome ? 6 : -6;
+                    const lineAdvance = isHome ? 4 : -4;
                     const advancedBase = p.baseX + lineAdvance;
                     if (isHome) targetX = Math.max(targetX, advancedBase * 0.8);
                     else        targetX = Math.min(targetX, advancedBase * 1.2);
