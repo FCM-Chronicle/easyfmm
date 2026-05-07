@@ -1080,9 +1080,9 @@ class RealSoccerEngine {
                     // Home이면 defLineX보다 커지면 오프사이드 → 클램프
                     // Away이면 defLineX보다 작아지면 오프사이드 → 클램프
                     if (isHome) {
-                        targetX = Math.min(rawTargetX, defLineX - 1);
+                        targetX = Math.min(rawTargetX, defLineX - 3);
                     } else {
-                        targetX = Math.max(rawTargetX, defLineX + 1);
+                        targetX = Math.max(rawTargetX, defLineX + 3);
                     }
 
                     targetY = p.baseY + avoidY;
