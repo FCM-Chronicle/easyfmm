@@ -723,6 +723,14 @@ processBallCarrierAI(player) {
         const distToGoal = Math.abs(player.x - goalX);
         const teamId     = player.teamId;
 
+        // 공을 잡은 지 얼마 안 됐으면(예: 5틱 미만) 아무것도 안 하고 드리블만 하게 함
+        if (this._carrierTicks[player.teamId] < 5) {
+            // 드리블 로직으로 강제 이동
+            this.processDribble(player); 
+            return;
+        }
+
+
         let isAI = false;
         if (typeof gameData !== 'undefined') {
             const userSide = gameData.isHomeGame ? 'home' : 'away';
