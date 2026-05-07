@@ -1547,8 +1547,8 @@ processBallCarrierAI(player) {
                         // ★ 수비 뒷공간으로 침투 — 수비라인 바로 뒤를 목표로
                         const defLineX = this.getDefensiveLineX(isHome ? 'away' : 'home');
                         targetX = isHome
-                            ? Math.min(defLineX + 4, 93)
-                            : Math.max(defLineX - 4, 7);
+                            ? Math.min(defLineX + 4, 90)
+                            : Math.max(defLineX - 4, 10);
                         targetY = Math.max(5, Math.min(95, p.baseY + avoidY + (Math.random() - 0.5) * 10));
                         moveSpeed = 1.1 * speedFactor * sprintBonus;
 
