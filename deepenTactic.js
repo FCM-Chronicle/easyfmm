@@ -1,4 +1,4 @@
-// deepenTactic.js — PlayIntent 시스템 통합 버전 (공격 고착 버그 수정)
+// deepenTactic.js — PlayIntent 시스템 통합 버전 (공격 고착 버그 수정 + FW 전방대기 + clearBall 패스 우선)
 // [PART 0] PlayIntent 시스템 ───────────────────────────────────────────────────────────────
 
 const TeamIntent = {
@@ -491,7 +491,7 @@ class RealSoccerEngine {
         this._possessionTicks[ownerTeam]++;
         this._possessionTicks[otherTeam] = Math.max(0, this._possessionTicks[otherTeam] - 1);
 
-        // 한 팀이 120틱(약 2분 상당) 이상 연속 점유 시 강제 턴오버 플래그
+        // 한 팀이 120틱 이상 연속 점유 시 강제 턴오버 플래그
         if (this._possessionTicks[ownerTeam] > 120) {
             this._possessionForceTurnover = true;
         }
@@ -524,9 +524,8 @@ class RealSoccerEngine {
         // ★ 루즈볼 처리 개선: 수비팀도 공평하게 경합
         if (this.ball.state === BallState.LOOSE && !this.pendingShot) {
             this._looseTicks = (this._looseTicks || 0) + 1;
-            if (this._looseTicks >= 3) {  // 5→3: 더 빠르게 경합 처리
+            if (this._looseTicks >= 3) {
                 this._looseTicks = 0;
-                // ★ 가장 가까운 선수를 팀별로 각각 찾아서 경합
                 let nearestHome = null, nearestAway = null;
                 let minDistHome = 999, minDistAway = 999;
                 this.players.forEach(p => {
@@ -534,7 +533,6 @@ class RealSoccerEngine {
                     if (p.teamId === 'home' && d < minDistHome) { minDistHome = d; nearestHome = p; }
                     if (p.teamId === 'away' && d < minDistAway) { minDistAway = d; nearestAway = p; }
                 });
-                // ★ 경합: 가까운 팀 쪽 승률을 거리 비율로 결정
                 if (nearestHome && nearestAway) {
                     const totalDist = minDistHome + minDistAway;
                     const homeWinChance = totalDist > 0 ? (minDistAway / totalDist) : 0.5;
@@ -543,7 +541,6 @@ class RealSoccerEngine {
                     this.ball.owner = winner;
                     this.ball.x = winner.x;
                     this.ball.y = winner.y;
-                    // ★ 루즈볼을 수비팀이 잡으면 역습 의도 트리거
                     if (winner.teamId !== (this.ball.lastOwner ? this.ball.lastOwner.teamId : winner.teamId)) {
                         this._possessionTicks[winner.teamId === 'home' ? 'away' : 'home'] = 0;
                         this._possessionTicks[winner.teamId] = 0;
@@ -575,6 +572,21 @@ class RealSoccerEngine {
             const dx = this.ball.targetPos.x - this.ball.x;
             const dy = this.ball.targetPos.y - this.ball.y;
             const dist = Math.hypot(dx, dy);
+
+            if (dist > ballSpeed && this.ball.targetPos) {
+                const tx = this.ball.targetPos.x;
+                const ty = this.ball.targetPos.y;
+                this.players.forEach(p => {
+                    if (p === this.ball.owner) return;
+                    const dToTarget = Math.hypot(p.x - tx, p.y - ty);
+                    if (dToTarget < 20) {
+                        const spd = this.getEffectiveStat(p, 'speed') / 75 * 1.4;
+                        const ddx = tx - p.x, ddy = ty - p.y;
+                        const dd  = Math.hypot(ddx, ddy);
+                        if (dd > 1) { p.x += (ddx / dd) * spd; p.y += (ddy / dd) * spd; }
+                    }
+                });
+            }
 
             if (dist <= ballSpeed) {
                 this.ball.x = this.ball.targetPos.x; this.ball.y = this.ball.targetPos.y;
@@ -637,7 +649,7 @@ class RealSoccerEngine {
         };
     }
 
-    // ★ processBallCarrierAI — 점유 고착 방지 로직 추가
+    // ★ processBallCarrierAI — 점유 고착 방지 로직 포함
     processBallCarrierAI(player) {
         const isHome     = player.teamId === 'home';
         const goalX      = isHome ? 100 : 0;
@@ -653,11 +665,9 @@ class RealSoccerEngine {
         const pressureDist  = nearestOpp ? nearestOpp.dist : 999;
         const underPressure = pressureDist < 8;
 
-        // ── 의도 읽기 ──
         const teamIntent   = this.intentMgr.getTeamIntent(player.teamId);
         const playerIntent = this.intentMgr.getPlayerIntent(player.id);
 
-        // ── 의도별 행동 가중치 ──
         let shootThreshold  = 30;
         let shootChanceBase = 0.15;
         let passProb        = 0.55;
@@ -685,14 +695,14 @@ class RealSoccerEngine {
 
         if (isAI) { shootThreshold += 2; shootChanceBase += 0.05; }
 
-        // ★ 점유 고착 패널티: 오래 가진 팀은 실수율 증가
+        // ★ 점유 고착 패널티
         const possessionTick = this._possessionTicks[player.teamId] || 0;
         let turnoverRisk = 0;
         if (possessionTick > 60)  turnoverRisk = 0.05;
         if (possessionTick > 90)  turnoverRisk = 0.12;
-        if (possessionTick > 120) turnoverRisk = 0.22;  // 강제 수준
+        if (possessionTick > 120) turnoverRisk = 0.22;
 
-        // ★ 강제 턴오버: 장시간 점유 시 패스 미스 / 드리블 실패 유도
+        // ★ 강제 턴오버
         if (this._possessionForceTurnover && Math.random() < 0.35) {
             this._triggerTurnover(player);
             this._possessionForceTurnover = false;
@@ -700,7 +710,7 @@ class RealSoccerEngine {
             return;
         }
 
-        // ★ 자연스러운 실수 (점유 시간 비례)
+        // ★ 자연스러운 실수
         if (turnoverRisk > 0 && Math.random() < turnoverRisk) {
             this._triggerTurnover(player);
             return;
@@ -775,11 +785,9 @@ class RealSoccerEngine {
     // ★ 신규: 턴오버 발생 처리
     _triggerTurnover(player) {
         const isHome = player.teamId === 'home';
-        // 상대팀 가장 가까운 선수를 찾아 볼 넘김
         const opponents = this.players.filter(p => p.teamId !== player.teamId);
         if (!opponents.length) return;
 
-        // 근처 상대 또는 랜덤 상대
         let target = null;
         let minD = 999;
         opponents.forEach(p => {
@@ -788,11 +796,9 @@ class RealSoccerEngine {
         });
 
         if (target) {
-            // 패스 미스처럼 볼을 상대 쪽으로 날림
             const errorAngle = (Math.random() - 0.5) * 1.2;
             const dx = target.x - player.x;
             const dy = target.y - player.y;
-            const dist = Math.hypot(dx, dy);
             const noiseDist = 4 + Math.random() * 6;
             this.ball.state = BallState.IN_FLIGHT;
             this.ball.owner = null;
@@ -803,7 +809,6 @@ class RealSoccerEngine {
             };
             this.eventsQueue.push({ type:'tackle', player:target.name, desc:`${player.name}, 볼을 빼앗깁니다!` });
         } else {
-            // 주변에 없으면 볼을 그냥 흘림
             this.ball.state = BallState.LOOSE;
             this.ball.owner = null;
             this.ball.lastOwner = player;
@@ -812,11 +817,10 @@ class RealSoccerEngine {
             this.eventsQueue.push({ type:'dribble', player:player.name, desc:`${player.name}, 볼을 흘립니다!` });
         }
 
-        // ★ 턴오버 후 상대팀 역습 의도 트리거
         const opponentTeam = isHome ? 'away' : 'home';
         this._possessionTicks[player.teamId] = 0;
         this._possessionTicks[opponentTeam] = 0;
-        this.intentMgr._transitionCooldown[opponentTeam] = 0; // 역습 쿨다운 제거
+        this.intentMgr._transitionCooldown[opponentTeam] = 0;
     }
 
     findBestPassTarget(player, mode = 'aggressive') {
@@ -833,7 +837,6 @@ class RealSoccerEngine {
         const isHome   = player.teamId === 'home';
         const forwardX = isHome ? 100 : 0;
 
-        // ★ 팀 의도에 따라 전방 패스 가중치 동적 조정
         const teamIntent = this.intentMgr.getTeamIntent(player.teamId);
         let forwardWeight = 4.5;
         if (teamIntent === TeamIntent.HOLD)       forwardWeight = 1.0;
@@ -841,7 +844,6 @@ class RealSoccerEngine {
         if (teamIntent === TeamIntent.ALL_OUT)    forwardWeight = 7.0;
         if (teamIntent === TeamIntent.DEFEND)     forwardWeight = 2.0;
 
-        // ★ 점유 시간이 길면 전방 가중치 낮춰 무리한 전진 억제 → 자연스런 실수 유도
         const possessionTick = this._possessionTicks[player.teamId] || 0;
         if (possessionTick > 60) forwardWeight *= 0.8;
         if (possessionTick > 90) forwardWeight *= 0.6;
@@ -887,7 +889,6 @@ class RealSoccerEngine {
             if (player.position === 'DF' && tm.position === 'MF') positionBonus = 5;
             if (player.position === 'GK' && tm.position === 'DF') positionBonus = 5;
 
-            // ★ 수신자 의도에 따른 보너스
             let intentBonus = 0;
             if (targetIntent === PlayerIntent.SUPPORT)    intentBonus += 25;
             if (targetIntent === PlayerIntent.PENETRATE)  intentBonus += 20;
@@ -902,14 +903,53 @@ class RealSoccerEngine {
         return bestTarget;
     }
 
+    // ★ 수정: clearBall — 압박 없으면 패스 먼저 시도, 압박받을 때만 걷어냄
     clearBall(player) {
         const isHome = player.teamId === 'home';
         const forwardDir = isHome ? 1 : -1;
-        const targetX = 50 + (forwardDir * (Math.random() * 10));
-        const targetY = 20 + Math.random() * 60;
+
+        // 압박 강도 체크
+        const nearestOpp = this.findNearestDefender(player);
+        const pressureDist = nearestOpp ? nearestOpp.dist : 999;
+        const isUnderPressure = pressureDist < 7;
+
+        // ★ 압박 없으면 안전 패스 먼저 시도 (빌드업 유지)
+        if (!isUnderPressure) {
+            const safeTarget = this.findBestPassTarget(player, 'safe');
+            if (safeTarget) {
+                this.executePass(player, safeTarget);
+                return;
+            }
+        }
+
+        // ★ 압박받거나 패스 대상 없을 때 — 전방 팀원 쪽으로 걷어냄
+        // 전방에 있는 팀원을 우선 탐색 (FW, 전진한 MF)
+        const teammates = this.players.filter(p =>
+            p.teamId === player.teamId &&
+            p !== player &&
+            p.position !== 'GK' &&
+            (isHome ? p.x > player.x + 10 : p.x < player.x - 10) // 충분히 전방에 있는 선수
+        );
+
+        let targetX, targetY;
+
+        if (teammates.length > 0) {
+            // 전방 팀원 중 가장 전진한 선수 우선 (역습 수신자)
+            teammates.sort((a, b) => isHome ? b.x - a.x : a.x - b.x);
+            const receiver = teammates[Math.floor(Math.random() * Math.min(2, teammates.length))];
+            const errorX = (Math.random() - 0.5) * 10;
+            const errorY = (Math.random() - 0.5) * 12;
+            targetX = Math.max(2, Math.min(98, receiver.x + errorX));
+            targetY = Math.max(2, Math.min(98, receiver.y + errorY));
+        } else {
+            // 전방에 아무도 없으면 공간으로 걷어냄
+            targetX = 50 + (forwardDir * (Math.random() * 10));
+            targetY = 20 + Math.random() * 60;
+        }
+
         this.ball.state = BallState.IN_FLIGHT;
         this.ball.owner = null; this.ball.lastOwner = player;
-        this.ball.targetPos = { x:targetX, y:targetY };
+        this.ball.targetPos = { x: targetX, y: targetY };
         this.eventsQueue.push({ type:'pass', from:player.name, to:'걷어내기', desc:`${player.name}, 멀리 걷어냅니다!` });
     }
 
@@ -929,7 +969,6 @@ class RealSoccerEngine {
         let successChance = accuracy - distPenalty;
         if (from.position === 'GK' && dist > 50) successChance -= 15;
 
-        // ★ 점유 시간이 길수록 패스 정확도 저하 (피로/압박 반영)
         const possessionTick = this._possessionTicks[from.teamId] || 0;
         if (possessionTick > 60)  successChance -= 8;
         if (possessionTick > 90)  successChance -= 15;
@@ -948,7 +987,6 @@ class RealSoccerEngine {
             const errorMargin = dist * 0.25;
             const angle = Math.random() * Math.PI * 2;
             const errorDist = Math.random() * errorMargin + 5;
-            // ★ 패스 미스 방향을 중립(랜덤)으로 — 공격 방향 편향 제거
             this.ball.targetPos = {
                 x: Math.max(2, Math.min(98, to.x + Math.cos(angle) * errorDist)),
                 y: Math.max(2, Math.min(98, to.y + Math.sin(angle) * errorDist))
@@ -984,9 +1022,8 @@ class RealSoccerEngine {
         let goalChance = Math.max(0.01, Math.min(0.55, 0.12 + (shotPower - savePower) * 0.0025));
         if (this.lastAction === 'counter_attack') goalChance *= 1.2;
 
-        // ★ 팀 의도에 따른 골 확률 보정
         const teamIntent = this.intentMgr.getTeamIntent(shooter.teamId);
-        if (teamIntent === TeamIntent.ALL_OUT) goalChance = Math.min(goalChance * 1.15, 0.60);
+        if (teamIntent === TeamIntent.ALL_OUT)    goalChance = Math.min(goalChance * 1.15, 0.60);
         if (teamIntent === TeamIntent.TRANSITION) goalChance = Math.min(goalChance * 1.10, 0.58);
 
         this.ball.state = BallState.IN_FLIGHT;
@@ -1035,10 +1072,24 @@ class RealSoccerEngine {
             if (blockingDefs.length > 0 && Math.random() < 0.35) {
                 const blocker = blockingDefs[0];
                 this.eventsQueue.push({ type:'block', shooter:shooter.name, blocker:blocker.name, desc:`🛡️ ${blocker.name}, 몸을 날려 슈팅을 막아냅니다!` });
+
+                const defTeamId = blocker.teamId;
+                const nearbyDefenders = this.players.filter(p =>
+                    p.teamId === defTeamId && p !== blocker &&
+                    Math.hypot(p.x - blocker.x, p.y - blocker.y) < 25
+                );
+                let bounceX, bounceY;
+                if (nearbyDefenders.length > 0) {
+                    const recv = nearbyDefenders[Math.floor(Math.random() * Math.min(2, nearbyDefenders.length))];
+                    bounceX = recv.x + (Math.random() - 0.5) * 8;
+                    bounceY = recv.y + (Math.random() - 0.5) * 8;
+                } else {
+                    bounceX = blocker.x + (isHomeAttacking ? -8 : 8);
+                    bounceY = blocker.y + (Math.random() - 0.5) * 15;
+                }
                 this.ball.state = BallState.LOOSE; this.ball.owner = null;
-                this.ball.x = blocker.x + (isHomeAttacking ? -5 : 5);
-                this.ball.y = blocker.y + (Math.random() - 0.5) * 15;
-                // ★ 블록 후 수비팀 점유 리셋 (역습 기회)
+                this.ball.x = Math.max(2, Math.min(98, bounceX));
+                this.ball.y = Math.max(2, Math.min(98, bounceY));
                 this._possessionTicks[shooter.teamId] = 0;
                 return;
             }
@@ -1047,16 +1098,33 @@ class RealSoccerEngine {
             if (enemyGk) {
                 if (Math.random() < 0.5) {
                     this.eventsQueue.push({ type:'save', shooter:shooter.name, gk:enemyGk.name, desc:`🧤 ${enemyGk.name}, 슈팅을 펀칭으로 쳐냅니다!` });
+
+                    const gkTeamId = enemyGk.teamId;
+                    const gkTeammates = this.players.filter(p =>
+                        p.teamId === gkTeamId &&
+                        p !== enemyGk &&
+                        (p.position === 'DF' || p.position === 'MF') &&
+                        Math.hypot(p.x - enemyGk.x, p.y - enemyGk.y) < 40
+                    );
+                    let punchX, punchY;
+                    if (gkTeammates.length > 0) {
+                        gkTeammates.sort((a, b) => Math.hypot(a.x - enemyGk.x, a.y - enemyGk.y) - Math.hypot(b.x - enemyGk.x, b.y - enemyGk.y));
+                        const recv = gkTeammates[Math.floor(Math.random() * Math.min(2, gkTeammates.length))];
+                        punchX = recv.x + (Math.random() - 0.5) * 10;
+                        punchY = recv.y + (Math.random() - 0.5) * 12;
+                    } else {
+                        const punchDir = gkTeamId === 'home' ? 1 : -1;
+                        punchX = enemyGk.x + punchDir * (15 + Math.random() * 10);
+                        punchY = enemyGk.y + (Math.random() - 0.5) * 20;
+                    }
                     this.ball.state = BallState.LOOSE; this.ball.owner = null;
-                    this.ball.x = enemyGk.x + (isHomeAttacking ? -10 : 10);
-                    this.ball.y = enemyGk.y + (Math.random() - 0.5) * 30;
-                    // ★ 세이브 후 GK 팀 점유 카운터 리셋
+                    this.ball.x = Math.max(2, Math.min(98, punchX));
+                    this.ball.y = Math.max(2, Math.min(98, punchY));
                     this._possessionTicks[shooter.teamId] = 0;
                 } else {
                     this.eventsQueue.push({ type:'save', shooter:shooter.name, gk:enemyGk.name, desc:`🧤 ${enemyGk.name}, 안정적으로 공을 잡아냅니다.` });
                     this.ball.state = BallState.CONTROLLED; this.ball.owner = enemyGk;
                     this.ball.x = enemyGk.x; this.ball.y = enemyGk.y;
-                    // ★ GK가 잡으면 상대 점유 리셋 → GK 팀 빌드업 시작
                     this._possessionTicks[shooter.teamId] = 0;
                     this._possessionTicks[enemyGk.teamId] = 0;
                 }
@@ -1092,7 +1160,7 @@ class RealSoccerEngine {
         });
     }
 
-    // ★ processOffBallAI — 수비팀 압박 강화 + 의도 오프셋 통합
+    // ★ processOffBallAI — FW 전방 대기 강제 적용 (수비 가담 방지)
     processOffBallAI() {
         const attackingTeam = this.ball.owner ? this.ball.owner.teamId : null;
         let isAttackingAI = false;
@@ -1114,7 +1182,7 @@ class RealSoccerEngine {
             });
         }
 
-        // ★ 수비팀 2번째로 가까운 선수도 압박에 가담 (고착 방지 핵심)
+        // ★ 2번째 압박 선수
         let secondPresser = null;
         if (this.ball.owner && presser) {
             let minD2 = 999;
@@ -1143,7 +1211,6 @@ class RealSoccerEngine {
             const behavior = this.getRoleBehavior(p.role);
 
             let targetX = p.x, targetY = p.y;
-            // ★ 기본 압박 감지 거리 상향 조정 (12→15) — 수비팀이 더 빨리 압박 가담
             let pressDetectDist = 15;
             let sprintBonus = 1.0;
             if (dt.pressIntensity === 'high') { pressDetectDist = 25; sprintBonus = 1.2; }
@@ -1179,6 +1246,28 @@ class RealSoccerEngine {
             const isTeamAttacking = attackingTeam
                 ? (p.teamId === attackingTeam)
                 : (isHome ? this.ball.x > 50 : this.ball.x < 50);
+
+            // ★★★ FW 수비 시 전방 대기 강제 — 절대 깊이 내려오지 않음 ★★★
+            if (!isTeamAttacking && p.position === 'FW') {
+                const forwardDir = isHome ? 1 : -1;
+                // FW는 수비 시 상대 진영 절반 근처에서 역습 대기
+                const holdLineX = isHome ? 58 : 42;
+                targetX = isHome
+                    ? Math.max(holdLineX, p.baseX * 0.7 + this.ball.x * 0.05)
+                    : Math.min(holdLineX, p.baseX * 0.7 + this.ball.x * 0.05);
+                targetY = p.baseY + (this.ball.y - p.baseY) * 0.08;
+                moveSpeed = 0.35; // 천천히 포지션 유지
+
+                const intentOffset = this._calcIntentOffset(p);
+                targetX = Math.max(2, Math.min(98, targetX + intentOffset.x));
+                targetY = Math.max(2, Math.min(98, targetY + intentOffset.y));
+
+                const accelX = (targetX - p.x) * moveSpeed * 0.12;
+                const accelY = (targetY - p.y) * moveSpeed * 0.12;
+                p.vx = (p.vx + accelX) * 0.7; p.vy = (p.vy + accelY) * 0.7;
+                p.x += p.vx; p.y += p.vy;
+                return; // 여기서 리턴 — 압박 로직 진입 불가
+            }
 
             if (isTeamAttacking) {
                 const forwardDir = isHome ? 1 : -1;
@@ -1248,7 +1337,7 @@ class RealSoccerEngine {
                 else if (behavior.hugLine) targetY = p.baseY < 50 ? 5 : 95;
 
             } else {
-                // ── 수비 로직 ──
+                // ── 수비 로직 (MF/DF만 — FW는 위에서 이미 리턴) ──
                 let shiftFactor = 0.8, yShiftFactor = 0.2;
                 const isHomeDef = p.teamId === 'home';
                 const inMyBox   = isHomeDef ? (this.ball.x < 22) : (this.ball.x > 78);
@@ -1257,8 +1346,7 @@ class RealSoccerEngine {
                     const defenseBias = behavior.defenseBias || 0;
                     shiftFactor = Math.max(1.1, Math.min(1.6, 1.25 + (defenseBias * 0.4)));
                     moveSpeed   = 1.1 * (1 + defenseBias) * sprintBonus;
-                } else if (p.position === 'FW') { shiftFactor = 0.45; moveSpeed = 0.85 * sprintBonus; }
-                  else if (p.position === 'DF') { shiftFactor = 0.25; yShiftFactor = 0.05; }
+                } else if (p.position === 'DF') { shiftFactor = 0.25; yShiftFactor = 0.05; }
 
                 let formationX = p.currentBaseX + (this.ball.x - 50) * shiftFactor;
                 if (p.position === 'DF') formationX = Math.max(p.baseX - 8, Math.min(p.baseX + 8, formationX));
@@ -1292,24 +1380,21 @@ class RealSoccerEngine {
                     }
                 } else { targetX = formationX; targetY = formationY; }
 
-                // ── 압박 로직 (강화) ──
+                // ── 압박 로직 (MF/DF만) ──
                 if (this.ball.owner && p.position !== 'GK') {
                     const distToBall = Math.hypot(p.x - this.ball.x, p.y - this.ball.y);
                     let forcePress   = (inMyBox && p.position === 'DF' && distToBall < 15) ||
                                        (!inMyBox && p.position === 'MF' && distToBall < 18);
 
-                    // ★ 점유 고착 시 수비팀 압박 강도 증가
                     const oppPossessionTick = this._possessionTicks[attackingTeam] || 0;
                     const extraPressRange   = oppPossessionTick > 60 ? 6 : (oppPossessionTick > 30 ? 3 : 0);
                     const effectivePressDetectDist = pressDetectDist + extraPressRange;
 
-                    // ★ 2번째 압박 선수도 스프린트
                     const isSecondPresser = (p === secondPresser);
 
                     if (p === presser || distToBall < effectivePressDetectDist || forcePress || isSecondPresser) {
                         const dx = this.ball.x - p.x, dy = this.ball.y - p.y;
                         const dist = Math.hypot(dx, dy);
-                        // ★ 2번째 압박 선수는 약간 느리게 (포지션 유지 겸용)
                         const baseSprintSpeed = isSecondPresser ? 2.4 : 3.4;
                         const sprintSpeed = baseSprintSpeed * speedFactor * (dt.pressIntensity === 'high' ? 1.15 : 1.0);
 
@@ -1493,10 +1578,8 @@ class RealSoccerEngine {
                 const d = Math.hypot(p.x - this.ball.x, p.y - this.ball.y);
                 if (d < 3) {
                     const effectiveDefense = this.getEffectiveStat(p, 'defense');
-                    // ★ 인터셉트 확률 소폭 상향 (0.02→0.03) — 수비팀 기회 증가
                     if (Math.random() < 0.03 + (effectiveDefense / 600)) {
                         this.ball.state = BallState.CONTROLLED; this.ball.owner = p; this.ball.lastOwner = null;
-                        // ★ 인터셉트 후 점유 카운터 리셋
                         this._possessionTicks[p.teamId === 'home' ? 'away' : 'home'] = 0;
                         this._possessionTicks[p.teamId] = 0;
                         this.eventsQueue.push({ type:'tackle', player:p.name, desc:`${p.name}, 날카로운 패스 차단!` });
@@ -1537,7 +1620,6 @@ class RealSoccerEngine {
         const atkRoll = (this.getEffectiveStat(attacker, 'decision') * 1.10) * Math.random();
         if (defRoll > atkRoll) {
             this.ball.owner = defender; this.ball.lastOwner = null;
-            // ★ 태클 성공 후 양팀 점유 카운터 리셋 → 역습 유도
             this._possessionTicks[defender.teamId] = 0;
             this._possessionTicks[attacker.teamId] = 0;
             this.eventsQueue.push({ type:'tackle', player:defender.name, desc:`${defender.name}의 태클 성공!` });
