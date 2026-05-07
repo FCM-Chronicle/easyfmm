@@ -1575,7 +1575,7 @@ targetX = rawTargetX;
 
             } else {
                 // ── 수비 로직 ──
-                                // ── 수비 로직 (1:1 마크 및 라인 유지 버전) ──
+                                                // ── 수비 로직 (1:1 마크 및 라인 유지 버전) ──
                 const distToBall = Math.hypot(p.x - this.ball.x, p.y - this.ball.y);
                 
                 // ★ 내 주변 15m 안의 가장 가까운 상대(마크맨) 찾기
@@ -1583,24 +1583,25 @@ targetX = rawTargetX;
                     .filter(opp => opp.teamId !== p.teamId && opp !== this.ball.owner && Math.hypot(p.x - opp.x, p.y - opp.y) < 15)
                     .sort((a, b) => Math.hypot(p.x - a.x, p.y - a.y) - Math.hypot(p.x - b.x, p.y - b.y))[0];
 
+                let formationX, formationY; // 변수 이름 복구
+
                 if (p === presser || p === secondPresser || distToBall < 8) {
-                    // 내가 압박자거나 공이 아주 가까우면 공으로 돌진
-                    targetX = this.ball.x; targetY = this.ball.y;
+                    formationX = this.ball.x; formationY = this.ball.y;
                 } else if (myMark) {
-                    // 마크맨이 있으면 따라가되, 자기 진영 라인에서 최대 12m까지만 이탈 허용
                     const limitX = p.currentBaseX || p.baseX;
-                    targetX = Math.max(limitX - 12, Math.min(limitX + 12, myMark.x));
-                    targetY = myMark.y;
+                    formationX = Math.max(limitX - 12, Math.min(limitX + 12, myMark.x));
+                    formationY = myMark.y;
                 } else {
-                    // 마크맨 없으면 기본 수비 대형 유지
-                    targetX = p.currentBaseX || p.baseX;
-                    targetY = p.baseY + (this.ball.y - 50) * 0.2;
+                    formationX = p.currentBaseX + (this.ball.x - 50) * 0.4; 
+                    formationY = p.baseY + (this.ball.y - 50) * 0.1;
                 }
 
-                // ★ 수비수/미드필더가 자기 진영을 너무 벗어나지 않게 최종 제한
-                if (p.position === 'DF') targetX = isHome ? Math.min(targetX, 45) : Math.max(targetX, 55);
-                if (p.position === 'MF') targetX = isHome ? Math.min(targetX, 70) : Math.max(targetX, 30);
+                // ★ 수비 라인 이탈 방지 제약
+                if (p.position === 'DF') formationX = isHome ? Math.min(formationX, 45) : Math.max(formationX, 55);
+                if (p.position === 'MF') formationX = isHome ? Math.min(formationX, 70) : Math.max(formationX, 30);
                 
+                // 이후 기존 코드에서 formationX, formationY를 사용하여 targetX, targetY를 결정하게 됩니다.
+
                 moveSpeed = 1.2 * (effectiveSpeed / 75) * sprintBonus;
 
                 let markTarget = null, minMarkDist = 30;
