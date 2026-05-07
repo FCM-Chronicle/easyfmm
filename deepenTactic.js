@@ -1571,9 +1571,9 @@ processBallCarrierAI(player) {
 
                     } else {
                         // 기존 로직 (침투 명령 없을 때)
-                        let pushDistance = 33;
+                        let pushDistance = 31;
                         if (behavior.comeShort) pushDistance = 10;
-                        if (behavior.runBehind)  pushDistance = 48;
+                        if (behavior.runBehind)  pushDistance = 37;
 
                         const rawTargetX = isHome
                             ? Math.min(p.x + pushDistance * 0.35, 93)
