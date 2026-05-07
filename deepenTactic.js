@@ -1575,7 +1575,9 @@ targetX = rawTargetX;
 
             } else {
                 // ── 수비 로직 ──
-                                                // ── 수비 로직 (1:1 마크 및 라인 유지 버전) ──
+                                                               // ── 수비 로직 (1:1 마크 및 라인 유지 버전) ──
+                const isHomeDef = p.teamId === 'home';
+                const inMyBox   = isHomeDef ? (this.ball.x < 22) : (this.ball.x > 78); // ★ 오류 해결: 변수 정의 추가
                 const distToBall = Math.hypot(p.x - this.ball.x, p.y - this.ball.y);
                 
                 // ★ 내 주변 15m 안의 가장 가까운 상대(마크맨) 찾기
@@ -1583,7 +1585,7 @@ targetX = rawTargetX;
                     .filter(opp => opp.teamId !== p.teamId && opp !== this.ball.owner && Math.hypot(p.x - opp.x, p.y - opp.y) < 15)
                     .sort((a, b) => Math.hypot(p.x - a.x, p.y - a.y) - Math.hypot(p.x - b.x, p.y - b.y))[0];
 
-                let formationX, formationY; // 변수 이름 복구
+                let formationX, formationY; 
 
                 if (p === presser || p === secondPresser || distToBall < 8) {
                     formationX = this.ball.x; formationY = this.ball.y;
@@ -1592,14 +1594,16 @@ targetX = rawTargetX;
                     formationX = Math.max(limitX - 12, Math.min(limitX + 12, myMark.x));
                     formationY = myMark.y;
                 } else {
-                    formationX = p.currentBaseX + (this.ball.x - 50) * 0.4; 
+                    formationX = (p.currentBaseX || p.baseX) + (this.ball.x - 50) * 0.4; 
                     formationY = p.baseY + (this.ball.y - 50) * 0.1;
                 }
 
                 // ★ 수비 라인 이탈 방지 제약
-                if (p.position === 'DF') formationX = isHome ? Math.min(formationX, 45) : Math.max(formationX, 55);
-                if (p.position === 'MF') formationX = isHome ? Math.min(formationX, 70) : Math.max(formationX, 30);
+                if (p.position === 'DF') formationX = isHomeDef ? Math.min(formationX, 45) : Math.max(formationX, 55);
+                if (p.position === 'MF') formationX = isHomeDef ? Math.min(formationX, 70) : Math.max(formationX, 30);
                 
+                // 이 아래는 원본 코드의 targetX = formationX; 로직이 이어집니다.
+
                 // 이후 기존 코드에서 formationX, formationY를 사용하여 targetX, targetY를 결정하게 됩니다.
 
                 moveSpeed = 1.2 * (effectiveSpeed / 75) * sprintBonus;
