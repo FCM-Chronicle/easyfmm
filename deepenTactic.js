@@ -1747,36 +1747,6 @@ processBallCarrierAI(player) {
             p.x += p.vx; p.y += p.vy;
         });
     }
-            const intentOffset = this._calcIntentOffset(p);
-            targetX = Math.max(2, Math.min(98, targetX + intentOffset.x));
-            targetY = Math.max(2, Math.min(98, targetY + intentOffset.y));
-
-            const teammates = this.players.filter(tm => tm.teamId === p.teamId && tm !== p);
-            for (const tm of teammates) {
-                const dist = Math.hypot(targetX - tm.x, targetY - tm.y);
-                const separationDist = (p.position === 'DF' && tm.position === 'DF') ? 9 : 5;
-                if (dist < separationDist) {
-                    const angle = Math.atan2(targetY - tm.y, targetX - tm.x);
-                    const push = (separationDist - dist) * 0.5;
-                    targetX += Math.cos(angle) * push; targetY += Math.sin(angle) * push;
-                }
-            }
-
-            targetX = Math.max(2, Math.min(98, targetX));
-            targetY = Math.max(2, Math.min(98, targetY));
-
-            if (!isLooseBall) { targetX += (Math.random() - 0.5) * 0.5; targetY += (Math.random() - 0.5) * 1.0; }
-
-            const tickFactor  = isSlowTick ? 0.5 : 1.0;
-            const isFW        = (p.position === 'FW');
-            const accelCoef   = isFW ? 0.28 : (0.10 * tickFactor);
-            const dampCoef    = isFW ? 0.82 : 0.70;
-            const accelX = (targetX - p.x) * moveSpeed * accelCoef;
-            const accelY = (targetY - p.y) * moveSpeed * accelCoef;
-            p.vx = (p.vx + accelX) * dampCoef; p.vy = (p.vy + accelY) * dampCoef;
-            p.x += p.vx; p.y += p.vy;
-        });
-    }
 
     _calcIntentOffset(player) {
         const teamIntent   = this.intentMgr.getTeamIntent(player.teamId);
@@ -2027,8 +1997,7 @@ processBallCarrierAI(player) {
         if (this.postMatchPhase !== 3) return false;
         return this.players.every(p => p.y < -10 || p.y > 110);
     }
-}
-
+    
 _findPenetratingFW(player) {
         const isHome = player.teamId === 'home';
         const fwList = this.players.filter(p =>
@@ -2049,6 +2018,8 @@ _findPenetratingFW(player) {
 
         return target;
     }
+
+}
 
 
 // 전역 노출
