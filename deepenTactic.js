@@ -770,9 +770,22 @@ processBallCarrierAI(player) {
             passProb = 0.30; dribbleBias = 0.3; shootChanceBase += 0.05;
         } else if (underHeavyPressure) {
             passProb = 0.85; dribbleBias = -0.1;
-        } else if (underPressure) {
-            passProb = 0.65;
+                } else if (underPressure) {
+            passProb = 0.80; // 압박 중엔 패스 확률을 높여서 빨리 방출
+
+            // ★ [추가] 주변에 횡패스 줄 곳이 있는지 확인
+            const sideTarget = this.players.find(tm => 
+                tm.teamId === teamId && tm !== player && 
+                Math.abs(tm.x - player.x) < 4 && Math.abs(tm.y - player.y) > 12
+            );
+            if (sideTarget && Math.random() < 0.6) {
+                this.executePass(player, sideTarget); return; // 횡패스 성공 시 종료
+            }
+            
+            // 패스 못하면 횡방향으로 드리블 쳐서 압박 피하기
+            player.y += (player.y > 50 ? -1.5 : 1.5);
         }
+
 
         if (fwMakingRun && !isStabilizing) {
             passProb = Math.min(passProb, 0.45);
@@ -1562,19 +1575,33 @@ targetX = rawTargetX;
 
             } else {
                 // ── 수비 로직 ──
-                let shiftFactor = 0.8, yShiftFactor = 0.2;
-                const isHomeDef = p.teamId === 'home';
-                const inMyBox   = isHomeDef ? (this.ball.x < 22) : (this.ball.x > 78);
+                                // ── 수비 로직 (1:1 마크 및 라인 유지 버전) ──
+                const distToBall = Math.hypot(p.x - this.ball.x, p.y - this.ball.y);
+                
+                // ★ 내 주변 15m 안의 가장 가까운 상대(마크맨) 찾기
+                const myMark = this.players
+                    .filter(opp => opp.teamId !== p.teamId && opp !== this.ball.owner && Math.hypot(p.x - opp.x, p.y - opp.y) < 15)
+                    .sort((a, b) => Math.hypot(p.x - a.x, p.y - a.y) - Math.hypot(p.x - b.x, p.y - b.y))[0];
 
-                if (p.position === 'MF') {
-                    const defenseBias = behavior.defenseBias || 0;
-                    shiftFactor = Math.max(1.2, Math.min(1.8, 1.4 + (defenseBias * 0.5)));
-                    moveSpeed   = 1.3 * (1 + defenseBias) * sprintBonus;
-                } else if (p.position === 'DF') { shiftFactor = 0.25; yShiftFactor = 0.05; }
+                if (p === presser || p === secondPresser || distToBall < 8) {
+                    // 내가 압박자거나 공이 아주 가까우면 공으로 돌진
+                    targetX = this.ball.x; targetY = this.ball.y;
+                } else if (myMark) {
+                    // 마크맨이 있으면 따라가되, 자기 진영 라인에서 최대 12m까지만 이탈 허용
+                    const limitX = p.currentBaseX || p.baseX;
+                    targetX = Math.max(limitX - 12, Math.min(limitX + 12, myMark.x));
+                    targetY = myMark.y;
+                } else {
+                    // 마크맨 없으면 기본 수비 대형 유지
+                    targetX = p.currentBaseX || p.baseX;
+                    targetY = p.baseY + (this.ball.y - 50) * 0.2;
+                }
 
-                let formationX = p.currentBaseX + (this.ball.x - 50) * shiftFactor;
-                if (p.position === 'DF') formationX = Math.max(p.baseX - 8, Math.min(p.baseX + 8, formationX));
-                let formationY = p.baseY + (this.ball.y - 50) * yShiftFactor;
+                // ★ 수비수/미드필더가 자기 진영을 너무 벗어나지 않게 최종 제한
+                if (p.position === 'DF') targetX = isHome ? Math.min(targetX, 45) : Math.max(targetX, 55);
+                if (p.position === 'MF') targetX = isHome ? Math.min(targetX, 70) : Math.max(targetX, 30);
+                
+                moveSpeed = 1.2 * (effectiveSpeed / 75) * sprintBonus;
 
                 let markTarget = null, minMarkDist = 30;
                 this.players.forEach(opp => {
