@@ -1575,10 +1575,11 @@ processBallCarrierAI(player) {
                         if (behavior.comeShort) pushDistance = 10;
                         if (behavior.runBehind)  pushDistance = 37;
 
-                        const rawTargetX = isHome
-                            ? Math.min(p.x + pushDistance * 0.35, 93)
-                            : Math.max(p.x - pushDistance * 0.35, 7);
-                        targetX = rawTargetX;
+                        // p.x 대신 p.baseX를 사용하세요.
+const rawTargetX = isHome
+    ? Math.min(p.baseX + pushDistance, 93)
+    : Math.max(p.baseX - pushDistance, 7);
+targetX = rawTargetX;
                         targetY = Math.max(5, Math.min(95, p.baseY + avoidY));
 
                         if (behavior.runBehind) {
@@ -1725,17 +1726,6 @@ processBallCarrierAI(player) {
             targetX = Math.max(2, Math.min(98, targetX + intentOffset.x));
             targetY = Math.max(2, Math.min(98, targetY + intentOffset.y));
 
-            const teammates = this.players.filter(tm => tm.teamId === p.teamId && tm !== p);
-            for (const tm of teammates) {
-                const dist = Math.hypot(targetX - tm.x, targetY - tm.y);
-                const separationDist = (p.position === 'DF' && tm.position === 'DF') ? 9 : 5;
-                if (dist < separationDist) {
-                    const angle = Math.atan2(targetY - tm.y, targetX - tm.x);
-                    const push = (separationDist - dist) * 0.5;
-                    targetX += Math.cos(angle) * push; targetY += Math.sin(angle) * push;
-                }
-            }
-
             targetX = Math.max(2, Math.min(98, targetX));
             targetY = Math.max(2, Math.min(98, targetY));
 
@@ -1777,7 +1767,9 @@ processBallCarrierAI(player) {
                 });
                 if (minD < 20 && minD > 0) {
                     const n = Math.hypot(avdx, avdy);
+                    if  (n>0.1) {
                     ox = (avdx / n) * 5; oy = (avdy / n) * 5;
+                    }
                 }
                 break;
             }
