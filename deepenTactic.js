@@ -17,7 +17,7 @@ const PlayerIntent = {
     PRESS_BALL:  'press_ball',
     MARK:        'mark',
     OVERLAP:     'overlap',
-    PENETRATE:   'penetrate',
+    PENETRATE:   'trate',
     HOLD_SHAPE:  'hold_shape',
     PRESS_ZONE:  'press_zone',
     COVER:       'cover',
@@ -716,27 +716,7 @@ class RealSoccerEngine {
         return (mySpeed > defSpeed + 5) && (myDecision > 60) && Math.random() < 0.45;
     }
 
-    _findPenetratingFW(player) {
-        const isHome = player.teamId === 'home';
-        const fwList = this.players.filter(p =>
-            p.teamId === player.teamId &&
-            p.position === 'FW' &&
-            p !== player &&
-            (this._fwRunState[p.id] === 'behind' || this._fwRunState[p.id] === 'short')
-        );
-        if (!fwList.length) return null;
-
-        // 가장 전방에 있는 침투 중인 FW 선택
-        fwList.sort((a, b) => isHome ? b.x - a.x : a.x - b.x);
-        const target = fwList[0];
-
-        // 너무 멀면 패스 안 함 (50 이상)
-        const dist = Math.hypot(player.x - target.x, player.y - target.y);
-        if (dist > 50) return null;
-
-        return target;
-    }
-
+    
 processBallCarrierAI(player) {
         const isHome     = player.teamId === 'home';
         const goalX      = isHome ? 100 : 0;
@@ -2048,6 +2028,28 @@ processBallCarrierAI(player) {
         return this.players.every(p => p.y < -10 || p.y > 110);
     }
 }
+
+_findPenetratingFW(player) {
+        const isHome = player.teamId === 'home';
+        const fwList = this.players.filter(p =>
+            p.teamId === player.teamId &&
+            p.position === 'FW' &&
+            p !== player &&
+            (this._fwRunState[p.id] === 'behind' || this._fwRunState[p.id] === 'short')
+        );
+        if (!fwList.length) return null;
+
+        // 가장 전방에 있는 침투 중인 FW 선택
+        fwList.sort((a, b) => isHome ? b.x - a.x : a.x - b.x);
+        const target = fwList[0];
+
+        // 너무 멀면 패스 안 함 (50 이상)
+        const dist = Math.hypot(player.x - target.x, player.y - target.y);
+        if (dist > 50) return null;
+
+        return target;
+    }
+
 
 // 전역 노출
 window.RealSoccerEngine    = RealSoccerEngine;
