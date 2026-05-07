@@ -844,6 +844,10 @@ processBallCarrierAI(player) {
         // ── 슛 판단 ──
         if (distToGoal < shootThreshold && !isStabilizing) {
             let shootChance = shootChanceBase;
+
+            const behavior this.getRoleBehavior(player.role)
+            if (behavior.shootBias.) shootChance += behavior.shootBias;
+
             if (distToGoal < 20) shootChance = Math.max(shootChanceBase, 0.7);
             if (distToGoal < 12) shootChance = 0.95;
             if (teamIntent === TeamIntent.ALL_OUT) shootChance = Math.min(shootChance * 1.3, 0.95);
@@ -1893,13 +1897,13 @@ processBallCarrierAI(player) {
 
     getRoleBehavior(role) {
         const behaviors = {
-            'AF': { runBehind:true, shootBias:0.2, dribbleBias:0.1 },
-            'P':  { runBehind:true, shootBias:0.3, passBias:-0.2 },
-            'DLF':{ comeShort:true, passBias:0.1 },
-            'F9': { comeShort:true, dribbleBias:0.1, passBias:0.1 },
+            'AF': { runBehind:true, shootBias:0.4, dribbleBias:0.1 },
+            'P':  { runBehind:true, shootBias:0.5, passBias:-0.2 },
+            'DLF':{ comeShort:true, shootBias:0.2, passBias:0.1 },
+            'F9': { comeShort:true, dribbleBias:0.2, passBias:0.2 },
             'TM': { comeShort:true, holdUp:true },
-            'W':  { hugLine:true, dribbleBias:0.2, crossBias:0.2 },
-            'IF': { cutInside:true, shootBias:0.1, dribbleBias:0.2 },
+            'W':  { hugLine:true, dribbleBias:0.2, shootBias:0.2, crossBias:0.2 },
+            'IF': { cutInside:true, shootBias:0.3, dribbleBias:0.2 },
             'BBM':{ attackBias:0.3, defenseBias:0.3, pressBias:0.1 },
             'MEZ':{ cutInside:true, attackBias:0.5, defenseBias:0.1 },
             'DLP':{ comeShort:true, passBias:0.3, defenseBias:0.4 },
