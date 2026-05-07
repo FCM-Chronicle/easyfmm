@@ -718,115 +718,94 @@ class RealSoccerEngine {
 
     
 processBallCarrierAI(player) {
-        const isHome     = player.teamId === 'home';
-        const goalX      = isHome ? 100 : 0;
-        const distToGoal = Math.abs(player.x - goalX);
-        const teamId     = player.teamId;
+    const isHome     = player.teamId === 'home';
+    const goalX      = isHome ? 100 : 0;
+    const distToGoal = Math.abs(player.x - goalX);
+    const teamId     = player.teamId;
 
-        // 공을 잡은 지 얼마 안 됐으면(예: 5틱 미만) 아무것도 안 하고 드리블만 하게 함
-        if (this._carrierTicks[player.teamId] < 5) {
-            // 드리블 로직으로 강제 이동
-            this.processDribble(player); 
-            return;
-        }
+    let isAI = false;
+    if (typeof gameData !== 'undefined') {
+        const userSide = gameData.isHomeGame ? 'home' : 'away';
+        isAI = (player.teamId !== userSide);
+    }
 
+    const nearestOpp    = this.findNearestDefender(player);
+    const pressureDist  = nearestOpp ? nearestOpp.dist : 999;
+    
+    // ★ 압박 감지 범위 축소 (6m -> 4m)
+    const nearbyOpps = this.players.filter(p =>
+        p.teamId !== teamId && Math.hypot(p.x - player.x, p.y - player.y) < 4
+    ).length;
+    
+    // ★ 압박 판정 거리 완화
+    const underPressure      = pressureDist < 6; 
+    const underHeavyPressure = nearbyOpps >= 2;
+    const noPresssure        = pressureDist > 10;
 
-        let isAI = false;
-        if (typeof gameData !== 'undefined') {
-            const userSide = gameData.isHomeGame ? 'home' : 'away';
-            isAI = (player.teamId !== userSide);
-        }
+    const teamIntent   = this.intentMgr.getTeamIntent(teamId);
+    const playerIntent = this.intentMgr.getPlayerIntent(player.id);
+    const isStabilizing = (this._stabilizeTicks[teamId] || 0) > 0;
 
-        const nearestOpp    = this.findNearestDefender(player);
-        const pressureDist  = nearestOpp ? nearestOpp.dist : 999;
-        // ★ 압박 감지: 내 주변 6m 이내 상대 선수 수 계산
-        const nearbyOpps = this.players.filter(p =>
-            p.teamId !== teamId && Math.hypot(p.x - player.x, p.y - player.y) < 6
-        ).length;
-        const underPressure      = pressureDist < 8;
-        const underHeavyPressure = nearbyOpps >= 2;
-        const noPresssure        = pressureDist > 12 && nearbyOpps === 0;
-
-        const teamIntent   = this.intentMgr.getTeamIntent(teamId);
-        const playerIntent = this.intentMgr.getPlayerIntent(player.id);
-
-        // ★ 탈취 직후 안정화 모드: 짧고 안전한 패스 우선
-        const isStabilizing = (this._stabilizeTicks[teamId] || 0) > 0;
-
-        // ★ 공격수 침투 여부 확인
+    // ★ 드리블 소유 시간 보장 (최소 6틱 동안은 패스/슛 판단 건너뜀)
+    if ((this._carrierTicks[teamId] || 0) >= 6) {
+        
         const fwMakingRun = this.players.some(p =>
             p.teamId === teamId && p.position === 'FW' &&
             (this._fwRunState[p.id] === 'behind' || this._fwRunState[p.id] === 'short')
         );
 
-        // ★ 3연속 백패스 강제 전진 모드
         const backpassCount  = this._backpassCount[teamId] || 0;
         const forcedForward  = backpassCount >= 3;
 
         let shootThreshold  = 30;
         let shootChanceBase = 0.15;
-        let passProb        = 0.55;
-        let dribbleBias     = 0.0;
+        let passProb        = 0.40; // 기본 패스 확률 하향
+        let dribbleBias     = 0.1;  // 기본 드리블 성향 상향
 
-        // ★ 압박 상황별 의사결정 가중치 (Context-Aware)
+        // 압박 상황별 의사결정 가중치
         if (isStabilizing) {
-            // 탈취 직후: 무조건 안전한 짧은 패스
-            passProb = 0.95;
-            shootThreshold = 15;
-            shootChanceBase = 0.05;
+            passProb = 0.90; shootThreshold = 15; shootChanceBase = 0.05;
         } else if (noPresssure) {
-            // 압박 없음: 전진 패스/드리블 강하게
-            passProb = 0.45;
-            dribbleBias = 0.2;
-            shootChanceBase += 0.05;
+            passProb = 0.35; dribbleBias = 0.25; shootChanceBase += 0.05;
         } else if (underHeavyPressure) {
-            // 강한 압박: 빠른 릴리즈
-            passProb = 0.85;
-            dribbleBias = -0.1;
+            passProb = 0.80; dribbleBias = -0.1;
         } else if (underPressure) {
-            // 보통 압박
-            passProb = 0.70;
+            passProb = 0.60;
         }
 
-        // ★ 공격수가 침투 중이면 전방 패스 확률 강제 상향
         if (fwMakingRun && !isStabilizing) {
-            passProb = Math.min(passProb, 0.50); // 패스 확률 낮추고
+            passProb = Math.min(passProb, 0.45);
             shootChanceBase += 0.03;
             dribbleBias += 0.05;
-            // findBestPassTarget에서 FW 우선 선택되도록 별도 경로 사용
         }
 
-        // ★ 3연속 백패스: 강제 전방 모드
         if (forcedForward) {
-            passProb = 0.15;
-            dribbleBias = 0.4;
-            shootThreshold = 40;
-            shootChanceBase = 0.30;
+            passProb = 0.15; dribbleBias = 0.4; shootThreshold = 40; shootChanceBase = 0.30;
         }
 
         switch (teamIntent) {
             case TeamIntent.TRANSITION:
-                if (!isStabilizing) { shootThreshold = 35; shootChanceBase = 0.25; passProb = Math.min(passProb, 0.55); }
+                if (!isStabilizing) { shootThreshold = 35; shootChanceBase = 0.25; passProb = Math.min(passProb, 0.50); }
                 break;
             case TeamIntent.ALL_OUT:
-                if (!isStabilizing) { shootThreshold = 38; shootChanceBase = 0.30; passProb = Math.min(passProb, 0.45); dribbleBias += 0.1; }
+                if (!isStabilizing) { shootThreshold = 38; shootChanceBase = 0.30; passProb = Math.min(passProb, 0.40); dribbleBias += 0.1; }
                 break;
             case TeamIntent.PRESS:
-                if (!forcedForward) passProb = Math.max(passProb, 0.70);
+                if (!forcedForward) passProb = Math.max(passProb, 0.65);
                 break;
             case TeamIntent.HOLD:
-                if (!forcedForward) { shootThreshold = 22; shootChanceBase = 0.05; passProb = Math.max(passProb, 0.82); }
+                if (!forcedForward) { shootThreshold = 22; shootChanceBase = 0.05; passProb = Math.max(passProb, 0.80); }
                 break;
             case TeamIntent.DEFEND:
-                if (!forcedForward) passProb = Math.max(passProb, 0.60);
+                if (!forcedForward) passProb = Math.max(passProb, 0.55);
                 break;
         }
 
         switch (playerIntent) {
             case PlayerIntent.PENETRATE:  dribbleBias += 0.15; shootChanceBase += 0.05; passProb -= 0.10; break;
-            case PlayerIntent.SUPPORT:    if (!forcedForward) passProb += 0.15; break;
+            case PlayerIntent.SUPPORT:    if (!forcedForward) passProb += 0.10; break;
             case PlayerIntent.FIND_SPACE: dribbleBias += 0.10; break;
-            case PlayerIntent.OVERLAP:    if (!forcedForward) passProb += 0.20; break;
+            case PlayerIntent.OVERLAP:    if (!forcedForward) passProb += 0.15; break;
         }
 
         if (isAI) { shootThreshold += 2; shootChanceBase += 0.05; }
@@ -852,11 +831,10 @@ processBallCarrierAI(player) {
         // ── 슛 판단 ──
         if (distToGoal < shootThreshold && !isStabilizing) {
             let shootChance = shootChanceBase;
-
-            const behavior = this.getRoleBehavior(player.role)
+            const behavior = this.getRoleBehavior(player.role);
             if (behavior.shootBias) shootChance += behavior.shootBias;
 
-            if (distToGoal < 20) shootChance = Math.max(shootChanceBase, 0.7);
+            if (distToGoal < 20) shootChance = Math.max(shootChance, 0.7);
             if (distToGoal < 12) shootChance = 0.95;
             if (teamIntent === TeamIntent.ALL_OUT) shootChance = Math.min(shootChance * 1.3, 0.95);
             if (Math.random() < shootChance) { this.attemptShoot(player, goalX); return; }
@@ -874,11 +852,10 @@ processBallCarrierAI(player) {
             }
         }
 
-        // ── ★ 드리블 돌파 (기술 스탯 기반 강화) ──
+        // ── ★ 드리블 돌파 ──
         if (!underPressure && distToGoal < 45 && (player.position === 'FW' || player.position === 'MF')) {
-            // ★ 기술 스탯 높을수록 드리블 시도 확률 증가
             const techBonus = Math.max(0, (this.getEffectiveStat(player, 'decision') - 60) / 100);
-            const dribbleAttemptChance = 0.30 + techBonus + dribbleBias;
+            const dribbleAttemptChance = 0.25 + techBonus + dribbleBias;
             if (Math.random() < dribbleAttemptChance && this._shouldDribblePast(player)) {
                 this._backpassCount[teamId] = 0;
                 this._executeDribblePast(player, goalX);
@@ -886,113 +863,53 @@ processBallCarrierAI(player) {
             }
         }
 
-        // ── ★ 3연속 백패스 강제 롱볼/스루패스 ──
-        if (forcedForward) {
-            const fwTarget = this.players.find(p =>
-                p.teamId === teamId && p.position === 'FW' && p !== player
-            );
-            const longTarget = fwTarget || this.players
-                .filter(p => p.teamId === teamId && p !== player && p.position !== 'GK')
-                .sort((a, b) => isHome ? b.x - a.x : a.x - b.x)[0];
+        // ── 패스 판단 및 실행 ──
+        const isBlocked = this.checkFrontalBlock(player, goalX);
+        if (isBlocked) passProb = underPressure ? 0.75 : 0.25 + dribbleBias;
+        
+        const passMode = (teamIntent === TeamIntent.HOLD || teamIntent === TeamIntent.DEFEND) ? 'safe' : 'aggressive';
+        let bestPassTarget = null;
+        if (player.position === 'GK') {
+            bestPassTarget = this.findBestPassTarget(player, 'safe') || this.findBestPassTarget(player, 'aggressive');
+            if (!bestPassTarget || Math.random() >= passProb) { this.clearBall(player); return; }
+        } else {
+            if (fwMakingRun && !isStabilizing) {
+                bestPassTarget = this._findPenetratingFW(player) || this.findBestPassTarget(player, 'aggressive');
+            } else {
+                bestPassTarget = this.findBestPassTarget(player, passMode);
+            }
+        }
 
-            if (longTarget) {
-                this._backpassCount[teamId] = 0;
-                this.eventsQueue.push({ type:'throughpass', from:player.name, to:longTarget.name,
-                    desc:`💥 ${player.name}, 전방으로 과감한 롱볼! ${longTarget.name}!` });
-                this.executePass(player, longTarget);
+        if (bestPassTarget && Math.random() < passProb) {
+            const isBackPass = isHome ? (bestPassTarget.x < player.x - 3) : (bestPassTarget.x > player.x + 3);
+            if (isBackPass && !isStabilizing && noPresssure && Math.random() < 0.50) {
+                // 백패스 거부하고 드리블 전진 (아래 이동 로직으로 흐르게 함)
+            } else {
+                if (isBackPass) this._backpassCount[teamId] = (this._backpassCount[teamId] || 0) + 1;
+                else this._backpassCount[teamId] = 0;
+                this.executePass(player, bestPassTarget);
                 return;
             }
         }
-
-        // ── 패스 확률 보정 ──
-        const isBlocked = this.checkFrontalBlock(player, goalX);
-        if (isBlocked) passProb = underPressure ? 0.75 : 0.25 + dribbleBias;
-        if (player.position === 'DF' || player.position === 'GK') {
-            passProb = underPressure ? 0.98 : Math.max(passProb, 0.4);
-        }
-
-        // ★ 미드필더가 압박 없는데 수비수에게 백패스하려는 상황 억제
-        const passMode = (teamIntent === TeamIntent.HOLD || teamIntent === TeamIntent.DEFEND) ? 'safe' : 'aggressive';
-
-        let bestPassTarget = null;
-        if (player.position === 'GK') {
-            bestPassTarget = Math.random() < 0.7
-                ? (this.findBestPassTarget(player, 'safe')       || this.findBestPassTarget(player, 'aggressive'))
-                : (this.findBestPassTarget(player, 'aggressive') || this.findBestPassTarget(player, 'safe'));
-            if (!bestPassTarget || Math.random() >= passProb) { this.clearBall(player); return; }
-        } else {
-            // ★ 공격수 침투 중이면 FW를 우선 탐색
-            if (fwMakingRun && !isStabilizing) {
-                bestPassTarget = this._findPenetratingFW(player)
-                              || this.findBestPassTarget(player, 'aggressive')
-                              || this.findBestPassTarget(player, 'safe');
-            } else {
-                bestPassTarget = this.findBestPassTarget(player, passMode)
-                              || this.findBestPassTarget(player, passMode === 'aggressive' ? 'safe' : 'aggressive');
-            }
-        }
-
-        // ★ 패스 방향 체크 — 백패스 카운터 업데이트
-        if (bestPassTarget && Math.random() < passProb) {
-            const isBackPass = isHome
-                ? (bestPassTarget.x < player.x - 3)
-                : (bestPassTarget.x > player.x + 3);
-
-            if (isBackPass && !isStabilizing && noPresssure) {
-                // ★ 압박 없는데 백패스: 50% 확률로 거부하고 드리블 전진
-                if (Math.random() < 0.50) {
-                    const moveDir = isHome ? 1 : -1;
-                    player.x += moveDir * (0.8 + Math.random() * 0.6);
-                    player.y += (Math.random() - 0.5) * 2;
-                    this.ball.x = player.x; this.ball.y = player.y;
-                    return;
-                }
-            }
-
-            if (isBackPass) {
-                this._backpassCount[teamId] = (this._backpassCount[teamId] || 0) + 1;
-            } else {
-                this._backpassCount[teamId] = 0;
-            }
-
-            this.executePass(player, bestPassTarget);
-            return;
-        }
-
-        // ── 드리블/전진 ──
-        const moveDir = isHome ? 1 : -1;
-        const effectiveSpeed = this.getEffectiveStat(player, 'speed');
-        const speedFactor = effectiveSpeed / 75;
-        let moveSpeed = 0.65 * Math.max(0.7, Math.min(1.4, speedFactor));
-        let moveDist  = (0.25 + Math.random() * 0.3) * speedFactor;
-
-        if (teamIntent === TeamIntent.TRANSITION) { moveDist *= 1.3; moveSpeed = 1.2; }
-        if (teamIntent === TeamIntent.ALL_OUT)    { moveDist *= 1.2; moveSpeed = 1.1; }
-        if (teamIntent === TeamIntent.HOLD)       { moveDist *= 0.5; }
-        if (playerIntent === PlayerIntent.PENETRATE) moveDist += 0.5;
-        if (forcedForward) { moveDist *= 1.5; moveSpeed *= 1.2; }
-
-        if (player.position === 'DF') moveDist = 0.3 + Math.random() * 0.4;
-        if (player.position === 'MF' && !underPressure && !isBlocked) moveDist += 0.4;
-        if (isAI && (player.position === 'FW' || player.position === 'MF')) moveDist *= 1.1;
-
-        if (isBlocked && !underPressure) {
-            player.x += moveDir * (0.8 + Math.random() * 0.6);
-            player.y += (Math.random() < 0.5 ? 3.0 : -3.0) + Math.random() * 1.0;
-        } else {
-            player.x += moveDir * moveDist;
-            player.y += (Math.random() - 0.5) * 3;
-        }
-
-        // 전진 드리블이면 백패스 카운터 리셋
-        this._backpassCount[teamId] = 0;
-        this.ball.lastOwner = null;
-        player.x = Math.max(5, Math.min(95, player.x));
-        player.y = Math.max(2, Math.min(98, player.y));
-        this.ball.x = player.x; this.ball.y = player.y;
-
-        if (Math.random() < 0.2) this.eventsQueue.push({ type:'dribble', player:player.name });
     }
+
+    // ── [함수 최하단] 드리블/전진 이동 로직 ──
+    const moveDir = isHome ? 1 : -1;
+    const speedFactor = this.getEffectiveStat(player, 'speed') / 75;
+    let moveDist = (0.35 + Math.random() * 0.4) * speedFactor; // 전진 거리 상향
+
+    if (teamIntent === TeamIntent.TRANSITION) moveDist *= 1.3;
+    if (forcedForward) moveDist *= 1.5;
+
+    player.x += moveDir * moveDist;
+    player.y += (Math.random() - 0.5) * 1.5; // 수직 흔들림 감소
+
+    this._backpassCount[teamId] = 0;
+    player.x = Math.max(5, Math.min(95, player.x));
+    player.y = Math.max(2, Math.min(98, player.y));
+    this.ball.x = player.x; this.ball.y = player.y;
+}
+
 
     
     _executeDribblePast(player, goalX) {
