@@ -807,7 +807,14 @@ class RealSoccerEngine {
         const forwardX = from.teamId === 'home' ? 100 : 0;
         const distToGoalFrom = Math.abs(from.x - forwardX);
         const distToGoalTo = Math.abs(to.x - forwardX);
-        const isThroughPass = (distToGoalFrom - distToGoalTo > 5) && dist > 10 && distToGoalFrom < 60; // 5m 이상 전진, 10m 이상 거리, 상대 진영
+
+        // ─────────────────────────────────────────────────────────────────
+        // [수정] 스루패스 최대 거리 제한: 실제 경기 기준 약 30~35유닛 이내
+        // dist > 35인 장거리 스루패스는 패스 자체를 '안전 패스'로 강제 전환하거나 차단
+        // 피치 전체 길이가 100유닛 ≈ 105m 기준이므로 35유닛 ≈ 37m (현실적인 스루패스 한계)
+        // ─────────────────────────────────────────────────────────────────
+        const MAX_THROUGH_PASS_DIST = 35;
+        const isThroughPass = (distToGoalFrom - distToGoalTo > 5) && dist > 10 && distToGoalFrom < 60 && dist <= MAX_THROUGH_PASS_DIST;
         
         // 거리 페널티: 20m까지는 괜찮고, 그 이후 1m당 정확도 감소
         const distPenalty = Math.max(0, (dist - 20) * 0.8);
@@ -964,6 +971,12 @@ class RealSoccerEngine {
             const opponentTeamId = shooter.teamId === 'home' ? 'away' : 'home';
             const isHomeAttacking = shooter.teamId === 'home';
 
+            // ─────────────────────────────────────────────────────────────────
+            // [수정] GK 선방 로직: 슈팅 방향(Y)을 미리 읽고 측면으로 이동해서 잡기
+            // 실제 골키퍼처럼 공이 날아오는 Y좌표 방향으로 슬라이드 이동 후 캐칭
+            // ─────────────────────────────────────────────────────────────────
+            const enemyGk = this.players.find(p => p.teamId !== shooter.teamId && p.position === 'GK');
+
             // [수정] 수비 블록 확률 대폭 하향 (0.35 -> 0.1): 웬만하면 키퍼가 막도록 유도
             const defenders = this.players.filter(p => 
                 p.teamId === opponentTeamId && p.position !== 'GK' &&
@@ -983,9 +996,24 @@ class RealSoccerEngine {
                 return;
             }
 
-            // [수정] GK 선방 로직: 펀칭 빈도 줄이고 캐칭(안정적 소유) 위주로 변경
-            const enemyGk = this.players.find(p => p.teamId !== shooter.teamId && p.position === 'GK');
             if (enemyGk) {
+                // ─────────────────────────────────────────────────────────────
+                // [신규] GK 측면 이동: 공의 targetPos.y 방향으로 스텝 이동 후 캐칭
+                // 공이 날아온 Y를 목표로 GK가 슬라이드 이동 (최대 ±15유닛)
+                // ─────────────────────────────────────────────────────────────
+                const shotTargetY = this.ball.targetPos.y;
+                const gkBaseX   = enemyGk.teamId === 'home' ? 5 : 95;
+
+                // GK를 공의 Y좌표 쪽으로 즉시 이동 (한 틱 안에 처리)
+                // 실제 애니메이션은 이 좌표 변경으로 렌더러에서 자연스럽게 표현됨
+                const maxGkSlide = 15; // GK가 중앙에서 최대 움직일 수 있는 범위 (유닛)
+                const newGkY = Math.max(50 - maxGkSlide, Math.min(50 + maxGkSlide, shotTargetY));
+                enemyGk.x = gkBaseX;   // X는 골라인 고정
+                enemyGk.y = newGkY;    // Y는 슈팅 방향으로 이동
+                // 공도 GK 발밑으로 당김 (시각적 일치)
+                this.ball.x = enemyGk.x;
+                this.ball.y = enemyGk.y;
+
                 // 85% 확률로 캐칭, 15%만 쳐냄 (골포스트 맞는 듯한 루즈볼 상황 감소)
                 if (Math.random() < 0.15) { 
                     this.eventsQueue.push({ type: 'save', shooter: shooter.name, gk: enemyGk.name, desc: `🧤 ${enemyGk.name}, 슈팅을 펀칭으로 쳐냅니다!` });
@@ -1194,14 +1222,63 @@ class RealSoccerEngine {
                 else if (behavior.hugLine) targetY = p.baseY < 50 ? 5 : 95;
                 }
             } else {
+                // ─────────────────────────────────────────────────────────────────
+                // [수정] 수비 전환 시 공격수 오프사이드 방지 복귀 로직
+                // 공이 상대팀(수비 입장에서는 공격팀)에게 넘어간 경우,
+                // FW 포지션 선수들이 상대 수비 라인 뒤(오프사이드 라인 안쪽)로 빠르게 복귀
+                // ─────────────────────────────────────────────────────────────────
                 const isHomeDef = p.teamId === 'home';
+
+                if (p.position === 'FW') {
+                    // 상대 수비 라인 X 좌표 기준으로 오프사이드 라인 계산
+                    // home팀 공격수 입장: 상대(away)의 수비 라인에서 약간 뒤쪽
+                    // away팀 공격수 입장: 상대(home)의 수비 라인에서 약간 뒤쪽
+                    const opposingTeamId = p.teamId === 'home' ? 'away' : 'home';
+                    const opponents = this.players.filter(q => q.teamId === opposingTeamId && q.position !== 'GK');
+
+                    if (opponents.length > 0) {
+                        // home 공격수 → away 수비 중 X가 가장 작은(골라인 쪽) 두 번째 선수
+                        // away 공격수 → home 수비 중 X가 가장 큰(골라인 쪽) 두 번째 선수
+                        let offsideLineX;
+                        if (isHomeDef) {
+                            // home이 수비 중 → away FW가 home 수비 라인 안으로 들어와야 함
+                            // home 수비 라인 = home 선수 중 가장 전진한(X 큰) 위치
+                            const homeField = this.players.filter(q => q.teamId === 'home' && q.position !== 'GK');
+                            const sortedX = homeField.map(q => q.x).sort((a, b) => b - a);
+                            offsideLineX = sortedX.length >= 2 ? sortedX[1] : (sortedX[0] ?? 20);
+                            // away FW는 이 라인보다 오른쪽(숫자 큼)에 있으면 오프사이드 위험
+                            // → offsideLineX + 2 이하로 유지
+                            targetX = Math.min(p.x, offsideLineX + 2);
+                            // 빠른 복귀를 위해 moveSpeed 증가
+                            moveSpeed = 0.45 * speedFactor;
+                        } else {
+                            // away가 수비 중 → home FW가 away 수비 라인 안으로 들어와야 함
+                            const awayField = this.players.filter(q => q.teamId === 'away' && q.position !== 'GK');
+                            const sortedX = awayField.map(q => q.x).sort((a, b) => a - b);
+                            offsideLineX = sortedX.length >= 2 ? sortedX[1] : (sortedX[0] ?? 80);
+                            // home FW는 이 라인보다 왼쪽(숫자 작음)에 있으면 오프사이드 위험
+                            // → offsideLineX - 2 이상으로 유지
+                            targetX = Math.max(p.x, offsideLineX - 2);
+                            moveSpeed = 0.45 * speedFactor;
+                        }
+                        // Y축은 자기 base 포지션 기준으로 유지
+                        targetY = p.baseY;
+                    } else {
+                        // 상대 필드 플레이어가 없으면 자기 baseX로 복귀
+                        targetX = p.baseX;
+                        targetY = p.baseY;
+                        moveSpeed = 0.35;
+                    }
+                } else {
+                // ─────────────────────────────────────────────────────────────────
+                // 기존 수비 로직 (FW 제외)
+                // ─────────────────────────────────────────────────────────────────
                 let shiftFactor = 0.7;
                 let yShiftFactor = 0.2;
                 if (p.position === 'MF') {
                     shiftFactor = Math.max(0.6, Math.min(1.1, 0.95 + (behavior.defenseBias || 0) * 0.1 - (behavior.attackBias || 0) * 0.2));
                     moveSpeed = 0.22 * (1 + (behavior.defenseBias || 0));
-                } else if (p.position === 'FW') shiftFactor = 0.4; 
-                else if (p.position === 'DF') { shiftFactor = 0.75; yShiftFactor = 0.05; }
+                } else if (p.position === 'DF') { shiftFactor = 0.75; yShiftFactor = 0.05; }
 
                 const isGKPossession = this.ball.owner && this.ball.owner.position === 'GK';
                 const refBallX = (this.pendingShot || isGKPossession) ? 50 : Math.max(30, Math.min(70, this.ball.x));
@@ -1253,6 +1330,7 @@ class RealSoccerEngine {
                     if (d > 0) { p.x += (dx / d) * rS; p.y += (dy / d) * rS; }
                     return;
                 }
+                } // end else (FW 제외 수비 로직)
             }
 
             const teammates = this.players.filter(tm => tm.teamId === p.teamId && tm !== p);
