@@ -719,13 +719,12 @@ class RealSoccerEngine {
         const powerDiff = shotPower - savePower;
 
         // ─────────────────────────────────────────────────────────────
-        // [수정] 골 확률 상향
-        // 기존: 기본 22%, 최대 72%
-        // 변경: 기본 30%, 최대 82%
-        // powerDiff 반영률: 0.004 → 0.005 (스탯 차이가 더 잘 반영됨)
+        // [수정] 골 확률 조정
+        // 기본 25%, 최대 76% (너무 많지도 적지도 않은 중간값)
+        // powerDiff 반영률: 0.0045
         // ─────────────────────────────────────────────────────────────
-        let goalChance = 0.30 + (powerDiff * 0.005);
-        goalChance = Math.max(0.05, Math.min(0.82, goalChance));
+        let goalChance = 0.25 + (powerDiff * 0.0045);
+        goalChance = Math.max(0.04, Math.min(0.76, goalChance));
 
         let isGoal = Math.random() < goalChance;
         
@@ -923,7 +922,33 @@ class RealSoccerEngine {
                         if (!p.burstTimer) p.burstTimer = 0;
                         const oppDefLineX = this.getDefensiveLineX(p.teamId === 'home' ? 'away' : 'home');
 
+                        // ─────────────────────────────────────────────────────
+                        // [핵심] 오프사이드 라인 계산
+                        // 상대 필드 플레이어(GK 제외) 중 두 번째로 골라인에 가까운 선수의 X
+                        // home FW: away 수비 중 X가 가장 작은(=골라인 쪽) 2번째 선수
+                        // away FW: home 수비 중 X가 가장 큰(=골라인 쪽) 2번째 선수
+                        // 공이 오프사이드 라인보다 앞에 있으면 공 위치가 기준이 됨
+                        // ─────────────────────────────────────────────────────
+                        const opposingFieldPlayers = this.players.filter(q =>
+                            q.teamId !== p.teamId && q.position !== 'GK'
+                        );
+                        let offsideLimitX;
+                        if (isHome) {
+                            // home FW → away 수비: X 오름차순 정렬, 2번째(인덱스1)가 오프사이드 라인
+                            const sorted = opposingFieldPlayers.map(q => q.x).sort((a, b) => a - b);
+                            offsideLimitX = sorted.length >= 2 ? sorted[1] : (sorted[0] ?? 95);
+                            // 공이 더 앞에 있으면 공 위치가 기준
+                            offsideLimitX = Math.max(offsideLimitX, this.ball.x);
+                        } else {
+                            // away FW → home 수비: X 내림차순 정렬, 2번째(인덱스1)가 오프사이드 라인
+                            const sorted = opposingFieldPlayers.map(q => q.x).sort((a, b) => b - a);
+                            offsideLimitX = sorted.length >= 2 ? sorted[1] : (sorted[0] ?? 5);
+                            // 공이 더 앞에 있으면 공 위치가 기준
+                            offsideLimitX = Math.min(offsideLimitX, this.ball.x);
+                        }
+
                         if (p.burstTimer > 0) {
+                            // burstTimer 중에도 오프사이드 라인 직전까지만 전진
                             targetX = oppDefLineX + (forwardDir * 15);
                             moveSpeed = 0.35;
                             p.burstTimer--;
@@ -931,13 +956,7 @@ class RealSoccerEngine {
                             let ballPushX = this.ball.x + (forwardDir * 25);
                             targetX = isHome ? Math.min(oppDefLineX - 1.5, ballPushX) : Math.max(oppDefLineX + 1.5, ballPushX);
 
-                            // ─────────────────────────────────────────────────────
-                            // [수정] FW 최소 전진 라인 강화
-                            // 기존: home 70 / away 30
-                            // 변경: home 75 / away 25
-                            // → 중앙 공격수(CF 등)가 반드시 상대 페널티 지역 근처에 위치
-                            //   MF 라인(42/58)과 확실히 분리됨
-                            // ─────────────────────────────────────────────────────
+                            // FW 최소 전진 라인 (MF 영역과 분리)
                             const fwMinX = isHome ? 75 : 25;
                             targetX = isHome ? Math.max(targetX, fwMinX) : Math.min(targetX, fwMinX);
 
@@ -953,7 +972,27 @@ class RealSoccerEngine {
                         }
                         targetY = Math.max(p.baseY - 6, Math.min(p.baseY + 6, p.baseY + avoidY));
 
-                        if (p.burstTimer > 0) targetX = oppDefLineX + (forwardDir * 15);
+                        if (p.burstTimer > 0) {
+                            // ─────────────────────────────────────────────────
+                            // [침투 중] 오프사이드 클램핑 해제
+                            // 실제 축구처럼 타이밍 맞춰 라인 뒤로 침투 가능
+                            // 패스가 나오는 순간 달리면 온사이드가 됨
+                            // ─────────────────────────────────────────────────
+                            targetX = oppDefLineX + (forwardDir * 15);
+                        } else {
+                            // ─────────────────────────────────────────────────
+                            // [대기 중] 오프사이드 라인 이내로 강제 제한
+                            // burstTimer가 끝나면 라인 안쪽으로 빠르게 복귀
+                            // ─────────────────────────────────────────────────
+                            if (isHome) targetX = Math.min(targetX, offsideLimitX - 1);
+                            else        targetX = Math.max(targetX, offsideLimitX + 1);
+
+                            // 오프사이드 위치에 있으면 복귀 속도 대폭 증가
+                            const isOffside = isHome
+                                ? (p.x > offsideLimitX)
+                                : (p.x < offsideLimitX);
+                            if (isOffside) moveSpeed = 0.55 * speedFactor;
+                        }
                         if (behavior.hugLine) { targetY = p.baseY < 50 ? 5 : 95; targetX += (forwardDir * 8); }
 
                         moveSpeed = 0.25 * speedFactor;
@@ -996,25 +1035,33 @@ class RealSoccerEngine {
                 const isHomeDef = p.teamId === 'home';
 
                 if (p.position === 'FW') {
-                    const opposingTeamId = p.teamId === 'home' ? 'away' : 'home';
-                    const opponents = this.players.filter(q => q.teamId === opposingTeamId && q.position !== 'GK');
+                    // ─────────────────────────────────────────────────────
+                    // [수정] 수비 전환 시 FW 오프사이드 방지 복귀
+                    // 상대 필드 플레이어(GK 제외) 중 두 번째로 골라인에 가까운 선수 기준
+                    // home FW: away 선수 X 오름차순 2번째 (= away의 마지막 수비수)
+                    // away FW: home 선수 X 내림차순 2번째
+                    // ─────────────────────────────────────────────────────
+                    const opposingFieldPlayers = this.players.filter(q =>
+                        q.teamId !== p.teamId && q.position !== 'GK'
+                    );
 
-                    if (opponents.length > 0) {
+                    if (opposingFieldPlayers.length > 0) {
                         let offsideLineX;
-                        if (isHomeDef) {
-                            const homeField = this.players.filter(q => q.teamId === 'home' && q.position !== 'GK');
-                            const sortedX = homeField.map(q => q.x).sort((a, b) => b - a);
-                            offsideLineX = sortedX.length >= 2 ? sortedX[1] : (sortedX[0] ?? 20);
-                            targetX = Math.min(p.x, offsideLineX + 2);
-                            moveSpeed = 0.45 * speedFactor;
+                        if (!isHomeDef) {
+                            // away FW가 수비 전환 → home 수비 라인 기준
+                            const sorted = opposingFieldPlayers.map(q => q.x).sort((a, b) => b - a);
+                            offsideLineX = sorted.length >= 2 ? sorted[1] : sorted[0];
+                            // 오프사이드 라인보다 뒤(숫자 작음)로 이동
+                            targetX = Math.min(p.x, offsideLineX - 1);
                         } else {
-                            const awayField = this.players.filter(q => q.teamId === 'away' && q.position !== 'GK');
-                            const sortedX = awayField.map(q => q.x).sort((a, b) => a - b);
-                            offsideLineX = sortedX.length >= 2 ? sortedX[1] : (sortedX[0] ?? 80);
-                            targetX = Math.max(p.x, offsideLineX - 2);
-                            moveSpeed = 0.45 * speedFactor;
+                            // home FW가 수비 전환 → away 수비 라인 기준
+                            const sorted = opposingFieldPlayers.map(q => q.x).sort((a, b) => a - b);
+                            offsideLineX = sorted.length >= 2 ? sorted[1] : sorted[0];
+                            // 오프사이드 라인보다 뒤(숫자 큼)로 이동
+                            targetX = Math.max(p.x, offsideLineX + 1);
                         }
                         targetY = p.baseY;
+                        moveSpeed = 0.5 * speedFactor;
                     } else {
                         targetX = p.baseX; targetY = p.baseY; moveSpeed = 0.35;
                     }
