@@ -18,14 +18,22 @@ class VisualUnit {
         this.skillEffectTimer = 0; // 개인기 효과 타이머
         this.activeSkillId = null; // 현재 진행 중인 개인기 ID
         this.color = color || (teamType === 'home' ? '#e74c3c' : '#3498db'); // [수정] 전달받은 컬러 사용
+        this.pulse = 0; // [신규] 공 소유 시 강조 애니메이션용
     }
 
     // ⚫ [7. 선수 이동] 보간 (Lerp) 업데이트
     update() {
         // 가속도 효과 제거: 단순 보간(Lerp) 방식으로 변경
-        const lerpFactor = 0.2; 
+        const lerpFactor = 0.22; // 시각적 부드러움을 위해 수치 하향
         this.x += (this.targetX - this.x) * lerpFactor;
         this.y += (this.targetY - this.y) * lerpFactor;
+
+        // [신규] 공 소유 시 맥동 효과를 위한 타이머 업데이트
+        if (this.hasBall) {
+            this.pulse += 0.12;
+        } else {
+            this.pulse = 0;
+        }
 
         if (this.skillEffectTimer > 0) {
             this.skillEffectTimer--;
@@ -106,10 +114,26 @@ class VisualUnit {
         ctx.lineWidth = 1;
         ctx.stroke();
         
-        if (this.hasBall) { // 공 가진 선수 표시
-            ctx.strokeStyle = '#f1c40f';
-            ctx.lineWidth = 3;
+        // [수정] 공을 가진 선수 강조 효과 강화 (Pulsing Halo + Neon Glow)
+        if (this.hasBall) {
+            ctx.save();
+            // 1. 외부 맥동하는 고리 (확장했다 수축했다 함)
+            const pulseScale = 1.3 + Math.sin(this.pulse) * 0.3;
+            ctx.beginPath();
+            ctx.arc(0, 0, r * pulseScale, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(241, 196, 15, 0.4)';
+            ctx.lineWidth = 2;
             ctx.stroke();
+
+            // 2. 본체 강한 발광 효과
+            ctx.shadowBlur = 15 + Math.sin(this.pulse) * 5;
+            ctx.shadowColor = '#f1c40f';
+            ctx.strokeStyle = '#f1c40f';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.arc(0, 0, r + 1, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.restore();
         }
 
         // [신규] 선수 이름 표시 (바둑돌 아래)
@@ -172,7 +196,7 @@ class VisualBall {
     draw(ctx, width, height) {
         const px = (this.x / 100) * width;
         const py = (this.y / 100) * height;
-        const r = Math.max(3, width * 0.008);
+        const r = Math.max(2.5, width * 0.006); // 공 크기를 약 25% 축소
         
         // [신규] 그림자 (땅에 고정)
         ctx.beginPath();
@@ -258,13 +282,13 @@ class MatchVisualizer {
         // [수정] 상태 기반 속도 제어 (이벤트 기반보다 더 정확함)
         if (snapshot.ball.state === 2) { 
             // IN_FLIGHT (패스, 슛) - 빠르고 직선적인 움직임
-            this.ball.accelFactor = 0.12; // 가속도 모델 수치로 변환
+            this.ball.accelFactor = 0.25; // 훨씬 빠르게 엔진 위치를 따라가 부메랑 효과 제거
         } else if (snapshot.ball.state === 1) { 
             // CONTROLLED (드리블) - 선수 발에 붙어다님
             this.ball.accelFactor = 0.9; // 드리블 시에는 즉각적으로 따라붙음
         } else {
             // LOOSE / DEAD - 자연스러운 감속
-            this.ball.accelFactor = 0.08;
+            this.ball.accelFactor = 0.2;
         }
 
         // 공 위치 업데이트
