@@ -567,6 +567,22 @@ class RealSoccerEngine {
         const isHome = player.teamId === 'home';
         const forwardX = isHome ? 100 : 0;
 
+        // ─────────────────────────────────────────────────────────────────
+        // [수정] 상대 수비 라인 X 계산 (두 번째로 깊은 수비수 기준)
+        // 스루패스가 이 라인을 넘기는지 판별하는 데 사용됨
+        // ─────────────────────────────────────────────────────────────────
+        const oppFieldPlayers = this.players.filter(p => p.teamId !== player.teamId && p.position !== 'GK');
+        let oppDefLineX;
+        if (isHome) {
+            // home 시점: away 수비 중 X가 가장 작은(=골라인 쪽) 2번째 선수
+            const sorted = oppFieldPlayers.map(p => p.x).sort((a, b) => a - b);
+            oppDefLineX = sorted.length >= 2 ? sorted[1] : (sorted[0] ?? 85);
+        } else {
+            // away 시점: home 수비 중 X가 가장 큰(=골라인 쪽) 2번째 선수
+            const sorted = oppFieldPlayers.map(p => p.x).sort((a, b) => b - a);
+            oppDefLineX = sorted.length >= 2 ? sorted[1] : (sorted[0] ?? 15);
+        }
+
         const nearbyOppsCount = this.players.filter(p =>
             p.teamId !== player.teamId &&
             Math.hypot(p.x - player.x, p.y - player.y) < 15
@@ -577,7 +593,18 @@ class RealSoccerEngine {
             const distAfter = Math.abs(tm.x - forwardX);
             let forwardScore = (distBefore - distAfter);
 
-            if (tm.burstTimer > 0) forwardScore += 150;
+            // ─────────────────────────────────────────────────────────────
+            // [수정] burstTimer 중인 침투 FW에게 강한 우선순위 부여
+            // 수비 라인 뒤쪽으로 달리는 선수에게 스루패스를 찔러줌
+            // ─────────────────────────────────────────────────────────────
+            const isBehindDefLine = isHome
+                ? (tm.x > oppDefLineX)   // home FW가 away 수비 라인 뒤쪽에 있음
+                : (tm.x < oppDefLineX);  // away FW가 home 수비 라인 뒤쪽에 있음
+
+            if (tm.burstTimer > 0) {
+                // 수비 라인을 뚫고 침투 중인 선수: 매우 강한 보너스
+                forwardScore += isBehindDefLine ? 300 : 150;
+            }
 
             const isPenetrating = tm.position === 'FW' && (isHome ? tm.vx > 0.1 : tm.vx < -0.1);
             if (isPenetrating) forwardScore += 35;
@@ -599,6 +626,15 @@ class RealSoccerEngine {
             else if (dist > 25) distScore = -(dist - 25) * 2.0;
             else distScore = 40;
 
+            // ─────────────────────────────────────────────────────────────
+            // [수정] 수비 라인 뒤쪽 침투 선수에게는 거리 페널티 완화
+            // 실제 스루패스는 25 이상 거리도 유효함
+            // ─────────────────────────────────────────────────────────────
+            if (isBehindDefLine && tm.burstTimer > 0) {
+                if (dist > 25) distScore = -(dist - 25) * 0.5; // 페널티 대폭 완화
+                if (dist > 40) distScore = -(dist - 40) * 1.5; // 너무 멀면 다시 패널티
+            }
+
             if (dist > 20 && distAfter > distBefore) distScore -= 200;
             if (player.position === 'DF' && tm.position === 'FW' && dist > 35) distScore -= 40;
             if (player.position === 'FW' && distAfter > distBefore) {
@@ -613,7 +649,16 @@ class RealSoccerEngine {
                     if (d < 15) pressureScore -= (15 - d) * 3;
                 }
             });
-            if (mode === 'safe') pressureScore *= 2.0;
+
+            // ─────────────────────────────────────────────────────────────
+            // [수정] 수비 라인 뒤쪽 침투 선수는 압박 점수 완화
+            // 수비수 뒤에 있으면 실제로는 수비수가 따라오기 어려움
+            // ─────────────────────────────────────────────────────────────
+            if (isBehindDefLine && tm.burstTimer > 0) {
+                pressureScore *= 0.3;
+            } else if (mode === 'safe') {
+                pressureScore *= 2.0;
+            }
 
             let loopPenalty = 0;
             if (this.ball.lastOwner === tm) loopPenalty = mode === 'aggressive' ? 60 : 20;
@@ -656,23 +701,55 @@ class RealSoccerEngine {
         if (to.burstTimer > 0) accuracy += 30;
 
         const forwardX = from.teamId === 'home' ? 100 : 0;
+        const isHome = from.teamId === 'home';
         const distToGoalFrom = Math.abs(from.x - forwardX);
         const distToGoalTo = Math.abs(to.x - forwardX);
 
-        const MAX_THROUGH_PASS_DIST = 35;
-        const isThroughPass = (distToGoalFrom - distToGoalTo > 5) && dist > 10 && distToGoalFrom < 60 && dist <= MAX_THROUGH_PASS_DIST;
+        // ─────────────────────────────────────────────────────────────────────
+        // [수정] 스루패스 판정: 수신자가 상대 수비 라인 뒤쪽에 있어야 진짜 스루패스
+        // 기존: 단순히 "수신자가 패서보다 앞에 있고 거리가 있으면 스루패스"
+        // 수정: 수신자가 실제로 상대 수비 라인(두 번째 수비수)을 넘어선 위치에 있어야 함
+        // ─────────────────────────────────────────────────────────────────────
+        const oppFieldPlayers = this.players.filter(p => p.teamId !== from.teamId && p.position !== 'GK');
+        let oppDefLineX;
+        if (isHome) {
+            const sorted = oppFieldPlayers.map(p => p.x).sort((a, b) => a - b);
+            oppDefLineX = sorted.length >= 2 ? sorted[1] : (sorted[0] ?? 85);
+        } else {
+            const sorted = oppFieldPlayers.map(p => p.x).sort((a, b) => b - a);
+            oppDefLineX = sorted.length >= 2 ? sorted[1] : (sorted[0] ?? 15);
+        }
+
+        const isReceiverBehindDefLine = isHome
+            ? (to.x > oppDefLineX)
+            : (to.x < oppDefLineX);
+
+        const MAX_THROUGH_PASS_DIST = 40;
+        // [수정] 스루패스 조건: 반드시 수비 라인 뒤쪽 수신자에게만 스루패스로 판정
+        const isThroughPass = isReceiverBehindDefLine
+            && (distToGoalFrom - distToGoalTo > 5)
+            && dist > 10
+            && distToGoalFrom < 65
+            && dist <= MAX_THROUGH_PASS_DIST;
         
         const distPenalty = Math.max(0, (dist - 20) * 0.8);
         let successChance = accuracy - distPenalty;
         
         if (from.position === 'GK' && dist > 50) successChance -= 15;
 
+        // ─────────────────────────────────────────────────────────────────────
+        // [수정] 진짜 스루패스일 때: 수신자가 침투 중이면 추가 정확도 보너스
+        // 침투 타이밍이 맞을수록 스루패스 성공률 상승
+        // ─────────────────────────────────────────────────────────────────────
         let eventType = 'pass';
         let eventDesc = `${from.name}, ${to.name}에게 연결!`;
 
         if (isThroughPass) {
             eventType = 'throughpass';
+            // 기본 스루패스 정확도 보너스
             if (accuracy > 75) successChance += (accuracy - 75) * 1.5;
+            // 침투 중인 선수에게 찔러주는 경우 추가 보너스
+            if (to.burstTimer > 0) successChance += 15;
             eventDesc = `⚡ ${from.name}, ${to.name}에게 결정적인 스루패스!`;
         }
 
@@ -718,11 +795,6 @@ class RealSoccerEngine {
 
         const powerDiff = shotPower - savePower;
 
-        // ─────────────────────────────────────────────────────────────
-        // [수정] 골 확률 조정
-        // 기본 25%, 최대 76% (너무 많지도 적지도 않은 중간값)
-        // powerDiff 반영률: 0.0045
-        // ─────────────────────────────────────────────────────────────
         let goalChance = 0.25 + (powerDiff * 0.0045);
         goalChance = Math.max(0.04, Math.min(0.76, goalChance));
 
@@ -922,33 +994,21 @@ class RealSoccerEngine {
                         if (!p.burstTimer) p.burstTimer = 0;
                         const oppDefLineX = this.getDefensiveLineX(p.teamId === 'home' ? 'away' : 'home');
 
-                        // ─────────────────────────────────────────────────────
-                        // [핵심] 오프사이드 라인 계산
-                        // 상대 필드 플레이어(GK 제외) 중 두 번째로 골라인에 가까운 선수의 X
-                        // home FW: away 수비 중 X가 가장 작은(=골라인 쪽) 2번째 선수
-                        // away FW: home 수비 중 X가 가장 큰(=골라인 쪽) 2번째 선수
-                        // 공이 오프사이드 라인보다 앞에 있으면 공 위치가 기준이 됨
-                        // ─────────────────────────────────────────────────────
                         const opposingFieldPlayers = this.players.filter(q =>
                             q.teamId !== p.teamId && q.position !== 'GK'
                         );
                         let offsideLimitX;
                         if (isHome) {
-                            // home FW → away 수비: X 오름차순 정렬, 2번째(인덱스1)가 오프사이드 라인
                             const sorted = opposingFieldPlayers.map(q => q.x).sort((a, b) => a - b);
                             offsideLimitX = sorted.length >= 2 ? sorted[1] : (sorted[0] ?? 95);
-                            // 공이 더 앞에 있으면 공 위치가 기준
                             offsideLimitX = Math.max(offsideLimitX, this.ball.x);
                         } else {
-                            // away FW → home 수비: X 내림차순 정렬, 2번째(인덱스1)가 오프사이드 라인
                             const sorted = opposingFieldPlayers.map(q => q.x).sort((a, b) => b - a);
                             offsideLimitX = sorted.length >= 2 ? sorted[1] : (sorted[0] ?? 5);
-                            // 공이 더 앞에 있으면 공 위치가 기준
                             offsideLimitX = Math.min(offsideLimitX, this.ball.x);
                         }
 
                         if (p.burstTimer > 0) {
-                            // burstTimer 중에도 오프사이드 라인 직전까지만 전진
                             targetX = oppDefLineX + (forwardDir * 15);
                             moveSpeed = 0.35;
                             p.burstTimer--;
@@ -956,7 +1016,6 @@ class RealSoccerEngine {
                             let ballPushX = this.ball.x + (forwardDir * 25);
                             targetX = isHome ? Math.min(oppDefLineX - 1.5, ballPushX) : Math.max(oppDefLineX + 1.5, ballPushX);
 
-                            // FW 최소 전진 라인 (MF 영역과 분리)
                             const fwMinX = isHome ? 75 : 25;
                             targetX = isHome ? Math.max(targetX, fwMinX) : Math.min(targetX, fwMinX);
 
@@ -973,21 +1032,11 @@ class RealSoccerEngine {
                         targetY = Math.max(p.baseY - 6, Math.min(p.baseY + 6, p.baseY + avoidY));
 
                         if (p.burstTimer > 0) {
-                            // ─────────────────────────────────────────────────
-                            // [침투 중] 오프사이드 클램핑 해제
-                            // 실제 축구처럼 타이밍 맞춰 라인 뒤로 침투 가능
-                            // 패스가 나오는 순간 달리면 온사이드가 됨
-                            // ─────────────────────────────────────────────────
                             targetX = oppDefLineX + (forwardDir * 15);
                         } else {
-                            // ─────────────────────────────────────────────────
-                            // [대기 중] 오프사이드 라인 이내로 강제 제한
-                            // burstTimer가 끝나면 라인 안쪽으로 빠르게 복귀
-                            // ─────────────────────────────────────────────────
                             if (isHome) targetX = Math.min(targetX, offsideLimitX - 1);
                             else        targetX = Math.max(targetX, offsideLimitX + 1);
 
-                            // 오프사이드 위치에 있으면 복귀 속도 대폭 증가
                             const isOffside = isHome
                                 ? (p.x > offsideLimitX)
                                 : (p.x < offsideLimitX);
@@ -1006,11 +1055,6 @@ class RealSoccerEngine {
                         if (attackBias > 0.3) targetX += (forwardDir * attackBias * 12);
                         if (Math.abs(p.y - this.ball.y) < 3) targetY += (p.y > 50 ? 4 : -4);
 
-                        // ─────────────────────────────────────────────────────
-                        // [수정] MF 최대 전진 라인 제한
-                        // MF가 FW 영역(home: 75 이상 / away: 25 이하)까지 올라가지 않도록 캡
-                        // → BBM, MEZ 같은 공격적 MF도 FW 자리를 침범하지 않음
-                        // ─────────────────────────────────────────────────────
                         const mfMaxX = isHome ? 74 : 26;
                         targetX = isHome ? Math.min(targetX, mfMaxX) : Math.max(targetX, mfMaxX);
 
@@ -1035,12 +1079,6 @@ class RealSoccerEngine {
                 const isHomeDef = p.teamId === 'home';
 
                 if (p.position === 'FW') {
-                    // ─────────────────────────────────────────────────────
-                    // [수정] 수비 전환 시 FW 오프사이드 방지 복귀
-                    // 상대 필드 플레이어(GK 제외) 중 두 번째로 골라인에 가까운 선수 기준
-                    // home FW: away 선수 X 오름차순 2번째 (= away의 마지막 수비수)
-                    // away FW: home 선수 X 내림차순 2번째
-                    // ─────────────────────────────────────────────────────
                     const opposingFieldPlayers = this.players.filter(q =>
                         q.teamId !== p.teamId && q.position !== 'GK'
                     );
@@ -1048,16 +1086,12 @@ class RealSoccerEngine {
                     if (opposingFieldPlayers.length > 0) {
                         let offsideLineX;
                         if (!isHomeDef) {
-                            // away FW가 수비 전환 → home 수비 라인 기준
                             const sorted = opposingFieldPlayers.map(q => q.x).sort((a, b) => b - a);
                             offsideLineX = sorted.length >= 2 ? sorted[1] : sorted[0];
-                            // 오프사이드 라인보다 뒤(숫자 작음)로 이동
                             targetX = Math.min(p.x, offsideLineX - 1);
                         } else {
-                            // home FW가 수비 전환 → away 수비 라인 기준
                             const sorted = opposingFieldPlayers.map(q => q.x).sort((a, b) => a - b);
                             offsideLineX = sorted.length >= 2 ? sorted[1] : sorted[0];
-                            // 오프사이드 라인보다 뒤(숫자 큼)로 이동
                             targetX = Math.max(p.x, offsideLineX + 1);
                         }
                         targetY = p.baseY;
@@ -1125,10 +1159,14 @@ class RealSoccerEngine {
                 }
             }
 
+            // ─────────────────────────────────────────────────────────────────
+            // [수정] CB 간격 조정: DF-DF 간격을 9 → 6으로 축소
+            // 중앙 수비수들이 너무 벌어지지 않도록 분리 거리 단축
+            // ─────────────────────────────────────────────────────────────────
             const teammates = this.players.filter(tm => tm.teamId === p.teamId && tm !== p);
             for (const tm of teammates) {
                 const d = Math.hypot(targetX - tm.x, targetY - tm.y);
-                let sD = (p.position === 'DF' && tm.position === 'DF') ? 9 : 5;
+                let sD = (p.position === 'DF' && tm.position === 'DF') ? 6 : 5; // 9 → 6
                 if (d < sD) {
                     const a = Math.atan2(targetY - tm.y, targetX - tm.x);
                     targetX += Math.cos(a) * (sD - d) * 0.5; targetY += Math.sin(a) * (sD - d) * 0.5;
