@@ -943,17 +943,22 @@ class RealSoccerEngine {
                         targetX = ballPushX;
 
                         if (isCentralFW) {
-                            // [수정 7] CF_MIN_X 고정값 제거 → 볼 위치 기반 동적 최솟값
-                            // 기존: 항상 x=62 이상 → 볼이 수비쪽에 있어도 CF가 앞에 고립
-                            // 수정: 볼보다 8~15 앞에 위치, 단 오프사이드 라인 -2 이내
                             const cfTargetX = isHome
-                                ? Math.min(this.ball.x + 15, offsideLimitX - 2)
-                                : Math.max(this.ball.x - 15, offsideLimitX + 2);
+                                ? Math.min(this.ball.x + 12, offsideLimitX - 2)
+                                : Math.max(this.ball.x - 12, offsideLimitX + 2);
                             targetX = isHome ? Math.max(targetX, cfTargetX) : Math.min(targetX, cfTargetX);
+                            
+                            const ballCarrier = this.ball.owner;
+                            const hasFriendlyBall = ballCarrier && ballCarrier.teamId === p.teamId;
+                            const ballBehind = isHome ? (this.ball.x < p.x - 12) : (this.ball.x > p.x + 12);
+                            
+                            if (ballBehind && !hasFriendlyBall) {
+                                targetX = this.ball.x + (isHome ? -5 : 5);
+                            }
                         } else {
                             const fwMinX = isHome
-                                ? Math.max(65, this.ball.x + 5)
-                                : Math.min(35, this.ball.x - 5);
+                                ? Math.max(this.ball.x - 10, this.ball.x + 5)
+                                : Math.min(this.ball.x + 10, this.ball.x - 5);
                             targetX = isHome ? Math.max(targetX, fwMinX) : Math.min(targetX, fwMinX);
                         }
 
@@ -1002,13 +1007,15 @@ class RealSoccerEngine {
                         const isHome2 = p.teamId === 'home';
                         if (isHome2) targetX = Math.min(75, Math.max(p.baseX, this.ball.x - safetyDist));
                         else targetX = Math.max(25, Math.min(p.baseX, this.ball.x + safetyDist));
-                        // [수정 5] 12/88 하드코딩 제거 → baseY 기준 좁은 범위로 수렴
-                        // 기존: 공격 시 DF를 y=12/88로 강제 → CB가 풀백처럼 벌어지는 원인
-                        // 수정: baseY ± 8 이내로만 이동 허용 (CB는 30~70 근처 유지)
-                        if (Math.abs(this.ball.x - (isHome2 ? 0 : 100)) < 45) {
-                            const dfYClamp = 8;
-                            targetY = Math.max(p.baseY - dfYClamp, Math.min(p.baseY + dfYClamp, p.baseY));
-                        } else targetY = p.baseY;
+                        
+                        const isCB = ['CD', 'BPD', 'NCB'].includes(p.role);
+                        if (isCB) {
+                            const centralY = 50;
+                            const tightness = 0.6;
+                            targetY = p.baseY * (1 - tightness) + centralY * tightness;
+                        } else {
+                            targetY = p.baseY;
+                        }
                     } else if (p.position === 'GK') {
                         targetX = p.baseX;
                         targetY = 50 + (this.ball.y - 50) * 0.05;
@@ -1148,26 +1155,30 @@ class RealSoccerEngine {
             // 기존 5/10은 필드 좌표 기준으로 너무 넓어서 CB가 풀백처럼 벌어짐
             // 6 이하로 유지하면 실제 CB 간격처럼 좁게 유지됨
             // ─────────────────────────────────────────────────────────────────
-            const MIN_DF_GAP = 3;
-            const MAX_DF_GAP = 6;
+            const MIN_DF_GAP = 2.5;
+            const MAX_DF_GAP = 5.0;
             const isMarkingCB = p.position === 'DF' && typeof p._markTargetId === 'string';
+            const isCB = ['CD', 'BPD', 'NCB'].includes(p.role);
             const teammates = this.players.filter(tm => tm.teamId === p.teamId && tm !== p);
             for (const tm of teammates) {
                 if (p.position === 'DF' && tm.position === 'DF') {
-                    const gapMin = isMarkingCB ? 2 : MIN_DF_GAP;
-                    const gapMax = MAX_DF_GAP;
+                    const isOtherCB = ['CD', 'BPD', 'NCB'].includes(tm.role);
+                    const gapMin = (isCB && isOtherCB) ? 2.5 : (isMarkingCB ? 2 : MIN_DF_GAP);
+                    const gapMax = (isCB && isOtherCB) ? 5.0 : 8.0;
+                    
                     const dyT = targetY - tm.y;
                     const absT = Math.abs(dyT);
                     const dirT = dyT >= 0 ? 1 : -1;
+                    
                     if (absT < gapMin) targetY = tm.y + dirT * gapMin;
                     else if (absT > gapMax) targetY = tm.y + dirT * gapMax;
-                    // 실제 위치 하드클램핑
-                    {
+
+                    if (isCB && isOtherCB) {
                         const dyP = p.y - tm.y;
                         const absP = Math.abs(dyP);
                         const dirP = dyP >= 0 ? 1 : -1;
-                        if (absP > MAX_DF_GAP + 2) {
-                            p.y = tm.y + dirP * (MAX_DF_GAP + 2);
+                        if (absP > gapMax + 1) {
+                            p.y = tm.y + dirP * (gapMax + 1);
                             p.vy *= 0.1;
                         }
                     }
