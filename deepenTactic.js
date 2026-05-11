@@ -942,19 +942,37 @@ class RealSoccerEngine {
                         let ballPushX = this.ball.x + (forwardDir * 18);
                         targetX = ballPushX;
 
-                        if (isCentralFW) {
+                        const ballCarrier = this.ball.owner;
+                        const hasFriendlyBall = ballCarrier && ballCarrier.teamId === p.teamId;
+                        const ballBehind = isHome ? (this.ball.x < p.x - 10) : (this.ball.x > p.x + 10);
+
+                        if (!hasFriendlyBall && ballBehind) {
+                            const ourTeamPlayers = this.players.filter(q => q.teamId === p.teamId && q !== p);
+                            let safeReturnX;
+                            if (isHome) {
+                                const sorted = ourTeamPlayers.map(q => q.x).sort((a, b) => a - b);
+                                safeReturnX = sorted.length >= 2 ? sorted[1] : (sorted[0] ?? 30);
+                                safeReturnX = Math.min(safeReturnX, p.baseX);
+                            } else {
+                                const sorted = ourTeamPlayers.map(q => q.x).sort((a, b) => b - a);
+                                safeReturnX = sorted.length >= 2 ? sorted[1] : (sorted[0] ?? 70);
+                                safeReturnX = Math.max(safeReturnX, p.baseX);
+                            }
+                            targetX = safeReturnX;
+                            targetY = p.baseY;
+                            moveSpeed = 0.9 * speedFactor;
+
+                            const tooFarForward = isHome ? (p.x > safeReturnX + 1) : (p.x < safeReturnX - 1);
+                            if (tooFarForward) {
+                                const pullDir = isHome ? -1 : 1;
+                                p.x += pullDir * 5.0 * speedFactor;
+                                p.vx = pullDir * 2.0;
+                            }
+                        } else if (isCentralFW) {
                             const cfTargetX = isHome
                                 ? Math.min(this.ball.x + 12, offsideLimitX - 2)
                                 : Math.max(this.ball.x - 12, offsideLimitX + 2);
                             targetX = isHome ? Math.max(targetX, cfTargetX) : Math.min(targetX, cfTargetX);
-                            
-                            const ballCarrier = this.ball.owner;
-                            const hasFriendlyBall = ballCarrier && ballCarrier.teamId === p.teamId;
-                            const ballBehind = isHome ? (this.ball.x < p.x - 12) : (this.ball.x > p.x + 12);
-                            
-                            if (ballBehind && !hasFriendlyBall) {
-                                targetX = this.ball.x + (isHome ? -5 : 5);
-                            }
                         } else {
                             const fwMinX = isHome
                                 ? Math.max(this.ball.x - 10, this.ball.x + 5)
@@ -1011,8 +1029,9 @@ class RealSoccerEngine {
                         const isCB = ['CD', 'BPD', 'NCB'].includes(p.role);
                         if (isCB) {
                             const centralY = 50;
-                            const tightness = 0.6;
+                            const tightness = 0.85; 
                             targetY = p.baseY * (1 - tightness) + centralY * tightness;
+                            targetY = Math.max(35, Math.min(65, targetY));
                         } else {
                             targetY = p.baseY;
                         }
@@ -1155,16 +1174,16 @@ class RealSoccerEngine {
             // 기존 5/10은 필드 좌표 기준으로 너무 넓어서 CB가 풀백처럼 벌어짐
             // 6 이하로 유지하면 실제 CB 간격처럼 좁게 유지됨
             // ─────────────────────────────────────────────────────────────────
-            const MIN_DF_GAP = 2.5;
-            const MAX_DF_GAP = 5.0;
+            const MIN_DF_GAP = 2.0;
+            const MAX_DF_GAP = 4.0;
             const isMarkingCB = p.position === 'DF' && typeof p._markTargetId === 'string';
             const isCB = ['CD', 'BPD', 'NCB'].includes(p.role);
             const teammates = this.players.filter(tm => tm.teamId === p.teamId && tm !== p);
             for (const tm of teammates) {
                 if (p.position === 'DF' && tm.position === 'DF') {
                     const isOtherCB = ['CD', 'BPD', 'NCB'].includes(tm.role);
-                    const gapMin = (isCB && isOtherCB) ? 2.5 : (isMarkingCB ? 2 : MIN_DF_GAP);
-                    const gapMax = (isCB && isOtherCB) ? 5.0 : 8.0;
+                    const gapMin = (isCB && isOtherCB) ? 2.0 : (isMarkingCB ? 1.5 : MIN_DF_GAP);
+                    const gapMax = (isCB && isOtherCB) ? 4.0 : 6.0;
                     
                     const dyT = targetY - tm.y;
                     const absT = Math.abs(dyT);
@@ -1177,8 +1196,8 @@ class RealSoccerEngine {
                         const dyP = p.y - tm.y;
                         const absP = Math.abs(dyP);
                         const dirP = dyP >= 0 ? 1 : -1;
-                        if (absP > gapMax + 1) {
-                            p.y = tm.y + dirP * (gapMax + 1);
+                        if (absP > gapMax + 0.5) {
+                            p.y = tm.y + dirP * (gapMax + 0.5);
                             p.vy *= 0.1;
                         }
                     }
