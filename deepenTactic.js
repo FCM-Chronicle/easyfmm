@@ -443,28 +443,19 @@ class RealSoccerEngine {
             });
         }
 
-        // ─────────────────────────────────────────────────────────────
-        // [수정] 슛 판단 로직 개편
-        // 중거리(18~28) 슛 확률 대폭 감소 → 더 파고든 뒤 슛
-        // 1대1 판정(pressureDist > 15) 추가 → 공간 있으면 드리블로 파고들기
-        // isAI 보정 제거 → 유저/AI 동일 기준
-        // ─────────────────────────────────────────────────────────────
-        const isOneOnOne = pressureDist > 15;
+        let shootThreshold = 30;
+        if (isAI) shootThreshold = 32;
 
         if (isAngleBlocked && distToGoal > 12 && Math.random() < 0.8) {
-            // 앵글 막힘 → 슛 건너뜀, 패스 로직으로
-        } else {
-            let shootChance = 0;
-            if (distToGoal < 12) {
-                shootChance = 0.95;                          // 골문 코앞: 거의 확실히 슛
-            } else if (distToGoal < 18) {
-                shootChance = 0.75;                          // 근거리: 높은 확률 슛
-            } else if (distToGoal < 28) {
-                shootChance = isOneOnOne ? 0.06 : 0.018;    // 중거리: 1대1 아니면 거의 파고들기
-            } else if (distToGoal < 35) {
-                shootChance = isOneOnOne ? 0.012 : 0.0;     // 장거리: 사실상 슛 안 함
-            }
-            if (shootChance > 0 && Math.random() < shootChance) {
+            shootThreshold = 0;
+        }
+
+        if (distToGoal < shootThreshold) { 
+            let shootChance = 0.15; 
+            if (distToGoal < 20) shootChance = 0.7;
+            if (distToGoal < 12) shootChance = 0.95;
+            if (isAI) shootChance += 0.05;
+            if (Math.random() < shootChance) {
                 this.attemptShoot(player, goalX);
                 return;
             }
@@ -483,35 +474,11 @@ class RealSoccerEngine {
             if (player.position === 'DF' || player.position === 'GK') {
                 passProb = underPressure ? 0.98 : 0.4;
             } else {
-                if (isWingerOnFlank && distToGoal > 25) {
-                    // ─────────────────────────────────────────────────────
-                    // [수정] 윙어가 측면 전진 중: 중앙 FW가 좋은 위치면 패스
-                    // 기존 0.001(사실상 패스 안 함) → 중앙 FW 유무에 따라 분기
-                    // ─────────────────────────────────────────────────────
-                    const centralFW = this.players.find(p =>
-                        p.teamId === player.teamId
-                        && p.position === 'FW'
-                        && p.baseY > 28 && p.baseY < 72
-                        && !this.getRoleBehavior(p.role).hugLine
-                    );
-                    if (centralFW) {
-                        // 중앙 FW가 있으면: 그 선수에게 패스 확률 부여
-                        passProb = 0.22;
-                    } else {
-                        passProb = 0.04; // 중앙 FW 없으면 계속 드리블
-                    }
-                } else {
-                    passProb = 0.15;
-                }
+                passProb = (isWingerOnFlank && distToGoal > 25) ? 0.001 : 0.15;
                 if (isAngleBlocked) passProb = 0.85;
-                // 측면 깊숙이 들어갔을 때 중앙 FW에게 컷백/크로스
-                if (behavior.hugLine && isOnFlank && distToGoal < 30) {
-                    const targetInBox = this.players.find(p =>
-                        p.teamId === player.teamId
-                        && p.position === 'FW'
-                        && Math.abs(p.y - 50) < 22  // 기존 18 → 22로 범위 확대
-                    );
-                    if (targetInBox && Math.random() < 0.65) {
+                if (behavior.hugLine && isOnFlank && distToGoal < 25) {
+                    const targetInBox = this.players.find(p => p.teamId === player.teamId && p.position === 'FW' && Math.abs(p.y - 50) < 18);
+                    if (targetInBox && Math.random() < 0.7) {
                         this.executePass(player, targetInBox);
                         return;
                     }
@@ -554,13 +521,6 @@ class RealSoccerEngine {
         if (behavior.hugLine && isOnFlank) {
             targetY = player.y < 50 ? 4 : 96;
             moveSpeed = 0.58;
-        } else if (isOneOnOne && !isBlocked && player.position === 'FW') {
-            // ─────────────────────────────────────────────────────────────
-            // [수정] 1대1 상황 FW: 수비수 없으면 골문 쪽으로 전력 질주
-            // 중거리 슛 대신 파고들어 근거리에서 마무리
-            // ─────────────────────────────────────────────────────────────
-            targetX = player.x + (moveDir * 35);
-            moveSpeed = 0.55 * speedFactor;
         } else if (isBlocked) {
             if (canOutrun && Math.random() < 0.65) {
                 targetX = player.x + (moveDir * 28);
@@ -633,43 +593,31 @@ class RealSoccerEngine {
             const distAfter = Math.abs(tm.x - forwardX);
             let forwardScore = (distBefore - distAfter);
 
+            // ─────────────────────────────────────────────────────────────
+            // [수정] burstTimer 중인 침투 FW에게 강한 우선순위 부여
+            // 수비 라인 뒤쪽으로 달리는 선수에게 스루패스를 찔러줌
+            // ─────────────────────────────────────────────────────────────
             const isBehindDefLine = isHome
-                ? (tm.x > oppDefLineX)
-                : (tm.x < oppDefLineX);
+                ? (tm.x > oppDefLineX)   // home FW가 away 수비 라인 뒤쪽에 있음
+                : (tm.x < oppDefLineX);  // away FW가 home 수비 라인 뒤쪽에 있음
 
-            // 침투 중인 선수 우선순위
             if (tm.burstTimer > 0) {
+                // 수비 라인을 뚫고 침투 중인 선수: 매우 강한 보너스
                 forwardScore += isBehindDefLine ? 300 : 150;
             }
 
             const isPenetrating = tm.position === 'FW' && (isHome ? tm.vx > 0.1 : tm.vx < -0.1);
             if (isPenetrating) forwardScore += 35;
 
-            // ─────────────────────────────────────────────────────────────
-            // [수정] 측면 전환 보너스 → 중앙 FW 패스 보너스로 대체
-            // 기존 switchBonus: Y축 35 이상 차이면 +40 → 윙↔윙 패스를 조장
-            // 수정: 중앙에 있는 FW(baseY 30~70)에게 패스할 때 보너스
-            //        패서가 측면(y<25 or y>75)에 있을 때 중앙 FW는 특히 우선
-            // ─────────────────────────────────────────────────────────────
-            const isCentralFWTarget = tm.position === 'FW'
-                && tm.baseY > 28 && tm.baseY < 72  // 중앙 FW 판별
-                && !this.getRoleBehavior(tm.role).hugLine;
-
-            const passerOnFlank = player.y < 25 || player.y > 75;
-
             let switchBonus = 0;
-            // 측면→중앙FW: 강한 보너스 (크로스/컷백 대신 중앙 연결)
-            if (isCentralFWTarget && passerOnFlank) switchBonus = 80;
-            // 측면→반대 측면: 약한 보너스만 (윙↔윙 도배 방지)
-            else if (nearbyOppsCount >= 1 && Math.abs(player.y - tm.y) > 35
-                     && !(isCentralFWTarget)) switchBonus = 15;
+            if (nearbyOppsCount >= 1 && Math.abs(player.y - tm.y) > 35) switchBonus = 40;
 
             if (mode === 'safe') {
                 forwardScore *= 0.5;
             } else {
                 forwardScore *= 8.0;
                 if (distAfter > distBefore) forwardScore -= 40;
-                // isAI 보정 제거 → 유저/AI 동일 기준
+                if (isAI && forwardScore > 0) forwardScore *= 1.5;
             }
 
             const dist = Math.hypot(player.x - tm.x, player.y - tm.y);
@@ -678,18 +626,13 @@ class RealSoccerEngine {
             else if (dist > 25) distScore = -(dist - 25) * 2.0;
             else distScore = 40;
 
-            // 수비 라인 뒤쪽 침투 선수: 거리 페널티 완화
+            // ─────────────────────────────────────────────────────────────
+            // [수정] 수비 라인 뒤쪽 침투 선수에게는 거리 페널티 완화
+            // 실제 스루패스는 25 이상 거리도 유효함
+            // ─────────────────────────────────────────────────────────────
             if (isBehindDefLine && tm.burstTimer > 0) {
-                if (dist > 25) distScore = -(dist - 25) * 0.5;
-                if (dist > 40) distScore = -(dist - 40) * 1.5;
-            }
-
-            // ─────────────────────────────────────────────────────────────
-            // [수정] 중앙 FW 대상 거리 페널티 완화
-            // 측면 선수에서 중앙 FW까지 거리가 15~30이어도 패스 가능하게
-            // ─────────────────────────────────────────────────────────────
-            if (isCentralFWTarget && dist > 10 && dist <= 35) {
-                distScore = Math.max(distScore, 20); // 최소 20점 보장
+                if (dist > 25) distScore = -(dist - 25) * 0.5; // 페널티 대폭 완화
+                if (dist > 40) distScore = -(dist - 40) * 1.5; // 너무 멀면 다시 패널티
             }
 
             if (dist > 20 && distAfter > distBefore) distScore -= 200;
@@ -707,6 +650,10 @@ class RealSoccerEngine {
                 }
             });
 
+            // ─────────────────────────────────────────────────────────────
+            // [수정] 수비 라인 뒤쪽 침투 선수는 압박 점수 완화
+            // 수비수 뒤에 있으면 실제로는 수비수가 따라오기 어려움
+            // ─────────────────────────────────────────────────────────────
             if (isBehindDefLine && tm.burstTimer > 0) {
                 pressureScore *= 0.3;
             } else if (mode === 'safe') {
@@ -722,13 +669,6 @@ class RealSoccerEngine {
                 else if (tm.position === 'DF') positionBonus = 3;
             }
             if (player.position === 'GK' && tm.position === 'DF') positionBonus = 5;
-
-            // ─────────────────────────────────────────────────────────────
-            // [수정] MF/윙어 → 중앙 FW 패스 명시적 보너스
-            // ─────────────────────────────────────────────────────────────
-            if (isCentralFWTarget && (player.position === 'MF' || player.position === 'FW')) {
-                positionBonus += 25;
-            }
 
             const totalScore = forwardScore + distScore + pressureScore - loopPenalty + positionBonus + switchBonus;
             if (totalScore > maxScore) { maxScore = totalScore; bestTarget = tm; }
@@ -1053,11 +993,7 @@ class RealSoccerEngine {
                     else if (p.position === 'FW') {
                         if (!p.burstTimer) p.burstTimer = 0;
                         const oppDefLineX = this.getDefensiveLineX(p.teamId === 'home' ? 'away' : 'home');
-                        const isCentralFW = !behavior.hugLine;
 
-                        // ─────────────────────────────────────────────────────────
-                        // 오프사이드 라인 계산 (상대 필드 플레이어 두 번째 기준)
-                        // ─────────────────────────────────────────────────────────
                         const opposingFieldPlayers = this.players.filter(q =>
                             q.teamId !== p.teamId && q.position !== 'GK'
                         );
@@ -1072,70 +1008,20 @@ class RealSoccerEngine {
                             offsideLimitX = Math.min(offsideLimitX, this.ball.x);
                         }
 
-                        // ─────────────────────────────────────────────────────────
-                        // [핵심 수정] FW는 항상 오프사이드 라인 안쪽에서 대기
-                        // burstTimer는 "침투 준비 상태"를 의미하며,
-                        // 실제로 라인을 넘는 건 intendedReceiver로 지정됐을 때만
-                        //
-                        // burstTimer > 0: 라인 바로 앞(안쪽 2칸)에서 대기하며 타이밍 준비
-                        // intendedReceiver: 패스가 실제로 나왔을 때만 라인 뒤로 달리기
-                        // ─────────────────────────────────────────────────────────
-
-                        if (p.burstTimer > 0) p.burstTimer--;
-
-                        // 기본 대기 위치: 공 기준 전방 + 오프사이드 라인 안쪽 유지
-                        let ballPushX = this.ball.x + (forwardDir * 20);
-                        targetX = isHome
-                            ? Math.min(offsideLimitX - 2, ballPushX)   // 라인 2칸 안쪽
-                            : Math.max(offsideLimitX + 2, ballPushX);
-
-                        // 중앙 FW 최소 전진 보장 (수비 라인이 낮아도 이 이상은 유지)
-                        if (isCentralFW) {
-                            const fwAbsLimit = isHome ? 68 : 32;
-                            targetX = isHome
-                                ? Math.max(targetX, fwAbsLimit)
-                                : Math.min(targetX, fwAbsLimit);
-                        } else {
-                            const fwMinX = isHome ? 72 : 28;
-                            targetX = isHome ? Math.max(targetX, fwMinX) : Math.min(targetX, fwMinX);
-                        }
-
-                        // burstTimer 중: 라인 바로 코앞(안쪽 1칸)까지 바짝 붙어 대기
-                        // → 패스 나오는 순간 온사이드로 침투 가능
                         if (p.burstTimer > 0) {
-                            const waitX = isHome ? offsideLimitX - 1 : offsideLimitX + 1;
-                            targetX = isHome ? Math.min(targetX, waitX) : Math.max(targetX, waitX);
-                            moveSpeed = 0.4 * speedFactor;
-                        }
+                            targetX = oppDefLineX + (forwardDir * 15);
+                            moveSpeed = 0.35;
+                            p.burstTimer--;
+                        } else {
+                            let ballPushX = this.ball.x + (forwardDir * 25);
+                            targetX = isHome ? Math.min(oppDefLineX - 1.5, ballPushX) : Math.max(oppDefLineX + 1.5, ballPushX);
 
-                        // 침투 타이밍: burstTimer 새로 발동 조건
-                        if (p.burstTimer === 0) {
+                            const fwMinX = isHome ? 75 : 25;
+                            targetX = isHome ? Math.max(targetX, fwMinX) : Math.min(targetX, fwMinX);
+
                             const ballCarrier = this.ball.owner;
-                            const hasFriendlyBall = ballCarrier && ballCarrier.teamId === p.teamId;
-                            let burstChance = hasFriendlyBall && ballCarrier.position !== 'FW' ? 0.06 : 0.02;
-                            if (behavior.runBehind) burstChance *= 1.5;
-                            if (Math.random() < burstChance) p.burstTimer = 30;
-                        }
-
-                        // 공이 많이 뒤에 있을 때: 내려와서 패스 받기 (중앙 FW만)
-                        if (isCentralFW && p.burstTimer === 0) {
-                            const fwAbsLimit = isHome ? 68 : 32;
-                            const distBehind = isHome
-                                ? (fwAbsLimit - this.ball.x)
-                                : (this.ball.x - fwAbsLimit);
-                            if (distBehind > 12) {
-                                const dropX = isHome
-                                    ? Math.max(fwAbsLimit, this.ball.x + 14)
-                                    : Math.min(fwAbsLimit, this.ball.x - 14);
-                                targetX = dropX;
-                            }
-                        }
-
-                        // 오프사이드 위치 감지 → 빠르게 복귀
-                        const isOffside = isHome ? (p.x > offsideLimitX) : (p.x < offsideLimitX);
-                        if (isOffside) {
-                            targetX = isHome ? offsideLimitX - 2 : offsideLimitX + 2;
-                            moveSpeed = 0.6 * speedFactor;
+                            let burstChance = (ballCarrier && ballCarrier.teamId === p.teamId && ballCarrier.position !== 'FW') ? 0.08 : 0.03;
+                            if (behavior.runBehind && Math.random() < burstChance) p.burstTimer = 45;
                         }
 
                         const nearOpp = this.findNearestDefender(p);
@@ -1143,11 +1029,22 @@ class RealSoccerEngine {
                         if (nearOpp && nearOpp.dist < 4) {
                             avoidY = (p.y > nearOpp.player.y) ? 4 : -4;
                         }
-                        const yRange = isCentralFW ? 12 : 6;
-                        targetY = Math.max(p.baseY - yRange, Math.min(p.baseY + yRange, p.baseY + avoidY));
+                        targetY = Math.max(p.baseY - 6, Math.min(p.baseY + 6, p.baseY + avoidY));
+
+                        if (p.burstTimer > 0) {
+                            targetX = oppDefLineX + (forwardDir * 15);
+                        } else {
+                            if (isHome) targetX = Math.min(targetX, offsideLimitX - 1);
+                            else        targetX = Math.max(targetX, offsideLimitX + 1);
+
+                            const isOffside = isHome
+                                ? (p.x > offsideLimitX)
+                                : (p.x < offsideLimitX);
+                            if (isOffside) moveSpeed = 0.55 * speedFactor;
+                        }
                         if (behavior.hugLine) { targetY = p.baseY < 50 ? 5 : 95; targetX += (forwardDir * 8); }
 
-                        moveSpeed = 0.28 * speedFactor;
+                        moveSpeed = 0.25 * speedFactor;
                     } else if (p.position === 'MF') {
                         const attackBias = behavior.attackBias || 0;
                         const defenseBias = behavior.defenseBias || 0;
