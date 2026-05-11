@@ -366,11 +366,6 @@ class RealSoccerEngine {
             }
         }
 
-        // ──────────────────────────────────────────────────────────────────────
-        // [버그 4 수정] 윙끼리 패스 반복 방지
-        // baseY 대신 현재 y 기준으로 중앙 FW를 탐색하고,
-        // 윙→중앙 패스 우선도(passProb)를 0.22 → 0.6으로 상향
-        // ──────────────────────────────────────────────────────────────────────
         let passProb = 0.5;
         const runner = this.players.find(p => p.teamId === player.teamId && p.burstTimer > 10);
         if (runner && distToGoal > 30) {
@@ -385,20 +380,17 @@ class RealSoccerEngine {
                 passProb = underPressure ? 0.98 : 0.4;
             } else {
                 if (isWingerOnFlank && distToGoal > 25) {
-                    // 현재 위치(y) 기준으로 중앙 FW 탐색 (baseY 아님)
                     const centralFW = this.players.find(p =>
                         p.teamId === player.teamId && p.position === 'FW'
                         && p.y > 28 && p.y < 72
                         && !this.getRoleBehavior(p.role).hugLine
                     );
-                    // 중앙 FW가 있으면 높은 확률로 패스, 없어도 적당히 패스
                     passProb = centralFW ? 0.60 : 0.20;
                 } else {
                     passProb = 0.15;
                 }
                 if (isAngleBlocked) passProb = 0.85;
                 if (behavior.hugLine && isOnFlank && distToGoal < 30) {
-                    // 현재 위치(y) 기준으로 박스 안 FW 탐색
                     const targetInBox = this.players.find(p =>
                         p.teamId === player.teamId && p.position === 'FW'
                         && Math.abs(p.y - 50) < 22
@@ -411,10 +403,6 @@ class RealSoccerEngine {
 
         let bestPassTarget = null;
 
-        // ──────────────────────────────────────────────────────────────────────
-        // [버그 3 수정] GK 패스 로직 개선
-        // dist < 10 패널티를 GK에겐 면제하고, GK 전용 가까운 수비수 우선 탐색
-        // ──────────────────────────────────────────────────────────────────────
         if (player.position === 'GK') {
             if (underPressure) {
                 bestPassTarget = this._findGKPassTarget(player, 'safe');
@@ -429,7 +417,6 @@ class RealSoccerEngine {
                 }
             }
             if (bestPassTarget) { this.executePass(player, bestPassTarget); return; }
-            // 패스 대상이 진짜 없을 때만 걷어내기
             this.clearBall(player); return;
         } else {
             bestPassTarget = this.findBestPassTarget(player, 'aggressive');
@@ -474,36 +461,28 @@ class RealSoccerEngine {
         if (Math.random() < 0.2) this.eventsQueue.push({ type: 'dribble', player: player.name });
     }
 
-    // ──────────────────────────────────────────────────────────────────────────
-    // [버그 3 수정] GK 전용 패스 타겟 탐색
-    // dist < 10 패널티 없이 가까운 수비수를 우선 탐색
-    // safe: 가장 가까운 DF, aggressive: 전진 가능한 MF/FW
-    // ──────────────────────────────────────────────────────────────────────────
     _findGKPassTarget(gk, mode) {
         const teammates = this.players.filter(p => p.teamId === gk.teamId && p !== gk);
         const isHome = gk.teamId === 'home';
         const forwardX = isHome ? 100 : 0;
 
         if (mode === 'safe') {
-            // 가장 가까운 DF를 우선 선택
             const dfs = teammates.filter(p => p.position === 'DF');
             if (dfs.length > 0) {
                 dfs.sort((a, b) => Math.hypot(a.x - gk.x, a.y - gk.y) - Math.hypot(b.x - gk.x, b.y - gk.y));
                 return dfs[0];
             }
-            // DF 없으면 가장 가까운 MF
             const mfs = teammates.filter(p => p.position === 'MF');
             if (mfs.length > 0) {
                 mfs.sort((a, b) => Math.hypot(a.x - gk.x, a.y - gk.y) - Math.hypot(b.x - gk.x, b.y - gk.y));
                 return mfs[0];
             }
         } else {
-            // 전진 위치 + 압박 적은 MF/FW
             let best = null, bestScore = -Infinity;
             teammates.forEach(tm => {
                 if (tm.position === 'GK') return;
                 const dist = Math.hypot(gk.x - tm.x, gk.y - tm.y);
-                if (dist > 50) return; // GK 롱패스 최대 사정거리 제한
+                if (dist > 50) return;
                 const forwardScore = Math.abs(tm.x - forwardX) < Math.abs(gk.x - forwardX) ? 30 : -10;
                 let pressureScore = 0;
                 this.players.forEach(opp => {
@@ -549,16 +528,11 @@ class RealSoccerEngine {
 
             const isBehindDefLine = isHome ? (tm.x > oppDefLineX) : (tm.x < oppDefLineX);
 
-            // ──────────────────────────────────────────────────────────────────
-            // [버그 2 수정] burstTimer와 무관하게 수비 전환 중 고립 FW 판단
-            // burstTimer > 0 이어도 상대 진영 깊숙이 있으면 고립으로 처리
-            // ──────────────────────────────────────────────────────────────────
             const weHaveBall = this.ball.owner && this.ball.owner.teamId === player.teamId;
             const ballInFlight = this.ball.state === BallState.IN_FLIGHT
                 && this.ball.lastOwner && this.ball.lastOwner.teamId === player.teamId;
             const ourPossession = weHaveBall || ballInFlight;
 
-            // FW가 상대 진영에 있고 우리 팀이 볼을 갖고 있지 않으면 고립 FW
             const isIsolatedFW = tm.position === 'FW' && !ourPossession && isBehindDefLine;
 
             if (tm.burstTimer > 0 && ourPossession) forwardScore += isBehindDefLine ? 300 : 150;
@@ -568,7 +542,6 @@ class RealSoccerEngine {
             const isPenetrating = tm.position === 'FW' && (isHome ? tm.vx > 0.1 : tm.vx < -0.1);
             if (isPenetrating && ourPossession) forwardScore += 35;
 
-            // 현재 위치(y) 기준으로 중앙 FW 탐색 (baseY 아님 → 버그 4 연계 수정)
             const isCentralFWTarget = tm.position === 'FW'
                 && tm.y > 28 && tm.y < 72
                 && !this.getRoleBehavior(tm.role).hugLine;
@@ -600,7 +573,6 @@ class RealSoccerEngine {
 
             if (dist > 20 && distAfter > distBefore) distScore -= 200;
             if (player.position === 'DF' && tm.position === 'FW' && dist > 35) distScore -= 40;
-            // DF나 GK가 수비 전환 중 고립된 FW에게 롱패스 → 강한 패널티
             if ((player.position === 'DF' || player.position === 'GK') && isIsolatedFW && dist > 25) distScore -= 300;
             if (player.position === 'FW' && distAfter > distBefore) {
                 if (tm.position === 'GK') distScore -= 500;
@@ -816,15 +788,55 @@ class RealSoccerEngine {
         });
     }
 
+    // ────────────────────────────────────────────────────────────────────────────
+    // 오프사이드 라인 계산 헬퍼 (공격/수비 양측에서 공통으로 사용)
+    // attackingTeamId: 공격 중인 팀 ID
+    // isHomeFW: 오프사이드를 체크받는 FW가 home 팀인지
+    // ────────────────────────────────────────────────────────────────────────────
+    _calcOffsideLineX(isHomeFW) {
+        // 오프사이드 기준: 수비 팀(상대) 선수 전체 중 두 번째로 깊은 선수
+        const defendingTeamId = isHomeFW ? 'away' : 'home';
+        const allDefenders = this.players.filter(q => q.teamId === defendingTeamId);
+
+        let offsideLimitX;
+        if (isHomeFW) {
+            // home FW가 공격: away 선수 중 x가 가장 작은 두 번째 (= 마지막 필드 수비수)
+            const sorted = allDefenders.map(q => q.x).sort((a, b) => a - b);
+            offsideLimitX = sorted.length >= 2 ? sorted[1] : (sorted[0] ?? 90);
+            offsideLimitX = Math.min(offsideLimitX, 88); // 하드 캡: GK 바로 앞
+        } else {
+            // away FW가 공격: home 선수 중 x가 가장 큰 두 번째
+            const sorted = allDefenders.map(q => q.x).sort((a, b) => b - a);
+            offsideLimitX = sorted.length >= 2 ? sorted[1] : (sorted[0] ?? 10);
+            offsideLimitX = Math.max(offsideLimitX, 12); // 하드 캡: GK 바로 앞
+        }
+        return offsideLimitX;
+    }
+
+    // ────────────────────────────────────────────────────────────────────────────
+    // FW 오프사이드 위치 강제 보정 (공격/수비 전환 양측 공통)
+    // player: FW 선수 객체
+    // isHomeFW: home 팀 FW인지
+    // ────────────────────────────────────────────────────────────────────────────
+    _enforceOffsideLine(player, isHomeFW) {
+        const offsideLimitX = this._calcOffsideLineX(isHomeFW);
+        const isOffside = isHomeFW ? (player.x > offsideLimitX) : (player.x < offsideLimitX);
+        if (isOffside) {
+            if (isHomeFW) {
+                player.x = Math.min(player.x, offsideLimitX - 1);
+            } else {
+                player.x = Math.max(player.x, offsideLimitX + 1);
+            }
+            player.vx *= 0.1;
+        }
+        return offsideLimitX;
+    }
+
     processOffBallAI() {
         let attackingTeam = null;
         if (this.ball.owner) attackingTeam = this.ball.owner.teamId;
         else if (this.ball.state === BallState.IN_FLIGHT && this.ball.lastOwner) attackingTeam = this.ball.lastOwner.teamId;
         const isLooseBall = !this.ball.owner && this.ball.state === BallState.LOOSE;
-
-        // 현재 볼 소유 상태 (processOffBallAI 전체에서 공유)
-        const weHaveBallHome = attackingTeam === 'home';
-        const weHaveBallAway = attackingTeam === 'away';
 
         let presser = null;
         if (this.ball.owner) {
@@ -855,10 +867,8 @@ class RealSoccerEngine {
             const speedFactor = effectiveSpeed / 75;
             let moveSpeed = 0.22 * Math.max(0.7, Math.min(1.4, speedFactor));
 
-            // 이 플레이어의 팀이 공격 중인지 수비 중인지
             const isAttacking = (p.teamId === attackingTeam);
-            // 우리 팀의 볼 소유 여부 (IN_FLIGHT 포함)
-            const ourPossession = isAttacking || (!isLooseBall && attackingTeam === p.teamId);
+            const isHomeDef = p.teamId === 'home'; // 수비 블록에서 사용
 
             if (isLooseBall) {
                 const isNearest = (p === nearestHome || p === nearestAway);
@@ -887,22 +897,9 @@ class RealSoccerEngine {
                         if (!p.burstTimer) p.burstTimer = 0;
                         const isCentralFW = !behavior.hugLine;
 
-                        // 오프사이드 라인 계산
-                        const opposingFieldPlayers = this.players.filter(q => q.teamId !== p.teamId && q.position !== 'GK');
-                        let offsideLimitX;
-                        if (isHome) {
-                            const sorted = opposingFieldPlayers.map(q => q.x).sort((a, b) => a - b);
-                            offsideLimitX = sorted.length >= 2 ? sorted[1] : (sorted[0] ?? 95);
-                            offsideLimitX = Math.max(offsideLimitX, this.ball.x);
-                        } else {
-                            const sorted = opposingFieldPlayers.map(q => q.x).sort((a, b) => b - a);
-                            offsideLimitX = sorted.length >= 2 ? sorted[1] : (sorted[0] ?? 5);
-                            offsideLimitX = Math.min(offsideLimitX, this.ball.x);
-                        }
+                        // ── 오프사이드 라인: 공통 헬퍼 사용 ──
+                        const offsideLimitX = this._calcOffsideLineX(isHome);
 
-                        // ── burstTimer: 우리 팀이 공을 가진 상태에서만 발동 가능 ──
-                        // isAttacking이 true인 시점이므로 ourPossession은 항상 true
-                        // burstTimer 발동 조건만 체크
                         if (p.burstTimer > 0) p.burstTimer--;
                         if (p.burstTimer === 0) {
                             const ballCarrier = this.ball.owner;
@@ -915,7 +912,6 @@ class RealSoccerEngine {
                         let ballPushX = this.ball.x + (forwardDir * 20);
                         targetX = ballPushX;
 
-                        // ── 우리 팀 볼 소유: 전진 대기 ──
                         if (isCentralFW) {
                             const fwAbsLimit = isHome ? 65 : 35;
                             targetX = isHome ? Math.max(targetX, fwAbsLimit) : Math.min(targetX, fwAbsLimit);
@@ -935,15 +931,13 @@ class RealSoccerEngine {
 
                         if (p.burstTimer > 0) moveSpeed = 0.4 * speedFactor;
 
+                        // targetX 오프사이드 클램핑
                         targetX = isHome
                             ? Math.min(targetX, offsideLimitX - 1)
                             : Math.max(targetX, offsideLimitX + 1);
 
-                        const isOffside = isHome ? (p.x > offsideLimitX) : (p.x < offsideLimitX);
-                        if (isOffside) {
-                            targetX = isHome ? offsideLimitX - 3 : offsideLimitX + 3;
-                            moveSpeed = 0.65 * speedFactor;
-                        }
+                        // 실제 위치도 즉시 강제 보정
+                        this._enforceOffsideLine(p, isHome);
 
                         const nearOpp = this.findNearestDefender(p);
                         let avoidY = 0;
@@ -951,6 +945,8 @@ class RealSoccerEngine {
                         const yRange = isCentralFW ? 12 : 6;
                         targetY = Math.max(p.baseY - yRange, Math.min(p.baseY + yRange, p.baseY + avoidY));
                         if (behavior.hugLine) { targetY = p.baseY < 50 ? 5 : 95; targetX += (forwardDir * 8); }
+
+                        // 최종 targetX 오프사이드 클램핑 재적용
                         targetX = isHome
                             ? Math.min(targetX, offsideLimitX - 1)
                             : Math.max(targetX, offsideLimitX + 1);
@@ -987,31 +983,56 @@ class RealSoccerEngine {
                 }
             } else {
                 // ─── 수비 전환 ───
-                const isHomeDef = p.teamId === 'home';
-
-                // ──────────────────────────────────────────────────────────────
-                // [버그 1 수정] 수비 팀 FW 귀환 로직
-                // 공격→수비 전환 즉시 burstTimer 리셋 + 즉각 후퇴 강제 적용
-                // ──────────────────────────────────────────────────────────────
                 if (p.position === 'FW') {
-                    // burstTimer 즉시 리셋
+                    // ──────────────────────────────────────────────────────────────
+                    // [수정] 수비 전환 FW: 오프사이드 라인 기반 복귀 + 즉시 강제 이동
+                    // 기존의 고정값(45/55) 대신 실시간 오프사이드 라인 계산 적용
+                    // ──────────────────────────────────────────────────────────────
                     p.burstTimer = 0;
 
-                    const retreatX = isHomeDef
-                        ? Math.min(p.baseX, 48)
-                        : Math.max(p.baseX, 52);
-                    targetX = retreatX;
+                    // 수비 팀(우리 팀) 두 번째로 깊은 선수 기준 오프사이드 라인 계산
+                    // 수비 전환 중 FW는 "상대 팀의 FW" 입장이므로 isHomeFW = (p.teamId === 'home')
+                    const isHomeFW = (p.teamId === 'home');
+
+                    // 수비 중인 팀(우리 팀) 선수들 중 두 번째로 깊은 위치
+                    const ourTeamPlayers = this.players.filter(q => q.teamId === p.teamId && q !== p);
+                    let safeReturnX;
+                    if (isHomeFW) {
+                        // home FW 수비 전환: 우리 팀(home) 두 번째로 낮은 x 기준
+                        const sorted = ourTeamPlayers.map(q => q.x).sort((a, b) => a - b);
+                        safeReturnX = sorted.length >= 2 ? sorted[1] : (sorted[0] ?? 30);
+                        safeReturnX = Math.min(safeReturnX, p.baseX); // baseX보다 앞으로는 가지 않음
+                        safeReturnX = Math.max(safeReturnX, 10);      // 최소 x 보장
+                    } else {
+                        // away FW 수비 전환: 우리 팀(away) 두 번째로 높은 x 기준
+                        const sorted = ourTeamPlayers.map(q => q.x).sort((a, b) => b - a);
+                        safeReturnX = sorted.length >= 2 ? sorted[1] : (sorted[0] ?? 70);
+                        safeReturnX = Math.max(safeReturnX, p.baseX);
+                        safeReturnX = Math.min(safeReturnX, 90);
+                    }
+
+                    targetX = safeReturnX;
                     targetY = p.baseY;
                     moveSpeed = 0.7 * speedFactor;
 
-                    // 상대 진영 깊숙이 있으면 즉시 강제 이동 (vx 기반 부드러운 이동으로 교체)
-                    const tooFarForward = isHomeDef ? (p.x > 55) : (p.x < 45);
+                    // 상대 진영 깊숙이 침투해 있으면 즉시 강제 당김
+                    const tooFarForward = isHomeFW ? (p.x > safeReturnX + 5) : (p.x < safeReturnX - 5);
                     if (tooFarForward) {
-                        const pullDir = isHomeDef ? -1 : 1;
-                        const pullSpeed = 3.0 * speedFactor; // 강제 귀환 속도 상향
+                        const pullDir = isHomeFW ? -1 : 1;
+                        const pullSpeed = 3.5 * speedFactor;
                         p.x += pullDir * pullSpeed;
                         p.vx = pullDir * pullSpeed * 0.5;
                     }
+
+                    // 절대 하드 캡: 수비 전환 중 FW는 safeReturnX 너머로 절대 이동 불가
+                    if (isHomeFW) {
+                        p.x = Math.min(p.x, safeReturnX);
+                        if (p.vx > 0) p.vx = 0;
+                    } else {
+                        p.x = Math.max(p.x, safeReturnX);
+                        if (p.vx < 0) p.vx = 0;
+                    }
+
                 } else {
                     let shiftFactor = 0.7, yShiftFactor = 0.2;
                     if (p.position === 'MF') {
@@ -1024,17 +1045,9 @@ class RealSoccerEngine {
                     const isSpecialCase = (this.pendingShot || isGKPossession);
                     let formationX = p.baseX + (refBallX - 50) * shiftFactor;
                     let formationY = p.baseY + ((this.pendingShot ? 50 : this.ball.y) - 50) * yShiftFactor;
-                    // ──────────────────────────────────────────────────────────
-                    // [버그 A 수정] CB 마킹 로직 전면 개선
-                    // 기존: baseY 기준 ±18 → CB 사이 갭에 들어온 FW는 어느 CB도 담당 안 함
-                    // 수정: 현재 y 기준으로 "가장 가까운" 상대 FW를 각 CB가 분담 마킹
-                    //   - CB1이 이미 마킹 중인 FW는 CB2 마킹 후보에서 제외
-                    //   - 마킹 대상이 CB 사이 갭(y 기준 중간값)에 있어도 더 가까운 CB가 담당
-                    //   - moveSpeed를 0.06 → 0.35로 상향 (기존엔 너무 느려 따라가지 못함)
-                    // ──────────────────────────────────────────────────────────
+
                     let markTarget = null;
                     if (!isSpecialCase && p.position === 'DF') {
-                        // 이미 다른 아군 DF가 마킹 중인 상대 선수 목록 수집
                         const alreadyMarked = new Set();
                         this.players.forEach(ally => {
                             if (ally.teamId === p.teamId && ally !== p && ally.position === 'DF' && ally._markTargetId) {
@@ -1045,20 +1058,15 @@ class RealSoccerEngine {
                         let minM = 999;
                         this.players.forEach(opp => {
                             if (opp.teamId !== p.teamId && opp.position !== 'GK' && opp !== this.ball.owner) {
-                                // 이미 다른 CB가 담당 중인 선수는 건너뜀 (단, 아무도 안 맡으면 허용)
                                 if (alreadyMarked.has(opp.id)) return;
                                 const d = Math.hypot(p.x - opp.x, p.y - opp.y);
-                                // 현재 y 기준으로 범위 확장 (baseY 의존 제거)
-                                // 상대가 우리 수비 3분의 1 안에 있을 때만 마킹 발동
                                 const inDangerZone = isHomeDef ? (opp.x < 40) : (opp.x > 60);
                                 if (inDangerZone && d < minM) { minM = d; markTarget = opp; }
                             }
                         });
-                        // 마킹 대상 ID 저장 (다음 프레임에서 다른 CB가 참조)
                         p._markTargetId = markTarget ? markTarget.id : null;
 
                     } else if (!isSpecialCase && p.position !== 'GK') {
-                        // MF 등 비-DF 포지션은 기존 로직 유지 (범위만 y 기준으로)
                         let minM = 30;
                         this.players.forEach(opp => {
                             if (opp.teamId !== p.teamId && opp.position !== 'GK' && opp !== this.ball.owner) {
@@ -1070,15 +1078,12 @@ class RealSoccerEngine {
 
                     if (markTarget && p.position !== 'GK') {
                         const gX = p.teamId === 'home' ? 0 : 100;
-                        // 마킹 위치: 상대와 골문 사이 중간 지점에 서기
                         const markX = markTarget.x + (gX - markTarget.x) * 0.15;
                         const markY = markTarget.y;
                         targetX = markX; targetY = markY;
-                        // CB는 충분히 빠르게 따라가야 갭을 허용하지 않음
                         moveSpeed = p.position === 'DF' ? 0.35 : 0.06;
 
                         if (p.position === 'DF') {
-                            // 포메이션 라인보다 너무 앞으로 끌려나가지 않도록 x 클램핑
                             const isPen = p.teamId === 'home' ? (targetX < formationX) : (targetX > formationX);
                             targetX = isPen
                                 ? (targetX * 0.85 + formationX * 0.15)
@@ -1115,7 +1120,6 @@ class RealSoccerEngine {
 
             // ─────────────────────────────────────────────────────────────────
             // CB 간격: targetY 보정 + p.y 하드클램핑 + vy 리셋
-            // 단, 마킹 중인 CB는 간격 강제 완화 (마킹 > 간격 유지)
             // ─────────────────────────────────────────────────────────────────
             const MIN_DF_GAP = 5;
             const MAX_DF_GAP = 9;
@@ -1123,7 +1127,6 @@ class RealSoccerEngine {
             const teammates = this.players.filter(tm => tm.teamId === p.teamId && tm !== p);
             for (const tm of teammates) {
                 if (p.position === 'DF' && tm.position === 'DF') {
-                    // 마킹 중인 CB는 간격 강제를 대폭 완화 (FW를 놓치지 않음)
                     const gapMin = isMarkingCB ? 2 : MIN_DF_GAP;
                     const gapMax = isMarkingCB ? 20 : MAX_DF_GAP;
                     const dyT = targetY - tm.y;
@@ -1131,7 +1134,6 @@ class RealSoccerEngine {
                     const dirT = dyT >= 0 ? 1 : -1;
                     if (absT < gapMin) targetY = tm.y + dirT * gapMin;
                     else if (absT > gapMax) targetY = tm.y + dirT * gapMax;
-                    // 실제 위치 하드클램핑 (마킹 중이면 완화)
                     if (!isMarkingCB) {
                         const dyP = p.y - tm.y;
                         const absP = Math.abs(dyP);
