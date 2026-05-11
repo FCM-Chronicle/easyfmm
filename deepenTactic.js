@@ -403,14 +403,23 @@ class RealSoccerEngine {
 
         let bestPassTarget = null;
         if (player.position === 'GK') {
-            if (Math.random() < 0.5) {
+            // GK는 무조건 패스 (clearBall 제거)
+            // 압박 받으면 숏패스, 아니면 롱/숏 50:50
+            if (underPressure) {
                 bestPassTarget = this.findBestPassTarget(player, 'safe');
                 if (!bestPassTarget) bestPassTarget = this.findBestPassTarget(player, 'aggressive');
             } else {
-                bestPassTarget = this.findBestPassTarget(player, 'aggressive');
-                if (!bestPassTarget) bestPassTarget = this.findBestPassTarget(player, 'safe');
+                if (Math.random() < 0.5) {
+                    bestPassTarget = this.findBestPassTarget(player, 'aggressive');
+                    if (!bestPassTarget) bestPassTarget = this.findBestPassTarget(player, 'safe');
+                } else {
+                    bestPassTarget = this.findBestPassTarget(player, 'safe');
+                    if (!bestPassTarget) bestPassTarget = this.findBestPassTarget(player, 'aggressive');
+                }
             }
-            if (!bestPassTarget || Math.random() >= passProb) { this.clearBall(player); return; }
+            if (bestPassTarget) { this.executePass(player, bestPassTarget); return; }
+            // 패스 대상이 진짜 없을 때만 걷어내기
+            this.clearBall(player); return;
         } else {
             bestPassTarget = this.findBestPassTarget(player, 'aggressive');
             if (!bestPassTarget) bestPassTarget = this.findBestPassTarget(player, 'safe');
@@ -483,6 +492,10 @@ class RealSoccerEngine {
             const isBehindDefLine = isHome ? (tm.x > oppDefLineX) : (tm.x < oppDefLineX);
             if (tm.burstTimer > 0) forwardScore += isBehindDefLine ? 300 : 150;
 
+            // 수비전환 중(burstTimer=0)인데 상대 진영 깊숙이 고립된 FW → 강한 패널티
+            const isIsolatedFW = tm.position === 'FW' && tm.burstTimer === 0 && isBehindDefLine;
+            if (isIsolatedFW) forwardScore -= 400;
+
             const isPenetrating = tm.position === 'FW' && (isHome ? tm.vx > 0.1 : tm.vx < -0.1);
             if (isPenetrating) forwardScore += 35;
 
@@ -517,6 +530,8 @@ class RealSoccerEngine {
 
             if (dist > 20 && distAfter > distBefore) distScore -= 200;
             if (player.position === 'DF' && tm.position === 'FW' && dist > 35) distScore -= 40;
+            // DF나 GK가 수비 전환 중 고립된 FW에게 롱패스 → 강한 패널티
+            if ((player.position === 'DF' || player.position === 'GK') && isIsolatedFW && dist > 25) distScore -= 300;
             if (player.position === 'FW' && distAfter > distBefore) {
                 if (tm.position === 'GK') distScore -= 500;
                 else if (tm.position === 'DF' && dist > 15) distScore -= 150;
@@ -792,6 +807,7 @@ class RealSoccerEngine {
                         if (!p.burstTimer) p.burstTimer = 0;
                         const isCentralFW = !behavior.hugLine;
 
+                        // 오프사이드 라인 계산
                         const opposingFieldPlayers = this.players.filter(q => q.teamId !== p.teamId && q.position !== 'GK');
                         let offsideLimitX;
                         if (isHome) {
@@ -804,61 +820,80 @@ class RealSoccerEngine {
                             offsideLimitX = Math.min(offsideLimitX, this.ball.x);
                         }
 
-                        if (p.burstTimer > 0) p.burstTimer--;
+                        // ── burstTimer: 우리 팀이 공을 가진 상태에서만 발동 가능 ──
+                        const weHaveBall = this.ball.owner && this.ball.owner.teamId === p.teamId;
+                        const ballInFlight = this.ball.state === BallState.IN_FLIGHT
+                            && this.ball.lastOwner && this.ball.lastOwner.teamId === p.teamId;
+                        const ourPossession = weHaveBall || ballInFlight;
 
-                        if (p.burstTimer === 0) {
-                            const ballCarrier = this.ball.owner;
-                            const hasFriendlyBall = ballCarrier && ballCarrier.teamId === p.teamId;
-                            let burstChance = hasFriendlyBall && ballCarrier.position !== 'FW' ? 0.06 : 0.02;
-                            if (behavior.runBehind) burstChance *= 1.5;
-                            if (Math.random() < burstChance) p.burstTimer = 30;
+                        if (!ourPossession) {
+                            // 상대 볼: burstTimer 즉시 리셋, FW 귀환
+                            p.burstTimer = 0;
+                        } else {
+                            if (p.burstTimer > 0) p.burstTimer--;
+                            if (p.burstTimer === 0) {
+                                const ballCarrier = this.ball.owner;
+                                const hasFriendlyBall = ballCarrier && ballCarrier.teamId === p.teamId;
+                                let burstChance = hasFriendlyBall && ballCarrier.position !== 'FW' ? 0.06 : 0.02;
+                                if (behavior.runBehind) burstChance *= 1.5;
+                                if (Math.random() < burstChance) p.burstTimer = 30;
+                            }
                         }
 
                         let ballPushX = this.ball.x + (forwardDir * 20);
                         targetX = ballPushX;
 
-                        if (isCentralFW) {
-                            const fwAbsLimit = isHome ? 65 : 35;
-                            targetX = isHome ? Math.max(targetX, fwAbsLimit) : Math.min(targetX, fwAbsLimit);
-                        } else {
-                            const fwMinX = isHome ? 70 : 30;
-                            targetX = isHome ? Math.max(targetX, fwMinX) : Math.min(targetX, fwMinX);
-                        }
-
-                        if (isCentralFW && p.burstTimer === 0) {
-                            const fwAbsLimit = isHome ? 65 : 35;
-                            const distBehind = isHome ? (fwAbsLimit - this.ball.x) : (this.ball.x - fwAbsLimit);
-                            if (distBehind > 12) {
-                                const dropX = isHome
-                                    ? Math.max(fwAbsLimit, this.ball.x + 14)
-                                    : Math.min(fwAbsLimit, this.ball.x - 14);
-                                targetX = dropX;
-                            }
-                        }
-
-                        if (p.burstTimer > 0) moveSpeed = 0.4 * speedFactor;
-
-                        targetX = isHome
-                            ? Math.min(targetX, offsideLimitX - 1)
-                            : Math.max(targetX, offsideLimitX + 1);
-
-                        const isOffside = isHome ? (p.x > offsideLimitX) : (p.x < offsideLimitX);
-                        if (isOffside) {
-                            targetX = isHome ? offsideLimitX - 3 : offsideLimitX + 3;
+                        // ── 상대 볼 소유 시: FW 자기 진영으로 즉시 귀환 ──
+                        if (!ourPossession) {
+                            const retreatX = isHome ? Math.min(p.baseX, 50) : Math.max(p.baseX, 50);
+                            targetX = retreatX;
+                            targetY = p.baseY;
                             moveSpeed = 0.65 * speedFactor;
+                            if (isHome && p.x > 55) { p.x -= 3; p.vx = Math.min(p.vx, -0.3); }
+                            if (!isHome && p.x < 45) { p.x += 3; p.vx = Math.max(p.vx, 0.3); }
+                        } else {
+                            // ── 우리 팀 볼 소유: 전진 대기 ──
+                            if (isCentralFW) {
+                                const fwAbsLimit = isHome ? 65 : 35;
+                                targetX = isHome ? Math.max(targetX, fwAbsLimit) : Math.min(targetX, fwAbsLimit);
+                                if (p.burstTimer === 0) {
+                                    const distBehind = isHome ? (fwAbsLimit - this.ball.x) : (this.ball.x - fwAbsLimit);
+                                    if (distBehind > 12) {
+                                        const dropX = isHome
+                                            ? Math.max(fwAbsLimit, this.ball.x + 14)
+                                            : Math.min(fwAbsLimit, this.ball.x - 14);
+                                        targetX = dropX;
+                                    }
+                                }
+                            } else {
+                                const fwMinX = isHome ? 70 : 30;
+                                targetX = isHome ? Math.max(targetX, fwMinX) : Math.min(targetX, fwMinX);
+                            }
+
+                            if (p.burstTimer > 0) moveSpeed = 0.4 * speedFactor;
+
+                            targetX = isHome
+                                ? Math.min(targetX, offsideLimitX - 1)
+                                : Math.max(targetX, offsideLimitX + 1);
+
+                            const isOffside = isHome ? (p.x > offsideLimitX) : (p.x < offsideLimitX);
+                            if (isOffside) {
+                                targetX = isHome ? offsideLimitX - 3 : offsideLimitX + 3;
+                                moveSpeed = 0.65 * speedFactor;
+                            }
+
+                            const nearOpp = this.findNearestDefender(p);
+                            let avoidY = 0;
+                            if (nearOpp && nearOpp.dist < 4) avoidY = (p.y > nearOpp.player.y) ? 4 : -4;
+                            const yRange = isCentralFW ? 12 : 6;
+                            targetY = Math.max(p.baseY - yRange, Math.min(p.baseY + yRange, p.baseY + avoidY));
+                            if (behavior.hugLine) { targetY = p.baseY < 50 ? 5 : 95; targetX += (forwardDir * 8); }
+                            targetX = isHome
+                                ? Math.min(targetX, offsideLimitX - 1)
+                                : Math.max(targetX, offsideLimitX + 1);
+
+                            moveSpeed = 0.28 * speedFactor;
                         }
-
-                        const nearOpp = this.findNearestDefender(p);
-                        let avoidY = 0;
-                        if (nearOpp && nearOpp.dist < 4) avoidY = (p.y > nearOpp.player.y) ? 4 : -4;
-                        const yRange = isCentralFW ? 12 : 6;
-                        targetY = Math.max(p.baseY - yRange, Math.min(p.baseY + yRange, p.baseY + avoidY));
-                        if (behavior.hugLine) { targetY = p.baseY < 50 ? 5 : 95; targetX += (forwardDir * 8); }
-                        targetX = isHome
-                            ? Math.min(targetX, offsideLimitX - 1)
-                            : Math.max(targetX, offsideLimitX + 1);
-
-                        moveSpeed = 0.28 * speedFactor;
 
                     } else if (p.position === 'MF') {
                         const attackBias = behavior.attackBias || 0;
@@ -893,17 +928,17 @@ class RealSoccerEngine {
                 const isHomeDef = p.teamId === 'home';
 
                 if (p.position === 'FW') {
-                    // ─────────────────────────────────────────────────────────
-                    // [수정] 수비 전환 시 FW: 무조건 자기 진영 절반으로 귀환
-                    // 상대 오프사이드 라인 기준이 아닌 baseX 기준으로 복귀
-                    // ─────────────────────────────────────────────────────────
+                    // 수비 전환 시 FW: 절반선 안쪽으로 강제 귀환 + 하드클램핑
                     const retreatX = isHomeDef
-                        ? Math.min(p.baseX, 48)   // home FW: 절반선 안쪽으로
-                        : Math.max(p.baseX, 52);  // away FW: 절반선 바깥쪽으로
+                        ? Math.min(p.baseX, 48)
+                        : Math.max(p.baseX, 52);
                     targetX = retreatX;
                     targetY = p.baseY;
-                    p.burstTimer = 0; // 수비전환 중 침투 준비 해제
-                    moveSpeed = 0.45 * speedFactor; // 빠르게 내려오기
+                    p.burstTimer = 0;
+                    moveSpeed = 0.7 * speedFactor;
+                    // 아직 상대 진영 깊숙이 있으면 즉시 당겨옴
+                    if (isHomeDef && p.x > 55) { p.x -= 2.5; p.vx = Math.min(p.vx, -0.5); }
+                    if (!isHomeDef && p.x < 45) { p.x += 2.5; p.vx = Math.max(p.vx, 0.5); }
                 } else {
                     let shiftFactor = 0.7, yShiftFactor = 0.2;
                     if (p.position === 'MF') {
@@ -963,19 +998,27 @@ class RealSoccerEngine {
             }
 
             // ─────────────────────────────────────────────────────────────────
-            // [수정] CB 간격: 최소 6, 최대 8로 타이트하게 유지
+            // CB 간격: targetY 보정 + p.y 하드클램핑 + vy 리셋
             // ─────────────────────────────────────────────────────────────────
+            const MIN_DF_GAP = 5;
+            const MAX_DF_GAP = 9;
             const teammates = this.players.filter(tm => tm.teamId === p.teamId && tm !== p);
             for (const tm of teammates) {
                 if (p.position === 'DF' && tm.position === 'DF') {
-                    const dy = Math.abs(targetY - tm.y);
-                    const dirY = targetY >= tm.y ? 1 : -1;
-                    if (dy < 6) {
-                        targetY += dirY * (6 - dy) * 0.6;       // 너무 붙으면 벌리기
-                    } else if (dy > 8) {
-                        targetY -= dirY * (dy - 8) * 0.8;       // 너무 벌어지면 강하게 좁히기
+                    const dyT = targetY - tm.y;
+                    const absT = Math.abs(dyT);
+                    const dirT = dyT >= 0 ? 1 : -1;
+                    if (absT < MIN_DF_GAP) targetY = tm.y + dirT * MIN_DF_GAP;
+                    else if (absT > MAX_DF_GAP) targetY = tm.y + dirT * MAX_DF_GAP;
+                    // 실제 위치 하드클램핑
+                    const dyP = p.y - tm.y;
+                    const absP = Math.abs(dyP);
+                    const dirP = dyP >= 0 ? 1 : -1;
+                    if (absP > MAX_DF_GAP + 2) {
+                        p.y = tm.y + dirP * (MAX_DF_GAP + 2);
+                        p.vy *= 0.1;
                     }
-                    continue; // X축은 건드리지 않음
+                    continue;
                 }
                 const d = Math.hypot(targetX - tm.x, targetY - tm.y);
                 if (d < 5) {
