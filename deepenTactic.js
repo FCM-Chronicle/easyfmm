@@ -571,8 +571,8 @@ class RealSoccerEngine {
                 && !this.getRoleBehavior(tm.role).hugLine;
 
             let switchBonus = 0;
-            if (isCentralFWTarget && passerOnFlank) switchBonus = 80;
-            else if (nearbyOppsCount >= 1 && Math.abs(player.y - tm.y) > 35 && !isCentralFWTarget) switchBonus = 15;
+            if (isCentralFWTarget && passerOnFlank) switchBonus = 250; 
+            else if (nearbyOppsCount >= 1 && Math.abs(player.y - tm.y) > 35 && !isCentralFWTarget) switchBonus = -100;
 
             if (mode === 'safe') {
                 forwardScore *= 0.5;
@@ -624,11 +624,10 @@ class RealSoccerEngine {
             // ── [수정 3] 윙→윙 횡패스 억제 강화 (기존 180+100 → 300+150으로 대폭 상향)
             // 같은 사이드 윙끼리의 패스는 거의 불가능한 수준으로 억제
             const tmBehavior = this.getRoleBehavior(tm.role);
-            if (playerBehavior.hugLine && tmBehavior.hugLine && passerOnFlank) loopPenalty += 300;
-
-            const sameSideWing = playerBehavior.hugLine && tmBehavior.hugLine
-                && Math.sign(player.y - 50) === Math.sign(tm.y - 50);
-            if (sameSideWing) loopPenalty += 150;
+            if (playerBehavior.hugLine && tmBehavior.hugLine) {
+                if (Math.abs(player.y - tm.y) > 40) loopPenalty += 600; 
+                if (Math.sign(player.y - 50) === Math.sign(tm.y - 50)) loopPenalty += 300; 
+            }
 
             let positionBonus = 0;
             if (player.position === 'DF') {
@@ -638,9 +637,9 @@ class RealSoccerEngine {
             if (player.position === 'GK' && tm.position === 'DF') positionBonus = 5;
 
             if (isCentralFWTarget) {
-                if (passerOnFlank)                   positionBonus += 60;
-                else if (player.position === 'MF')   positionBonus += 30;
-                else if (player.position === 'FW')   positionBonus += 20;
+                if (passerOnFlank)                   positionBonus += 150;
+                else if (player.position === 'MF')   positionBonus += 80;
+                else if (player.position === 'FW')   positionBonus += 50;
             }
 
             const totalScore = forwardScore + distScore + pressureScore - loopPenalty + positionBonus + switchBonus;
