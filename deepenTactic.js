@@ -1024,22 +1024,65 @@ class RealSoccerEngine {
                     const isSpecialCase = (this.pendingShot || isGKPossession);
                     let formationX = p.baseX + (refBallX - 50) * shiftFactor;
                     let formationY = p.baseY + ((this.pendingShot ? 50 : this.ball.y) - 50) * yShiftFactor;
+                    // ──────────────────────────────────────────────────────────
+                    // [버그 A 수정] CB 마킹 로직 전면 개선
+                    // 기존: baseY 기준 ±18 → CB 사이 갭에 들어온 FW는 어느 CB도 담당 안 함
+                    // 수정: 현재 y 기준으로 "가장 가까운" 상대 FW를 각 CB가 분담 마킹
+                    //   - CB1이 이미 마킹 중인 FW는 CB2 마킹 후보에서 제외
+                    //   - 마킹 대상이 CB 사이 갭(y 기준 중간값)에 있어도 더 가까운 CB가 담당
+                    //   - moveSpeed를 0.06 → 0.35로 상향 (기존엔 너무 느려 따라가지 못함)
+                    // ──────────────────────────────────────────────────────────
                     let markTarget = null;
-                    if (!isSpecialCase) {
+                    if (!isSpecialCase && p.position === 'DF') {
+                        // 이미 다른 아군 DF가 마킹 중인 상대 선수 목록 수집
+                        const alreadyMarked = new Set();
+                        this.players.forEach(ally => {
+                            if (ally.teamId === p.teamId && ally !== p && ally.position === 'DF' && ally._markTargetId) {
+                                alreadyMarked.add(ally._markTargetId);
+                            }
+                        });
+
+                        let minM = 999;
+                        this.players.forEach(opp => {
+                            if (opp.teamId !== p.teamId && opp.position !== 'GK' && opp !== this.ball.owner) {
+                                // 이미 다른 CB가 담당 중인 선수는 건너뜀 (단, 아무도 안 맡으면 허용)
+                                if (alreadyMarked.has(opp.id)) return;
+                                const d = Math.hypot(p.x - opp.x, p.y - opp.y);
+                                // 현재 y 기준으로 범위 확장 (baseY 의존 제거)
+                                // 상대가 우리 수비 3분의 1 안에 있을 때만 마킹 발동
+                                const inDangerZone = isHomeDef ? (opp.x < 40) : (opp.x > 60);
+                                if (inDangerZone && d < minM) { minM = d; markTarget = opp; }
+                            }
+                        });
+                        // 마킹 대상 ID 저장 (다음 프레임에서 다른 CB가 참조)
+                        p._markTargetId = markTarget ? markTarget.id : null;
+
+                    } else if (!isSpecialCase && p.position !== 'GK') {
+                        // MF 등 비-DF 포지션은 기존 로직 유지 (범위만 y 기준으로)
                         let minM = 30;
                         this.players.forEach(opp => {
                             if (opp.teamId !== p.teamId && opp.position !== 'GK' && opp !== this.ball.owner) {
                                 const d = Math.hypot(p.x - opp.x, p.y - opp.y);
-                                if (Math.abs(p.baseY - opp.y) <= 18 && d < minM) { minM = d; markTarget = opp; }
+                                if (Math.abs(p.y - opp.y) <= 20 && d < minM) { minM = d; markTarget = opp; }
                             }
                         });
                     }
+
                     if (markTarget && p.position !== 'GK') {
                         const gX = p.teamId === 'home' ? 0 : 100;
-                        targetX = markTarget.x + (gX - markTarget.x) * 0.1; targetY = markTarget.y; moveSpeed = 0.06;
+                        // 마킹 위치: 상대와 골문 사이 중간 지점에 서기
+                        const markX = markTarget.x + (gX - markTarget.x) * 0.15;
+                        const markY = markTarget.y;
+                        targetX = markX; targetY = markY;
+                        // CB는 충분히 빠르게 따라가야 갭을 허용하지 않음
+                        moveSpeed = p.position === 'DF' ? 0.35 : 0.06;
+
                         if (p.position === 'DF') {
+                            // 포메이션 라인보다 너무 앞으로 끌려나가지 않도록 x 클램핑
                             const isPen = p.teamId === 'home' ? (targetX < formationX) : (targetX > formationX);
-                            targetX = isPen ? (targetX * 0.9 + formationX * 0.1) : (targetX * 0.2 + formationX * 0.8);
+                            targetX = isPen
+                                ? (targetX * 0.85 + formationX * 0.15)
+                                : (targetX * 0.3 + formationX * 0.7);
                         }
                     } else { targetX = formationX; targetY = formationY; }
 
@@ -1072,24 +1115,31 @@ class RealSoccerEngine {
 
             // ─────────────────────────────────────────────────────────────────
             // CB 간격: targetY 보정 + p.y 하드클램핑 + vy 리셋
+            // 단, 마킹 중인 CB는 간격 강제 완화 (마킹 > 간격 유지)
             // ─────────────────────────────────────────────────────────────────
             const MIN_DF_GAP = 5;
             const MAX_DF_GAP = 9;
+            const isMarkingCB = p.position === 'DF' && p._markTargetId != null;
             const teammates = this.players.filter(tm => tm.teamId === p.teamId && tm !== p);
             for (const tm of teammates) {
                 if (p.position === 'DF' && tm.position === 'DF') {
+                    // 마킹 중인 CB는 간격 강제를 대폭 완화 (FW를 놓치지 않음)
+                    const gapMin = isMarkingCB ? 2 : MIN_DF_GAP;
+                    const gapMax = isMarkingCB ? 20 : MAX_DF_GAP;
                     const dyT = targetY - tm.y;
                     const absT = Math.abs(dyT);
                     const dirT = dyT >= 0 ? 1 : -1;
-                    if (absT < MIN_DF_GAP) targetY = tm.y + dirT * MIN_DF_GAP;
-                    else if (absT > MAX_DF_GAP) targetY = tm.y + dirT * MAX_DF_GAP;
-                    // 실제 위치 하드클램핑
-                    const dyP = p.y - tm.y;
-                    const absP = Math.abs(dyP);
-                    const dirP = dyP >= 0 ? 1 : -1;
-                    if (absP > MAX_DF_GAP + 2) {
-                        p.y = tm.y + dirP * (MAX_DF_GAP + 2);
-                        p.vy *= 0.1;
+                    if (absT < gapMin) targetY = tm.y + dirT * gapMin;
+                    else if (absT > gapMax) targetY = tm.y + dirT * gapMax;
+                    // 실제 위치 하드클램핑 (마킹 중이면 완화)
+                    if (!isMarkingCB) {
+                        const dyP = p.y - tm.y;
+                        const absP = Math.abs(dyP);
+                        const dirP = dyP >= 0 ? 1 : -1;
+                        if (absP > MAX_DF_GAP + 2) {
+                            p.y = tm.y + dirP * (MAX_DF_GAP + 2);
+                            p.vy *= 0.1;
+                        }
                     }
                     continue;
                 }
