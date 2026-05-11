@@ -104,6 +104,7 @@ class SimPlayer {
         this.stamina = (data.condition !== undefined) ? data.condition : 100;
         this._markTargetId = null;
         this.stats = this.mapDNAStats(data, role, lineStats, morale, tacticMultiplier);
+        this.forceReturnTimer = 0;
     }
 
     mapDNAStats(playerData, role, lineStats, morale, tacticMultiplier) {
@@ -767,6 +768,7 @@ class RealSoccerEngine {
             this.ball.state = BallState.DEAD; this.ball.lastOwner = null;
         } else {
             this.ball.intendedReceiver = null;
+            shooter.forceReturnTimer = 60; 
             const opponentTeamId = shooter.teamId === 'home' ? 'away' : 'home';
             const isHomeAttacking = shooter.teamId === 'home';
             const enemyGk = this.players.find(p => p.teamId !== shooter.teamId && p.position === 'GK');
@@ -891,15 +893,48 @@ class RealSoccerEngine {
                         moveSpeed = 0.4;
                     } else if (p.position === 'FW') {
                         if (!p.burstTimer) p.burstTimer = 0;
-                        const isCentralFW = !behavior.hugLine;
+                        if (!p.forceReturnTimer) p.forceReturnTimer = 0;
 
-                        const offsideLimitX = this._calcOffsideLineX(isHome);
+                        if (p.forceReturnTimer > 0) {
+                            p.forceReturnTimer--;
+                            p.burstTimer = 0;
+                            const isHome = p.teamId === 'home';
+                            const ourTeamPlayers = this.players.filter(q => q.teamId === p.teamId && q !== p);
+                            let safeReturnX;
+                            if (isHome) {
+                                const sorted = ourTeamPlayers.map(q => q.x).sort((a, b) => a - b);
+                                safeReturnX = sorted.length >= 2 ? sorted[1] : (sorted[0] ?? 30);
+                                safeReturnX = Math.min(safeReturnX, p.baseX);
+                            } else {
+                                const sorted = ourTeamPlayers.map(q => q.x).sort((a, b) => b - a);
+                                safeReturnX = sorted.length >= 2 ? sorted[1] : (sorted[0] ?? 70);
+                                safeReturnX = Math.max(safeReturnX, p.baseX);
+                            }
+                            targetX = safeReturnX;
+                            targetY = p.baseY;
+                            moveSpeed = 0.8 * speedFactor;
 
-                        if (p.burstTimer > 0) p.burstTimer--;
+                            const isHomeFW = (p.teamId === 'home');
+                            const tooFarForward = isHomeFW ? (p.x > safeReturnX + 2) : (p.x < safeReturnX - 2);
+                            if (tooFarForward) {
+                                const pullDir = isHomeFW ? -1 : 1;
+                                const pullSpeed = 4.0 * speedFactor;
+                                p.x += pullDir * pullSpeed;
+                            }
+                        } else {
+                            const isCentralFW = !behavior.hugLine;
+                            const isHome = p.teamId === 'home';
+                            const offsideLimitX = this._calcOffsideLineX(isHome);
+
+                            if (p.burstTimer > 0) p.burstTimer--;
                         if (p.burstTimer === 0) {
                             const ballCarrier = this.ball.owner;
                             const hasFriendlyBall = ballCarrier && ballCarrier.teamId === p.teamId;
-                            let burstChance = hasFriendlyBall && ballCarrier.position !== 'FW' ? 0.06 : 0.02;
+                            // [수정 6] 중앙 FW 침투 버스트 확률 상향
+                            // 기존: 0.06 (MF가 볼 잡았을 때) → 수정: 중앙 FW는 0.14, 윙 FW는 0.06
+                            let burstChance = hasFriendlyBall && ballCarrier.position !== 'FW'
+                                ? (isCentralFW ? 0.14 : 0.06)
+                                : (isCentralFW ? 0.04 : 0.02);
                             if (behavior.runBehind) burstChance *= 1.5;
                             if (Math.random() < burstChance) p.burstTimer = 30;
                         }
@@ -908,17 +943,13 @@ class RealSoccerEngine {
                         targetX = ballPushX;
 
                         if (isCentralFW) {
-                            const CF_MIN_X_HOME = 62;
-                            const CF_MIN_X_AWAY = 38;
-
-                            let cfMinX;
-                            if (isHome) {
-                                cfMinX = Math.max(CF_MIN_X_HOME, this.ball.x + 10);
-                                targetX = Math.max(targetX, cfMinX);
-                            } else {
-                                cfMinX = Math.min(CF_MIN_X_AWAY, this.ball.x - 10);
-                                targetX = Math.min(targetX, cfMinX);
-                            }
+                            // [수정 7] CF_MIN_X 고정값 제거 → 볼 위치 기반 동적 최솟값
+                            // 기존: 항상 x=62 이상 → 볼이 수비쪽에 있어도 CF가 앞에 고립
+                            // 수정: 볼보다 8~15 앞에 위치, 단 오프사이드 라인 -2 이내
+                            const cfTargetX = isHome
+                                ? Math.min(this.ball.x + 15, offsideLimitX - 2)
+                                : Math.max(this.ball.x - 15, offsideLimitX + 2);
+                            targetX = isHome ? Math.max(targetX, cfTargetX) : Math.min(targetX, cfTargetX);
                         } else {
                             const fwMinX = isHome
                                 ? Math.max(65, this.ball.x + 5)
@@ -971,8 +1002,13 @@ class RealSoccerEngine {
                         const isHome2 = p.teamId === 'home';
                         if (isHome2) targetX = Math.min(75, Math.max(p.baseX, this.ball.x - safetyDist));
                         else targetX = Math.max(25, Math.min(p.baseX, this.ball.x + safetyDist));
-                        if (Math.abs(this.ball.x - (isHome2 ? 0 : 100)) < 45) targetY = p.baseY < 50 ? 12 : 88;
-                        else targetY = p.baseY;
+                        // [수정 5] 12/88 하드코딩 제거 → baseY 기준 좁은 범위로 수렴
+                        // 기존: 공격 시 DF를 y=12/88로 강제 → CB가 풀백처럼 벌어지는 원인
+                        // 수정: baseY ± 8 이내로만 이동 허용 (CB는 30~70 근처 유지)
+                        if (Math.abs(this.ball.x - (isHome2 ? 0 : 100)) < 45) {
+                            const dfYClamp = 8;
+                            targetY = Math.max(p.baseY - dfYClamp, Math.min(p.baseY + dfYClamp, p.baseY));
+                        } else targetY = p.baseY;
                     } else if (p.position === 'GK') {
                         targetX = p.baseX;
                         targetY = 50 + (this.ball.y - 50) * 0.05;
