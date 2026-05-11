@@ -102,7 +102,6 @@ class SimPlayer {
         this.x = 0; this.y = 0; this.vx = 0; this.vy = 0;
         this.baseX = 0; this.baseY = 0;
         this.stamina = (data.condition !== undefined) ? data.condition : 100;
-        // [버그 A 수정] _markTargetId를 null로 명시적 초기화 (undefined 방지)
         this._markTargetId = null;
         this.stats = this.mapDNAStats(data, role, lineStats, morale, tacticMultiplier);
     }
@@ -376,7 +375,6 @@ class RealSoccerEngine {
 
         const isBlocked = this.checkFrontalBlock(player, goalX);
         if (isBlocked) {
-            // [버그 B 수정] 윙이 플랭크에 막혔을 때 중앙으로 패스 우선, 윙→윙 패스 차단
             if (isWingerOnFlank) {
                 const centralTarget = this.players.find(p =>
                     p.teamId === player.teamId && p.position === 'FW'
@@ -387,7 +385,6 @@ class RealSoccerEngine {
                     this.executePass(player, centralTarget);
                     return;
                 }
-                // 중앙 FW 없으면 MF에게 패스
                 const mfTarget = this.findBestPassTarget(player, 'safe');
                 if (mfTarget) {
                     this.executePass(player, mfTarget);
@@ -405,12 +402,10 @@ class RealSoccerEngine {
                         && p.y > 28 && p.y < 72
                         && !this.getRoleBehavior(p.role).hugLine
                     );
-                    // [버그 B 수정] 윙 플랭크 상황: 중앙 FW 있으면 높은 확률로 패스
                     passProb = centralFW ? 0.75 : 0.20;
                 } else {
                     passProb = 0.15;
                 }
-                // [버그 B 수정] isAngleBlocked일 때 passProb 0.85로 올리되, 아래 bestPassTarget 선택에서 윙→윙 차단
                 if (isAngleBlocked) passProb = 0.85;
                 if (behavior.hugLine && isOnFlank && distToGoal < 30) {
                     const targetInBox = this.players.find(p =>
@@ -525,7 +520,10 @@ class RealSoccerEngine {
     findBestPassTarget(player, mode = 'aggressive') {
         const teamates = this.players.filter(p => p.teamId === player.teamId && p !== player);
         let bestTarget = null;
-        let maxScore = mode === 'aggressive' ? 0 : -50;
+        // ── [수정 1] maxScore 초기값을 -Infinity로 변경
+        // 기존 0이면 모든 후보가 음수일 때 bestTarget=null → 윙어 드리블 반복 루프 발생
+        // -Infinity로 바꾸면 최소한 점수가 가장 높은 팀원을 항상 반환
+        let maxScore = -Infinity;
         const isHome = player.teamId === 'home';
         const forwardX = isHome ? 100 : 0;
 
@@ -617,17 +615,19 @@ class RealSoccerEngine {
             if (isBehindDefLine && tm.burstTimer > 0 && ourPossession) pressureScore *= 0.3;
             else if (mode === 'safe') pressureScore *= 2.0;
 
+            // ── [수정 2] lastOwner 루프 패널티 강화
+            // 기존: aggressive=60, safe=20 → 바뀐 값: aggressive=120, safe=60
             let loopPenalty = 0;
-            if (this.ball.lastOwner === tm) loopPenalty = mode === 'aggressive' ? 60 : 20;
+            if (this.ball.lastOwner === tm) loopPenalty = mode === 'aggressive' ? 120 : 60;
 
-            // [버그 B 수정] 윙→윙 횡패스 반복 강력 억제 (패널티 180으로 대폭 강화)
+            // ── [수정 3] 윙→윙 횡패스 억제 강화 (기존 180+100 → 300+150으로 대폭 상향)
+            // 같은 사이드 윙끼리의 패스는 거의 불가능한 수준으로 억제
             const tmBehavior = this.getRoleBehavior(tm.role);
-            if (playerBehavior.hugLine && tmBehavior.hugLine && passerOnFlank) loopPenalty += 180;
+            if (playerBehavior.hugLine && tmBehavior.hugLine && passerOnFlank) loopPenalty += 300;
 
-            // [버그 B 수정] 플랭크 패서가 같은 사이드 윙에게 패스하는 경우 추가 억제
             const sameSideWing = playerBehavior.hugLine && tmBehavior.hugLine
                 && Math.sign(player.y - 50) === Math.sign(tm.y - 50);
-            if (sameSideWing) loopPenalty += 100;
+            if (sameSideWing) loopPenalty += 150;
 
             let positionBonus = 0;
             if (player.position === 'DF') {
@@ -908,18 +908,11 @@ class RealSoccerEngine {
                         targetX = ballPushX;
 
                         if (isCentralFW) {
-                            // ─── [버그 C 수정] 중앙 FW 전진 로직 전면 재작성 ───
-                            // 문제 1: fwAbsMinX = ball.x + 8 → 볼이 미드필드에 있으면 CF가 볼 뒤로 당겨짐
-                            // 문제 2: distToBall > 25 드롭런이 CF를 오히려 후퇴시킴
-                            // 수정: 절대 최소 전진 라인을 고정값(home:62, away:38)으로 보장
-                            //       + 볼이 충분히 전진했을 때(>55) CF도 따라 전진
-                            //       드롭런 로직 제거
-                            const CF_MIN_X_HOME = 62; // CF는 항상 x=62 이상 유지
+                            const CF_MIN_X_HOME = 62;
                             const CF_MIN_X_AWAY = 38;
 
                             let cfMinX;
                             if (isHome) {
-                                // 볼이 전진할수록 CF도 더 전진 (볼 + 10, 단 최솟값 62 보장)
                                 cfMinX = Math.max(CF_MIN_X_HOME, this.ball.x + 10);
                                 targetX = Math.max(targetX, cfMinX);
                             } else {
@@ -927,7 +920,6 @@ class RealSoccerEngine {
                                 targetX = Math.min(targetX, cfMinX);
                             }
                         } else {
-                            // 윙 FW: 볼 위치 기반 최소 전진 라인
                             const fwMinX = isHome
                                 ? Math.max(65, this.ball.x + 5)
                                 : Math.min(35, this.ball.x - 5);
@@ -946,8 +938,6 @@ class RealSoccerEngine {
                         let avoidY = 0;
                         if (nearOpp && nearOpp.dist < 4) avoidY = (p.y > nearOpp.player.y) ? 4 : -4;
 
-                        // [버그 C 수정] y 이동 범위 및 볼 방향 끌어당김 개선
-                        // 중앙 FW: yRange=20, 볼 y 방향으로 30% 끌어당김
                         const yRange = isCentralFW ? 20 : 6;
                         const yBallPull = isCentralFW ? (this.ball.y - p.baseY) * 0.30 : 0;
                         targetY = Math.max(
@@ -1045,7 +1035,6 @@ class RealSoccerEngine {
 
                     let markTarget = null;
                     if (!isSpecialCase && p.position === 'DF') {
-                        // [버그 A 수정] alreadyMarked 집합 구축 시 _markTargetId가 string인 경우만 포함
                         const alreadyMarked = new Set();
                         this.players.forEach(ally => {
                             if (ally.teamId === p.teamId && ally !== p && ally.position === 'DF'
@@ -1063,7 +1052,6 @@ class RealSoccerEngine {
                                 if (inDangerZone && d < minM) { minM = d; markTarget = opp; }
                             }
                         });
-                        // [버그 A 수정] 마킹 대상 없으면 null로 명시 (undefined 방지)
                         p._markTargetId = markTarget ? markTarget.id : null;
 
                     } else if (!isSpecialCase && p.position !== 'GK') {
@@ -1119,25 +1107,25 @@ class RealSoccerEngine {
             }
 
             // ─────────────────────────────────────────────────────────────────
-            // [버그 A 수정] CB 간격 보정 — gapMax 항상 MAX_DF_GAP(10) 고정
-            // isMarkingCB는 _markTargetId가 실제 string일 때만 true
-            // 하드클램핑은 마킹 여부와 무관하게 항상 적용
+            // CB 간격 보정
+            // ── [수정 4] MIN_DF_GAP=3, MAX_DF_GAP=6으로 대폭 축소
+            // 기존 5/10은 필드 좌표 기준으로 너무 넓어서 CB가 풀백처럼 벌어짐
+            // 6 이하로 유지하면 실제 CB 간격처럼 좁게 유지됨
             // ─────────────────────────────────────────────────────────────────
-            const MIN_DF_GAP = 5;
-            const MAX_DF_GAP = 10;
-            // [버그 A 수정] _markTargetId가 실제 string인 경우만 마킹 중으로 판정
+            const MIN_DF_GAP = 3;
+            const MAX_DF_GAP = 6;
             const isMarkingCB = p.position === 'DF' && typeof p._markTargetId === 'string';
             const teammates = this.players.filter(tm => tm.teamId === p.teamId && tm !== p);
             for (const tm of teammates) {
                 if (p.position === 'DF' && tm.position === 'DF') {
                     const gapMin = isMarkingCB ? 2 : MIN_DF_GAP;
-                    const gapMax = MAX_DF_GAP; // 마킹 여부 무관, 항상 10 고정
+                    const gapMax = MAX_DF_GAP;
                     const dyT = targetY - tm.y;
                     const absT = Math.abs(dyT);
                     const dirT = dyT >= 0 ? 1 : -1;
                     if (absT < gapMin) targetY = tm.y + dirT * gapMin;
                     else if (absT > gapMax) targetY = tm.y + dirT * gapMax;
-                    // 실제 위치 하드클램핑 — 항상 적용
+                    // 실제 위치 하드클램핑
                     {
                         const dyP = p.y - tm.y;
                         const absP = Math.abs(dyP);
