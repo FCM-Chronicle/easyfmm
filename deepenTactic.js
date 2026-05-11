@@ -403,23 +403,14 @@ class RealSoccerEngine {
 
         let bestPassTarget = null;
         if (player.position === 'GK') {
-            // GK는 무조건 패스 (clearBall 제거)
-            // 압박 받으면 숏패스, 아니면 롱/숏 50:50
-            if (underPressure) {
+            if (Math.random() < 0.5) {
                 bestPassTarget = this.findBestPassTarget(player, 'safe');
                 if (!bestPassTarget) bestPassTarget = this.findBestPassTarget(player, 'aggressive');
             } else {
-                if (Math.random() < 0.5) {
-                    bestPassTarget = this.findBestPassTarget(player, 'aggressive');
-                    if (!bestPassTarget) bestPassTarget = this.findBestPassTarget(player, 'safe');
-                } else {
-                    bestPassTarget = this.findBestPassTarget(player, 'safe');
-                    if (!bestPassTarget) bestPassTarget = this.findBestPassTarget(player, 'aggressive');
-                }
+                bestPassTarget = this.findBestPassTarget(player, 'aggressive');
+                if (!bestPassTarget) bestPassTarget = this.findBestPassTarget(player, 'safe');
             }
-            if (bestPassTarget) { this.executePass(player, bestPassTarget); return; }
-            // 패스 대상이 진짜 없을 때만 걷어내기
-            this.clearBall(player); return;
+            if (!bestPassTarget || Math.random() >= passProb) { this.clearBall(player); return; }
         } else {
             bestPassTarget = this.findBestPassTarget(player, 'aggressive');
             if (!bestPassTarget) bestPassTarget = this.findBestPassTarget(player, 'safe');
@@ -972,27 +963,19 @@ class RealSoccerEngine {
             }
 
             // ─────────────────────────────────────────────────────────────────
-            // CB 간격: targetY 보정 + p.y 하드클램핑 + vy 리셋
+            // [수정] CB 간격: 최소 6, 최대 8로 타이트하게 유지
             // ─────────────────────────────────────────────────────────────────
-            const MIN_DF_GAP = 5;
-            const MAX_DF_GAP = 9;
             const teammates = this.players.filter(tm => tm.teamId === p.teamId && tm !== p);
             for (const tm of teammates) {
                 if (p.position === 'DF' && tm.position === 'DF') {
-                    const dyT = targetY - tm.y;
-                    const absT = Math.abs(dyT);
-                    const dirT = dyT >= 0 ? 1 : -1;
-                    if (absT < MIN_DF_GAP) targetY = tm.y + dirT * MIN_DF_GAP;
-                    else if (absT > MAX_DF_GAP) targetY = tm.y + dirT * MAX_DF_GAP;
-                    // 실제 위치 하드클램핑
-                    const dyP = p.y - tm.y;
-                    const absP = Math.abs(dyP);
-                    const dirP = dyP >= 0 ? 1 : -1;
-                    if (absP > MAX_DF_GAP + 2) {
-                        p.y = tm.y + dirP * (MAX_DF_GAP + 2);
-                        p.vy *= 0.1;
+                    const dy = Math.abs(targetY - tm.y);
+                    const dirY = targetY >= tm.y ? 1 : -1;
+                    if (dy < 6) {
+                        targetY += dirY * (6 - dy) * 0.6;       // 너무 붙으면 벌리기
+                    } else if (dy > 8) {
+                        targetY -= dirY * (dy - 8) * 0.8;       // 너무 벌어지면 강하게 좁히기
                     }
-                    continue;
+                    continue; // X축은 건드리지 않음
                 }
                 const d = Math.hypot(targetX - tm.x, targetY - tm.y);
                 if (d < 5) {
