@@ -556,27 +556,20 @@ class RealSoccerEngine {
     }
 
     // ─────────────────────────────────────────────────────────────
-    // 4.10  ATTACK ROUTE SELECTION  (3 routes, no set-pieces)
-    // ─────────────────────────────────────────────────────────────
-    //  Route 1: run-behind + through-pass
-    //  Route 2: run-behind + cross (wide players)
-    //  Route 3: press → steal → shot
+    // 4.10  ATTACK ROUTE SELECTION
     // ─────────────────────────────────────────────────────────────
     _selectAttackRoute(teamId) {
         const dt       = gameData.deepTactics || {};
         const profile  = this.getTacticProfile(teamId);
-        const isHome   = teamId === 'home';
         const haswinger = this.players.some(p =>
             p.teamId === teamId && this.getRoleBehavior(p.role).hugLine
         );
 
-        // Base weights
-        let w1 = 0.35;  // through-pass
-        let w2 = haswinger ? 0.40 : 0.20;  // cross
+        let w1 = 0.35;
+        let w2 = haswinger ? 0.40 : 0.20;
         let w3 = (dt.pressIntensity === 'high') ? 0.45
                : (dt.pressIntensity === 'low')  ? 0.15 : 0.25;
 
-        // Adjust by pass length preference
         if (dt.passLength === 'long')  { w1 += 0.10; w2 += 0.05; }
         if (dt.passLength === 'short') { w1 -= 0.10; w3 += 0.05; }
 
@@ -599,7 +592,7 @@ class RealSoccerEngine {
     }
 
     // ─────────────────────────────────────────────────────────────
-    // 4.11  ON-BALL DECISION SCORING  (spec §ON-BALL DECISION LOGIC)
+    // 4.11  ON-BALL DECISION SCORING
     // ─────────────────────────────────────────────────────────────
     _scorePassOption(from, to, gameState) {
         const isHome  = from.teamId === 'home';
@@ -609,11 +602,9 @@ class RealSoccerEngine {
         const distToGoalTo   = Math.abs(to.x   - goalX);
         const isForward      = distToGoalTo < distToGoalFrom;
 
-        // Detect enemy in passing lane
         let enemyInLane = false;
         for (const opp of this.players) {
             if (opp.teamId === from.teamId) continue;
-            // Project opp onto the from→to segment
             const tx = to.x - from.x, ty = to.y - from.y;
             const len2 = tx * tx + ty * ty;
             if (len2 < 0.001) continue;
@@ -622,70 +613,48 @@ class RealSoccerEngine {
             if (Math.hypot(opp.x - cx, opp.y - cy) < 5) { enemyInLane = true; break; }
         }
 
-        // Space ahead of receiver
         const spaceAhead = !this.players.some(opp => {
             if (opp.teamId === from.teamId) return false;
             const aheadX = isHome ? to.x + 8 : to.x - 8;
             return Math.hypot(opp.x - aheadX, opp.y - to.y) < 6;
         });
 
-        // Determine pass type label
         const dt = gameData.deepTactics || {};
         let passTypeScore = 0;
         if (dt.passLength === 'short' && dist > 25)  passTypeScore -= 15;
         if (dt.passLength === 'long'  && dist < 10)  passTypeScore -= 10;
 
-        // Score components (spec weights)
         let score = 0;
-
-        // Enemy in passing lane → medium penalty
         if (enemyInLane) score -= 18;
-
-        // Target ahead → medium bonus
         if (isForward) score += 16;
         else           score -=  8;
-
-        // Target overall → very weak impact
         score += (to.rating - 70) * 0.04;
 
-        // Game state → strong
         const stateWeight = {
-            buildup: isForward ? 6 : 10,   // buildup rewards patient ball
-            counter: isForward ? 22 : 2,   // counter rewards direct
+            buildup: isForward ? 6 : 10,
+            counter: isForward ? 22 : 2,
             attack:  isForward ? 18 : 4
         };
         score += stateWeight[gameState] || 10;
-
-        // Space ahead → weak
         if (spaceAhead) score += 5;
 
-        // Shot available after receive → weak
         const distToGoalAfter = Math.abs(to.x - goalX);
         if (distToGoalAfter < 20) score += 4;
 
-        // My overall > nearest defender → weak
         const nearDef = this.findNearestDefender(to);
         if (nearDef && from.rating > nearDef.player.rating + 5) score += 3;
 
-        // Pass length preference
         score += passTypeScore;
-
-        // Last owner penalty (anti-loop)
         if (this.ball.lastOwner === to) score -= 40;
-
-        // Small noise
         score += (Math.random() - 0.5) * 6;
 
         return score;
     }
 
-    // Determine current game state
     _getGameState(teamId) {
         const isHome = teamId === 'home';
         const ballX  = this.ball.x;
-        // Attacking third
         if ((isHome && ballX > 65) || (!isHome && ballX < 35)) return 'attack';
-        // Ball just turned over (last owner was opponent)
         if (this.ball.lastOwner && this.ball.lastOwner.teamId !== teamId &&
             this.ball.state === BallState.CONTROLLED) return 'counter';
         return 'buildup';
@@ -696,7 +665,6 @@ class RealSoccerEngine {
     // ─────────────────────────────────────────────────────────────
     _getTempoModifiers() {
         const tempo = gameData.deepTactics?.passTempo || 'normal';
-        // Returns { scanSpeedBonus, passSuccessModifier }
         if (tempo === 'fast') return { scanSpeedBonus: 1.3, passSuccessModifier: -5 };
         if (tempo === 'slow') return { scanSpeedBonus: 0.7, passSuccessModifier:  5 };
         return { scanSpeedBonus: 1.0, passSuccessModifier: 0 };
@@ -723,37 +691,30 @@ class RealSoccerEngine {
         const effectiveSpeed = this.getEffectiveStat(player, 'speed');
         const isWingerOnFlank = behavior.hugLine && isOnFlank;
 
-        // ── Decide shot ──
         let shootChance = this._calcShootChance(player, goalX, distToGoal);
         if (shootChance > 0 && Math.random() < shootChance) {
             this.attemptShoot(player, goalX);
             return;
         }
 
-        // ── Decide pass (scored options) ──
         const gameState   = this._getGameState(player.teamId);
         const tempoMod    = this._getTempoModifiers();
         const teammates   = this.players.filter(p => p.teamId === player.teamId && p !== player);
         const route       = this._getOrSelectRoute(player.teamId);
 
-        // Score each teammate
         let scoredOptions = teammates.map(tm => ({
             player: tm,
             score:  this._scorePassOption(player, tm, gameState)
         }));
 
-        // Boost target based on active attack route
         scoredOptions.forEach(opt => {
             const tm = opt.player;
             if (route === 'through_pass') {
-                // prefer runners making depth runs
                 if (tm.burstTimer > 5) opt.score += 30;
             } else if (route === 'cross') {
-                // prefer wide players near the box
                 if (this.getRoleBehavior(tm.role).hugLine) opt.score += 20;
                 else if (tm.position === 'FW' && Math.abs(tm.y - 50) < 25) opt.score += 15;
             } else if (route === 'press_steal_shot') {
-                // handled in off-ball; here just prefer forward pass
                 if (Math.abs(tm.x - goalX) < Math.abs(player.x - goalX)) opt.score += 10;
             }
         });
@@ -761,7 +722,6 @@ class RealSoccerEngine {
         scoredOptions.sort((a, b) => b.score - a.score);
         const bestTarget = scoredOptions[0]?.player || null;
 
-        // Pass probability (role + pressure + position)
         let passProb = this._calcPassProb(player, underPressure, isWingerOnFlank, distToGoal, tempoMod);
 
         if (bestTarget && Math.random() < passProb) {
@@ -769,12 +729,10 @@ class RealSoccerEngine {
             return;
         }
 
-        // ── Try tackle (defender approaches) ──
         if (nearestOpp && nearestOpp.dist < 7 && Math.random() < 0.05) {
             if (this.attemptTackle(nearestOpp.player, player)) return;
         }
 
-        // ── Carry/dribble ──
         this._dribbleCarry(player, goalX, distToGoal, nearestOpp, underPressure, moveDir, effectiveSpeed, isWingerOnFlank);
     }
 
@@ -786,7 +744,6 @@ class RealSoccerEngine {
     }
 
     _calcShootChance(player, goalX, distToGoal) {
-        // Probability ∝ 1/distance; hard cap 95%
         const isAngleBlocked = distToGoal < 35 && this.players.some(opp => {
             if (opp.teamId === player.teamId) return false;
             const d = Math.hypot(opp.x - player.x, opp.y - player.y);
@@ -800,7 +757,6 @@ class RealSoccerEngine {
 
         if (isAngleBlocked && distToGoal > 12 && Math.random() < 0.8) return 0;
 
-        // 1/distance scaling, capped at 0.95
         let base = 0;
         if      (distToGoal < 12) base = 0.95;
         else if (distToGoal < 18) base = clamp(1 / distToGoal * 14, 0, 0.75);
@@ -823,18 +779,13 @@ class RealSoccerEngine {
             if (underPressure) prob = 0.75;
         }
 
-        // Tactic directness adjusts pass frequency
         prob = clamp(prob * (0.86 + profile.directness * 0.22), 0.05, 0.96);
-
-        // Pass tempo modifier: fast tempo → slightly lower success (handled in execute),
-        // but we push prob up slightly so the player tries more often
         if (tempoMod.scanSpeedBonus > 1) prob = Math.min(prob + 0.05, 0.96);
 
         return prob;
     }
 
     _executePassStyled(from, to, gameState) {
-        // Classify the pass type for event description
         const isHome   = from.teamId === 'home';
         const goalX    = isHome ? 100 : 0;
         const dist     = Math.hypot(from.x - to.x, from.y - to.y);
@@ -919,7 +870,6 @@ class RealSoccerEngine {
     processGoalkeeperAI(gk, underPressure) {
         this.keepGoalkeeperHome(gk);
 
-        // 1v1: advance to narrow angle
         const closestAttacker = this.players
             .filter(p => p.teamId !== gk.teamId && p.position === 'FW')
             .sort((a, b) => Math.hypot(a.x - gk.x, a.y - gk.y) - Math.hypot(b.x - gk.x, b.y - gk.y))[0];
@@ -927,7 +877,6 @@ class RealSoccerEngine {
         if (closestAttacker) {
             const distAtt = Math.hypot(closestAttacker.x - gk.x, closestAttacker.y - gk.y);
             if (distAtt < 20 && this.ball.owner === closestAttacker) {
-                // Advance toward ball to narrow angle
                 const isHome = gk.teamId === 'home';
                 const advanceDir = isHome ? 1 : -1;
                 const advanceX = clamp(gk.x + advanceDir * 2, isHome ? 5 : 85, isHome ? 15 : 95);
@@ -1004,7 +953,7 @@ class RealSoccerEngine {
     }
 
     // ─────────────────────────────────────────────────────────────
-    // 4.16  PASS EXECUTION  (success = stat × random; passKind aware)
+    // 4.16  PASS EXECUTION
     // ─────────────────────────────────────────────────────────────
     executePass(from, to, passKind = 'safe') {
         this.ball.state = BallState.IN_FLIGHT;
@@ -1017,11 +966,10 @@ class RealSoccerEngine {
         const tempoMod = this._getTempoModifiers();
         let   accuracy = this.getEffectiveStat(from, 'passing');
         if (to.burstTimer > 0) accuracy += 30;
-        accuracy += tempoMod.passSuccessModifier;   // tempo effect on accuracy
+        accuracy += tempoMod.passSuccessModifier;
 
-        // Pass type modifiers
         let distPenalty = Math.max(0, (dist - 20) * 0.8);
-        if (passKind === 'risky')  distPenalty *= 1.4;   // risky-but-lethal pass
+        if (passKind === 'risky')  distPenalty *= 1.4;
         if (passKind === 'safe')   distPenalty *= 0.7;
 
         const isHome         = from.teamId === 'home';
@@ -1083,7 +1031,6 @@ class RealSoccerEngine {
         const gkRating  = gk ? this.getEffectiveStat(gk, 'defense') : 60;
         const dist      = Math.abs(shooter.x - goalX);
 
-        // Probability ∝ 1/distance, hard cap 95%
         const distFactor  = Math.max(0.7, 1.3 - dist / 40);
         const distY       = Math.abs(shooter.y - 50);
         let   angleFactor = 1.0;
@@ -1095,7 +1042,7 @@ class RealSoccerEngine {
         const effectiveShooting = this.getEffectiveStat(shooter, 'shooting');
         const shotPower  = effectiveShooting * (0.8 + Math.random() * 0.4) * distFactor * angleFactor;
         const savePower  = gkRating * (0.8 + Math.random() * 0.5) + 5;
-        let   goalChance = clamp(0.25 + (shotPower - savePower) * 0.0045, 0.04, 0.95); // hard cap 95%
+        let   goalChance = clamp(0.25 + (shotPower - savePower) * 0.0045, 0.04, 0.95);
 
         this.ball.state = BallState.IN_FLIGHT;
         this.ball._flightOrigin = { x: shooter.x, y: shooter.y };
@@ -1133,7 +1080,6 @@ class RealSoccerEngine {
             this.celebrationTimer = 40;
             this.ball.state = BallState.DEAD; this.ball.lastOwner = null;
 
-            // Trigger staggered turnover recovery for opposing team
             this._triggerTurnoverRecovery(shooter.teamId === 'home' ? 'away' : 'home');
 
         } else {
@@ -1144,7 +1090,6 @@ class RealSoccerEngine {
             const isHomeAtt = shooter.teamId === 'home';
             const enemyGk   = this.players.find(p => p.teamId !== shooter.teamId && p.position === 'GK');
 
-            // Block attempt
             const blockers = this.players.filter(p =>
                 p.teamId === oppTeamId && p.position !== 'GK'
                 && Math.abs(p.x - shooter.x) < 15 && Math.abs(p.y - shooter.y) < 5
@@ -1188,20 +1133,18 @@ class RealSoccerEngine {
     }
 
     // ─────────────────────────────────────────────────────────────
-    // 4.18  TURNOVER REACTION  (staggered by position)
+    // 4.18  TURNOVER REACTION
     // ─────────────────────────────────────────────────────────────
     _triggerTurnoverRecovery(losingTeamId) {
         this.players.forEach(p => {
             if (p.teamId !== losingTeamId) return;
             if      (p.position === 'DF') { p._recoveryMode = 'immediate'; p._recoveryDelay = 0; }
             else if (p.position === 'MF') {
-                // Most MF recover slightly delayed; some hold
                 const roll = Math.random();
                 if (roll < 0.6)       { p._recoveryMode = 'delayed';   p._recoveryDelay = 4 + Math.floor(Math.random() * 6); }
                 else if (roll < 0.85) { p._recoveryMode = 'hold';      p._recoveryDelay = 8; }
                 else                  { p._recoveryMode = 'immediate'; p._recoveryDelay = 0; }
             } else if (p.position === 'FW') {
-                // Brief freeze then late recovery
                 p._recoveryMode  = 'frozen';
                 p._recoveryDelay = 6 + Math.floor(Math.random() * 8);
             }
@@ -1209,25 +1152,23 @@ class RealSoccerEngine {
     }
 
     // ─────────────────────────────────────────────────────────────
-    // 4.19  IN-FLIGHT INTERCEPTION  (every frame, spec §ANTI-EXPLOIT)
+    // 4.19  IN-FLIGHT INTERCEPTION
     // ─────────────────────────────────────────────────────────────
     checkInterception() {
         if (this.ball.state !== BallState.IN_FLIGHT) return;
-        if (this.pendingShot) return; // don't intercept shots here
+        if (this.pendingShot) return;
 
         const bx = this.ball.x, by = this.ball.y;
         const ox = this.ball._flightOrigin.x, oy = this.ball._flightOrigin.y;
         const tx = this.ball.targetPos.x,     ty = this.ball.targetPos.y;
 
         this.players.forEach(p => {
-            // Only opposing team can intercept
             if (this.ball.lastOwner && p.teamId === this.ball.lastOwner.teamId) return;
-            if (p._stealCooldown > 0) return;  // anti-exploit cooldown
+            if (p._stealCooldown > 0) return;
 
             const distToBall = Math.hypot(p.x - bx, p.y - by);
             if (distToBall > 6) return;
 
-            // Project player onto flight path to get proximity to trajectory
             const flx = tx - ox, fly = ty - oy;
             const fLen2 = flx * flx + fly * fly;
             let traj = 0;
@@ -1237,7 +1178,6 @@ class RealSoccerEngine {
             const nearX = ox + traj * flx, nearY = oy + traj * fly;
             const proximity = Math.hypot(p.x - nearX, p.y - nearY);
 
-            // Chance = tackle% + speed vs proximity
             const tackleStat = this.getEffectiveStat(p, 'tackle') || this.getEffectiveStat(p, 'defense');
             const speedStat  = this.getEffectiveStat(p, 'speed');
             const proximityBonus = Math.max(0, (6 - proximity) / 6);
@@ -1248,11 +1188,10 @@ class RealSoccerEngine {
                 this.ball.owner = p;
                 this.ball.intendedReceiver = null;
                 this.ball.lastOwner = null;
-                p._stealCooldown = 20;  // anti-exploit: cooldown after successful interception
+                p._stealCooldown = 20;
                 this.eventsQueue.push({ type:'tackle', player: p.name,
                     desc:`${p.name}, 날카로운 패스 차단!` });
 
-                // Trigger staggered recovery for the team that just lost the ball
                 const losingTeam = (p.teamId === 'home') ? 'away' : 'home';
                 this._triggerTurnoverRecovery(losingTeam);
             }
@@ -1270,7 +1209,6 @@ class RealSoccerEngine {
 
         const isLoose = !this.ball.owner && this.ball.state === BallState.LOOSE;
 
-        // Find nearest per team for loose-ball chase
         let nearestHome = null, nearestAway = null;
         if (isLoose) {
             let dH = 999, dA = 999;
@@ -1281,7 +1219,6 @@ class RealSoccerEngine {
             });
         }
 
-        // Identify active presser
         let presser = null;
         if (this.ball.owner && attackingTeam) {
             let minD = 999;
@@ -1299,13 +1236,11 @@ class RealSoccerEngine {
             if (p._recoveryDelay > 0) {
                 p._recoveryDelay--;
                 if (p._recoveryMode === 'frozen') {
-                    // Stand still during freeze
                     p.vx *= 0.3; p.vy *= 0.3;
                     p.x += p.vx; p.y += p.vy;
                     return;
                 }
                 if (p._recoveryMode === 'hold' || p._recoveryMode === 'delayed') {
-                    // Drift slowly back
                     const ax = (p.baseX - p.x) * 0.02;
                     const ay = (p.baseY - p.y) * 0.02;
                     p.vx = (p.vx + ax) * 0.7; p.vy = (p.vy + ay) * 0.7;
@@ -1313,7 +1248,6 @@ class RealSoccerEngine {
                     return;
                 }
             }
-            // Clear recovery after delay
             if (p._recoveryDelay <= 0 && p._recoveryMode) p._recoveryMode = null;
 
             const behavior     = this.getRoleBehavior(p.role);
@@ -1321,24 +1255,19 @@ class RealSoccerEngine {
             const speedFactor  = effectiveSpd / 75;
             let   moveSpeed    = 0.22 * clamp(speedFactor, 0.7, 1.4);
 
-            const isAttacking  = (p.teamId === attackingTeam);
+            // ── FW는 상대팀이 공을 가지고 있으면 무조건 수비 복귀 ──
+            // attackingTeam 에 관계없이 공 소유 팀이 상대팀이면 수비 처리
+            const oppHasBall = this.ball.owner && this.ball.owner.teamId !== p.teamId;
+            const oppInFlight = this.ball.state === BallState.IN_FLIGHT &&
+                                this.ball.lastOwner && this.ball.lastOwner.teamId !== p.teamId;
+            const isDefending = oppHasBall || oppInFlight;
+
+            const isAttacking  = !isDefending && (p.teamId === attackingTeam);
             const isHome       = p.teamId === 'home';
             const forwardDir   = isHome ? 1 : -1;
             const isHomeDef    = isHome;
 
             let targetX = p.x, targetY = p.y;
-
-            // ── OFF-BALL RULE: player without ball → return to position first
-            //    unless: enemy pressing AND can steal; OR role explicitly requires leaving ──
-            const enemyNear = this.players.find(opp =>
-                opp.teamId !== p.teamId &&
-                Math.hypot(opp.x - p.x, opp.y - p.y) < 6
-            );
-            const canSteal  = enemyNear && p._stealCooldown === 0
-                && this.getEffectiveStat(p, 'tackle') > 50;
-
-            const roleRequiresMove = behavior.pressBias > 0 || behavior.runBehind || behavior.overlap;
-            const shouldLeavePos   = (enemyNear && canSteal) || roleRequiresMove;
 
             // ──────────────────────────────────────────────────────────
             if (isLoose) {
@@ -1359,7 +1288,6 @@ class RealSoccerEngine {
 
                 } else if (p === this.ball.lastOwner && p.position !== 'GK' &&
                            !['CD','BPD','NCB'].includes(p.role)) {
-                    // Last passer: make supporting run forward
                     targetX = p.x + forwardDir * 15;
                     targetY = p.y + (this.ball.y - p.y) * 0.3;
                     moveSpeed = 0.4;
@@ -1379,7 +1307,6 @@ class RealSoccerEngine {
                     const mfMaxX = isHome ? 74 : 26;
                     targetX = isHome ? Math.min(targetX, mfMaxX) : Math.max(targetX, mfMaxX);
 
-                    // Press route: MF with pressBias steps toward ball carrier if in range
                     const dt = gameData.deepTactics || {};
                     const pressOK = dt.pressIntensity === 'high' || behavior.pressBias > 0.2;
                     if (pressOK && this.ball.owner && this.ball.owner.teamId !== p.teamId) {
@@ -1404,7 +1331,6 @@ class RealSoccerEngine {
                 return;
             }
 
-            // ── Apply movement ──
             this._applyMovement(p, targetX, targetY, moveSpeed);
         });
     }
@@ -1413,23 +1339,35 @@ class RealSoccerEngine {
         if (!p.burstTimer) p.burstTimer = 0;
         if (!p.forceReturnTimer) p.forceReturnTimer = 0;
 
-        const offsideLimitX = this._calcOffsideLineX(isHome);
-        let   moveSpeed     = 0.28 * speedFactor;
+        // ── [FIX 1] 공격수 위치 절대 하드캡 ──
+        // home FW: x는 반드시 38~96 사이 / away FW: x는 반드시 4~62 사이
+        const FW_MIN_X = isHome ? 38 : 4;
+        const FW_MAX_X = isHome ? 96 : 62;
 
+        // 오프사이드 라인 계산
+        const offsideLimitX = this._calcOffsideLineX(isHome);
+
+        // forceReturnTimer가 있으면 무조건 복귀
         if (p.forceReturnTimer > 0) {
             p.forceReturnTimer--;
             p.burstTimer = 0;
             const safeX = this._getSafeReturnX(p, isHome);
-            this._pullBackFW(p, safeX, isHome, speedFactor, moveSpeed);
+            this._pullBackFW(p, safeX, isHome, speedFactor, 0.9 * speedFactor);
+            // 하드캡 적용
+            p.x = clamp(p.x, FW_MIN_X, FW_MAX_X);
             return;
         }
 
-        // Ball behind → auto-retreat
-        const ballBehind = isHome ? this.ball.x < p.x - 10 : this.ball.x > p.x + 10;
+        // ── [FIX 1] 공이 뒤에 있으면 즉시 복귀 (기준 강화) ──
+        // 이전: ball.x < p.x - 20 → 개선: ball.x < p.x - 10 (더 민감하게)
+        const ballFarBehind = isHome ? this.ball.x < p.x - 10 : this.ball.x > p.x + 10;
         const hasFriendlyBall = this.ball.owner && this.ball.owner.teamId === p.teamId;
-        if (!hasFriendlyBall && ballBehind) {
+        if (ballFarBehind) {
             const safeX = this._getSafeReturnX(p, isHome);
-            this._pullBackFW(p, safeX, isHome, speedFactor, 0.9 * speedFactor);
+            const pullSpeed = ballFarBehind ? 1.1 * speedFactor : 0.9 * speedFactor;
+            this._pullBackFW(p, safeX, isHome, speedFactor, pullSpeed);
+            // 하드캡 적용
+            p.x = clamp(p.x, FW_MIN_X, FW_MAX_X);
             return;
         }
 
@@ -1458,8 +1396,10 @@ class RealSoccerEngine {
             targetX = isHome ? Math.max(targetX, fwMinX) : Math.min(targetX, fwMinX);
         }
 
+        let moveSpeed = 0.28 * speedFactor;
         if (p.burstTimer > 0) moveSpeed = 0.4 * speedFactor;
 
+        // 오프사이드 라인 적용
         targetX = isHome
             ? Math.min(targetX, offsideLimitX - 1)
             : Math.max(targetX, offsideLimitX + 1);
@@ -1475,11 +1415,18 @@ class RealSoccerEngine {
 
         if (behavior.hugLine) { targetY = p.baseY < 50 ? 5 : 95; targetX += forwardDir * 8; }
 
+        // 오프사이드 + 하드캡 이중 적용
         targetX = isHome
             ? Math.min(targetX, offsideLimitX - 1)
             : Math.max(targetX, offsideLimitX + 1);
+        targetX = clamp(targetX, FW_MIN_X, FW_MAX_X);
 
         this._applyMovement(p, targetX, targetY, moveSpeed);
+
+        // ── [FIX 1] 이동 후에도 반드시 하드캡 재적용 (velocity 누적 방지) ──
+        p.x = clamp(p.x, FW_MIN_X, FW_MAX_X);
+        if (isHome  && p.vx < 0 && p.x <= FW_MIN_X) p.vx = 0;
+        if (!isHome && p.vx > 0 && p.x >= FW_MAX_X) p.vx = 0;
     }
 
     _processAttackingDFMovement(p, isHome, forwardDir) {
@@ -1502,19 +1449,38 @@ class RealSoccerEngine {
         const dt     = gameData.deepTactics || {};
 
         if (p.position === 'FW') {
-            // FW on defense: brief freeze (handled by recovery mode), then retreat
+            // ── [FIX 3] 수비 시 FW 하프라인 복귀 강화 ──
             p.burstTimer = 0;
-            const safeX = this._getSafeReturnX(p, isHome);
-            const tooFar = isHome ? p.x > safeX + 5 : p.x < safeX - 5;
-            if (tooFar) {
+
+            // 하프라인 목표값 (home FW → 최대 46, away FW → 최소 54)
+            const HALFLINE_HOME = 46;
+            const HALFLINE_AWAY = 54;
+            const halflineTarget = isHome ? HALFLINE_HOME : HALFLINE_AWAY;
+
+            // 하프라인을 이미 넘어선 경우 강제 급속 복귀
+            const overHalfline = isHome ? p.x > halflineTarget : p.x < halflineTarget;
+            if (overHalfline) {
                 const pullDir = isHome ? -1 : 1;
-                p.x += pullDir * 3.5 * speedFactor;
-                p.vx = pullDir * 3.5 * speedFactor * 0.5;
+                // 얼마나 넘어섰는지에 비례해서 속도 증가
+                const excess = isHome ? (p.x - halflineTarget) : (halflineTarget - p.x);
+                const pullSpeed = clamp(3.5 + excess * 0.15, 3.5, 7.0) * speedFactor;
+                p.x += pullDir * pullSpeed;
+                p.vx = pullDir * pullSpeed * 0.5;
             }
-            p.x = isHome ? Math.min(p.x, safeX) : Math.max(p.x, safeX);
-            if (isHome && p.vx > 0) p.vx = 0;
+
+            // 하드캡: 절대로 하프라인 너머에 남아있지 않음
+            if (isHome)  p.x = Math.min(p.x, halflineTarget + 0.5);
+            else         p.x = Math.max(p.x, halflineTarget - 0.5);
+            // velocity도 반대 방향이면 0으로
+            if (isHome && p.vx > 0)  p.vx = 0;
             if (!isHome && p.vx < 0) p.vx = 0;
-            this._applyMovement(p, safeX, p.baseY, 0.7 * speedFactor);
+
+            // Y축은 baseY로 천천히 복귀
+            this._applyMovement(p, halflineTarget, p.baseY, 0.7 * speedFactor);
+
+            // 이동 후 재확인
+            if (isHome)  p.x = Math.min(p.x, halflineTarget + 0.5);
+            else         p.x = Math.max(p.x, halflineTarget - 0.5);
             return;
         }
 
@@ -1535,7 +1501,6 @@ class RealSoccerEngine {
                     return;
                 }
             }
-            // Otherwise hold formation shape
             const refBallX  = this.pendingShot ? 50 : clamp(this.ball.x, 30, 70);
             const formationX = p.baseX + (refBallX - 50) * shiftF;
             const formationY = p.baseY + (this.ball.y - 50) * 0.2;
@@ -1553,7 +1518,6 @@ class RealSoccerEngine {
             let   formationX = p.baseX + (refBallX - 50) * shiftF + lineOffset * (isHome ? -1 : 1);
             let   formationY = p.baseY + (this.ball.y - 50) * 0.05;
 
-            // Marking logic
             const isCB = ['CD','BPD','NCB'].includes(p.role);
             let markTarget = null;
             if (!isSpecial) {
@@ -1587,7 +1551,6 @@ class RealSoccerEngine {
                     : markX * 0.3  + formationX * 0.7;
                 this._applyMovement(p, finalX, markTarget.y, 0.35);
             } else {
-                // Step toward ball when pressed
                 if (this.ball.owner && !isSpecial) {
                     const dB = Math.hypot(p.x - this.ball.x, p.y - this.ball.y);
                     const inOwnHalf = isHome ? this.ball.x < 35 : this.ball.x > 65;
@@ -1597,7 +1560,6 @@ class RealSoccerEngine {
                         return;
                     }
                 }
-                // Recovery sprint if beaten
                 const beaten = isHome ? this.ball.x < p.x - 2 : this.ball.x > p.x + 2;
                 if (beaten && !isSpecial) {
                     const rX = this.ball.x + (isHome ? -15 : 15);
@@ -1637,26 +1599,41 @@ class RealSoccerEngine {
     // 4.21  MOVEMENT HELPERS
     // ─────────────────────────────────────────────────────────────
     _applyMovement(p, targetX, targetY, moveSpeed) {
-        // CB spacing correction
+        // ── [FIX 2] CB 간격 보정 강화 ──
         const isCB = ['CD','BPD','NCB'].includes(p.role);
-        if (p.position === 'DF') {
-            const allies = this.players.filter(q => q.teamId === p.teamId && q !== p && q.position === 'DF');
-            for (const tm of allies) {
-                const isOtherCB = ['CD','BPD','NCB'].includes(tm.role);
-                const gapMin = (isCB && isOtherCB) ? 2.0 : 1.5;
-                const gapMax = (isCB && isOtherCB) ? 4.0 : 6.0;
-                const dyT = targetY - tm.y;
-                const absT = Math.abs(dyT);
-                const dirT = dyT >= 0 ? 1 : -1;
-                if (absT < gapMin) targetY = tm.y + dirT * gapMin;
-                else if (absT > gapMax) targetY = tm.y + dirT * gapMax;
-                if (isCB && isOtherCB) {
-                    const dyP = p.y - tm.y;
-                    if (Math.abs(dyP) > gapMax + 0.5) {
-                        p.y = tm.y + (dyP >= 0 ? 1 : -1) * (gapMax + 0.5);
-                        p.vy *= 0.1;
-                    }
+        if (isCB && p.position === 'DF') {
+            const otherCBs = this.players.filter(q =>
+                q.teamId === p.teamId && q !== p &&
+                ['CD','BPD','NCB'].includes(q.role) && q.position === 'DF'
+            );
+            for (const cb2 of otherCBs) {
+                const CB_GAP_MIN = 6;   // CB끼리 최소 Y 간격 (기존 4 → 6으로 상향)
+                const CB_GAP_MAX = 14;  // CB끼리 최대 Y 간격 (기존 12 → 14로 소폭 상향, 하드캡 강화)
+                const dy  = targetY - cb2.y;
+                const abs = Math.abs(dy);
+                const dir = dy >= 0 ? 1 : -1;
+
+                if (abs < CB_GAP_MIN) {
+                    targetY = cb2.y + dir * CB_GAP_MIN;
+                } else if (abs > CB_GAP_MAX) {
+                    targetY = cb2.y + dir * CB_GAP_MAX;
                 }
+
+                // ── [FIX 2] 실제 p.y 교정 + velocity 완전 억제 ──
+                const dyActual = p.y - cb2.y;
+                if (Math.abs(dyActual) > CB_GAP_MAX) {
+                    // 한 번에 교정 (gap_max 정확히 맞춤)
+                    p.y  = cb2.y + (dyActual >= 0 ? 1 : -1) * CB_GAP_MAX;
+                    p.vy = 0;  // velocity 완전 리셋 (기존엔 *0.05 → 누적 가능했음)
+                }
+            }
+        } else if (p.position === 'DF') {
+            const allDF = this.players.filter(q => q.teamId === p.teamId && q !== p && q.position === 'DF');
+            for (const tm of allDF) {
+                const dy  = targetY - tm.y;
+                const abs = Math.abs(dy);
+                const dir = dy >= 0 ? 1 : -1;
+                if (abs < 2.0) targetY = tm.y + dir * 2.0;
             }
         }
 
@@ -1683,13 +1660,21 @@ class RealSoccerEngine {
     }
 
     _getSafeReturnX(p, isHome) {
+        // ── [FIX 3] FW 복귀 목표값 강화 ──
+        // 무조건 하프라인(46/54) 이하로 복귀시킴
+        const HALFLINE_HOME = 46;
+        const HALFLINE_AWAY = 54;
+
         const ourTeam = this.players.filter(q => q.teamId === p.teamId && q !== p);
         if (isHome) {
             const sorted = ourTeam.map(q => q.x).sort((a, b) => a - b);
-            return clamp(Math.min((sorted[1] ?? sorted[0] ?? 30), p.baseX), 10, 90);
+            const teamRef = sorted[1] ?? sorted[0] ?? 30;
+            // 팀 최저선 또는 하프라인 중 더 뒤쪽으로 (더 보수적으로)
+            return clamp(Math.min(teamRef, p.baseX, HALFLINE_HOME), 10, HALFLINE_HOME);
         } else {
             const sorted = ourTeam.map(q => q.x).sort((a, b) => b - a);
-            return clamp(Math.max((sorted[1] ?? sorted[0] ?? 70), p.baseX), 10, 90);
+            const teamRef = sorted[1] ?? sorted[0] ?? 70;
+            return clamp(Math.max(teamRef, p.baseX, HALFLINE_AWAY), HALFLINE_AWAY, 90);
         }
     }
 
@@ -1707,8 +1692,6 @@ class RealSoccerEngine {
     // ─────────────────────────────────────────────────────────────
     adjustDefensiveLines() {
         // Line shift is applied in _processDefensiveMovement/formationX calc above.
-        // This method remains for external callers and future use.
-        // (No-op: logic embedded in movement methods)
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -1754,7 +1737,7 @@ class RealSoccerEngine {
     }
 
     // ─────────────────────────────────────────────────────────────
-    // 4.24  MISC HELPERS (preserved API surface)
+    // 4.24  MISC HELPERS
     // ─────────────────────────────────────────────────────────────
     checkFrontalBlock(player, goalX) {
         const fwd = player.teamId === 'home' ? 1 : -1;
@@ -1770,7 +1753,6 @@ class RealSoccerEngine {
     }
 
     findBestPassTarget(player, mode = 'aggressive') {
-        // Legacy method used by external code — delegates to new scored system
         const gameState = mode === 'safe' ? 'buildup' : this._getGameState(player.teamId);
         const teammates = this.players.filter(p => p.teamId === player.teamId && p !== player);
         if (!teammates.length) return null;
@@ -1792,7 +1774,7 @@ class RealSoccerEngine {
 
     attemptTackle(defender, attacker) {
         if (!attacker) return false;
-        if (defender._stealCooldown > 0) return false;  // anti-exploit cooldown
+        if (defender._stealCooldown > 0) return false;
 
         const defStat  = this.getEffectiveStat(defender, 'defense');
         const atkStat  = this.getEffectiveStat(attacker,  'decision');
@@ -1802,10 +1784,9 @@ class RealSoccerEngine {
         if (defStat * Math.random() > (atkStat + speedBonus) * Math.random()) {
             this.ball.owner = defender;
             this.ball.lastOwner = null;
-            defender._stealCooldown = 20;  // anti-exploit: no rapid re-steals
+            defender._stealCooldown = 20;
             this.eventsQueue.push({ type:'tackle', player: defender.name,
                 desc:`${defender.name}의 태클 성공!` });
-            // Staggered recovery for losing team
             this._triggerTurnoverRecovery(attacker.teamId);
             return true;
         }
@@ -1885,7 +1866,7 @@ class RealSoccerEngine {
     }
 
     // ─────────────────────────────────────────────────────────────
-    // 4.25  CELEBRATION & POST-MATCH  (unchanged logic)
+    // 4.25  CELEBRATION & POST-MATCH
     // ─────────────────────────────────────────────────────────────
     processCelebrationMovement() {
         if (!this.celebrationActor || !this.celebrationTarget) return;
@@ -1976,7 +1957,7 @@ class RealSoccerEngine {
 }
 
 // =============================================================================
-// [SECTION 5]  GLOBAL REGISTRATION  (identical to original — drop-in)
+// [SECTION 5]  GLOBAL REGISTRATION
 // =============================================================================
 
 window.RealSoccerEngine   = RealSoccerEngine;
