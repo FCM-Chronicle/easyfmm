@@ -1130,8 +1130,8 @@ function showMatchResultModal(matchData, ratings, result, userScore, oppScore, d
             const div = document.createElement('div');
             div.className = 'rating-row';
             let stats = '';
-            if (r.goals > 0) stats += ` ??${r.goals})`;
-            if (r.assists > 0) stats += ` ?몷(${r.assists})`;
+            if (r.goals > 0) stats += ` ⚽${r.goals})`;
+            if (r.assists > 0) stats += ` 👟(${r.assists})`;
 
             div.innerHTML = `
                 <span>${r.player.name}${stats}</span>
