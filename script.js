@@ -38,6 +38,7 @@ let gameData = {
     startYear: 2025, // 시작 연도 (시즌 표기용)
     seasonCount: 1, // 시즌 카운트
     settings: { autoSave: false, bgm: true, bgmVolume: 50, sfxVolume: 50, immersionMode: true }, // 게임 설정 (오디오, SFX, 몰입 모드 추가)
+    matchDrama: { enabled: true, intensity: 'high' }, // 골 직전 몰입 연출 (CM 스타일)
     playerRoles: {}, // [추가] 선수별 역할 데이터 초기화
     temporaryStats: {}, // [신규] 일시적 스탯 버프/디버프 저장소
     secretaryName: "김지수", // [신규] 비서 이름 (secretary.js에서 사용)
@@ -2425,6 +2426,7 @@ function loadGame(event) {
             // 기본 게임 데이터 복원
             gameData = saveData.gameData;
             if (!gameData.playerRoles) gameData.playerRoles = {}; // [추가] 구버전 세이브 호환성 보장
+            ensureMatchDramaDefaults();
             console.log('gameData 복원 완료');
             
             // 팀 데이터 복원 (allTeams -> teams 재구성)
@@ -3330,6 +3332,7 @@ function loadFromSlot(slotNumber) {
         
         // 기본 게임 데이터 복원
         gameData = saveData.gameData;
+        ensureMatchDramaDefaults();
         console.log('gameData 복원 완료');
         
         // 팀 데이터 복원 (allTeams -> teams 재구성)
@@ -3608,6 +3611,23 @@ window.deleteSlot = deleteSlot;
 
 // 외부에서 호출할 수 있는 함수들
 window.gameData = gameData;
+
+function ensureMatchDramaDefaults() {
+    if (!gameData.matchDrama) {
+        gameData.matchDrama = {
+            enabled: gameData.settings ? gameData.settings.immersionMode !== false : true,
+            intensity: 'high'
+        };
+    }
+    if (!['low', 'medium', 'high'].includes(gameData.matchDrama.intensity)) {
+        gameData.matchDrama.intensity = 'high';
+    }
+    if (gameData.settings && gameData.settings.immersionMode === false && gameData.matchDrama.enabled !== false) {
+        gameData.matchDrama.enabled = false;
+    }
+    return gameData.matchDrama;
+}
+window.ensureMatchDramaDefaults = ensureMatchDramaDefaults;
 window.GameState = window.GameState || {
     get() {
         return gameData;
@@ -4061,6 +4081,9 @@ function renderAudioSettings() {
     const volume = gameData.settings && gameData.settings.bgmVolume !== undefined ? gameData.settings.bgmVolume : 50;
     const sfxVolume = gameData.settings && gameData.settings.sfxVolume !== undefined ? gameData.settings.sfxVolume : 50;
     const isImmersionOn = gameData.settings ? gameData.settings.immersionMode !== false : true; // 기본값 ON
+    const drama = ensureMatchDramaDefaults();
+    const isDramaOn = drama.enabled !== false;
+    const dramaIntensity = drama.intensity || 'high';
     
     audioContainer.innerHTML = `
         <h4 style="color: #ffd700; margin-top: 0; margin-bottom: 15px;">🎵 배경음악 설정</h4>
@@ -4083,13 +4106,31 @@ function renderAudioSettings() {
         </div>
 
         <h4 style="color: #ffd700; margin-top: 20px; margin-bottom: 15px;">⚡ 경기 연출 설정</h4>
-        <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
             <label class="switch">
                 <input type="checkbox" id="immersionToggle" ${isImmersionOn ? 'checked' : ''}>
                 <span class="slider round"></span>
             </label>
             <span id="immersionStatusText">몰입감 모드 ${isImmersionOn ? 'ON' : 'OFF'}</span>
         </div>
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+            <label class="switch">
+                <input type="checkbox" id="goalDramaToggle" ${isDramaOn ? 'checked' : ''}>
+                <span class="slider round"></span>
+            </label>
+            <span id="goalDramaStatusText">골 직전 연출 ${isDramaOn ? 'ON' : 'OFF'}</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <span>연출 강도:</span>
+            <select id="goalDramaIntensity" style="padding: 8px 12px; background: #222; color: white; border: 1px solid #444; border-radius: 6px; min-width: 140px;" ${!isDramaOn ? 'disabled' : ''}>
+                <option value="low" ${dramaIntensity === 'low' ? 'selected' : ''}>낮음 (빠름)</option>
+                <option value="medium" ${dramaIntensity === 'medium' ? 'selected' : ''}>보통</option>
+                <option value="high" ${dramaIntensity === 'high' ? 'selected' : ''}>높음 (극적)</option>
+            </select>
+        </div>
+        <p style="font-size: 0.82rem; color: #aaa; margin-top: 10px; line-height: 1.5;">
+            골 직전 연출이 켜지면 CM 스타일로 텐션이 올라가며, 강도가 높을수록 멈춤과 해설이 더 길어집니다. Shift+F 고속 진행 시 연출이 자동 축약됩니다.
+        </p>
     `;
     
     // 기존에 JS로 주입하던 스타일 제거 (index.html의 CSS로 통합)
@@ -4105,6 +4146,9 @@ function renderAudioSettings() {
     const sfxVolumeValue = document.getElementById('sfxVolumeValue');
     const immersionToggle = document.getElementById('immersionToggle');
     const immersionStatusText = document.getElementById('immersionStatusText');
+    const goalDramaToggle = document.getElementById('goalDramaToggle');
+    const goalDramaStatusText = document.getElementById('goalDramaStatusText');
+    const goalDramaIntensity = document.getElementById('goalDramaIntensity');
     
     bgmToggle.addEventListener('change', (e) => {
         const isOn = e.target.checked;
@@ -4133,6 +4177,28 @@ function renderAudioSettings() {
         if (!gameData.settings) gameData.settings = {};
         gameData.settings.immersionMode = isOn;
         immersionStatusText.textContent = `몰입감 모드 ${isOn ? 'ON' : 'OFF'}`;
+        if (!isOn) {
+            const dramaCfg = ensureMatchDramaDefaults();
+            dramaCfg.enabled = false;
+            if (goalDramaToggle) goalDramaToggle.checked = false;
+            if (goalDramaIntensity) goalDramaIntensity.disabled = true;
+            if (goalDramaStatusText) goalDramaStatusText.textContent = '골 직전 연출 OFF';
+        }
+    });
+
+    goalDramaToggle.addEventListener('change', (e) => {
+        const isOn = e.target.checked;
+        const dramaCfg = ensureMatchDramaDefaults();
+        dramaCfg.enabled = isOn;
+        goalDramaStatusText.textContent = `골 직전 연출 ${isOn ? 'ON' : 'OFF'}`;
+        goalDramaIntensity.disabled = !isOn;
+        if (window.triggerAutoSave) window.triggerAutoSave();
+    });
+
+    goalDramaIntensity.addEventListener('change', (e) => {
+        const dramaCfg = ensureMatchDramaDefaults();
+        dramaCfg.intensity = e.target.value;
+        if (window.triggerAutoSave) window.triggerAutoSave();
     });
 }
 window.renderAudioSettings = renderAudioSettings;

@@ -61,6 +61,24 @@ initializeTemplates() {
             "[경기 결과] {winTeam}이 {loseTeam}을 {score}로 이겼습니다!"
         ],
 
+        matchResultHighScoring: [
+            "[경기 결과] 골 폭발! {homeTeam} {score} {awayTeam} — 화끈한 승부!",
+            "[경기 결과] 미친 경기! {winTeam} vs {loseTeam}, 최종 {score}!",
+            "[경기 결과] {score} 대혼전! {winTeam}이 {loseTeam}을 꺾었다!"
+        ],
+
+        matchResultUserWin: [
+            "[경기 결과] 우리 팀 승리! {userTeam} {score} {opponentTeam}!",
+            "[경기 결과] {userTeam}, {opponentTeam} 상대 {score} 승리! 팬들 환호!",
+            "[경기 결과] 감독님 전술이 먹혔다! {userTeam} {score} {opponentTeam}"
+        ],
+
+        matchResultUserLoss: [
+            "[경기 결과] 아쉬운 패배... {userTeam} {score} {opponentTeam}",
+            "[경기 결과] {opponentTeam}에 {score} 패배. 다음 경기가 중요하다",
+            "[경기 결과] {userTeam}, {opponentTeam}에 {score}로 고배..."
+        ],
+
         // 경기 결과 템플릿 - 일반적인 무승부 (homeTeam/awayTeam 사용)
         matchResultDraw: [
             "[경기 결과] {homeTeam}와 {awayTeam}, {score} 무승부!",
@@ -309,15 +327,18 @@ onSeasonEnd(seasonData) {
 }
   // 수정된 generateMatchPost 함수
 generateMatchPost(matchData) {
-    if (!matchData || !gameData) return;
+    const payload = (typeof window.buildMatchResultPayload === 'function')
+        ? window.buildMatchResultPayload(matchData)
+        : matchData;
+    if (!payload || !gameData) return;
 
-    const homeTeam = matchData.homeTeam;
-    const awayTeam = matchData.awayTeam;
-    const homeScore = matchData.homeScore;
-    const awayScore = matchData.awayScore;
+    const homeTeam = payload.homeTeam;
+    const awayTeam = payload.awayTeam;
+    const homeScore = payload.homeScore;
+    const awayScore = payload.awayScore;
     const score = `${homeScore}-${awayScore}`;
+    const isUserMatch = homeTeam === gameData.selectedTeam || awayTeam === gameData.selectedTeam;
 
-    // 팀 전력 차이 계산
     const homeRating = this.calculateTeamRating(homeTeam);
     const awayRating = this.calculateTeamRating(awayTeam);
     const strengthDiff = Math.abs(homeRating - awayRating);
@@ -326,9 +347,7 @@ generateMatchPost(matchData) {
     let templateData = {};
 
     if (homeScore === awayScore) {
-        // 무승부 처리
         if (strengthDiff > 10) {
-            // 전력차가 큰 경우의 무승부는 강팀에게 불리한 결과
             template = this.getRandomTemplate('matchResultDrawShocking');
             templateData = {
                 strongTeam: homeRating > awayRating ? this.getTeamName(homeTeam) : this.getTeamName(awayTeam),
@@ -336,7 +355,6 @@ generateMatchPost(matchData) {
                 score: score
             };
         } else {
-            // 일반적인 무승부 - 새로운 템플릿 사용
             template = this.getRandomTemplate('matchResultDraw');
             templateData = {
                 homeTeam: this.getTeamName(homeTeam),
@@ -345,39 +363,42 @@ generateMatchPost(matchData) {
             };
         }
     } else {
-        // 승부가 결정된 경우만 winTeam/loseTeam 계산
         const winTeam = homeScore > awayScore ? homeTeam : awayTeam;
         const loseTeam = homeScore > awayScore ? awayTeam : homeTeam;
         const winnerRating = homeScore > awayScore ? homeRating : awayRating;
         const loserRating = homeScore > awayScore ? awayRating : homeRating;
         
-        // 기본 템플릿 데이터 (모든 경우에 공통)
         templateData = {
             winTeam: this.getTeamName(winTeam),
             loseTeam: this.getTeamName(loseTeam),
             homeTeam: this.getTeamName(homeTeam),
             awayTeam: this.getTeamName(awayTeam),
-            score: score
+            score: score,
+            userTeam: this.getTeamName(gameData.selectedTeam),
+            opponentTeam: this.getTeamName(gameData.currentOpponent)
         };
 
-        // 이변 여부 판단: 약한 팀이 강한 팀을 이겼는가?
         const isUpset = winnerRating < loserRating;
+        const totalGoals = homeScore + awayScore;
 
-        if (isUpset && strengthDiff > 10) {
-            // 이변! 약팀이 강팀을 이kim
+        if (isUserMatch && payload.userResult === 'win') {
+            template = this.getRandomTemplate('matchResultUserWin');
+        } else if (isUserMatch && payload.userResult === 'loss') {
+            template = this.getRandomTemplate('matchResultUserLoss');
+        } else if (totalGoals >= 5) {
+            template = this.getRandomTemplate('matchResultHighScoring');
+        } else if (isUpset && strengthDiff > 10) {
             template = this.getRandomTemplate('matchResultShocking');
         } else if (!isUpset && strengthDiff > 15) {
-            // 예상된 결과: 강팀이 약팀을 큰 차이로 이김
             template = this.getRandomTemplate('matchResultExpected');
         } else {
-            // 일반적인 결과
             template = this.getRandomTemplate('matchResultNormal');
         }
     }
 
-    // 해시태그 생성
-    const hashtags = this.generateHashtags(homeTeam, awayTeam, matchData);
-    const goalScorers = this.extractGoalScorers(matchData.events);
+    const hashtags = this.generateHashtags(homeTeam, awayTeam, payload);
+    const goalScorers = this.extractGoalScorers(payload.goalEvents || payload.events);
+    if (payload.hadDrama) hashtags.push('#극적승부');
 
     const post = {
         id: this.postIdCounter++,
@@ -385,14 +406,16 @@ generateMatchPost(matchData) {
         content: this.fillTemplate(template, templateData),
         hashtags: hashtags,
         timestamp: Date.now(),
-        likes: Math.floor(Math.random() * 1000) + 100,
+        likes: Math.floor(Math.random() * 1000) + 100 + (payload.totalGoals || 0) * 40,
         comments: Math.floor(Math.random() * 200) + 10,
         shares: Math.floor(Math.random() * 50) + 5,
         homeTeam: homeTeam,
         awayTeam: awayTeam,
         homeScore: homeScore,
         awayScore: awayScore,
-        goalScorers: goalScorers.join(', ')
+        goalScorers: goalScorers.join(', '),
+        isUserMatch: isUserMatch,
+        userResult: payload.userResult || null
     };
 
     this.posts.unshift(post);
@@ -530,10 +553,15 @@ generateAIMatchPreview() {
     extractGoalScorers(events) {
         if (!events) return [];
         
+        const seen = new Set();
         return events
-            .filter(event => event.type === 'goal')
+            .filter(event => event.type === 'goal' && event.scorer)
             .map(event => event.scorer)
-            .filter(scorer => scorer);
+            .filter(scorer => {
+                if (seen.has(scorer)) return false;
+                seen.add(scorer);
+                return true;
+            });
     }
 
     generateHashtags(homeTeam, awayTeam, matchData) {

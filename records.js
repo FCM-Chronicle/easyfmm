@@ -142,8 +142,9 @@ class RecordsSystem {
 
     matchEvents.forEach(event => {
         if (event.type === 'goal') {
-            this.addGoal(event.scorer, event.assister,
-                event.team === teamNames[gameData.selectedTeam] ? gameData.selectedTeam : gameData.currentOpponent);
+            const teamKey = event.teamKey
+                || (event.team === teamNames[gameData.selectedTeam] ? gameData.selectedTeam : gameData.currentOpponent);
+            this.addGoal(event.scorer, event.assister, teamKey);
         }
     });
 
@@ -180,10 +181,11 @@ class RecordsSystem {
             currentRoundMatches.forEach(match => {
                 // 유저 경기는 이미 진행되었으므로 스킵
                 if (match.home === gameData.selectedTeam || match.away === gameData.selectedTeam) return;
-                
+
                 const matchResult = this.simulateSingleAIMatch(match.home, match.away);
                 this.matchRecords.push(matchResult);
-                
+                this.maybePostAIMatchToSNS(matchResult);
+
                 console.log(`${match.home} ${matchResult.score1} - ${matchResult.score2} ${match.away}`);
             });
         }
@@ -289,6 +291,48 @@ class RecordsSystem {
         goals: goals,
         minute: 90
     };
+}
+
+maybePostAIMatchToSNS(matchResult) {
+    if (typeof snsManager === 'undefined' || !matchResult) return;
+
+    const team1Rating = this.calculateAITeamRating(matchResult.team1);
+    const team2Rating = this.calculateAITeamRating(matchResult.team2);
+    const totalGoals = matchResult.score1 + matchResult.score2;
+    const winner = matchResult.score1 > matchResult.score2
+        ? matchResult.team1
+        : (matchResult.score2 > matchResult.score1 ? matchResult.team2 : null);
+    const loser = matchResult.score1 > matchResult.score2
+        ? matchResult.team2
+        : (matchResult.score2 > matchResult.score1 ? matchResult.team1 : null);
+
+    const isUpset = winner && (
+        (winner === matchResult.team1 && team1Rating + 8 < team2Rating) ||
+        (winner === matchResult.team2 && team2Rating + 8 < team1Rating)
+    );
+    const isHighScoring = totalGoals >= 5;
+    const involvesUserLeagueRival = gameData.currentOpponent &&
+        (matchResult.team1 === gameData.currentOpponent || matchResult.team2 === gameData.currentOpponent);
+
+    if (!isUpset && !isHighScoring && !involvesUserLeagueRival) return;
+    if (Math.random() > 0.35) return;
+
+    const payload = {
+        homeTeam: matchResult.team1,
+        awayTeam: matchResult.team2,
+        homeScore: matchResult.score1,
+        awayScore: matchResult.score2,
+        events: (matchResult.goals || []).map(g => ({
+            type: 'goal',
+            minute: g.minute || 0,
+            scorer: g.scorer,
+            assister: g.assister || null,
+            team: teamNames[g.team] || g.team,
+            teamKey: g.team
+        }))
+    };
+
+    snsManager.generateMatchPost(payload);
 }
 
 // AI 경기 평점 시뮬레이션

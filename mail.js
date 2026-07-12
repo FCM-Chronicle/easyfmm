@@ -211,28 +211,35 @@ class MailManager {
 
     // 2. 경기 결과 메일
     sendMatchResultMail(matchData) {
-        const isUserHome = matchData.homeTeam === gameData.selectedTeam;
+        const payload = (typeof window.buildMatchResultPayload === 'function')
+            ? window.buildMatchResultPayload(matchData)
+            : matchData;
+
+        const isUserHome = payload.homeTeam === gameData.selectedTeam;
         
         const opponent = isUserHome 
-            ? teamNames[matchData.awayTeam] 
-            : teamNames[matchData.homeTeam];
+            ? teamNames[payload.awayTeam] 
+            : teamNames[payload.homeTeam];
             
-        const myScore = isUserHome ? matchData.homeScore : matchData.awayScore;
-        const oppScore = isUserHome ? matchData.awayScore : matchData.homeScore;
+        const myScore = payload.userScore !== undefined ? payload.userScore : (isUserHome ? payload.homeScore : payload.awayScore);
+        const oppScore = payload.oppScore !== undefined ? payload.oppScore : (isUserHome ? payload.awayScore : payload.homeScore);
         
         const result = myScore > oppScore ? '승리' : (myScore < oppScore ? '패배' : '무승부');
         
-        // 득점자/도움자 정리
         let details = '';
-        const goals = matchData.events.filter(e => e.type === 'goal');
+        const goals = payload.goalEvents || payload.events.filter(e => e.type === 'goal');
         
         if (goals.length > 0) {
             details = '\n[주요 기록]\n';
             goals.forEach(g => {
-                details += `${g.minute}' ${g.scorer} (${g.team})`;
+                const teamLabel = g.team || teamNames[g.teamKey] || '';
+                details += `${g.minute}' ${g.scorer}${teamLabel ? ` (${teamLabel})` : ''}`;
                 if (g.assister) details += ` (도움: ${g.assister})`;
                 details += '\n';
             });
+            if (payload.hadDrama) {
+                details += '\n※ 골 직전 몰입 연출이 포함된 극적인 경기였습니다.\n';
+            }
         } else {
             details = '\n[주요 기록]\n득점 없음\n';
         }

@@ -38,7 +38,8 @@ const RoleData = {
 		SS:  { name: "섀도우 스트라이커", attack: 0.30, technique: 0.15, mobility: 0.15, defense: -0.25, physical: -0.05, mentality: 0.15, stamina: 'high' },
 		ANC: { name: "앵커맨", attack: -0.20, technique: -0.10, mobility: -0.20, defense: 0.30, physical: 0.25, mentality: 0.25, stamina: 'low' },
 		DM:  { name: "수비형 미드필더", attack: -0.10, technique: 0, mobility: 0.05, defense: 0.25, physical: 0.15, mentality: 0.10, stamina: 'high' },
-		SV:  { name: "세군도 볼란테", attack: 0.15, technique: 0.10, mobility: 0.15, defense: 0.10, physical: 0.15, mentality: 0.10, stamina: 'very_high' }
+		SV:  { name: "세군도 볼란테", attack: 0.15, technique: 0.10, mobility: 0.15, defense: 0.10, physical: 0.15, mentality: 0.10, stamina: 'very_high' },
+		CM:  { name: "중앙 미드필더", attack: 0.05, technique: 0.10, mobility: 0.05, defense: 0.10, physical: 0.10, mentality: 0.10, stamina: 'normal' },
 	},
 	// 3. 수비진 (FB, WB, CB)
 	defense: {
@@ -48,7 +49,6 @@ const RoleData = {
 		IWB: { name: "인버티드 윙백", attack: 0.05, technique: 0.25, mobility: 0.05, defense: 0.10, physical: 0, mentality: 0.20, stamina: 'high' },
 		CWB: { name: "완성형 윙백", attack: 0.25, technique: 0.20, mobility: 0.20, defense: -0.20, physical: 0, mentality: 0.05, stamina: 'very_high' },
 		LIB: { name: "리베로", attack: 0.15, technique: 0.30, mobility: 0.10, defense: 0.15, physical: 0, mentality: 0.25, stamina: 'high' },
-		FB:  { name: "풀백", attack: -0.05, technique: 0.05, mobility: 0.10, defense: 0.20, physical: 0.10, mentality: 0.05, stamina: 'normal' },
 		FB:  { name: "풀백", attack: -0.05, technique: 0.05, mobility: 0.10, defense: 0.20, physical: 0.10, mentality: 0.05, stamina: 'normal' },
 		WB:  { name: "윙백", attack: 0.15, technique: 0.15, mobility: 0.20, defense: 0, physical: 0.05, mentality: 0.05, stamina: 'high' },
 		GK:  { name: "골키퍼", attack: -0.4, technique: -0.2, mobility: -0.2, defense: 0.4, physical: 0.2, mentality: 0.2, stamina: 'low' }

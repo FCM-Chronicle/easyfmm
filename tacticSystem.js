@@ -137,11 +137,62 @@ class TacticSystem {
             description: this.tactics[key].description
         }));
     }
+
+    getTacticName(tactic) {
+        return this.tactics[tactic] ? this.tactics[tactic].name : tactic;
+    }
+
+    getRecommendedTactic(opponentTactic) {
+        const results = [];
+        Object.keys(this.tactics).forEach(key => {
+            if (key === 'balanced') return;
+            const data = this.tactics[key];
+            if (data.effective.includes(opponentTactic)) {
+                results.push({
+                    key,
+                    tactic: key,
+                    name: data.name,
+                    reason: `${this.getTacticName(opponentTactic)}에 효과적`
+                });
+            }
+        });
+        if (results.length === 0) {
+            return [{ key: 'balanced', tactic: 'balanced', name: this.tactics.balanced.name, reason: '무난한 선택' }];
+        }
+        return results;
+    }
 }
 
 // =========================================================================================
 // [PART 3] 경기 진행 로직 (RealSoccerEngine 연동)
 // =========================================================================================
+
+function normalizeMatchDrama() {
+    if (!gameData.matchDrama) {
+        gameData.matchDrama = {
+            enabled: gameData.settings ? gameData.settings.immersionMode !== false : true,
+            intensity: 'high'
+        };
+    }
+    if (!['low', 'medium', 'high'].includes(gameData.matchDrama.intensity)) {
+        gameData.matchDrama.intensity = 'high';
+    }
+    return gameData.matchDrama;
+}
+
+function getDramaTickDelay(matchData, snapshot) {
+    if (matchData.isFastForward) return 0;
+    if (!snapshot || !snapshot.isSuspense) return null;
+
+    const drama = (typeof window.getMatchDramaConfig === 'function')
+        ? window.getMatchDramaConfig()
+        : normalizeMatchDrama();
+
+    if (!drama.enabled) return 120;
+
+    const intensityDelays = { low: 900, medium: 1800, high: 3200 };
+    return intensityDelays[drama.intensity] || intensityDelays.high;
+}
 
 function startMatch() {
     // 1. 초기 검증
@@ -152,6 +203,8 @@ function startMatch() {
 
     // 2. 스쿼드 검증
     if (!validateFormationBeforeMatch()) return;
+
+    normalizeMatchDrama();
 
     // 3. 화면 전환
     showScreen('matchScreen');
@@ -225,7 +278,7 @@ function startMatch() {
         } else {
             awayColor = '#ffffff';
         }
-        console.log(`?렓 ?좊땲???됱긽 異⑸룎 媛먯?! ?먯젙? ?됱긽??${awayColor}濡?蹂寃쏀빀?덈떎.`);
+        console.log(`🎨 유니폼 색상 충돌 감지! 원정팀 색상을 ${awayColor}로 변경합니다.`);
     }
 
     // 鍮꾩＜?쇰씪?댁? 珥덇린??
@@ -246,9 +299,9 @@ function showKickoffButton(matchData, engine) {
     const kickoffInfo = document.createElement('div');
     kickoffInfo.className = 'event-card kickoff-ready';
     kickoffInfo.innerHTML = `
-        <div class="event-time">以鍮??꾨즺</div>
-        <div>寃쎄린 ?쒖옉 以鍮꾧? ?꾨즺?섏뿀?듬땲??</div>
-        <button id="kickoffBtn" class="btn primary" style="margin-top: 15px; padding: 12px 30px; font-size: 1.1rem; font-weight: bold; width: 100%;">???μ삤??/button>
+        <div class="event-time">준비 완료</div>
+        <div>경기 시작 준비가 완료되었습니다.</div>
+        <button id="kickoffBtn" class="btn primary" style="margin-top: 15px; padding: 12px 30px; font-size: 1.1rem; font-weight: bold; width: 100%;">⚽ 킥오프</button>
     `;
     eventList.appendChild(kickoffInfo);
 
@@ -376,8 +429,8 @@ function simulateMatch(matchData, engine) {
         // 6. 시간 업데이트
         tickCount++;
         
-        // [수정] 세리머니 중에는 시간 멈춤
-        if (!snapshot.isCelebration) {
+        // [수정] 세리머니/골 직전 연출 중에는 시간 멈춤
+        if (!snapshot.isCelebration && !snapshot.isSuspense) {
             matchData.seconds += 4;
             if (matchData.seconds >= 60) {
                 matchData.minute++;
@@ -392,8 +445,9 @@ function simulateMatch(matchData, engine) {
         const endTime = performance.now();
         const elapsed = endTime - startTime;
         
-        // [수정] 고속 모드인 경우 딜레이를 0으로 설정하여 즉시 다음 틱 실행
-        const targetDuration = matchData.isFastForward ? 0 : tickDuration;
+        // [수정] 고속 모드 / 골 직전 연출에 따른 틱 딜레이
+        const dramaDelay = getDramaTickDelay(matchData, snapshot);
+        const targetDuration = matchData.isFastForward ? 0 : (dramaDelay !== null ? dramaDelay : tickDuration);
         const nextDelay = Math.max(0, targetDuration - elapsed);
         
         matchData.timeoutId = setTimeout(gameLoop, nextDelay);
@@ -456,6 +510,11 @@ const MatchCommentaryData = {
         "{blocker}, 몸을 던져 슈팅을 막아냅니다!",
         "{shooter}의 슈팅이 수비벽에 막힙니다.",
         "{blocker}가 중요한 위치에서 길목을 지킵니다."
+    ],
+    preGoalSuspense: [
+        "{desc}",
+        "⚡ {desc}",
+        "🔥 {desc}"
     ]
 };
 
@@ -469,10 +528,61 @@ function getRandomCommentary(type, data) {
     return template;
 }
 
+// [헬퍼] 경기 결과를 SNS/기록/메일 등 하위 시스템용으로 정규화
+function buildMatchResultPayload(matchData) {
+    if (!matchData) return null;
+
+    const resultEvents = (matchData.events || []).filter(e =>
+        e && !['preGoalSuspense', 'kickoff', 'final'].includes(e.type)
+    );
+    const goalEvents = resultEvents.filter(e => e.type === 'goal').map(g => ({
+        minute: g.minute,
+        type: 'goal',
+        scorer: g.scorer,
+        assister: g.assister || null,
+        team: g.team,
+        teamKey: g.teamKey || resolveGoalTeamKey(g, matchData),
+        description: g.description
+    }));
+
+    const isUserHome = matchData.homeTeam === gameData.selectedTeam;
+    const userScore = isUserHome ? matchData.homeScore : matchData.awayScore;
+    const oppScore = isUserHome ? matchData.awayScore : matchData.homeScore;
+    const userResult = userScore > oppScore ? 'win' : (userScore < oppScore ? 'loss' : 'draw');
+
+    return {
+        ...matchData,
+        events: resultEvents,
+        goalEvents,
+        totalGoals: matchData.homeScore + matchData.awayScore,
+        userTeam: gameData.selectedTeam,
+        opponentTeam: gameData.currentOpponent,
+        userScore,
+        oppScore,
+        userResult,
+        isUserHome,
+        isHighScoring: (matchData.homeScore + matchData.awayScore) >= 5,
+        hadDrama: (matchData.events || []).some(e => e.type === 'preGoalSuspense')
+    };
+}
+
+function resolveGoalTeamKey(goalEvent, matchData) {
+    if (goalEvent.teamKey) return goalEvent.teamKey;
+    if (goalEvent.team === teamNames[matchData.homeTeam]) return matchData.homeTeam;
+    if (goalEvent.team === teamNames[matchData.awayTeam]) return matchData.awayTeam;
+    if (goalEvent.team === gameData.selectedTeam) return gameData.selectedTeam;
+    return goalEvent.team === teamNames[gameData.selectedTeam]
+        ? gameData.selectedTeam
+        : gameData.currentOpponent;
+}
+
+window.buildMatchResultPayload = buildMatchResultPayload;
+
 // [헬퍼] 엔진 이벤트를 텍스트 이벤트로 변환
 function convertToTextEvent(engineEvent, matchData) {
     const homeName = teamNames[matchData.homeTeam];
     const awayName = teamNames[matchData.awayTeam];
+    const eventTeamKey = engineEvent.team === 'home' ? matchData.homeTeam : matchData.awayTeam;
     const eventTeamName = engineEvent.team === 'home' ? homeName : awayName;
 
     if (engineEvent.type === 'goal') {
@@ -483,8 +593,9 @@ function convertToTextEvent(engineEvent, matchData) {
             minute: matchData.minute,
             type: 'goal',
             team: eventTeamName,
+            teamKey: eventTeamKey,
             scorer: engineEvent.scorer,
-            assister: engineEvent.assister, // [추가] 어시스트 정보 전달
+            assister: engineEvent.assister || null,
             description: description
         };
     } else if (engineEvent.type === 'miss') {
@@ -516,7 +627,7 @@ function convertToTextEvent(engineEvent, matchData) {
             return {
                 minute: matchData.minute,
                 type: 'pass',
-                description: engineEvent.desc || `??${engineEvent.from} -> ${engineEvent.to} ?곌껐`
+                description: engineEvent.desc || `${engineEvent.from} → ${engineEvent.to} 패스`
             };
         }
         return null;
@@ -525,7 +636,7 @@ function convertToTextEvent(engineEvent, matchData) {
         const data = { from: engineEvent.from, to: engineEvent.to };
         return {
             minute: matchData.minute,
-            type: 'pass', // UI 스타일은 pass와 공유
+            type: 'throughpass',
             description: getRandomCommentary('throughpass', data)
         };
     } else if (engineEvent.type === 'save') {
@@ -542,6 +653,13 @@ function convertToTextEvent(engineEvent, matchData) {
             type: 'block', 
             description: getRandomCommentary('block', data)
         };
+    } else if (engineEvent.type === 'preGoalSuspense') {
+        const desc = engineEvent.desc || '결정적인 순간이 다가옵니다...';
+        return {
+            minute: matchData.minute,
+            type: 'preGoalSuspense',
+            description: getRandomCommentary('preGoalSuspense', { desc })
+        };
     }
     return null;
 }
@@ -550,13 +668,16 @@ function displayEvent(event, matchData) {
     const eventList = document.getElementById('eventList');
     if (!eventList) return;
 
-    // 기존 리스트 방식은 버리고 최신 이벤트 하나만 띄우기
     eventList.innerHTML = `
-        <div class="event-card ${event.type}" style="animation: none; margin: 0; padding: 12px; background: rgba(0,0,0,0.6); border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 15px; font-size: 1.1rem; border: 1px solid rgba(255,255,255,0.1); width: 100%; box-sizing: border-box;">
-            <span class="event-time" style="color: #ffd700; font-weight: bold; white-space: nowrap; min-width: 45px;">${event.minute}분</span>
-            <span style="color: #fff; text-align: center; line-height: 1.4;">${event.description}</span>
+        <div class="event-card ${event.type}">
+            <span class="event-time">${event.minute}분</span>
+            <span class="event-desc">${event.description}</span>
         </div>
     `;
+
+    if (event.type === 'preGoalSuspense' && window.customCursorInstance && typeof window.customCursorInstance.triggerVibration === 'function') {
+        window.customCursorInstance.triggerVibration(180, 0.35, 0.25);
+    }
     
     matchData.events.push(event);
 }
@@ -632,9 +753,9 @@ function endMatch(matchData) {
 
     // 理쒖쥌 硫붿떆吏
     const strengthDiff = matchData.strengthDiff || { userAdvantage: false };
-    let finalMsg = `寃쎄린 醫낅즺! ${result} (${userScore}-${oppScore})`;
-    if ((result === '?밸━' && !strengthDiff.userAdvantage) || (result === '?⑤같' && strengthDiff.userAdvantage)) {
-        finalMsg += result === '?밸━' ? `\n?럦 ??대?! 遺덈━???꾨젰???ㅼ쭛怨??밸━!` : `\n?삺 異⑷꺽! ?좊━??寃쎄린?먯꽌 ?⑤같...`;
+    let finalMsg = `경기 종료! ${result} (${userScore}-${oppScore})`;
+    if ((result === '승리' && !strengthDiff.userAdvantage) || (result === '패배' && strengthDiff.userAdvantage)) {
+        finalMsg += result === '승리' ? `\n🎉 대이변! 불리한 전력을 뒤집고 승리!` : `\n😱 충격! 유리한 경기에서 패배...`;
     }
 
     const finalEvent = {
@@ -646,13 +767,17 @@ function endMatch(matchData) {
 
     // ?ㅽ룿??泥섎━ (寃쎄린 寃곌낵 ?곕룞)
     if (typeof window.processSponsorAfterMatch === 'function') {
-        const matchResult = result === '?밸━' ? 'win' : result === '?⑤같' ? 'loss' : 'draw';
+        const matchResult = result === '승리' ? 'win' : result === '패배' ? 'loss' : 'draw';
         window.processSponsorAfterMatch(matchResult);
     }
 
-    // [蹂듦뎄] 硫붿씪 ?쒖뒪???곕룞 (寃쎄린 寃곌낵 諛??댁쟻 ?쒖븞)
+    // 후처리 시스템용 정규화 payload
+    const resultPayload = buildMatchResultPayload(matchData);
+    matchData.resultPayload = resultPayload;
+
+    // [복구] 메일 시스템 연동 (경기 결과 및 이적 제안)
     if (!gameData.isWorldCupMode && typeof mailManager !== 'undefined') {
-        mailManager.sendMatchResultMail(matchData);
+        mailManager.sendMatchResultMail(resultPayload);
         mailManager.checkTransferOffer();
     }
 
@@ -675,7 +800,7 @@ function endMatch(matchData) {
             const result = scoutingSystem.scoutForPlayers(gameData.hiredScout.tier);
             if (result.success) {
                 setTimeout(() => {
-                    alert(`[?ㅼ뭅?고듃 蹂닿퀬??\n${result.message}`);
+                    alert(`[스카우트 보고서]\n${result.message}`);
                     if(typeof displayScoutedPlayers === 'function') displayScoutedPlayers(result.players);
                     if(typeof displayYouthPlayers === 'function') displayYouthPlayers();
                 }, 1500);
@@ -684,7 +809,7 @@ function endMatch(matchData) {
         gameData.hiredScout.remainingMatches--;
         if (gameData.hiredScout.remainingMatches <= 0) {
             setTimeout(() => {
-                alert(`[怨꾩빟 留뚮즺] ${scout.name}怨쇱쓽 怨꾩빟??留뚮즺?섏뿀?듬땲??`);
+                alert(`[계약 만료] ${scout.name}과의 계약이 만료되었습니다.`);
                 gameData.hiredScout = null;
             }, 2000);
         }
@@ -695,7 +820,7 @@ function endMatch(matchData) {
     
     // [以묒슂] 媛쒖씤湲곕줉 ?낅뜲?댄듃 諛?AI ?쒕??덉씠???ㅽ뻾 (simulateOtherMatches ?泥?
     if (typeof updateRecordsAfterMatch === 'function') {
-        updateRecordsAfterMatch(matchData);
+        updateRecordsAfterMatch(resultPayload);
     }
 
     injurySystem.removeInjuredFromSquad();
@@ -749,7 +874,7 @@ function endMatch(matchData) {
 
     // ?쒖쫵 醫낅즺 諛????泥섎━
     if (window.GameEventBus) {
-        window.GameEventBus.emit('match:end', matchData);
+        window.GameEventBus.emit('match:end', resultPayload);
     }
 
     setTimeout(() => {
@@ -820,109 +945,110 @@ function startInterview(result, userScore, opponentScore, strengthDiff) {
     for (let i = q.options.length; i < btns.length; i++) btns[i].style.display = 'none';
 }
 
+
 function getInterviewQuestions(result, userScore, oppScore, strengthDiff) {
     const scoreDiff = Math.abs(userScore - oppScore);
-    // strengthDiff媛 ?놁쓣 寃쎌슦 ?鍮?
+    // strengthDiff가 없을 경우 대비
     const safeStrengthDiff = strengthDiff || { userAdvantage: false, strengthGap: 0 };
-    // ?대? ?щ?: ?닿? 遺덈━?쒕뜲 ?닿꼈嫄곕굹, ?좊━?쒕뜲 議뚯쓣 ??
-    const isUpset = (result === '?밸━' && !safeStrengthDiff.userAdvantage) || 
-                   (result === '?⑤같' && safeStrengthDiff.userAdvantage);
+    // 이변 여부: 내가 불리한데 이겼거나, 유리한데 졌을 때
+    const isUpset = (result === '승리' && !safeStrengthDiff.userAdvantage) || 
+                   (result === '패배' && safeStrengthDiff.userAdvantage);
     
-    if (result === '?밸━') {
+    if (result === '승리') {
         if (isUpset) {
-            // ?낆뀑 ?밸━ (遺덈━???꾨젰?쇰줈 ?밸━)
+            // 업셋 승리 (불리한 전력으로 승리)
             return [{
-                question: "媛앷??곸씤 ?꾨젰???댁꽭瑜??ㅼ쭛怨??뚮????밸━瑜?嫄곕??듬땲?? ?ㅻ뒛 寃쎄린???뱀씤(?앭썱)? 臾댁뾿?낅땲源?",
+                question: "객관적인 전력의 열세를 뒤집고 훌륭한 승리를 거뒀습니다. 오늘 경기의 승인(勝因)은 무엇입니까?",
                 options: [
-                    { text: "?좎닔?ㅼ쓽 ?ъ?媛 留뚮뱾?대궦 湲곗쟻?낅땲?? 洹몃뱾? ?대룞?μ뿉??紐⑤뱺 寃껋쓣 ?잛븘遺?덇퀬, 遺덇??μ쓣 媛?μ쑝濡?留뚮뱾?덉뒿?덈떎.", morale: 20 },
-                    { text: "?곕━媛 以鍮꾪븳 留욎땄???꾩닠???꾨꼍?섍쾶 ?곸쨷?덉뒿?덈떎. ?곷????덉젏???뚭퀬??寃껋씠 二쇳슚?덉뒿?덈떎.", morale: 15 },
-                    { text: "?댁씠 苑?醫뗭븯??寃쎄린??듬땲?? ?섏?留?寃곌낵??留뚯”?섎ŉ ?뱀젏 3?먯쓣 梨숆릿 寃껋뿉 ?섏쓽瑜??〓땲??", morale: 5 }
+                    { text: "선수들의 투지가 만들어낸 기적입니다. 그들은 운동장에서 모든 것을 쏟아부었고, 불가능을 가능으로 만들었습니다.", morale: 20 },
+                    { text: "우리가 준비한 맞춤형 전술이 완벽하게 적중했습니다. 상대의 허점을 파고든 것이 주효했습니다.", morale: 15 },
+                    { text: "운이 꽤 좋았던 경기였습니다. 하지만 결과에 만족하며 승점 3점을 챙긴 것에 의의를 둡니다.", morale: 5 }
                 ]
             }];
         } else if (scoreDiff >= 3) {
-            // ???(3?먯감 ?댁긽)
+            // 대승 (3점차 이상)
             return [{
-                question: "?뺣룄?곸씤 寃쎄린?μ쑝濡???뱀쓣 嫄곕몢?⑥뒿?덈떎. ?ㅻ뒛 寃쎄린?μ뿉 ????대뼸寃??됯??섏떆?섏슂?",
+                question: "압도적인 경기력으로 대승을 거두셨습니다. 오늘 경기력에 대해 어떻게 평가하시나요?",
                 options: [
-                    { text: "?꾨꼍??媛源뚯슫 寃쎄린??듬땲?? 怨듭닔 紐⑤뱺 硫댁뿉???곕━媛 ?먰븯???뚮젅?닿? ?섏솕怨? ?좎닔?ㅼ씠 ?먮옉?ㅻ읇?듬땲??", morale: 15 },
-                    { text: "?곕━??蹂몄떎?μ쓣 蹂댁뿬以 寃쎄린??듬땲?? ??湲곗꽭瑜?紐곗븘 ?ㅼ쓬 寃쎄린?먯꽌??醫뗭? 紐⑥뒿??蹂댁뿬?쒕━寃좎뒿?덈떎.", morale: 10 },
-                    { text: "?곷?媛 ?ㅻ뒛 ?좊룆 遺吏꾪뻽??寃?媛숈뒿?덈떎. ?먯닔 李⑤쭔?쇱쓽 ?ㅻ젰 李⑥씠???꾨땲?덈떎怨??앷컖?⑸땲??", morale: 0 }
+                    { text: "완벽에 가까운 경기였습니다. 공수 모든 면에서 우리가 원하던 플레이가 나왔고, 선수들이 자랑스럽습니다.", morale: 15 },
+                    { text: "우리의 본실력을 보여준 경기였습니다. 이 기세를 몰아 다음 경기에서도 좋은 모습을 보여드리겠습니다.", morale: 10 },
+                    { text: "상대가 오늘 유독 부진했던 것 같습니다. 점수 차만큼의 실력 차이는 아니었다고 생각합니다.", morale: 0 }
                 ]
             }];
         } else {
-            // ?쇰컲 ?밸━
+            // 일반 승리
             return [{
-                question: "移섏뿴???묒쟾 ?앹뿉 洹以묓븳 ?밸━瑜?梨숆꼈?듬땲?? ?ㅻ뒛 寃쎄린瑜?珥앺룊?댁＜?좊떎硫?",
+                question: "치열한 접전 끝에 귀중한 승리를 챙겼습니다. 오늘 경기를 총평해주신다면?",
                 options: [
-                    { text: "?좎닔?ㅼ씠 ?앷퉴吏 吏묒쨷?μ쓣 ?껋? ?딄퀬 ?곗뼱以 ?뺣텇?낅땲?? ??뚰겕媛 鍮쏅궃 ?밸━??듬땲??", morale: 10 },
-                    { text: "?섎뱺 寃쎄린?吏留?寃곌낵?곸쑝濡??밸━?덈떎??寃껋씠 以묒슂?⑸땲?? ?곕━???뱀젏 3?먯쓣 ?살쓣 ?먭꺽???덉뿀?듬땲??", morale: 7 },
-                    { text: "紐뉖챺 ?λ㈃?먯꽌???ㅼ닔媛 ?덉뿀吏留? 寃곌낵瑜?媛?몄삩 寃껋뿉 留뚯”?⑸땲?? 蹂댁셿???먯? ?덈젴???듯빐 怨좎퀜?섍?寃좎뒿?덈떎.", morale: 3 }
+                    { text: "선수들이 끝까지 집중력을 잃지 않고 뛰어준 덕분입니다. 팀워크가 빛난 승리였습니다.", morale: 10 },
+                    { text: "힘든 경기였지만 결과적으로 승리했다는 것이 중요합니다. 우리는 승점 3점을 얻을 자격이 있었습니다.", morale: 7 },
+                    { text: "몇몇 장면에서는 실수가 있었지만, 결과를 가져온 것에 만족합니다. 보완할 점은 훈련을 통해 고쳐나가겠습니다.", morale: 3 }
                 ]
             }];
         }
-    } else if (result === '?⑤같') {
+    } else if (result === '패배') {
         if (isUpset) {
-            // 異⑷꺽??(?좊━???꾨젰?쇰줈 ?⑤같)
+            // 충격패 (유리한 전력으로 패배)
             return [{
-                question: "?꾨젰???곗쐞媛 ?덉긽?섏뿀?뚯뿉??遺덇뎄?섍퀬 異⑷꺽?곸씤 ?⑤같瑜??뱁뻽?듬땲?? ?щ뱾???ㅻ쭩?????먮뜲, ?대뼸寃??앷컖?섏떗?덇퉴?",
+                question: "전력상 우위가 예상되었음에도 불구하고 충격적인 패배를 당했습니다. 팬들의 실망이 클 텐데, 어떻게 생각하십니까?",
                 options: [
-                    { text: "?ㅻ뒛 ?⑤같??紐⑤뱺 梨낆엫? 媛먮룆????먭쾶 ?덉뒿?덈떎. ?꾩닠??以鍮꾧? 誘명씉?덇퀬, ?좎닔?ㅼ쓣 ?쒕?濡??대걣吏 紐삵뻽?듬땲??", morale: 10 }, // 梨낆엫 媛먯닔 -> ?ш린 ?곸듅(蹂댄샇)
-                    { text: "紐뉖챺 ?좎닔?ㅼ쓽 ?덉씪???뚮젅?닿? ?ㅻ쭩?ㅻ윭?좎뒿?덈떎. ?꾨줈?쇰㈃ 寃쎄린?μ뿉??利앸챸?댁빞 ?⑸땲?? ?뺤떊???щТ?μ씠 ?꾩슂?⑸땲??", morale: -15 }, // ?좎닔 鍮꾨궃 -> ?ш린 ?섎씫
-                    { text: "異뺢뎄?먯꽌???쇱뼱?????덈뒗 ?쇱엯?덈떎. ?곷?媛 ?ㅻ뒛 留ㅼ슦 ??以鍮꾪빐?붽퀬, ?곕━???댁씠 ?곕Ⅴ吏 ?딆븯?듬땲??", morale: -5 }
+                    { text: "오늘 패배의 모든 책임은 감독인 저에게 있습니다. 전술적 준비가 미흡했고, 선수들을 제대로 이끌지 못했습니다.", morale: 10 }, // 책임 감수 -> 사기 상승(보호)
+                    { text: "몇몇 선수들의 안일한 플레이가 실망스러웠습니다. 프로라면 경기장에서 증명해야 합니다. 정신력 재무장이 필요합니다.", morale: -15 }, // 선수 비난 -> 사기 하락
+                    { text: "축구에서는 일어날 수 있는 일입니다. 상대가 오늘 매우 잘 준비해왔고, 우리는 운이 따르지 않았습니다.", morale: -5 }
                 ]
             }];
         } else if (scoreDiff >= 3) {
-            // ???
+            // 대패
             return [{
-                question: "臾닿린?ν븳 寃쎄린 ?앹뿉 ??⑤? ?뱁뻽?듬땲?? 臾댁뾿??媛????臾몄젣??ㅺ퀬 蹂댁떗?덇퉴?",
+                question: "무기력한 경기 끝에 대패를 당했습니다. 무엇이 가장 큰 문제였다고 보십니까?",
                 options: [
-                    { text: "???щ윭遺꾧퍡 二꾩넚?⑸땲?? ?ㅻ뒛 ?곕━???꾨Т寃껊룄 蹂댁뿬二쇱? 紐삵뻽?듬땲?? 泥좎???遺꾩꽍?섏뿬 ?ㅼ떆???대윴 寃쎄린瑜??섏? ?딄쿋?듬땲??", morale: 5 },
-                    { text: "?곷?????ㅻ젰 李⑥씠瑜??몄젙???섎컰???놁뒿?덈떎. ?곕━???꾩쭅 遺議깊븯怨? 諛곗썙?????먯씠 留롮뒿?덈떎.", morale: -5 },
-                    { text: "珥덈컲 ?ㅼ젏 ?댄썑 ???湲됯꺽??臾대꼫議뚯뒿?덈떎. ?섎퉬 議곗쭅?μ쓣 泥섏쓬遺???ㅼ떆 ?먭??댁빞 ??寃?媛숈뒿?덈떎.", morale: -10 }
+                    { text: "팬 여러분께 죄송합니다. 오늘 우리는 아무것도 보여주지 못했습니다. 철저히 분석하여 다시는 이런 경기를 하지 않겠습니다.", morale: 5 },
+                    { text: "상대와의 실력 차이를 인정할 수밖에 없습니다. 우리는 아직 부족하고, 배워야 할 점이 많습니다.", morale: -5 },
+                    { text: "초반 실점 이후 팀이 급격히 무너졌습니다. 수비 조직력을 처음부터 다시 점검해야 할 것 같습니다.", morale: -10 }
                 ]
             }];
         } else {
-            // ?쇰컲 ?⑤같 (?꾩돩???⑤같)
+            // 일반 패배 (아쉬운 패배)
             return [{
-                question: "?꾩돺寃??⑤같?섎ŉ ?뱀젏???살? 紐삵뻽?듬땲?? ?ㅻ뒛 寃쎄린?먯꽌 湲띿젙?곸씤 遺遺꾩쓣 李얠쓣 ???덉뿀?섏슂?",
+                question: "아쉽게 패배하며 승점을 얻지 못했습니다. 오늘 경기에서 긍정적인 부분을 찾을 수 있었나요?",
                 options: [
-                    { text: "?⑤같???몄젣???곕씪由ъ?留? ?좎닔?ㅼ씠 ?앷퉴吏 ?ш린?섏? ?딄퀬 ???먯? ?믪씠 ?됯??⑸땲??", morale: 5 },
-                    { text: "寃곗젙??遺議깆씠 ?꾩돺?듬땲?? 李ъ뒪??留뚮뱾?덉?留?留덈Т由ы븯吏 紐삵븯硫??닿만 ???놁뒿?덈떎.", morale: -5 },
-                    { text: "?곷?媛 ?곕━蹂대떎 議곌툑 ???닿만 ?먭꺽???덉뿀?듬땲?? ?⑤같瑜??몄젙?섍퀬 ?ㅼ쓬 寃쎄린瑜?以鍮꾪븯寃좎뒿?덈떎.", morale: 0 }
+                    { text: "패배는 언제나 쓰라리지만, 선수들이 끝까지 포기하지 않고 뛴 점은 높이 평가합니다.", morale: 5 },
+                    { text: "결정력 부족이 아쉽습니다. 찬스는 만들었지만 마무리하지 못하면 이길 수 없습니다.", morale: -5 },
+                    { text: "상대가 우리보다 조금 더 이길 자격이 있었습니다. 패배를 인정하고 다음 경기를 준비하겠습니다.", morale: 0 }
                 ]
             }];
         }
     }
     
-    // 臾댁듅遺
+    // 무승부
     if (safeStrengthDiff.userAdvantage && safeStrengthDiff.strengthGap > 10) {
-        // 媛뺥븳 ???臾댁듅遺 (?ㅻ쭩?ㅻ윭??臾댁듅遺)
+        // 강한 팀이 무승부 (실망스러운 무승부)
         return [{
-            question: "諛섎뱶???≪븘????寃쎄린?먯꽌 臾댁듅遺??洹몄낀?듬땲?? 寃곌낵??留뚯”?섏떆?섏슂?",
+            question: "반드시 잡아야 할 경기에서 무승부에 그쳤습니다. 결과에 만족하시나요?",
             options: [
-                { text: "?꾪? 留뚯”?ㅻ읇吏 ?딆뒿?덈떎. ?곕━???닿만 ???덈뒗 寃쎄린瑜??볦낀怨? ?뱀젏 2?먯쓣 ?껋? 湲곕텇?낅땲??", morale: -5 },
-                { text: "?곷?媛 ?묒젙?섍퀬 ?섎퉬?곸쑝濡??섏솕?????レ뼱?댁? 紐삵븳 ?곕━??梨낆엫?낅땲?? ??李쎌쓽?곸씤 怨듦꺽 ?대쾿??李얠븘???⑸땲??", morale: 0 },
-                { text: "?꾩돺吏留??먯젙?먯꽌 ?뱀젏 1?먮룄 ?섏걯吏 ?딆뒿?덈떎. 由ш렇???κ린 ?덉씠?ㅻ땲源뚯슂.", morale: 2 }
+                { text: "전혀 만족스럽지 않습니다. 우리는 이길 수 있는 경기를 놓쳤고, 승점 2점을 잃은 기분입니다.", morale: -5 },
+                { text: "상대가 작정하고 수비적으로 나왔을 때 뚫어내지 못한 우리의 책임입니다. 더 창의적인 공격 해법을 찾아야 합니다.", morale: 0 },
+                { text: "아쉽지만 원정에서 승점 1점도 나쁘지 않습니다. 리그는 장기 레이스니까요.", morale: 2 }
             ]
         }];
     } else if (!safeStrengthDiff.userAdvantage && safeStrengthDiff.strengthGap > 10) {
-        // ?쏀븳 ???臾댁듅遺 (媛믪쭊 臾댁듅遺)
+        // 약한 팀이 무승부 (값진 무승부)
         return [{
-            question: "媛뺥????곷?濡???깊븳 寃쎄린瑜??쇱튂硫?臾댁듅遺瑜?湲곕줉?덉뒿?덈떎. ?ㅻ뒛 寃쎄린瑜??대뼸寃?蹂댁뀲?듬땲源?",
+            question: "강팀을 상대로 대등한 경기를 펼치며 무승부를 기록했습니다. 오늘 경기를 어떻게 보셨습니까?",
             options: [
-                { text: "?좎닔?ㅼ씠 ?먮옉?ㅻ읇?듬땲?? 媛뺥????곷?濡?臾쇰윭?쒖? ?딄퀬 ?곕━??異뺢뎄瑜?蹂댁뿬以ъ뒿?덈떎. ?밸━留뚰겮 媛믪쭊 臾댁듅遺?낅땲??", morale: 10 },
-                { text: "?섎퉬?곸쑝濡???踰꾪뀲以ъ뒿?덈떎. 怨꾪쉷?濡??뱀젏??梨숆만 ???덉뼱???ㅽ뻾?낅땲??", morale: 5 },
-                { text: "?닿만 ?섎룄 ?덉뿀??寃쎄린??議곌툑 ?꾩돩????⑥뒿?덈떎. ?섏?留??좎닔?ㅼ쓽 ?먯떊媛먯? ?뺤떎???щ씪媛붿쓣 寃껋엯?덈떎.", morale: 8 }
+                { text: "선수들이 자랑스럽습니다. 강팀을 상대로 물러서지 않고 우리의 축구를 보여줬습니다. 승리만큼 값진 무승부입니다.", morale: 10 },
+                { text: "수비적으로 잘 버텨줬습니다. 계획대로 승점을 챙길 수 있어서 다행입니다.", morale: 5 },
+                { text: "이길 수도 있었던 경기라 조금 아쉬움이 남습니다. 하지만 선수들의 자신감은 확실히 올라갔을 것입니다.", morale: 8 }
             ]
         }];
     } else {
-        // 鍮꾩듂???꾨젰 媛?臾댁듅遺
+        // 비슷한 전력 간 무승부
         return [{
-            question: "?쏀뙺???묒쟾 ?앹뿉 ?밸?瑜?媛由ъ? 紐삵뻽?듬땲?? 寃쎄린 ?댁슜??????대뼸寃??앷컖?섏떗?덇퉴?",
+            question: "팽팽한 접전 끝에 승부를 가리지 못했습니다. 경기 내용에 대해 어떻게 생각하십니까?",
             options: [
-                { text: "??? 紐⑤몢 醫뗭? 寃쎄린瑜??덉뒿?덈떎. 臾댁듅遺媛 怨듭젙??寃곌낵?쇨퀬 ?앷컖?⑸땲??", morale: 3 },
-                { text: "?곕━媛 議곌툑 ???곗꽭?덈떎怨??앷컖?섏?留? 怨?寃곗젙?μ씠 ?꾩돩?좎뒿?덈떎. ?ㅼ쓬?먮뒗 諛섎뱶???밸━?섍쿋?듬땲??", morale: 0 },
-                { text: "?щ뱾?먭쾶 ?밸━瑜??좊Ъ?섏? 紐삵빐 二꾩넚?⑸땲?? ?ㅼ쓬 寃쎄린?먯꽌????怨듦꺽?곸씤 紐⑥뒿?쇰줈 蹂대떟?섍쿋?듬땲??", morale: 2 }
+                { text: "양 팀 모두 좋은 경기를 했습니다. 무승부가 공정한 결과라고 생각합니다.", morale: 3 },
+                { text: "우리가 조금 더 우세했다고 생각하지만, 골 결정력이 아쉬웠습니다. 다음에는 반드시 승리하겠습니다.", morale: 0 },
+                { text: "팬들에게 승리를 선물하지 못해 죄송합니다. 다음 경기에서는 더 공격적인 모습으로 보답하겠습니다.", morale: 2 }
             ]
         }];
     }
