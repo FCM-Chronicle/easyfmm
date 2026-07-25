@@ -1210,6 +1210,9 @@
             </div>
         </div>
 
+        <!-- 2D 피치 시각화 컨테이너 (visibleMatch.js 캔버스 + scoreboard.js 오버레이) -->
+        <div id="matchVisualizerContainer"></div>
+
         <!-- 중계창 (CM 텍스트 피드) -->
         <div class="match-events cm-feed">
             <div id="eventList">
@@ -1486,7 +1489,7 @@
     <script src="teamUtils.js"></script>
     <script src="script.js"></script>
     <script src="tactics.js"></script>
-    <script src="matchEngine.js"></script>
+    <script src="deepenTactic.js"></script>
     <script src="tacticSystem.js"></script>
     
     <!-- 나머지 시스템들 -->
@@ -1505,7 +1508,9 @@
     <script src="legendLeague.js"></script>
     
     <!-- 시각화 (다른 시스템에 의존하므로 마지막) -->
-    <!-- pitch 시각화(scoreboard.js, visibleMatch.js) 제거: 텍스트 중계만 사용 -->
+    <!-- pitch 시각화(scoreboard.js, visibleMatch.js) 복구: 2D 캔버스 중계 사용 -->
+    <script src="scoreboard.js"></script>
+    <script src="visibleMatch.js"></script>
     <script src="skillMoves.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
     <script>eruda.init();</script>

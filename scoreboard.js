@@ -1,16 +1,10 @@
 /**
- * scoreboard.js
+ * scoreboard.js — Redesigned Premium Scoreboard
  *
- * 구조 (왼쪽=홈, 오른쪽=어웨이):
- *
- *  [팀1색 배경 | 팀명(2색글자)]  [지그재그]  [2색 배경 | 점수]
- *  [점수(2색글자) | 2색 배경]  [지그재그]  [팀명(2색글자) | 팀1색 배경]
- *
- *  점수는 2번째 색 배경 위에, 팀이름 박스 밖으로 살짝 튀어나온 형태
- *
- * CSS 변수:
- *   홈:   --team-primary (1번색 배경)  / --team-secondary (2번색)
- *   어웨이: --away-team-primary / --away-team-secondary
+ * Modern broadcast-style scoreboard with frosted glass aesthetics.
+ * Reads team colors from CSS custom properties on document.body:
+ *   --team-primary / --team-secondary (홈)
+ *   --away-team-primary / --away-team-secondary (어웨이)
  */
 
 (function () {
@@ -20,11 +14,12 @@
      1. CSS
   ───────────────────────────────────────── */
   const STYLE = `
-    @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&family=Noto+Sans+KR:wght@700;900&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Noto+Sans+KR:wght@500;700;900&display=swap');
 
+    /* ── Root Container ── */
     #ingame-scoreboard {
       position: absolute;
-      top: 14px;
+      top: 16px;
       left: 50%;
       transform: translateX(-50%);
       z-index: 100;
@@ -33,173 +28,227 @@
       align-items: center;
       pointer-events: none;
       user-select: none;
-      font-family: 'Barlow Condensed', 'Noto Sans KR', sans-serif;
-      filter: drop-shadow(0 4px 20px rgba(0,0,0,0.7));
+      font-family: 'Inter', 'Noto Sans KR', -apple-system, sans-serif;
+      filter: drop-shadow(0 6px 24px rgba(0,0,0,0.5));
     }
 
-    /* 전체 메인 바 */
+    /* ── Main Bar ── */
     #sb-main-bar {
       display: flex;
       align-items: stretch;
-      height: 44px;
+      height: 48px;
+      background: rgba(12, 12, 16, 0.88);
+      backdrop-filter: blur(16px) saturate(1.4);
+      -webkit-backdrop-filter: blur(16px) saturate(1.4);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      overflow: hidden;
       position: relative;
-      overflow: visible;
     }
 
-    /* ─────────── 홈팀 ─────────── */
-    /* 홈: 왼쪽=팀1색+팀명, 오른쪽=팀2색+점수 */
-    #sb-home {
-      display: flex;
-      align-items: stretch;
-      position: relative;
-      overflow: visible;
-    }
-
-    /* 홈 팀명 칸 — 팀 1번색 배경 */
-    #sb-home-name-box {
-      display: flex;
-      align-items: center;
-      padding: 0 14px 0 14px;
-      background: var(--sb-home-p, #5c1a1a);
-      /* 오른쪽 끝: 지그재그를 위해 clip */
-      clip-path: polygon(
-        0 0,
-        calc(100% - 0px) 0,
-        calc(100% - 0px) 100%,
-        0 100%
-      );
-      font-size: clamp(0.78rem, 1.7vw, 0.95rem);
-      font-weight: 900;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      white-space: nowrap;
-      color: var(--sb-home-s, #ffffff);
-      text-shadow: 0 1px 4px rgba(0,0,0,0.5);
-      position: relative;
-      z-index: 2;
-    }
-
-    /* 홈 점수 칸 — 팀 2번색 배경, 점수 위로 튀어나옴 */
-    #sb-home-score-box {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: var(--sb-home-s, #ffffff);
-      padding: 0 10px;
-      position: relative;
-      z-index: 3;
-      overflow: visible;
-      min-width: 36px;
-    }
-
-    #sb-score-home {
-      font-size: clamp(1.7rem, 4vw, 2.3rem);
-      font-weight: 900;
-      color: var(--sb-home-p, #5c1a1a);  /* 점수 글자 = 1번색 */
-      line-height: 1;
-      position: relative;
-      /* 위아래로 박스 밖 튀어나옴 */
-      top: -4px;
-      text-shadow: none;
-      transition: transform 0.15s cubic-bezier(0.34,1.56,0.64,1);
-      display: block;
-    }
-
-    #sb-score-home.scored {
-      transform: scale(1.4);
-      filter: brightness(1.3);
-    }
-
-    /* ─────────── 어웨이팀 ─────────── */
-    #sb-away {
-      display: flex;
-      align-items: stretch;
-      position: relative;
-      overflow: visible;
-    }
-
-    /* 어웨이 점수 칸 — 팀 2번색 배경 */
-    #sb-away-score-box {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: var(--sb-away-s, #ffffff);
-      padding: 0 10px;
-      position: relative;
-      z-index: 3;
-      overflow: visible;
-      min-width: 36px;
-    }
-
-    #sb-score-away {
-      font-size: clamp(1.7rem, 4vw, 2.3rem);
-      font-weight: 900;
-      color: var(--sb-away-p, #1a2d5c);  /* 점수 글자 = 1번색 */
-      line-height: 1;
-      position: relative;
-      top: -4px;
-      text-shadow: none;
-      transition: transform 0.15s cubic-bezier(0.34,1.56,0.64,1);
-      display: block;
-    }
-
-    #sb-score-away.scored {
-      transform: scale(1.4);
-      filter: brightness(1.3);
-    }
-
-    /* 어웨이 팀명 칸 — 팀 1번색 배경 */
-    #sb-away-name-box {
-      display: flex;
-      align-items: center;
-      padding: 0 14px;
-      background: var(--sb-away-p, #1a2d5c);
-      font-size: clamp(0.78rem, 1.7vw, 0.95rem);
-      font-weight: 900;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      white-space: nowrap;
-      color: var(--sb-away-s, #ffffff);
-      text-shadow: 0 1px 4px rgba(0,0,0,0.5);
-      position: relative;
-      z-index: 2;
-    }
-
-    /* ─────────── SVG 지그재그 오버레이 ─────────── */
-    /* 홈팀 이름박스와 점수박스 사이 지그재그 */
-    .sb-zigzag {
+    /* subtle top highlight line */
+    #sb-main-bar::before {
+      content: '';
       position: absolute;
       top: 0;
-      height: 100%;
-      width: 20px;
-      z-index: 20;
-      overflow: visible;
-      pointer-events: none;
+      left: 20%;
+      right: 20%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+      z-index: 5;
     }
 
-    /* ─────────── 시간 박스 ─────────── */
-    #sb-timer-box {
-      background: #0d1117;
-      color: #e2e8f0;
-      font-size: clamp(0.72rem, 1.4vw, 0.86rem);
+    /* ── Shared Team Section ── */
+    .sb-team-section {
+      display: flex;
+      align-items: center;
+      position: relative;
+      min-width: 100px;
+    }
+
+    /* Team color accent bar (left edge for home, right edge for away) */
+    .sb-team-section::before {
+      content: '';
+      position: absolute;
+      top: 6px;
+      bottom: 6px;
+      width: 3px;
+      border-radius: 2px;
+      transition: background 0.3s;
+    }
+
+    #sb-home::before {
+      left: 0;
+      background: var(--sb-home-p, #e74c3c);
+    }
+
+    #sb-away::before {
+      right: 0;
+      background: var(--sb-away-p, #3498db);
+    }
+
+    /* ── Team Logo ── */
+    .sb-team-logo {
+      width: 26px;
+      height: 26px;
+      object-fit: contain;
+      flex-shrink: 0;
+      filter: drop-shadow(0 1px 4px rgba(0,0,0,0.6)) drop-shadow(0 0 2px rgba(0,0,0,0.4));
+    }
+
+    /* ── Team Name Boxes ── */
+    .sb-name-box {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 16px;
+      font-size: clamp(0.72rem, 1.6vw, 0.88rem);
       font-weight: 700;
-      letter-spacing: 0.12em;
-      padding: 4px 28px 5px;
-      border-radius: 0 0 6px 6px;
-      text-align: center;
-      border-top: 1px solid rgba(255,255,255,0.07);
-      box-shadow: 0 6px 16px rgba(0,0,0,0.45);
-      min-width: 80px;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+      color: rgba(255, 255, 255, 0.88);
+      transition: color 0.3s;
     }
 
-    /* 득점 플래시 */
-    @keyframes sb-goal-flash {
-      0%   { filter: drop-shadow(0 4px 20px rgba(0,0,0,0.7)); }
-      40%  { filter: drop-shadow(0 0 28px rgba(255,215,0,1)); }
-      100% { filter: drop-shadow(0 4px 20px rgba(0,0,0,0.7)); }
+    #sb-home .sb-name-box {
+      padding-left: 12px;
     }
+
+    #sb-away .sb-name-box {
+      padding-right: 12px;
+    }
+
+    /* ── Score Container (center) ── */
+    #sb-score-center {
+      display: flex;
+      align-items: center;
+      gap: 1px;
+      flex-shrink: 0;
+    }
+
+    .sb-score-box {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 40px;
+      padding: 0 4px;
+      position: relative;
+    }
+
+    /* Home score has right border, away score has left border */
+    #sb-home-score-box {
+      border-right: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    #sb-away-score-box {
+      border-left: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .sb-score-num {
+      font-size: clamp(1.35rem, 3.2vw, 1.7rem);
+      font-weight: 900;
+      color: #fff;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+                  color 0.3s;
+    }
+
+    .sb-score-num.scored {
+      transform: scale(1.35);
+      color: #ffd700;
+    }
+
+    /* Score divider dash */
+    #sb-score-divider {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      flex-shrink: 0;
+    }
+
+    #sb-score-divider span {
+      display: block;
+      width: 8px;
+      height: 2px;
+      background: rgba(255, 255, 255, 0.25);
+      border-radius: 1px;
+    }
+
+    /* ── Timer Box ── */
+    #sb-timer-box {
+      background: rgba(255, 255, 255, 0.06);
+      color: rgba(255, 255, 255, 0.65);
+      font-size: clamp(0.64rem, 1.2vw, 0.74rem);
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      padding: 4px 24px;
+      border-radius: 0 0 10px 10px;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-top: none;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      min-width: 72px;
+    }
+
+    /* ── Goal Flash Animation ── */
+    @keyframes sb-goal-flash {
+      0%   { filter: drop-shadow(0 6px 24px rgba(0,0,0,0.5)); }
+      30%  { filter: drop-shadow(0 0 30px rgba(255,215,0,0.8)) drop-shadow(0 0 60px rgba(255,215,0,0.3)); }
+      100% { filter: drop-shadow(0 6px 24px rgba(0,0,0,0.5)); }
+    }
+
     #ingame-scoreboard.goal-flash {
-      animation: sb-goal-flash 0.7s ease-out 2;
+      animation: sb-goal-flash 0.8s ease-out 2;
+    }
+
+    /* Score number pulse ring on goal */
+    @keyframes sb-score-pulse {
+      0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.5); }
+      70% { box-shadow: 0 0 0 12px rgba(255, 215, 0, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); }
+    }
+
+    .sb-score-box.pulse-ring {
+      animation: sb-score-pulse 0.8s ease-out;
+      border-radius: 6px;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 480px) {
+      #sb-main-bar {
+        height: 40px;
+        border-radius: 10px;
+      }
+      .sb-team-logo {
+        width: 20px;
+        height: 20px;
+      }
+      .sb-name-box {
+        padding: 0 10px;
+        font-size: 0.68rem;
+        gap: 5px;
+      }
+      .sb-score-num {
+        font-size: 1.2rem;
+      }
+      .sb-score-box {
+        min-width: 32px;
+      }
+      #sb-score-divider {
+        width: 18px;
+      }
+      #sb-timer-box {
+        padding: 3px 18px;
+        font-size: 0.6rem;
+        border-radius: 0 0 8px 8px;
+      }
+      .sb-team-section::before {
+        width: 2px;
+      }
     }
   `;
 
@@ -212,118 +261,38 @@
   }
 
   /* ─────────────────────────────────────────
-     2. 지그재그 SVG 생성
-     toRight=true  → 왼쪽(팀명)→오른쪽(점수) 방향 지그재그, 홈팀 우측에 사용
-     toRight=false → 오른쪽(점수)→왼쪽(팀명) 방향 지그재그, 어웨이팀 좌측에 사용
-
-     지그재그: 세로로 여러 번 꺾이는 W/Z 형태
-     - 홈팀 오른쪽: 팀1색(왼쪽)과 팀2색(오른쪽) 사이 경계
-     - 어웨이팀 왼쪽: 팀2색(왼쪽)과 팀1색(오른쪽) 사이 경계
-  ───────────────────────────────────────── */
-  function createZigzagSvg(leftColor, rightColor, toRight) {
-    const W = 20;   // SVG 가로 (지그재그 폭)
-    const H = 44;   // SVG 세로 (바 높이)
-    const N = 4;    // 지그재그 톱니 수
-    const step = H / N;
-
-    // 지그재그 꺾임 X 좌표
-    const xLeft  = 2;
-    const xRight = W - 2;
-
-    // 지그재그 경로 (위→아래)
-    let pts = `0,0 `;
-    for (let i = 0; i < N; i++) {
-      const y1 = i * step;
-      const y2 = (i + 0.5) * step;
-      const y3 = (i + 1) * step;
-      if (toRight) {
-        // 홈팀: 왼쪽→오른쪽 방향 지그재그
-        pts += `${xLeft},${y1} ${xRight},${y2} ${xLeft},${y3} `;
-      } else {
-        // 어웨이: 오른쪽→왼쪽 방향
-        pts += `${xRight},${y1} ${xLeft},${y2} ${xRight},${y3} `;
-      }
-    }
-
-    // 오른쪽 색 채우기 (오른쪽 영역)
-    const rightPoly = toRight
-      ? `${xLeft},0 ${W},0 ${W},${H} ${xLeft},${H} ` + pts.trim().split(' ').reverse().join(' ')
-      : null;
-
-    // 왼쪽 색 채우기
-    const leftPoly = toRight ? null : null;
-
-    // 간단하게: 두 개의 polygon으로 좌우를 채움
-    // 지그재그 경계선을 기준으로 왼쪽=leftColor, 오른쪽=rightColor
-
-    // 경계 포인트 배열 생성
-    let boundaryPts = [];
-    for (let i = 0; i <= N; i++) {
-      const y = i * step;
-      if (toRight) {
-        boundaryPts.push([xLeft, y]);
-        if (i < N) boundaryPts.push([xRight, y + step * 0.5]);
-      } else {
-        boundaryPts.push([xRight, y]);
-        if (i < N) boundaryPts.push([xLeft, y + step * 0.5]);
-      }
-    }
-    // 마지막 포인트 정리
-    const lastY = H;
-    if (toRight) {
-      boundaryPts.push([xLeft, lastY]);
-    } else {
-      boundaryPts.push([xRight, lastY]);
-    }
-
-    const bStr = boundaryPts.map(p => p.join(',')).join(' ');
-
-    // 왼쪽 폴리곤: 0,0 → boundary → 0,H
-    const leftPoints = `0,0 ${bStr} 0,${H}`;
-    // 오른쪽 폴리곤: W,0 → boundary(역순) → W,H
-    const revB = [...boundaryPts].reverse().map(p => p.join(',')).join(' ');
-    const rightPoints = `${W},0 ${bStr} ${W},${H}`;
-
-    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    svg.setAttribute("width", W);
-    svg.setAttribute("height", H);
-    svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
-    svg.style.cssText = `display:block; overflow:visible;`;
-
-    const polyLeft = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
-    polyLeft.setAttribute("points", leftPoints);
-    polyLeft.setAttribute("fill", leftColor);
-
-    const polyRight = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
-    polyRight.setAttribute("points", rightPoints);
-    polyRight.setAttribute("fill", rightColor);
-
-    svg.appendChild(polyLeft);
-    svg.appendChild(polyRight);
-
-    return svg;
-  }
-
-  /* ─────────────────────────────────────────
-     3. HTML 빌드
+     2. HTML 빌드
   ───────────────────────────────────────── */
   function buildScoreboard() {
     const sb = document.createElement("div");
     sb.id = "ingame-scoreboard";
     sb.innerHTML = `
       <div id="sb-main-bar">
-        <!-- 홈팀: [팀1색+팀명] [지그재그] [팀2색+점수] -->
-        <div id="sb-home">
-          <div id="sb-home-name-box"><span id="sb-home-name">홈팀</span></div>
-          <div id="sb-home-zigzag-wrap" style="position:relative;width:20px;flex-shrink:0;"></div>
-          <div id="sb-home-score-box"><span id="sb-score-home">0</span></div>
+        <!-- 홈팀 -->
+        <div id="sb-home" class="sb-team-section">
+          <div class="sb-name-box">
+            <img id="sb-home-logo" class="sb-team-logo" src="" alt="" style="display:none;">
+            <span id="sb-home-name">홈팀</span>
+          </div>
         </div>
 
-        <!-- 어웨이팀: [팀2색+점수] [지그재그] [팀1색+팀명] -->
-        <div id="sb-away">
-          <div id="sb-away-score-box"><span id="sb-score-away">0</span></div>
-          <div id="sb-away-zigzag-wrap" style="position:relative;width:20px;flex-shrink:0;"></div>
-          <div id="sb-away-name-box"><span id="sb-away-name">어웨이팀</span></div>
+        <!-- 스코어 -->
+        <div id="sb-score-center">
+          <div id="sb-home-score-box" class="sb-score-box">
+            <span id="sb-score-home" class="sb-score-num">0</span>
+          </div>
+          <div id="sb-score-divider"><span></span></div>
+          <div id="sb-away-score-box" class="sb-score-box">
+            <span id="sb-score-away" class="sb-score-num">0</span>
+          </div>
+        </div>
+
+        <!-- 어웨이팀 -->
+        <div id="sb-away" class="sb-team-section">
+          <div class="sb-name-box">
+            <span id="sb-away-name">어웨이팀</span>
+            <img id="sb-away-logo" class="sb-team-logo" src="" alt="" style="display:none;">
+          </div>
         </div>
       </div>
       <div id="sb-timer-box">00:00</div>
@@ -332,67 +301,62 @@
   }
 
   /* ─────────────────────────────────────────
-     4. 지그재그 SVG 삽입 (색 읽은 후 호출)
-  ───────────────────────────────────────── */
-  function insertZigzags() {
-    const sbEl = document.getElementById("ingame-scoreboard");
-    if (!sbEl) return;
-
-    const homePrimary   = sbEl.style.getPropertyValue("--sb-home-p") || "#5c1a1a";
-    const homeSecondary = sbEl.style.getPropertyValue("--sb-home-s") || "#ffffff";
-    const awayPrimary   = sbEl.style.getPropertyValue("--sb-away-p") || "#1a2d5c";
-    const awaySecondary = sbEl.style.getPropertyValue("--sb-away-s") || "#ffffff";
-
-    // 홈팀 지그재그: 왼쪽=팀1색(팀명칸), 오른쪽=팀2색(점수칸), toRight=true
-    const homeZZWrap = document.getElementById("sb-home-zigzag-wrap");
-    if (homeZZWrap && !homeZZWrap.querySelector("svg")) {
-      const svg = createZigzagSvg(homePrimary, homeSecondary, true);
-      svg.style.cssText = "position:absolute;top:0;left:0;width:20px;height:44px;z-index:20;";
-      homeZZWrap.appendChild(svg);
-    }
-
-    // 어웨이팀 지그재그: 왼쪽=팀2색(점수칸), 오른쪽=팀1색(팀명칸), toRight=false
-    const awayZZWrap = document.getElementById("sb-away-zigzag-wrap");
-    if (awayZZWrap && !awayZZWrap.querySelector("svg")) {
-      const svg = createZigzagSvg(awaySecondary, awayPrimary, false);
-      svg.style.cssText = "position:absolute;top:0;left:0;width:20px;height:44px;z-index:20;";
-      awayZZWrap.appendChild(svg);
-    }
-  }
-
-  /* ─────────────────────────────────────────
-     5. 팀 색상 적용
-     ✅ primary = 1번색(배경), secondary = 2번색(글자/점수배경)
+     3. 팀 색상 적용
   ───────────────────────────────────────── */
   function applyTeamColors() {
     const sbEl = document.getElementById("ingame-scoreboard");
     if (!sbEl) return;
 
     const cs = getComputedStyle(document.body);
-    const homePrimary   = cs.getPropertyValue("--team-primary").trim()        || "#5c1a1a";
-    const homeSecondary = cs.getPropertyValue("--team-secondary").trim()      || "#f0d000";
-    const awayPrimary   = cs.getPropertyValue("--away-team-primary").trim()   || "#1a2d5c";
-    const awaySecondary = cs.getPropertyValue("--away-team-secondary").trim() || "#6ecbf5";
+    const homePrimary   = cs.getPropertyValue("--team-primary").trim()        || "#e74c3c";
+    const homeSecondary = cs.getPropertyValue("--team-secondary").trim()      || "#ffffff";
+    const awayPrimary   = cs.getPropertyValue("--away-team-primary").trim()   || "#3498db";
+    const awaySecondary = cs.getPropertyValue("--away-team-secondary").trim() || "#ffffff";
 
     sbEl.style.setProperty("--sb-home-p", homePrimary);
     sbEl.style.setProperty("--sb-home-s", homeSecondary);
     sbEl.style.setProperty("--sb-away-p", awayPrimary);
     sbEl.style.setProperty("--sb-away-s", awaySecondary);
-
-    // 지그재그 SVG 재생성 (색이 바뀔 수 있으므로)
-    ["sb-home-zigzag-wrap", "sb-away-zigzag-wrap"].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.innerHTML = "";
-    });
-    insertZigzags();
   }
 
   /* ─────────────────────────────────────────
-     6. 데이터 동기화
+     4. 데이터 동기화
   ───────────────────────────────────────── */
   let syncInterval  = null;
   let prevHomeScore = -1;
   let prevAwayScore = -1;
+
+  let logosApplied = false;
+
+  function applyTeamLogos() {
+    if (logosApplied) return;
+    const md = window.currentMatchData;
+    const teams = window.allTeams;
+    if (!md || !teams) return;
+
+    const homeKey = md.homeTeam;
+    const awayKey = md.awayTeam;
+    const homeInfo = teams[homeKey];
+    const awayInfo = teams[awayKey];
+    if (!homeInfo || !awayInfo) return;
+
+    const homeCode = homeInfo.logoCode || "DFT";
+    const awayCode = awayInfo.logoCode || "DFT";
+
+    const homePath = homeKey.startsWith("Legend_")
+      ? `assets/logo/legend/${homeCode}.webp`
+      : `assets/logo/${homeInfo.league}/${homeCode}.webp`;
+    const awayPath = awayKey.startsWith("Legend_")
+      ? `assets/logo/legend/${awayCode}.webp`
+      : `assets/logo/${awayInfo.league}/${awayCode}.webp`;
+
+    const homeLogo = document.getElementById("sb-home-logo");
+    const awayLogo = document.getElementById("sb-away-logo");
+    if (homeLogo) { homeLogo.src = homePath; homeLogo.alt = homeKey; homeLogo.style.display = ""; }
+    if (awayLogo) { awayLogo.src = awayPath; awayLogo.alt = awayKey; awayLogo.style.display = ""; }
+
+    logosApplied = true;
+  }
 
   function syncData() {
     const homeTeamEl = document.getElementById("homeTeam");
@@ -401,6 +365,9 @@
     const sbAwayName = document.getElementById("sb-away-name");
     if (homeTeamEl && sbHomeName) sbHomeName.textContent = homeTeamEl.textContent.trim() || "홈팀";
     if (awayTeamEl && sbAwayName) sbAwayName.textContent = awayTeamEl.textContent.trim() || "어웨이팀";
+
+    // 로고 적용 시도 (한 번만)
+    if (!logosApplied) applyTeamLogos();
 
     const scoreEl = document.getElementById("scoreDisplay");
     if (scoreEl) {
@@ -415,12 +382,12 @@
       if (sbScoreHome && sbScoreAway) {
         if (h !== prevHomeScore) {
           sbScoreHome.textContent = h;
-          if (prevHomeScore !== -1) flashScore(sbScoreHome, sbRoot);
+          if (prevHomeScore !== -1) flashScore(sbScoreHome, sbRoot, "sb-home-score-box");
           prevHomeScore = h;
         }
         if (a !== prevAwayScore) {
           sbScoreAway.textContent = a;
-          if (prevAwayScore !== -1) flashScore(sbScoreAway, sbRoot);
+          if (prevAwayScore !== -1) flashScore(sbScoreAway, sbRoot, "sb-away-score-box");
           prevAwayScore = a;
         }
       }
@@ -428,7 +395,7 @@
   }
 
   /* ─────────────────────────────────────────
-     7. 타이머
+     5. 타이머
   ───────────────────────────────────────── */
   let timerSec     = 0;
   let lastMinValue = -1;
@@ -463,32 +430,48 @@
     timerRAF = requestAnimationFrame(tick);
   }
 
-  function flashScore(el, root) {
+  function flashScore(el, root, boxId) {
+    // Score number animation
     el.classList.remove("scored");
     root.classList.remove("goal-flash");
     void el.offsetWidth;
     el.classList.add("scored");
     root.classList.add("goal-flash");
+
+    // Pulse ring on score box
+    const box = document.getElementById(boxId);
+    if (box) {
+      box.classList.remove("pulse-ring");
+      void box.offsetWidth;
+      box.classList.add("pulse-ring");
+      setTimeout(() => box.classList.remove("pulse-ring"), 900);
+    }
+
     setTimeout(() => {
       el.classList.remove("scored");
       root.classList.remove("goal-flash");
-    }, 1500);
+    }, 1600);
   }
 
   /* ─────────────────────────────────────────
-     8. 삽입
+     6. 삽입
   ───────────────────────────────────────── */
   function insertScoreboard() {
     const container = document.getElementById("matchVisualizerContainer");
     if (!container) return false;
     if (document.getElementById("ingame-scoreboard")) return true;
 
+    // 새 경기 → 로고/점수 상태 리셋
+    logosApplied = false;
+    prevHomeScore = -1;
+    prevAwayScore = -1;
+
     if (getComputedStyle(container).position === "static")
       container.style.position = "relative";
 
     const sb = buildScoreboard();
     container.appendChild(sb);
-    applyTeamColors();  // 색 적용 + 지그재그 SVG 삽입
+    applyTeamColors();
     syncData();
     startInternalTimer();
 
@@ -498,7 +481,7 @@
   }
 
   /* ─────────────────────────────────────────
-     9. Observer들
+     7. Observer들
   ───────────────────────────────────────── */
   function watchForContainer() {
     if (insertScoreboard()) return;
@@ -510,7 +493,7 @@
     .observe(document.body, { attributes: true, attributeFilter: ["class", "style"] });
 
   /* ─────────────────────────────────────────
-     10. 초기화
+     8. 초기화
   ───────────────────────────────────────── */
   injectStyle();
 

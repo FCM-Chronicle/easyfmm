@@ -317,14 +317,48 @@ class RealSoccerEngine {
         const opp = team === 'home' ? 'away' : 'home';
         const fw = this.getPlayersByTeam(team, 'FW');
         const mf = this.getPlayersByTeam(team, 'MF');
-        const df = this.getPlayersByTeam(opp, 'DF');
+        const df = this.getPlayersByTeam(team, 'DF'); // Changed from opp to team!
+        const oppDf = this.getPlayersByTeam(opp, 'DF');
         const gk = this.getPlayersByTeam(opp, 'GK');
 
-        this.carrier = pickRandom(mf.length ? mf : fw) || pickRandom(this.getPlayersByTeam(team));
+        // --- Phase-specific carrier selection ---
+        if (this.phase === MatchPhase.BUILD_UP) {
+            // BUILD_UP: Always use center back (defender) as carrier!
+            this.carrier = df.length ? pickRandom(df) : (mf.length ? pickRandom(mf) : pickRandom(this.getPlayersByTeam(team)));
+        } else if (this.phase === MatchPhase.MIDFIELD) {
+            // MIDFIELD: Midfielder carrier
+            this.carrier = pickRandom(mf.length ? mf : fw) || pickRandom(this.getPlayersByTeam(team));
+        } else {
+            // ATTACK/CHANCE/SUSPENSE: Forward or MF carrier
+            this.carrier = pickRandom(fw.length ? fw : mf) || pickRandom(this.getPlayersByTeam(team));
+        }
+        
         this.assister = pickRandom(mf) || pickRandom(fw);
         this.shooter = pickRandom(fw) || this.carrier;
-        this.defender = pickRandom(df);
         this.goalkeeper = gk[0] || null;
+
+        // [개선] 페이즈에 맞는 논리적인 압박자(수비수) 선택 + 캐리어와 Y좌표가 가장 가까운 선수
+        const oppFw = this.getPlayersByTeam(opp, 'FW');
+        const oppMf = this.getPlayersByTeam(opp, 'MF');
+        
+        let pressers = oppDf;
+        if (this.phase === MatchPhase.BUILD_UP) pressers = oppFw.length ? oppFw : oppMf;
+        else if (this.phase === MatchPhase.MIDFIELD) pressers = oppMf.length ? oppMf : oppDf;
+        else pressers = oppDf.length ? oppDf : oppMf;
+        
+        let bestPresser = pressers[0];
+        let minDist = 999;
+        if (this.carrier) {
+            pressers.forEach(d => {
+                const dist = Math.abs(d.baseY - this.carrier.baseY);
+                if (dist < minDist) {
+                    minDist = dist;
+                    bestPresser = d;
+                }
+            });
+        }
+        this.defender = bestPresser || pickRandom(oppDf);
+
         if (this.assister === this.shooter) {
             const alt = mf.find(p => p !== this.shooter) || df[0];
             this.assister = alt || null;
@@ -357,23 +391,95 @@ class RealSoccerEngine {
     updateVisualPositions() {
         const isHome = this.possessionTeam === 'home';
         const depthMap = {
-            [MatchPhase.BUILD_UP]: isHome ? 38 : 62,
-            [MatchPhase.MIDFIELD]: isHome ? 48 : 52,
-            [MatchPhase.ATTACK]: isHome ? 68 : 32,
-            [MatchPhase.CHANCE]: isHome ? 82 : 18,
-            [MatchPhase.SUSPENSE]: isHome ? 90 : 10
+            [MatchPhase.BUILD_UP]: isHome ? 40 : 60,
+            [MatchPhase.MIDFIELD]: isHome ? 55 : 45,
+            [MatchPhase.ATTACK]: isHome ? 75 : 25,
+            [MatchPhase.CHANCE]: isHome ? 88 : 12,
+            [MatchPhase.SUSPENSE]: isHome ? 92 : 8
         };
         this.attackDepth = depthMap[this.phase] || this.attackDepth;
 
+        // Defensive depth line (for defending team)
+        const press = this.getTacticProfile(this.possessionTeam === 'home' ? 'away' : 'home').press;
+        const defensivePressMultiplier = Math.min(press, 1.5);
+
+        // --- Position-specific offsets relative to attack depth ---
+        const getTargetX = (player, isPossession) => {
+            if (isPossession) {
+                // POSSESSION TEAM: Keep spacing relative to attackDepth, but don't drop behind GK
+                let tX = this.attackDepth;
+                if (isHome) {
+                    if (player.position === 'FW') tX += 15;
+                    else if (player.position === 'MF') tX -= 5;
+                    else if (player.position === 'DF') tX -= 25;
+                    else if (player.position === 'GK') tX = 5;
+                } else {
+                    if (player.position === 'FW') tX -= 15;
+                    else if (player.position === 'MF') tX += 5;
+                    else if (player.position === 'DF') tX += 25;
+                    else if (player.position === 'GK') tX = 95;
+                }
+                return tX;
+            } else {
+                // DEFENDING TEAM: Properly ordered, realistic defensive lines
+                const defLine = isHome 
+                    ? Math.max(100 - 20 - (defensivePressMultiplier * 8), 55)  // Away defends left (towards 100)
+                    : Math.min(20 + (defensivePressMultiplier * 8), 45);       // Home defends right (towards 0)
+                
+                const mfLine = isHome ? defLine - 15 : defLine + 15;
+                const fwPressLine = isHome ? mfLine - 20 : mfLine + 20;
+
+                switch(player.position) {
+                    case 'FW': return fwPressLine;
+                    case 'MF': return mfLine; // MFs stay ahead of DFs, don't drop to CB
+                    case 'DF': return defLine;
+                    case 'GK': return isHome ? 95 : 5;
+                    default: return mfLine;
+                }
+            }
+        };
+
+        // --- Update ALL players together ---
+        this.players.forEach(player => {
+            const isPossessionPlayer = player.teamId === this.possessionTeam;
+            let targetX = clamp(getTargetX(player, isPossessionPlayer), 5, 95);
+            let targetY = player.baseY;
+
+            // [개선] 캐리어는 어택뎁스로 향함
+            if (player === this.carrier) {
+                targetX = clamp(this.attackDepth, 5, 95);
+                targetY = clamp(player.baseY + (Math.random() * 10 - 5), 5, 95);
+            }
+
+            // [개선] 수비수는 캐리어(공)를 향해 직접적으로 압박/태클!
+            if (player === this.defender && this.carrier) {
+                targetX = this.carrier.x;
+                targetY = this.carrier.y;
+            }
+
+            // [개선] 오프더볼 스피드 증가 (공 가진 선수보다 조금 더 빨리 자리를 잡도록)
+            // 수비수(태클)는 빠르게, 캐리어는 드리블 중이므로 살짝 느리게
+            let speed = 0.35; 
+            if (player === this.carrier) speed = 0.15;
+            else if (player === this.defender) speed = 0.25;
+
+            player.x += (targetX - player.x) * speed;
+            player.y += (targetY - player.y) * speed;
+            
+            player.x = clamp(player.x, 2, 98);
+            player.y = clamp(player.y, 2, 98);
+        });
+
+        // --- Update ball carrier ---
         if (this.carrier) {
-            this.carrier.x = clamp(this.attackDepth + (Math.random() * 4 - 2), 5, 95);
-            this.carrier.y = clamp(this.carrier.baseY + (Math.random() * 8 - 4), 8, 92);
             this.ball.x = this.carrier.x;
             this.ball.y = this.carrier.y;
         }
+
+        // --- Update shooter in suspense phase ---
         if (this.shooter && this.phase === MatchPhase.SUSPENSE) {
             this.shooter.x = this.attackDepth;
-            this.shooter.y = 50 + (Math.random() * 10 - 5);
+            this.shooter.y = 50 + (Math.random() * 12 - 6);
             this.ball.x = this.shooter.x;
             this.ball.y = this.shooter.y;
             this.ball.z = 1.5;
@@ -530,162 +636,173 @@ class RealSoccerEngine {
         const setPieceBoost = this._setPieceBoost || 0;
         if (this._setPieceBoost) this._setPieceBoost = 0; // 1회 소모
 
-        if (this.phase === MatchPhase.BUILD_UP || this.phase === MatchPhase.MIDFIELD) {
-            // --- 다양한 빌드업 이벤트 ---
-            if (r < 0.18 * profile.tempo) {
+        // [개선] 턴오버 확률 계산 시 캐리어의 능력치(패스/판단)와 수비수의 능력치(수비) 비교
+        const carrierStat = this.carrier ? (this.carrier.stats.passing || 70) : 70;
+        const defenderStat = this.defender ? (this.defender.stats.defense || 70) : 70;
+        let turnoverFactor = defenderStat / Math.max(1, carrierStat);
+        turnoverFactor = clamp(turnoverFactor, 0.4, 1.8); // 0.4x ~ 1.8x 스케일
+
+
+        if (this.phase === MatchPhase.BUILD_UP) {
+            // -------- BUILD UP: Always Center Back distributes --------
+            // CB can: 1) Long ball to FW (50% if directness high), 2) Short pass to MF (50%)
+            const buildUpR = Math.random();
+            const centerBack = this.carrier; // This is always DF (CB) now!
+
+            if (buildUpR < 0.55 * profile.directness) {
+                // Option 1: Long ball from CB to FW
+                const fw = this.shooter; // FW target
                 this.eventsQueue.push({
                     type: 'pass',
-                    from: this.carrier ? this.carrier.name : '선수',
-                    to: this.assister ? this.assister.name : '동료',
-                    desc: `${this.carrier ? this.carrier.name : '선수'} → ${this.assister ? this.assister.name : '동료'} 패스`
+                    from: centerBack ? centerBack.name : '수비수',
+                    to: fw ? fw.name : '공격수',
+                    desc: `${centerBack ? centerBack.name : '센터백'}가 공격수에게 롱 킥을 보냅니다!`
                 });
-            } else if (r < 0.24) {
-                // [신규] 스로인
-                this.eventsQueue.push({ type: 'throwin', team, player: this.carrier ? this.carrier.name : '선수' });
-            } else if (r < 0.29) {
-                // [신규] 골킥
-                this.eventsQueue.push({ type: 'goalkick', team: opp, gk: this.goalkeeper ? this.goalkeeper.name : '골키퍼' });
-                this.losePossession();
-                return;
-            } else if (r < 0.33) {
-                if (Math.random() < oppProfile.press * 0.22) {
-                    // [신규] 파울 + 프리킥 가능성
-                    if (Math.random() < 0.35) {
-                        const fouler = this.defender ? this.defender.name : '수비수';
-                        const fouled = this.carrier ? this.carrier.name : '선수';
-                        this.eventsQueue.push({ type: 'foul', fouler, fouled, team: opp });
-                        // 옐로카드 15% 확률
-                        if (Math.random() < 0.15) {
-                            this.eventsQueue.push({ type: 'yellowcard', player: fouler, team: opp });
-                        }
-                        // 프리킥
-                        this.eventsQueue.push({ type: 'freekick', team, player: fouled });
-                        this._setPieceBoost = 0.15; // 프리킥 후 슛 확률 증가
-                        return;
-                    }
-                    this.losePossession({
-                        type: 'tackle',
-                        player: this.defender ? this.defender.name : '수비수'
-                    });
-                    return;
-                }
-            } else if (r < 0.38 && Math.random() < 0.35) {
-                this.eventsQueue.push({
-                    type: 'dribble',
-                    player: this.carrier ? this.carrier.name : '선수'
-                });
-            } else if (r < 0.42) {
-                // [신규] 측면 돌파
-                const sideRunner = this.carrier || this.assister;
-                if (sideRunner) {
-                    this.eventsQueue.push({ type: 'siderun', player: sideRunner.name, team });
-                }
-            } else if (r < 0.46) {
-                // [신규] 압박 회피
-                const pressurePlayer = this.carrier;
-                const presser = this.defender;
-                if (pressurePlayer && presser) {
-                    this.eventsQueue.push({ type: 'pressureEscape', player: pressurePlayer.name, presser: presser.name });
-                }
-            } else if (r < 0.49) {
-                // [신규] 완벽한 패스 플레이
-                this.eventsQueue.push({ type: 'perfectPass', team,
-                    from: this.carrier ? this.carrier.name : '선수',
-                    to: this.assister ? this.assister.name : '동료' });
-            }
-
-            // 페이즈 전환
-            if (Math.random() < 0.45 * profile.tempo) {
+                // Long ball goes directly to ATTACK phase!
                 this.phase = MatchPhase.ATTACK;
-            } else if (Math.random() < 0.12 * oppProfile.press) {
-                // 압박에 의한 턴오버
-                if (Math.random() < 0.2) {
-                    // [신규] 압박 시 파울 → 레드카드 가능성 (매우 낮음)
-                    const fouler = this.defender ? this.defender.name : '수비수';
-                    this.eventsQueue.push({ type: 'foul', fouler, fouled: this.carrier ? this.carrier.name : '선수', team: opp });
-                    if (Math.random() < 0.03) {
-                        this.eventsQueue.push({ type: 'redcard', player: fouler, team: opp });
-                    } else if (Math.random() < 0.2) {
-                        this.eventsQueue.push({ type: 'yellowcard', player: fouler, team: opp });
-                    }
-                    return;
-                }
+                this.pickPhaseActors(); // Update actors for new phase
+            } else {
+                // Option 2: Short pass from CB to MF
+                const mfTarget = this.assister;
+                this.eventsQueue.push({ type: 'perfectPass', team,
+                    from: centerBack ? centerBack.name : '수비수',
+                    to: mfTarget ? mfTarget.name : '미드필더' });
+                this.phase = MatchPhase.MIDFIELD;
+                this.pickPhaseActors(); // Update actors for new phase (now MF carrier)
+            }
+            
+            // [개선] 빌드업 과정에서 턴오버(패스미스/압박) 발생 확률 (스탯 반영)
+            if (Math.random() < 0.05 * oppProfile.press * turnoverFactor) {
+                const isIntercept = Math.random() < 0.5;
                 this.losePossession({
                     type: 'tackle',
-                    player: this.defender ? this.defender.name : '수비수'
+                    player: this.defender ? this.defender.name : '수비수',
+                    desc: isIntercept ? `앗, 패스 미스! ${this.defender ? this.defender.name : '상대'}가 공을 낚아챕니다!` : `${this.defender ? this.defender.name : '상대'}의 전방 압박 성공! 공을 뺏어냅니다!`
                 });
             }
             return;
         }
 
-        if (this.phase === MatchPhase.ATTACK) {
-            if (Math.random() < 0.22) {
-                // [신규] 측면 돌파 or 중앙 돌파 다양화
-                if (Math.random() < 0.4) {
-                    this.eventsQueue.push({ type: 'siderun', player: this.carrier ? this.carrier.name : '선수', team });
-                } else {
-                    this.eventsQueue.push({
-                        type: 'dribble',
-                        player: this.carrier ? this.carrier.name : '선수',
-                        desc: `${this.carrier ? this.carrier.name : '선수'}가 수비를 뚫고 전진합니다!`
-                    });
+        if (this.phase === MatchPhase.MIDFIELD) {
+            // MIDFIELD: Now MF is carrier, more options but still low pressure!
+            if (r < 0.25 * profile.tempo) {
+                // Tiki-taka short pass
+                this.eventsQueue.push({ type: 'perfectPass', team,
+                    from: this.carrier ? this.carrier.name : '선수',
+                    to: this.assister ? this.assister.name : '동료' });
+            } else if (r < 0.45 * profile.directness) {
+                // Long ball option
+                this.eventsQueue.push({
+                    type: 'pass',
+                    from: this.carrier ? this.carrier.name : '선수',
+                    to: this.shooter ? this.shooter.name : '공격수',
+                    desc: `${this.carrier ? this.carrier.name : '선수'}가 롱 볼을 보냅니다!`
+                });
+                if (Math.random() < 0.5) {
+                    this.phase = MatchPhase.ATTACK;
+                    this.pickPhaseActors();
                 }
-            } else if (Math.random() < 0.35 * profile.directness) {
+            } else if (r < 0.60) {
+                // Dribble
+                this.eventsQueue.push({
+                    type: 'dribble',
+                    player: this.carrier ? this.carrier.name : '선수',
+                    desc: `${this.carrier ? this.carrier.name : '선수'}가 드리블로 전진합니다!`
+                });
+            } else if (r < 0.75 * profile.width) {
+                // Side run / wide play
+                this.eventsQueue.push({ type: 'siderun', player: this.carrier ? this.carrier.name : '선수', team });
+            } else if (r < 0.85) {
+                // Pressure escape
+                const pressurePlayer = this.carrier;
+                const presser = this.defender;
+                if (pressurePlayer && presser) {
+                    this.eventsQueue.push({ type: 'pressureEscape', player: pressurePlayer.name, presser: presser.name });
+                }
+            }
+
+            // [개선] 턴오버(가로채기/태클)를 먼저 체크하도록 하여 수비 관여도 대폭 상향 (스탯 반영)
+            if (Math.random() < 0.10 * oppProfile.press * turnoverFactor) {
+                const isIntercept = Math.random() < 0.6;
+                this.losePossession({
+                    type: 'tackle',
+                    player: this.defender ? this.defender.name : '수비수',
+                    desc: isIntercept ? `중원에서 패스가 끊깁니다! ${this.defender ? this.defender.name : '상대'}의 영리한 커트!` : `${this.defender ? this.defender.name : '상대'}의 강한 태클이 정확히 들어갑니다!`
+                });
+                return;
+            }
+
+            // 페이즈 전환 (전진)
+            if (Math.random() < 0.8 * profile.tempo) {
+                this.phase = MatchPhase.ATTACK;
+                this.pickPhaseActors(); // Update actors for attack phase
+            }
+        }
+
+        if (this.phase === MatchPhase.ATTACK) {
+            // [신규] 공격 중 파울 → 프리킥/코너 분기
+            if (Math.random() < 0.1) {
+                const fouler = this.defender ? this.defender.name : '수비수';
+                const fouled = this.carrier ? this.carrier.name : '선수';
+                this.eventsQueue.push({ type: 'foul', fouler, fouled, team: opp });
+                if (Math.random() < 0.2) {
+                    this.eventsQueue.push({ type: 'yellowcard', player: fouler, team: opp });
+                }
+                // 코너 50%, 프리킥 50%
+                if (Math.random() < 0.5) {
+                    this.eventsQueue.push({ type: 'corner', team, player: this.carrier ? this.carrier.name : '선수' });
+                    this._setPieceBoost = 0.25;
+                } else {
+                    this.eventsQueue.push({ type: 'freekick', team, player: fouled });
+                    this._setPieceBoost = 0.2;
+                }
+                return;
+            }
+
+            const attackR = Math.random();
+            if (attackR < 0.2) {
+                // Long ball
+                this.eventsQueue.push({
+                    type: 'pass',
+                    from: this.carrier ? this.carrier.name : '선수',
+                    to: this.shooter ? this.shooter.name : '공격수',
+                    desc: `${this.carrier ? this.carrier.name : '선수'}가 롱 볼을 보냅니다!`
+                });
+            } else if (attackR < 0.4 * profile.width) {
+                // Cross!
+                this.eventsQueue.push({ type: 'cross', player: this.carrier ? this.carrier.name : '선수', target: this.shooter ? this.shooter.name : '공격수', team });
+            } else if (attackR < 0.55) {
+                // Curved dribble
+                this.eventsQueue.push({
+                    type: 'dribble',
+                    player: this.carrier ? this.carrier.name : '선수',
+                    desc: `${this.carrier ? this.carrier.name : '선수'}가 커브 드리블로 수비를 제칩니다!`
+                });
+            } else if (attackR < 0.7 * profile.directness) {
+                // Through pass
                 this.eventsQueue.push({
                     type: 'throughpass',
                     from: this.assister ? this.assister.name : this.carrier.name,
                     to: this.shooter ? this.shooter.name : '공격수'
                 });
-            } else if (Math.random() < 0.15) {
-                // [신규] 크로스
-                this.eventsQueue.push({ type: 'cross', player: this.carrier ? this.carrier.name : '선수', target: this.shooter ? this.shooter.name : '공격수', team });
-            } else if (Math.random() < 0.18) {
-                this.eventsQueue.push({
-                    type: 'pass',
-                    from: this.carrier ? this.carrier.name : '선수',
-                    to: this.shooter ? this.shooter.name : '공격수',
-                    desc: `${this.carrier ? this.carrier.name : '선수'}가 공격 지역으로 공을 전개합니다.`
-                });
-            } else if (Math.random() < 0.12) {
-                // [신규] 완벽한 패스 플레이 (공격 구간)
-                this.eventsQueue.push({ type: 'perfectPass', team,
-                    from: this.assister ? this.assister.name : '선수',
-                    to: this.shooter ? this.shooter.name : '공격수' });
+            } else if (attackR < 0.85) {
+                // Side run
+                this.eventsQueue.push({ type: 'siderun', player: this.carrier ? this.carrier.name : '선수', team });
             }
 
-            // [신규] 공격 중 파울 → 프리킥/코너 분기
-            if (Math.random() < 0.08) {
-                const fouler = this.defender ? this.defender.name : '수비수';
-                const fouled = this.carrier ? this.carrier.name : '선수';
-                this.eventsQueue.push({ type: 'foul', fouler, fouled, team: opp });
-                if (Math.random() < 0.18) {
-                    this.eventsQueue.push({ type: 'yellowcard', player: fouler, team: opp });
-                }
-                // 코너 40%, 프리킥 60%
-                if (Math.random() < 0.4) {
-                    this.eventsQueue.push({ type: 'corner', team, player: this.carrier ? this.carrier.name : '선수' });
-                    this._setPieceBoost = 0.2;
-                } else {
-                    this.eventsQueue.push({ type: 'freekick', team, player: fouled });
-                    this._setPieceBoost = 0.15;
-                }
-                return;
-            }
-
-            const chanceThreshold = clamp((profile.chanceRate + setPieceBoost) * atkMod, 0.08, 0.35);
+            // Chance phase 확률 
+            const chanceThreshold = clamp((profile.chanceRate + setPieceBoost) * atkMod, 0.3, 0.6);
             if (Math.random() < chanceThreshold) {
                 this.phase = MatchPhase.CHANCE;
-            } else if (Math.random() < 0.2 * oppProfile.press) {
+                this.pickPhaseActors();
+            } else if (Math.random() < 0.16 * oppProfile.press * turnoverFactor) {
+                // [개선] 공격 실패 및 턴오버 확률 상향 (스탯 반영)
+                const isIntercept = Math.random() < 0.6;
                 this.losePossession({
                     type: 'tackle',
-                    player: this.defender ? this.defender.name : '수비수'
+                    player: this.defender ? this.defender.name : '수비수',
+                    desc: isIntercept ? `공격 전개 실패! ${this.defender ? this.defender.name : '수비수'}가 길목을 차단합니다!` : `${this.defender ? this.defender.name : '수비수'}의 결정적인 태클!`
                 });
-            } else if (Math.random() < 0.1) {
-                // [신규] 코너킥으로 전환
-                this.eventsQueue.push({ type: 'corner', team, player: this.carrier ? this.carrier.name : '선수' });
-                this._setPieceBoost = 0.2;
-            } else if (Math.random() < 0.15) {
-                this.phase = MatchPhase.MIDFIELD;
             }
             return;
         }

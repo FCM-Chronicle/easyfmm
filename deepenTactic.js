@@ -1,60 +1,65 @@
-﻿
-// deepenTactic.js  —  v2.0  (full rewrite, drop-in compatible)
+// deepenTactic.js  —  v3.0  COMPLETE REWRITE! (Flow-Based Architecture)
+// External API preserved 100% compatible with visualizer/match UI
 // ─────────────────────────────────────────────────────────────────────────────
-// External API preserved:
 //   window.RealSoccerEngine   (class)
 //   window.DeepTacticManager  (object, .init(), .renderUI())
 //   BallState                 (const object)
 //   SimBall / SimPlayer       (classes)
-//   RUN_TYPE / ROLE_RUN_TYPE  (const objects)
-//   getPosByAngle()           (function)
 // ─────────────────────────────────────────────────────────────────────────────
 
+'use strict';
+
 // =============================================================================
-// [SECTION 0]  CONSTANTS & UTILITY
+// [SECTION 0]  CONSTANTS & UTILITIES
 // =============================================================================
 
-const BallState = {
-    LOOSE:      0,
-    CONTROLLED: 1,
-    IN_FLIGHT:  2,
-    DEAD:       3
+const BallState = { LOOSE: 0, CONTROLLED: 1, IN_FLIGHT: 2, DEAD: 3 };
+
+const ROLE_BEHAVIOR = {
+    // Forwards
+    AF:  { runBehind: 1.0, linkup: 0.2, hugLine: 0.0, pressBias: 0.9, attackBias: 1.0, defenseBias: 0.1 },
+    CF:  { runBehind: 0.6, linkup: 0.7, hugLine: 0.0, pressBias: 0.6, attackBias: 0.9, defenseBias: 0.2 },
+    P:   { runBehind: 0.95,linkup: 0.1, hugLine: 0.0, pressBias: 0.8, attackBias: 1.0, defenseBias: 0.0 },
+    F9:  { runBehind: 0.3, linkup: 1.0, hugLine: 0.0, pressBias: 0.5, attackBias: 0.9, defenseBias: 0.3 },
+    TM:  { runBehind: 0.2, linkup: 1.0, hugLine: 0.0, pressBias: 0.3, attackBias: 0.8, defenseBias: 0.2 },
+    SS:  { runBehind: 0.7, linkup: 0.5, hugLine: 0.2, pressBias: 0.6, attackBias: 0.95,defenseBias: 0.15 },
+    PF:  { runBehind: 0.5, linkup: 0.6, hugLine: 0.0, pressBias: 1.0, attackBias: 0.9, defenseBias: 0.5 },
+    RD:  { runBehind: 0.5, linkup: 0.5, hugLine: 0.0, pressBias: 0.7, attackBias: 0.85,defenseBias: 0.4 },
+    W:   { runBehind: 0.7, linkup: 0.1, hugLine: 1.0, pressBias: 0.5, attackBias: 0.9, defenseBias: 0.2 },
+    IF:  { runBehind: 0.8, linkup: 0.3, hugLine: 0.0, pressBias: 0.6, attackBias: 0.95,defenseBias: 0.2 },
+    IW:  { runBehind: 0.7, linkup: 0.3, hugLine: 0.1, pressBias: 0.6, attackBias: 0.9, defenseBias: 0.3 },
+    WP:  { runBehind: 0.4, linkup: 0.7, hugLine: 1.0, pressBias: 0.5, attackBias: 0.85,defenseBias: 0.3 },
+    DLF: { runBehind: 0.3, linkup: 0.9, hugLine: 0.0, pressBias: 0.4, attackBias: 0.85,defenseBias: 0.3 },
+    // Midfielders
+    AP:  { runBehind: 0.6, linkup: 0.6, hugLine: 0.0, pressBias: 0.5, attackBias: 0.95,defenseBias: 0.15 },
+    AM:  { runBehind: 0.6, linkup: 0.5, hugLine: 0.0, pressBias: 0.5, attackBias: 0.95,defenseBias: 0.15 },
+    BBM: { runBehind: 0.8, linkup: 0.4, hugLine: 0.0, pressBias: 0.9, attackBias: 0.9, defenseBias: 0.7 },
+    MEZ: { runBehind: 0.7, linkup: 0.4, hugLine: 0.3, pressBias: 0.7, attackBias: 0.9, defenseBias: 0.4 },
+    CAR: { runBehind: 0.5, linkup: 0.6, hugLine: 0.0, pressBias: 0.8, attackBias: 0.85,defenseBias: 0.6 },
+    REG: { runBehind: 0.3, linkup: 0.7, hugLine: 0.0, pressBias: 0.5, attackBias: 0.75,defenseBias: 0.4 },
+    DLP: { runBehind: 0.1, linkup: 1.0, hugLine: 0.0, pressBias: 0.4, attackBias: 0.55,defenseBias: 0.45 },
+    BWM: { runBehind: 0.3, linkup: 0.5, hugLine: 0.0, pressBias: 1.0, attackBias: 0.4, defenseBias: 0.95 },
+    CM:  { runBehind: 0.4, linkup: 0.5, hugLine: 0.0, pressBias: 0.6, attackBias: 0.7, defenseBias: 0.5 },
+    LM:  { runBehind: 0.6, linkup: 0.3, hugLine: 1.0, pressBias: 0.5, attackBias: 0.8, defenseBias: 0.4 },
+    RM:  { runBehind: 0.6, linkup: 0.3, hugLine: 1.0, pressBias: 0.5, attackBias: 0.8, defenseBias: 0.4 },
+    WM:  { runBehind: 0.5, linkup: 0.3, hugLine: 1.0, pressBias: 0.5, attackBias: 0.8, defenseBias: 0.4 },
+    SV:  { runBehind: 0.5, linkup: 0.5, hugLine: 0.0, pressBias: 0.6, attackBias: 0.8, defenseBias: 0.8 },
+    ANC: { runBehind: 0.1, linkup: 0.8, hugLine: 0.0, pressBias: 0.7, attackBias: 0.3, defenseBias: 0.95 },
+    DM:  { runBehind: 0.1, linkup: 0.8, hugLine: 0.0, pressBias: 0.7, attackBias: 0.35,defenseBias: 0.9 },
+    CDM: { runBehind: 0.05,linkup: 0.85,hugLine: 0.0, pressBias: 0.8, attackBias: 0.3, defenseBias: 0.95 },
+    EG:  { runBehind: 0.3, linkup: 0.7, hugLine: 0.0, pressBias: 0.5, attackBias: 0.7, defenseBias: 0.4 },
+    // Defenders
+    CD:  { runBehind: 0.0, linkup: 0.2, hugLine: 0.0, pressBias: 0.5, attackBias: 0.05,defenseBias: 1.0 },
+    BPD: { runBehind: 0.0, linkup: 0.4, hugLine: 0.0, pressBias: 0.4, attackBias: 0.2, defenseBias: 0.9 },
+    NCB: { runBehind: 0.0, linkup: 0.1, hugLine: 0.0, pressBias: 0.6, attackBias: 0.1, defenseBias: 0.95 },
+    LIB: { runBehind: 0.2, linkup: 0.4, hugLine: 0.0, pressBias: 0.3, attackBias: 0.3, defenseBias: 0.85 },
+    FB:  { runBehind: 0.3, linkup: 0.2, hugLine: 0.95,pressBias: 0.6, attackBias: 0.35,defenseBias: 0.85 },
+    WB:  { runBehind: 0.6, linkup: 0.2, hugLine: 1.0, pressBias: 0.5, attackBias: 0.55,defenseBias: 0.7 },
+    CWB: { runBehind: 0.7, linkup: 0.1, hugLine: 1.0, pressBias: 0.5, attackBias: 0.7, defenseBias: 0.55 },
+    IWB: { runBehind: 0.5, linkup: 0.3, hugLine: 0.3, pressBias: 0.5, attackBias: 0.5, defenseBias: 0.7 },
+    GK:  { runBehind: 0.0, linkup: 0.0, hugLine: 0.0, pressBias: 0.0, attackBias: 0.0, defenseBias: 1.0 }
 };
 
-const RUN_TYPE = {
-    STRIKER_RUN:   'striker_run',
-    SUPPORT_RUN:   'support_run',
-    CHANNEL_RUN:   'channel_run',
-    WIDE_RUN:      'wide_run',
-    UNDERLAP_RUN:  'underlap_run',
-    HOLD_POSITION: 'hold_position',
-};
-
-const ROLE_RUN_TYPE = {
-    AF:'striker_run', CF:'support_run', P:'striker_run',
-    DLF:'support_run', TM:'hold_position', F9:'support_run',
-    PF:'channel_run', RD:'channel_run', W:'wide_run', IF:'underlap_run',
-    WP:'support_run', IW:'underlap_run',
-    BBM:'striker_run', MEZ:'underlap_run', DLP:'hold_position',
-    BWM:'hold_position', AP:'support_run', REG:'hold_position',
-    CAR:'support_run', EG:'hold_position', SS:'striker_run',
-    ANC:'hold_position', DM:'hold_position', SV:'striker_run',
-    BPD:'support_run', CD:'hold_position', NCB:'hold_position',
-    IWB:'underlap_run', CWB:'wide_run', LIB:'support_run',
-    FB:'hold_position', WB:'wide_run',
-    GK:'hold_position'
-};
-
-function getPosByAngle(x, y, angleDeg, dist) {
-    const rad = angleDeg * (Math.PI / 180);
-    return {
-        x: Math.max(2, Math.min(98, x + Math.cos(rad) * dist)),
-        y: Math.max(2, Math.min(98, y + Math.sin(rad) * dist))
-    };
-}
-
-// Position-based stat weight tables for "overall → derived stats"
-// Each position maps stat-key → weight [0..2] (1.0 = neutral)
 const POSITION_STAT_WEIGHTS = {
     FW: { speed: 1.3, shooting: 1.5, passing: 0.9, defense: 0.4, decision: 1.1, physical: 1.0 },
     MF: { speed: 1.0, shooting: 0.8, passing: 1.4, defense: 0.9, decision: 1.3, physical: 0.9 },
@@ -62,103 +67,102 @@ const POSITION_STAT_WEIGHTS = {
     GK: { speed: 0.5, shooting: 0.1, passing: 0.7, defense: 1.8, decision: 1.1, physical: 1.0 }
 };
 
-// Derive individual stats from a single overall value
-function deriveStatsFromOverall(overall, position) {
-    const weights = POSITION_STAT_WEIGHTS[position] || POSITION_STAT_WEIGHTS.MF;
-    const derived = {};
-    for (const [stat, w] of Object.entries(weights)) {
-        // Add small noise so players feel distinct
-        const noise = (Math.random() - 0.5) * 4;
-        derived[stat] = Math.max(10, Math.min(99, overall * w + noise));
-    }
-    // tackle% mirrors defense for compatibility
-    derived.tackle = derived.defense;
-    return derived;
-}
-
-// Clamp helper
 function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
 
+function deriveStatsFromOverall(overall, position) {
+    const w = POSITION_STAT_WEIGHTS[position] || POSITION_STAT_WEIGHTS.MF;
+    const out = {};
+    for (const [k, weight] of Object.entries(w)) {
+        const noise = (Math.random() - 0.5) * 4;
+        out[k] = Math.max(10, Math.min(99, overall * weight + noise));
+    }
+    out.tackle = out.defense;
+    return out;
+}
+
 // =============================================================================
-// [SECTION 1]  DEEP TACTIC MANAGER  (UI, preserved interface)
+// [SECTION 0.5]  DEEP TACTICS MANAGER  (unchanged UI)
 // =============================================================================
+
+function migrateDeepTactics() {
+    if (typeof gameData === 'undefined' || !gameData.deepTactics) return false;
+    const dt = gameData.deepTactics;
+    const oldPress = typeof dt.pressingStrength === 'string' ? dt.pressingStrength : null;
+    const oldTend  = typeof dt.teamTendency   === 'string' ? dt.teamTendency   : null;
+    const oldStyle = typeof dt.passStyle      === 'string' ? dt.passStyle      : null;
+    const oldSide  = typeof dt.attackingSide  === 'string' ? dt.attackingSide  : null;
+    if (!('pressIntensity' in dt) && oldPress) {
+        dt.pressIntensity = oldPress==='high'?'high':oldPress==='low'?'low':'mid';
+    }
+    if (!('passTempo' in dt) && oldTend) {
+        dt.passTempo = oldTend==='offensive'?'fast':oldTend==='defensive'?'slow':'normal';
+    }
+    if (!('passLength' in dt) && oldStyle) {
+        dt.passLength = oldStyle==='long'?'long':oldStyle==='short'?'short':'mixed';
+    }
+    if (!('defensiveLine' in dt)) dt.defensiveLine = 'standard';
+    if (!('attackFocus' in dt) && oldSide) {
+        dt.attackFocus = oldSide==='all'?'mixed':oldSide;
+    }
+    if (typeof dt.passStyle === 'string') {
+        const s = dt.passStyle;
+        const r = s==='short'?[7,3]:s==='long'?[3,7]:[5,5];
+        dt.passStyle = { shortRatio:r[0], longRatio:r[1] };
+    } else if (!dt.passStyle || typeof dt.passStyle!=='object') {
+        dt.passStyle = { shortRatio:7, longRatio:3 };
+    }
+    return true;
+}
 
 const DeepTacticManager = {
     init() {
         if (!gameData.deepTactics) {
             gameData.deepTactics = {
-                attackFocus:    'mixed',
-                passStyle:      { shortRatio: 7, longRatio: 3 },
-                pressIntensity: 'mid',      // low | mid | high
-                defensiveLine:  'standard', // deep | standard | high
-                passTempo:      'normal',   // slow | normal | fast
-                passLength:     'mixed'     // short | mixed | long
+                attackFocus:'mixed', passStyle:{shortRatio:7,longRatio:3},
+                pressIntensity:'mid', defensiveLine:'standard',
+                passTempo:'normal', passLength:'mixed'
             };
         }
+        migrateDeepTactics();
         this.renderUI();
     },
-
     renderUI() {
-        let container = document.getElementById('deepTacticsContainer');
-        if (!container) {
-            const tacticsTab = document.getElementById('tactics');
-            if (!tacticsTab) return;
-            container = document.createElement('div');
-            container.id = 'deepTacticsContainer';
-            container.style.cssText = `margin-top:20px;padding:15px;background:rgba(255,255,255,0.05);border-radius:10px;`;
-            tacticsTab.appendChild(container);
+        let c = document.getElementById('deepTacticsContainer');
+        if (!c) {
+            const t = document.getElementById('tactics');
+            if (!t) return;
+            c = document.createElement('div');
+            c.id = 'deepTacticsContainer';
+            c.style.cssText = 'margin-top:20px;padding:15px;background:rgba(255,255,255,0.05);border-radius:10px;';
+            t.appendChild(c);
         }
         const dt = gameData.deepTactics;
-        container.innerHTML = `
+        const opts = (k, arr) => arr.map(([v,l]) => `<option value="${v}"${dt[k]===v?' selected':''}>${l}</option>`).join('');
+        c.innerHTML = `
             <h4 style="color:#ffd700;margin-top:0;">심층 전술 세부 설정</h4>
-
+            ${['defensiveLine',[['deep','딥 (Deep)'],['standard','표준'],['high','하이 (High)']],
+                'pressIntensity',[['low','낮음'],['mid','보통'],['high','높음']],
+                'passTempo',[['slow','느림'],['normal','보통'],['fast','빠름']],
+                'passLength',[['short','짧게'],['mixed','혼합'],['long','길게']]
+            ].reduce((s,_,i,a)=> i%2? s : s+`
             <div style="margin-bottom:10px;">
-                <label style="display:block;margin-bottom:4px;color:#ccc;">수비 라인</label>
-                <select id="dt-defensiveLine" style="width:100%;padding:5px;background:#333;color:white;">
-                    <option value="deep"     ${dt.defensiveLine==='deep'     ?'selected':''}>딥 (Deep)</option>
-                    <option value="standard" ${dt.defensiveLine==='standard' ?'selected':''}>표준</option>
-                    <option value="high"     ${dt.defensiveLine==='high'     ?'selected':''}>하이 (High)</option>
+                <label style="display:block;margin-bottom:4px;color:#ccc;">
+                    ${a[i][0]==='defensiveLine'?'수비 라인':a[i][0]==='pressIntensity'?'압박 강도':a[i][0]==='passTempo'?'패스 템포':'패스 길이'}
+                </label>
+                <select id="dt-${a[i][0]}" style="width:100%;padding:5px;background:#333;color:white;">
+                    ${opts(a[i][0], a[i+1])}
                 </select>
-            </div>
-
-            <div style="margin-bottom:10px;">
-                <label style="display:block;margin-bottom:4px;color:#ccc;">압박 강도</label>
-                <select id="dt-pressIntensity" style="width:100%;padding:5px;background:#333;color:white;">
-                    <option value="low"  ${dt.pressIntensity==='low'  ?'selected':''}>낮음</option>
-                    <option value="mid"  ${dt.pressIntensity==='mid'  ?'selected':''}>보통</option>
-                    <option value="high" ${dt.pressIntensity==='high' ?'selected':''}>높음</option>
-                </select>
-            </div>
-
-            <div style="margin-bottom:10px;">
-                <label style="display:block;margin-bottom:4px;color:#ccc;">패스 템포</label>
-                <select id="dt-passTempo" style="width:100%;padding:5px;background:#333;color:white;">
-                    <option value="slow"   ${dt.passTempo==='slow'   ?'selected':''}>느림</option>
-                    <option value="normal" ${dt.passTempo==='normal' ?'selected':''}>보통</option>
-                    <option value="fast"   ${dt.passTempo==='fast'   ?'selected':''}>빠름</option>
-                </select>
-            </div>
-
-            <div style="margin-bottom:10px;">
-                <label style="display:block;margin-bottom:4px;color:#ccc;">패스 길이</label>
-                <select id="dt-passLength" style="width:100%;padding:5px;background:#333;color:white;">
-                    <option value="short" ${dt.passLength==='short' ?'selected':''}>짧게</option>
-                    <option value="mixed" ${dt.passLength==='mixed' ?'selected':''}>혼합</option>
-                    <option value="long"  ${dt.passLength==='long'  ?'selected':''}>길게</option>
-                </select>
-            </div>
-
+            </div>`, '')}
             <div style="color:#aaa;font-size:0.8rem;">* 설정은 자동 적용됩니다</div>
         `;
-        ['defensiveLine','pressIntensity','passTempo','passLength'].forEach(key => {
-            document.getElementById(`dt-${key}`)
-                .addEventListener('change', e => { gameData.deepTactics[key] = e.target.value; });
+        ['defensiveLine','pressIntensity','passTempo','passLength'].forEach(k => {
+            document.getElementById(`dt-${k}`).addEventListener('change', e => { gameData.deepTactics[k] = e.target.value; });
         });
     }
 };
 
 // =============================================================================
-// [SECTION 2]  SIM BALL
+// [SECTION 1]  SIMBALL / SIMPLAYER  (v3: lean + state for flow)
 // =============================================================================
 
 class SimBall {
@@ -170,96 +174,72 @@ class SimBall {
         this.lastOwner = null;
         this.targetPos = { x: 50, y: 50 };
         this.velocity = { x: 0, y: 0 };
-        // trajectory cache for in-flight interception
         this._flightOrigin = { x: 50, y: 50 };
     }
 }
 
-// =============================================================================
-// [SECTION 3]  SIM PLAYER
-// =============================================================================
-
 class SimPlayer {
-    constructor(data, teamId, role, lineStats, morale = 50, tacticMultiplier = 1.0) {
+    constructor(data, teamId, role, lineStats, morale=50, tacticMultiplier=1.0) {
         this.id   = data.name;
         this.name = data.name;
         this.position = data.position;
         this.rating   = data.rating;
         this.teamId   = teamId;
         this.role     = role;
-
         this.x = 0; this.y = 0;
         this.vx = 0; this.vy = 0;
         this.baseX = 0; this.baseY = 0;
-
-        this.stamina = (data.condition !== undefined) ? data.condition : 100;
-        this._markTargetId = null;
-
-        // Tactic-level state
-        this.forceReturnTimer = 0;
-        this.burstTimer       = 0;
-
-        // Steal cooldown (anti-exploit)
+        this.slotY = 0; // New: assigned vertical slot (for MF Y spread fix!)
+        this.stamina = data.condition !== undefined ? data.condition : 100;
         this._stealCooldown = 0;
-
-        // Turnover recovery state: 'immediate' | 'delayed' | 'frozen'
-        this._recoveryMode  = null;
-        this._recoveryDelay = 0;
-
+        this.burstTimer = 0;
+        this.forceReturnTimer = 0;
+        // v3 FLOW state for off-ball runs
+        this._fwMode = 'shadow';  // shadow | burst | linkup
+        this._fbMode = 'hold';    // hold | overlap | underlap
+        this._timer  = 0;         // general timer per player
+        this._markTargetId = null;
         this.stats = this._buildStats(data, role, lineStats, morale, tacticMultiplier);
     }
 
-    _buildStats(playerData, role, lineStats, morale, tacticMultiplier) {
+    _buildStats(data, role, lineStats, morale, tacticMultiplier) {
         const moraleFactor = 1 + ((morale - 50) * 0.0005);
-
-        // ── Path A: rich lineStats object (user team) ──
         if (lineStats && lineStats.attack) {
             let line;
-            if (playerData.position === 'FW')      line = 'attack';
-            else if (playerData.position === 'MF')  line = 'midfield';
-            else                                     line = 'defense';
-
-            const baseStats = lineStats[line].stats;
-            const statMapping = {
-                passing:  'technique', shooting: 'attack', defense: 'defense',
-                speed:    'speed',     decision: 'mentality', physical: 'physical'
-            };
-            const finalStats = {};
-            for (const [simStat, dnaStat] of Object.entries(statMapping)) {
-                const baseVal = baseStats[dnaStat] || playerData.rating;
-                let val = (typeof TacticsManager !== 'undefined')
-                    ? TacticsManager.calculateFinalPower(baseVal, role, dnaStat)
-                    : baseVal;
-                finalStats[simStat] = val * moraleFactor * tacticMultiplier;
+            if (data.position === 'FW') line = 'attack';
+            else if (data.position === 'MF') line = 'midfield';
+            else line = 'defense';
+            const bs = lineStats[line].stats;
+            const map = { passing:'technique', shooting:'attack', defense:'defense', speed:'speed', decision:'mentality', physical:'physical' };
+            const fs = {};
+            for (const [ss, ds] of Object.entries(map)) {
+                const v = bs[ds] || data.rating;
+                const finalV = (typeof TacticsManager !== 'undefined') ? TacticsManager.calculateFinalPower(v, role, ds) : v;
+                fs[ss] = finalV * moraleFactor * tacticMultiplier;
             }
-            finalStats.tackle = finalStats.defense;
-            return finalStats;
+            fs.tackle = fs.defense;
+            return fs;
         }
-
-        // ── Path B: overall-only (AI team) ──
-        const overall = playerData.rating || 70;
-        const derived = deriveStatsFromOverall(overall, playerData.position);
-        // Apply tactic + morale multipliers
-        for (const k of Object.keys(derived)) {
-            derived[k] = derived[k] * moraleFactor * tacticMultiplier;
-        }
-        return derived;
+        const overall = data.rating || 70;
+        const d = deriveStatsFromOverall(overall, data.position);
+        for (const k of Object.keys(d)) d[k] *= moraleFactor * tacticMultiplier;
+        return d;
     }
 }
 
 // =============================================================================
-// [SECTION 4]  REAL SOCCER ENGINE
+// [SECTION 2]  REAL SOCCER ENGINE V3 — FLOW BASED ARCHITECTURE
 // =============================================================================
 
 class RealSoccerEngine {
 
     // ─────────────────────────────────────────────────────────────
-    // 4.1  CONSTRUCTOR
+    //  CONSTRUCTOR + TEAM INIT
     // ─────────────────────────────────────────────────────────────
-    constructor(homeSquad, awaySquad, homeTactic = 'balanced', awayTactic = 'balanced') {
-        this.players    = [];
-        this.ball       = new SimBall();
-        this.matchTime  = 0;
+    constructor(homeSquad, awaySquad, homeTactic='balanced', awayTactic='balanced') {
+        this.players = [];
+        this.ball    = new SimBall();
+        this.matchTime = 0;
         this.eventsQueue = [];
         this.pendingShot = null;
 
@@ -268,7 +248,6 @@ class RealSoccerEngine {
         this.celebrationTarget = null;
         this.celebrationType   = null;
         this.lastScorerTeam    = null;
-
         this.homeScore = 0;
         this.awayScore = 0;
         this.userStats = null;
@@ -276,268 +255,204 @@ class RealSoccerEngine {
 
         this.teamTactics = { home: homeTactic, away: awayTactic };
 
-        // Attack-route state machine (per team)
-        this._attackRoute = { home: null, away: null };
-        this._attackRouteTimer = { home: 0, away: 0 };
+        // Exit animation (post-match compatibility)
+        this.exitAnimActive = false;
+        this.exitAnimTicks = 0;
+        this.exitAnimDone = false;
+        this.exitWinner = null;
+
+        // ⭐ V3 FLOW STATE (possession + phase + memories)
+        this._possession = { teamId: null, duration: 0 };
+        this._phase = { home: 'building', away: 'building' }; // building | progressing | finalThird | counter
+        this._phaseTimer = { home: 0, away: 0 };
+        this._attackProgressX = { home: 0, away: 0 }; // track how far we pushed, detect stuck
+        this._attackMemories = { home: new Array(8).fill(null), away: new Array(8).fill(null) };
+        this._attackMemIdx = { home: 0, away: 0 };
+        this._fwBurstCooldown = 0;
+        this._fwLinkupCooldown = 0;
 
         this.initTeam(homeSquad, 'home', homeTactic);
         this.initTeam(awaySquad, 'away', awayTactic);
+        this._assignVerticalSlots(); // NEW: assign MF Y slots so NO OVERSATURATION!
         this.resetPositions('home');
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // 4.2  STAT HELPERS
-    // ─────────────────────────────────────────────────────────────
-    getEffectiveStat(player, statName) {
-        let val = player.stats[statName];
-        if (val === undefined) return 50;
-        let factor = 1.0;
-        if      (player.stamina < 50) factor = 0.50;
-        else if (player.stamina < 60) factor = 0.75;
-        else if (player.stamina < 70) factor = 0.90;
-        return val * factor;
+    getRoleBehavior(role) { return ROLE_BEHAVIOR[role] || ROLE_BEHAVIOR.CM; }
+
+    getEffectiveStat(p, stat) {
+        let v = p.stats[stat];
+        if (v === undefined) return 50;
+        let f = 1.0;
+        if (p.stamina < 50) f = 0.5;
+        else if (p.stamina < 60) f = 0.75;
+        else if (p.stamina < 70) f = 0.9;
+        return v * f;
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // 4.3  AI STAT GENERATION  (for opponent squad)
-    // ─────────────────────────────────────────────────────────────
     generateAIStats(squad) {
-        const aiStats = {
-            attack:   { stats: {} },
-            midfield: { stats: {} },
-            defense:  { stats: {} }
-        };
-        const calcAvg = arr => arr.length > 0
-            ? Math.round(arr.reduce((s, p) => s + p.rating, 0) / arr.length)
-            : 70;
-        const fwOVR = calcAvg(squad.fw.filter(Boolean));
-        const mfOVR = calcAvg(squad.mf.filter(Boolean));
-        const dfOVR = calcAvg([...squad.df.filter(Boolean), squad.gk].filter(Boolean));
-
-        for (const [line, ovr] of Object.entries({ attack: fwOVR, midfield: mfOVR, defense: dfOVR })) {
-            const total  = ovr * 6;
-            let   remain = total % 6;
-            const base   = Math.floor(total / 6);
-            for (const key of ['attack','speed','technique','physical','defense','mentality']) {
-                aiStats[line].stats[key] = base + (remain-- > 0 ? 1 : 0);
+        const s = { attack:{stats:{}}, midfield:{stats:{}}, defense:{stats:{}} };
+        const avg = a => a.length>0 ? Math.round(a.reduce((x,y)=>x+y.rating,0)/a.length) : 70;
+        const fw = avg(squad.fw.filter(Boolean));
+        const mf = avg(squad.mf.filter(Boolean));
+        const df = avg([...squad.df.filter(Boolean), squad.gk].filter(Boolean));
+        for (const [line, ovr] of Object.entries({attack:fw, midfield:mf, defense:df})) {
+            const total = ovr*6, base = Math.floor(total/6);
+            let rem = total % 6;
+            for (const k of ['attack','speed','technique','physical','defense','mentality']) {
+                s[line].stats[k] = base + (rem-- > 0 ? 1 : 0);
             }
         }
-        return aiStats;
+        return s;
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // 4.4  TEAM INIT
-    // ─────────────────────────────────────────────────────────────
     initTeam(squad, teamId, tactic) {
-        const tacticMultiplier = tactic === 'balanced' ? 0.85 : 1.0;
-
+        const mul = tactic==='balanced' ? 0.85 : 1.0;
         const setupLine = (list, baseX) => {
-            const isUserTeam = (teamId === 'home' &&  gameData.isHomeGame)
-                            || (teamId === 'away' && !gameData.isHomeGame);
-            let lineStats, teamMorale = 50;
-
-            if (isUserTeam) {
-                lineStats  = gameData.lineStats;
-                this.userStats = lineStats;
-                teamMorale = gameData.teamMorale;
-            } else {
-                lineStats  = this.aiStats || this.generateAIStats(squad);
-                this.aiStats  = lineStats;
-                teamMorale = 60 + Math.floor(Math.random() * 31);
-            }
-
+            const isUser = (teamId==='home' && gameData.isHomeGame) || (teamId==='away' && !gameData.isHomeGame);
+            let lineStats, morale = 50;
+            if (isUser) { lineStats = gameData.lineStats; this.userStats = lineStats; morale = gameData.teamMorale; }
+            else { lineStats = this.aiStats || this.generateAIStats(squad); this.aiStats = lineStats; morale = 60 + Math.floor(Math.random()*31); }
             list.forEach((p, i) => {
                 if (!p) return;
                 let role = (gameData.playerRoles && gameData.playerRoles[p.name])
                     ? gameData.playerRoles[p.name]
-                    : this.getBestRoleForTactic(tactic, p.position, i);
-
-                const simP = new SimPlayer(p, teamId, role, lineStats, teamMorale, tacticMultiplier);
-                simP.baseX = baseX;
-                simP.baseY = (100 / (list.length + 1)) * (i + 1);
-                simP.x = simP.baseX;
-                simP.y = simP.baseY;
-                this.players.push(simP);
+                    : this._bestRoleForTactic(tactic, p.position, i);
+                const sp = new SimPlayer(p, teamId, role, lineStats, morale, mul);
+                sp.baseX = baseX;
+                sp.baseY = (100/(list.length+1)) * (i+1);
+                sp.slotY = sp.baseY;
+                sp.x = sp.baseX; sp.y = sp.baseY;
+                this.players.push(sp);
             });
         };
-
-        if (teamId === 'home') {
+        if (teamId==='home') {
             if (squad.gk) setupLine([squad.gk], 5);
-            setupLine(squad.df, 20);
-            setupLine(squad.mf, 42);
+            setupLine(squad.df, 22);
+            setupLine(squad.mf, 45);
             setupLine(squad.fw, 72);
         } else {
             if (squad.gk) setupLine([squad.gk], 95);
-            setupLine(squad.df, 80);
-            setupLine(squad.mf, 58);
+            setupLine(squad.df, 78);
+            setupLine(squad.mf, 55);
             setupLine(squad.fw, 28);
         }
     }
 
-    getBestRoleForTactic(tactic, position, index) {
-        if (position === 'GK') return 'GK';
-        const roleMap = {
-            tikitaka:     { FW:['F9','DLF'],       MF:['DLP','AP','MEZ'],     DF:['BPD','IWB']       },
-            possession:   { FW:['DLF','CF'],        MF:['DLP','AP','CAR'],     DF:['BPD','WB']        },
-            lavolpiana:   { FW:['F9','W'],          MF:['DLP','REG','MEZ'],    DF:['BPD','IWB']       },
-            gegenpress:   { FW:['PF','AF'],         MF:['BBM','BWM','MEZ'],    DF:['CD','CWB']        },
-            totalFootball:{ FW:['CF','F9'],         MF:['BBM','MEZ','AP'],     DF:['BPD','CWB','LIB'] },
-            counter:      { FW:['AF','P'],          MF:['BWM','DLP'],          DF:['NCB','FB']        },
-            longBall:     { FW:['TM','AF'],         MF:['BWM','CM'],           DF:['NCB','CD']        },
-            twoLine:      { FW:['AF','P'],          MF:['BWM','CAR'],          DF:['CD','FB']         },
-            parkBus:      { FW:['P','TM'],          MF:['BWM','DLP'],          DF:['NCB','CD']        },
-            catenaccio:   { FW:['TM','P'],          MF:['BWM','DLP'],          DF:['NCB','LIB']       }
+    _bestRoleForTactic(tactic, pos, i) {
+        if (pos === 'GK') return 'GK';
+        const map = {
+            tikitaka:     { FW:['F9','DLF'], MF:['DLP','AP','MEZ'], DF:['BPD','IWB'] },
+            possession:   { FW:['DLF','CF'],  MF:['DLP','AP','CAR'], DF:['BPD','WB'] },
+            lavolpiana:   { FW:['F9','W'],   MF:['DLP','REG','MEZ'], DF:['BPD','IWB'] },
+            gegenpress:   { FW:['PF','AF'],  MF:['BBM','BWM','MEZ'], DF:['CD','CWB'] },
+            totalFootball:{ FW:['CF','F9'],  MF:['BBM','MEZ','AP'], DF:['BPD','CWB','LIB'] },
+            counter:      { FW:['AF','P'],   MF:['BWM','DLP'], DF:['NCB','FB'] },
+            longBall:     { FW:['TM','AF'],  MF:['BWM','CM'], DF:['NCB','CD'] },
+            twoLine:      { FW:['AF','P'],   MF:['BWM','CAR'], DF:['CD','FB'] },
+            parkBus:      { FW:['P','TM'],   MF:['BWM','DLP'], DF:['NCB','CD'] },
+            catenaccio:   { FW:['TM','P'],   MF:['BWM','DLP'], DF:['NCB','LIB'] }
         };
         const def = { FW:['AF','CF'], MF:['BBM','AP'], DF:['CD','FB'] };
-        const m   = roleMap[tactic] || def;
-        const candidates = m[position] || def[position] || ['CD'];
-        return candidates[index % candidates.length];
+        const m = map[tactic] || def;
+        const c = m[pos] || def[pos] || ['CD'];
+        return c[i % c.length];
+    }
+
+    // ⭐⭐⭐ NEW: Assign fixed vertical slots per position band!
+    // 이게 중원 과포화 & 몰려다님을 해결하는 핵심!
+    _assignVerticalSlots() {
+        for (const teamId of ['home', 'away']) {
+            const mfs = this.players.filter(p => p.teamId===teamId && p.position==='MF').sort((a,b)=>a.baseY-b.baseY);
+            const n = mfs.length;
+            for (let i=0; i<n; i++) {
+                if (n === 2)      mfs[i].slotY = n===2 ? [33, 67][i] : mfs[i].baseY;
+                else if (n === 3) mfs[i].slotY = [25, 50, 75][i];
+                else if (n === 4) mfs[i].slotY = [20, 40, 60, 80][i];
+                else if (n === 5) mfs[i].slotY = [18, 34, 50, 66, 82][i];
+                else              mfs[i].slotY = mfs[i].baseY;
+            }
+            // CBs also have a slot for central spacing
+            const dfs = this.players.filter(p => p.teamId===teamId && p.position==='DF').sort((a,b)=>a.baseY-b.baseY);
+            const fbs = dfs.filter(p => ['FB','WB','CWB','IWB'].includes(p.role));
+            const cbs = dfs.filter(p => ['CD','BPD','NCB','LIB'].includes(p.role));
+            if (cbs.length === 2) { cbs[0].slotY = 38; cbs[1].slotY = 62; }
+            if (fbs.length === 2) { fbs[0].slotY = 10; fbs[1].slotY = 90; }
+            // FWs
+            const fws = this.players.filter(p => p.teamId===teamId && p.position==='FW').sort((a,b)=>a.baseY-b.baseY);
+            const nfw = fws.length;
+            for (let i=0; i<nfw; i++) {
+                if (nfw === 2)      fws[i].slotY = [40, 60][i];
+                else if (nfw === 3) fws[i].slotY = [18, 50, 82][i];
+                else if (nfw === 4) fws[i].slotY = [15, 38, 62, 85][i];
+                else                fws[i].slotY = fws[i].baseY;
+            }
+        }
     }
 
     // ─────────────────────────────────────────────────────────────
-    // 4.5  RESET / KICKOFF
+    //  RESET / KICKOFF
     // ─────────────────────────────────────────────────────────────
-    resetPositions(kickoffTeamId = null) {
+    resetPositions(kickoffTeamId=null) {
         this.ball.x = 50; this.ball.y = 50;
-        this.ball.lastOwner = null;
-        this.ball._flightOrigin = { x: 50, y: 50 };
+        this.ball.lastOwner = null; this.ball._flightOrigin = {x:50,y:50};
+        this.ball.intendedReceiver = null;
+        this._possession = { teamId:null, duration:0 };
+        this._phase = { home:'building', away:'building' };
+        this._phaseTimer = { home:0, away:0 };
+        this._attackProgressX = { home:0, away:0 };
+        this._attackMemories = { home:new Array(8).fill(null), away:new Array(8).fill(null) };
+        this._attackMemIdx = { home:0, away:0 };
+        this._fwBurstCooldown = 0;
+        this._fwLinkupCooldown = 0;
+        this.players.forEach(p => { p.burstTimer = 0; p.forceReturnTimer = 0; p._timer = 0; p._fwMode='shadow'; p._fbMode='hold'; });
 
         let kicker = null;
         if (kickoffTeamId) {
-            kicker = this.players.find(p => p.teamId === kickoffTeamId && p.position === 'FW')
-                  || this.players.find(p => p.teamId === kickoffTeamId && p.position === 'MF')
-                  || this.players.find(p => p.teamId === kickoffTeamId);
+            kicker = this.players.find(p => p.teamId===kickoffTeamId && p.position==='FW')
+                  || this.players.find(p => p.teamId===kickoffTeamId && p.position==='MF')
+                  || this.players.find(p => p.teamId===kickoffTeamId);
         }
         if (kicker) {
             this.ball.state = BallState.CONTROLLED;
             this.ball.owner = kicker;
-            kicker.x = 50; kicker.y = 50;
+            kicker.x = 50; kicker.y = 50; kicker.vx = 0; kicker.vy = 0;
         } else {
             this.ball.state = BallState.LOOSE;
             this.ball.owner = null;
         }
-
         this.players.forEach(p => {
             if (p === kicker) return;
-            p.y = p.baseY; p.vx = 0; p.vy = 0;
+            p.vx = 0; p.vy = 0;
+            p.y = p.slotY || p.baseY;  // Use SLOT! not arbitrary baseY!
             if (p.teamId === 'home') {
-                const mx = p.position === 'MF' ? 40 : 48;
+                const mx = p.position==='MF' ? 42 : 50;
                 p.x = Math.min(p.baseX, mx);
             } else {
-                const mn = p.position === 'MF' ? 60 : 52;
+                const mn = p.position==='MF' ? 58 : 50;
                 p.x = Math.max(p.baseX, mn);
             }
         });
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // 4.6  MAIN UPDATE LOOP
-    // ─────────────────────────────────────────────────────────────
-    update(minute, isNewMinute) {
-        this.eventsQueue = [];
-        if (isNewMinute) this.consumeStamina();
-
-        // Tick steal cooldowns
-        this.players.forEach(p => { if (p._stealCooldown > 0) p._stealCooldown--; });
-
-        // Celebration phase
-        if (this.celebrationTimer > 0) {
-            this.processCelebrationMovement();
-            this.celebrationTimer--;
-            if (this.celebrationTimer <= 0) {
-                const next = this.lastScorerTeam === 'home' ? 'away' : 'home';
-                this.resetPositions(next);
-            }
-            return this.getSnapshot();
-        }
-
-        // Ball flight
-        if (this.ball.state === BallState.IN_FLIGHT) {
-            const BALL_SPEED = 4.2;
-            const dx = this.ball.targetPos.x - this.ball.x;
-            const dy = this.ball.targetPos.y - this.ball.y;
-            const dist = Math.hypot(dx, dy);
-
-            if (dist <= BALL_SPEED) {
-                this.ball.x = this.ball.targetPos.x;
-                this.ball.y = this.ball.targetPos.y;
-                this.ball.state = BallState.LOOSE;
-                if (this.pendingShot) { this.handleShotResult(); return this.getSnapshot(); }
-            } else {
-                const ratio = BALL_SPEED / dist;
-                this.ball.x += dx * ratio;
-                this.ball.y += dy * ratio;
-                this.checkInterception();   // in-flight interception every frame
-            }
-        }
-
-        // Loose ball pickup
-        if (this.ball.state === BallState.LOOSE) {
-            let nearest = null, minD = 999;
-            this.players.forEach(p => {
-                const d = Math.hypot(p.x - this.ball.x, p.y - this.ball.y);
-                if (d < minD) { minD = d; nearest = p; }
-            });
-            if (nearest && minD < 2.5) {
-                this.ball.state = BallState.CONTROLLED;
-                this.ball.owner = nearest;
-                this.ball.intendedReceiver = null;
-                this.ball.x = nearest.x; this.ball.y = nearest.y;
-            }
-        }
-
-        // On-ball decision
-        if (this.ball.state === BallState.CONTROLLED && this.ball.owner) {
-            this.processBallCarrierAI(this.ball.owner);
-        }
-
-        this.processOffBallAI();
-        this.adjustDefensiveLines();
-
-        return this.getSnapshot();
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // 4.7  STAMINA
-    // ─────────────────────────────────────────────────────────────
     consumeStamina() {
-        const rates = { FW: 0.6, MF: 0.7, DF: 0.4, GK: 0.1 };
+        const rates = { FW:0.6, MF:0.7, DF:0.4, GK:0.1 };
         this.players.forEach(p => {
             const r = rates[p.position] || 0.5;
-            p.stamina = Math.max(0, p.stamina - r * (0.8 + Math.random() * 0.4));
+            p.stamina = Math.max(0, p.stamina - r * (0.8 + Math.random()*0.4));
+            if (p._stealCooldown > 0) p._stealCooldown--;
+            if (p.burstTimer > 0) p.burstTimer--;
+            if (p.forceReturnTimer > 0) p.forceReturnTimer--;
+            if (p._timer > 0) p._timer--;
         });
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // 4.8  SNAPSHOT
-    // ─────────────────────────────────────────────────────────────
-    getSnapshot() {
-        return {
-            ball: { x: this.ball.x, y: this.ball.y, z: this.ball.z, state: this.ball.state },
-            players: this.players.map(p => ({
-                id:      p.id,
-                x:       p.x,
-                y:       p.y,
-                team:    p.teamId,
-                hasBall: (this.ball.owner === p)
-            })),
-            events:        [...this.eventsQueue],
-            isCelebration: this.celebrationTimer > 0
-        };
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // 4.9  TACTIC HELPERS
-    // ─────────────────────────────────────────────────────────────
     getTeamTactic(teamId) {
         if (typeof gameData !== 'undefined') {
-            const userSide = gameData.isHomeGame ? 'home' : 'away';
-            if (teamId === userSide && gameData.currentTactic) return gameData.currentTactic;
+            const u = gameData.isHomeGame ? 'home' : 'away';
+            if (teamId === u && gameData.currentTactic) return gameData.currentTactic;
         }
         return this.teamTactics?.[teamId] || 'balanced';
     }
-
-    isGegenpressTeam(teamId) { return this.getTeamTactic(teamId) === 'gegenpress'; }
 
     getTacticProfile(teamId) {
         const profiles = {
@@ -557,1416 +472,1566 @@ class RealSoccerEngine {
     }
 
     // ─────────────────────────────────────────────────────────────
-    // 4.10  ATTACK ROUTE SELECTION
+    //  MAIN UPDATE LOOP
     // ─────────────────────────────────────────────────────────────
-    _selectAttackRoute(teamId) {
-        const dt       = gameData.deepTactics || {};
-        const profile  = this.getTacticProfile(teamId);
-        const haswinger = this.players.some(p =>
-            p.teamId === teamId && this.getRoleBehavior(p.role).hugLine
-        );
-
-        let w1 = 0.35;
-        let w2 = haswinger ? 0.40 : 0.20;
-        let w3 = (dt.pressIntensity === 'high') ? 0.45
-               : (dt.pressIntensity === 'low')  ? 0.15 : 0.25;
-
-        if (dt.passLength === 'long')  { w1 += 0.10; w2 += 0.05; }
-        if (dt.passLength === 'short') { w1 -= 0.10; w3 += 0.05; }
-
-        const total = w1 + w2 + w3;
-        const roll  = Math.random() * total;
-        if      (roll < w1)        return 'through_pass';
-        else if (roll < w1 + w2)   return 'cross';
-        else                       return 'press_steal_shot';
-    }
-
-    _getOrSelectRoute(teamId) {
-        if (this._attackRouteTimer[teamId] > 0) {
-            this._attackRouteTimer[teamId]--;
-            return this._attackRoute[teamId];
-        }
-        const route = this._selectAttackRoute(teamId);
-        this._attackRoute[teamId]       = route;
-        this._attackRouteTimer[teamId]  = 12 + Math.floor(Math.random() * 10);
-        return route;
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // 4.11  ON-BALL DECISION SCORING
-    // ─────────────────────────────────────────────────────────────
-    _scorePassOption(from, to, gameState) {
-        const isHome  = from.teamId === 'home';
-        const goalX   = isHome ? 100 : 0;
-        const dist    = Math.hypot(from.x - to.x, from.y - to.y);
-        const distToGoalFrom = Math.abs(from.x - goalX);
-        const distToGoalTo   = Math.abs(to.x   - goalX);
-        const isForward      = distToGoalTo < distToGoalFrom;
-
-        let enemyInLane = false;
-        for (const opp of this.players) {
-            if (opp.teamId === from.teamId) continue;
-            const tx = to.x - from.x, ty = to.y - from.y;
-            const len2 = tx * tx + ty * ty;
-            if (len2 < 0.001) continue;
-            const t = clamp(((opp.x - from.x) * tx + (opp.y - from.y) * ty) / len2, 0, 1);
-            const cx = from.x + t * tx, cy = from.y + t * ty;
-            if (Math.hypot(opp.x - cx, opp.y - cy) < 5) { enemyInLane = true; break; }
-        }
-
-        const spaceAhead = !this.players.some(opp => {
-            if (opp.teamId === from.teamId) return false;
-            const aheadX = isHome ? to.x + 8 : to.x - 8;
-            return Math.hypot(opp.x - aheadX, opp.y - to.y) < 6;
+    update(minute, isNewMinute) {
+        this.eventsQueue = [];
+        if (isNewMinute) { this.consumeStamina(); this.matchTime = minute; }
+        this.players.forEach(p => {
+            if (p._stealCooldown > 0) p._stealCooldown--;
         });
 
-        const dt = gameData.deepTactics || {};
-        let passTypeScore = 0;
-        if (dt.passLength === 'short' && dist > 25)  passTypeScore -= 15;
-        if (dt.passLength === 'long'  && dist < 10)  passTypeScore -= 10;
-
-        let score = 0;
-        if (enemyInLane) score -= 18;
-        if (isForward) score += 16;
-        else           score -=  8;
-        score += (to.rating - 70) * 0.04;
-
-        const stateWeight = {
-            buildup: isForward ? 6 : 10,
-            counter: isForward ? 22 : 2,
-            attack:  isForward ? 18 : 4
-        };
-        score += stateWeight[gameState] || 10;
-        if (spaceAhead) score += 5;
-
-        const distToGoalAfter = Math.abs(to.x - goalX);
-        if (distToGoalAfter < 20) score += 4;
-
-        const nearDef = this.findNearestDefender(to);
-        if (nearDef && from.rating > nearDef.player.rating + 5) score += 3;
-
-        score += passTypeScore;
-        if (this.ball.lastOwner === to) score -= 40;
-        score += (Math.random() - 0.5) * 6;
-
-        return score;
-    }
-
-    _getGameState(teamId) {
-        const isHome = teamId === 'home';
-        const ballX  = this.ball.x;
-        if ((isHome && ballX > 65) || (!isHome && ballX < 35)) return 'attack';
-        if (this.ball.lastOwner && this.ball.lastOwner.teamId !== teamId &&
-            this.ball.state === BallState.CONTROLLED) return 'counter';
-        return 'buildup';
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // 4.12  PASS TEMPO MODIFIERS
-    // ─────────────────────────────────────────────────────────────
-    _getTempoModifiers() {
-        const tempo = gameData.deepTactics?.passTempo || 'normal';
-        if (tempo === 'fast') return { scanSpeedBonus: 1.3, passSuccessModifier: -5 };
-        if (tempo === 'slow') return { scanSpeedBonus: 0.7, passSuccessModifier:  5 };
-        return { scanSpeedBonus: 1.0, passSuccessModifier: 0 };
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // 4.13  BALL CARRIER AI
-    // ─────────────────────────────────────────────────────────────
-    processBallCarrierAI(player) {
-        if (player.position === 'GK') {
-            this.processGoalkeeperAI(player, this._isUnderPressure(player));
-            return;
+        // Exit animation (post-match)
+        if (this.exitAnimActive && !this.exitAnimDone) {
+            return this.updatePostMatch();
         }
 
-        const isHome      = player.teamId === 'home';
-        const goalX       = isHome ? 100 : 0;
-        const distToGoal  = Math.abs(player.x - goalX);
-        const behavior    = this.getRoleBehavior(player.role);
-        const isOnFlank   = player.y < 25 || player.y > 75;
-        const nearestOpp  = this.findNearestDefender(player);
-        const pressureDist = nearestOpp ? nearestOpp.dist : 999;
-        const underPressure = pressureDist < 8;
-        const moveDir     = isHome ? 1 : -1;
-        const effectiveSpeed = this.getEffectiveStat(player, 'speed');
-        const isWingerOnFlank = behavior.hugLine && isOnFlank;
-
-        let shootChance = this._calcShootChance(player, goalX, distToGoal);
-        if (shootChance > 0 && Math.random() < shootChance) {
-            this.attemptShoot(player, goalX);
-            return;
-        }
-
-        const gameState   = this._getGameState(player.teamId);
-        const tempoMod    = this._getTempoModifiers();
-        const teammates   = this.players.filter(p => p.teamId === player.teamId && p !== player);
-        const route       = this._getOrSelectRoute(player.teamId);
-
-        let scoredOptions = teammates.map(tm => ({
-            player: tm,
-            score:  this._scorePassOption(player, tm, gameState)
-        }));
-
-        scoredOptions.forEach(opt => {
-            const tm = opt.player;
-            if (route === 'through_pass') {
-                if (tm.burstTimer > 5) opt.score += 30;
-            } else if (route === 'cross') {
-                if (this.getRoleBehavior(tm.role).hugLine) opt.score += 20;
-                else if (tm.position === 'FW' && Math.abs(tm.y - 50) < 25) opt.score += 15;
-            } else if (route === 'press_steal_shot') {
-                if (Math.abs(tm.x - goalX) < Math.abs(player.x - goalX)) opt.score += 10;
+        // Celebration
+        if (this.celebrationTimer > 0) {
+            this._processCelebration();
+            this.celebrationTimer--;
+            if (this.celebrationTimer <= 0) {
+                const next = this.lastScorerTeam==='home' ? 'away' : 'home';
+                this.resetPositions(next);
             }
-        });
+            return this.getSnapshot();
+        }
 
-        scoredOptions.sort((a, b) => b.score - a.score);
-        const bestTarget = scoredOptions[0]?.player || null;
+        // 1) BALL FLIGHT
+        if (this.ball.state === BallState.IN_FLIGHT) {
+            this._stepBallFlight();
+            if (this.ball.state === BallState.LOOSE && this.pendingShot) { this._handleShotResult(); return this.getSnapshot(); }
+        }
 
-        let passProb = this._calcPassProb(player, underPressure, isWingerOnFlank, distToGoal, tempoMod);
+        // 2) LOOSE BALL PICKUP
+        if (this.ball.state === BallState.LOOSE) {
+            let nearest = null, minD = 999;
+            this.players.forEach(p => {
+                const d = Math.hypot(p.x - this.ball.x, p.y - this.ball.y);
+                if (d < minD) { minD = d; nearest = p; }
+            });
+            if (nearest && minD < 3.4) {
+                this.ball.state = BallState.CONTROLLED;
+                this.ball.owner = nearest;
+                this.ball.intendedReceiver = null;
+                this.ball.x = nearest.x; this.ball.y = nearest.y;
+                this._triggerTurnover(nearest.teamId);
+            }
+        }
 
-        if (bestTarget && Math.random() < passProb) {
-            this._executePassStyled(player, bestTarget, gameState);
+        // 3) ⭐⭐⭐ V3 POSSESSION + PHASE TICK (flow!)
+        this._tickPossessionAndPhase();
+
+        // 4) ON-BALL DECISION
+        if (this.ball.state === BallState.CONTROLLED && this.ball.owner) {
+            this._onBallDecision(this.ball.owner);
+        }
+
+        // 5) OFF-BALL AI (ALL players)
+        this._processAllOffBall();
+
+        // 6) ⭐ V3: TEAMMATE COLLISION RESOLUTION (passive, no teleport!)
+        this._resolveTeammateCollisions();
+
+        // 7) Defensive line adjust + offside enforcement (smooth)
+        this._adjustDefensiveLines();
+        this._enforceAllOffside();
+
+        return this.getSnapshot();
+    }
+
+    getSnapshot() {
+        return {
+            ball: { x: this.ball.x, y: this.ball.y, z: this.ball.z, state: this.ball.state },
+            players: this.players.map(p => ({
+                id: p.id, x: p.x, y: p.y, team: p.teamId, hasBall: this.ball.owner === p
+            })),
+            events: [...this.eventsQueue],
+            isCelebration: this.celebrationTimer > 0,
+            isSuspense: false
+        };
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    //  [V3 CORE]  POSSESSION + PHASE MANAGEMENT (FLOW)
+    // ─────────────────────────────────────────────────────────────
+    _tickPossessionAndPhase() {
+        const teamId = this.ball.owner ? this.ball.owner.teamId
+                     : (this.ball.state === BallState.IN_FLIGHT && this.ball.lastOwner ? this.ball.lastOwner.teamId : null);
+        if (teamId && teamId === this._possession.teamId) {
+            this._possession.duration++;
+        } else if (teamId) {
+            this._possession = { teamId, duration: 0 };
+        } else {
+            this._possession.duration = Math.max(0, this._possession.duration - 1);
+            if (this._possession.duration <= 0) this._possession.teamId = null;
+        }
+
+        // Phase for each team: based on where ball is located when team has it
+        for (const tid of ['home', 'away']) {
+            const have = this._possession.teamId === tid;
+            const ballX = this.ball.x;
+            const myGoalX = tid==='home' ? 0 : 100;
+            const theirGoalX = 100 - myGoalX;
+            const distFromMyGoal = Math.abs(ballX - myGoalX);
+
+            if (this._phaseTimer[tid] > 0) this._phaseTimer[tid]--;
+            const prev = this._phase[tid];
+
+            if (have) {
+                // Determine phase from progression
+                let newPhase;
+                if (distFromMyGoal < 35) newPhase = 'building';
+                else if (distFromMyGoal < 70) newPhase = 'progressing';
+                else newPhase = 'finalThird';
+                if (newPhase !== prev) { this._phase[tid] = newPhase; this._phaseTimer[tid] = 15; }
+                // Track attack progress vs stuck detection
+                const prog = distFromMyGoal;
+                if (prog > this._attackProgressX[tid] + 3) this._attackProgressX[tid] = prog;
+            } else {
+                // Not having ball: if phase was 'counter' timer, keep else revert to building
+                if (prev === 'counter' && this._phaseTimer[tid] > 0) {
+                    // keep
+                } else if (this._phase[tid] !== 'building') {
+                    this._phase[tid] = 'building';
+                    this._attackProgressX[tid] = 0;
+                }
+            }
+        }
+    }
+
+    _isAttackStuck(teamId) {
+        // true if 20+ frames of possession AND no progress for 15+ frames
+        if (this._possession.teamId !== teamId || this._possession.duration < 25) return false;
+        const prog = teamId==='home' ? this.ball.x : (100 - this.ball.x);
+        return prog < this._attackProgressX[teamId] + 5;
+    }
+
+    _getAdvancedSupportPlayer(teamId, position) {
+        const fwd = teamId === 'home' ? 1 : -1;
+        const pool = this.players.filter(p => p.teamId === teamId && p.position === position && p !== this.ball.owner);
+        if (!pool.length) return null;
+        return pool.slice().sort((a, b) => {
+            const ab = this.getRoleBehavior(a.role);
+            const bb = this.getRoleBehavior(b.role);
+            const ax = a.x * fwd + ((ab.attackBias||0) + (ab.runBehind||0)) * 8 - Math.abs(a.slotY - this.ball.y) * 0.08;
+            const bx = b.x * fwd + ((bb.attackBias||0) + (bb.runBehind||0)) * 8 - Math.abs(b.slotY - this.ball.y) * 0.08;
+            return bx - ax;
+        })[0];
+    }
+
+    _findKillerPassTarget(from, phase) {
+        const isHome = from.teamId === 'home';
+        const goalX = isHome ? 100 : 0;
+        const candidates = this.players.filter(p =>
+            p.teamId === from.teamId &&
+            p !== from &&
+            (p.position === 'FW' || p.position === 'MF')
+        );
+        let best = null;
+        let bestScore = -Infinity;
+        for (const to of candidates) {
+            const dist = Math.hypot(from.x - to.x, from.y - to.y);
+            if (dist < 16 || dist > 42) continue;
+            const progressive = isHome ? (to.x - from.x) : (from.x - to.x);
+            if (progressive < 12) continue;
+            if (this._numOpponentsAhead(to, 6, 14) > 1) continue;
+            let score = this._scorePass(from, to, phase);
+            if (to._fwMode === 'burst') score += 28;
+            if (to.position === 'FW') score += 18;
+            if (to.position === 'MF' && ['AM','AP','SS','MEZ','BBM'].includes(to.role)) score += 12;
+            if (this._isReceiverBehindDefLine(from, to)) score += 16;
+            if (Math.abs(to.x - goalX) < 30) score += 10;
+            if (score > bestScore) { bestScore = score; best = to; }
+        }
+        return best ? { target: best, score: bestScore } : null;
+    }
+
+    _chooseDribbleYTarget(player, phase, nDef, preferWide=false) {
+        const isHome = player.teamId === 'home';
+        const probeX = isHome ? player.x + 12 : player.x - 12;
+        let upCrowd = 0, downCrowd = 0;
+        for (const opp of this.players) {
+            if (opp.teamId === player.teamId || opp.position === 'GK') continue;
+            if (Math.abs(opp.x - probeX) > 16) continue;
+            if (opp.y < player.y) upCrowd++;
+            else downCrowd++;
+        }
+        let dir;
+        if (preferWide) dir = player.y < 50 ? -1 : 1;
+        else if (upCrowd === downCrowd) dir = nDef ? (nDef.player.y > player.y ? -1 : 1) : (player.y < 50 ? 1 : -1);
+        else dir = upCrowd < downCrowd ? -1 : 1;
+
+        let span = 8;
+        if (phase === 'building') span = 5;
+        else if (phase === 'progressing') span = 9;
+        else span = 7;
+        return clamp(player.y + dir * span, 8, 92);
+    }
+
+    _getTeamBlockLines(teamId) {
+        const isHome = teamId === 'home';
+        const fwd = isHome ? 1 : -1;
+        const phase = this._phase[teamId];
+        const dt = gameData.deepTactics || {};
+        const lineBias = dt.defensiveLine === 'high' ? 4 : (dt.defensiveLine === 'deep' ? -4 : 0);
+        const ballX = this.ball.x;
+        const haveBall = this._possession.teamId === teamId ||
+            (this.ball.state === BallState.IN_FLIGHT && this.ball.lastOwner && this.ball.lastOwner.teamId === teamId);
+        const threatX = !haveBall && this.ball.state === BallState.IN_FLIGHT && this.ball.targetPos
+            ? this.ball.targetPos.x
+            : ballX;
+
+        let dfX, mfX, fwX;
+        if (haveBall) {
+            const phasePush = phase === 'building' ? 3 : (phase === 'progressing' ? 11 : (phase === 'finalThird' ? 16 : 13));
+            fwX = isHome ? clamp(ballX + 21 + phasePush, 58, 92)
+                         : clamp(ballX - 21 - phasePush, 8, 42);
+            mfX = fwX - fwd * (phase === 'building' ? 13 : 11);
+            dfX = mfX - fwd * (phase === 'building' ? 14 : 12);
+        } else {
+            dfX = isHome ? clamp(threatX - 18 + lineBias, 8, 42)
+                         : clamp(threatX + 18 - lineBias, 58, 92);
+            mfX = dfX + fwd * 12;
+            fwX = mfX + fwd * 11;
+        }
+
+        return {
+            dfX: clamp(dfX, 4, 96),
+            mfX: clamp(mfX, 4, 96),
+            fwX: clamp(fwX, 4, 96),
+            haveBall
+        };
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    //  [V3 CORE]  ON-BALL DECISION (build-up → progress → final)
+    // ─────────────────────────────────────────────────────────────
+    _onBallDecision(player) {
+        if (player.position === 'GK') { this._gkAI(player); return; }
+
+        const isHome = player.teamId==='home';
+        const tid = player.teamId;
+        const goalX = isHome ? 100 : 0;
+        const moveDir = isHome ? 1 : -1;
+        const phase = this._phase[tid];
+        const distToGoal = Math.abs(player.x - goalX);
+        const behavior = this.getRoleBehavior(player.role);
+        const onFlank = player.y < 25 || player.y > 75;
+        const nDef = this._nearestOpponent(player);
+        const underPressure = nDef && nDef.dist < 8;
+        const effectSpeed = this.getEffectiveStat(player, 'speed');
+        const isWinger = behavior.hugLine && onFlank;
+
+        // 2) PASS OR DRIBBLE based on PHASE + role!
+        const teammates = this.players.filter(p => p.teamId===tid && p!==player);
+        let bestPassTarget = null;
+        let bestPassScore = -Infinity;
+        for (const tm of teammates) {
+            const s = this._scorePass(player, tm, phase);
+            if (s > bestPassScore) { bestPassScore = s; bestPassTarget = tm; }
+        }
+        const killerPass = this._findKillerPassTarget(player, phase);
+        if (killerPass && killerPass.score > bestPassScore + 6) {
+            bestPassTarget = killerPass.target;
+            bestPassScore = killerPass.score;
+        }
+
+        if (distToGoal < 36) {
+            const sc = this._shootChance(player, goalX, distToGoal);
+            const shootScore = sc * 100
+                + (player.position === 'FW' ? 10 : 0)
+                - (bestPassTarget ? Math.max(0, bestPassScore - 38) * 0.5 : 0)
+                - (underPressure ? 8 : 0);
+            if (shootScore >= Math.max(bestPassScore, 54) && Math.random() < sc) {
+                this._attemptShoot(player, goalX);
+                return;
+            }
+        }
+
+        // Situation-first choice: compare best pass with carry value instead of coin-flip.
+        const passProb = this._calcPassProbV3(player, phase, underPressure, isWinger, distToGoal, nDef);
+        const carryScore = this._scoreCarryChoice(player, phase, underPressure, isWinger, distToGoal, nDef);
+        const passScore = bestPassScore + passProb * 18;
+        const bestPassProgressive = bestPassTarget
+            ? (isHome ? bestPassTarget.x > player.x + 2 : bestPassTarget.x < player.x - 2)
+            : false;
+        const bestPassLateral = bestPassTarget
+            ? Math.abs(bestPassTarget.x - player.x) <= 5
+            : false;
+        const frontCrowd = this._numOpponentsAhead(player, 10, 18);
+        if (bestPassTarget && player.position !== 'DF' && !underPressure && frontCrowd <= 1 && (!bestPassProgressive || bestPassLateral)) {
+            this._dribbleV3(player, goalX, moveDir, phase, underPressure, isWinger, distToGoal, nDef, effectSpeed);
+            return;
+        }
+        if (bestPassTarget && passScore >= carryScore) {
+            this._executePassV3(player, bestPassTarget, phase);
             return;
         }
 
-        if (nearestOpp && nearestOpp.dist < 7 && Math.random() < 0.05) {
-            if (this.attemptTackle(nearestOpp.player, player)) return;
+        // 3) Tackle by opponent (low probability)
+        if (nDef && nDef.dist < 6.5 && Math.random() < 0.035) {
+            if (this._attemptTackle(nDef.player, player)) return;
         }
 
-        this._dribbleCarry(player, goalX, distToGoal, nearestOpp, underPressure, moveDir, effectiveSpeed, isWingerOnFlank);
+        // 4) DRIBBLE CARRY — phase/role driven! (V3: NEVER dribble in place!)
+        this._dribbleV3(player, goalX, moveDir, phase, underPressure, isWinger, distToGoal, nDef, effectSpeed);
+    }
+
+    _gkAI(gk) {
+        const under = this._isUnderPressure(gk);
+        const tid = gk.teamId;
+        const isHome = tid==='home';
+        gk.vx *= 0.3; gk.vy *= 0.3;
+        const homeX = gk.baseX || (isHome ? 5 : 95);
+        gk.x += (homeX - gk.x) * 0.25 + gk.vx;
+        gk.y += (clamp(50 + (this.ball.y-50)*0.08, 42, 58) - gk.y) * 0.25 + gk.vy;
+        if (this.ball.owner === gk) { this.ball.x = gk.x; this.ball.y = gk.y; }
+        const mates = this.players.filter(p => p.teamId===tid && p!==gk);
+        const dfs = mates.filter(p => p.position==='DF');
+        let target = null;
+        if (dfs.length) {
+            target = dfs.slice().sort((a,b) => {
+                const ap = ['CD','BPD','NCB'].includes(a.role) ? 0 : 1;
+                const bp = ['CD','BPD','NCB'].includes(b.role) ? 0 : 1;
+                if (ap!==bp) return ap-bp;
+                return Math.hypot(a.x-gk.x,a.y-gk.y) - Math.hypot(b.x-gk.x,b.y-gk.y);
+            })[0];
+        }
+        if (!target) target = mates.find(p => p.position==='MF') || mates[0];
+        if (target) { this._executePassV3(gk, target, 'building'); return; }
     }
 
     _isUnderPressure(player) {
-        return this.players.some(p =>
-            p.teamId !== player.teamId &&
-            Math.hypot(p.x - player.x, p.y - player.y) < 8
+        return this.players.some(p => p.teamId !== player.teamId && Math.hypot(p.x-player.x,p.y-player.y) < 8);
+    }
+
+    _nearestOpponent(player) {
+        let best = null, bd = 9999;
+        for (const p of this.players) {
+            if (p.teamId === player.teamId) continue;
+            if (p.position === 'GK') continue;
+            const d = Math.hypot(p.x-player.x, p.y-player.y);
+            if (d < bd) { bd = d; best = p; }
+        }
+        return best ? { player: best, dist: bd } : null;
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    //  PASS SCORING + PROBABILITY V3 (FLOW AWARE!)
+    // ─────────────────────────────────────────────────────────────
+    _scorePass(from, to, phase) {
+        const isHome = from.teamId==='home';
+        const tid = from.teamId;
+        const goalX = isHome ? 100 : 0;
+        const dist = Math.hypot(from.x - to.x, from.y - to.y);
+        const dFromGoal = Math.abs(from.x - goalX);
+        const dToGoal   = Math.abs(to.x   - goalX);
+        const forward = dToGoal < dFromGoal - 1;
+        const back    = dToGoal > dFromGoal + 4;
+        const later   = !forward && !back;
+        const fromUnderPressure = this.players.some(opp =>
+            opp.teamId !== tid &&
+            opp.position !== 'GK' &&
+            Math.hypot(opp.x - from.x, opp.y - from.y) < 7.5
         );
-    }
 
-    _calcShootChance(player, goalX, distToGoal) {
-        const isAngleBlocked = distToGoal < 35 && this.players.some(opp => {
-            if (opp.teamId === player.teamId) return false;
-            const d = Math.hypot(opp.x - player.x, opp.y - player.y);
-            if (d > 10) return false;
-            const dot   = (goalX - player.x) * (opp.x - player.x) + (50 - player.y) * (opp.y - player.y);
-            const mag1  = Math.hypot(goalX - player.x, 50 - player.y);
-            const mag2  = d;
-            const angle = Math.acos(clamp(dot / (mag1 * mag2 + 0.001), -1, 1));
-            return angle < 0.28;
-        });
-
-        if (isAngleBlocked && distToGoal > 12 && Math.random() < 0.8) return 0;
-
-        let base = 0;
-        if      (distToGoal < 12) base = 0.95;
-        else if (distToGoal < 18) base = clamp(1 / distToGoal * 14, 0, 0.75);
-        else if (distToGoal < 28) base = clamp(1 / distToGoal * 5,  0, 0.06);
-        else if (distToGoal < 35) base = clamp(1 / distToGoal * 1,  0, 0.012);
-
-        return Math.min(base, 0.95);
-    }
-
-    _calcPassProb(player, underPressure, isWingerOnFlank, distToGoal, tempoMod) {
-        let prob = 0.5;
-        const profile = this.getTacticProfile(player.teamId);
-
-        if (player.position === 'DF') {
-            prob = underPressure ? 0.98 : 0.40;
-        } else if (isWingerOnFlank && distToGoal > 25) {
-            prob = 0.58;
-        } else {
-            prob = 0.15;
-            if (underPressure) prob = 0.75;
+        // Lane check
+        let laneBlock = 0;
+        for (const opp of this.players) {
+            if (opp.teamId === tid) continue;
+            if (opp.position === 'GK') continue;
+            const tx = to.x-from.x, ty = to.y-from.y;
+            const len2 = tx*tx+ty*ty;
+            if (len2 < 0.01) continue;
+            const t = clamp(((opp.x-from.x)*tx + (opp.y-from.y)*ty)/len2, 0, 1);
+            const cx = from.x + t*tx, cy = from.y + t*ty;
+            if (Math.hypot(opp.x-cx, opp.y-cy) < 4.5) laneBlock += 1;
         }
 
-        prob = clamp(prob * (0.86 + profile.directness * 0.22), 0.05, 0.96);
-        if (tempoMod.scanSpeedBonus > 1) prob = Math.min(prob + 0.05, 0.96);
+        // Space around receiver
+        let oppNearRecv = 0;
+        for (const opp of this.players) {
+            if (opp.teamId === tid || opp.position === 'GK') continue;
+            if (Math.hypot(opp.x-to.x, opp.y-to.y) < 9) oppNearRecv++;
+        }
 
-        return prob;
+        let score = 0;
+        // Distance penalty (very short passes ok in buildup, but not spamming)
+        if (dist < 5) score -= 8;
+        if (dist > 60) score -= 12;
+        // Direction: huge forward bonus, hard back/lat penalty in final/progress
+        if (forward) score += phase==='building' ? 22 : (phase==='progressing' ? 35 : 45);
+        else if (later) score += (phase==='building' ? -5 : -10);
+        else if (back)  score += (phase==='building' ? -22 : -45);
+        // GK never pass target
+        if (to.position === 'GK') score -= 120;
+
+        // ⭐⭐ BUILDING PHASE SUBDIVISION: early vs late (fixes buildup stagnation!)
+        const isHomeFr = from.teamId==='home';
+        const distFromOwnGoal = isHomeFr ? from.x : (100 - from.x);
+        const inLateBuild = (phase === 'building' && distFromOwnGoal >= 22);
+
+        // Prefer position based on phase
+        if (phase === 'building') {
+            if (inLateBuild && from.position !== 'GK') {
+                // Late build-up (x=22~35): behave almost like progressing, push to FW!
+                if (to.position === 'FW') score += 42;
+                else if (to.position === 'MF') score += 22;
+                else if (to.position === 'DF') score += from.position==='DF' ? 8 : -25;
+                if (to._fwMode === 'linkup') score += 22;
+            } else {
+                // Early build-up (GK/CB area): safe distribution to DF/MF
+                if (to.position === 'DF') score += 18;
+                else if (to.position === 'MF') score += 35;
+                else if (to.position === 'FW') score += 12;
+            }
+        } else if (phase === 'progressing') {
+            if (to.position === 'FW') score += 45;
+            else if (to.position === 'MF') score += 15;
+            else if (to.position === 'DF') score -= 35;
+            // Burst FW trigger → through pass bonus!
+            if (to._fwMode === 'burst' && to.burstTimer > 5) score += 60;
+            if (to._fwMode === 'linkup') score += 10;
+            // FB overlap bonus
+            if (to.position === 'DF' && to._fbMode === 'overlap') score += 25;
+        } else {
+            // finalThird
+            if (to.position === 'FW') score += 55;
+            else if (to.position === 'MF') score += 10;
+            else score -= 60;
+            if (to._fwMode === 'burst') score += 75;
+            // Cross bonus when in box area
+            if (Math.abs(to.y - 50) < 25 && dToGoal < 20) score += 30;
+        }
+        // Lane
+        if (laneBlock >= 2) score -= 50;
+        else if (laneBlock === 1) score -= 20;
+        else score += 10;
+        // Space
+        if (oppNearRecv === 0) score += 30;
+        else if (oppNearRecv === 1) score += 10;
+        else score -= 15;
+        // Rating small
+        score += (to.rating - 70) * 0.03;
+        // Avoid same-last-owner loops
+        if (this.ball.lastOwner === to) score -= 55;
+        // Winger cross target: FW inside box → boost
+        if (this.getRoleBehavior(from.role).hugLine && dToGoal < 28) {
+            if (to.position === 'FW' && Math.abs(to.y-50) < 35) score += 40;
+        }
+        // Escape press: favor outlet / diagonal / forward options over lazy backpasses
+        if (fromUnderPressure) {
+            if (forward) score += 18;
+            if (back) score -= 24;
+            if (later && dist > 8) score += 6;
+            if (to.position === 'FW') score += 14;
+            else if (to.position === 'MF') score += 8;
+            if (oppNearRecv === 0) score += 10;
+            if (laneBlock === 0 && dist > 10) score += 8;
+        }
+        if (phase !== 'finalThird' && to.position === 'DF' && from.position !== 'DF') score -= 10;
+        return score;
     }
 
-    _executePassStyled(from, to, gameState) {
-        const isHome   = from.teamId === 'home';
-        const goalX    = isHome ? 100 : 0;
-        const dist     = Math.hypot(from.x - to.x, from.y - to.y);
-        const distToGoalTo   = Math.abs(to.x - goalX);
-        const distToGoalFrom = Math.abs(from.x - goalX);
-        const isBehindLine   = this._isReceiverBehindDefLine(from, to);
-        const dt             = gameData.deepTactics || {};
+    _calcPassProbV3(player, phase, underPressure, isWinger, distToGoal, nDef) {
+        const role = player.role;
+        const pos  = player.position;
+        const isCB_def = pos==='DF' && ['CD','BPD','NCB'].includes(role);
+        const isFB = pos==='DF' && ['FB','WB','CWB','IWB'].includes(role);
+        const ph = player.teamId==='home' ? player.x : (100 - player.x);
+        const lateBuild = (phase === 'building' && ph >= 22);
+        let p = 0.4;
+        // ⭐ BUILD-UP (GK/CB/MF deep): pass a lot to get out
+        if (phase === 'building') {
+            if (pos === 'GK') p = 0.99;
+            else if (isCB_def) {
+                p = underPressure ? 0.96 : (lateBuild ? 0.7 : 0.78);
+            } else if (isFB) {
+                p = underPressure ? 0.92 : (lateBuild ? 0.4 : 0.55);
+            } else if (pos==='MF') {
+                // Late build MF: DRIBBLE through (almost like progressing!)
+                p = underPressure ? (lateBuild ? 0.72 : 0.88) : (lateBuild ? 0.34 : 0.55);
+            } else {
+                p = underPressure ? 0.6 : 0.42;
+            }
+        } else if (phase === 'progressing') {
+            // ⭐⭐ Progressing: DRIBBLE a lot to advance! MF dribble, CB mostly pass
+            if (isCB_def) p = 0.9;
+            else if (isFB) p = underPressure ? 0.78 : 0.32;  // FB drives!
+            else if (pos==='MF') {
+                p = 0.28;  // 72% dribble to advance!
+                if (underPressure) p = 0.62;
+                // If MF near 65 line → look for FW burst pass → higher prob pass
+                const nearFinal = (player.teamId==='home' && player.x > 62) || (player.teamId==='away' && player.x < 38);
+                if (nearFinal) p += 0.18;
+            } else {
+                p = 0.25; // FW progressing: drive
+                if (underPressure) p = 0.58;
+            }
+        } else {
+            // finalThird: shoot or cross or final pass
+            if (isWinger && distToGoal < 30) p = 0.9; // cross
+            else if (pos==='FW') p = 0.28; // mostly shoot/dribble
+            else if (pos==='MF') p = 0.45;
+            else p = 0.5;
+        }
+        if (this._isAttackStuck(player.teamId) && !isCB_def) p += 0.15; // stuck: pass to fix
+        const dt = gameData.deepTactics || {};
+        if (dt.passTempo === 'fast') p = Math.min(0.98, p + 0.06);
+        if (dt.passTempo === 'slow') p = Math.max(0.12, p - 0.06);
+        return clamp(p, 0.08, 0.98);
+    }
+
+    _scoreCarryChoice(player, phase, underPressure, isWinger, distToGoal, nDef) {
+        let score = 0;
+        const speed = this.getEffectiveStat(player, 'speed');
+        const decision = this.getEffectiveStat(player, 'decision');
+        const blockedAhead = this._numOpponentsAhead(player, 10, 18);
+        if (phase === 'building') score += player.position === 'MF' ? 24 : 10;
+        else if (phase === 'progressing') score += player.position === 'MF' ? 46 : 34;
+        else score += player.position === 'FW' ? 42 : 24;
+        if (isWinger) score += 14;
+        if (player.position === 'FW') score += 10;
+        if (player.position !== 'DF' && !underPressure) score += 8;
+        if (underPressure) score -= 18;
+        if (blockedAhead >= 2) score -= 22;
+        else if (blockedAhead === 1) score -= 8;
+        if (distToGoal < 28 && player.position !== 'FW') score -= 10;
+        score += (speed - 70) * 0.25 + (decision - 70) * 0.18;
+        if (nDef && speed > this.getEffectiveStat(nDef.player, 'speed') + 5) score += 12;
+        return score;
+    }
+
+    _executePassV3(from, to, phase) {
+        this.ball.state = BallState.IN_FLIGHT;
+        this.ball._flightOrigin = { x: from.x, y: from.y };
+        this.ball.lastOwner = from;
+        this.ball.intendedReceiver = to;
+        this.ball.owner = null;
+        const dist = Math.hypot(from.x-to.x, from.y-to.y);
+        const tid = from.teamId;
+        const goalX = tid==='home' ? 100 : 0;
+        const dToGoalTo = Math.abs(to.x - goalX);
+        const dToGoalFr = Math.abs(from.x - goalX);
+        const isBehind = this._isReceiverBehindDefLine(from, to);
+
+        // V3: record in attack memory!
+        const idx = (this._attackMemIdx[tid]++) % 8;
+        this._attackMemories[tid][idx] = { fromId: from.id, toId: to.id, x: to.x, t: this.matchTime*100+Date.now()%100 };
 
         let passKind = 'safe';
-        if (isBehindLine && dist > 10 && distToGoalFrom > distToGoalTo) passKind = 'risky';
-        else if (dt.passLength === 'long' || dist > 30) passKind = 'lateral_long';
+        const isThrough = isBehind && dToGoalFr > dToGoalTo + 5 && dist > 10 && dist < 45;
+        const isCross = Math.abs(from.y-50) > 70 && Math.abs(to.y-50) < 35 && dToGoalTo < 25 && dToGoalFr > 20;
+        if (isThrough) passKind = 'risky';
+        else if (isCross) passKind = 'cross';
+        else if (dist > 30) passKind = 'lateral_long';
 
-        this.executePass(from, to, passKind);
+        // accuracy
+        let acc = this.getEffectiveStat(from, 'passing');
+        if (to._fwMode==='burst' && to.burstTimer > 0) acc += 25;
+        if (isCross) acc += this.getRoleBehavior(from.role).hugLine ? 15 : -5;
+        let distPen = Math.max(0, (dist - 20) * 0.7);
+        if (passKind==='risky') distPen *= 1.4;
+        if (passKind==='safe')  distPen *= 0.7;
+        if (from.position==='GK' && dist > 40) distPen += 15;
+        const success = Math.random()*100 <= clamp(acc - distPen + (isThrough?6:0), 20, 99);
+
+        if (success) {
+            const lead = isThrough || (dist > 24 && (to.position === 'FW' || to._fwMode === 'burst')) ? 6 : 0;
+            const moveDir = to.teamId === 'home' ? 1 : -1;
+            this.ball.targetPos = {
+                x: clamp(to.x + moveDir * lead, 2, 98),
+                y: clamp(to.y + (to.slotY - to.y) * 0.2, 2, 98)
+            };
+            if (isThrough) this.eventsQueue.push({ type:'throughpass', from:from.name, to:to.name, desc:`⚡ ${from.name}, 결정적 스루패스!` });
+            else if (isCross) this.eventsQueue.push({ type:'pass', from:from.name, to:to.name, desc:`↗️ ${from.name}, 크로스 올립니다!` });
+            else this.eventsQueue.push({ type:'pass', from:from.name, to:to.name, desc:`${from.name}, ${to.name}에게 연결!` });
+        } else {
+            const err = dist * 0.22;
+            const a = Math.random() * Math.PI * 2;
+            const ed = Math.random()*err + 4;
+            this.ball.targetPos = { x: clamp(to.x + Math.cos(a)*ed, 2, 98), y: clamp(to.y + Math.sin(a)*ed, 2, 98) };
+            const ev = isThrough ? 'throughpass' : 'pass';
+            const desc = isThrough ? `${from.name}의 스루패스가 차단됩니다.` : `${from.name}, 패스 미스!`;
+            this.eventsQueue.push({ type:ev, from:from.name, to:to.name, desc });
+        }
     }
 
     _isReceiverBehindDefLine(from, to) {
-        const isHome = from.teamId === 'home';
-        const oppFieldPlayers = this.players.filter(p => p.teamId !== from.teamId && p.position !== 'GK');
-        if (!oppFieldPlayers.length) return false;
-        if (isHome) {
-            const sorted = oppFieldPlayers.map(p => p.x).sort((a, b) => a - b);
-            const lineX  = sorted.length >= 2 ? sorted[1] : sorted[0];
-            return to.x > lineX;
-        } else {
-            const sorted = oppFieldPlayers.map(p => p.x).sort((a, b) => b - a);
-            const lineX  = sorted.length >= 2 ? sorted[1] : sorted[0];
-            return to.x < lineX;
-        }
+        const isHome = from.teamId==='home';
+        const lim = this._calcOffsideLineX(isHome);
+        return isHome ? to.x > lim : to.x < lim;
     }
 
     // ─────────────────────────────────────────────────────────────
-    // 4.14  DRIBBLE / CARRY
+    //  DRIBBLE V3 (NEVER STOP!)
     // ─────────────────────────────────────────────────────────────
-    _dribbleCarry(player, goalX, distToGoal, nearestOpp, underPressure, moveDir, effectiveSpeed, isWingerOnFlank) {
-        const speedFactor   = effectiveSpeed / 75;
-        const isBlocked     = this.checkFrontalBlock(player, goalX);
-        const canOutrun     = nearestOpp
-            ? effectiveSpeed > this.getEffectiveStat(nearestOpp.player, 'speed') + 5
-            : true;
-        const isOneOnOne    = (nearestOpp?.dist ?? 999) > 15;
+    _dribbleV3(player, goalX, moveDir, phase, underPressure, isWinger, distToGoal, nDef, effSpeed) {
+        const sf = effSpeed / 75;
+        const isBlockedFront = this._isFrontalBlocked(player, goalX);
+        const canOutrun = nDef ? (effSpeed > (this.getEffectiveStat(nDef.player,'speed') + 6)) : true;
+        let targetX, targetY, moveSpd;
 
-        let moveSpeed = 0.32 * clamp(speedFactor, 0.7, 1.4);
-        let targetX   = player.x + moveDir * 22;
-        let targetY   = player.y;
-
-        if (isWingerOnFlank) {
-            targetY   = player.y < 50 ? 4 : 96;
-            moveSpeed = 0.58;
-        } else if (isOneOnOne && !isBlocked && player.position === 'FW') {
-            targetX   = player.x + moveDir * 35;
-            moveSpeed = 0.55 * speedFactor;
-        } else if (isBlocked) {
-            if (canOutrun && Math.random() < 0.65) {
-                targetX   = player.x + moveDir * 28;
-                moveSpeed *= 1.4;
+        if (isWinger) {
+            // Winger: sprint along touchline
+            targetX = player.x + moveDir * 55;
+            targetY = player.y < 50 ? 8 : 92;
+            moveSpd = 0.85 * clamp(sf, 0.8, 1.8);
+            if (distToGoal < 35) { moveSpd *= 0.85; }
+        } else if (player.position === 'FW' && !underPressure && distToGoal < 65) {
+            // FW drive: attack diagonal towards goal
+            targetX = player.x + moveDir * 65;
+            targetY = clamp(player.y + (player.y < 50 ? 8 : -8), 12, 88);
+            moveSpd = 0.9 * clamp(sf, 0.85, 1.95);
+        } else if (underPressure || isBlockedFront) {
+            const evadeSign = nDef ? (nDef.player.y > player.y ? -1 : 1) : (player.y < 50 ? 1 : -1);
+            if (canOutrun) {
+                // Outrun diagonally away from nearest defender
+                targetX = player.x + moveDir * 42;
+                targetY = player.y + evadeSign * 12;
+                moveSpd = 0.78 * clamp(sf, 0.8, 1.8);
             } else {
-                const offset = 7;
-                targetY = nearestOpp
-                    ? (player.y < nearestOpp.player.y ? player.y - offset : player.y + offset)
-                    : player.y + (Math.random() < 0.5 ? offset : -offset);
-                targetX   = player.x + moveDir * 15;
-                moveSpeed *= 1.5;
+                // side step then still forward
+                targetY = player.y + evadeSign * 10;
+                targetX = player.x + moveDir * 28;
+                moveSpd = 0.7 * clamp(sf, 0.75, 1.7);
             }
+        } else if (phase === 'progressing') {
+            // Progressing: push hard forward
+            targetX = player.x + moveDir * 52;
+            targetY = clamp(player.y + (player.y < 50 ? 6 : -6), 8, 92);
+            moveSpd = 0.78 * clamp(sf, 0.8, 1.8);
+        } else if (phase === 'building') {
+            // Building: walk forward
+            targetX = player.x + moveDir * 32;
+            targetY = clamp(player.y + (player.y < 50 ? 4 : -4), 10, 90);
+            moveSpd = 0.55 * clamp(sf, 0.7, 1.5);
+        } else {
+            // finalThird: push to byline or shoot area
+            targetX = player.x + moveDir * 40;
+            targetY = clamp(player.y + (player.y < 50 ? 6 : -6), 10, 90);
+            moveSpd = 0.75 * clamp(sf, 0.78, 1.8);
         }
 
-        targetY = clamp(targetY, 2, 98);
-        const aX = (targetX - player.x) * moveSpeed * 0.1;
-        const aY = (targetY - player.y)  * moveSpeed * 0.1;
-        player.vx = (player.vx + aX) * 0.7;
-        player.vy = (player.vy + aY) * 0.7;
-        player.x  = clamp(player.x + player.vx, 5, 95);
-        player.y  = clamp(player.y + player.vy, 2, 98);
-        this.ball.lastOwner = null;
+        // ABSOLUTE: NO BACKWARD DRIBBLING (kills gameplay!)
+        if (moveDir === 1) targetX = Math.max(targetX, player.x + 6);
+        else               targetX = Math.min(targetX, player.x - 6);
+
+        // Final MF unstuck! If player near MF band edge and free ahead, let pass through
+        const isMF = player.position === 'MF';
+        const nearBand = (player.teamId==='home' && player.x > 82 && targetX > player.x)
+                      || (player.teamId==='away' && player.x < 18 && targetX < player.x);
+        if (isMF && nearBand && !underPressure && !this._numOpponentsAhead(player, 10, 18)) {
+            targetX += moveDir * 12; // let break through
+        }
+
+        targetX = clamp(targetX, 3, 97);
+        targetY = clamp(targetY, 4, 96);
+
+        this._physicsStep(player, targetX, targetY, moveSpd);
+
         this.ball.x = player.x; this.ball.y = player.y;
-
-        if (Math.random() < 0.2) this.eventsQueue.push({ type:'dribble', player: player.name });
+        this.ball.lastOwner = null;
+        if (Math.random() < 0.26) this.eventsQueue.push({ type:'dribble', player: player.name });
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // 4.15  GOALKEEPER AI
-    // ─────────────────────────────────────────────────────────────
-    processGoalkeeperAI(gk, underPressure) {
-        this.keepGoalkeeperHome(gk);
-
-        const closestAttacker = this.players
-            .filter(p => p.teamId !== gk.teamId && p.position === 'FW')
-            .sort((a, b) => Math.hypot(a.x - gk.x, a.y - gk.y) - Math.hypot(b.x - gk.x, b.y - gk.y))[0];
-
-        if (closestAttacker) {
-            const distAtt = Math.hypot(closestAttacker.x - gk.x, closestAttacker.y - gk.y);
-            if (distAtt < 20 && this.ball.owner === closestAttacker) {
-                const isHome = gk.teamId === 'home';
-                const advanceDir = isHome ? 1 : -1;
-                const advanceX = clamp(gk.x + advanceDir * 2, isHome ? 5 : 85, isHome ? 15 : 95);
-                gk.x = advanceX;
-                gk.y = 50 + (closestAttacker.y - 50) * 0.4;
-                if (this.ball.owner === gk) { this.ball.x = gk.x; this.ball.y = gk.y; }
-                return;
-            }
-        }
-
-        const safeTarget      = this._findGKPassTarget(gk, 'safe');
-        const aggressiveTarget = this._findGKPassTarget(gk, 'aggressive');
-
-        let target;
-        if (underPressure) {
-            target = safeTarget || aggressiveTarget;
-        } else {
-            target = (aggressiveTarget && Math.random() < 0.7)
-                ? aggressiveTarget
-                : (safeTarget || aggressiveTarget);
-        }
-
-        if (target) { this.executePass(gk, target, 'safe'); return; }
-        this.clearBall(gk);
-    }
-
-    _findGKPassTarget(gk, mode) {
-        const teammates = this.players.filter(p => p.teamId === gk.teamId && p !== gk);
-        const isHome    = gk.teamId === 'home';
-        const forwardX  = isHome ? 100 : 0;
-
-        if (mode === 'safe') {
-            const dfs = teammates.filter(p => p.position === 'DF');
-            if (dfs.length) {
-                return dfs.sort((a, b) =>
-                    Math.hypot(a.x-gk.x,a.y-gk.y) - Math.hypot(b.x-gk.x,b.y-gk.y)
-                )[0];
-            }
-            const mfs = teammates.filter(p => p.position === 'MF');
-            if (mfs.length) {
-                return mfs.sort((a, b) =>
-                    Math.hypot(a.x-gk.x,a.y-gk.y) - Math.hypot(b.x-gk.x,b.y-gk.y)
-                )[0];
-            }
-        } else {
-            let best = null, bestScore = -Infinity;
-            teammates.forEach(tm => {
-                if (tm.position === 'GK') return;
-                const dist = Math.hypot(gk.x - tm.x, gk.y - tm.y);
-                if (dist > 50) return;
-                const fwScore  = Math.abs(tm.x - forwardX) < Math.abs(gk.x - forwardX) ? 30 : -10;
-                let   pressScore = 0;
-                this.players.forEach(opp => {
-                    if (opp.teamId !== gk.teamId) {
-                        const d = Math.hypot(tm.x - opp.x, tm.y - opp.y);
-                        if (d < 12) pressScore -= (12 - d) * 3;
-                    }
-                });
-                const distScore = dist < 8 ? 20 : dist > 35 ? -(dist-35)*1.5 : 15;
-                const total = fwScore + pressScore + distScore;
-                if (total > bestScore) { bestScore = total; best = tm; }
-            });
-            return best;
-        }
-        return null;
-    }
-
-    keepGoalkeeperHome(gk) {
-        const homeX = gk.baseX || (gk.teamId === 'home' ? 5 : 95);
-        gk.x = homeX;
-        gk.y = clamp(50 + (this.ball.y - 50) * 0.08, 42, 58);
-        gk.vx = 0; gk.vy *= 0.2;
-        if (this.ball.owner === gk) { this.ball.x = gk.x; this.ball.y = gk.y; }
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // 4.16  PASS EXECUTION
-    // ─────────────────────────────────────────────────────────────
-    executePass(from, to, passKind = 'safe') {
-        this.ball.state = BallState.IN_FLIGHT;
-        this.ball._flightOrigin = { x: from.x, y: from.y };
-        this.ball.lastOwner         = from;
-        this.ball.intendedReceiver  = to;
-        this.ball.owner             = null;
-
-        const dist     = Math.hypot(from.x - to.x, from.y - to.y);
-        const tempoMod = this._getTempoModifiers();
-        let   accuracy = this.getEffectiveStat(from, 'passing');
-        if (to.burstTimer > 0) accuracy += 30;
-        accuracy += tempoMod.passSuccessModifier;
-
-        let distPenalty = Math.max(0, (dist - 20) * 0.8);
-        if (passKind === 'risky')  distPenalty *= 1.4;
-        if (passKind === 'safe')   distPenalty *= 0.7;
-
-        const isHome         = from.teamId === 'home';
-        const forwardX       = isHome ? 100 : 0;
-        const isBehindLine   = this._isReceiverBehindDefLine(from, to);
-        const isThroughPass  = isBehindLine
-            && (Math.abs(from.x - forwardX) > Math.abs(to.x - forwardX) + 5)
-            && dist > 10 && dist <= 40
-            && Math.abs(from.x - forwardX) < 65;
-
-        let successChance = accuracy - distPenalty;
-        if (from.position === 'GK' && dist > 50) successChance -= 15;
-        if (isThroughPass && accuracy > 75)       successChance += (accuracy - 75) * 1.5;
-        if (isThroughPass && to.burstTimer > 0)   successChance += 15;
-
-        const isBadPass = Math.random() * 100 > successChance;
-        const eventType = isThroughPass ? 'throughpass' : 'pass';
-
-        if (isBadPass) {
-            const errorMargin = dist * 0.25;
-            const angle  = Math.random() * Math.PI * 2;
-            const errDst = Math.random() * errorMargin + 5;
-            this.ball.targetPos = {
-                x: clamp(to.x + Math.cos(angle) * errDst, 2, 98),
-                y: clamp(to.y + Math.sin(angle) * errDst, 2, 98)
-            };
-            this.eventsQueue.push({ type: eventType, from: from.name, to: to.name,
-                desc: isThroughPass ? `${from.name}의 스루패스가 차단됩니다.` : `${from.name}, 패스 미스!` });
-        } else {
-            this.ball.targetPos = { x: to.x, y: to.y };
-            const desc = isThroughPass
-                ? `⚡ ${from.name}, ${to.name}에게 결정적인 스루패스!`
-                : `${from.name}, ${to.name}에게 연결!`;
-            this.eventsQueue.push({ type: eventType, from: from.name, to: to.name, desc });
-        }
-    }
-
-    clearBall(player) {
-        const isHome   = player.teamId === 'home';
-        const fwd      = isHome ? 1 : -1;
-        this.ball.state = BallState.IN_FLIGHT;
-        this.ball._flightOrigin = { x: player.x, y: player.y };
-        this.ball.owner     = null;
-        this.ball.lastOwner = player;
-        this.ball.targetPos = {
-            x: clamp(50 + fwd * (Math.random() * 10), 2, 98),
-            y: 20 + Math.random() * 60
-        };
-        this.eventsQueue.push({ type:'pass', from: player.name, to:'걷어내기',
-            desc:`${player.name}, 위험 지역을 벗어나게 걷어냅니다.` });
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // 4.17  SHOOTING
-    // ─────────────────────────────────────────────────────────────
-    attemptShoot(shooter, goalX) {
-        const oppTeamId = shooter.teamId === 'home' ? 'away' : 'home';
-        const gk        = this.players.find(p => p.teamId === oppTeamId && p.position === 'GK');
-        const gkRating  = gk ? this.getEffectiveStat(gk, 'defense') : 60;
-        const dist      = Math.abs(shooter.x - goalX);
-
-        const distFactor  = Math.max(0.7, 1.3 - dist / 40);
-        const distY       = Math.abs(shooter.y - 50);
-        let   angleFactor = 1.0;
-        if (distY > 8) {
-            const angle = Math.atan2(distY, Math.max(1, dist));
-            angleFactor = angle > 1.2 ? 0.15 : angle > 0.9 ? 0.4 : angle > 0.6 ? 0.7 : 0.9;
-        }
-
-        const effectiveShooting = this.getEffectiveStat(shooter, 'shooting');
-        const shotPower  = effectiveShooting * (0.8 + Math.random() * 0.4) * distFactor * angleFactor;
-        const savePower  = gkRating * (0.8 + Math.random() * 0.5) + 5;
-        let   goalChance = clamp(0.25 + (shotPower - savePower) * 0.0045, 0.04, 0.95);
-
-        this.ball.state = BallState.IN_FLIGHT;
-        this.ball._flightOrigin = { x: shooter.x, y: shooter.y };
-        this.ball.owner     = null;
-        this.ball.targetPos = { x: goalX, y: 45 + Math.random() * 10 };
-        this.pendingShot    = { isGoal: Math.random() < goalChance, shooter, goalX };
-    }
-
-    handleShotResult() {
-        const { isGoal, shooter, goalX } = this.pendingShot;
-        this.pendingShot = null;
-
-        if (isGoal) {
-            if (shooter.teamId === 'home') this.homeScore++;
-            else                           this.awayScore++;
-
-            this.ball.intendedReceiver = null;
-            const isHome   = shooter.teamId === 'home';
-            const myScore  = isHome ? this.homeScore : this.awayScore;
-            const oppScore = isHome ? this.awayScore : this.homeScore;
-            const assister = (this.ball.lastOwner && this.ball.lastOwner.teamId === shooter.teamId
-                           && this.ball.lastOwner.name !== shooter.name)
-                ? this.ball.lastOwner.name : null;
-
-            this.celebrationType   = myScore < oppScore ? 'quick_restart' : 'celebrate';
-            this.celebrationActor  = shooter;
-            if (this.celebrationType === 'quick_restart') {
-                this.celebrationTarget = { x: 50, y: 50 };
-            } else {
-                this.celebrationTarget = { x: isHome ? 100 : 0, y: shooter.y < 50 ? 0 : 100 };
-            }
-
-            this.eventsQueue.push({ type:'goal', scorer: shooter.name, team: shooter.teamId, assister });
-            this.lastScorerTeam   = shooter.teamId;
-            this.celebrationTimer = 40;
-            this.ball.state = BallState.DEAD; this.ball.lastOwner = null;
-
-            this._triggerTurnoverRecovery(shooter.teamId === 'home' ? 'away' : 'home');
-
-        } else {
-            this.ball.intendedReceiver = null;
-            shooter.forceReturnTimer = 60;
-
-            const oppTeamId = shooter.teamId === 'home' ? 'away' : 'home';
-            const isHomeAtt = shooter.teamId === 'home';
-            const enemyGk   = this.players.find(p => p.teamId !== shooter.teamId && p.position === 'GK');
-
-            const blockers = this.players.filter(p =>
-                p.teamId === oppTeamId && p.position !== 'GK'
-                && Math.abs(p.x - shooter.x) < 15 && Math.abs(p.y - shooter.y) < 5
-                && (isHomeAtt ? p.x > shooter.x : p.x < shooter.x)
-            );
-            if (blockers.length > 0 && Math.random() < 0.1) {
-                const blocker = blockers[0];
-                this.eventsQueue.push({ type:'block', shooter: shooter.name, blocker: blocker.name,
-                    desc:`🛡️ ${blocker.name}, 몸을 날려 슈팅을 막아냅니다!` });
-                this.ball.state = BallState.LOOSE; this.ball.owner = null;
-                this.ball.x = blocker.x + (isHomeAtt ? -5 :  5);
-                this.ball.y = blocker.y + (Math.random() - 0.5) * 15;
-                return;
-            }
-
-            if (enemyGk) {
-                const gkBaseX    = enemyGk.teamId === 'home' ? 5 : 95;
-                const newGkY     = clamp(this.ball.targetPos.y, 35, 65);
-                enemyGk.x = gkBaseX; enemyGk.y = newGkY;
-                this.ball.x = enemyGk.x; this.ball.y = enemyGk.y;
-
-                if (Math.random() < 0.15) {
-                    this.eventsQueue.push({ type:'save', shooter: shooter.name, gk: enemyGk.name,
-                        desc:`🧤 ${enemyGk.name}, 슈팅을 펀칭으로 쳐냅니다!` });
-                    this.ball.state = BallState.LOOSE; this.ball.owner = null;
-                    this.ball.x = enemyGk.x + (isHomeAtt ? -10 : 10);
-                    this.ball.y = enemyGk.y + (Math.random() - 0.5) * 30;
-                } else {
-                    this.eventsQueue.push({ type:'save', shooter: shooter.name, gk: enemyGk.name,
-                        desc:`🧤 ${enemyGk.name}, 안정적으로 공을 잡아냅니다.` });
-                    this.ball.state = BallState.CONTROLLED; this.ball.owner = enemyGk;
-                    this.ball.x = enemyGk.x; this.ball.y = enemyGk.y;
-                }
-            } else {
-                this.eventsQueue.push({ type:'miss', shooter: shooter.name,
-                    desc:`🥅 ${shooter.name}의 슈팅이 골문을 벗어납니다.` });
-                this.ball.state = BallState.LOOSE;
-                this.ball.x = goalX === 0 ? 5 : 95; this.ball.y = 50;
-            }
-        }
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // 4.18  TURNOVER REACTION
-    // ─────────────────────────────────────────────────────────────
-    _triggerTurnoverRecovery(losingTeamId) {
-        this.players.forEach(p => {
-            if (p.teamId !== losingTeamId) return;
-            if      (p.position === 'DF') { p._recoveryMode = 'immediate'; p._recoveryDelay = 0; }
-            else if (p.position === 'MF') {
-                const roll = Math.random();
-                if (roll < 0.6)       { p._recoveryMode = 'delayed';   p._recoveryDelay = 4 + Math.floor(Math.random() * 6); }
-                else if (roll < 0.85) { p._recoveryMode = 'hold';      p._recoveryDelay = 8; }
-                else                  { p._recoveryMode = 'immediate'; p._recoveryDelay = 0; }
-            } else if (p.position === 'FW') {
-                p._recoveryMode  = 'frozen';
-                p._recoveryDelay = 6 + Math.floor(Math.random() * 8);
-            }
-        });
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // 4.19  IN-FLIGHT INTERCEPTION
-    // ─────────────────────────────────────────────────────────────
-    checkInterception() {
-        if (this.ball.state !== BallState.IN_FLIGHT) return;
-        if (this.pendingShot) return;
-
-        const bx = this.ball.x, by = this.ball.y;
-        const ox = this.ball._flightOrigin.x, oy = this.ball._flightOrigin.y;
-        const tx = this.ball.targetPos.x,     ty = this.ball.targetPos.y;
-
-        this.players.forEach(p => {
-            if (this.ball.lastOwner && p.teamId === this.ball.lastOwner.teamId) return;
-            if (p._stealCooldown > 0) return;
-
-            const distToBall = Math.hypot(p.x - bx, p.y - by);
-            if (distToBall > 6) return;
-
-            const flx = tx - ox, fly = ty - oy;
-            const fLen2 = flx * flx + fly * fly;
-            let traj = 0;
-            if (fLen2 > 0.001) {
-                traj = clamp(((p.x - ox) * flx + (p.y - oy) * fly) / fLen2, 0, 1);
-            }
-            const nearX = ox + traj * flx, nearY = oy + traj * fly;
-            const proximity = Math.hypot(p.x - nearX, p.y - nearY);
-
-            const tackleStat = this.getEffectiveStat(p, 'tackle') || this.getEffectiveStat(p, 'defense');
-            const speedStat  = this.getEffectiveStat(p, 'speed');
-            const proximityBonus = Math.max(0, (6 - proximity) / 6);
-            const chance = 0.004 + (tackleStat / 3000) + (speedStat / 5000) + proximityBonus * 0.025;
-
-            if (Math.random() < chance) {
-                this.ball.state = BallState.CONTROLLED;
-                this.ball.owner = p;
-                this.ball.intendedReceiver = null;
-                this.ball.lastOwner = null;
-                p._stealCooldown = 20;
-                this.eventsQueue.push({ type:'tackle', player: p.name,
-                    desc:`${p.name}, 날카로운 패스 차단!` });
-
-                const losingTeam = (p.teamId === 'home') ? 'away' : 'home';
-                this._triggerTurnoverRecovery(losingTeam);
-            }
-        });
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // 4.20  OFF-BALL AI
-    // ─────────────────────────────────────────────────────────────
-    processOffBallAI() {
-        let attackingTeam = null;
-        if (this.ball.owner) attackingTeam = this.ball.owner.teamId;
-        else if (this.ball.state === BallState.IN_FLIGHT && this.ball.lastOwner)
-            attackingTeam = this.ball.lastOwner.teamId;
-
-        const isLoose = !this.ball.owner && this.ball.state === BallState.LOOSE;
-
-        let nearestHome = null, nearestAway = null;
-        if (isLoose) {
-            let dH = 999, dA = 999;
-            this.players.forEach(p => {
-                const d = Math.hypot(p.x - this.ball.x, p.y - this.ball.y);
-                if (p.teamId === 'home' && d < dH) { dH = d; nearestHome = p; }
-                if (p.teamId === 'away' && d < dA) { dA = d; nearestAway = p; }
-            });
-        }
-
-        let presser = null;
-        if (this.ball.owner && attackingTeam) {
-            let minD = 999;
-            this.players.forEach(p => {
-                if (p.teamId === attackingTeam) return;
-                const d = Math.hypot(p.x - this.ball.x, p.y - this.ball.y);
-                if (d < minD) { minD = d; presser = p; }
-            });
-        }
-
-        this.players.forEach(p => {
-            if (p === this.ball.owner) return;
-
-            // ── Recovery mode tick ──
-            if (p._recoveryDelay > 0) {
-                p._recoveryDelay--;
-                if (p._recoveryMode === 'frozen') {
-                    p.vx *= 0.3; p.vy *= 0.3;
-                    p.x += p.vx; p.y += p.vy;
-                    return;
-                }
-                if (p._recoveryMode === 'hold' || p._recoveryMode === 'delayed') {
-                    const ax = (p.baseX - p.x) * 0.02;
-                    const ay = (p.baseY - p.y) * 0.02;
-                    p.vx = (p.vx + ax) * 0.7; p.vy = (p.vy + ay) * 0.7;
-                    p.x += p.vx; p.y += p.vy;
-                    return;
-                }
-            }
-            if (p._recoveryDelay <= 0 && p._recoveryMode) p._recoveryMode = null;
-
-            const behavior     = this.getRoleBehavior(p.role);
-            const effectiveSpd = this.getEffectiveStat(p, 'speed');
-            const speedFactor  = effectiveSpd / 75;
-            let   moveSpeed    = 0.22 * clamp(speedFactor, 0.7, 1.4);
-
-            // ── FW는 상대팀이 공을 가지고 있으면 무조건 수비 복귀 ──
-            // attackingTeam 에 관계없이 공 소유 팀이 상대팀이면 수비 처리
-            const oppHasBall = this.ball.owner && this.ball.owner.teamId !== p.teamId;
-            const oppInFlight = this.ball.state === BallState.IN_FLIGHT &&
-                                this.ball.lastOwner && this.ball.lastOwner.teamId !== p.teamId;
-            const isDefending = oppHasBall || oppInFlight;
-
-            const isAttacking  = !isDefending && (p.teamId === attackingTeam);
-            const isHome       = p.teamId === 'home';
-            const forwardDir   = isHome ? 1 : -1;
-            const isHomeDef    = isHome;
-
-            let targetX = p.x, targetY = p.y;
-
-            // ──────────────────────────────────────────────────────────
-            if (isLoose) {
-                const isNearest = (p === nearestHome || p === nearestAway);
-                if (isNearest) {
-                    targetX = this.ball.x; targetY = this.ball.y; moveSpeed = 0.55;
-                } else {
-                    targetX = p.baseX + (this.ball.x - p.baseX) * 0.15;
-                    targetY = p.baseY + (this.ball.y - p.baseY) * 0.15;
-                    moveSpeed = 0.15;
-                }
-
-            } else if (isAttacking) {
-                // ── ATTACKING OFF-BALL ──
-
-                if (this.ball.state === BallState.IN_FLIGHT && p === this.ball.intendedReceiver) {
-                    targetX = this.ball.targetPos.x; targetY = this.ball.targetPos.y; moveSpeed = 0.7;
-
-                } else if (p === this.ball.lastOwner && p.position !== 'GK' &&
-                           !['CD','BPD','NCB'].includes(p.role)) {
-                    targetX = p.x + forwardDir * 15;
-                    targetY = p.y + (this.ball.y - p.y) * 0.3;
-                    moveSpeed = 0.4;
-
-                } else if (p.position === 'FW') {
-                    this._processAttackingFWMovement(p, isHome, forwardDir, speedFactor, behavior);
-                    return;
-
-                } else if (p.position === 'MF') {
-                    const ab = behavior.attackBias || 0;
-                    const db = behavior.defenseBias || 0;
-                    let ballW = clamp(0.6 + ab * 0.4 - db * 0.3, 0.2, 0.95);
-                    targetX = p.baseX * (1 - ballW) + this.ball.x * ballW;
-                    targetY = p.baseY * (1 - ballW) + this.ball.y * ballW;
-                    if (ab > 0.3) targetX += forwardDir * ab * 12;
-                    if (Math.abs(p.y - this.ball.y) < 3) targetY += (p.y > 50 ? 4 : -4);
-                    const mfMaxX = isHome ? 74 : 26;
-                    targetX = isHome ? Math.min(targetX, mfMaxX) : Math.max(targetX, mfMaxX);
-
-                    const dt = gameData.deepTactics || {};
-                    const pressOK = dt.pressIntensity === 'high' || behavior.pressBias > 0.2;
-                    if (pressOK && this.ball.owner && this.ball.owner.teamId !== p.teamId) {
-                        const dBall = Math.hypot(p.x - this.ball.x, p.y - this.ball.y);
-                        if (dBall < 20) { targetX = this.ball.x; targetY = this.ball.y; moveSpeed = 0.4; }
-                    }
-
-                } else if (p.position === 'DF') {
-                    this._processAttackingDFMovement(p, isHome, forwardDir);
-                    return;
-
-                } else if (p.position === 'GK') {
-                    targetX = p.baseX; targetY = clamp(50 + (this.ball.y - 50) * 0.05, 40, 60);
-                }
-
-                if (behavior.cutInside) targetY = 50 + (p.baseY - 50) * 0.5;
-                else if (behavior.hugLine) targetY = p.baseY < 50 ? 5 : 95;
-
-            } else {
-                // ── DEFENSIVE OFF-BALL ──
-                this._processDefensiveMovement(p, presser, isHomeDef, speedFactor, moveSpeed, behavior);
-                return;
-            }
-
-            this._applyMovement(p, targetX, targetY, moveSpeed);
-        });
-    }
-
-    _processAttackingFWMovement(p, isHome, forwardDir, speedFactor, behavior) {
-        if (!p.burstTimer) p.burstTimer = 0;
-        if (!p.forceReturnTimer) p.forceReturnTimer = 0;
-
-        // ── [FIX 1] 공격수 위치 절대 하드캡 ──
-        // home FW: x는 반드시 38~96 사이 / away FW: x는 반드시 4~62 사이
-        const FW_MIN_X = isHome ? 38 : 4;
-        const FW_MAX_X = isHome ? 96 : 62;
-
-        // 오프사이드 라인 계산
-        const offsideLimitX = this._calcOffsideLineX(isHome);
-
-        // forceReturnTimer가 있으면 무조건 복귀
-        if (p.forceReturnTimer > 0) {
-            p.forceReturnTimer--;
-            p.burstTimer = 0;
-            const safeX = this._getSafeReturnX(p, isHome);
-            this._pullBackFW(p, safeX, isHome, speedFactor, 0.9 * speedFactor);
-            // 하드캡 적용
-            p.x = clamp(p.x, FW_MIN_X, FW_MAX_X);
-            return;
-        }
-
-        // ── [FIX 1] 공이 뒤에 있으면 즉시 복귀 (기준 강화) ──
-        // 이전: ball.x < p.x - 20 → 개선: ball.x < p.x - 10 (더 민감하게)
-        const ballFarBehind = isHome ? this.ball.x < p.x - 10 : this.ball.x > p.x + 10;
-        const hasFriendlyBall = this.ball.owner && this.ball.owner.teamId === p.teamId;
-        if (ballFarBehind) {
-            const safeX = this._getSafeReturnX(p, isHome);
-            const pullSpeed = ballFarBehind ? 1.1 * speedFactor : 0.9 * speedFactor;
-            this._pullBackFW(p, safeX, isHome, speedFactor, pullSpeed);
-            // 하드캡 적용
-            p.x = clamp(p.x, FW_MIN_X, FW_MAX_X);
-            return;
-        }
-
-        // Burst logic
-        if (p.burstTimer > 0) p.burstTimer--;
-        if (p.burstTimer === 0) {
-            const isCentralFW = !behavior.hugLine;
-            let burstChance = hasFriendlyBall && this.ball.owner?.position !== 'FW'
-                ? (isCentralFW ? 0.14 : 0.06)
-                : (isCentralFW ? 0.04 : 0.02);
-            if (behavior.runBehind) burstChance *= 1.5;
-            if (Math.random() < burstChance) p.burstTimer = 30;
-        }
-
-        const isCentralFW = !behavior.hugLine;
-        const ballPushX   = this.ball.x + forwardDir * 18;
-        let   targetX     = ballPushX;
-
-        if (isCentralFW) {
-            const cfTargetX = isHome
-                ? Math.min(this.ball.x + 12, offsideLimitX - 2)
-                : Math.max(this.ball.x - 12, offsideLimitX + 2);
-            targetX = isHome ? Math.max(targetX, cfTargetX) : Math.min(targetX, cfTargetX);
-        } else {
-            const fwMinX = isHome ? this.ball.x + 5 : this.ball.x - 5;
-            targetX = isHome ? Math.max(targetX, fwMinX) : Math.min(targetX, fwMinX);
-        }
-
-        let moveSpeed = 0.28 * speedFactor;
-        if (p.burstTimer > 0) moveSpeed = 0.4 * speedFactor;
-
-        // 오프사이드 라인 적용
-        targetX = isHome
-            ? Math.min(targetX, offsideLimitX - 1)
-            : Math.max(targetX, offsideLimitX + 1);
-
-        this._enforceOffsideLine(p, isHome);
-
-        const nearOpp  = this.findNearestDefender(p);
-        const avoidY   = (nearOpp && nearOpp.dist < 4)
-            ? (p.y > nearOpp.player.y ? 4 : -4) : 0;
-        const yRange   = isCentralFW ? 20 : 6;
-        const yBallPull = isCentralFW ? (this.ball.y - p.baseY) * 0.30 : 0;
-        let   targetY  = clamp(p.baseY + avoidY + yBallPull, p.baseY - yRange, p.baseY + yRange);
-
-        if (behavior.hugLine) { targetY = p.baseY < 50 ? 5 : 95; targetX += forwardDir * 8; }
-
-        // 오프사이드 + 하드캡 이중 적용
-        targetX = isHome
-            ? Math.min(targetX, offsideLimitX - 1)
-            : Math.max(targetX, offsideLimitX + 1);
-        targetX = clamp(targetX, FW_MIN_X, FW_MAX_X);
-
-        this._applyMovement(p, targetX, targetY, moveSpeed);
-
-        // ── [FIX 1] 이동 후에도 반드시 하드캡 재적용 (velocity 누적 방지) ──
-        p.x = clamp(p.x, FW_MIN_X, FW_MAX_X);
-        if (isHome  && p.vx < 0 && p.x <= FW_MIN_X) p.vx = 0;
-        if (!isHome && p.vx > 0 && p.x >= FW_MAX_X) p.vx = 0;
-    }
-
-    _processAttackingDFMovement(p, isHome, forwardDir) {
-        const dt          = gameData.deepTactics || {};
-        const lineTactic  = dt.defensiveLine || 'standard';
-        let   safetyDist  = lineTactic === 'high' ? 14 : lineTactic === 'deep' ? 32 : 22;
-        let   targetX;
-        if (isHome) targetX = clamp(Math.max(p.baseX, this.ball.x - safetyDist), 0, 75);
-        else        targetX = clamp(Math.min(p.baseX, this.ball.x + safetyDist), 25, 100);
-
-        const isCB     = ['CD','BPD','NCB'].includes(p.role);
-        const targetY  = isCB
-            ? clamp(p.baseY * 0.15 + 50 * 0.85, 35, 65)
-            : p.baseY;
-        this._applyMovement(p, targetX, targetY, 0.22);
-    }
-
-    _processDefensiveMovement(p, presser, isHomeDef, speedFactor, moveSpeed, behavior) {
-        const isHome = p.teamId === 'home';
-        const dt     = gameData.deepTactics || {};
-
-        if (p.position === 'FW') {
-            // ── [FIX 3] 수비 시 FW 하프라인 복귀 강화 ──
-            p.burstTimer = 0;
-
-            // 하프라인 목표값 (home FW → 최대 46, away FW → 최소 54)
-            const HALFLINE_HOME = 46;
-            const HALFLINE_AWAY = 54;
-            const halflineTarget = isHome ? HALFLINE_HOME : HALFLINE_AWAY;
-
-            // 하프라인을 이미 넘어선 경우 강제 급속 복귀
-            const overHalfline = isHome ? p.x > halflineTarget : p.x < halflineTarget;
-            if (overHalfline) {
-                const pullDir = isHome ? -1 : 1;
-                // 얼마나 넘어섰는지에 비례해서 속도 증가
-                const excess = isHome ? (p.x - halflineTarget) : (halflineTarget - p.x);
-                const pullSpeed = clamp(3.5 + excess * 0.15, 3.5, 7.0) * speedFactor;
-                p.x += pullDir * pullSpeed;
-                p.vx = pullDir * pullSpeed * 0.5;
-            }
-
-            // 하드캡: 절대로 하프라인 너머에 남아있지 않음
-            if (isHome)  p.x = Math.min(p.x, halflineTarget + 0.5);
-            else         p.x = Math.max(p.x, halflineTarget - 0.5);
-            // velocity도 반대 방향이면 0으로
-            if (isHome && p.vx > 0)  p.vx = 0;
-            if (!isHome && p.vx < 0) p.vx = 0;
-
-            // Y축은 baseY로 천천히 복귀
-            this._applyMovement(p, halflineTarget, p.baseY, 0.7 * speedFactor);
-
-            // 이동 후 재확인
-            if (isHome)  p.x = Math.min(p.x, halflineTarget + 0.5);
-            else         p.x = Math.max(p.x, halflineTarget - 0.5);
-            return;
-        }
-
-        // MF defensive: role-dependent (hold OR press)
-        if (p.position === 'MF') {
-            const pressIntensity = dt.pressIntensity || 'mid';
-            const shiftF = clamp(0.95 + (behavior.defenseBias||0)*0.1 - (behavior.attackBias||0)*0.2, 0.6, 1.1);
-            moveSpeed = 0.22 * (1 + (behavior.defenseBias||0));
-
-            const shouldPress = behavior.pressBias > 0.2
-                || pressIntensity === 'high'
-                || (pressIntensity === 'mid' && behavior.defenseBias > 0.3);
-
-            if (shouldPress && this.ball.owner && this.ball.owner.teamId !== p.teamId) {
-                const dBall = Math.hypot(p.x - this.ball.x, p.y - this.ball.y);
-                if (dBall < 25) {
-                    this._stepTowardBall(p, speedFactor, presser);
-                    return;
-                }
-            }
-            const refBallX  = this.pendingShot ? 50 : clamp(this.ball.x, 30, 70);
-            const formationX = p.baseX + (refBallX - 50) * shiftF;
-            const formationY = p.baseY + (this.ball.y - 50) * 0.2;
-            this._applyMovement(p, formationX, formationY, moveSpeed);
-            return;
-        }
-
-        // DF: maintain defensive line
-        if (p.position === 'DF') {
-            const lineTactic = dt.defensiveLine || 'standard';
-            const lineOffset = lineTactic === 'high' ? -10 : lineTactic === 'deep' ? 10 : 0;
-            const isSpecial  = !!this.pendingShot;
-            const refBallX   = isSpecial ? 50 : clamp(this.ball.x, 30, 70);
-            const shiftF     = 0.75;
-            let   formationX = p.baseX + (refBallX - 50) * shiftF + lineOffset * (isHome ? -1 : 1);
-            let   formationY = p.baseY + (this.ball.y - 50) * 0.05;
-
-            const isCB = ['CD','BPD','NCB'].includes(p.role);
-            let markTarget = null;
-            if (!isSpecial) {
-                const alreadyMarked = new Set(
-                    this.players
-                        .filter(a => a.teamId === p.teamId && a !== p && typeof a._markTargetId === 'string')
-                        .map(a => a._markTargetId)
-                );
-                let minM = 999;
-                this.players.forEach(opp => {
-                    if (opp.teamId !== p.teamId && opp.position !== 'GK' && opp !== this.ball.owner) {
-                        if (alreadyMarked.has(opp.id)) return;
-                        if (isCB) {
-                            const ob = this.getRoleBehavior(opp.role);
-                            if (ob.hugLine || opp.y < 20 || opp.y > 80) return;
-                        }
-                        const d = Math.hypot(p.x - opp.x, p.y - opp.y);
-                        const inDanger = isHome ? opp.x < 40 : opp.x > 60;
-                        if (inDanger && d < minM) { minM = d; markTarget = opp; }
-                    }
-                });
-                p._markTargetId = markTarget ? markTarget.id : null;
-            }
-
-            if (markTarget) {
-                const gX     = isHome ? 0 : 100;
-                const markX  = markTarget.x + (gX - markTarget.x) * 0.15;
-                const isPen  = isHome ? markX < formationX : markX > formationX;
-                const finalX = isPen
-                    ? markX * 0.85 + formationX * 0.15
-                    : markX * 0.3  + formationX * 0.7;
-                this._applyMovement(p, finalX, markTarget.y, 0.35);
-            } else {
-                if (this.ball.owner && !isSpecial) {
-                    const dB = Math.hypot(p.x - this.ball.x, p.y - this.ball.y);
-                    const inOwnHalf = isHome ? this.ball.x < 35 : this.ball.x > 65;
-                    const shouldStep = (p === presser) || (inOwnHalf && dB < 15);
-                    if (shouldStep) {
-                        this._stepTowardBall(p, speedFactor, presser);
-                        return;
-                    }
-                }
-                const beaten = isHome ? this.ball.x < p.x - 2 : this.ball.x > p.x + 2;
-                if (beaten && !isSpecial) {
-                    const rX = this.ball.x + (isHome ? -15 : 15);
-                    const dx = rX - p.x, dy = this.ball.y - p.y;
-                    const d  = Math.hypot(dx, dy);
-                    if (d > 0) { p.x += (dx/d)*2.2*speedFactor; p.y += (dy/d)*2.2*speedFactor; }
-                    return;
-                }
-                this._applyMovement(p, formationX, formationY, 0.22);
-            }
-            return;
-        }
-
-        // GK
-        if (p.position === 'GK') {
-            const gX = isHome ? 5 : 95;
-            this._applyMovement(p, gX, clamp(50 + (this.ball.y - 50) * 0.05, 40, 60), 0.22);
-        }
-    }
-
-    _stepTowardBall(p, speedFactor, presser) {
-        const isHome = p.teamId === 'home';
-        const iX = this.ball.x * 0.9 + (isHome ? 0 : 100) * 0.1;
-        const dx = iX - p.x, dy = (this.ball.y * 0.9 + 50 * 0.1) - p.y;
-        const d  = Math.hypot(dx, dy);
-        const sS = 2.3 * speedFactor;
-        if (d > 0) { p.x += (dx/d)*sS; p.y += (dy/d)*sS; }
-
-        const dB = Math.hypot(p.x - this.ball.x, p.y - this.ball.y);
-        const tC = dB < 2 ? 0.2 : dB < 5 ? 0.1 : 0.05;
-        if (dB < 5 && p._stealCooldown === 0 && Math.random() < tC) {
-            this.attemptTackle(p, this.ball.owner);
-        }
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // 4.21  MOVEMENT HELPERS
-    // ─────────────────────────────────────────────────────────────
-    _applyMovement(p, targetX, targetY, moveSpeed) {
-        // ── [FIX 2] CB 간격 보정 강화 ──
-        const isCB = ['CD','BPD','NCB'].includes(p.role);
-        if (isCB && p.position === 'DF') {
-            const otherCBs = this.players.filter(q =>
-                q.teamId === p.teamId && q !== p &&
-                ['CD','BPD','NCB'].includes(q.role) && q.position === 'DF'
-            );
-            for (const cb2 of otherCBs) {
-                const CB_GAP_MIN = 6;   // CB끼리 최소 Y 간격 (기존 4 → 6으로 상향)
-                const CB_GAP_MAX = 14;  // CB끼리 최대 Y 간격 (기존 12 → 14로 소폭 상향, 하드캡 강화)
-                const dy  = targetY - cb2.y;
-                const abs = Math.abs(dy);
-                const dir = dy >= 0 ? 1 : -1;
-
-                if (abs < CB_GAP_MIN) {
-                    targetY = cb2.y + dir * CB_GAP_MIN;
-                } else if (abs > CB_GAP_MAX) {
-                    targetY = cb2.y + dir * CB_GAP_MAX;
-                }
-
-                // ── [FIX 2] 실제 p.y 교정 + velocity 완전 억제 ──
-                const dyActual = p.y - cb2.y;
-                if (Math.abs(dyActual) > CB_GAP_MAX) {
-                    // 한 번에 교정 (gap_max 정확히 맞춤)
-                    p.y  = cb2.y + (dyActual >= 0 ? 1 : -1) * CB_GAP_MAX;
-                    p.vy = 0;  // velocity 완전 리셋 (기존엔 *0.05 → 누적 가능했음)
-                }
-            }
-        } else if (p.position === 'DF') {
-            const allDF = this.players.filter(q => q.teamId === p.teamId && q !== p && q.position === 'DF');
-            for (const tm of allDF) {
-                const dy  = targetY - tm.y;
-                const abs = Math.abs(dy);
-                const dir = dy >= 0 ? 1 : -1;
-                if (abs < 2.0) targetY = tm.y + dir * 2.0;
-            }
-        }
-
-        // Collision avoidance with all teammates
-        const allTM = this.players.filter(q => q.teamId === p.teamId && q !== p);
-        for (const tm of allTM) {
-            const d = Math.hypot(targetX - tm.x, targetY - tm.y);
-            if (d < 5) {
-                const a = Math.atan2(targetY - tm.y, targetX - tm.x);
-                targetX += Math.cos(a) * (5 - d) * 0.5;
-                targetY += Math.sin(a) * (5 - d) * 0.5;
-            }
-        }
-
-        targetX = clamp(targetX, 2, 98);
-        targetY = clamp(targetY, 2, 98);
-
-        const aX = (targetX - p.x) * moveSpeed * 0.1;
-        const aY = (targetY - p.y) * moveSpeed * 0.1;
-        p.vx = (p.vx + aX) * 0.7;
-        p.vy = (p.vy + aY) * 0.7;
-        p.x += p.vx;
-        p.y += p.vy;
-    }
-
-    _getSafeReturnX(p, isHome) {
-        // ── [FIX 3] FW 복귀 목표값 강화 ──
-        // 무조건 하프라인(46/54) 이하로 복귀시킴
-        const HALFLINE_HOME = 46;
-        const HALFLINE_AWAY = 54;
-
-        const ourTeam = this.players.filter(q => q.teamId === p.teamId && q !== p);
-        if (isHome) {
-            const sorted = ourTeam.map(q => q.x).sort((a, b) => a - b);
-            const teamRef = sorted[1] ?? sorted[0] ?? 30;
-            // 팀 최저선 또는 하프라인 중 더 뒤쪽으로 (더 보수적으로)
-            return clamp(Math.min(teamRef, p.baseX, HALFLINE_HOME), 10, HALFLINE_HOME);
-        } else {
-            const sorted = ourTeam.map(q => q.x).sort((a, b) => b - a);
-            const teamRef = sorted[1] ?? sorted[0] ?? 70;
-            return clamp(Math.max(teamRef, p.baseX, HALFLINE_AWAY), HALFLINE_AWAY, 90);
-        }
-    }
-
-    _pullBackFW(p, safeX, isHome, speedFactor, moveSpeed) {
-        this._applyMovement(p, safeX, p.baseY, moveSpeed);
-        const tooFar = isHome ? p.x > safeX + 2 : p.x < safeX - 2;
-        if (tooFar) {
-            const pullDir = isHome ? -1 : 1;
-            p.x += pullDir * 4.0 * speedFactor;
-        }
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // 4.22  DEFENSIVE LINE ADJUSTMENT
-    // ─────────────────────────────────────────────────────────────
-    adjustDefensiveLines() {
-        // Line shift is applied in _processDefensiveMovement/formationX calc above.
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // 4.23  OFFSIDE HELPERS
-    // ─────────────────────────────────────────────────────────────
-    _calcOffsideLineX(isHomeFW) {
-        const defendingTeamId = isHomeFW ? 'away' : 'home';
-        const defenders = this.players.filter(q => q.teamId === defendingTeamId);
-        if (isHomeFW) {
-            const sorted = defenders.map(q => q.x).sort((a, b) => a - b);
-            return Math.min(sorted[1] ?? sorted[0] ?? 90, 88);
-        } else {
-            const sorted = defenders.map(q => q.x).sort((a, b) => b - a);
-            return Math.max(sorted[1] ?? sorted[0] ?? 10, 12);
-        }
-    }
-
-    _enforceOffsideLine(player, isHomeFW) {
-        const limit   = this._calcOffsideLineX(isHomeFW);
-        const offside = isHomeFW ? player.x > limit : player.x < limit;
-        if (offside) {
-            player.x  = isHomeFW ? Math.min(player.x, limit - 1) : Math.max(player.x, limit + 1);
-            player.vx *= 0.1;
-        }
-        return limit;
-    }
-
-    applyOffsideCheck(targetPos, player) {
-        const oppTeamId = player.teamId === 'home' ? 'away' : 'home';
-        const opponents = this.players.filter(p => p.teamId === oppTeamId);
-        if (player.teamId === 'home') {
-            opponents.sort((a, b) => b.x - a.x);
-            if (opponents.length < 2) return targetPos;
-            const limitX = Math.max(opponents[1].x, this.ball.x);
-            if (targetPos.x > limitX) targetPos.x = limitX - 2;
-        } else {
-            opponents.sort((a, b) => a.x - b.x);
-            if (opponents.length < 2) return targetPos;
-            const limitX = Math.min(opponents[1].x, this.ball.x);
-            if (targetPos.x < limitX) targetPos.x = limitX + 2;
-        }
-        return targetPos;
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // 4.24  MISC HELPERS
-    // ─────────────────────────────────────────────────────────────
-    checkFrontalBlock(player, goalX) {
-        const fwd = player.teamId === 'home' ? 1 : -1;
-        const checkDist = 8, checkWidth = 4;
-        const minY = player.y - checkWidth, maxY = player.y + checkWidth;
-        const minX = fwd === 1 ? player.x          : player.x - checkDist;
-        const maxX = fwd === 1 ? player.x + checkDist : player.x;
-        return this.players.some(opp =>
-            opp.teamId !== player.teamId &&
-            opp.x >= minX && opp.x <= maxX &&
-            opp.y >= minY && opp.y <= maxY
+    _isFrontalBlocked(player, goalX) {
+        const isHome = player.teamId === 'home';
+        const checkX = isHome ? player.x + 10 : player.x - 10;
+        return this.players.some(p =>
+            p.teamId !== player.teamId && p.position !== 'GK' &&
+            Math.abs(p.x - checkX) < 10 && Math.abs(p.y - player.y) < 10
         );
     }
 
-    findBestPassTarget(player, mode = 'aggressive') {
-        const gameState = mode === 'safe' ? 'buildup' : this._getGameState(player.teamId);
-        const teammates = this.players.filter(p => p.teamId === player.teamId && p !== player);
-        if (!teammates.length) return null;
-        return teammates
-            .map(tm => ({ tm, score: this._scorePassOption(player, tm, gameState) * (mode === 'safe' ? -1 : 1) }))
-            .sort((a, b) => b.score - a.score)[0].tm;
-    }
-
-    findNearestDefender(attacker) {
-        let nearest = null, minD = 999;
-        this.players.forEach(p => {
-            if (p.teamId !== attacker.teamId) {
-                const d = Math.hypot(p.x - attacker.x, p.y - attacker.y);
-                if (d < minD) { minD = d; nearest = p; }
-            }
-        });
-        return nearest ? { player: nearest, dist: minD } : null;
-    }
-
-    attemptTackle(defender, attacker) {
-        if (!attacker) return false;
-        if (defender._stealCooldown > 0) return false;
-
-        const defStat  = this.getEffectiveStat(defender, 'defense');
-        const atkStat  = this.getEffectiveStat(attacker,  'decision');
-        const atkSpeed = this.getEffectiveStat(attacker,  'speed');
-        const speedBonus = (atkSpeed / 100) * 30;
-
-        if (defStat * Math.random() > (atkStat + speedBonus) * Math.random()) {
-            this.ball.owner = defender;
-            this.ball.lastOwner = null;
-            defender._stealCooldown = 20;
-            this.eventsQueue.push({ type:'tackle', player: defender.name,
-                desc:`${defender.name}의 태클 성공!` });
-            this._triggerTurnoverRecovery(attacker.teamId);
-            return true;
+    _numOpponentsAhead(player, xAhead, yBand) {
+        const isHome = player.teamId==='home';
+        const cx = isHome ? player.x + xAhead : player.x - xAhead;
+        let n = 0;
+        for (const p of this.players) {
+            if (p.teamId === player.teamId || p.position==='GK') continue;
+            if (Math.abs(p.x - cx) < 15 && Math.abs(p.y - player.y) < yBand) n++;
         }
-        return false;
-    }
-
-    getRoleBehavior(role) {
-        const behaviors = {
-            AF:  { runBehind:true,  shootBias:0.2, dribbleBias:0.1 },
-            P:   { runBehind:true,  shootBias:0.3, passBias:-0.2 },
-            DLF: { comeShort:true,  passBias:0.1 },
-            F9:  { comeShort:true,  dribbleBias:0.1, passBias:0.1 },
-            TM:  { comeShort:true,  holdUp:true },
-            CF:  { comeShort:true,  shootBias:0.1 },
-            W:   { hugLine:true,    dribbleBias:0.2, crossBias:0.2 },
-            IF:  { cutInside:true,  shootBias:0.1, dribbleBias:0.2 },
-            IW:  { cutInside:true,  dribbleBias:0.15 },
-            WP:  { hugLine:true,    passBias:0.1 },
-            PF:  { runBehind:true,  pressBias:0.3 },
-            BBM: { pressBias:0.1,   attackBias:0.3, defenseBias:0.3 },
-            MEZ: { cutInside:true,  attackBias:0.5, defenseBias:0.1 },
-            DLP: { comeShort:true,  passBias:0.3, defenseBias:0.4 },
-            AP:  { comeShort:true,  passBias:0.2, dribbleBias:0.1, attackBias:0.4, defenseBias:0.1 },
-            BWM: { pressBias:0.3,   passBias:-0.1, defenseBias:0.5 },
-            REG: { passBias:0.4,    defenseBias:0.3 },
-            CAR: { comeShort:true,  defenseBias:0.4 },
-            EG:  { comeShort:true,  attackBias:0.3 },
-            SS:  { runBehind:true,  attackBias:0.6 },
-            ANC: { defenseBias:0.6 },
-            DM:  { defenseBias:0.5 },
-            SV:  { runBehind:true,  attackBias:0.4, defenseBias:0.3 },
-            BPD: { passBias:0.1 },
-            CD:  { passBias:-0.1 },
-            NCB: { passBias:-0.3 },
-            WB:  { hugLine:true, overlap:true, dribbleBias:0.1 },
-            CWB: { hugLine:true, overlap:true, dribbleBias:0.15 },
-            FB:  { overlap:false },
-            IWB: { cutInside:true },
-            LIB: { passBias:0.1, defenseBias:0.2 },
-            GK:  {}
-        };
-        return behaviors[role] || {};
-    }
-
-    getDefensiveLineX(opposingTeamId) {
-        const rel = this.players.filter(p => p.teamId === opposingTeamId && p.position !== 'GK');
-        const xs  = rel.map(p => p.x);
-        if (!xs.length) return opposingTeamId === 'away' ? 80 : 20;
-        return opposingTeamId === 'away' ? Math.min(...xs) : Math.max(...xs);
-    }
-
-    calcOffBallTarget(player, runType, roleStats) {
-        const isHome     = player.teamId === 'home';
-        const forwardDir = isHome ? 1 : -1;
-        const attackBonus = (roleStats.attack || 0) * 10;
-        switch (runType) {
-            case RUN_TYPE.STRIKER_RUN: {
-                const defLineX = this.getDefensiveLineX(isHome ? 'away' : 'home');
-                return { x: defLineX + forwardDir * (5 + attackBonus), y: this.ball.y + (Math.random() - 0.5) * 20 };
-            }
-            case RUN_TYPE.SUPPORT_RUN:
-                return { x: this.ball.x - forwardDir * 10, y: this.ball.y + (player.baseY < 50 ? -10 : 10) };
-            case RUN_TYPE.CHANNEL_RUN: {
-                const defLineX = this.getDefensiveLineX(isHome ? 'away' : 'home');
-                return { x: defLineX + forwardDir * 2, y: this.ball.y < 50 ? 70 : 30 };
-            }
-            case RUN_TYPE.WIDE_RUN:
-                return { x: this.ball.x + forwardDir * 5, y: player.baseY < 50 ? 5 : 95 };
-            case RUN_TYPE.UNDERLAP_RUN: {
-                const defLineX = this.getDefensiveLineX(isHome ? 'away' : 'home');
-                return { x: defLineX + forwardDir * 5, y: player.baseY < 50 ? 30 : 70 };
-            }
-            default:
-                return { x: player.baseX + (this.ball.x - player.baseX) * 0.2,
-                         y: player.baseY + (this.ball.y - player.baseY) * 0.2 };
-        }
+        return n;
     }
 
     // ─────────────────────────────────────────────────────────────
-    // 4.25  CELEBRATION & POST-MATCH
+    //  SHOOT / TACKLE
     // ─────────────────────────────────────────────────────────────
-    processCelebrationMovement() {
-        if (!this.celebrationActor || !this.celebrationTarget) return;
-        const p  = this.celebrationActor;
-        const tg = this.celebrationTarget;
-        const dx = tg.x - p.x, dy = tg.y - p.y;
-        const dist = Math.hypot(dx, dy);
-        if (dist > 1) { const s = 1.2; p.x += (dx/dist)*s; p.y += (dy/dist)*s; }
-        if (this.celebrationType === 'quick_restart') { this.ball.x = p.x; this.ball.y = p.y; }
-        this.players.forEach(tm => {
-            if (tm.teamId !== p.teamId || tm === p) return;
-            if (this.celebrationType === 'celebrate') {
-                const ddx = p.x - tm.x, ddy = p.y - tm.y, d = Math.hypot(ddx, ddy);
-                if (d > 3) { tm.x += (ddx/d)*0.9; tm.y += (ddy/d)*0.9; }
-            } else {
-                const ddx = tm.baseX - tm.x, ddy = tm.baseY - tm.y, d = Math.hypot(ddx, ddy);
-                if (d > 1) { tm.x += (ddx/d)*1.0; tm.y += (ddy/d)*1.0; }
-            }
+    _shootChance(player, goalX, dToGoal) {
+        // Angle block
+        const isBlockAngle = dToGoal < 40 && this.players.some(o => {
+            if (o.teamId === player.teamId) return false;
+            const d = Math.hypot(o.x-player.x, o.y-player.y);
+            if (d > 14) return false;
+            const dot = (goalX-player.x)*(o.x-player.x) + (50-player.y)*(o.y-player.y);
+            const m1 = Math.hypot(goalX-player.x, 50-player.y);
+            const ang = Math.acos(clamp(dot/(m1*d+0.001), -1, 1));
+            return ang < 0.3;
         });
+        if (isBlockAngle && dToGoal > 16 && player.position!=='FW' && Math.random()<0.7) return 0;
+        let b = 0;
+        if      (dToGoal < 14) b = 0.99;
+        else if (dToGoal < 22) b = clamp(1/dToGoal*20, 0.05, 0.88);
+        else if (dToGoal < 32) b = clamp(1/dToGoal*10, 0.02, 0.22);
+        else if (dToGoal < 40) b = clamp(1/dToGoal*3,  0.01, 0.06);
+        else if (dToGoal < 48) b = 0.02;
+        if (player.position==='FW') b *= 1.5;
+        return Math.min(b, 0.98);
     }
 
-    startExitAnimation(winnerId = null) {
-        this.winningTeamId = winnerId;
-        this.lapAngle = 0;
-        if (winnerId === 'home') {
-            this.postMatchPhase = 1;
-            this.players.filter(p => p.teamId === 'home').forEach((p, i) => {
-                p.lapOrder     = i * 0.2;
-                p.radiusNoise  = (Math.random() - 0.5) * 6;
-                const startA   = Math.PI / 2 + p.lapOrder;
-                p.exitTargetX  = 50 + Math.cos(startA) * (35 + p.radiusNoise);
-                p.exitTargetY  = 50 + Math.sin(startA) * (30 + p.radiusNoise);
-            });
-            this.players.filter(p => p.teamId !== 'home').forEach(p => {
-                p.exitTargetX = 50 + (Math.random() - 0.5) * 40;
-                p.exitTargetY = -20;
-            });
+    _attemptShoot(shooter, goalX) {
+        const opp = shooter.teamId==='home' ? 'away' : 'home';
+        const gk = this.players.find(p => p.teamId===opp && p.position==='GK');
+        const gkV = gk ? this.getEffectiveStat(gk, 'defense') : 60;
+        const d = Math.abs(shooter.x - goalX);
+        const dF = clamp(0.7, 1.35 - d/45, 1.35);
+        const dY = Math.abs(shooter.y-50);
+        let aF = 1.0;
+        if (dY > 10) {
+            const ang = Math.atan2(dY, Math.max(1, d));
+            aF = ang > 1.2 ? 0.12 : ang > 0.9 ? 0.38 : ang > 0.6 ? 0.7 : 0.9;
+        }
+        const effSh = this.getEffectiveStat(shooter,'shooting');
+        const sp = effSh * (0.8 + Math.random()*0.4) * dF * aF;
+        const sv = gkV * (0.8 + Math.random()*0.5) + 5;
+        const goalChance = clamp(0.22 + (sp-sv)*0.0045, 0.04, 0.95);
+        this.ball.state = BallState.IN_FLIGHT;
+        this.ball._flightOrigin = { x: shooter.x, y: shooter.y };
+        this.ball.owner = null;
+        this.ball.targetPos = { x: goalX, y: 42 + Math.random()*16 };
+        this.pendingShot = { isGoal: Math.random() < goalChance, shooter, goalX };
+    }
+
+    _handleShotResult() {
+        const { isGoal, shooter, goalX } = this.pendingShot;
+        this.pendingShot = null;
+        if (isGoal) {
+            if (shooter.teamId==='home') this.homeScore++;
+            else this.awayScore++;
+            const isHome = shooter.teamId==='home';
+            const myS = isHome?this.homeScore:this.awayScore;
+            const opS = isHome?this.awayScore:this.homeScore;
+            const ast = (this.ball.lastOwner && this.ball.lastOwner.teamId===shooter.teamId && this.ball.lastOwner.name!==shooter.name)
+                ? this.ball.lastOwner.name : null;
+            this.celebrationType = myS < opS ? 'quick_restart' : 'celebrate';
+            this.celebrationActor = shooter;
+            this.celebrationTarget = this.celebrationType==='quick_restart'
+                ? { x:50, y:50 }
+                : { x: isHome?100:0, y: shooter.y<50 ? 0 : 100 };
+            this.eventsQueue.push({ type:'goal', scorer: shooter.name, team: shooter.teamId, assister: ast });
+            this.lastScorerTeam = shooter.teamId;
+            this.celebrationTimer = 40;
+            this.ball.state = BallState.DEAD; this.ball.lastOwner = null;
         } else {
-            this.initExitMovement();
+            shooter.forceReturnTimer = 60;
+            const opp = shooter.teamId==='home' ? 'away' : 'home';
+            const isHomeAtt = shooter.teamId==='home';
+            const egk = this.players.find(p => p.teamId!==shooter.teamId && p.position==='GK');
+            const blockers = this.players.filter(p =>
+                p.teamId === opp && p.position !== 'GK' &&
+                Math.abs(p.x - shooter.x) < 16 && Math.abs(p.y - shooter.y) < 6 &&
+                (isHomeAtt ? p.x > shooter.x : p.x < shooter.x)
+            );
+            if (blockers.length>0 && Math.random()<0.12) {
+                const bl = blockers[0];
+                this.eventsQueue.push({ type:'block', shooter:shooter.name, blocker:bl.name, desc:`🛡️ ${bl.name}, 몸을 날려 슈팅을 막아냅니다!` });
+                this.ball.state = BallState.LOOSE; this.ball.owner = null;
+                this.ball.x = bl.x + (isHomeAtt?-5:5); this.ball.y = bl.y + (Math.random()-0.5)*16;
+                this._triggerTurnover(opp);
+                return;
+            }
+            if (egk) {
+                const gkBase = egk.teamId==='home' ? 5 : 95;
+                egk.x = gkBase; egk.y = clamp(this.ball.targetPos.y, 32, 68);
+                this.ball.x = egk.x; this.ball.y = egk.y;
+                if (Math.random() < 0.18) {
+                    this.eventsQueue.push({ type:'save', shooter:shooter.name, gk:egk.name, desc:`🧤 ${egk.name}, 슈팅을 펀칭!` });
+                    this.ball.state = BallState.LOOSE; this.ball.owner = null;
+                    this.ball.x = egk.x + (isHomeAtt?-10:10); this.ball.y = egk.y + (Math.random()-0.5)*32;
+                    this._triggerTurnover(opp);
+                } else {
+                    this.eventsQueue.push({ type:'save', shooter:shooter.name, gk:egk.name, desc:`🧤 ${egk.name}, 안정적으로 캐치!` });
+                    this.ball.state = BallState.CONTROLLED; this.ball.owner = egk;
+                    this.ball.x = egk.x; this.ball.y = egk.y;
+                    this._triggerTurnover(opp);
+                }
+            } else {
+                this.eventsQueue.push({ type:'miss', shooter:shooter.name, desc:`🥅 ${shooter.name}의 슈팅이 벗어납니다!` });
+                this.ball.state = BallState.LOOSE;
+                this.ball.x = goalX===0 ? 5 : 95; this.ball.y = 50;
+            }
         }
     }
 
-    initExitMovement() {
-        this.postMatchPhase = 3;
-        const exitY = Math.random() < 0.5 ? -20 : 120;
+    _attemptTackle(def, att) {
+        const tDef = this.getEffectiveStat(def, 'tackle');
+        const dAtt = this.getEffectiveStat(att, 'decision');
+        const roleBonus = def.position === 'DF' ? 0.05 : (def.position === 'MF' ? 0.02 : 0);
+        const p = clamp((tDef - dAtt + 10) * 0.01 + 0.16 + roleBonus, 0.1, 0.62);
+        if (Math.random() > p) return false;
+        this.ball.state = BallState.CONTROLLED; this.ball.owner = def;
+        this.ball.x = def.x; this.ball.y = def.y;
+        this.ball.intendedReceiver = null; this.ball.lastOwner = null;
+        def._stealCooldown = 16;
+        this.eventsQueue.push({ type:'tackle', player:def.name, desc:`${def.name}, 인터셉트!` });
+        this._triggerTurnover(def.teamId);
+        return true;
+    }
+
+    _triggerTurnover(winningTeamId) {
+        this._attackProgressX = { home:0, away:0 };
+        const losing = winningTeamId==='home' ? 'away' : 'home';
+        // Auto set counter phase for winner briefly
+        this._phase[winningTeamId] = 'counter';
+        this._phaseTimer[winningTeamId] = 30;
+        this._attackMemories[winningTeamId] = new Array(8).fill(null);
+        this._attackMemIdx[winningTeamId] = 0;
+        // trigger burst for 2 forwards of winning team
+        const toBurst = this.players.filter(p => p.teamId===winningTeamId && (p.position==='FW' || (p.position==='MF' && this.getRoleBehavior(p.role).runBehind > 0.6)))
+                                   .sort((a,b)=>Math.hypot(b.x-(winningTeamId==='home'?100:0), b.y-50) - Math.hypot(a.x-(winningTeamId==='home'?100:0), a.y-50))
+                                   .slice(0, 2);
+        for (const p of toBurst) { if (p.position==='FW') { p._fwMode = 'burst'; p.burstTimer = 28; p._timer = 28; } }
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    //  BALL FLIGHT STEP + INTERCEPTION
+    // ─────────────────────────────────────────────────────────────
+    _stepBallFlight() {
+        const BS = 4.2;
+        const dx = this.ball.targetPos.x - this.ball.x;
+        const dy = this.ball.targetPos.y - this.ball.y;
+        const d  = Math.hypot(dx, dy);
+        if (d <= BS) {
+            this.ball.x = this.ball.targetPos.x;
+            this.ball.y = this.ball.targetPos.y;
+            this.ball.state = BallState.LOOSE;
+            if (this.pendingShot) return;
+            // Intended receiver auto pickup if close
+            const r = this.ball.intendedReceiver;
+            if (r && Math.hypot(r.x-this.ball.x, r.y-this.ball.y) < 3.2) {
+                this.ball.state = BallState.CONTROLLED;
+                this.ball.owner = r;
+                this.ball.intendedReceiver = null;
+                this.ball.x = r.x; this.ball.y = r.y;
+            }
+        } else {
+            const r = BS / d;
+            this.ball.x += dx * r;
+            this.ball.y += dy * r;
+            this._checkInFlightInterception();
+        }
+    }
+
+    _checkInFlightInterception() {
+        if (this.pendingShot) return;
+        const bx = this.ball.x, by = this.ball.y;
+        const ox = this.ball._flightOrigin.x, oy = this.ball._flightOrigin.y;
+        const tx = this.ball.targetPos.x, ty = this.ball.targetPos.y;
         this.players.forEach(p => {
-            p.exitTargetX = 50 + (Math.random() - 0.5) * 10;
-            p.exitTargetY = exitY;
+            if (this.ball.lastOwner && p.teamId === this.ball.lastOwner.teamId) return;
+            if (p._stealCooldown > 0) return;
+            const db = Math.hypot(p.x-bx, p.y-by);
+            if (db > 5.5) return;
+            const flx = tx-ox, fly = ty-oy;
+            const fL2 = flx*flx + fly*fly;
+            let traj = 0;
+            if (fL2 > 0.001) traj = clamp(((p.x-ox)*flx + (p.y-oy)*fly)/fL2, 0, 1);
+            const nx = ox + traj*flx, ny = oy + traj*fly;
+            const prox = Math.hypot(p.x-nx, p.y-ny);
+            const ts = this.getEffectiveStat(p,'tackle') || this.getEffectiveStat(p,'defense');
+            const ss = this.getEffectiveStat(p,'speed');
+            const pB = Math.max(0, (5.5 - prox)/5.5);
+            const chance = 0.003 + ts/4200 + ss/6500 + pB*0.02;
+            if (Math.random() < chance) {
+                this.ball.state = BallState.CONTROLLED; this.ball.owner = p;
+                this.ball.intendedReceiver = null; this.ball.lastOwner = null;
+                p._stealCooldown = 14;
+                this.eventsQueue.push({ type:'tackle', player:p.name, desc:`${p.name}, 날카로운 패스 차단!` });
+                this._triggerTurnover(p.teamId);
+            }
         });
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    //  OFF-BALL AI V3 (TEMPLATE + TRIGGER BASED)
+    // ─────────────────────────────────────────────────────────────
+    _processAllOffBall() {
+        let attacking = null;
+        if (this.ball.owner) attacking = this.ball.owner.teamId;
+        else if (this.ball.state===BallState.IN_FLIGHT && this.ball.lastOwner) attacking = this.ball.lastOwner.teamId;
+        const isLoose = !this.ball.owner && this.ball.state === BallState.LOOSE;
+        let nearestH=null, nearestA=null, dH=999, dA=999;
+        if (isLoose) {
+            this.players.forEach(p => {
+                const d = Math.hypot(p.x-this.ball.x, p.y-this.ball.y);
+                if (p.teamId==='home' && d<dH) { dH=d; nearestH=p; }
+                if (p.teamId==='away' && d<dA) { dA=d; nearestA=p; }
+            });
+        }
+        let presser = null;
+        if (this.ball.owner && attacking) {
+            let mD = 999;
+            this.players.forEach(p => {
+                if (p.teamId === attacking) return;
+                const d = Math.hypot(p.x-this.ball.x, p.y-this.ball.y);
+                if (d < mD) { mD = d; presser = p; }
+            });
+        }
+        this.players.forEach(p => {
+            if (p === this.ball.owner) return;
+            if (p.position === 'GK') { this._gkOffBall(p); return; }
+
+            const behavior = this.getRoleBehavior(p.role);
+            const effSpd = this.getEffectiveStat(p,'speed');
+            const speedFactor = effSpd / 75;
+            const isHome = p.teamId==='home';
+            const fwd = isHome ? 1 : -1;
+            const oppHas = this.ball.owner && this.ball.owner.teamId !== p.teamId;
+            const oppInFlight = this.ball.state===BallState.IN_FLIGHT && this.ball.lastOwner && this.ball.lastOwner.teamId !== p.teamId;
+            const isDefending = oppHas || oppInFlight;
+            const isAttacking = !isDefending && (p.teamId === attacking);
+
+            let tx = p.x, ty = p.y, ms = 0.2 * clamp(speedFactor, 0.7, 1.5);
+
+            if (isLoose) {
+                const lines = this._getTeamBlockLines(p.teamId);
+                const nr = (p === nearestH || p === nearestA);
+                if (nr) { tx = this.ball.x; ty = this.ball.y; ms = 0.6; }
+                else {
+                    tx = p.position === 'FW' ? lines.fwX : (p.position === 'MF' ? lines.mfX : lines.dfX);
+                    ty = p.slotY + (this.ball.y - p.slotY) * 0.12;
+                    ms = 0.2;
+                }
+                this._physicsStep(p, tx, ty, ms);
+                return;
+            }
+
+            if (this.ball.state===BallState.IN_FLIGHT && p === this.ball.intendedReceiver) {
+                tx = this.ball.targetPos.x; ty = this.ball.targetPos.y; ms = 0.85;
+                this._physicsStep(p, tx, ty, ms); return;
+            }
+
+            if (this.ball.state===BallState.IN_FLIGHT && this.ball.lastOwner === p && p.position !== 'DF') {
+                const lines = this._getTeamBlockLines(p.teamId);
+                const chaseX = p.position === 'FW' ? lines.fwX - fwd * 3 : lines.mfX - fwd * 1;
+                tx = isHome ? Math.min(p.x + 8, chaseX) : Math.max(p.x - 8, chaseX);
+                ty = p.slotY + (this.ball.y - p.slotY) * 0.18;
+                ms = 0.28;
+                this._physicsStep(p, tx, ty, ms); return;
+            }
+
+            if (isAttacking) {
+                // ⭐ V3: Template based movement!
+                if (p.position === 'FW')      this._offBallFW_V3(p, isHome, fwd, behavior, speedFactor);
+                else if (p.position === 'MF') this._offBallMF_V3(p, isHome, fwd, behavior, speedFactor, attacking);
+                else if (p.position === 'DF') this._offBallDF_V3(p, isHome, fwd, behavior, speedFactor, attacking);
+                return;
+            } else if (isDefending) {
+                this._offBallDefend_V3(p, presser, isHome, speedFactor, ms, behavior);
+                return;
+            }
+            this._physicsStep(p, tx, ty, ms);
+        });
+    }
+
+    _gkOffBall(gk) {
+        const isHome = gk.teamId==='home';
+        const homeX = gk.baseX || (isHome?5:95);
+        gk.vx *= 0.3; gk.vy *= 0.3;
+        gk.x += (homeX - gk.x)*0.2 + gk.vx;
+        gk.y += (clamp(50 + (this.ball.y-50)*0.08, 42, 58) - gk.y)*0.2 + gk.vy;
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    //  OFF-BALL FW V3 (trigger-based modes: shadow / burst / linkup)
+    // ═══════════════════════════════════════════════════════════════
+    _offBallFW_V3(p, isHome, fwd, bhv, sf) {
+        const tid = p.teamId;
+        const phase = this._phase[tid];
+        const lines = this._getTeamBlockLines(tid);
+        const oppDFs = this.players.filter(q => q.teamId !== tid && q.position === 'DF' && q.position !== 'GK');
+        const teamFWs = this.players
+            .filter(q => q.teamId === tid && q.position === 'FW' && q !== this.ball.owner)
+            .slice()
+            .sort((a, b) => {
+                const ra = this.getRoleBehavior(a.role);
+                const rb = this.getRoleBehavior(b.role);
+                const runDiff = (rb.runBehind + rb.attackBias * 0.3) - (ra.runBehind + ra.attackBias * 0.3);
+                if (Math.abs(runDiff) > 0.02) return runDiff;
+                return Math.abs(a.slotY - this.ball.y) - Math.abs(b.slotY - this.ball.y);
+            });
+        const fwRank = Math.max(0, teamFWs.indexOf(p));
+        const isPrimaryRunner = fwRank === 0;
+        // Opponent defensive line x
+        let defLineX = isHome ? (oppDFs.length?Math.min(...oppDFs.map(q=>q.x)):80) : (oppDFs.length?Math.max(...oppDFs.map(q=>q.x)):20);
+        const offX = this._calcOffsideLineX(isHome);
+
+        // ⭐⭐ PHASE-BASED ABS_MIN: FW MUST NOT cluster in midfield!
+        // (Fixes: V3 bug where both teams FW hung around x=45~46)
+        let ABS_MIN;
+        if (phase === 'building') {
+            ABS_MIN = isHome ? 56 : 44;
+        } else if (phase === 'progressing' || phase === 'counter') {
+            ABS_MIN = isHome ? 60 : 40;
+        } else {
+            ABS_MIN = isHome ? 68 : 32;
+        }
+        // ⭐⭐ ABS_MIN vs Offside Safe-Zone Mediation
+        // Rule: if offside line is too deep (opp D-line dropped back), we still
+        // don't want FW dropping below a midfield threshold. So we bound:
+        //   home ABS_MIN ∈ [ midfieldThreshold=54 , min(phaseABS, offX-5) ]
+        //   away ABS_MIN ∈ [ max(phaseABS, offX+5) , midfieldThreshold=46 ]
+        // This guarantees FW stays at least 4 units in front of midfield line
+        // while still respecting offside physics when possible.
+        const MID_THRESH = isHome ? 54 : 46;
+        const OFFSIDE_BOUND = isHome ? (offX - 5) : (offX + 5);
+        ABS_MIN = isHome
+            ? Math.max(Math.min(ABS_MIN, OFFSIDE_BOUND), MID_THRESH)
+            : Math.min(Math.max(ABS_MIN, OFFSIDE_BOUND), MID_THRESH);
+
+        // 🟢 BURST TRIGGER (when to run behind)
+        if (p._fwMode !== 'burst' && this._fwBurstCooldown <= 0 && isPrimaryRunner) {
+            const carriers = this.players.filter(q => q.teamId===tid && this.ball.owner===q);
+            const carr = carriers[0];
+            const rightZone = (carr && ((isHome && carr.x>62 && carr.x<80) || (!isHome && carr.x<38 && carr.x>20)));
+            const burstBiasOk = bhv.runBehind > 0.45;
+            const phaseOk = phase === 'progressing' || phase === 'finalThird' || phase==='counter';
+            const laneOpen = !this._numOpponentsAhead(p, 8, 16);
+            const carrUnder = carr ? this._isUnderPressure(carr) : false;
+            if (carr && rightZone && burstBiasOk && phaseOk && (laneOpen || carrUnder)) {
+                p._fwMode = 'burst';
+                p.burstTimer = 28;
+                p._timer = 28;
+                this._fwBurstCooldown = 8;
+            }
+        }
+        if (this._fwBurstCooldown > 0) this._fwBurstCooldown--;
+
+        // 🟡 LINKUP TRIGGER (when STUCK and behavior.linkup high)
+        if (p._fwMode !== 'linkup' && p._fwMode !== 'burst' && this._fwLinkupCooldown <= 0) {
+            const carr = this.ball.owner && this.ball.owner.teamId === tid ? this.ball.owner : null;
+            const carrUnder = carr ? this._isUnderPressure(carr) : false;
+            if ((this._isAttackStuck(tid) || carrUnder) && bhv.linkup >= 0.6 && !isPrimaryRunner) {
+                p._fwMode = 'linkup';
+                p._timer = 40;
+                this._fwLinkupCooldown = 25;
+            }
+        }
+        if (this._fwLinkupCooldown > 0) this._fwLinkupCooldown--;
+
+        // Mode timeout
+        if (p._timer <= 0 && p._fwMode !== 'shadow') { p._fwMode = 'shadow'; }
+
+        let tx, ty, ms = 0.35 * clamp(sf, 0.75, 1.6);
+
+        // ---- Range normalization helpers: ensure lo <= hi before clamp ----
+        // (Fixes stuck tx when offside line dropped below ABS_MIN)
+        const hh = (v, lo, hi) => { const L=Math.min(lo,hi), H=Math.max(lo,hi); return clamp(v, L, H); };
+        const aa = (v, lo, hi) => { const L=Math.min(lo,hi), H=Math.max(lo,hi); return clamp(v, L, H); };
+
+        if (p._fwMode === 'burst') {
+            // Sprint behind defensive line, just before offside
+            tx = isHome ? hh(defLineX + 10, 55, offX-1.5)
+                        : aa(defLineX - 10, offX+1.5, 45);
+            // Y: slot based + curve towards goal center
+            const curve = Math.sin(p._timer * 0.35) * (this.getRoleBehavior(p.role).hugLine ? 3 : 8);
+            ty = clamp(p.slotY + curve + (50 - p.slotY) * 0.15,
+                p.slotY - 14, p.slotY + 14);
+            if (this.getRoleBehavior(p.role).hugLine) ty = p.slotY < 50 ? 10 : 90;
+            ms = 0.88 * clamp(sf, 0.9, 1.9);
+        } else if (p._fwMode === 'linkup') {
+            // Drop between midfield and defense to receive
+            const linkBase = isPrimaryRunner ? lines.mfX + fwd * 8 : lines.mfX + fwd * 4;
+            const drop = isHome ? Math.max(linkBase, defLineX - 18)
+                                : Math.min(linkBase, defLineX + 18);
+            tx = hh(drop, ABS_MIN + 6, isHome?90:10);
+            ty = clamp(p.slotY * 0.55 + this.ball.y * 0.45, p.slotY-12, p.slotY+12);
+            ms = 0.48 * clamp(sf, 0.75, 1.7);
+        } else {
+            // Shadow mode: DEFENSE LINE SHADOW (1-3 behind D line)
+            const sLo = ABS_MIN;
+            const sHi = isHome ? Math.max(offX-2, ABS_MIN) : Math.min(offX+2, 100-ABS_MIN);
+            tx = isHome ? hh(defLineX - 3, sLo, sHi)
+                        : aa(defLineX + 3, 100-sHi, 100-sLo);
+            // Y: move into channels between CBs + slight follow ball
+            const followW = 0.18;
+            ty = clamp(p.slotY + (this.ball.y - 50) * followW, p.slotY - 10, p.slotY + 10);
+            if (bhv.hugLine) ty = p.slotY < 50 ? 12 : 88;
+            ms = 0.3 * clamp(sf, 0.7, 1.4);
+        }
+
+        if (!isPrimaryRunner) {
+            const supportX = lines.fwX - fwd * (bhv.linkup >= 0.6 ? 6 : 4);
+            tx = isHome ? Math.min(tx, supportX) : Math.max(tx, supportX);
+            ty = clamp(ty + (this.ball.y - p.slotY) * 0.12, p.slotY - 12, p.slotY + 12);
+        } else {
+            const leadX = lines.fwX + fwd * 4;
+            tx = isHome ? Math.max(tx, leadX) : Math.min(tx, leadX);
+        }
+
+        // ABSOLUTE FLOOR
+        tx = isHome ? Math.max(tx, ABS_MIN) : Math.min(tx, ABS_MIN);
+        tx = clamp(tx, 4, 96);
+        ty = clamp(ty, 4, 96);
+        this._physicsStep(p, tx, ty, ms);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    //  OFF-BALL MF V3 (SLOT FIXED! NO OVERSATURATION!)
+    // ═══════════════════════════════════════════════════════════════
+    _offBallMF_V3(p, isHome, fwd, bhv, sf, attackingTeamId) {
+        const tid = p.teamId;
+        const phase = this._phase[tid];
+        const lines = this._getTeamBlockLines(tid);
+        const isDM = ['DM','CDM','ANC'].includes(p.role);
+        const isAM = ['AP','AM','SS','BBM','MEZ'].includes(p.role);
+        const mates = this.players.filter(q => q.teamId===tid && q!==p);
+        const advancedMF = this._getAdvancedSupportPlayer(tid, 'MF');
+
+        let tx = lines.mfX;
+        if (phase === 'building') tx += fwd * (isDM ? -6 : (isAM ? 2 : 0));
+        else if (phase === 'progressing') tx += fwd * (isDM ? -2 : (isAM ? 6 : 2));
+        else if (phase === 'finalThird') tx += fwd * (isDM ? 1 : (isAM ? 10 : 4));
+        else tx += fwd * (isDM ? 0 : 5);
+        if (lines.haveBall) {
+            if (!isDM) tx += fwd * (isAM ? 4 : 3);
+            if (phase === 'progressing' || phase === 'finalThird') tx += fwd * 2;
+            if (advancedMF === p && !isDM) tx += fwd * (phase === 'building' ? 2 : 5);
+        }
+
+        // 🛑 MF HARD STOP: Must stay BEHIND frontmost FW!
+        const fws = mates.filter(q => q.position === 'FW');
+        if (fws.length) {
+            const fwXs = fws.map(q => q.x);
+            const limit = isHome ? Math.max(Math.min(...fwXs) - 8, 0)
+                                : Math.min(Math.max(...fwXs) + 8, 100);
+            tx = isHome ? Math.min(tx, limit) : Math.max(tx, limit);
+        } else {
+            const mx = isHome ? 84 : 16;
+            tx = isHome ? Math.min(tx, mx) : Math.max(tx, mx);
+        }
+
+        // DM: Always 5 behind highest CB
+        const cbs = mates.filter(q => q.position==='DF' && ['CD','BPD','NCB','LIB'].includes(q.role));
+        if (isDM && cbs.length) {
+            const hiCB = isHome ? Math.max(...cbs.map(q=>q.x)) : Math.min(...cbs.map(q=>q.x));
+            tx = isHome ? Math.min(tx, hiCB + 7) : Math.max(tx, hiCB - 7);
+        }
+
+        // ⭐⭐ Y: USE ASSIGNED SLOT! (no ball.y clustering!)
+        let ty = p.slotY;  // <— THIS IS THE FIX! MF ALWAYS goes to its slot first!
+        // Only the MF CLOSEST to ball's Y gets +-6 toward ball
+        const teamMFs = this.players.filter(q => q.teamId===tid && q.position==='MF');
+        const closestToBallY = teamMFs.slice().sort((a,b) => Math.abs(a.slotY - this.ball.y) - Math.abs(b.slotY - this.ball.y))[0];
+        if (closestToBallY === p && !bhv.hugLine) {
+            ty += clamp(this.ball.y - ty, -8, 8);
+            tx += fwd * (phase === 'building' ? 2 : 5);
+        }
+        if (bhv.hugLine) ty = p.slotY < 50 ? 12 : 88;
+
+        // FB overlap trigger: if attacking FB overlap, inside MF slides out? (simpler: MEZ/CM slight shift)
+        if (bhv.cutInside || p.role==='MEZ') {
+            ty = 50 + (p.slotY - 50) * 0.45;
+        }
+
+        let ms = 0.38 * clamp(sf, 0.7, 1.6);
+        tx = clamp(tx, 4, 96);
+        ty = clamp(ty, 4, 96);
+        this._physicsStep(p, tx, ty, ms);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    //  OFF-BALL DF V3 (compact block + FB overlap state machine)
+    // ═══════════════════════════════════════════════════════════════
+    _offBallDF_V3(p, isHome, fwd, bhv, sf, attackingId) {
+        const tid = p.teamId;
+        const phase = this._phase[tid];
+        const lines = this._getTeamBlockLines(tid);
+        const isCB = ['CD','BPD','NCB','LIB'].includes(p.role);
+        const isFB = ['FB','WB','CWB','IWB'].includes(p.role);
+        const mates = this.players.filter(q => q.teamId===tid && q!==p);
+        const teamMFs = mates.filter(q => q.position === 'MF');
+        const mfFront = teamMFs.length
+            ? (isHome ? Math.max(...teamMFs.map(q => q.x)) : Math.min(...teamMFs.map(q => q.x)))
+            : (isHome ? 45 : 55);
+
+        // FB state choice: deterministic by side/phase instead of random.
+        if (isFB) {
+            const sameSide = (p.slotY < 50 && this.ball.y < 45) || (p.slotY > 50 && this.ball.y > 55);
+            if (phase === 'building') p._fbMode = 'hold';
+            else if (phase === 'finalThird' && sameSide && bhv.attackBias >= 0.5) p._fbMode = 'overlap';
+            else if (phase === 'progressing' && sameSide && (bhv.cutInside || p.role === 'IWB')) p._fbMode = 'underlap';
+            else if (phase === 'progressing' && sameSide) p._fbMode = 'overlap';
+            else p._fbMode = 'hold';
+        }
+
+        let tx, ty;
+        if (isCB) {
+            tx = lines.dfX + fwd * (phase === 'building' ? -2 : 0);
+            const mfCap = isHome ? mfFront - 7 : mfFront + 7;
+            tx = isHome ? Math.min(tx, mfCap) : Math.max(tx, mfCap);
+            tx = clamp(tx, isHome?8:5, isHome?80:92);
+            ty = p.slotY;
+            // Keep 7-15 vertical gap from other CB
+            const otherCBs = mates.filter(q => q.position==='DF' && ['CD','BPD','NCB','LIB'].includes(q.role));
+            for (const o of otherCBs) {
+                const dY = ty - o.y; const a = Math.abs(dY); const s = dY>=0?1:-1;
+                if (a < 7) ty = o.y + s*7;
+                else if (a > 18) ty = o.y + s*18;
+            }
+            this._physicsStep(p, tx, ty, 0.3 * clamp(sf, 0.7, 1.5)); return;
+        }
+        if (isFB) {
+            // Y: Keep EXTREME WIDE (never center!)
+            ty = p.slotY < 50 ? 10 : 90;
+            if (p._fbMode === 'underlap') ty = p.slotY < 50 ? 28 : 72;
+            let xShift = 0;
+            if (phase === 'building') xShift = 1;
+            else if (phase === 'progressing') xShift = p._fbMode==='hold' ? 8 : (p._fbMode==='overlap'?18:15);
+            else if (phase === 'finalThird') xShift = p._fbMode==='hold' ? 14 : (p._fbMode==='overlap'?28:22);
+            else xShift = 18; // counter
+            tx = lines.dfX + fwd * xShift;
+            const cbLine = mates.filter(q => q.position === 'DF' && ['CD','BPD','NCB','LIB'].includes(q.role));
+            const cbMean = cbLine.length
+                ? cbLine.reduce((s, q) => s + q.x, 0) / cbLine.length
+                : lines.dfX;
+            const retreatFloor = isHome ? cbMean - 1.5 : cbMean + 1.5;
+            tx = isHome ? Math.max(tx, retreatFloor) : Math.min(tx, retreatFloor);
+            // FB can go very high (up to 93/7) during overlap! (no arbitrary MF band!)
+            tx = clamp(tx, isHome?8:5, isHome?95:92);
+            const ms = (p._fbMode==='overlap' ? 0.65 : 0.42) * clamp(sf, 0.75, 1.7);
+            this._physicsStep(p, tx, ty, ms); return;
+        }
+        // Fallback
+        this._physicsStep(p, p.baseX, p.slotY, 0.3);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    //  OFF-BALL DEFEND V3 (zone-first + controlled aggro)
+    // ═══════════════════════════════════════════════════════════════
+    _offBallDefend_V3(p, presser, isHome, sf, ms, bhv) {
+        const tid = p.teamId;
+        const fwd = isHome ? 1 : -1;
+        const lines = this._getTeamBlockLines(tid);
+        const dt = gameData.deepTactics || {};
+        const pressInt = dt.pressIntensity || 'mid';
+        const ballX = this.ball.x, ballY = this.ball.y;
+        const inOwnThird = isHome ? ballX < 33 : ballX > 67;
+        const dBall = Math.hypot(p.x - ballX, p.y - ballY);
+        const pressIsMe = (presser === p);
+        const owner = this.ball.owner;
+
+        if (owner && owner.teamId !== tid && p._stealCooldown <= 0) {
+            const tackleRange = p.position === 'DF' ? 4.4 : (p.position === 'MF' ? 4.0 : 3.5);
+            const canStep = (p.position === 'DF' && inOwnThird) || pressIsMe || (inOwnThird && p.position === 'MF');
+            if (canStep && dBall < tackleRange && this._attemptTackle(p, owner)) return;
+        }
+
+        // 1) FW DEFENSE (high press only if intensity high)
+        if (p.position === 'FW') {
+            p.burstTimer = 0; p._fwMode = 'shadow';
+            const tidDFs = this.players.filter(q => q.teamId===tid && q.position==='DF');
+            const dfTop = isHome ? (tidDFs.length?Math.max(...tidDFs.map(q=>q.x)):25)
+                                 : (tidDFs.length?Math.min(...tidDFs.map(q=>q.x)):75);
+            // ⭐ FW must track back with defensive line! (fixes offside line distortion)
+            // Home FW max forward x: dfTop + 12 (12 ahead of own deepest CB)
+            // Away FW min forward x: dfTop - 12
+            const ABS_FW_FWD_LIMIT = isHome ? Math.max(dfTop + 12, lines.fwX - 4) : Math.min(dfTop - 12, lines.fwX + 4);
+            let tx, ty, s;
+            const tgX = isHome ? Math.max(lines.fwX, dfTop + 10) : Math.min(lines.fwX, dfTop - 10);
+            tx = isHome ? Math.max(tgX, 45) : Math.min(tgX, 55);
+            if (pressInt==='high' && dBall < 18 && Math.random() < (bhv.pressBias||0.5) * 0.7) {
+                tx = ballX; ty = ballY; s = 0.5;
+            } else {
+                ty = p.slotY; s = 0.4;
+            }
+            this._physicsStep(p, tx, ty, s);
+            // Post-clamp: FW can't drift past own defensive track-back limit
+            if (isHome) { p.x = Math.min(p.x, ABS_FW_FWD_LIMIT); }
+            else        { p.x = Math.max(p.x, ABS_FW_FWD_LIMIT); }
+            return;
+        }
+
+        // 2) MF DEFENSE
+        if (p.position === 'MF') {
+            const tidDFs = this.players.filter(q => q.teamId===tid && q.position==='DF');
+            const dfTop = isHome ? (tidDFs.length?Math.max(...tidDFs.map(q=>q.x)):25) : (tidDFs.length?Math.min(...tidDFs.map(q=>q.x)):75);
+            const minX = isHome ? Math.max(dfTop + 3, lines.mfX - 4) : Math.min(dfTop - 3, lines.mfX + 4);
+            let tx = lines.mfX + fwd * (bhv.defenseBias > 0.8 ? -2 : 0);
+            let ty = p.slotY;
+
+            // Selective pressing: ONLY one (presser) MF/FW presses from midfield up, others hold shape
+            const canPress = (pressInt==='high' || (pressInt==='mid' && !inOwnThird)) && bhv.pressBias>0.45;
+            if (canPress && pressIsMe && dBall < 17) {
+                tx = ballX; ty = ballY; ms = 0.55;
+            } else if (!inOwnThird && Math.abs(p.slotY - ballY) < 18 && Math.random() < 0.05 * (bhv.pressBias||0.5)) {
+                // Lateral shift toward ball
+                ty += clamp(ballY - ty, -10, 10);
+                ms = 0.38;
+            } else {
+                // Hold formation between defensive line and ball line
+                const targetLane = (isHome ? ballX - 8 : ballX + 8);
+                if (isHome) tx = clamp(tx, minX, Math.max(targetLane, minX));
+                else        tx = clamp(tx, Math.min(targetLane, minX), minX);
+            }
+            this._physicsStep(p, clamp(tx, 4, 96), clamp(ty, 4, 96), 0.4 * clamp(sf, 0.7, 1.6));
+            return;
+        }
+
+        // 3) DF DEFENSE (CB compact, FB aggressive only same-side flank)
+        if (p.position === 'DF') {
+            const isCB = ['CD','BPD','NCB','LIB'].includes(p.role);
+            const isFB_role = ['FB','WB','CWB','IWB'].includes(p.role);
+            const tidDFs = this.players.filter(q => q.teamId===tid && q.position==='DF');
+            let tx = lines.dfX;
+            tx = isHome ? Math.min(tx, p.baseX + 12) : Math.max(tx, p.baseX - 12);
+            let ty = p.slotY;
+            ms = 0.4 * clamp(sf, 0.7, 1.6);
+
+            if (isCB) {
+                // CB: defend line first, only step when ball enters CB corridor.
+                const centralThreat = Math.abs(ballY - p.slotY) < 16 || Math.abs(ballY - 50) < 12;
+                if (inOwnThird && dBall < 11 && centralThreat) {
+                    const stepX = isHome ? Math.min(ballX + 1.0, lines.dfX + 1.5) : Math.max(ballX - 1.0, lines.dfX - 1.5);
+                    tx = stepX; ty += clamp(ballY - ty, -4, 4); ms = 0.45;
+                } else {
+                    // Mark nearest opposite FW if close enough to CB zone
+                    const oppFW = this._findMarkTargetForDF(p, 'FW');
+                    if (oppFW) {
+                        const markW = clamp(0.5 + (inOwnThird?0.3:0), 0.3, 0.85);
+                        ty = p.slotY*(1-markW) + oppFW.y*markW;
+                        if (Math.abs(oppFW.y - p.slotY) > 22) ty = p.slotY; // Don't chase wide
+                        tx = isHome ? Math.max(tx, oppFW.x - 2) : Math.min(tx, oppFW.x + 2);
+                    }
+                }
+                // Keep CB gap (6-17)
+                const otherCB = tidDFs.filter(q => q!==p && ['CD','BPD','NCB','LIB'].includes(q.role));
+                for (const o of otherCB) {
+                    const dY = ty - o.y; const a=Math.abs(dY); const s=dY>=0?1:-1;
+                    if (a < 6) ty = o.y + s*6;
+                    else if (a > 18) ty = o.y + s*18;
+                }
+            } else if (isFB_role) {
+                // FB: CHASE only same-side wide dribblers! Never go central!
+                const sameSide = (p.slotY < 50 && ballY < 40) || (p.slotY > 50 && ballY > 60);
+                const shouldChase = sameSide && ((inOwnThird && dBall < 15) || dBall < 10);
+                if (shouldChase) {
+                    tx = ballX; ty = clamp(ballY, p.slotY - 10, p.slotY + 10);
+                } else {
+                    // Mark wide opponents, stay wide!
+                    const wingerOpp = this._findMarkTargetForDF(p, 'wide');
+                    if (wingerOpp) {
+                        ty = p.slotY*0.5 + clamp(wingerOpp.y, 5, 22)*0.5;
+                        if (p.slotY > 50) ty = p.slotY*0.5 + clamp(wingerOpp.y, 78, 95)*0.5;
+                    }
+                }
+                // ⭐ FORCE WIDE: FB never in central 30-70 band when defending!
+                ty = clamp(ty, p.slotY < 50 ? 3 : 73, p.slotY < 50 ? 27 : 97);
+            }
+
+            this._physicsStep(p, clamp(tx, 2, 90), clamp(ty, 3, 97), ms);
+            return;
+        }
+    }
+
+    _findMarkTargetForDF(p, kind) {
+        const opps = this.players.filter(q => q.teamId !== p.teamId && q.position!=='GK');
+        if (kind === 'FW') {
+            return opps.filter(o => o.position === 'FW' && Math.abs(o.y - p.slotY) < 25)
+                       .sort((a,b) => Math.hypot(a.x-p.x,a.y-p.y) - Math.hypot(b.x-p.x,b.y-p.y))[0] || null;
+        } else {
+            // wide
+            return opps.filter(o =>
+                ((p.slotY<50 && o.y<35) || (p.slotY>50 && o.y>65)) &&
+                (o.position==='FW' || o.position==='MF')
+            ).sort((a,b) => Math.hypot(a.x-p.x,a.y-p.y) - Math.hypot(b.x-p.x,b.y-p.y))[0] || null;
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    //  PHYSICS + COLLISION V3 (MINIMAL CLAMPS, SMOOTH)
+    // ─────────────────────────────────────────────────────────────
+    _physicsStep(p, desiredX, desiredY, accel) {
+        const accelEff = clamp(accel, 0.1, 1.8);
+        const dx = clamp(desiredX - p.x, -18, 18);
+        const dy = clamp(desiredY - p.y, -14, 14);
+        const dvx = dx * accelEff * 0.085;
+        const dvy = dy * accelEff * 0.085;
+        p.vx = p.vx * 0.72 + dvx;
+        p.vy = p.vy * 0.72 + dvy;
+        const maxSpd = 1.3 + accelEff * 1.15;
+        const spd = Math.hypot(p.vx, p.vy);
+        if (spd > maxSpd) {
+            const s = maxSpd / (spd || 1);
+            p.vx *= s;
+            p.vy *= s;
+        }
+        p.x += p.vx;
+        p.y += p.vy;
+        // ONLY clamp for PITCH BOUNDARIES. Position band enforcement done via desiredX only!
+        if (p.x < 2) { p.x = 2; if (p.vx < 0) p.vx *= 0.25; }
+        if (p.x > 98) { p.x = 98; if (p.vx > 0) p.vx *= 0.25; }
+        if (p.y < 2) { p.y = 2; if (p.vy < 0) p.vy *= 0.25; }
+        if (p.y > 98) { p.y = 98; if (p.vy > 0) p.vy *= 0.25; }
+    }
+
+    _resolveTeammateCollisions() {
+        // Pair-wise soft repulsion (prevents all stacking / oversaturation)
+        const MIN = 4.8;
+        for (let i = 0; i < this.players.length; i++) {
+            for (let j = i+1; j < this.players.length; j++) {
+                const a = this.players[i], b = this.players[j];
+                if (a.teamId !== b.teamId) continue;
+                const dx = b.x - a.x, dy = b.y - a.y;
+                const d = Math.hypot(dx, dy);
+                if (d < MIN && d > 0.01) {
+                    const overlap = MIN - d;
+                    const nx = dx/d, ny = dy/d;
+                    // Push apart — Y preferred to keep X structure
+                    a.x -= nx * overlap * 0.3;
+                    a.y -= ny * overlap * 0.7;
+                    b.x += nx * overlap * 0.3;
+                    b.y += ny * overlap * 0.7;
+                }
+            }
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    //  DEFENSIVE LINES + OFFSIDE (SMOOTH)
+    // ─────────────────────────────────────────────────────────────
+    _adjustDefensiveLines() {
+        // Defensive line height enforcement for CBs: keep tight band
+        for (const tid of ['home','away']) {
+            const cbs = this.players.filter(p => p.teamId===tid && p.position==='DF' && ['CD','BPD','NCB','LIB'].includes(p.role));
+            if (cbs.length < 2) continue;
+            const xs = cbs.map(q=>q.x);
+            const mean = xs.reduce((a,b)=>a+b,0)/xs.length;
+            const maxDev = 6; // CBs max 6 X apart
+            const lines = this._getTeamBlockLines(tid);
+            for (const cb of cbs) {
+                if (Math.abs(cb.x - mean) > maxDev) {
+                    // gentle pull toward mean (no hard teleport!)
+                    cb.x += (mean - cb.x) * 0.05;
+                }
+                if (!lines.haveBall) {
+                    // Defensive retreat sync: CBs must recover with the line, not hang high
+                    cb.x += (lines.dfX - cb.x) * 0.08;
+                }
+            }
+        }
+    }
+
+    _calcOffsideLineX(isHomeFW) {
+        const opp = isHomeFW ? 'away' : 'home';
+        // ⭐⭐⭐ DEFENDERS-ONLY OFFSIDE LINE (realistic + trackback bug immune)
+        // FIFA rule = 2nd-to-last player including GK.
+        // We use DF + GK pool only: this matches reality because forward players
+        // pressing high should NOT artificially flatten the offside trap line.
+        // This also removes the offside distortion caused by lazy FWs stuck in midfield.
+        const defs = this.players.filter(p =>
+            p.teamId === opp && (p.position === 'GK' || p.position === 'DF')
+        );
+        // If defensive pool too small (e.g. red cards), fall back to all outfield + GK
+        let pool;
+        if (defs.length >= 2) {
+            pool = defs;
+        } else {
+            pool = this.players.filter(p => p.teamId === opp);
+        }
+        if (pool.length < 2) return isHomeFW ? 95 : 5;
+        const xs = pool.map(p => p.x).slice().sort((a,b) => isHomeFW ? a - b : b - a);
+        return xs[1];
+    }
+
+    _enforceAllOffside() {
+        for (const p of this.players) {
+            if (p.position !== 'FW') continue;
+            const isHomeFW = p.teamId==='home';
+            const lim = this._calcOffsideLineX(isHomeFW);
+            const bad = isHomeFW ? p.x > lim : p.x < lim;
+            if (bad) {
+                const t = isHomeFW ? lim - 1.5 : lim + 1.5;
+                // SMOOTH: accelerate toward line, no teleport!
+                p.vx = p.vx * 0.35 + (t - p.x) * 0.28;
+            }
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    //  CELEBRATION + MISC
+    // ─────────────────────────────────────────────────────────────
+    _processCelebration() {
+        if (!this.celebrationActor) return;
+        const a = this.celebrationActor, t = this.celebrationTarget;
+        const tx = t.x, ty = t.y;
+        this.players.forEach(p => {
+            if (p.teamId === a.teamId) {
+                if (p === a) {
+                    this._physicsStep(p, tx, ty, 0.5);
+                } else {
+                    const r = 10 + Math.random()*8;
+                    const ang = Math.random() * Math.PI * 2;
+                    this._physicsStep(p, clamp(tx + Math.cos(ang)*r, 4, 96), clamp(ty + Math.sin(ang)*r, 4, 96), 0.45);
+                }
+            } else {
+                this._physicsStep(p, p.baseX, p.slotY, 0.2);
+            }
+        });
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    //  COMPATIBILITY API (tacticSystem.js hooks)
+    // ─────────────────────────────────────────────────────────────
+    recalculateStaminaOnSub(playerOut) {
+        const userSide = (typeof gameData !== 'undefined' && gameData.isHomeGame) ? 'home' : 'away';
+        const lineX = { GK: 5, DF: 22, MF: 45, FW: 72 };
+        const targetX = userSide === 'away'
+            ? { GK: 95, DF: 78, MF: 55, FW: 28 }[playerOut.position] || 50
+            : lineX[playerOut.position] || 50;
+        const simP = this.players.find(p =>
+            p.teamId === userSide &&
+            p.position === playerOut.position &&
+            Math.abs(p.baseX - targetX) < 12
+        );
+        if (simP) simP.stamina = 100;
+    }
+
+    startExitAnimation(winner) {
+        this.exitAnimActive = true;
+        this.exitAnimTicks = 0;
+        this.exitAnimDone = false;
+        this.exitWinner = winner;
     }
 
     updatePostMatch() {
-        if (this.postMatchPhase === 1) {
-            let allAligned = true;
-            this.players.forEach(p => {
-                if (p.teamId === 'home') {
-                    const dx = p.exitTargetX - p.x, dy = p.exitTargetY - p.y;
-                    const d  = Math.hypot(dx, dy);
-                    if (d > 3) { p.x += (dx/d)*0.8; p.y += (dy/d)*0.8; allAligned = false; }
-                } else { p.y -= 0.8; }
-            });
-            if (allAligned) { this.postMatchPhase = 2; this.lapAngle = Math.PI / 2; }
-        } else if (this.postMatchPhase === 2) {
-            this.lapAngle -= 0.015;
-            this.players.forEach(p => {
-                if (p.teamId === 'home') {
-                    const a = this.lapAngle + p.lapOrder;
-                    const tX = 50 + Math.cos(a) * (40 + p.radiusNoise);
-                    const tY = 50 + Math.sin(a) * (35 + p.radiusNoise);
-                    p.x += (tX - p.x) * 0.1; p.y += (tY - p.y) * 0.1;
-                } else { p.y -= 0.8; }
-            });
-            if (this.lapAngle < -Math.PI * 1.5) this.initExitMovement();
-        } else if (this.postMatchPhase === 3) {
-            this.players.forEach(p => {
-                const dx = p.exitTargetX - p.x, dy = p.exitTargetY - p.y;
-                const d  = Math.hypot(dx, dy);
-                if (d > 1) { p.x += (dx/d)*0.7; p.y += (dy/d)*0.7; }
-            });
-        }
+        if (!this.exitAnimActive) return this.getSnapshot();
+        this.exitAnimTicks++;
+        const dir = this.exitWinner === 'home' ? 1 : (this.exitWinner === 'away' ? -1 : 0);
+        this.players.forEach((p, i) => {
+            p.x = clamp(p.x + dir * 0.8 + (i % 3) * 0.1, 0, 100);
+            p.y = clamp(p.y + ((i % 2) ? 0.3 : -0.3), 5, 95);
+        });
+        if (this.exitAnimTicks >= 45) this.exitAnimDone = true;
         return this.getSnapshot();
     }
 
     isExitAnimationDone() {
-        if (this.postMatchPhase !== 3) return false;
-        return this.players.every(p => p.y < -10 || p.y > 110);
+        return this.exitAnimDone;
     }
+
 }
 
 // =============================================================================
-// [SECTION 5]  GLOBAL REGISTRATION
+// [SECTION END]  EXPORTS (window globals — required compatibility!)
 // =============================================================================
 
-window.RealSoccerEngine   = RealSoccerEngine;
-window.DeepTacticManager  = DeepTacticManager;
-
-document.addEventListener('DOMContentLoaded', () => {
-    const tacticsBtn = document.querySelector('[data-tab="tactics"]');
-    if (tacticsBtn) tacticsBtn.addEventListener('click', () => setTimeout(() => DeepTacticManager.init(), 100));
-    setTimeout(() => DeepTacticManager.init(), 1000);
-});
-
+if (typeof window !== 'undefined') {
+    window.RealSoccerEngine = RealSoccerEngine;
+    window.DeepTacticManager = DeepTacticManager;
+    window.BallState = BallState;
+    window.SimBall = SimBall;
+    window.SimPlayer = SimPlayer;
+}

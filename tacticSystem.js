@@ -1234,7 +1234,7 @@ function createSubPlayerElement(player) {
     el.dataset.playerName = player.name;
     el.innerHTML = `
         <div class="name">${player.name} (${player.position})</div>
-        <div class="details">?λ젰移? ${Math.floor(player.rating)}</div>
+        <div class="details">OVR ${Math.floor(player.rating)}</div>
     `;
     return el;
 }

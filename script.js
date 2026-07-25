@@ -2427,6 +2427,10 @@ function loadGame(event) {
             gameData = saveData.gameData;
             if (!gameData.playerRoles) gameData.playerRoles = {}; // [추가] 구버전 세이브 호환성 보장
             ensureMatchDramaDefaults();
+            // [신규] deepTactics 스키마 마이그레이션 (구버전 matchEngine.js 규격 → deepenTactic.js 규격)
+            if (typeof migrateDeepTactics === 'function' && gameData.deepTactics) {
+                migrateDeepTactics();
+            }
             console.log('gameData 복원 완료');
             
             // 팀 데이터 복원 (allTeams -> teams 재구성)
