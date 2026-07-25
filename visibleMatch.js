@@ -23,8 +23,8 @@ class VisualUnit {
 
     // ⚫ [7. 선수 이동] 보간 (Lerp) 업데이트
     update() {
-        // 가속도 효과 제거: 단순 보간(Lerp) 방식으로 변경
-        const lerpFactor = 0.22; // 시각적 부드러움을 위해 수치 하향
+        // [개선] 선수들 이동 속도를 낮춰서 순간이동(휙휙)하는 느낌 방지
+        const lerpFactor = 0.12; 
         this.x += (this.targetX - this.x) * lerpFactor;
         this.y += (this.targetY - this.y) * lerpFactor;
 
@@ -43,9 +43,18 @@ class VisualUnit {
 
     draw(ctx, width, height) {
         // 좌표 변환 (0~100 -> 픽셀)
-        let px = (this.x / 100) * width;
-        let py = (this.y / 100) * height;
-        let r = Math.max(4, width * 0.010);
+        const isPortrait = height > width;
+        let px, py;
+        if (isPortrait) {
+            // 세로 모드: 홈팀(X=0)이 아래(Bottom)에서 시작해서 위(Top)로 공격
+            px = (this.y / 100) * width;
+            py = height - (this.x / 100) * height;
+        } else {
+            px = (this.x / 100) * width;
+            py = (this.y / 100) * height;
+        }
+        const scale = Math.min(width, height);
+        let r = Math.max(4, scale * 0.015);
         let rotation = 0;
 
         // [신규] 개인기별 특수 모션 계산
@@ -169,7 +178,7 @@ class VisualBall {
         this.x = 50; this.y = 50;
         this.z = 0; // [신규] 시각적 높이 (가짜 3D 효과)
         this.targetX = 50; this.targetY = 50;
-        this.accelFactor = 0.1; 
+        this.accelFactor = 0.35; // [개선] 공 속도를 대폭 상향하여 사람 속도를 따라가게 함
         this.state = 0; // 공 상태
     }
     update() {
@@ -194,9 +203,18 @@ class VisualBall {
         }
     }
     draw(ctx, width, height) {
-        const px = (this.x / 100) * width;
-        const py = (this.y / 100) * height;
-        const r = Math.max(2.5, width * 0.006); // 공 크기를 약 25% 축소
+        const isPortrait = height > width;
+        let px, py;
+        if (isPortrait) {
+            px = (this.y / 100) * width;
+            py = height - (this.x / 100) * height;
+        } else {
+            px = (this.x / 100) * width;
+            py = (this.y / 100) * height;
+        }
+        
+        const scale = Math.min(width, height);
+        const r = Math.max(2.5, scale * 0.010); 
         
         // [신규] 그림자 (땅에 고정)
         ctx.beginPath();
@@ -340,13 +358,22 @@ class MatchVisualizer {
     }
 
     drawPitch() {
-        // [수정] 잔디 줄무늬 패턴 적용 (12개 구간)
         const numStripes = 12;
-        const stripeWidth = this.width / numStripes;
+        const isPortrait = this.height > this.width;
         
-        for (let i = 0; i < numStripes; i++) {
-            this.ctx.fillStyle = i % 2 === 0 ? '#27ae60' : '#2ecc71'; // 짙은 초록 / 밝은 초록 교차
-            this.ctx.fillRect(i * stripeWidth, 0, stripeWidth + 1, this.height);
+        // [수정] 잔디 줄무늬 패턴 적용 (가로/세로 방향 맞춤)
+        if (isPortrait) {
+            const stripeHeight = this.height / numStripes;
+            for (let i = 0; i < numStripes; i++) {
+                this.ctx.fillStyle = i % 2 === 0 ? '#27ae60' : '#2ecc71';
+                this.ctx.fillRect(0, i * stripeHeight, this.width, stripeHeight + 1);
+            }
+        } else {
+            const stripeWidth = this.width / numStripes;
+            for (let i = 0; i < numStripes; i++) {
+                this.ctx.fillStyle = i % 2 === 0 ? '#27ae60' : '#2ecc71';
+                this.ctx.fillRect(i * stripeWidth, 0, stripeWidth + 1, this.height);
+            }
         }
 
         // [신규] 잔디 텍스처 오버레이
@@ -354,33 +381,54 @@ class MatchVisualizer {
         this.ctx.fillStyle = this.grassPattern;
         this.ctx.fillRect(0, 0, this.width, this.height);
         
-        this.ctx.strokeStyle = '#ffffff'; // [수정] 라인 색상 완전한 흰색으로 변경
+        this.ctx.strokeStyle = '#ffffff';
         this.ctx.lineWidth = 2;
         
         // 테두리
         this.ctx.strokeRect(this.width * 0.05, this.height * 0.05, this.width * 0.9, this.height * 0.9);
         
-        // 중앙선
-        this.ctx.beginPath();
-        this.ctx.moveTo(this.width / 2, this.height * 0.05);
-        this.ctx.lineTo(this.width / 2, this.height * 0.95);
-        this.ctx.stroke();
-        
-        // 센터 서클
-        this.ctx.beginPath();
-        this.ctx.arc(this.width / 2, this.height / 2, this.width * 0.1, 0, Math.PI * 2);
-        this.ctx.stroke();
-        
-        // 페널티 박스 (좌우)
-        this.ctx.strokeRect(this.width * 0.05, this.height * 0.25, this.width * 0.15, this.height * 0.5);
-        this.ctx.strokeRect(this.width * 0.8, this.height * 0.25, this.width * 0.15, this.height * 0.5);
+        if (isPortrait) {
+            // 중앙선 (가로)
+            this.ctx.beginPath();
+            this.ctx.moveTo(this.width * 0.05, this.height / 2);
+            this.ctx.lineTo(this.width * 0.95, this.height / 2);
+            this.ctx.stroke();
+            
+            // 센터 서클
+            this.ctx.beginPath();
+            this.ctx.arc(this.width / 2, this.height / 2, this.width * 0.15, 0, Math.PI * 2);
+            this.ctx.stroke();
+            
+            // 페널티 박스 (상하)
+            this.ctx.strokeRect(this.width * 0.25, this.height * 0.05, this.width * 0.5, this.height * 0.15);
+            this.ctx.strokeRect(this.width * 0.25, this.height * 0.8, this.width * 0.5, this.height * 0.15);
 
-        // [신규] 골대 그리기
-        this.ctx.lineWidth = 3;
-        // 왼쪽 골대 (경기장 밖으로 돌출)
-        this.ctx.strokeRect(this.width * 0.02, this.height * 0.44, this.width * 0.03, this.height * 0.12);
-        // 오른쪽 골대 (경기장 밖으로 돌출)
-        this.ctx.strokeRect(this.width * 0.95, this.height * 0.44, this.width * 0.03, this.height * 0.12);
+            // 골대 그리기 (상하)
+            this.ctx.lineWidth = 3;
+            this.ctx.strokeRect(this.width * 0.44, this.height * 0.02, this.width * 0.12, this.height * 0.03);
+            this.ctx.strokeRect(this.width * 0.44, this.height * 0.95, this.width * 0.12, this.height * 0.03);
+        } else {
+            // 중앙선 (세로)
+            this.ctx.beginPath();
+            this.ctx.moveTo(this.width / 2, this.height * 0.05);
+            this.ctx.lineTo(this.width / 2, this.height * 0.95);
+            this.ctx.stroke();
+            
+            // 센터 서클
+            this.ctx.beginPath();
+            this.ctx.arc(this.width / 2, this.height / 2, this.height * 0.15, 0, Math.PI * 2);
+            this.ctx.stroke();
+            
+            // 페널티 박스 (좌우)
+            this.ctx.strokeRect(this.width * 0.05, this.height * 0.25, this.width * 0.15, this.height * 0.5);
+            this.ctx.strokeRect(this.width * 0.8, this.height * 0.25, this.width * 0.15, this.height * 0.5);
+
+            // 골대 그리기 (좌우)
+            this.ctx.lineWidth = 3;
+            this.ctx.strokeRect(this.width * 0.02, this.height * 0.44, this.width * 0.03, this.height * 0.12);
+            this.ctx.strokeRect(this.width * 0.95, this.height * 0.44, this.width * 0.03, this.height * 0.12);
+        }
+        
         this.ctx.lineWidth = 2; // 원래 두께로 복구
     }
 }

@@ -175,29 +175,54 @@ const TacticsManager = {
 // [신규] DNA 프리셋 데이터
 const DNAPresets = {
     balanced: {
-        name: "밸런스형",
+        name: "기본 전술",
         description: "모든 스탯에 균등하게 투자하여 약점이 없는 만능형입니다.",
         ratios: { attack: 1, speed: 1, technique: 1, physical: 1, defense: 1, mentality: 1 }
     },
     gegenpress: {
         name: "게겐프레싱",
         description: "강한 압박과 빠른 공수 전환을 위해 스피드와 피지컬을 강화합니다.",
-        ratios: { attack: 1.05, speed: 1.1, technique: 0.9, physical: 1.1, defense: 1.05, mentality: 0.9 }
+        ratios: { attack: 1.05, speed: 1.1, technique: 0.9, physical: 1.1, defense: 1.0, mentality: 0.95 }
+    },
+    twoLine: {
+        name: "다이렉트 축구",
+        description: "직선적인 공격을 위해 스피드와 피지컬에 집중합니다.",
+        ratios: { attack: 1.1, speed: 1.1, technique: 0.85, physical: 1.1, defense: 0.9, mentality: 0.95 }
+    },
+    lavolpiana: {
+        name: "라볼피아나",
+        description: "후방 빌드업과 측면 전개를 위해 기술과 스피드를 높입니다.",
+        ratios: { attack: 1.0, speed: 1.05, technique: 1.15, physical: 0.85, defense: 0.9, mentality: 1.05 }
+    },
+    longBall: {
+        name: "롱볼 축구",
+        description: "공중볼 경합과 탄탄한 수비를 위해 피지컬과 수비력을 극대화합니다.",
+        ratios: { attack: 0.9, speed: 0.9, technique: 0.8, physical: 1.15, defense: 1.15, mentality: 0.9 }
+    },
+    possession: {
+        name: "점유율 축구",
+        description: "공을 오래 소유하기 위해 기술과 정신력에 집중합니다.",
+        ratios: { attack: 0.95, speed: 0.85, technique: 1.15, physical: 0.9, defense: 1.0, mentality: 1.15 }
+    },
+    parkBus: {
+        name: "역습 축구",
+        description: "극단적인 수비벽을 세우고 역습 한 방을 노리기 위해 수비와 스피드를 올립니다.",
+        ratios: { attack: 0.85, speed: 1.1, technique: 0.8, physical: 1.05, defense: 1.25, mentality: 0.9 }
+    },
+    catenaccio: {
+        name: "카테나치오",
+        description: "대인 방어 기반의 끈적한 수비를 위해 정신력과 수비력을 강화합니다.",
+        ratios: { attack: 0.8, speed: 0.9, technique: 0.85, physical: 1.1, defense: 1.2, mentality: 1.15 }
+    },
+    totalFootball: {
+        name: "토탈 풋볼",
+        description: "전원 공격 전원 수비를 위해 기술, 정신력, 스피드를 두루 올립니다.",
+        ratios: { attack: 1.05, speed: 1.05, technique: 1.1, physical: 0.85, defense: 0.95, mentality: 1.1 }
     },
     tikitaka: {
         name: "티키타카",
         description: "짧은 패스 위주의 점유율 축구를 위해 기술과 정신력을 극대화합니다.",
-        ratios: { attack: 0.95, speed: 0.95, technique: 1.1, physical: 0.95, defense: 0.95, mentality: 1.1 }
-    },
-    parkTheBus: {
-        name: "두 줄 수비",
-        description: "수비와 피지컬에 집중하여 상대의 공격을 질식시키고 역습을 노립니다.",
-        ratios: { attack: 0.8, speed: 0.9, technique: 0.8, physical: 1.2, defense: 1.3, mentality: 1.0 }
-    },
-    direct: {
-        name: "다이렉트 공격",
-        description: "빠른 공격수들을 활용하기 위해 공격과 스피드에 포인트를 집중합니다.",
-        ratios: { attack: 1.1, speed: 1.1, technique: 0.95, physical: 1.0, defense: 0.9, mentality: 0.95 }
+        ratios: { attack: 0.95, speed: 0.9, technique: 1.2, physical: 0.8, defense: 0.95, mentality: 1.1 }
     }
 };
 

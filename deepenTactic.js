@@ -147,10 +147,10 @@ const DeepTacticManager = {
             ].reduce((s,_,i,a)=> i%2? s : s+`
             <div style="margin-bottom:10px;">
                 <label style="display:block;margin-bottom:4px;color:#ccc;">
-                    ${a[i][0]==='defensiveLine'?'수비 라인':a[i][0]==='pressIntensity'?'압박 강도':a[i][0]==='passTempo'?'패스 템포':'패스 길이'}
+                    ${a[i]==='defensiveLine'?'수비 라인':a[i]==='pressIntensity'?'압박 강도':a[i]==='passTempo'?'패스 템포':'패스 길이'}
                 </label>
-                <select id="dt-${a[i][0]}" style="width:100%;padding:5px;background:#333;color:white;">
-                    ${opts(a[i][0], a[i+1])}
+                <select id="dt-${a[i]}" style="width:100%;padding:5px;background:#333;color:white;">
+                    ${opts(a[i], a[i+1])}
                 </select>
             </div>`, '')}
             <div style="color:#aaa;font-size:0.8rem;">* 설정은 자동 적용됩니다</div>

@@ -1,4 +1,4 @@
-﻿// c:\Users\jinuj\vsc\easyfmm\tacticSystem.js
+// c:\Users\jinuj\vsc\easyfmm\tacticSystem.js
 
 // [전역 설정] 기본 롤(Role) 설정
 if (!gameData.lineRoles) {
@@ -402,6 +402,13 @@ function simulateMatch(matchData, engine) {
                 if (textEvent) {
                     displayEvent(textEvent, matchData);
                     
+                    // [신규] 개인기 시각 효과 연동
+                    if (engineEvent.type === 'dribble' && engineEvent.skillId) {
+                        if (window.matchVisualizer && window.matchVisualizer.units[engineEvent.player]) {
+                            window.matchVisualizer.units[engineEvent.player].triggerSkillEffect(engineEvent.skillId);
+                        }
+                    }
+
                     if (engineEvent.type === 'goal') {
                         if (engineEvent.team === 'home') matchData.homeScore++;
                         else matchData.awayScore++;
