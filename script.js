@@ -1066,9 +1066,25 @@ function showTab(tabName) {
     if (tabName === 'match') {
         // 탭 전환만 하고 경기 시작은 버튼으로 하도록 변경 (바로 시작하면 캘린더 효과를 못 봄)
 
-        // [추가] 전술 동기화 (DNA 탭에서 바뀐 전술 반영)
+        // [추가] 전술 동기화 (DNA 탭에서 바뀐 전술 반영) 및 숙련도 표기 업데이트
         const matchTacticSelect = document.getElementById('tacticSelect');
-        if (matchTacticSelect) matchTacticSelect.value = gameData.currentTactic;
+        if (matchTacticSelect) {
+            // 숙련도 텍스트 업데이트
+            if (gameData.tacticMastery) {
+                Array.from(matchTacticSelect.options).forEach(opt => {
+                    const tacKey = opt.value;
+                    const fam = gameData.tacticMastery[tacKey] || 0;
+                    
+                    // 기존 텍스트에서 '[숙련도' 부분 제거하고 새로 붙임
+                    let baseText = opt.text.replace(/ \[숙련도: \d+%\]/, '');
+                    if (fam > 0) {
+                        baseText = baseText.replace(' - ', ` [숙련도: ${fam}%] - `);
+                    }
+                    opt.text = baseText;
+                });
+            }
+            matchTacticSelect.value = gameData.currentTactic;
+        }
     }
 
     // 탭 버튼 활성화

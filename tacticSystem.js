@@ -72,15 +72,15 @@ class TacticSystem {
     constructor() {
         this.tactics = {
             balanced: { name: "기본 전술 (무전술)", effective: [], ineffective: ["gegenpress", "twoLine", "lavolpiana", "longBall", "possession", "parkBus", "catenaccio", "totalFootball", "tikitaka"], description: "특별한 전술 지시가 없는 상태입니다. 조직력이 크게 떨어집니다." },
-            gegenpress: { name: "게겐프레싱", effective: ["twoLine", "possession"], ineffective: ["longBall", "catenaccio"], description: "높은 압박으로 빠른 역습을 노리는 전술" },
-            twoLine: { name: "다이렉트 축구", effective: ["longBall", "parkBus"], ineffective: ["gegenpress", "totalFootball"], description: "긴 패스로 상대의 공간을 파고드는 전술" },
-            lavolpiana: { name: "라볼피아나", effective: ["possession", "tikitaka"], ineffective: ["catenaccio", "longBall"], description: "측면 공격과 크로스를 중심으로 한 전술" },
-            longBall: { name: "롱볼 축구", effective: ["parkBus", "catenaccio"], ineffective: ["gegenpress", "tikitaka"], description: "긴 패스로 빠르게 공격을 전개하는 전술" },
-            possession: { name: "점유율 축구", effective: ["tikitaka", "lavolpiana"], ineffective: ["longBall", "gegenpress"], description: "공을 오래 소유하며 천천히 공격 기회를 만드는 전술" },
-            parkBus: { name: "역습 축구", effective: ["catenaccio", "twoLine"], ineffective: ["gegenpress", "totalFootball"], description: "수비에 집중하고 호시탐탐 역습을 노리는 전술" },
-            catenaccio: { name: "카테나치오", effective: ["twoLine", "parkBus"], ineffective: ["possession", "totalFootball"], description: "이탈리아식 견고한 수비 전술" },
-            totalFootball: { name: "토탈 풋볼", effective: ["tikitaka", "gegenpress"], ineffective: ["twoLine", "catenaccio"], description: "모든 선수가 공격과 수비에 참여하는 전술" },
-            tikitaka: { name: "티키타카", effective: ["possession", "lavolpiana"], ineffective: ["longBall", "parkBus"], description: "짧은 패스를 연결하며 공간을 만드는 전술" }
+            gegenpress: { name: "게겐프레싱", effective: ["tikitaka", "possession", "lavolpiana"], ineffective: ["parkBus", "longBall", "catenaccio", "twoLine"], description: "높은 압박으로 빠른 역습을 노리는 전술" },
+            twoLine: { name: "다이렉트 축구", effective: ["gegenpress", "totalFootball"], ineffective: ["tikitaka", "possession", "lavolpiana"], description: "긴 패스로 상대의 공간을 파고드는 전술" },
+            lavolpiana: { name: "라볼피아나", effective: ["parkBus", "catenaccio", "twoLine", "longBall"], ineffective: ["gegenpress", "totalFootball"], description: "측면 공격과 크로스를 중심으로 한 전술" },
+            longBall: { name: "롱볼 축구", effective: ["gegenpress", "totalFootball"], ineffective: ["tikitaka", "possession", "lavolpiana"], description: "긴 패스로 빠르게 공격을 전개하는 전술" },
+            possession: { name: "점유율 축구", effective: ["parkBus", "catenaccio", "twoLine", "longBall"], ineffective: ["gegenpress", "totalFootball"], description: "공을 오래 소유하며 천천히 공격 기회를 만드는 전술" },
+            parkBus: { name: "역습 축구", effective: ["gegenpress", "totalFootball"], ineffective: ["tikitaka", "possession", "lavolpiana"], description: "수비에 집중하고 호시탐탐 역습을 노리는 전술" },
+            catenaccio: { name: "카테나치오", effective: ["gegenpress", "totalFootball"], ineffective: ["tikitaka", "possession", "lavolpiana"], description: "이탈리아식 견고한 수비 전술" },
+            totalFootball: { name: "토탈 풋볼", effective: ["tikitaka", "possession", "catenaccio", "parkBus"], ineffective: ["twoLine", "longBall"], description: "모든 선수가 공격과 수비에 참여하는 전술" },
+            tikitaka: { name: "티키타카", effective: ["parkBus", "catenaccio", "twoLine", "longBall"], ineffective: ["gegenpress", "totalFootball"], description: "짧은 패스를 연결하며 공간을 만드는 전술" }
         };
         // 팀별 전술은 script.js의 teamTactics 객체 또는 LegendLeagueManager를 참조한다고 가정
         // 여기서는 메서드만 제공
@@ -96,17 +96,25 @@ class TacticSystem {
     calculateTacticEffect(userTactic, opponentTactic) {
         const userTacticData = this.tactics[userTactic];
         if (!userTacticData) return 0;
-        
+
         let effect = 0;
         if (userTacticData.effective.includes(opponentTactic)) effect += 5;
         else if (userTacticData.ineffective.includes(opponentTactic)) effect -= 5;
+
+        // [신규] 전술 숙련도 낭만 보너스 적용 (숙련도 100일 경우 최대 +5 상쇄/추가)
+        if (window.gameData && window.gameData.tacticMastery && window.gameData.tacticMastery[userTactic]) {
+            const mastery = window.gameData.tacticMastery[userTactic];
+            const masteryBonus = Math.floor(mastery / 20); // 0 ~ 5
+            effect += masteryBonus;
+        }
+
         return effect;
     }
 
     getTacticMatchup(userTactic, opponentTactic) {
         const userTacticData = this.tactics[userTactic];
         const opponentTacticData = this.tactics[opponentTactic];
-        
+
         if (!userTacticData) return { result: "알 수 없음", advantage: 0, description: "정보 없음" };
 
         let result = "중립";
@@ -240,7 +248,7 @@ function startMatch() {
     document.getElementById('scoreDisplay').textContent = "0 - 0";
     document.getElementById('matchTime').textContent = "0분";
     document.getElementById('eventList').innerHTML = '';
-    
+
     // 援먯껜 踰꾪듉
     const subBtn = document.getElementById('substituteBtn');
     subBtn.style.display = 'inline-block';
@@ -251,14 +259,14 @@ function startMatch() {
     // (RealSoccerEngine? deepenTactic.js???뺤쓽?섏뼱 ?덉쓬)
     const homeSquad = getSquadData(matchData.homeTeam);
     const awaySquad = getSquadData(matchData.awayTeam);
-    
+
     // [?섏젙] ??????꾩닠 ?뺣낫瑜??붿쭊???꾨떖
     // [수정] 상대 전술 정보를 선수에 전달
     const homeTactic = (matchData.homeTeam === gameData.selectedTeam) ? gameData.currentTactic : tacticSystem.getOpponentTactic(matchData.homeTeam);
     const awayTactic = (matchData.awayTeam === gameData.selectedTeam) ? gameData.currentTactic : tacticSystem.getOpponentTactic(matchData.awayTeam);
 
     const engine = new RealSoccerEngine(homeSquad, awaySquad, homeTactic, awayTactic);
-    
+
     // [신규] 전술 상성 효과를 팀 전력(Team Strength)에 직접 반영 (약하게 적용)
     // tacticEffect: 유리 +5, 불리 -5 (약 60% 반영으로 팀 전력 격차 상쇄)
     if (matchData.homeTeam === gameData.selectedTeam) {
@@ -268,16 +276,16 @@ function startMatch() {
         engine.teamStrength.away += (tacticEffect * 0.6);
         engine.teamStrength.home -= (tacticEffect * 0.6);
     }
-    
+
     matchData.engine = engine; // 엔진 참조 저장
-    
+
     // [수정] 팀 컬러 가져오기 및 충돌 방지 (유니폼 색상 겹침 해결)
     const homeColor = getTeamColor(matchData.homeTeam);
     let awayColor = getTeamColor(matchData.awayTeam);
 
     // 二??됱긽 異붿텧 ?ы띁 (諛곗뿴?대㈃ 泥?踰덉㎏ ?됱긽, 臾몄옄?댁씠硫?洹몃?濡?
     const getPrimaryColor = (c) => Array.isArray(c) ? c[0] : c;
-    
+
     const hPrimary = getPrimaryColor(homeColor);
     const aPrimary = getPrimaryColor(awayColor);
 
@@ -325,7 +333,7 @@ function showKickoffButton(matchData, engine) {
 function startMatchSimulation(matchData, engine) {
     console.log('⚽ [Match] 경기 시뮬레이션 시작');
     matchData.isRunning = true;
-    
+
     const kickoffEvent = {
         minute: 0,
         type: 'kickoff',
@@ -358,7 +366,7 @@ function simulateMatch(matchData, engine) {
             if (!matchData.isEnded) {
                 matchData.isEnded = true;
                 endMatch(matchData);
-                
+
                 // [신규] 퇴장 애니메이션 시작
                 if (typeof engine.startExitAnimation === 'function') {
                     // 승리 팀 판별 ('home', 'away', or null)
@@ -409,10 +417,10 @@ function simulateMatch(matchData, engine) {
             snapshot.events.forEach(engineEvent => {
                 // 엔진 이벤트를 텍스트 이벤트로 변환
                 const textEvent = convertToTextEvent(engineEvent, matchData);
-                
+
                 if (textEvent) {
                     displayEvent(textEvent, matchData);
-                    
+
                     // [신규] 개인기 시각 효과 연동
                     if (engineEvent.type === 'dribble' && engineEvent.skillId) {
                         if (window.matchVisualizer && window.matchVisualizer.units[engineEvent.player]) {
@@ -423,9 +431,9 @@ function simulateMatch(matchData, engine) {
                     if (engineEvent.type === 'goal') {
                         if (engineEvent.team === 'home') matchData.homeScore++;
                         else matchData.awayScore++;
-                        
+
                         document.getElementById('scoreDisplay').textContent = `${matchData.homeScore} - ${matchData.awayScore}`;
-                        
+
                         // 진동 효과
                         if (window.customCursorInstance && typeof window.customCursorInstance.triggerVibration === 'function') {
                             window.customCursorInstance.triggerVibration(600, 0.9, 0.6);
@@ -446,7 +454,7 @@ function simulateMatch(matchData, engine) {
 
         // 6. 시간 업데이트
         tickCount++;
-        
+
         // [수정] 세리머니/골 직전 연출 중에는 시간 멈춤
         if (!snapshot.isCelebration && !snapshot.isSuspense) {
             matchData.seconds += 4;
@@ -462,12 +470,12 @@ function simulateMatch(matchData, engine) {
 
         const endTime = performance.now();
         const elapsed = endTime - startTime;
-        
+
         // [수정] 고속 모드 / 골 직전 연출에 따른 틱 딜레이
         const dramaDelay = getDramaTickDelay(matchData, snapshot);
         const targetDuration = matchData.isFastForward ? 0 : (dramaDelay !== null ? dramaDelay : tickDuration);
         const nextDelay = Math.max(0, targetDuration - elapsed);
-        
+
         matchData.timeoutId = setTimeout(gameLoop, nextDelay);
     }
 
@@ -668,7 +676,7 @@ function convertToTextEvent(engineEvent, matchData) {
         const data = { blocker: engineEvent.blocker, shooter: engineEvent.shooter };
         return {
             minute: matchData.minute,
-            type: 'block', 
+            type: 'block',
             description: getRandomCommentary('block', data)
         };
     } else if (engineEvent.type === 'preGoalSuspense') {
@@ -696,7 +704,7 @@ function displayEvent(event, matchData) {
     if (event.type === 'preGoalSuspense' && window.customCursorInstance && typeof window.customCursorInstance.triggerVibration === 'function') {
         window.customCursorInstance.triggerVibration(180, 0.35, 0.25);
     }
-    
+
     matchData.events.push(event);
 }
 
@@ -718,10 +726,10 @@ function endMatch(matchData) {
     const isUserHome = matchData.homeTeam === gameData.selectedTeam;
     const userScore = isUserHome ? matchData.homeScore : matchData.awayScore;
     const oppScore = isUserHome ? matchData.awayScore : matchData.homeScore;
-    
+
     let result = userScore > oppScore ? '승리' : (userScore < oppScore ? '패배' : '무승부');
     let points = result === '승리' ? 3 : (result === '무승부' ? 1 : 0);
-    
+
     // 자금 및 사기 보상
     if (result === '승리') {
         if (window.GameState) {
@@ -764,11 +772,17 @@ function endMatch(matchData) {
         }
     }
 
-    // 由ш렇 ?곗씠???낅뜲?댄듃
+    // 리그 데이터 업데이트
     updateLeagueData(matchData, points);
     if (window.GameState) window.GameState.incrementMatchesPlayed();
     else gameData.matchesPlayed++;
 
+    // [신규] 전술 숙련도(낭만) 증가 로직 (+2%)
+    if (!gameData.tacticMastery) {
+        gameData.tacticMastery = {};
+    }
+    const currentTac = gameData.currentTactic || 'balanced';
+    gameData.tacticMastery[currentTac] = Math.min(100, (gameData.tacticMastery[currentTac] || 0) + 2);
     // 理쒖쥌 硫붿떆吏
     const strengthDiff = matchData.strengthDiff || { userAdvantage: false };
     let finalMsg = `경기 종료! ${result} (${userScore}-${oppScore})`;
@@ -801,7 +815,7 @@ function endMatch(matchData) {
 
     // 踰꾪듉 ?대깽???곌껐
     const ratings = calculateMatchRatings(matchData);
-    
+
     // [?좉퇋] ?좎? ? ?됱젏 湲곕줉 ?쒖뒪?쒖뿉 ?깅줉 (踰좎뒪??11 ?좎젙??
     if (typeof recordsSystem !== 'undefined') {
         recordsSystem.processMatchRatings(ratings, matchData);
@@ -819,8 +833,8 @@ function endMatch(matchData) {
             if (result.success) {
                 setTimeout(() => {
                     alert(`[스카우트 보고서]\n${result.message}`);
-                    if(typeof displayScoutedPlayers === 'function') displayScoutedPlayers(result.players);
-                    if(typeof displayYouthPlayers === 'function') displayYouthPlayers();
+                    if (typeof displayScoutedPlayers === 'function') displayScoutedPlayers(result.players);
+                    if (typeof displayYouthPlayers === 'function') displayYouthPlayers();
                 }, 1500);
             }
         }
@@ -835,7 +849,7 @@ function endMatch(matchData) {
 
     // ?꾩쿂由?(?깆옣, 遺???뚮났 ??
     if (typeof processPostMatchGrowth === 'function') setTimeout(processPostMatchGrowth, 1000);
-    
+
     // [以묒슂] 媛쒖씤湲곕줉 ?낅뜲?댄듃 諛?AI ?쒕??덉씠???ㅽ뻾 (simulateOtherMatches ?泥?
     if (typeof updateRecordsAfterMatch === 'function') {
         updateRecordsAfterMatch(resultPayload);
@@ -848,7 +862,7 @@ function endMatch(matchData) {
         if (window.GameState) window.GameState.clearTemporaryStats();
         else gameData.temporaryStats = {};
     }
-    
+
     // ?ㅼ쓬 ?쇱슫??以鍮?
     if (window.GameState) window.GameState.advanceRound();
     else gameData.currentRound++;
@@ -858,7 +872,7 @@ function endMatch(matchData) {
     if (matchData.engine && matchData.engine.players && gameData.selectedTeam) {
         const userTeamKey = gameData.selectedTeam;
         const userPlayers = teams[userTeamKey];
-        
+
         // ?ъ슜?먯쓽 ???home?몄? away?몄? ?뺤씤
         const userSide = matchData.homeTeam === userTeamKey ? 'home' : 'away';
         const playedPlayerNames = new Set();
@@ -869,12 +883,12 @@ function endMatch(matchData) {
                 const realPlayer = userPlayers.find(p => p.name === simPlayer.name);
                 if (realPlayer) {
                     playedPlayerNames.add(realPlayer.name);
-                    
+
                     const remaining = simPlayer.stamina;
-                    
+
                     // [蹂듦뎄] 泥대젰 ?뚮났 濡쒖쭅 (?뚮え??泥대젰????83% ?뚮났)
                     // ?? ?붿뿬 40(?뚮え 60) -> ?뚮났 50 -> 寃곌낵 90
-                    const recovered = Math.min(100, Math.floor(remaining + (100 - remaining) * (5/6)));
+                    const recovered = Math.min(100, Math.floor(remaining + (100 - remaining) * (5 / 6)));
 
                     realPlayer.condition = recovered;
                 }
@@ -896,7 +910,7 @@ function endMatch(matchData) {
     }
 
     setTimeout(() => {
-        if(typeof processRetirementsAndReincarnations === 'function') processRetirementsAndReincarnations();
+        if (typeof processRetirementsAndReincarnations === 'function') processRetirementsAndReincarnations();
         checkSeasonEnd();
     }, 1000);
 }
@@ -946,13 +960,13 @@ function startInterview(result, userScore, opponentScore, strengthDiff) {
     injurySystem.removeInjuredFromSquad();
 
     showScreen('interviewScreen');
-    
+
     const questions = getInterviewQuestions(result, userScore, opponentScore, strengthDiff);
     const q = questions[Math.floor(Math.random() * questions.length)];
-    
+
     document.getElementById('interviewQuestion').textContent = q.question;
     const btns = document.querySelectorAll('.interview-btn');
-    
+
     q.options.forEach((opt, i) => {
         if (btns[i]) {
             btns[i].textContent = opt.text;
@@ -969,9 +983,9 @@ function getInterviewQuestions(result, userScore, oppScore, strengthDiff) {
     // strengthDiff가 없을 경우 대비
     const safeStrengthDiff = strengthDiff || { userAdvantage: false, strengthGap: 0 };
     // 이변 여부: 내가 불리한데 이겼거나, 유리한데 졌을 때
-    const isUpset = (result === '승리' && !safeStrengthDiff.userAdvantage) || 
-                   (result === '패배' && safeStrengthDiff.userAdvantage);
-    
+    const isUpset = (result === '승리' && !safeStrengthDiff.userAdvantage) ||
+        (result === '패배' && safeStrengthDiff.userAdvantage);
+
     if (result === '승리') {
         if (isUpset) {
             // 업셋 승리 (불리한 전력으로 승리)
@@ -1037,7 +1051,7 @@ function getInterviewQuestions(result, userScore, oppScore, strengthDiff) {
             }];
         }
     }
-    
+
     // 무승부
     if (safeStrengthDiff.userAdvantage && safeStrengthDiff.strengthGap > 10) {
         // 강한 팀이 무승부 (실망스러운 무승부)
@@ -1076,7 +1090,7 @@ function handleInterview(option) {
     const moraleChange = parseInt(document.querySelector(`[data-option="${option}"]`).dataset.morale);
     if (window.GameState) window.GameState.adjustTeamMorale(moraleChange);
     else gameData.teamMorale = Math.max(0, Math.min(100, gameData.teamMorale + moraleChange));
-    
+
     checkSeasonEnd();
     showScreen('lobby');
     updateDisplay();
@@ -1087,22 +1101,22 @@ function calculateMatchRatings(matchData) {
     // 평점 계산 로직 (기존 유지)
     const homeTeam = matchData.homeTeam;
     const awayTeam = matchData.awayTeam;
-    
+
     // 유저 팀 선수 명단 정보
     let homePlayers = [], awayPlayers = [];
-    
+
     if (homeTeam === gameData.selectedTeam) {
         const s = gameData.squad;
         if (s.gk) homePlayers.push(s.gk);
-        [...s.df, ...s.mf, ...s.fw].forEach(p => { if(p) homePlayers.push(p); });
+        [...s.df, ...s.mf, ...s.fw].forEach(p => { if (p) homePlayers.push(p); });
     } else {
         homePlayers = getBestEleven(homeTeam);
     }
-    
+
     if (awayTeam === gameData.selectedTeam) {
         const s = gameData.squad;
         if (s.gk) awayPlayers.push(s.gk);
-        [...s.df, ...s.mf, ...s.fw].forEach(p => { if(p) awayPlayers.push(p); });
+        [...s.df, ...s.mf, ...s.fw].forEach(p => { if (p) awayPlayers.push(p); });
     } else {
         awayPlayers = getBestEleven(awayTeam);
     }
@@ -1114,7 +1128,7 @@ function calculateMatchRatings(matchData) {
         r += goals * 1.5;
         r += assists * 1.2; // [異붽?] ?댁떆?ㅽ듃 ?됱젏 諛섏쁺
         if (goalsAgainst === 0 && (p.position === 'GK' || p.position === 'DF')) r += 0.5;
-        
+
         // 승리 보너스
         const myScore = team === homeTeam ? matchData.homeScore : matchData.awayScore;
         const oppScore = team === homeTeam ? matchData.awayScore : matchData.homeScore;
@@ -1127,11 +1141,11 @@ function calculateMatchRatings(matchData) {
 
     const homeRatings = homePlayers.map(p => calc(p, homeTeam, matchData.awayScore));
     const awayRatings = awayPlayers.map(p => calc(p, awayTeam, matchData.homeScore));
-    
+
     // MOM
     const all = [...homeRatings, ...awayRatings];
     all.sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating));
-    
+
     return { home: homeRatings, away: awayRatings, mom: all[0] };
 }
 
@@ -1140,7 +1154,7 @@ function showMatchResultModal(matchData, ratings, result, userScore, oppScore, d
     document.getElementById('resultHomeTeam').textContent = teamNames[matchData.homeTeam];
     document.getElementById('resultAwayTeam').textContent = teamNames[matchData.awayTeam];
     document.getElementById('resultScore').textContent = `${matchData.homeScore} - ${matchData.awayScore}`;
-    
+
     const render = (id, list) => {
         const el = document.getElementById(id);
         el.innerHTML = '';
@@ -1160,7 +1174,7 @@ function showMatchResultModal(matchData, ratings, result, userScore, oppScore, d
     };
     render('homeTeamRatings', ratings.home);
     render('awayTeamRatings', ratings.away);
-    
+
     document.getElementById('confirmResultBtn').onclick = () => {
         modal.style.display = 'none';
         if (gameData.isWorldCupMode && typeof WorldCupManager !== 'undefined') {
@@ -1187,7 +1201,7 @@ function showMatchResultModal(matchData, ratings, result, userScore, oppScore, d
 
 class InjurySystem {
     constructor() { this.injuredPlayers = new Map(); }
-    
+
     checkInjury(matchData) {
         // [수정] 부상 확률 대폭 하향 (0.05% -> 0.01%)
         if (Math.random() < 0.0001) {
@@ -1195,7 +1209,7 @@ class InjurySystem {
             const teamKey = isUser ? gameData.selectedTeam : gameData.currentOpponent;
             const squad = isUser ? [gameData.squad.gk, ...gameData.squad.df, ...gameData.squad.mf, ...gameData.squad.fw] : getBestEleven(teamKey);
             const player = squad.filter(p => p)[Math.floor(Math.random() * squad.filter(p => p).length)];
-            
+
             if (player && !this.isInjured(teamKey, player.name)) {
                 const games = Math.floor(Math.random() * 3) + 1;
                 this.injuredPlayers.set(`${teamKey}_${player.name}`, { team: teamKey, name: player.name, gamesRemaining: games });
@@ -1213,7 +1227,7 @@ class InjurySystem {
     }
 
     isInjured(team, name) { return this.injuredPlayers.has(`${team}_${name}`); }
-    
+
     getInjuredPlayers(team) {
         const list = [];
         this.injuredPlayers.forEach(v => { if (v.team === team) list.push(v); });
@@ -1228,7 +1242,7 @@ class InjurySystem {
         s.mf = s.mf.map(p => p && this.isInjured(gameData.selectedTeam, p.name) ? null : p);
         s.fw = s.fw.map(p => p && this.isInjured(gameData.selectedTeam, p.name) ? null : p);
     }
-    
+
     getSaveData() { return { injuredPlayers: Array.from(this.injuredPlayers.entries()) }; }
     loadSaveData(data) { if (data && data.injuredPlayers) this.injuredPlayers = new Map(data.injuredPlayers); }
     reset() { this.injuredPlayers.clear(); }
@@ -1284,29 +1298,29 @@ function openSubstitutionModal(matchData, isForced = false, injuredPlayer = null
 
     fieldPlayers.forEach(player => {
         const playerEl = createSubPlayerElement(player);
-        
+
         // 부상 교체 시 부상자 자동 선택 및 강조
         if (isForced && injuredPlayer && player.name === injuredPlayer.name) {
             playerEl.classList.add('selected');
             playerEl.style.borderColor = '#e74c3c'; // 빨간색 강조
             selectedFieldPlayer = { element: playerEl, player: player };
-        } 
-        
+        }
+
         // 클릭 이벤트 (부상 교체 시 부상자가 아니면 선택 불가)
         playerEl.addEventListener('click', () => {
             if (isForced && injuredPlayer && player.name !== injuredPlayer.name) return;
             selectPlayerForSub(player, playerEl, 'field', matchData);
         });
-        
+
         fieldPlayersList.appendChild(playerEl);
     });
 
     // 2. 벤치 선수 목록 (전체 선수 중 필드/부상 제외)
     const allPlayers = teams[gameData.selectedTeam];
     const fieldPlayerNames = new Set(fieldPlayers.map(p => p.name));
-    
-    const benchPlayers = allPlayers.filter(p => 
-        !fieldPlayerNames.has(p.name) && 
+
+    const benchPlayers = allPlayers.filter(p =>
+        !fieldPlayerNames.has(p.name) &&
         (!injurySystem || !injurySystem.isInjured(gameData.selectedTeam, p.name))
     );
 
@@ -1344,7 +1358,7 @@ function selectPlayerForSub(player, element, type, matchData) {
                 // 취소 시 선택 해제
                 if (selectedBenchPlayer) selectedBenchPlayer.element.classList.remove('selected');
                 selectedBenchPlayer = null;
-                
+
                 if (!matchData.isPausedForInjury) {
                     if (selectedFieldPlayer) selectedFieldPlayer.element.classList.remove('selected');
                     selectedFieldPlayer = null;
@@ -1369,17 +1383,17 @@ function performSubstitution(playerOut, playerIn, matchData) {
     if (matchData.engine) {
         const simPlayers = matchData.engine.players;
         const simPlayerIndex = simPlayers.findIndex(p => p.id === playerOut.name);
-        
+
         if (simPlayerIndex !== -1) {
             const simPlayer = simPlayers[simPlayerIndex];
-            
+
             // 기존 SimPlayer 객체를 새 선수 정보로 갱신
             simPlayer.id = playerIn.name;
             simPlayer.name = playerIn.name;
             simPlayer.rating = playerIn.rating;
             // [수정] 교체 투입 선수 체력 반영
             simPlayer.stamina = (playerIn.condition !== undefined) ? playerIn.condition : 100;
-            
+
             // 능력치 업데이트
             simPlayer.stats = {
                 speed: playerIn.rating,
@@ -1388,7 +1402,7 @@ function performSubstitution(playerOut, playerIn, matchData) {
                 defense: playerIn.rating,
                 decision: playerIn.rating
             };
-            
+
             // 역할 재설정
             let role = 'CM';
             if (gameData.playerRoles && gameData.playerRoles[playerIn.name]) {
@@ -1410,7 +1424,7 @@ function performSubstitution(playerOut, playerIn, matchData) {
                 window.matchVisualizer.units[playerIn.name] = unit;
             }
         }
-        
+
         // 스테미나 재계산 (엔진 메서드 호출)
         if (typeof matchData.engine.recalculateStaminaOnSub === 'function') {
             matchData.engine.recalculateStaminaOnSub(playerOut);
@@ -1430,7 +1444,7 @@ function performSubstitution(playerOut, playerIn, matchData) {
     document.getElementById('substitutionModal').style.display = 'none';
     selectedFieldPlayer = null;
     selectedBenchPlayer = null;
-    
+
     if (matchData.isPausedForInjury) {
         matchData.isPausedForInjury = false;
         matchData.isRunning = true;
@@ -1459,7 +1473,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function handleForcedSubstitution(player, matchData) {
     matchData.isRunning = false;
     matchData.isPausedForInjury = true; // 부상 일시정지 플래그
-    
+
     // [수정] 알림 후 즉시 모달 열기 (비동기 처리로 UI 블로킹 방지)
     setTimeout(() => {
         alert(`🚨 ${player.name} 부상 발생! 경기를 뛸 수 없어 교체가 필요합니다.`);
@@ -1478,7 +1492,7 @@ document.addEventListener('keydown', (e) => {
     if (e.shiftKey && (e.key === 'f' || e.key === 'F')) {
         if (window.currentMatchData && window.currentMatchData.isRunning) {
             window.currentMatchData.isFastForward = !window.currentMatchData.isFastForward;
-            
+
             // 시각적 피드백 (시간 텍스트 색상 변경)
             const timeEl = document.getElementById('matchTime');
             if (timeEl) {

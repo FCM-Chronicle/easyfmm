@@ -306,13 +306,51 @@ class RealSoccerEngine {
         if (cfg.passing === 'direct' || cfg.passing === 'long') base.directness = Math.min(1.3, base.directness + 0.1);
         if (cfg.press === 'high') base.press = Math.min(1.3, base.press + 0.15);
 
+        // [신규] 전술 숙련도 버프 적용
+        if (typeof window !== 'undefined' && window.gameData && teamId === window.gameData.selectedTeam && window.gameData.tacticMastery) {
+            const mastery = window.gameData.tacticMastery[tactic] || 0;
+            if (mastery > 0) {
+                base.chanceRate += (mastery / 100) * 0.05; // 최대 0.05 보너스
+                base.press += (mastery / 100) * 0.1; // 최대 0.1 보너스
+                base.tempo += (mastery / 100) * 0.05; // 움직임 템포 향상
+            }
+        }
         // [신규] 포메이션 시너지 반영
         const df = this.getPlayersByTeam(teamId, 'DF').length;
         const mf = this.getPlayersByTeam(teamId, 'MF').length;
         const fw = this.getPlayersByTeam(teamId, 'FW').length;
         const formStr = `${df}-${mf}-${fw}`;
 
-        if (formStr === '4-3-3' && tactic === 'tikitaka') {
+        base.activeSynergy = null;
+        base.activePenalty = null;
+
+        // [🟢 시너지 버프]
+        if (formStr === '4-5-1' && tactic === 'gegenpress') {
+            base.press += 0.3; base.chanceRate += 0.08;
+            base.activeSynergy = '4-2-3-1_gegenpress';
+        } else if (formStr === '3-5-2' && tactic === 'lavolpiana') {
+            base.width += 0.3; base.chanceRate += 0.06;
+            base.activeSynergy = '3-5-2_lavolpiana';
+        } else if (formStr === '4-5-1' && (tactic === 'possession' || tactic === 'tikitaka')) {
+            base.chanceRate += 0.1;
+            base.activeSynergy = '4-1-4-1_halfspace';
+        } else if (formStr === '3-4-3' && (tactic === 'twoLine' || tactic === 'parkBus')) { // parkBus는 역습 전술
+            base.directness += 0.3; base.width += 0.2; base.attackRisk += 0.15;
+            base.activeSynergy = '3-4-3_fast_transition';
+        }
+        // [🔴 멸망 패널티]
+        else if (formStr === '4-3-3' && tactic === 'longBall') {
+            base.chanceRate -= 0.06; base.attackRisk -= 0.1;
+            base.activePenalty = '4-3-3_longball_fail';
+        } else if (formStr === '5-3-2' && tactic === 'gegenpress') {
+            base.press += 0.2; base.attackRisk -= 0.2; 
+            base.activePenalty = '5-3-2_high_press_fail';
+        } else if (formStr === '3-4-3' && tactic === 'possession') { // 3-4-3 텐백 패널티로 교체 (점유율이나 극단적 수비 시)
+            base.chanceRate -= 0.08;
+            base.activePenalty = '3-4-3_parkbus_fail';
+        }
+        // 기존 유지
+        else if (formStr === '4-3-3' && tactic === 'tikitaka') {
             base.tempo += 0.1; base.chanceRate += 0.05;
         } else if (formStr === '4-4-2' && tactic === 'longBall') {
             base.directness += 0.15; base.chanceRate += 0.04;
@@ -621,14 +659,16 @@ class RealSoccerEngine {
         const gk = this.goalkeeper;
         const roll = Math.random();
 
-        let goalChance = 0.22 * atkMod;
-        let saveChance = 0.28;
-        let blockChance = 0.14;
-        let missChance = 0.36;
+        // 전술의 차이를 크게 만들고, 기본 골 확률 상향
+        let goalChance = 0.28 * atkMod;
+        let saveChance = 0.25;
+        let blockChance = 0.13;
+        let missChance = 0.34;
 
-        if (profile.directness > 1.1) goalChance += 0.04;
+        if (profile.directness > 1.0) goalChance += 0.05;
+        if (profile.attackRisk > 0.85) goalChance += 0.05;
         if (profile.press > 1.0) blockChance += 0.04;
-        goalChance = clamp(goalChance, 0.12, 0.42);
+        goalChance = clamp(goalChance, 0.15, 0.55);
 
         const total = goalChance + saveChance + blockChance + missChance;
         const nGoal = goalChance / total;
@@ -927,9 +967,8 @@ class RealSoccerEngine {
                 this.eventsQueue.push({ type: 'siderun', player: this.carrier ? this.carrier.name : '선수', team });
             }
 
-            // Chance phase 확률 
-            let chanceThreshold = clamp((profile.chanceRate + setPieceBoost) * atkMod, 0.3, 0.6);
-
+            // Chance phase 확률 (전술 반영도를 크게 높이고 클램프 범위 확장)
+            let chanceThreshold = clamp((profile.chanceRate * 3.5 + setPieceBoost) * atkMod, 0.25, 0.85);
             // [신규] AF 롤 & Mentality DNA 보정 (클러치 타임 가속 포함)
             if (this.carrier && this.carrier.role === 'AF') chanceThreshold += 0.05;
             const myScore = team === 'home' ? this.homeScore : this.awayScore;
@@ -943,15 +982,35 @@ class RealSoccerEngine {
             }
 
             if (Math.random() < chanceThreshold) {
+                // 시너지 텍스트 발동 (기회 창출 시 가끔)
+                if (Math.random() < 0.4 && profile.activeSynergy) {
+                    let desc = '';
+                    if (profile.activeSynergy === '4-2-3-1_gegenpress') desc = `[시너지 발동] 완벽한 전방 압박! 탈취하자마자 결정적인 찬스를 만듭니다!`;
+                    else if (profile.activeSynergy === '3-5-2_lavolpiana') desc = `[시너지 발동] 메짜라와 윙백의 측면 과부하! 상대 수비 진형이 붕괴됩니다!`;
+                    else if (profile.activeSynergy === '4-1-4-1_halfspace') desc = `[시너지 발동] 2선 미드필더의 하프 스페이스 공략! 수비 균열을 유발합니다!`;
+                    else if (profile.activeSynergy === '3-4-3_fast_transition') desc = `[시너지 발동] 스리톱의 넓은 폭을 활용해 뒷공간을 한 번에 허무는 템포 폭발!`;
+                    
+                    if (desc) {
+                        this.eventsQueue.push({ type: 'pass', desc, team });
+                    }
+                }
+
                 this.phase = MatchPhase.CHANCE;
                 this.pickPhaseActors();
             } else if (Math.random() < 0.16 * oppProfile.press * turnoverFactor) {
-                // [개선] 공격 실패 및 턴오버 확률 상향 (스탯 반영)
+                // 패널티 텍스트 발동 (턴오버 시 가끔)
                 const isIntercept = Math.random() < 0.6;
+                let interceptDesc = isIntercept ? `공격 전개 실패! ${this.defender ? this.defender.name : '수비수'}가 길목을 차단합니다!` : `${this.defender ? this.defender.name : '수비수'}의 결정적인 태클!`;
+                if (profile.activePenalty && Math.random() < 0.5) {
+                    if (profile.activePenalty === '4-3-3_longball_fail') interceptDesc = `[패널티 발동] 투톱 부재로 전방이 고립되며 세컨볼을 그대로 내줍니다!`;
+                    else if (profile.activePenalty === '5-3-2_high_press_fail') interceptDesc = `[패널티 발동] 수비와 중원의 간격이 벌어지며 압박이 쉽게 벗겨집니다!`;
+                    else if (profile.activePenalty === '3-4-3_parkbus_fail') interceptDesc = `[패널티 발동] 공격진의 수비 가담 부족으로 중원에 과부하가 걸립니다!`;
+                }
+
                 this.losePossession({
                     type: 'tackle',
                     player: this.defender ? this.defender.name : '수비수',
-                    desc: isIntercept ? `공격 전개 실패! ${this.defender ? this.defender.name : '수비수'}가 길목을 차단합니다!` : `${this.defender ? this.defender.name : '수비수'}의 결정적인 태클!`
+                    desc: interceptDesc
                 });
             }
             return;
