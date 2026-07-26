@@ -90,19 +90,19 @@ window.GameEventBus = window.GameEventBus || {
 window.AutoSaveSystem = {
     lastLoadedSlot: 1, // 기본값 슬롯 1
 
-    init: function() {
+    init: function () {
         // UI 이벤트 바인딩 (설정 탭)
         const toggle = document.getElementById('autoSaveToggle');
         if (toggle) {
             // 기존 이벤트 제거를 위해 복제 후 교체
             const newToggle = toggle.cloneNode(true);
             toggle.parentNode.replaceChild(newToggle, toggle);
-            
+
             newToggle.addEventListener('change', (e) => {
                 if (!gameData.settings) gameData.settings = {};
                 gameData.settings.autoSave = e.target.checked;
                 this.updateUI();
-                
+
                 // 켜는 순간 저장 한 번 실행
                 if (gameData.settings.autoSave) {
                     this.triggerSave();
@@ -112,37 +112,37 @@ window.AutoSaveSystem = {
         this.updateUI();
     },
 
-    updateUI: function() {
+    updateUI: function () {
         const toggle = document.getElementById('autoSaveToggle');
         const status = document.getElementById('autoSaveStatus');
-        
+
         if (toggle && status) {
             const isEnabled = gameData.settings && gameData.settings.autoSave;
             toggle.checked = isEnabled;
-            status.textContent = isEnabled ? 
-                `자동 저장이 켜져있습니다 (슬롯 ${this.lastLoadedSlot})` : 
+            status.textContent = isEnabled ?
+                `자동 저장이 켜져있습니다 (슬롯 ${this.lastLoadedSlot})` :
                 "자동 저장이 꺼져있습니다.";
             status.style.color = isEnabled ? "#2ecc71" : "#aaa";
         }
     },
 
-    setLastLoadedSlot: function(slot) {
+    setLastLoadedSlot: function (slot) {
         this.lastLoadedSlot = slot;
         this.updateUI();
     },
 
-    triggerSave: function() {
+    triggerSave: function () {
         if (gameData.settings && gameData.settings.autoSave) {
             if (typeof window.saveToSlot === 'function') {
                 console.log(`🔄 자동 저장 실행 (슬롯 ${this.lastLoadedSlot})`);
                 // silent 모드로 저장 (알림창 없이)
-                window.saveToSlot(this.lastLoadedSlot, true); 
+                window.saveToSlot(this.lastLoadedSlot, true);
                 this.showToast();
             }
         }
     },
 
-    showToast: function() {
+    showToast: function () {
         const toast = document.createElement('div');
         toast.innerHTML = '💾 자동 저장됨';
         toast.style.cssText = `
@@ -160,7 +160,7 @@ window.AutoSaveSystem = {
             pointer-events: none;
         `;
         document.body.appendChild(toast);
-        
+
         // 애니메이션 스타일 추가 (중복 방지)
         if (!document.getElementById('toast-style')) {
             const style = document.createElement('style');
@@ -175,13 +175,13 @@ window.AutoSaveSystem = {
             `;
             document.head.appendChild(style);
         }
-        
+
         setTimeout(() => toast.remove(), 2000);
     }
 };
 
 // 전역 헬퍼 (loadGame 등에서 호출)
-window.updateAutoSaveUI = function() {
+window.updateAutoSaveUI = function () {
     if (window.AutoSaveSystem) {
         window.AutoSaveSystem.updateUI();
     }
@@ -191,12 +191,12 @@ function getTeamLogoHTML(teamName) {
     const team = allTeams[teamName];
     if (!team) return '';
     const code = team.logoCode || "DFT";
-    
+
     // [수정] 레전드 팀은 별도의 폴더(legend) 사용
     if (teamName.startsWith("Legend_")) {
         return `<img src="assets/logo/legend/${code}.webp" class="team-logo" alt="${teamName}">`;
     }
-    
+
     return `<img src="assets/logo/${team.league}/${code}.webp" class="team-logo" alt="${teamName}">`;
 }
 
@@ -341,7 +341,7 @@ function initializeGame() {
 
     // [신규] 메인 화면 저장된 게임 슬롯 표시
     renderMainSaveSlots();
-    
+
     // [신규] 게임 모드 선택 UI 추가
     addGameModeSelectorUI();
 
@@ -423,7 +423,7 @@ function setupEventListeners() {
     // [성능 개선] 이벤트 위임(Event Delegation) 적용
     const teamSelectionScreen = document.getElementById('teamSelection');
     if (teamSelectionScreen) {
-        teamSelectionScreen.addEventListener('click', function(e) {
+        teamSelectionScreen.addEventListener('click', function (e) {
             const card = e.target.closest('.team-card');
             if (card) {
                 const originalTeamKey = card.dataset.team;
@@ -443,13 +443,13 @@ function setupEventListeners() {
 
     // 탭 전환
     document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
+        btn.addEventListener('click', function () {
             const tabName = this.dataset.tab;
             showTab(tabName);
         });
     });
     // [수정] 홈 버튼 이벤트
-    document.getElementById('homeBtn').addEventListener('click', function() {
+    document.getElementById('homeBtn').addEventListener('click', function () {
         if (typeof showDashboard === 'function') showDashboard();
     });
 
@@ -486,7 +486,7 @@ function setupEventListeners() {
 
     // 게임 저장/불러오기
     document.getElementById('saveGameBtn').addEventListener('click', saveGame);
-    document.getElementById('loadGameBtn').addEventListener('click', function() {
+    document.getElementById('loadGameBtn').addEventListener('click', function () {
         document.getElementById('loadGameInput').click();
     });
     document.getElementById('loadGameInput').addEventListener('change', loadGame);
@@ -502,7 +502,7 @@ function setupEventListeners() {
     if (guideBtn && guideModal) {
         guideBtn.addEventListener('click', () => guideModal.style.display = 'block');
         closeGuideBtn.addEventListener('click', () => guideModal.style.display = 'none');
-        
+
         // 모달 바깥 클릭 시 닫기
         window.addEventListener('click', (e) => {
             if (e.target === guideModal) guideModal.style.display = 'none';
@@ -511,7 +511,7 @@ function setupEventListeners() {
 
     // 인터뷰 버튼
     document.querySelectorAll('.interview-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
+        btn.addEventListener('click', function () {
             const option = this.dataset.option;
             handleInterview(option);
         });
@@ -530,7 +530,7 @@ function setupEventListeners() {
     }
 
     // [신규] 5시즌 시뮬레이션 단축키 (Ctrl + Shift + S)
-    document.addEventListener('keydown', function(e) {
+    document.addEventListener('keydown', function (e) {
         if (e.ctrlKey && e.shiftKey && (e.key === 's' || e.key === 'S')) {
             e.preventDefault();
             if (confirm("5시즌을 빠르게 시뮬레이션 하시겠습니까?\n(시간이 걸릴 수 있으며, 진행 중인 경기는 스킵됩니다.)")) {
@@ -556,7 +556,7 @@ function closeCreateTeamModal() {
 function showIconTeamCreation() {
     document.getElementById('createTeamModeSelection').style.display = 'none';
     document.getElementById('iconTeamCreationArea').style.display = 'block';
-    
+
     // 교체할 팀 목록 채우기 (2부 리그)
     const teamSelect = document.getElementById('replacementTeamSelect');
     teamSelect.innerHTML = '';
@@ -582,7 +582,7 @@ function showIconTeamCreation() {
 
     const listContainer = document.getElementById('iconPlayerSelectionList');
     listContainer.innerHTML = '';
-    
+
     iconPlayersList.forEach((player, index) => {
         const item = document.createElement('div');
         item.className = 'icon-player-select-item';
@@ -594,11 +594,11 @@ function showIconTeamCreation() {
             </div>
             <div class="check-mark" style="display: none;">✅</div>
         `;
-        
+
         item.addEventListener('click', () => toggleIconPlayerSelection(item, index));
         listContainer.appendChild(item);
     });
-    
+
     updateSelectedCount();
 }
 
@@ -677,7 +677,7 @@ function createIconTeam() {
         alert('이미 사용 중인 팀 이름입니다. 다른 이름을 입력해주세요.');
         return;
     }
-    
+
     // 선택된 선수 데이터 생성
     const newPlayers = Array.from(selectedIconIndices).map(index => {
         const p = iconPlayersList[index];
@@ -714,7 +714,7 @@ function createIconTeam() {
     gameData.teamMoney = 0; // 시작 자금 0원
     gameData.schedule = null; // 스케줄 재생성 필요
     initializeLeagueData(); // [수정] 리그 데이터 재설정 (삭제된 팀 제거 및 새 팀 등록)
-    
+
     closeCreateTeamModal();
     selectTeam(newTeamKey);
 }
@@ -723,7 +723,7 @@ function createIconTeam() {
 function showCustomTeamCreation() {
     document.getElementById('createTeamModeSelection').style.display = 'none';
     document.getElementById('customTeamCreationArea').style.display = 'block';
-    
+
     updateCustomReplacementTeams(); // 초기 교체 팀 목록 로드
     generateCustomPlayerInputs(); // 입력 필드 생성
 }
@@ -733,7 +733,7 @@ function updateCustomReplacementTeams() {
     const league = parseInt(document.getElementById('customLeagueSelect').value);
     const select = document.getElementById('customReplacementSelect');
     select.innerHTML = '';
-    
+
     const leagueTeams = Object.keys(allTeams).filter(key => allTeams[key].league === league);
     leagueTeams.forEach(teamKey => {
         const option = document.createElement('option');
@@ -747,14 +747,14 @@ function updateCustomReplacementTeams() {
 function generateCustomPlayerInputs() {
     const container = document.getElementById('customPlayerInputs');
     container.innerHTML = '';
-    
+
     const structure = [
         { pos: 'GK', count: 2 },
         { pos: 'DF', count: 6 },
         { pos: 'MF', count: 5 },
         { pos: 'FW', count: 5 }
     ];
-    
+
     structure.forEach(group => {
         for (let i = 1; i <= group.count; i++) {
             const div = document.createElement('div');
@@ -775,7 +775,7 @@ function createCustomTeam() {
         alert('팀 이름을 1~6글자(공백 없이)로 입력해주세요.');
         return;
     }
-    
+
     const league = parseInt(document.getElementById('customLeagueSelect').value);
     const replacedTeamKey = document.getElementById('customReplacementSelect').value;
     const nation = document.getElementById('customNationSelect').value;
@@ -783,36 +783,36 @@ function createCustomTeam() {
         alert('이미 사용 중인 팀 이름입니다. 다른 이름을 입력해주세요.');
         return;
     }
-    
+
     // 선수 이름 수집
     const inputs = document.querySelectorAll('.custom-player-input');
     const newPlayers = [];
     let emptyCount = 0;
-    
+
     // 오버롤 범위 설정
     let minRating, maxRating;
     if (league === 1) { minRating = 80; maxRating = 86; }
     else if (league === 2) { minRating = 78; maxRating = 84; }
     else { minRating = 70; maxRating = 75; }
-    
+
     inputs.forEach(input => {
         const name = input.value.trim();
         if (!name) {
             emptyCount++;
             return;
         }
-        
+
         const pos = input.dataset.pos;
         const rating = Math.floor(Math.random() * (maxRating - minRating + 1)) + minRating;
         const age = Math.floor(Math.random() * 6) + 18; // 18~23세
-        
+
         // 국적 설정
         let playerNation = nation;
         if (nation === 'random') {
             const nations = ['대한민국', '잉글랜드', '스페인', '독일', '프랑스', '이탈리아', '브라질', '아르헨티나', '네덜란드', '포르투갈'];
             playerNation = nations[Math.floor(Math.random() * nations.length)];
         }
-        
+
         newPlayers.push({
             name: name,
             position: pos,
@@ -822,7 +822,7 @@ function createCustomTeam() {
             isCustom: true // 커스텀 선수 플래그 (성장 한계 돌파용)
         });
     });
-    
+
     if (emptyCount > 0) {
         alert('모든 선수의 이름을 입력해주세요.');
         return;
@@ -837,7 +837,7 @@ function createCustomTeam() {
         }
         nameSet.add(player.name);
     }
-    
+
     // 팀 데이터 생성 및 교체
     const newTeamKey = teamName;
     allTeams[newTeamKey] = {
@@ -849,17 +849,17 @@ function createCustomTeam() {
     };
     teams[newTeamKey] = newPlayers;
     teamNames[newTeamKey] = teamName;
-    
+
     if (replacedTeamKey !== newTeamKey) {
         delete allTeams[replacedTeamKey];
         delete teams[replacedTeamKey];
         delete teamNames[replacedTeamKey];
     }
-    
+
     gameData.teamMoney = 0;
     gameData.schedule = null;
     initializeLeagueData(); // [수정] 리그 데이터 재설정 (삭제된 팀 제거 및 새 팀 등록)
-    
+
     closeCreateTeamModal();
     selectTeam(newTeamKey);
 }
@@ -867,29 +867,29 @@ function createCustomTeam() {
 function selectTeam(teamKey) {
     gameData.selectedTeam = teamKey;
     gameData.currentLeague = allTeams[teamKey].league; // 팀의 리그 설정
-    
+
     // [수정] 팀별 고유 시작 자금 적용 (budget 속성이 있으면 사용, 없으면 리그별 기본값)
     if (allTeams[teamKey].budget !== undefined) {
         gameData.teamMoney = allTeams[teamKey].budget;
     } else {
         gameData.teamMoney = (gameData.currentLeague === 3) ? 10 : 1000;
     }
-    
+
     applyTeamTheme(teamKey);
 
     // [신규] 초기 주급 계산
     calculateTotalWages();
-    
+
     document.getElementById('teamName').innerHTML = getTeamLogoHTML(teamKey) + ' ' + teamKey; // 로고 포함 표시
-    
+
     // 자동으로 최고 능력치 선수들로 스쿼드 채우기
     autoFillSquad();
-    
+
     // 선수 성장 시스템 초기화
     if (typeof playerGrowthSystem !== 'undefined') {
         playerGrowthSystem.initializePlayerGrowth();
     }
-    
+
     // 이적 시스템 초기화
     if (typeof transferSystem !== 'undefined') {
         transferSystem.initializeTransferMarket();
@@ -899,22 +899,22 @@ function selectTeam(teamKey) {
     if (typeof DNAManager !== 'undefined') {
         DNAManager.initialize(teams[teamKey]);
     }
-    
+
     // 개인기록 시스템 초기화
     if (typeof recordsSystem !== 'undefined') {
         recordsSystem.initialize();
     }
-    
+
     // 상대팀 설정 (같은 리그에서)
     setNextOpponent();
-    
+
     // 스케줄이 없으면 생성
     if (!gameData.schedule) {
         generateFullSchedule();
     }
 
     // 로비로 이동
-    showScreen('lobby'); 
+    showScreen('lobby');
     displayTeamPlayers();
     showScreen('lobby');
     showDashboard(); // [수정] 로비 진입 시 대시보드 표시
@@ -946,33 +946,33 @@ function selectTeam(teamKey) {
 // 자동으로 스쿼드 채우기 함수
 function autoFillSquad() {
     const teamPlayers = teams[gameData.selectedTeam];
-    
+
     // 포지션별로 선수들을 분류하고 능력치 순으로 정렬
     const gks = teamPlayers.filter(p => p.position === 'GK').sort((a, b) => b.rating - a.rating);
     const dfs = teamPlayers.filter(p => p.position === 'DF').sort((a, b) => b.rating - a.rating);
     const mfs = teamPlayers.filter(p => p.position === 'MF').sort((a, b) => b.rating - a.rating);
     const fws = teamPlayers.filter(p => p.position === 'FW').sort((a, b) => b.rating - a.rating);
-    
+
     // 최고 능력치 선수들로 자동 배치
     if (gks.length > 0) {
         gameData.squad.gk = gks[0];
     }
-    
+
     // 수비수 4명
     for (let i = 0; i < 4 && i < dfs.length; i++) {
         gameData.squad.df[i] = dfs[i];
     }
-    
+
     // 미드필더 3명
     for (let i = 0; i < 3 && i < mfs.length; i++) {
         gameData.squad.mf[i] = mfs[i];
     }
-    
+
     // 공격수 3명
     for (let i = 0; i < 3 && i < fws.length; i++) {
         gameData.squad.fw[i] = fws[i];
     }
-    
+
     // 새 포메이션 시스템으로 화면 새로고침
     if (window.refreshFormation) {
         window.refreshFormation();
@@ -1025,7 +1025,7 @@ function showTab(tabName) {
     document.getElementById('homeBtn').style.display = 'block'; // 홈 버튼 표시
     const lobbyTabs = document.getElementById('main-tabs');
     if (lobbyTabs) lobbyTabs.style.display = 'flex';
-    
+
     // 기존 탭 로직 유지
 
     // [추가] 월드컵 모드 탭 제어
@@ -1033,7 +1033,7 @@ function showTab(tabName) {
         // 허용된 탭: squad, match, tactics, settings, records(대회기록), callup(차출)
         // 차단된 탭: transfer, league, sponsor, youth, sns, transfer_news, mail
         const blockedTabs = ['transfer', 'league', 'sponsor', 'youth', 'sns', 'transfer_news', 'mail'];
-        
+
         if (blockedTabs.includes(tabName)) {
             return;
         }
@@ -1054,7 +1054,7 @@ function showTab(tabName) {
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             const btn = document.querySelector(`[data-tab="transfer"]`); // 차출 버튼은 transfer 버튼을 재활용
             if (btn) btn.classList.add('active');
-            
+
             document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
             const panel = document.getElementById('transfer'); // 패널도 transfer 재활용
             if (panel) panel.classList.add('active');
@@ -1065,7 +1065,7 @@ function showTab(tabName) {
     // [추가] 매치 탭 예외 처리 (대시보드에서 호출 시)
     if (tabName === 'match') {
         // 탭 전환만 하고 경기 시작은 버튼으로 하도록 변경 (바로 시작하면 캘린더 효과를 못 봄)
-        
+
         // [추가] 전술 동기화 (DNA 탭에서 바뀐 전술 반영)
         const matchTacticSelect = document.getElementById('tacticSelect');
         if (matchTacticSelect) matchTacticSelect.value = gameData.currentTactic;
@@ -1079,7 +1079,7 @@ function showTab(tabName) {
     if (activeBtn) {
         activeBtn.classList.add('active');
     }
-    
+
     // 탭 패널 표시
     document.querySelectorAll('.tab-panel').forEach(panel => {
         panel.classList.remove('active');
@@ -1091,22 +1091,22 @@ function showTab(tabName) {
         console.error(`Tab panel not found: ${tabName}`);
         return;
     }
-    
+
     // 탭별 초기화
-    switch(tabName) {
+    switch (tabName) {
         case 'squad':
             if (window.refreshFormation) {
                 window.refreshFormation();
             }
             displayTeamPlayers(); // 선수 목록은 계속 표시
             break;
-            
+
         case 'transfer':
             if (typeof displayTransferPlayers === 'function') {
                 displayTransferPlayers();
             }
             break;
-            
+
         case 'transfer_news': // [추가] 이적 뉴스 탭 처리
             if (typeof displayTransferNews === 'function') {
                 displayTransferNews();
@@ -1123,21 +1123,21 @@ function showTab(tabName) {
                 DeepTacticManager.init();
             }
             break;
-            
+
         case 'league':
             displayLeagueTable();
             break;
-            
+
         case 'sponsor':
             displaySponsors();
             break;
-            
+
         case 'records':
             if (typeof updateRecordsTab === 'function') {
                 updateRecordsTab();
             }
             break;
-            
+
         case 'sns':
             // SNS 매니저가 존재하는지 확인
             if (typeof snsManager !== 'undefined') {
@@ -1146,13 +1146,13 @@ function showTab(tabName) {
             } else {
                 // SNS 시스템이 아직 로드되지 않은 경우
                 console.log('SNS 시스템을 로딩 중입니다...');
-                
+
                 // SNS 컨테이너가 있다면 로딩 메시지 표시
                 const feedContainer = document.getElementById('snsFeed');
                 if (feedContainer) {
                     feedContainer.innerHTML = '<div class="sns-empty">SNS 시스템을 초기화하는 중입니다...</div>';
                 }
-                
+
                 // 잠시 후 다시 시도
                 setTimeout(() => {
                     if (typeof snsManager !== 'undefined') {
@@ -1172,7 +1172,7 @@ function showTab(tabName) {
                 mailManager.renderList();
             }
             break;
-            
+
         case 'settings':
             // 설정 탭을 열 때마다 슬롯 UI 생성
             createSaveSlots();
@@ -1184,10 +1184,10 @@ function showTab(tabName) {
             if (typeof renderGeneralSettings === 'function') {
                 renderGeneralSettings();
             }
-    // [신규] 비서 설정 UI 생성
-    if (typeof renderSecretarySettings === 'function') {
-        renderSecretarySettings();
-    }
+            // [신규] 비서 설정 UI 생성
+            if (typeof renderSecretarySettings === 'function') {
+                renderSecretarySettings();
+            }
             break;
 
         case 'youth':
@@ -1197,7 +1197,7 @@ function showTab(tabName) {
                 displayScoutingScreen();
             }
             break;
-            
+
         default:
             console.log(`Unknown tab: ${tabName}`);
             break;
@@ -1281,9 +1281,9 @@ class CustomCursor {
 
     init() {
         // 한글 파일명 호환성 문제를 위해 영문명으로 변경 (파일 이름도 변경 필요)
-        this.hoverSound = new Audio('assets/SFX/hover.mp3'); 
+        this.hoverSound = new Audio('assets/SFX/hover.mp3');
         this.clickSound = new Audio('assets/SFX/click.mp3');
-        
+
         this.hoverSound.onerror = () => console.warn("Hover sound not found: assets/SFX/hover.mp3");
         this.clickSound.onerror = () => console.warn("Click sound not found: assets/SFX/click.mp3");
 
@@ -1333,7 +1333,7 @@ class CustomCursor {
     createCursor() {
         this.cursorEl = document.createElement('div');
         this.cursorEl.className = 'custom-cursor';
-        
+
         const cornerIds = ['tl', 'tr', 'bl', 'br'];
         cornerIds.forEach(id => {
             const corner = document.createElement('div');
@@ -1378,9 +1378,9 @@ class CustomCursor {
         this.isTargeting = true;
         this.target = target;
         this.cursorEl.classList.add('targeting');
-        
+
         const rect = this.target.getBoundingClientRect();
-        
+
         this.cursorEl.style.transition = `width 0.2s cubic-bezier(0.25, 1, 0.5, 1), height 0.2s cubic-bezier(0.25, 1, 0.5, 1), transform 0.2s cubic-bezier(0.25, 1, 0.5, 1), border-radius 0.2s, background-color 0.2s`;
         this.cursorEl.style.width = `${rect.width}px`;
         this.cursorEl.style.height = `${rect.height}px`;
@@ -1393,7 +1393,7 @@ class CustomCursor {
         this.isTargeting = false;
         this.target = null;
         this.cursorEl.classList.remove('targeting');
-        
+
         this.cursorEl.style.transition = `width 0.2s cubic-bezier(0.25, 1, 0.5, 1), height 0.2s cubic-bezier(0.25, 1, 0.5, 1), border-radius 0.2s, background-color 0.2s`;
         Object.values(this.corners).forEach(corner => corner.style.transform = 'translate(0, 0)');
     }
@@ -1467,7 +1467,7 @@ class CustomCursor {
     // [신규] D-pad 메뉴 네비게이션 메서드
     navigateWithDpad(direction) {
         const allTargets = Array.from(document.querySelectorAll(this.options.targetSelector))
-                                .filter(el => el.offsetParent !== null && el.getBoundingClientRect().width > 0); // 보이는 요소만
+            .filter(el => el.offsetParent !== null && el.getBoundingClientRect().width > 0); // 보이는 요소만
 
         if (allTargets.length === 0) return;
 
@@ -1537,7 +1537,7 @@ class CustomCursor {
             // 새 타겟의 중심으로 마우스 위치 이동
             this.mouse.x = nextRect.left + nextRect.width / 2;
             this.mouse.y = nextRect.top + nextRect.height / 2;
-            
+
             // onTargetEnter가 자동으로 호출되면서 호버 효과와 소리 재생
             // this.onTargetEnter(bestCandidate); // mousemove 이벤트가 처리하므로 중복 호출 불필요
         }
@@ -1546,7 +1546,7 @@ class CustomCursor {
     // [신규] 게임패드 업데이트 메서드
     updateGamepad() {
         if (this.gamepadIndex === null) return;
-        
+
         const gp = navigator.getGamepads()[this.gamepadIndex];
         if (!gp) return;
 
@@ -1587,11 +1587,11 @@ class CustomCursor {
         if (dx !== 0 || dy !== 0) {
             this.mouse.x += dx;
             this.mouse.y += dy;
-            
+
             // 화면 경계 제한
             this.mouse.x = Math.max(0, Math.min(window.innerWidth, this.mouse.x));
             this.mouse.y = Math.max(0, Math.min(window.innerHeight, this.mouse.y));
-            
+
             // 커서 아래 요소 감지 (호버 효과 트리거)
             const element = document.elementFromPoint(this.mouse.x, this.mouse.y);
             if (element) {
@@ -1644,7 +1644,7 @@ class CustomCursor {
                 button: type === 'contextmenu' ? 2 : 0
             });
             element.dispatchEvent(event);
-            
+
             // 소리 재생
             if (type === 'click' && typeof audioManager !== 'undefined') {
                 // this.triggerVibration(50, 0.4, 0.1); // mousedown에서 이미 처리
@@ -1659,18 +1659,18 @@ function activateTabUI(tabName) {
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.classList.remove('active');
     });
-    
+
     // callup 탭은 transfer 버튼을 사용
     let btnSelector = `[data-tab="${tabName}"]`;
     if (tabName === 'callup') btnSelector = `[data-tab="transfer"]`;
-    
+
     const btn = document.querySelector(btnSelector);
     if (btn) btn.classList.add('active');
-    
+
     document.querySelectorAll('.tab-panel').forEach(panel => {
         panel.classList.remove('active');
     });
-    
+
     // 패널 ID 매핑 (callup은 transfer 패널 재활용)
     let panelId = (tabName === 'callup') ? 'transfer' : tabName;
     const panel = document.getElementById(panelId);
@@ -1682,9 +1682,9 @@ function displayTeamPlayers() {
     const playerList = document.getElementById('playerList');
     const fragment = document.createDocumentFragment(); // [성능 개선] DocumentFragment 사용
     playerList.innerHTML = '';
-    
+
     const teamPlayers = teams[gameData.selectedTeam];
-    
+
     // [성능 개선] 스쿼드 선수 이름을 Set으로 만들어 O(1) 시간 복잡도로 조회
     const squadPlayerNames = new Set();
     if (gameData.squad.gk) squadPlayerNames.add(gameData.squad.gk.name);
@@ -1696,18 +1696,18 @@ function displayTeamPlayers() {
         const playerCard = document.createElement('div');
         playerCard.className = 'player-card';
         playerCard.dataset.playerName = player.name; // [성능 개선] 데이터 속성으로 선수 이름 저장
-        
+
         const isUsed = squadPlayerNames.has(player.name);
         if (isUsed) {
             playerCard.classList.add('used');
         }
-        
+
         const isInjured = typeof injurySystem !== 'undefined' && injurySystem.isInjured(gameData.selectedTeam, player.name);
         if (isInjured) {
             playerCard.classList.add('injured');
             const injuryInfo = injurySystem.getInjuredPlayers(gameData.selectedTeam).find(i => i.name === player.name);
             const gamesLeft = injuryInfo ? injuryInfo.gamesRemaining : '?';
-            
+
             // 부상자는 체력바 대신 부상 표시
             playerCard.innerHTML = `
                 <div class="player-card-content">
@@ -1727,7 +1727,7 @@ function displayTeamPlayers() {
             let condColor = '#2ecc71';
             if (condition < 70) condColor = '#e74c3c';
             else if (condition < 90) condColor = '#f1c40f';
-            
+
             playerCard.innerHTML = `
                 <div class="player-card-content">
                     <img src="assets/players/${player.name}.webp" class="player-card-image" loading="lazy" onerror="this.onerror=null; this.src='assets/players/default.webp'">
@@ -1780,16 +1780,16 @@ function removePlayerFromSquad(player) {
     if (gameData.squad.gk && gameData.squad.gk.name === player.name) {
         gameData.squad.gk = null;
     }
-    
-    gameData.squad.df = gameData.squad.df.map(p => 
+
+    gameData.squad.df = gameData.squad.df.map(p =>
         p && p.name === player.name ? null : p
     );
-    
-    gameData.squad.mf = gameData.squad.mf.map(p => 
+
+    gameData.squad.mf = gameData.squad.mf.map(p =>
         p && p.name === player.name ? null : p
     );
-    
-    gameData.squad.fw = gameData.squad.fw.map(p => 
+
+    gameData.squad.fw = gameData.squad.fw.map(p =>
         p && p.name === player.name ? null : p
     );
 }
@@ -1797,14 +1797,14 @@ function openPlayerModal(position, index) {
     selectedPosition = { position, index };
     const modal = document.getElementById('playerModal');
     const modalPlayerList = document.getElementById('modalPlayerList');
-    
+
     modalPlayerList.innerHTML = '';
-    
+
     const teamPlayers = teams[gameData.selectedTeam];
-    const filteredPlayers = teamPlayers.filter(player => 
+    const filteredPlayers = teamPlayers.filter(player =>
         !isPlayerInSquad(player)
     );
-    
+
     if (filteredPlayers.length === 0) {
         modalPlayerList.innerHTML = '<p>배치 가능한 선수가 없습니다.</p>';
         modal.style.display = 'block';
@@ -1816,30 +1816,30 @@ function openPlayerModal(position, index) {
                 <div class="name">${player.name}</div>
                 <div class="details">능력치: ${player.rating} | 나이: ${player.age}</div>
             `;
-            
+
             playerCard.addEventListener('click', () => {
                 // assignPlayerToPosition(player);
                 closeModal();
             });
-            
+
             modalPlayerList.appendChild(playerCard);
         });
     }
-    
+
     // modal.style.display = 'block';
 }
 
 function assignPlayerToPosition(player) {
     if (!selectedPosition) return;
-    
+
     // 이미 스쿼드에 있는 선수인지 확인
     if (isPlayerInSquad(player)) {
         alert('이 선수는 이미 스쿼드에 포함되어 있습니다.');
         return;
     }
-    
+
     const { position, index } = selectedPosition;
-    
+
     if (position === 'gk') {
         gameData.squad.gk = player;
     } else if (position === 'df') {
@@ -1849,7 +1849,7 @@ function assignPlayerToPosition(player) {
     } else if (position === 'fw') {
         gameData.squad.fw[index] = player;
     }
-    
+
     updateFormationDisplay();
     displayTeamPlayers(); // 선수 목록 새로고침
     selectedPosition = null;
@@ -1862,7 +1862,7 @@ function updateFormationDisplay() {
         refreshFormation();
         return;
     }
-    
+
     // GK 업데이트
     const gkSlot = document.getElementById('gk-slot');
     if (gameData.squad.gk) {
@@ -1875,7 +1875,7 @@ function updateFormationDisplay() {
         gkSlot.innerHTML = 'GK';
         gkSlot.classList.remove('filled');
     }
-    
+
     // DF 업데이트
     for (let i = 0; i < 4; i++) {
         const dfSlot = document.querySelector(`.df-${i + 1} .player-slot`);
@@ -1890,7 +1890,7 @@ function updateFormationDisplay() {
             dfSlot.classList.remove('filled');
         }
     }
-    
+
     // MF 업데이트
     for (let i = 0; i < 3; i++) {
         const mfSlot = document.querySelector(`.mf-${i + 1} .player-slot`);
@@ -1905,7 +1905,7 @@ function updateFormationDisplay() {
             mfSlot.classList.remove('filled');
         }
     }
-    
+
     // FW 업데이트
     for (let i = 0; i < 3; i++) {
         const fwSlot = document.querySelector(`.fw-${i + 1} .player-slot`);
@@ -1947,15 +1947,15 @@ function calculateTotalWages() {
 function updateDisplay() {
     document.getElementById('teamMoney').textContent = gameData.teamMoney + '억';
     document.getElementById('teamMorale').textContent = gameData.teamMorale;
-    document.getElementById('currentSponsor').textContent = 
+    document.getElementById('currentSponsor').textContent =
         gameData.currentSponsor ? gameData.currentSponsor.name : '없음';
-    
+
     // [신규] 주급 표시 업데이트 (HTML에 totalWages ID가 있다고 가정)
     const wageEl = document.getElementById('totalWages');
     if (wageEl) wageEl.textContent = gameData.totalWeeklyWage + '억';
-    
+
     if (gameData.currentOpponent) {
-        document.getElementById('opponentName').innerHTML = 
+        document.getElementById('opponentName').innerHTML =
             getTeamLogoHTML(gameData.currentOpponent) + ' ' + teamNames[gameData.currentOpponent];
     }
 }
@@ -1965,7 +1965,7 @@ function generateLeagueSchedule(leagueTeams) {
     const schedule = [];
     const numberOfTeams = leagueTeams.length;
     if (numberOfTeams % 2 !== 0) return []; // 팀 수가 짝수여야 함
-    
+
     const rounds = numberOfTeams - 1;
     const halfSize = numberOfTeams / 2;
     const teamsCopy = [...leagueTeams];
@@ -1976,12 +1976,12 @@ function generateLeagueSchedule(leagueTeams) {
         for (let i = 0; i < halfSize; i++) {
             const home = teamsCopy[i];
             const away = teamsCopy[numberOfTeams - 1 - i];
-            
+
             // 라운드마다 홈/어웨이 번갈아가며 배정 (공평성)
             if (round % 2 === 0) {
-                 roundMatches.push({ home: home, away: away });
+                roundMatches.push({ home: home, away: away });
             } else {
-                 roundMatches.push({ home: away, away: home });
+                roundMatches.push({ home: away, away: home });
             }
         }
         schedule.push(roundMatches);
@@ -1995,7 +1995,7 @@ function generateLeagueSchedule(leagueTeams) {
     }
 
     // 후반기 (전반기와 대진은 같고 홈/어웨이만 반대)
-    const secondHalf = schedule.map(round => 
+    const secondHalf = schedule.map(round =>
         round.map(match => ({ home: match.away, away: match.home }))
     );
 
@@ -2021,10 +2021,10 @@ function setNextOpponent() {
     // 실제 상대 결정 로직은 tacticSystem.js의 endMatch나 초기화 시점에서 
     // gameData.currentRound를 기반으로 처리되지만, 
     // UI 갱신을 위해 여기서도 현재 라운드 정보를 확인합니다.
-    
+
     const currentLeagueKey = `division${gameData.currentLeague}`;
     const leagueSchedule = gameData.schedule[currentLeagueKey];
-    
+
     if (!leagueSchedule || gameData.currentRound > leagueSchedule.length) {
         // 시즌 종료 상태
         return;
@@ -2037,7 +2037,7 @@ function setNextOpponent() {
         gameData.currentOpponent = (userMatch.home === gameData.selectedTeam) ? userMatch.away : userMatch.home;
         gameData.isHomeGame = (userMatch.home === gameData.selectedTeam);
     }
-    
+
     updateDisplay();
 }
 
@@ -2046,22 +2046,22 @@ function initializeLeagueData() {
     if (!gameData.leagueData) {
         gameData.leagueData = {};
     }
-    
+
     // 각 division 비우기
     gameData.leagueData.division1 = {};
     gameData.leagueData.division2 = {};
     gameData.leagueData.division3 = {};
-    
+
     // 리그 테이블도 초기화
     window.league1Table = {};
     window.league2Table = {};
     window.league3Table = {};
-    
+
     // allTeams 기준으로 새로 구축
     Object.keys(allTeams).forEach(teamKey => {
         const league = allTeams[teamKey].league;
         const divisionKey = `division${league}`;
-        
+
         // gameData.leagueData 초기화
         gameData.leagueData[divisionKey][teamKey] = {
             matches: 0,
@@ -2072,13 +2072,13 @@ function initializeLeagueData() {
             goalsFor: 0,
             goalsAgainst: 0
         };
-        
+
         // 리그 테이블도 동시에 초기화
         let leagueTable;
         if (league === 1) leagueTable = window.league1Table;
         else if (league === 2) leagueTable = window.league2Table;
         else if (league === 3) leagueTable = window.league3Table;
-        
+
         if (leagueTable) {
             leagueTable[teamKey] = {
                 matches: 0,
@@ -2091,23 +2091,23 @@ function initializeLeagueData() {
             };
         }
     });
-    
+
     console.log('✅ 리그 데이터 및 테이블 완전 초기화 완료');
 }
 
 function displayLeagueTable() {
     const leagueTable = document.getElementById('leagueTable');
-    
+
     // 현재 리그 확인
     const currentLeague = gameData.currentLeague;
     const divisionKey = `division${currentLeague}`;
-    
+
     // 해당 리그 데이터 존재 여부 확인
     if (!gameData.leagueData || !gameData.leagueData[divisionKey]) {
         leagueTable.innerHTML = '<p>리그 데이터를 불러올 수 없습니다.</p>';
         return;
     }
-    
+
     // 현재 리그의 팀들만 가져와서 순위 계산
     const standings = Object.keys(gameData.leagueData[divisionKey]).map(teamKey => ({
         team: teamKey,
@@ -2118,8 +2118,8 @@ function displayLeagueTable() {
         if (b.goalDiff !== a.goalDiff) return b.goalDiff - a.goalDiff;
         return b.goalsFor - a.goalsFor;
     });
-    
-   let tableHTML = `
+
+    let tableHTML = `
     <table class='league-table'>
         <thead>
             <tr>
@@ -2137,7 +2137,7 @@ function displayLeagueTable() {
         </thead>
         <tbody>
 `;
-    
+
     standings.forEach((team, index) => {
         const isUserTeam = team.team === gameData.selectedTeam;
         tableHTML += `
@@ -2155,7 +2155,7 @@ function displayLeagueTable() {
             </tr>
         `;
     });
-    
+
     tableHTML += '</tbody></table>';
     leagueTable.innerHTML = tableHTML;
 }
@@ -2164,14 +2164,14 @@ function displayLeagueTable() {
 function displaySponsors() {
     const sponsorList = document.getElementById('sponsorList');
     sponsorList.innerHTML = '';
-    
+
     const teamRating = calculateTeamRating();
-    
+
     sponsors.forEach(sponsor => {
         const sponsorCard = document.createElement('div');
         const isAvailable = teamRating >= sponsor.requirements.minRating;
         const isContracted = gameData.currentSponsor && gameData.currentSponsor.name === sponsor.name;
-        
+
         let cardClass = 'sponsor-card';
         if (isContracted) {
             cardClass += ' contracted';
@@ -2180,15 +2180,15 @@ function displaySponsors() {
         } else {
             cardClass += ' unavailable';
         }
-        
+
         sponsorCard.className = cardClass;
-        
+
         // 계약 중인 경우 남은 경기 수 표시
         let contractInfo = '';
         if (isContracted && gameData.sponsorRemainingMatches) {
             contractInfo = `<div style="color: #f39c12; font-weight: bold; margin-top: 10px;">남은 계약: ${gameData.sponsorRemainingMatches}경기</div>`;
         }
-        
+
         sponsorCard.innerHTML = `
             <h4>${sponsor.name}</h4>
             <p>${sponsor.description}</p>
@@ -2215,14 +2215,14 @@ function displaySponsors() {
             ${isContracted ? '<div style="color: #2ecc71; font-weight: bold; margin-top: 10px;">✓ 계약 중</div>' : ''}
             ${contractInfo}
         `;
-        
+
         if (isAvailable && !gameData.currentSponsor) {
             sponsorCard.addEventListener('click', () => {
                 // 계약 체결
                 gameData.currentSponsor = sponsor;
                 gameData.sponsorRemainingMatches = sponsor.contractLength; // 남은 경기 수 설정
                 gameData.teamMoney += sponsor.signingBonus;
-                
+
                 updateDisplay();
                 displaySponsors();
                 alert(`${sponsor.name}와 계약을 체결했습니다! 계약금 ${sponsor.signingBonus}억을 받았습니다.`);
@@ -2233,7 +2233,7 @@ function displaySponsors() {
                 }
             });
         }
-        
+
         sponsorList.appendChild(sponsorCard);
     });
 }
@@ -2241,10 +2241,10 @@ function displaySponsors() {
 // 경기 후 스폰서 관련 처리 함수
 function processSponsorAfterMatch(matchResult) {
     if (!gameData.currentSponsor) return;
-    
+
     const sponsor = gameData.currentSponsor;
     let payment = 0;
-    
+
     // [수정] 롱타임 모드일 경우 경기 후 보너스 지급 생략 (계약 체결시에만 수령)
     if (gameData.gameMode !== 'longtime') {
         // 경기 결과에 따른 보너스 지급
@@ -2258,12 +2258,12 @@ function processSponsorAfterMatch(matchResult) {
             console.log(`스폰서 패배 보상: ${payment}억원`);
         }
     }
-    
+
     // 계약 기간 감소
     if (gameData.sponsorRemainingMatches > 0) {
         gameData.sponsorRemainingMatches--;
         console.log(`스폰서 계약 남은 경기: ${gameData.sponsorRemainingMatches}`);
-        
+
         // 계약 만료 체크
         if (gameData.sponsorRemainingMatches <= 0) {
             expireSponsorContract();
@@ -2272,26 +2272,26 @@ function processSponsorAfterMatch(matchResult) {
             alert(`스폰서 계약이 ${gameData.sponsorRemainingMatches}경기 후 만료됩니다.`);
         }
     }
-    
+
     updateDisplay();
 }
 
 // 스폰서 계약 만료 처리
 function expireSponsorContract() {
     const expiredSponsor = gameData.currentSponsor;
-    
+
     // 계약 정보 초기화
     gameData.currentSponsor = null;
     gameData.sponsorRemainingMatches = 0;
-    
+
     console.log(`${expiredSponsor.name} 계약 만료`);
     alert(`${expiredSponsor.name}와의 계약이 만료되었습니다. 새로운 스폰서를 선택할 수 있습니다.`);
-    
+
     // 스폰서 탭이 활성화되어 있다면 새로고침
     if (document.getElementById('sponsor').classList.contains('active')) {
         displaySponsors();
     }
-    
+
     updateDisplay();
 }
 
@@ -2312,7 +2312,7 @@ function relinkSquadPlayers() {
     if (!gameData.squad || !gameData.selectedTeam || !teams[gameData.selectedTeam]) return;
 
     const teamPlayers = teams[gameData.selectedTeam];
-    
+
     const findRealPlayer = (savedPlayer) => {
         if (!savedPlayer) return null;
         // 이름과 포지션으로 실제 선수 객체 찾기
@@ -2327,16 +2327,16 @@ function relinkSquadPlayers() {
     console.log('✅ 스쿼드 선수 객체 재연결 완료');
 }
 
-  function saveGame() {
+function saveGame() {
     // 중복 실행 방지
     if (window.savingInProgress) {
         console.log('저장이 이미 진행 중입니다.');
         return;
     }
     window.savingInProgress = true;
-    
+
     console.log('=== 저장 시작 ===');
-    
+
     // [추가] AI 선수들의 성장 데이터를 allTeams에도 반영 (저장 시 누락 방지)
     if (typeof allTeams !== 'undefined' && typeof teams !== 'undefined') {
         Object.keys(teams).forEach(teamKey => {
@@ -2352,49 +2352,49 @@ function relinkSquadPlayers() {
         if (typeof transferSystem !== 'undefined') {
             gameData.transferSystemData = transferSystem.getSaveData();
         }
-        
+
         // Records System에서 모든 득점/도움 데이터 수집
         const recordsData = {};
-        
+
         if (typeof leagueBasedRecordsSystem !== 'undefined') {
             recordsData.recordsSystemData = leagueBasedRecordsSystem.getSaveData();
-            
+
             // 전체 득점왕/도움왕 순위도 저장
             recordsData.topScorersAll = leagueBasedRecordsSystem.getTopScorers(20);
             recordsData.topAssistersAll = leagueBasedRecordsSystem.getTopAssisters(20);
-            
+
             // 리그별 득점왕/도움왕도 저장
             recordsData.leagueTopScorers = {};
             recordsData.leagueTopAssisters = {};
-            
+
             for (let league = 1; league <= 3; league++) {
                 recordsData.leagueTopScorers[league] = leagueBasedRecordsSystem.getTopScorersByLeague(league, 10);
                 recordsData.leagueTopAssisters[league] = leagueBasedRecordsSystem.getTopAssistersByLeague(league, 10);
             }
         }
-        
+
         const saveData = {
-        gameData: gameData,
-        allTeams: typeof allTeams !== 'undefined' ? allTeams : null, // teams는 allTeams에서 복구 가능하므로 제외
-        recordsData: recordsData,
-        snsData: snsManager.getSaveData(),
-        mailData: mailManager.getSaveData(), // 메일 데이터 저장
-        growthData: playerGrowthSystem.getSaveData(),
-        injuryData: injurySystem.getSaveData(), // 부상 데이터 추가
-        timestamp: new Date().toISOString()
-    };
-        
+            gameData: gameData,
+            allTeams: typeof allTeams !== 'undefined' ? allTeams : null, // teams는 allTeams에서 복구 가능하므로 제외
+            recordsData: recordsData,
+            snsData: snsManager.getSaveData(),
+            mailData: mailManager.getSaveData(), // 메일 데이터 저장
+            growthData: playerGrowthSystem.getSaveData(),
+            injuryData: injurySystem.getSaveData(), // 부상 데이터 추가
+            timestamp: new Date().toISOString()
+        };
+
         // JSON 파일로 저장
-        const blob = new Blob([JSON.stringify(saveData, null, 2)], {type: 'application/json'});
+        const blob = new Blob([JSON.stringify(saveData, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
         a.download = `${teamNames[gameData.selectedTeam]}_${new Date().toISOString().slice(0, 10)}.json`;
         a.click();
         URL.revokeObjectURL(url);
-        
+
         console.log('게임 저장 완료');
-        
+
     } catch (error) {
         console.error('저장 중 오류:', error);
         alert('저장 중 오류가 발생했습니다.');
@@ -2409,20 +2409,20 @@ function relinkSquadPlayers() {
 function loadGame(event) {
     const file = event.target.files[0];
     if (!file) return;
-    
+
     // 중복 실행 방지
     if (window.loadingInProgress) {
         console.log('불러오기가 이미 진행 중입니다.');
         return;
     }
     window.loadingInProgress = true;
-    
+
     const reader = new FileReader();
-    reader.onload = function(e) {
+    reader.onload = function (e) {
         try {
             console.log('=== 게임 불러오기 시작 ===');
             const saveData = JSON.parse(e.target.result);
-            
+
             // 기본 게임 데이터 복원
             gameData = saveData.gameData;
             if (!gameData.playerRoles) gameData.playerRoles = {}; // [추가] 구버전 세이브 호환성 보장
@@ -2432,12 +2432,12 @@ function loadGame(event) {
                 migrateDeepTactics();
             }
             console.log('gameData 복원 완료');
-            
+
             // 팀 데이터 복원 (allTeams -> teams 재구성)
             if (saveData.allTeams) {
                 Object.assign(allTeams, saveData.allTeams);
                 console.log('allTeams 데이터 복원 완료');
-                
+
                 // teams 객체 재구성
                 Object.keys(allTeams).forEach(teamKey => {
                     teams[teamKey] = allTeams[teamKey].players;
@@ -2447,10 +2447,10 @@ function loadGame(event) {
                 // 구버전 호환: teams만 있는 경우
                 Object.assign(teams, saveData.teams);
             }
-            
+
             // 스쿼드 선수 객체 재연결 (중요!)
             relinkSquadPlayers();
-            
+
             // 리그 테이블 복원 (gameData.leagueData 기반으로 전역 변수 복구)
             if (gameData.leagueData) {
                 if (gameData.leagueData.division1) window.league1Table = gameData.leagueData.division1;
@@ -2463,7 +2463,7 @@ function loadGame(event) {
                 if (saveData.league2Table) window.league2Table = saveData.league2Table;
                 if (saveData.league3Table) window.league3Table = saveData.league3Table;
             }
-            
+
             // Records System 데이터 복원
             if (saveData.recordsData && typeof leagueBasedRecordsSystem !== 'undefined') {
                 if (saveData.recordsData.recordsSystemData) {
@@ -2476,7 +2476,7 @@ function loadGame(event) {
                 leagueBasedRecordsSystem.loadSaveData(saveData.recordsSystemData);
                 console.log('Records System 데이터 복원 완료 (기존 형식)');
             }
-            
+
             // SNS 데이터 복원
             if (saveData.snsData && typeof snsManager !== 'undefined') {
                 snsManager.loadSaveData(saveData.snsData);
@@ -2484,10 +2484,10 @@ function loadGame(event) {
             }
 
             // 부상 데이터 복원
-    if (saveData.injuryData && typeof injurySystem !== 'undefined') {
-        injurySystem.loadSaveData(saveData.injuryData);
-        console.log('부상 데이터 복원 완료');
-    }
+            if (saveData.injuryData && typeof injurySystem !== 'undefined') {
+                injurySystem.loadSaveData(saveData.injuryData);
+                console.log('부상 데이터 복원 완료');
+            }
 
             // 이적 시장 데이터 복원
             if (gameData.transferSystemData && typeof transferSystem !== 'undefined') {
@@ -2504,34 +2504,34 @@ function loadGame(event) {
             if (!gameData.startYear) {
                 gameData.startYear = 2025;
             }
-            
+
             // [추가] 시즌 카운트 복원 (구버전 호환)
             if (!gameData.seasonCount) {
                 gameData.seasonCount = (gameData.startYear || 2025) - 2024;
             }
-            
+
             // 포텐셜 시스템 처리
             if (typeof playerGrowthSystem !== 'undefined') {
                 console.log('=== 포텐셜 시스템 처리 시작 ===');
-                
+
                 playerGrowthSystem.resetGrowthSystem();
                 console.log('기존 포텐셜 데이터 초기화 완료');
-                
+
                 if (saveData.growthData) {
                     playerGrowthSystem.loadSaveData(saveData.growthData);
                     console.log('저장된 포텐셜 데이터 로드 완료');
-                    
+
                     const summary = playerGrowthSystem.getTeamGrowthSummary();
                     console.log('복원된 성장 중인 선수 수:', summary.length);
                 } else {
                     playerGrowthSystem.initializePlayerGrowth();
                     console.log('새로운 포텐셜 시스템 초기화');
                 }
-                
+
                 console.log('=== 포텐셜 시스템 처리 완료 ===');
             }
-            
-            
+
+
             // 화면 업데이트
             console.log('=== 화면 업데이트 시작 ===');
             document.getElementById('teamName').innerHTML = getTeamLogoHTML(gameData.selectedTeam) + ' ' + teamNames[gameData.selectedTeam];
@@ -2541,22 +2541,22 @@ function loadGame(event) {
             showScreen('lobby'); // 로비 화면으로 이동
             if (typeof showDashboard === 'function') showDashboard(); // 대시보드 표시
             console.log('기본 화면 업데이트 완료');
-            
+
             // SNS 피드 새로고침
             if (typeof snsManager !== 'undefined' && document.getElementById('snsFeed')) {
                 snsManager.displayFeed('snsFeed', 15);
                 console.log('SNS 피드 새로고침 완료');
             }
-            
+
             // Records 탭 업데이트
             if (typeof updateRecordsTab === 'function') {
                 updateRecordsTab();
                 console.log('Records 탭 업데이트 완료');
             }
-            
+
             console.log('=== 게임 불러오기 완료 ===');
             alert('게임을 불러왔습니다!');
-            
+
             // gameData 객체가 교체되었으므로 자동 저장 감지기 재설정
             if (window.autoSaveSystem) {
                 window.autoSaveSystem.hookMoney();
@@ -2572,7 +2572,7 @@ function loadGame(event) {
                 audioManager.init();
                 audioManager.applySettings(gameData.settings);
             }
-            
+
         } catch (error) {
             console.error('불러오기 에러:', error);
             alert('저장 파일을 불러오는 중 오류가 발생했습니다.');
@@ -2582,7 +2582,7 @@ function loadGame(event) {
             }, 1000);
         }
     };
-    
+
     reader.readAsText(file);
     event.target.value = '';
 }
@@ -2613,7 +2613,7 @@ function renderMainSaveSlots() {
                 cursor: pointer;
                 transition: all 0.2s;
             `;
-            
+
             // 호버 효과
             slotDiv.onmouseover = () => {
                 slotDiv.style.background = 'rgba(255, 255, 255, 0.2)';
@@ -2662,13 +2662,13 @@ function runMatchSequence() {
     modal.style.display = 'flex';
     opponentEl.style.opacity = '0';
     opponentEl.innerHTML = '';
-    
+
     // 현재 날짜 계산 (가상: 2025년 8월 1일 개막 기준)
     // 라운드당 3~4일 간격으로 가정
     const baseDate = new Date(2025, 7, 1); // 8월 1일
     const currentRound = gameData.currentRound || 1;
     const daysPassed = (currentRound - 1) * 4; // 라운드당 4일
-    
+
     let currentDate = new Date(baseDate);
     currentDate.setDate(baseDate.getDate() + daysPassed);
 
@@ -2683,7 +2683,7 @@ function runMatchSequence() {
         // 날짜 표시 업데이트
         const displayDate = new Date(currentDate);
         displayDate.setDate(currentDate.getDate() - (simDays - dayCount));
-        
+
         const month = displayDate.getMonth() + 1;
         const day = displayDate.getDate();
         dateEl.textContent = `${month}월 ${day}일`;
@@ -2697,7 +2697,7 @@ function runMatchSequence() {
             eventEl.textContent = "MATCH DAY";
             eventEl.style.color = "#e74c3c";
             eventEl.style.fontWeight = "bold";
-            
+
             // 상대팀 표시
             const oppName = gameData.currentOpponent ? teamNames[gameData.currentOpponent] : "상대팀";
             opponentEl.innerHTML = `VS <span style="color:#ffd700;">${oppName}</span>`;
@@ -2741,7 +2741,7 @@ function renderMainSaveSlots() {
                 cursor: pointer;
                 transition: all 0.2s;
             `;
-            
+
             // 호버 효과
             slotDiv.onmouseover = () => {
                 slotDiv.style.background = 'rgba(255, 255, 255, 0.2)';
@@ -2794,13 +2794,13 @@ function runMatchSequence() {
     modal.style.display = 'flex';
     opponentEl.style.opacity = '0';
     opponentEl.innerHTML = '';
-    
+
     // 현재 날짜 계산 (가상: 2025년 8월 1일 개막 기준)
     // 라운드당 3~4일 간격으로 가정
     const baseDate = new Date(2025, 7, 1); // 8월 1일
     const currentRound = gameData.currentRound || 1;
     const daysPassed = (currentRound - 1) * 4; // 라운드당 4일
-    
+
     let currentDate = new Date(baseDate);
     currentDate.setDate(baseDate.getDate() + daysPassed);
 
@@ -2815,7 +2815,7 @@ function runMatchSequence() {
         // 날짜 표시 업데이트
         const displayDate = new Date(currentDate);
         displayDate.setDate(currentDate.getDate() - (simDays - dayCount));
-        
+
         const month = displayDate.getMonth() + 1;
         const day = displayDate.getDate();
         dateEl.textContent = `${month}월 ${day}일`;
@@ -2829,7 +2829,7 @@ function runMatchSequence() {
             eventEl.textContent = "MATCH DAY";
             eventEl.style.color = "#e74c3c";
             eventEl.style.fontWeight = "bold";
-            
+
             // 상대팀 표시
             const oppName = gameData.currentOpponent ? teamNames[gameData.currentOpponent] : "상대팀";
             opponentEl.innerHTML = `VS <span style="color:#ffd700;">${oppName}</span>`;
@@ -2854,31 +2854,31 @@ function setupSaveLoadListeners() {
     const saveBtn = document.getElementById('saveGameBtn');
     const loadBtn = document.getElementById('loadGameBtn');
     const loadInput = document.getElementById('loadGameInput');
-    
+
     if (saveBtn) {
         const newSaveBtn = saveBtn.cloneNode(true);
         saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
         newSaveBtn.addEventListener('click', saveGame);
         console.log('저장 버튼 이벤트 리스너 설정 완료');
     }
-    
+
     if (loadBtn && loadInput) {
         const newLoadBtn = loadBtn.cloneNode(true);
         loadBtn.parentNode.replaceChild(newLoadBtn, loadBtn);
-        
+
         const newLoadInput = loadInput.cloneNode(true);
         loadInput.parentNode.replaceChild(newLoadInput, loadInput);
-        
-        newLoadBtn.addEventListener('click', function() {
+
+        newLoadBtn.addEventListener('click', function () {
             newLoadInput.click();
         });
         newLoadInput.addEventListener('change', loadGame);
-        
+
         console.log('불러오기 버튼 이벤트 리스너 설정 완료');
     }
 }
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     setTimeout(setupSaveLoadListeners, 1500);
 });
 
@@ -2946,9 +2946,9 @@ function showTacticsInfo() {
     };
 
     document.getElementById('tacticsModalTitle').textContent = '🎯 전술 상성표';
-    
+
     let content = '<div style="max-height: 500px; overflow-y: auto;">';
-    
+
     Object.entries(tactics).forEach(([key, tactic]) => {
         content += `
             <div style="background: rgba(255, 255, 255, 0.1); border-radius: 10px; padding: 20px; margin-bottom: 15px;">
@@ -2973,7 +2973,7 @@ function showTacticsInfo() {
             <strong style="color: #ffd700;">💡 팁: 상대팀의 전술을 파악하고 유리한 전술을 선택하세요(비효과적 vs라는 건 상대가 그 전술일때 비효과적이라는 뜻)<strong>
         </div>
     </div>`;
-    
+
     document.getElementById('tacticsModalContent').innerHTML = content;
     document.getElementById('tacticsModal').style.display = 'block';
 }
@@ -2995,7 +2995,7 @@ const teamTactics = {
     바이에른_뮌헨: "tikitaka",
     아틀레티코_마드리드: "catenaccio",
     도르트문트: "gegenpress",
-    
+
     // 2부 리그
     유벤투스: "catenaccio",
     뉴캐슬_유나이티드: "longBall",
@@ -3011,7 +3011,7 @@ const teamTactics = {
     페예노르트: "possession",
     맨체스터_유나이티드: "gegenpress",
     올랭피크_드_마르세유: "twoLine",
-    
+
     // 3부 리그
     FC_서울: "lavolpiana",
     갈라타사라이: "possession",
@@ -3039,7 +3039,7 @@ function showTeamTacticsInfo() {
         }
         tacticGroups[tacticKey].push(teamNames[teamKey]);
     });
-    
+
     let content = '<div style="max-height: 500px; overflow-y: auto;">';
     Object.entries(tacticGroups).forEach(([tacticKey, teams]) => {
         content += `
@@ -3048,57 +3048,57 @@ function showTeamTacticsInfo() {
                     🎯 ${tacticNames[tacticKey]}
                 </h4>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
-                    ${teams.map(team => 
-                        '<div style="background: rgba(255, 255, 255, 0.1); padding: 10px; border-radius: 8px; text-align: center; border: 1px solid rgba(255, 255, 255, 0.2);">' +
-                            team +
-                        '</div>'
-                    ).join('')}
+                    ${teams.map(team =>
+            '<div style="background: rgba(255, 255, 255, 0.1); padding: 10px; border-radius: 8px; text-align: center; border: 1px solid rgba(255, 255, 255, 0.2);">' +
+            team +
+            '</div>'
+        ).join('')}
                 </div>
             </div>
         `;
     });
-    
+
     content += `
         <div style="background: rgba(255, 215, 0, 0.1); border: 1px solid rgba(255, 215, 0, 0.3); border-radius: 10px; padding: 15px; margin-top: 20px; text-align: center;">
             <strong style="color: #ffd700;">💡 경기 전에 상대팀의 전술을 확인하고 대응 전술을 준비하세요!</strong>
         </div>
     </div>`;
-    
+
     document.getElementById('tacticsModalContent').innerHTML = content;
     document.getElementById('tacticsModal').style.display = 'block';
 }
 
 
-    const tacticNames = {
-        gegenpress: "게겐프레싱",
-        twoLine: "다이렉트 축구",
-        lavolpiana: "라볼피아나",
-        longBall: "롱볼축구",
-        possession: "점유율 축구",
-        parkBus: "역습 축구",
-        catenaccio: "카테나치오",
-        totalFootball: "토탈 풋볼",
-        tikitaka: "티키타카"
-    };
+const tacticNames = {
+    gegenpress: "게겐프레싱",
+    twoLine: "다이렉트 축구",
+    lavolpiana: "라볼피아나",
+    longBall: "롱볼축구",
+    possession: "점유율 축구",
+    parkBus: "역습 축구",
+    catenaccio: "카테나치오",
+    totalFootball: "토탈 풋볼",
+    tikitaka: "티키타카"
+};
 
-    // 전술 모달 닫기 함수
-    function closeTacticsModal() {
-        document.getElementById('tacticsModal').style.display = 'none';
-    }
+// 전술 모달 닫기 함수
+function closeTacticsModal() {
+    document.getElementById('tacticsModal').style.display = 'none';
+}
 
-    // 모달 바깥 클릭 시 닫기
-    window.onclick = function(event) {
-        const tacticsModal = document.getElementById('tacticsModal');
-        if (event.target === tacticsModal) {
-            tacticsModal.style.display = 'none';
-        }
+// 모달 바깥 클릭 시 닫기
+window.onclick = function (event) {
+    const tacticsModal = document.getElementById('tacticsModal');
+    if (event.target === tacticsModal) {
+        tacticsModal.style.display = 'none';
     }
+}
 
 // 팀 테마 적용 함수
 function applyTeamTheme(teamKey) {
     // 기존 팀 클래스 제거
     document.body.className = document.body.className.replace(/team-\w+/g, '');
-    
+
     // 새로운 팀 클래스 추가
     document.body.classList.add(`team-${teamKey}`);
 }
@@ -3109,16 +3109,16 @@ function applyTeamTheme(teamKey) {
 function getSlotInfo(slotNumber) {
     const savedData = localStorage.getItem(`footballManagerSave_slot${slotNumber}`);
     if (!savedData) return null;
-    
+
     try {
         const data = JSON.parse(savedData);
         const selectedTeam = data.gameData.selectedTeam;
         const currentLeague = data.gameData.currentLeague;
-        
+
         // 팀 순위 계산
         let teamRank = '-';
         const divisionKey = `division${currentLeague}`;
-        
+
         if (data.gameData.leagueData && data.gameData.leagueData[divisionKey]) {
             const standings = Object.keys(data.gameData.leagueData[divisionKey]).map(teamKey => ({
                 team: teamKey,
@@ -3129,16 +3129,16 @@ function getSlotInfo(slotNumber) {
                 if (b.goalDiff !== a.goalDiff) return b.goalDiff - a.goalDiff;
                 return b.goalsFor - a.goalsFor;
             });
-            
+
             const rank = standings.findIndex(team => team.team === selectedTeam);
             if (rank !== -1) {
                 teamRank = rank + 1;
             }
         }
-        
+
         // 다음 상대팀
         const nextOpponent = data.gameData.currentOpponent ? teamNames[data.gameData.currentOpponent] : '미정';
-        
+
         return {
             teamName: teamNames[selectedTeam] || '알 수 없음',
             timestamp: data.timestamp,
@@ -3159,9 +3159,9 @@ function getSlotInfo(slotNumber) {
 function createSaveSlots() {
     const container = document.getElementById('saveSlots');
     if (!container) return;
-    
+
     container.innerHTML = '';
-    
+
     for (let i = 1; i <= 3; i++) {
         const slotDiv = document.createElement('div');
         slotDiv.className = 'save-slot';
@@ -3174,14 +3174,14 @@ function createSaveSlots() {
             flex-direction: column;
             gap: 10px;
         `;
-        
+
         const slotInfo = getSlotInfo(i);
-        
+
         let infoHTML = '';
         if (slotInfo) {
             const date = new Date(slotInfo.timestamp);
             const formattedDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
-            
+
             infoHTML = `
                 <div style="background: rgba(255, 255, 255, 0.1); padding: 10px; border-radius: 5px;">
                     <div style="color: #ffd700; font-weight: bold; font-size: 1.1rem; margin-bottom: 5px;">
@@ -3204,7 +3204,7 @@ function createSaveSlots() {
                 </div>
             `;
         }
-        
+
         slotDiv.innerHTML = `
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                 <h4 style="margin: 0; color: #ffd700;">슬롯 ${i}</h4>
@@ -3223,7 +3223,7 @@ function createSaveSlots() {
                 🗑️ 이 슬롯 삭제
             </button>
         `;
-        
+
         container.appendChild(slotDiv);
     }
 }
@@ -3232,12 +3232,12 @@ function createSaveSlots() {
 function saveToSlot(slotNumber, silent = false) {
     try {
         if (!silent) console.log(`=== 슬롯 ${slotNumber}에 저장 시작 ===`);
-        
+
         // [추가] 자동 저장 타겟 슬롯 업데이트 (수동 저장 시 해당 슬롯을 따라감)
         if (window.AutoSaveSystem) {
             window.AutoSaveSystem.setLastLoadedSlot(slotNumber);
         }
-        
+
         // [추가] AI 선수들의 성장 데이터를 allTeams에도 반영
         if (typeof allTeams !== 'undefined' && typeof teams !== 'undefined') {
             Object.keys(teams).forEach(teamKey => {
@@ -3248,36 +3248,36 @@ function saveToSlot(slotNumber, silent = false) {
         }
 
         const slotInfo = getSlotInfo(slotNumber);
-        
+
         // 자동 저장이 아닐 때만 덮어쓰기 확인
         if (slotInfo && !silent) {
             if (!confirm(`슬롯 ${slotNumber}에 이미 저장된 데이터가 있습니다.\n(${slotInfo.teamName}, ${slotInfo.matchesPlayed}경기)\n\n덮어쓰시겠습니까?`)) {
                 return;
             }
         }
-        
+
         // [수정] 이적 시장 데이터 저장 (gameData에 통합)
         if (typeof transferSystem !== 'undefined') {
             gameData.transferSystemData = transferSystem.getSaveData();
         }
-        
+
         // Records System에서 모든 득점/도움 데이터 수집
         const recordsData = {};
-        
+
         if (typeof leagueBasedRecordsSystem !== 'undefined') {
             recordsData.recordsSystemData = leagueBasedRecordsSystem.getSaveData();
             recordsData.topScorersAll = leagueBasedRecordsSystem.getTopScorers(20);
             recordsData.topAssistersAll = leagueBasedRecordsSystem.getTopAssisters(20);
-            
+
             recordsData.leagueTopScorers = {};
             recordsData.leagueTopAssisters = {};
-            
+
             for (let league = 1; league <= 3; league++) {
                 recordsData.leagueTopScorers[league] = leagueBasedRecordsSystem.getTopScorersByLeague(league, 10);
                 recordsData.leagueTopAssisters[league] = leagueBasedRecordsSystem.getTopAssistersByLeague(league, 10);
             }
         }
-        
+
         const saveData = {
             gameData: gameData,
             allTeams: typeof allTeams !== 'undefined' ? allTeams : null,
@@ -3288,21 +3288,21 @@ function saveToSlot(slotNumber, silent = false) {
             injuryData: injurySystem.getSaveData(),
             timestamp: new Date().toISOString()
         };
-        
+
         // 로컬스토리지에 저장
         localStorage.setItem(`footballManagerSave_slot${slotNumber}`, JSON.stringify(saveData));
-        
+
         if (!silent) {
             console.log(`슬롯 ${slotNumber}에 저장 완료`);
             alert(`슬롯 ${slotNumber}에 게임이 저장되었습니다!`);
         }
-        
+
         // 슬롯 UI 새로고침
         createSaveSlots();
-        
+
     } catch (error) {
         console.error(`슬롯 ${slotNumber} 저장 중 오류:`, error);
-        
+
         // 용량 초과 에러 처리
         if (error.name === 'QuotaExceededError') {
             alert('브라우저 저장 공간이 부족합니다. 다른 슬롯을 삭제하거나 파일 저장을 이용해주세요.');
@@ -3316,34 +3316,34 @@ function saveToSlot(slotNumber, silent = false) {
 function loadFromSlot(slotNumber) {
     try {
         const savedData = localStorage.getItem(`footballManagerSave_slot${slotNumber}`);
-        
+
         if (!savedData) {
             alert(`슬롯 ${slotNumber}에 저장된 게임이 없습니다.`);
             return;
         }
-        
+
         const slotInfo = getSlotInfo(slotNumber);
-        const confirmMessage = slotInfo 
+        const confirmMessage = slotInfo
             ? `슬롯 ${slotNumber}의 게임을 불러오시겠습니까?\n\n팀: ${slotInfo.teamName}\n경기 수: ${slotInfo.matchesPlayed}\n\n현재 진행 중인 게임은 사라집니다.`
             : `슬롯 ${slotNumber}의 게임을 불러오시겠습니까?\n현재 진행 중인 게임은 사라집니다.`;
-        
+
         if (!confirm(confirmMessage)) {
             return;
         }
-        
+
         console.log(`=== 슬롯 ${slotNumber}에서 불러오기 시작 ===`);
         const saveData = JSON.parse(savedData);
-        
+
         // 기본 게임 데이터 복원
         gameData = saveData.gameData;
         ensureMatchDramaDefaults();
         console.log('gameData 복원 완료');
-        
+
         // 팀 데이터 복원 (allTeams -> teams 재구성)
         if (saveData.allTeams) {
             Object.assign(allTeams, saveData.allTeams);
             console.log('allTeams 데이터 복원 완료');
-            
+
             // teams 객체 재구성
             Object.keys(allTeams).forEach(teamKey => {
                 teams[teamKey] = allTeams[teamKey].players;
@@ -3353,10 +3353,10 @@ function loadFromSlot(slotNumber) {
             // 구버전 호환
             Object.assign(teams, saveData.teams);
         }
-        
+
         // 스쿼드 선수 객체 재연결
         relinkSquadPlayers();
-        
+
         // 리그 테이블 복원
         if (gameData.leagueData) {
             if (gameData.leagueData.division1) window.league1Table = gameData.leagueData.division1;
@@ -3369,7 +3369,7 @@ function loadFromSlot(slotNumber) {
             if (saveData.league2Table) window.league2Table = saveData.league2Table;
             if (saveData.league3Table) window.league3Table = saveData.league3Table;
         }
-        
+
         // Records System 데이터 복원
         if (saveData.recordsData && typeof leagueBasedRecordsSystem !== 'undefined') {
             if (saveData.recordsData.recordsSystemData) {
@@ -3377,19 +3377,19 @@ function loadFromSlot(slotNumber) {
                 console.log('Records System 데이터 복원 완료');
             }
         }
-        
+
         // SNS 데이터 복원
         if (saveData.snsData && typeof snsManager !== 'undefined') {
             snsManager.loadSaveData(saveData.snsData);
             console.log('SNS 데이터 복원 완료');
         }
 
-            // 메일 데이터 복원
-            if (saveData.mailData && typeof mailManager !== 'undefined') {
-                mailManager.loadSaveData(saveData.mailData);
-                console.log('메일 데이터 복원 완료');
-            }
-        
+        // 메일 데이터 복원
+        if (saveData.mailData && typeof mailManager !== 'undefined') {
+            mailManager.loadSaveData(saveData.mailData);
+            console.log('메일 데이터 복원 완료');
+        }
+
         // 부상 데이터 복원
         if (saveData.injuryData && typeof injurySystem !== 'undefined') {
             injurySystem.loadSaveData(saveData.injuryData);
@@ -3399,10 +3399,10 @@ function loadFromSlot(slotNumber) {
         // 포텐셜 시스템 처리
         if (typeof playerGrowthSystem !== 'undefined') {
             console.log('=== 포텐셜 시스템 처리 시작 ===');
-            
+
             playerGrowthSystem.resetGrowthSystem();
             console.log('기존 포텐셜 데이터 초기화 완료');
-            
+
             if (saveData.growthData) {
                 playerGrowthSystem.loadSaveData(saveData.growthData);
                 console.log('저장된 포텐셜 데이터 로드 완료');
@@ -3410,10 +3410,10 @@ function loadFromSlot(slotNumber) {
                 playerGrowthSystem.initializePlayerGrowth();
                 console.log('새로운 포텐셜 시스템 초기화');
             }
-            
+
             console.log('=== 포텐셜 시스템 처리 완료 ===');
         }
-        
+
         // 화면 업데이트
         console.log('=== 화면 업데이트 시작 ===');
         document.getElementById('teamName').innerHTML = getTeamLogoHTML(gameData.selectedTeam) + ' ' + teamNames[gameData.selectedTeam];
@@ -3423,19 +3423,19 @@ function loadFromSlot(slotNumber) {
         showScreen('lobby'); // 로비 화면으로 이동
         if (typeof showDashboard === 'function') showDashboard(); // 대시보드 표시
         console.log('기본 화면 업데이트 완료');
-        
+
         // SNS 피드 새로고침
         if (typeof snsManager !== 'undefined' && document.getElementById('snsFeed')) {
             snsManager.displayFeed('snsFeed', 15);
             console.log('SNS 피드 새로고침 완료');
         }
-        
+
         // Records 탭 업데이트
         if (typeof updateRecordsTab === 'function') {
             updateRecordsTab();
             console.log('Records 탭 업데이트 완료');
         }
-        
+
         console.log(`=== 슬롯 ${slotNumber}에서 불러오기 완료 ===`);
         alert(`슬롯 ${slotNumber}에서 게임을 불러왔습니다!`);
 
@@ -3453,7 +3453,7 @@ function loadFromSlot(slotNumber) {
         if (typeof window.updateAutoSaveUI === 'function') {
             window.updateAutoSaveUI();
         }
-        
+
     } catch (error) {
         console.error(`슬롯 ${slotNumber} 불러오기 에러:`, error);
         alert('저장 데이터를 불러오는 중 오류가 발생했습니다.');
@@ -3463,18 +3463,18 @@ function loadFromSlot(slotNumber) {
 // 특정 슬롯 삭제
 function deleteSlot(slotNumber) {
     const slotInfo = getSlotInfo(slotNumber);
-    
+
     if (!slotInfo) {
         alert(`슬롯 ${slotNumber}은(는) 이미 비어있습니다.`);
         return;
     }
-    
+
     const confirmMessage = `슬롯 ${slotNumber}을(를) 삭제하시겠습니까?\n\n팀: ${slotInfo.teamName}\n경기 수: ${slotInfo.matchesPlayed}\n\n이 작업은 되돌릴 수 없습니다.`;
-    
+
     if (confirm(confirmMessage)) {
         localStorage.removeItem(`footballManagerSave_slot${slotNumber}`);
         alert(`슬롯 ${slotNumber}이(가) 삭제되었습니다.`);
-        
+
         // 슬롯 UI 새로고침
         createSaveSlots();
     }
@@ -3558,7 +3558,7 @@ function processRetirementsAndReincarnations() {
             const retirementChance = 0.01 + (player.age - 34) * 0.005;
             if (player.age >= 34 && Math.random() < retirementChance) {
                 retiredPlayers.push(player);
-                
+
                 // 1. 팀에서 선수 제거
                 teamPlayers.splice(i, 1);
 
@@ -3595,7 +3595,7 @@ function processRetirementsAndReincarnations() {
 
                     message = `[은퇴/환생] ${teamNames[teamKey]}의 전설적인 선수 ${player.name}(${player.age}세)가 은퇴했습니다. 그의 뒤를 이을 17세 유망주가 팀에 새롭게 등장했습니다.`;
                 }
-                
+
                 // 5. SNS 알림 생성
                 if (typeof snsManager !== 'undefined') {
                     snsManager.posts.unshift({ id: snsManager.postIdCounter++, type: 'transfer_rumor', content: message, hashtags: ['#은퇴', '#환생', `#${snsManager.sanitizeHashtag(player.name)}`], timestamp: Date.now(), likes: Math.floor(Math.random() * 2000) + 500, comments: Math.floor(Math.random() * 300) + 50, shares: Math.floor(Math.random() * 100) + 20 });
@@ -3773,9 +3773,13 @@ class AudioManager {
             'assets/ost/MGMT - Kids (Lyrics).mp3',
             'assets/ost/SAINT MOTEL - My Type.mp3',
             'assets/ost/Song 2.mp3',
+            'assets/ost/AbigA.mp3',
+            'assets/ost/정우성이정재 (Feat. 피식대학).mp3',
+            'assets/ost/알면서도(Although I Know).mp3',
             'assets/ost/다이나믹 듀오(Dynamic Duo) - BAAAM (Feat. Muzie of UV) (가사_lyrics).mp3',
             'assets/ost/Born Hater.mp3',
-            'assets/ost/Business class (Feat. JUSTHIS).mp3',
+            'assets/ost/54321.mp3',
+            'assets/ost/피타파(Feat. pH-1, JUNNY).mp3',
             'assets/ost/SUPERBEEWHY (Feat. BewhY) (Prod. by BewhY).mp3',
             'assets/ost/Travel Again (Feat. Cautious Clay).mp3',
             'assets/ost/Jay Park (박재범), GRAY (그레이) - _EL TORNADO_ Lyrics (Color Coded Lyrics Han_Rom_Eng_가사) [BAnXszYMGSU].mp3'
@@ -3794,16 +3798,16 @@ class AudioManager {
         this.initialized = false;
         this.sfxVolume = 50; // Default SFX volume (0-100)
         this.currentMode = 'default'; // 현재 모드 추적
-        
+
         // 플레이리스트 셔플 (랜덤 재생)
         this.shufflePlaylist();
-        
+
         this.createNowPlayingUI(); // UI 생성
     }
 
     init() {
         if (this.initialized) return;
-        
+
         // 오디오 객체가 가비지 컬렉션되어 끊기는 현상 방지 (DOM에 추가)
         document.body.appendChild(this.audio);
 
@@ -3816,7 +3820,7 @@ class AudioManager {
         this.audio.loop = false;
         // 한 곡이 끝나면 다음 곡 재생
         this.audio.addEventListener('ended', () => this.playNext());
-        
+
         // 초기 설정 적용
         if (typeof gameData !== 'undefined' && gameData.settings) {
             this.applySettings(gameData.settings);
@@ -3825,10 +3829,10 @@ class AudioManager {
         if (window.customCursorInstance) {
             this.setSfxVolume(this.sfxVolume);
         }
-        
+
         this.initialized = true;
     }
-    
+
     // 플레이리스트 업데이트 (모드 변경 시 호출)
     updatePlaylist() {
         const isWorldCup = typeof gameData !== 'undefined' && gameData.isWorldCupMode;
@@ -3839,13 +3843,13 @@ class AudioManager {
             this.bgmFiles = isWorldCup ? [...this.worldCupPlaylist] : [...this.defaultPlaylist];
             this.shufflePlaylist();
             this.currentTrackIndex = 0;
-            
+
             console.log(`🔀 BGM 플레이리스트가 ${newMode} 모드로 변경되었습니다.`);
 
             // [수정] 소스를 강제로 변경하여 새 리스트의 곡이 나오도록 함
             if (this.bgmFiles.length > 0) {
                 this.audio.src = this.bgmFiles[this.currentTrackIndex];
-                
+
                 // BGM이 켜져있다면 재생
                 if (gameData.settings && gameData.settings.bgm) {
                     this.play();
@@ -3862,27 +3866,27 @@ class AudioManager {
         }
         console.log("🔀 BGM 플레이리스트가 셔플되었습니다.");
     }
-    
+
     applySettings(settings) {
         if (!settings) return;
-        
+
         const isMuted = settings.bgm === false; // bgm: true가 켜짐
         const volume = (settings.bgmVolume !== undefined ? settings.bgmVolume : 50) / 100;
-        
+
         this.audio.muted = isMuted;
         this.audio.volume = volume;
-        
+
         // [수정] SFX 볼륨 설정 적용 추가
         if (settings.sfxVolume !== undefined) {
             this.setSfxVolume(settings.sfxVolume);
         }
-        
+
         if (!isMuted && !this.isPlaying && this.initialized) {
             this.play();
         } else if (isMuted && this.isPlaying) {
             this.pause();
         }
-        
+
         // 저장된 게임의 모드에 맞춰 플레이리스트 업데이트
         this.updatePlaylist();
     }
@@ -3895,7 +3899,7 @@ class AudioManager {
         if (!this.audio.src) {
             this.audio.src = this.bgmFiles[this.currentTrackIndex];
         }
-       
+
         const playPromise = this.audio.play();
         if (playPromise !== undefined) {
             playPromise.then(() => {
@@ -3920,11 +3924,11 @@ class AudioManager {
         if (this.currentTrackIndex >= this.bgmFiles.length) {
             this.currentTrackIndex = 0;
         }
-        
+
         this.audio.src = this.bgmFiles[this.currentTrackIndex];
         this.play();
     }
-    
+
     setVolume(value) {
         // value: 0 ~ 100
         const normalizedVolume = value / 100;
@@ -3933,7 +3937,7 @@ class AudioManager {
             gameData.settings.bgmVolume = value;
         }
     }
-    
+
     // [신규] SFX 볼륨 설정
     setSfxVolume(value) {
         this.sfxVolume = value;
@@ -3945,13 +3949,13 @@ class AudioManager {
             window.customCursorInstance.clickSound.volume = this.sfxVolume / 100;
         }
     }
-    
+
     toggleBgm(isOn) {
         this.audio.muted = !isOn;
         if (gameData.settings) {
             gameData.settings.bgm = isOn;
         }
-        
+
         if (isOn) {
             this.play();
         } else {
@@ -3994,10 +3998,10 @@ class AudioManager {
             transform: translateY(-20px);
             pointer-events: none;
         `;
-        
+
         const text = document.createElement('span');
         text.id = 'nowPlayingText';
-        
+
         container.appendChild(text);
         document.body.appendChild(container);
         this.nowPlayingElement = container;
@@ -4006,9 +4010,9 @@ class AudioManager {
 
     showNowPlaying(filename) {
         if (!this.nowPlayingElement) return;
-        
+
         let cleanName = filename.split('/').pop().replace('.mp3', '');
-        
+
         // 불필요한 태그 제거 및 정리
         cleanName = cleanName
             .replace(/\(Lyrics\)/gi, '')
@@ -4022,18 +4026,18 @@ class AudioManager {
 
         // 하이픈 포맷팅 (띄어쓰기 추가)
         if (cleanName.includes('-') && !cleanName.includes(' - ')) {
-             cleanName = cleanName.replace('-', ' - ');
+            cleanName = cleanName.replace('-', ' - ');
         }
 
         this.nowPlayingText.textContent = `🎵 ${cleanName}`;
-        
+
         // 표시 애니메이션
         this.nowPlayingElement.style.display = 'flex';
         void this.nowPlayingElement.offsetWidth; // reflow 강제
-        
+
         this.nowPlayingElement.style.opacity = '1';
         this.nowPlayingElement.style.transform = 'translateY(0)';
-        
+
         if (this.hideTimeout) clearTimeout(this.hideTimeout);
         this.hideTimeout = setTimeout(() => {
             this.nowPlayingElement.style.opacity = '0';
@@ -4058,7 +4062,7 @@ window.audioManager = audioManager;
 function renderAudioSettings() {
     const settingsTab = document.getElementById('settings');
     if (!settingsTab) return;
-    
+
     let audioContainer = document.getElementById('audioSettings');
     if (!audioContainer) {
         // ... (기존 코드 유지)
@@ -4071,7 +4075,7 @@ function renderAudioSettings() {
             margin-bottom: 20px;
             border: 1px solid rgba(255, 255, 255, 0.1);
         `;
-        
+
         // 설정 콘텐츠 영역(.settings-content)의 맨 위에 추가
         const settingsContent = settingsTab.querySelector('.settings-content');
         if (settingsContent) {
@@ -4080,7 +4084,7 @@ function renderAudioSettings() {
             settingsTab.appendChild(audioContainer);
         }
     }
-    
+
     const isBgmOn = gameData.settings ? gameData.settings.bgm !== false : true;
     const volume = gameData.settings && gameData.settings.bgmVolume !== undefined ? gameData.settings.bgmVolume : 50;
     const sfxVolume = gameData.settings && gameData.settings.sfxVolume !== undefined ? gameData.settings.sfxVolume : 50;
@@ -4088,7 +4092,7 @@ function renderAudioSettings() {
     const drama = ensureMatchDramaDefaults();
     const isDramaOn = drama.enabled !== false;
     const dramaIntensity = drama.intensity || 'high';
-    
+
     audioContainer.innerHTML = `
         <h4 style="color: #ffd700; margin-top: 0; margin-bottom: 15px;">🎵 배경음악 설정</h4>
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
@@ -4136,11 +4140,11 @@ function renderAudioSettings() {
             골 직전 연출이 켜지면 CM 스타일로 텐션이 올라가며, 강도가 높을수록 멈춤과 해설이 더 길어집니다. Shift+F 고속 진행 시 연출이 자동 축약됩니다.
         </p>
     `;
-    
+
     // 기존에 JS로 주입하던 스타일 제거 (index.html의 CSS로 통합)
     const oldStyle = document.getElementById('audioStyles');
     if (oldStyle) oldStyle.remove();
-    
+
     // 이벤트 리스너
     const bgmToggle = document.getElementById('bgmToggle');
     const bgmVolume = document.getElementById('bgmVolume');
@@ -4153,7 +4157,7 @@ function renderAudioSettings() {
     const goalDramaToggle = document.getElementById('goalDramaToggle');
     const goalDramaStatusText = document.getElementById('goalDramaStatusText');
     const goalDramaIntensity = document.getElementById('goalDramaIntensity');
-    
+
     bgmToggle.addEventListener('change', (e) => {
         const isOn = e.target.checked;
         audioManager.toggleBgm(isOn);
@@ -4163,7 +4167,7 @@ function renderAudioSettings() {
     if (isBgmOn) {
         audioManager.play();
     }
-    
+
     bgmVolume.addEventListener('input', (e) => {
         const val = parseInt(e.target.value);
         bgmVolumeValue.textContent = `${val}%`;
@@ -4211,7 +4215,7 @@ window.renderAudioSettings = renderAudioSettings;
 function renderGeneralSettings() {
     const settingsTab = document.getElementById('settings');
     if (!settingsTab) return;
-    
+
     let generalContainer = document.getElementById('generalSettings');
     if (!generalContainer) {
         generalContainer = document.createElement('div');
@@ -4223,7 +4227,7 @@ function renderGeneralSettings() {
             margin-bottom: 20px;
             border: 1px solid rgba(255, 255, 255, 0.1);
         `;
-        
+
         const settingsContent = settingsTab.querySelector('.settings-content');
         if (settingsContent) {
             const audioSettings = document.getElementById('audioSettings');
@@ -4236,13 +4240,13 @@ function renderGeneralSettings() {
             settingsTab.appendChild(generalContainer);
         }
     }
-    
+
     generalContainer.innerHTML = `
         <h4 style="color: #ffd700; margin-top: 0; margin-bottom: 15px;">⚙️ 일반 설정</h4>
         <button class="btn" id="replayTutorialBtn" style="width: 100%; margin-bottom: 10px;">튜토리얼 다시 보기</button>
         <button class="btn" onclick="openDatabaseModal()" style="width: 100%; background: linear-gradient(45deg, #3498db, #2980b9);">📚 데이터베이스 열람</button>
     `;
-    
+
     document.getElementById('replayTutorialBtn').addEventListener('click', () => {
         if (window.tutorialSystem) {
             window.tutorialSystem.currentStep = 0;
@@ -4258,13 +4262,13 @@ window.renderGeneralSettings = renderGeneralSettings;
 function renderSecretarySettings() {
     const settingsTab = document.getElementById('settings');
     if (!settingsTab) return;
-    
+
     let secContainer = document.getElementById('secretarySettings');
     if (!secContainer) {
         secContainer = document.createElement('div');
         secContainer.id = 'secretarySettings';
         secContainer.className = 'settings-section';
-        
+
         // 일반 설정 다음에 추가
         const generalSettings = document.getElementById('generalSettings');
         if (generalSettings) {
@@ -4273,7 +4277,7 @@ function renderSecretarySettings() {
             settingsTab.appendChild(secContainer);
         }
     }
-    
+
     secContainer.innerHTML = `
         <h4>👩‍💼 비서 설정</h4>
         <div style="display: flex; gap: 10px; align-items: center;">
@@ -4319,7 +4323,7 @@ window.AutoScrollSystem = {
     animate() {
         const matchScreen = document.getElementById('matchScreen');
         const eventList = document.getElementById('eventList');
-        
+
         // 경기 화면이 활성화되어 있고 eventList가 존재하며, 일시 정지 상태가 아닐 때만 스크롤
         if (matchScreen && matchScreen.classList.contains('active') && eventList && !this.isPaused) {
             // [수정] 스크롤바가 어디에 생길지 모르므로 리스트와 부모 요소 모두 스크롤 시도
@@ -4352,7 +4356,7 @@ function openDatabaseModal() {
             </div>
         `;
         document.body.appendChild(modal);
-        
+
         // 뒤로가기 버튼 이벤트
         document.getElementById('dbBackBtn').addEventListener('click', () => {
             const currentView = modal.dataset.view;
@@ -4371,7 +4375,7 @@ function openDatabaseModal() {
             }
         });
     }
-    
+
     modal.style.display = 'block';
     renderDatabaseLeagues();
 }
@@ -4381,11 +4385,11 @@ function renderDatabaseLeagues() {
     const content = document.getElementById('dbModalContent');
     const backBtn = document.getElementById('dbBackBtn');
     const title = document.getElementById('dbModalTitle');
-    
+
     modal.dataset.view = 'leagues';
     backBtn.style.display = 'none';
     title.textContent = '리그 선택';
-    
+
     content.innerHTML = `
         <div style="display: grid; gap: 15px;">
             <button class="btn" onclick="renderDatabaseTeams(1)" style="padding: 20px; font-size: 1.2rem; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);">🏆 1부 리그</button>
@@ -4400,14 +4404,14 @@ function renderDatabaseTeams(league) {
     const content = document.getElementById('dbModalContent');
     const backBtn = document.getElementById('dbBackBtn');
     const title = document.getElementById('dbModalTitle');
-    
+
     modal.dataset.view = 'teams';
     modal.dataset.league = league;
     backBtn.style.display = 'inline-block';
     title.textContent = `${league}부 리그 팀 목록`;
-    
+
     const leagueTeams = Object.keys(allTeams).filter(key => allTeams[key].league == league);
-    
+
     let html = '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px;">';
     leagueTeams.forEach(teamKey => {
         const teamName = teamNames[teamKey] || teamKey;
@@ -4428,16 +4432,16 @@ function renderDatabasePlayers(teamKey) {
     const content = document.getElementById('dbModalContent');
     const backBtn = document.getElementById('dbBackBtn');
     const title = document.getElementById('dbModalTitle');
-    
+
     modal.dataset.view = 'players';
     backBtn.style.display = 'inline-block';
     const teamName = teamNames[teamKey] || teamKey;
     title.textContent = `${teamName} 선수 명단`;
-    
+
     const players = teams[teamKey] || allTeams[teamKey].players;
     const posOrder = { 'GK': 1, 'DF': 2, 'MF': 3, 'FW': 4 };
     const sortedPlayers = [...players].sort((a, b) => (posOrder[a.position] || 5) - (posOrder[b.position] || 5) || b.rating - a.rating);
-    
+
     let html = '<div style="display: flex; flex-direction: column; gap: 10px;">';
     sortedPlayers.forEach(player => {
         let stats = { goals: 0, assists: 0, matches: 0, moms: 0 };
@@ -4485,7 +4489,7 @@ function showDashboard() {
     if (dashboardContainer) dashboardContainer.style.display = 'grid';
     if (tabContentArea) tabContentArea.style.display = 'none';
     if (homeBtn) homeBtn.style.display = 'none'; // 홈 화면에선 홈 버튼 숨김
-    
+
     if (lobbyTabs) lobbyTabs.style.display = 'none';
 
     renderDashboard();
@@ -4515,7 +4519,7 @@ function renderDashboard() {
         const league = gameData.currentLeague;
         const divisionKey = `division${league}`;
         const table = gameData.leagueData[divisionKey];
-        
+
         if (!table) return '<div style="text-align:center; color:#aaa;">데이터 없음</div>';
 
         const standings = Object.keys(table).map(key => ({
@@ -4549,7 +4553,7 @@ function renderDashboard() {
     const squadCard = createDashboardCard('👥 스쿼드', 'squad', () => {
         const rating = typeof calculateTeamRating === 'function' ? calculateTeamRating().toFixed(1) : '0.0';
         const realInjuredCount = (typeof injurySystem !== 'undefined') ? injurySystem.getInjuredPlayers(gameData.selectedTeam).length : 0;
-        
+
         return `
             <div style="text-align: center; display: flex; flex-direction: column; justify-content: center; height: 100%;">
                 <div>
@@ -4587,12 +4591,12 @@ function renderDashboard() {
             </div>
         `;
     });
-    
+
     // [추가] 개인 기록 카드
     const recordsCard = createDashboardCard('🥇 개인 기록', 'records', () => {
         let topScorerName = '-';
         let topScorerGoals = 0;
-        
+
         if (typeof leagueBasedRecordsSystem !== 'undefined') {
             const scorers = leagueBasedRecordsSystem.getTopScorersByLeague(gameData.currentLeague, 1);
             if (scorers.length > 0) {
@@ -4600,7 +4604,7 @@ function renderDashboard() {
                 topScorerGoals = scorers[0].goals;
             }
         }
-        
+
         return `
             <div style="text-align: center;">
                 <div style="font-size: 0.9rem; color: #aaa;">현재 득점 1위</div>
@@ -4631,7 +4635,7 @@ function renderDashboard() {
     // [추가] 이적 뉴스 카드
     const transferNewsCard = createDashboardCard('🌍 AI 이적 뉴스', 'transfer_news', () => {
         let latestNews = "이적 소식이 없습니다.";
-       if (typeof transferSystem !== 'undefined' && transferSystem.transferNews.length > 0) {
+        if (typeof transferSystem !== 'undefined' && transferSystem.transferNews.length > 0) {
             const news = transferSystem.transferNews[0];
             latestNews = `${news.name}: ${news.from} ➔ ${news.to}`;
         }
@@ -4641,7 +4645,7 @@ function renderDashboard() {
                 <div style="font-size: 0.95rem; margin-top: 5px;">${latestNews}</div>
             </div>
         `;
-  });
+    });
 
     // [추가] 유스 카드
     const youthCard = createDashboardCard('🌟 유스/스카우트', 'youth', () => {
@@ -4710,7 +4714,7 @@ async function simulateMultipleSeasons(count) {
     document.body.appendChild(loadingOverlay);
 
     const progressEl = document.getElementById('simProgress');
-    
+
     // UI 렌더링 대기
     await new Promise(r => setTimeout(r, 50));
 
@@ -4720,28 +4724,28 @@ async function simulateMultipleSeasons(count) {
 
             const divisionKey = `division${gameData.currentLeague}`;
             const schedule = gameData.schedule[divisionKey];
-            
+
             if (!schedule) break;
-            
+
             const totalRounds = schedule.length;
 
             for (let r = 1; r <= totalRounds; r++) {
                 gameData.currentRound = r;
                 progressEl.textContent = `${s + 1}/${count} 시즌 - ${r}/${totalRounds} 라운드 진행 중...`;
-                
+
                 if (r % 5 === 0) await new Promise(res => setTimeout(res, 0));
 
                 simulateAllMatchesInRound(r);
             }
-            
+
             // 시즌 종료 (silent = true)
             endSeason(true);
-            
+
             await new Promise(res => setTimeout(res, 10));
         }
-        
+
         alert(`${count}시즌 시뮬레이션이 완료되었습니다!`);
-        
+
     } catch (e) {
         console.error("시뮬레이션 중 오류:", e);
         alert("시뮬레이션 중 오류가 발생했습니다: " + e.message);
@@ -4758,39 +4762,38 @@ function simulateAllMatchesInRound(round) {
     for (let league = 1; league <= 3; league++) {
         const divisionKey = `division${league}`;
         const leagueSchedule = gameData.schedule[divisionKey];
-        
+
         if (!leagueSchedule || round > leagueSchedule.length) continue;
-        
+
         const matches = leagueSchedule[round - 1];
-        
+
         matches.forEach(match => {
             if (typeof recordsSystem === 'undefined' || !recordsSystem) {
                 if (typeof initRecordsSystemInstance === 'function') initRecordsSystemInstance();
             }
-            
+
             if (recordsSystem) {
                 const result = recordsSystem.simulateSingleAIMatch(match.home, match.away);
                 recordsSystem.matchRecords.push(result);
-                
+
                 if (match.home === gameData.selectedTeam || match.away === gameData.selectedTeam) {
                     gameData.matchesPlayed++;
                     const isHome = match.home === gameData.selectedTeam;
                     const myScore = isHome ? result.score1 : result.score2;
                     const oppScore = isHome ? result.score2 : result.score1;
-                    
+
                     let moneyReward = 0;
                     if (myScore > oppScore) moneyReward = 50;
                     else if (myScore === oppScore) moneyReward = 15;
                     else moneyReward = 10;
-                    
+
                     gameData.teamMoney += moneyReward;
                 }
             }
         });
     }
-    
+
     if (typeof processPostMatchGrowth === 'function') processPostMatchGrowth();
     if (typeof updateTransferMarketPostMatch === 'function') updateTransferMarketPostMatch();
     if (typeof processRetirementsAndReincarnations === 'function') processRetirementsAndReincarnations();
 }
-    
