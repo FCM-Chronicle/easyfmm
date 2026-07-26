@@ -746,7 +746,7 @@ class RealSoccerEngine {
             bestPassScore = killerPass.score;
         }
 
-        if (distToGoal < 36) {
+        if (distToGoal < 30) {
             const sc = this._shootChance(player, goalX, distToGoal);
             const shootScore = sc * 100
                 + (player.position === 'FW' ? 10 : 0)
@@ -1180,6 +1180,16 @@ class RealSoccerEngine {
             return ang < 0.3;
         });
         if (isBlockAngle && dToGoal > 16 && player.position !== 'FW' && Math.random() < 0.7) return 0;
+
+        // ⭐ 신규: 각도 페널티 (모든 포지션 공통 적용, 폭이 크면 슈팅 확률 급감)
+        const dY = Math.abs(player.y - 50);
+        const shotAngle = Math.atan2(dY, Math.max(1, dToGoal));
+        let angleFactor = 1.0;
+        if (shotAngle > 1.1) angleFactor = 0.05; // 터치라인 각도 (거의 불가능)
+        else if (shotAngle > 0.85) angleFactor = 0.25;
+        else if (shotAngle > 0.6) angleFactor = 0.55;
+        else if (shotAngle > 0.4) angleFactor = 0.8;
+
         let b = 0;
         if (dToGoal < 14) b = 0.99;
         else if (dToGoal < 22) b = clamp(1 / dToGoal * 20, 0.05, 0.88);
@@ -1187,6 +1197,9 @@ class RealSoccerEngine {
         else if (dToGoal < 40) b = clamp(1 / dToGoal * 3, 0.01, 0.06);
         else if (dToGoal < 48) b = 0.02;
         if (player.position === 'FW') b *= 1.5;
+
+        b *= angleFactor; // ⭐ 각도 반영
+
         return Math.min(b, 0.98);
     }
 
@@ -1698,9 +1711,9 @@ class RealSoccerEngine {
             if (p._fbMode === 'underlap') ty = p.slotY < 50 ? 28 : 72;
             let xShift = 0;
             if (phase === 'building') xShift = 1;
-            else if (phase === 'progressing') xShift = p._fbMode === 'hold' ? 8 : (p._fbMode === 'overlap' ? 18 : 15);
-            else if (phase === 'finalThird') xShift = p._fbMode === 'hold' ? 14 : (p._fbMode === 'overlap' ? 28 : 22);
-            else xShift = 18; // counter
+            else if (phase === 'progressing') xShift = p._fbMode === 'hold' ? 6 : (p._fbMode === 'overlap' ? 12 : 10);
+            else if (phase === 'finalThird') xShift = p._fbMode === 'hold' ? 10 : (p._fbMode === 'overlap' ? 16 : 13);
+            else xShift = 12; // counter
             tx = lines.dfX + fwd * xShift;
             const cbLine = mates.filter(q => q.position === 'DF' && ['CD', 'BPD', 'NCB', 'LIB'].includes(q.role));
             const cbMean = cbLine.length
@@ -1708,9 +1721,9 @@ class RealSoccerEngine {
                 : lines.dfX;
             const retreatFloor = isHome ? cbMean - 1.5 : cbMean + 1.5;
             tx = isHome ? Math.max(tx, retreatFloor) : Math.min(tx, retreatFloor);
-            // FB can go very high (up to 93/7) during overlap! (no arbitrary MF band!)
+            // FB can go high, but not as extreme as before (덜 왕복하도록 완화)
             tx = clamp(tx, isHome ? 8 : 5, isHome ? 95 : 92);
-            const ms = (p._fbMode === 'overlap' ? 0.65 : 0.42) * clamp(sf, 0.75, 1.7);
+            const ms = (p._fbMode === 'overlap' ? 0.42 : 0.32) * clamp(sf, 0.7, 1.4);
             this._physicsStep(p, tx, ty, ms); return;
         }
         // Fallback
