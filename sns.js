@@ -761,9 +761,9 @@ class SNSManager {
                         }
                     ],
 
-                    model: "nvidia/llama-3.3-nemotron-super-49b-v1",
+                    model: "google/gemma-4-31b-it",
                     temperature: 0.7,
-                    max_tokens: 200
+                    max_tokens: 300
                 })
             });
 

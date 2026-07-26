@@ -575,15 +575,13 @@ class TransferSystem {
     // AI 팀 이적 처리
     processAITransfer() {
         const availableTeams = Object.keys(teams).filter(team => team !== gameData.selectedTeam);
-        
         if (availableTeams.length < 2) return;
         
-        // [수정] 빅클럽(1부)이 이적 시장에서 더 적극적 (50% 확률로 1부 팀이 구매자)
+        // 1. 구매 팀 결정 (1부 리그 팀이 더 활발하게 이적 시장 참여)
         let buyingTeam;
         if (Math.random() < 0.5) {
             const league1Teams = availableTeams.filter(t => allTeams[t] && allTeams[t].league === 1);
             if (league1Teams.length > 0) {
-            
                 buyingTeam = league1Teams[Math.floor(Math.random() * league1Teams.length)];
             } else {
                 buyingTeam = availableTeams[Math.floor(Math.random() * availableTeams.length)];
@@ -592,75 +590,136 @@ class TransferSystem {
             buyingTeam = availableTeams[Math.floor(Math.random() * availableTeams.length)];
         }
 
+        const buyingLeague = allTeams[buyingTeam] ? allTeams[buyingTeam].league : 3;
+        const buyingTeamPlayers = teams[buyingTeam];
+        
+        // 2. 구매 팀의 포지션별 분석 및 타겟 포지션 설정
+        const positionCounts = { 'GK': 0, 'DF': 0, 'MF': 0, 'FW': 0 };
+        const positionRatings = { 'GK': [], 'DF': [], 'MF': [], 'FW': [] };
+        
+        buyingTeamPlayers.forEach(p => {
+            positionCounts[p.position]++;
+            positionRatings[p.position].push(p.rating);
+        });
+        
+        // 필요한 최소 인원 기준 (GK: 2, DF: 6, MF: 6, FW: 4)
+        let targetPosition = null;
+        let isEmergency = false;
+        
+        if (positionCounts['GK'] < 2) { targetPosition = 'GK'; isEmergency = true; }
+        else if (positionCounts['DF'] < 6) { targetPosition = 'DF'; isEmergency = true; }
+        else if (positionCounts['MF'] < 6) { targetPosition = 'MF'; isEmergency = true; }
+        else if (positionCounts['FW'] < 4) { targetPosition = 'FW'; isEmergency = true; }
+        
+        // 최소 인원이 다 있다면, 가장 약한 포지션을 타겟으로 설정
+        if (!targetPosition) {
+            let lowestAvg = 999;
+            for (let pos of ['GK', 'DF', 'MF', 'FW']) {
+                // GK는 2명 이상이고, 그 중 베스트 GK가 충분히 좋으면 영입 제외
+                if (pos === 'GK' && positionCounts['GK'] >= 2) {
+                    const topGKRating = Math.max(...positionRatings['GK']);
+                    const gkTargetScore = buyingLeague === 1 ? 80 : (buyingLeague === 2 ? 75 : 70);
+                    if (topGKRating >= gkTargetScore) continue; // 이미 좋은 키퍼가 있음
+                }
+                
+                const avg = positionRatings[pos].length > 0 ? (positionRatings[pos].reduce((a, b) => a + b, 0) / positionCounts[pos]) : 0;
+                if (avg < lowestAvg) {
+                    lowestAvg = avg;
+                    targetPosition = pos;
+                }
+            }
+        }
+        
+        // 모든 포지션이 훌륭하거나 데이터가 없으면 랜덤으로 타겟 설정
+        if (!targetPosition) {
+            const positions = ['GK', 'DF', 'MF', 'FW'];
+            targetPosition = positions[Math.floor(Math.random() * positions.length)];
+        }
+
+        // 3. 판매 팀 선정
         const sellingTeams = availableTeams.filter(team => team !== buyingTeam);
         const sellingTeam = sellingTeams[Math.floor(Math.random() * sellingTeams.length)];
-        
         const sellingTeamPlayers = teams[sellingTeam];
-        if (sellingTeamPlayers.length <= 15) return; // 최소 인원 유지
         
-        const buyingLeague = allTeams[buyingTeam] ? allTeams[buyingTeam].league : 3;
+        // 최소 인원 15명 유지 방어
+        if (sellingTeamPlayers.length <= 15) return;
+        
         const sellingLeague = allTeams[sellingTeam] ? allTeams[sellingTeam].league : 3;
 
-        let transferCandidate = null;
-
-        // [수정] 3부 리그 팀은 나이 많은 선수(32세 이상)를 선호
-        if (buyingLeague === 3) {
-            // 1부 리그에서 영입할 때는 32세 이상만 가능하도록 강제 (젊은 선수 유출 방지)
-            
-            if (sellingLeague === 1) {
-                const veterans = sellingTeamPlayers.filter(p => p.age >= 32);
-                if (veterans.length > 0) {
-                    transferCandidate = veterans[Math.floor(Math.random() * veterans.length)];
-                }
-            } else {
-                // 다른 리그에서는 나이 많은 선수 선호하되 없으면 일반 영입
-                const veterans = sellingTeamPlayers.filter(p => p.age >= 32);
-                if (veterans.length > 0 && Math.random() < 0.7) {
-                    transferCandidate = veterans[Math.floor(Math.random() * veterans.length)];
-                }
-            }
-        } 
-        // [수정] 1부 리그 팀은 능력치 좋은 선수를 선호
-        else if (buyingLeague === 1) {
-             // 판매 팀의 상위권 선수 중 랜덤 (너무 핵심 선수는 안 팔 수도 있지만 여기선 단순화)
-             const goodPlayers = sellingTeamPlayers.filter(p => p.rating >= 80);
-             if (goodPlayers.length > 0) {
-                 transferCandidate = goodPlayers[Math.floor(Math.random() * goodPlayers.length)];
-             }
+        // 4. 판매 대상 필터링
+        // 타겟 리그 수준에 맞는 타겟 능력치 산정
+        let targetRatingMin = 50;
+        let targetRatingMax = 99;
+        
+        if (buyingLeague === 1) {
+            targetRatingMin = 75; // 1부 리그는 75 이상 선호
+        } else if (buyingLeague === 2) {
+            targetRatingMin = 65;
+            targetRatingMax = 82; // 2부 리그는 너무 높은 선수는 못 삼
+        } else if (buyingLeague === 3) {
+            targetRatingMax = 75; // 3부 리그는 75 이하 선호
         }
 
-        if (!transferCandidate) {
-            let candidates = sellingTeamPlayers.filter(p => p.rating < 85);
+        let candidates = sellingTeamPlayers.filter(p => {
+            // 포지션 일치 여부
+            if (p.position !== targetPosition) return false;
             
-            // [수정] 현실성 강화: 상위 리그에서 하위 리그로의 이적 제한 강화
+            // 능력치 타겟 범위 확인 (긴급 상황이면 하한선 무시)
+            if (!isEmergency && (p.rating < targetRatingMin || p.rating > targetRatingMax)) return false;
+            
+            // 상위 리그로 갈 때의 현실성 (3부->1부 직행은 매우 젊고 유망한 경우만)
+            if (sellingLeague > buyingLeague && buyingLeague === 1 && p.rating < 78 && p.age > 24) return false;
+            
+            // 상위 리그에서 하위 리그로 이적 시 제한 (전성기 선수 하위리그 이동 금지)
             if (sellingLeague < buyingLeague) {
-                // 25세 이하 선수는 하위 리그로 이적하지 않음 (임대 제외, 완전 이적 금지)
-                candidates = candidates.filter(p => p.age > 25);
-                // 26~29세 전성기 선수도 평점 75 이상이면 이적 금지
-                candidates = candidates.filter(p => !(p.age <= 29 && p.rating >= 75));
+                if (p.age <= 29 && p.rating >= 75) return false;
             }
 
-            if (sellingLeague === 1 && buyingLeague === 3) {
-                candidates = candidates.filter(p => p.age >= 32);
-            }
+            return true;
+        });
 
-            if (candidates.length > 0) {
-                // 능력치 낮은 순으로 정렬하여 하위권 선수 선택
-                candidates.sort((a, b) => a.rating - b.rating);
-                transferCandidate = candidates[0];
-            }
+        // 5. 판매 팀의 방어 로직 (핵심 선수 및 필수 인원 보호)
+        if (candidates.length > 0) {
+            // 해당 포지션의 남은 인원이 위험 수준이면 안 팜
+            const sellingPosCount = sellingTeamPlayers.filter(p => p.position === targetPosition).length;
+            if (targetPosition === 'GK' && sellingPosCount <= 2) candidates = [];
+            else if (targetPosition === 'DF' && sellingPosCount <= 5) candidates = [];
+            else if (targetPosition === 'MF' && sellingPosCount <= 5) candidates = [];
+            else if (targetPosition === 'FW' && sellingPosCount <= 3) candidates = [];
+        }
+
+        // 핵심 선수 보호 (팀 내 능력치 상위 3명은 90% 확률로 이적 거부)
+        if (candidates.length > 0) {
+            const sortedSquad = [...sellingTeamPlayers].sort((a, b) => b.rating - a.rating);
+            const corePlayers = sortedSquad.slice(0, 3).map(p => p.name);
+            
+            candidates = candidates.filter(p => {
+                if (corePlayers.includes(p.name)) {
+                    return Math.random() < 0.1; // 10% 확률로만 허용
+                }
+                return true;
+            });
+        }
+
+        let transferCandidate = null;
+        if (candidates.length > 0) {
+            // 후보들 중 능력치가 가장 높은 쪽에 가중치를 두어 선택 (가장 낮은 선수를 고르던 버그 픽스)
+            candidates.sort((a, b) => b.rating - a.rating);
+            // 상위 3명 중 하나를 랜덤하게 픽 (무조건 1등만 데려가지 않게 약간의 랜덤성)
+            const pickIndex = Math.floor(Math.random() * Math.min(3, candidates.length));
+            transferCandidate = candidates[pickIndex];
         }
         
-        if (transferCandidate && Math.random() < 0.5) {
+        if (transferCandidate && Math.random() < 0.7) { // 성공 확률 약간 상향
             // 이적 실행
             const playerIndex = sellingTeamPlayers.findIndex(p => p === transferCandidate);
             sellingTeamPlayers.splice(playerIndex, 1);
             
             teams[buyingTeam].push(transferCandidate);
             
-            console.log(`AI 이적: ${transferCandidate.name}이(가) ${teamNames[sellingTeam]}에서 ${teamNames[buyingTeam]}로 이적했습니다.`);
+            console.log(`AI 이적: ${transferCandidate.name}(${transferCandidate.position}, ${transferCandidate.rating})이(가) ${teamNames[sellingTeam]}에서 ${teamNames[buyingTeam]}로 이적했습니다.`);
             
-            // [추가] 이적 뉴스 기록
+            // 이적 뉴스 기록
             const estimatedFee = this.calculatePlayerPrice(transferCandidate, sellingTeam);
             this.addTransferNews(transferCandidate, sellingTeam, buyingTeam, estimatedFee);
         }
