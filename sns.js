@@ -683,7 +683,7 @@ class SNSManager {
                 <div class="preview-headline">NEXT MATCH</div>
                 <div class="preview-teams-row">
                     ${getTeamLogoHTML(post.team1)}
-                    <span class="vs-text">VS</span>
+                    <span class="vs-text">V</span>
                     ${getTeamLogoHTML(post.team2)}
                 </div>
             </div>
@@ -1159,7 +1159,7 @@ class SNSManager {
             '푸욜언니', '비에이라', '티에리앙리', '반바스텐', '굴리트',
             '크루이프', '마테우스', '황제베켄바우어', '플라티니', '지쿠',
             '마라도나', '펠마메', '바르샤좋아', '바비찰튼', '디스테파노',
-            '푸스카스', '폭격기뮐러', '로마리우', '주니뉴',
+            '푸스카스', '폭격기뮐러', '로마리우', '주닝요',
             '파올로말디니', '칸나바로', '부폰',
             '슈마이켈', '야신', '올리버칸', '제라드', '램파드',
             '스콜스', '찍스', '로이킨', '게리네빌', '퍼디난드',
