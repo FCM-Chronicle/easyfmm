@@ -50,7 +50,6 @@ class TransferSystem {
   { "name": "디오고 코스타", "position": "GK", "country": "포르투갈", "rating": 86, "age": 25, "team": "외부리그" },
   { "name": "후고 라르손", "position": "MF", "country": "스웨덴", "rating": 81, "age": 20, "team": "외부리그" },
   { "name": "아담 와튼", "position": "MF", "country": "잉글랜드", "rating": 84, "age": 20, "team": "외부리그" },
-  { "name": "엘리엇 앤더슨", "position": "MF", "country": "스코틀랜드", "rating": 85, "age": 23, "team": "외부리그" },
   { "name": "아산 우에드라오고", "position": "MF", "country": "독일", "rating": 78, "age": 18, "team": "외부리그" },
   { "name": "마틴 바투리나", "position": "MF", "country": "크로아티아", "rating": 79, "age": 21, "team": "외부리그" },
   { "name": "자비 게라", "position": "MF", "country": "스페인", "rating": 79, "age": 21, "team": "외부리그" },
