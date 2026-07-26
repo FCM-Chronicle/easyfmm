@@ -1066,25 +1066,9 @@ function showTab(tabName) {
     if (tabName === 'match') {
         // 탭 전환만 하고 경기 시작은 버튼으로 하도록 변경 (바로 시작하면 캘린더 효과를 못 봄)
 
-        // [추가] 전술 동기화 (DNA 탭에서 바뀐 전술 반영) 및 숙련도 표기 업데이트
+        // [추가] 전술 동기화 (DNA 탭에서 바뀐 전술 반영)
         const matchTacticSelect = document.getElementById('tacticSelect');
-        if (matchTacticSelect) {
-            // 숙련도 텍스트 업데이트
-            if (gameData.tacticMastery) {
-                Array.from(matchTacticSelect.options).forEach(opt => {
-                    const tacKey = opt.value;
-                    const fam = gameData.tacticMastery[tacKey] || 0;
-                    
-                    // 기존 텍스트에서 '[숙련도' 부분 제거하고 새로 붙임
-                    let baseText = opt.text.replace(/ \[숙련도: \d+%\]/, '');
-                    if (fam > 0) {
-                        baseText = baseText.replace(' - ', ` [숙련도: ${fam}%] - `);
-                    }
-                    opt.text = baseText;
-                });
-            }
-            matchTacticSelect.value = gameData.currentTactic;
-        }
+        if (matchTacticSelect) matchTacticSelect.value = gameData.currentTactic;
     }
 
     // 탭 버튼 활성화
@@ -3830,7 +3814,9 @@ class AudioManager {
         // 에러 발생 시 다음 곡 재생
         this.audio.addEventListener('error', (e) => {
             console.warn("Audio error, playing next:", e);
-            setTimeout(() => this.playNext(), 1000);
+            if (!this._switching) {
+                setTimeout(() => this.playNext(), 1000);
+            }
         });
 
         this.audio.loop = false;
@@ -3935,14 +3921,22 @@ class AudioManager {
     }
 
     playNext() {
-        // 순차 재생 (마지막 곡이면 다시 처음으로)
+        if (this._switching) return; // 이미 곡 전환 중이면 중복 실행 방지
+        this._switching = true;
+
         this.currentTrackIndex++;
         if (this.currentTrackIndex >= this.bgmFiles.length) {
             this.currentTrackIndex = 0;
         }
 
+        // 이전 재생을 완전히 멈추고 나서 새 소스 설정
+        this.audio.pause();
         this.audio.src = this.bgmFiles[this.currentTrackIndex];
+        this.audio.load();
+
         this.play();
+
+        setTimeout(() => { this._switching = false; }, 300);
     }
 
     setVolume(value) {

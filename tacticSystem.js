@@ -277,6 +277,10 @@ function startMatch() {
         engine.teamStrength.home -= (tacticEffect * 0.6);
     }
 
+    // [신규] 전술 상성 효과를 실제 선수 스탯에 직접 주입 (진짜 체감 버프)
+    const userTeamId = matchData.homeTeam === gameData.selectedTeam ? 'home' : 'away';
+    engine.applyTacticBoost(userTeamId, tacticEffect * 0.02);
+
     matchData.engine = engine; // 엔진 참조 저장
 
     // [수정] 팀 컬러 가져오기 및 충돌 방지 (유니폼 색상 겹침 해결)

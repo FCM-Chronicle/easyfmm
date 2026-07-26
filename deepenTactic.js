@@ -271,13 +271,13 @@ class RealSoccerEngine {
         this._fwBurstCooldown = 0;
         this._fwLinkupCooldown = 0;
 
-        this.initTeam(homeSquad, 'home', homeTactic);
-        this.initTeam(awaySquad, 'away', awayTactic);
-        this._assignVerticalSlots(); // NEW: assign MF Y slots so NO OVERSATURATION!
-        this.resetPositions('home');
         this.teamStrength = { home: 70, away: 70 };
         this.teamStrength.home = this.calcTeamStrength(homeSquad);
         this.teamStrength.away = this.calcTeamStrength(awaySquad);
+        this.initTeam(homeSquad, 'home', homeTactic);
+        this.initTeam(awaySquad, 'away', awayTactic);
+        this._assignVerticalSlots();
+        this.resetPositions('home');
     }
 
     calcTeamStrength(squad) {
@@ -315,7 +315,11 @@ class RealSoccerEngine {
     }
 
     initTeam(squad, teamId, tactic) {
-        const mul = tactic === 'balanced' ? 0.85 : 1.0;
+        let mul = tactic === 'balanced' ? 0.85 : 1.0;
+        // 전술 상성 효과 반영 (tacticSystem.js에서 계산한 teamStrength 보정치 활용)
+        if (this.teamStrength && this.teamStrength[teamId] !== undefined) {
+            mul *= 1 + ((this.teamStrength[teamId] - 70) * 0.01);
+        }
         const setupLine = (list, baseX) => {
             const isUser = (teamId === 'home' && gameData.isHomeGame) || (teamId === 'away' && !gameData.isHomeGame);
             let lineStats, morale = 50;
@@ -683,7 +687,10 @@ class RealSoccerEngine {
         const fwd = isHome ? 1 : -1;
         const phase = this._phase[teamId];
         const dt = gameData.deepTactics || {};
-        const lineBias = dt.defensiveLine === 'high' ? 4 : (dt.defensiveLine === 'deep' ? -4 : 0);
+        const profile = this.getTacticProfile(teamId);
+        // 전술별 기본 라인 성향 (게겐프레싱=하이라인, 파크버스/카테나치오=딥라인)
+        const tacticLineBias = (profile.press - 0.62) * 10;
+        const lineBias = (dt.defensiveLine === 'high' ? 4 : (dt.defensiveLine === 'deep' ? -4 : 0)) + tacticLineBias;
         const ballX = this.ball.x;
         const haveBall = this._possession.teamId === teamId ||
             (this.ball.state === BallState.IN_FLIGHT && this.ball.lastOwner && this.ball.lastOwner.teamId === teamId);
@@ -752,7 +759,7 @@ class RealSoccerEngine {
                 + (player.position === 'FW' ? 10 : 0)
                 - (bestPassTarget ? Math.max(0, bestPassScore - 38) * 0.5 : 0)
                 - (underPressure ? 8 : 0);
-            if (shootScore >= Math.max(bestPassScore, 54) && Math.random() < sc) {
+            if (shootScore >= Math.max(bestPassScore, 42)) {
                 this._attemptShoot(player, goalX);
                 return;
             }
@@ -869,6 +876,10 @@ class RealSoccerEngine {
         // Distance penalty (very short passes ok in buildup, but not spamming)
         if (dist < 5) score -= 8;
         if (dist > 60) score -= 12;
+        // [신규] 하프스페이스 간 대각선/횡패스 페널티: Y축 이동이 크고 전진성이 약할수록 감점
+        const yShift = Math.abs(to.y - from.y);
+        if (yShift > 30 && !forward) score -= 40;
+        else if (yShift > 20 && !forward) score -= 20;
         // Direction: huge forward bonus, hard back/lat penalty in final/progress
         if (forward) score += phase === 'building' ? 22 : (phase === 'progressing' ? 35 : 45);
         else if (later) score += (phase === 'building' ? -5 : -10);
@@ -985,10 +996,12 @@ class RealSoccerEngine {
             else if (pos === 'MF') p = 0.45;
             else p = 0.5;
         }
-        if (this._isAttackStuck(player.teamId) && !isCB_def) p += 0.15; // stuck: pass to fix
         const dt = gameData.deepTactics || {};
         if (dt.passTempo === 'fast') p = Math.min(0.98, p + 0.06);
         if (dt.passTempo === 'slow') p = Math.max(0.12, p - 0.06);
+        // 메인 전술 반영: tempo 높으면 패스 확률↑(빠른전개), directness 높으면 드리블 대신 전진패스↑
+        const profile = this.getTacticProfile(player.teamId);
+        p += (profile.tempo - 0.92) * 0.25;
         return clamp(p, 0.08, 0.98);
     }
 
@@ -1179,23 +1192,24 @@ class RealSoccerEngine {
             const ang = Math.acos(clamp(dot / (m1 * d + 0.001), -1, 1));
             return ang < 0.3;
         });
-        if (isBlockAngle && dToGoal > 16 && player.position !== 'FW' && Math.random() < 0.7) return 0;
+        if (isBlockAngle && dToGoal > 16 && player.position !== 'FW' && Math.random() < 0.5) return 0;
 
         // ⭐ 신규: 각도 페널티 (모든 포지션 공통 적용, 폭이 크면 슈팅 확률 급감)
         const dY = Math.abs(player.y - 50);
         const shotAngle = Math.atan2(dY, Math.max(1, dToGoal));
         let angleFactor = 1.0;
-        if (shotAngle > 1.1) angleFactor = 0.05; // 터치라인 각도 (거의 불가능)
-        else if (shotAngle > 0.85) angleFactor = 0.25;
-        else if (shotAngle > 0.6) angleFactor = 0.55;
-        else if (shotAngle > 0.4) angleFactor = 0.8;
+        if (shotAngle > 1.1) angleFactor = 0.15;
+        else if (shotAngle > 0.85) angleFactor = 0.4;
+        else if (shotAngle > 0.6) angleFactor = 0.7;
+        else if (shotAngle > 0.4) angleFactor = 0.9;
 
         let b = 0;
         if (dToGoal < 14) b = 0.99;
-        else if (dToGoal < 22) b = clamp(1 / dToGoal * 20, 0.05, 0.88);
-        else if (dToGoal < 32) b = clamp(1 / dToGoal * 10, 0.02, 0.22);
-        else if (dToGoal < 40) b = clamp(1 / dToGoal * 3, 0.01, 0.06);
-        else if (dToGoal < 48) b = 0.02;
+        else if (dToGoal < 22) b = clamp(1 / dToGoal * 24, 0.10, 0.90);
+        else if (dToGoal < 32) b = clamp(1 / dToGoal * 15, 0.08, 0.35);
+        else if (dToGoal < 40) b = clamp(1 / dToGoal * 5, 0.02, 0.10);
+        else if (dToGoal < 48) b = 0.04;
+
         if (player.position === 'FW') b *= 1.5;
 
         b *= angleFactor; // ⭐ 각도 반영
@@ -1218,7 +1232,7 @@ class RealSoccerEngine {
         const effSh = this.getEffectiveStat(shooter, 'shooting');
         const sp = effSh * (0.8 + Math.random() * 0.4) * dF * aF;
         const sv = gkV * (0.8 + Math.random() * 0.5) + 5;
-        const goalChance = clamp(0.22 + (sp - sv) * 0.0045, 0.04, 0.95);
+        const goalChance = clamp(0.35 + (sp - sv) * 0.006, 0.10, 0.95);
         this.ball.state = BallState.IN_FLIGHT;
         this.ball._flightOrigin = { x: shooter.x, y: shooter.y };
         this.ball.owner = null;
@@ -1738,7 +1752,11 @@ class RealSoccerEngine {
         const fwd = isHome ? 1 : -1;
         const lines = this._getTeamBlockLines(tid);
         const dt = gameData.deepTactics || {};
-        const pressInt = dt.pressIntensity || 'mid';
+        const profile = this.getTacticProfile(tid);
+        // 전술별 압박 성향을 세부설정에 곱연산으로 반영
+        let pressInt = dt.pressIntensity || 'mid';
+        if (profile.press > 1.05 && pressInt !== 'high') pressInt = 'high';
+        else if (profile.press < 0.45 && pressInt !== 'low') pressInt = 'low';
         const ballX = this.ball.x, ballY = this.ball.y;
         const inOwnThird = isHome ? ballX < 33 : ballX > 67;
         const dBall = Math.hypot(p.x - ballX, p.y - ballY);
@@ -2019,6 +2037,15 @@ class RealSoccerEngine {
             Math.abs(p.baseX - targetX) < 12
         );
         if (simP) simP.stamina = 100;
+    }
+
+    applyTacticBoost(userTeamId, boostPercent) {
+        this.players.forEach(p => {
+            const factor = p.teamId === userTeamId ? (1 + boostPercent) : (1 - boostPercent * 0.6);
+            for (const k in p.stats) {
+                if (typeof p.stats[k] === 'number') p.stats[k] *= factor;
+            }
+        });
     }
 
     startExitAnimation(winner) {
