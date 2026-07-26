@@ -14,15 +14,15 @@ export default async function handler(request, response) {
     }
 
     // Vercel Dashboard의 Settings > Environment Variables에 등록된 값을 읽습니다.
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.NVIDIA_NIM_API_KEY;
 
     if (!apiKey) {
-        console.error("❌ 서버 환경 변수에 GEMINI_API_KEY가 설정되어 있지 않습니다.");
+        console.error("❌ 서버 환경 변수에 NVIDIA_NIM_API_KEY가 설정되어 있지 않습니다.");
         return response.status(500).json({ error: "API 키 설정 누락" });
     }
 
     try {
-        const geminiResponse = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
+        const nimResponse = await fetch("https://integrate.api.nvidia.com/v1/chat/completions", {
             method: "POST",
             headers: {
                 "Authorization": `Bearer ${apiKey}`,
@@ -31,11 +31,11 @@ export default async function handler(request, response) {
             body: JSON.stringify(request.body)
         });
 
-        const data = await geminiResponse.json().catch(() => ({}));
+        const data = await nimResponse.json().catch(() => ({}));
 
-        if (!geminiResponse.ok) {
-            console.error("Gemini API Error Response:", data);
-            return response.status(geminiResponse.status).json(data);
+        if (!nimResponse.ok) {
+            console.error("NVIDIA NIM API Error Response:", data);
+            return response.status(nimResponse.status).json(data);
         }
 
         return response.status(200).json(data);

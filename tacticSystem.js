@@ -253,14 +253,25 @@ function startMatch() {
     const awaySquad = getSquadData(matchData.awayTeam);
     
     // [?섏젙] ??????꾩닠 ?뺣낫瑜??붿쭊???꾨떖
+    // [수정] 상대 전술 정보를 선수에 전달
     const homeTactic = (matchData.homeTeam === gameData.selectedTeam) ? gameData.currentTactic : tacticSystem.getOpponentTactic(matchData.homeTeam);
     const awayTactic = (matchData.awayTeam === gameData.selectedTeam) ? gameData.currentTactic : tacticSystem.getOpponentTactic(matchData.awayTeam);
 
     const engine = new RealSoccerEngine(homeSquad, awaySquad, homeTactic, awayTactic);
     
-    matchData.engine = engine; // ?붿쭊 李몄“ ???
+    // [신규] 전술 상성 효과를 팀 전력(Team Strength)에 직접 반영 (약하게 적용)
+    // tacticEffect: 유리 +5, 불리 -5 (약 60% 반영으로 팀 전력 격차 상쇄)
+    if (matchData.homeTeam === gameData.selectedTeam) {
+        engine.teamStrength.home += (tacticEffect * 0.6);
+        engine.teamStrength.away -= (tacticEffect * 0.6);
+    } else {
+        engine.teamStrength.away += (tacticEffect * 0.6);
+        engine.teamStrength.home -= (tacticEffect * 0.6);
+    }
     
-    // [?섏젙] ? 而щ윭 媛?몄삤湲?諛?異⑸룎 諛⑹? (?좊땲???됱긽 寃뱀묠 ?닿껐)
+    matchData.engine = engine; // 엔진 참조 저장
+    
+    // [수정] 팀 컬러 가져오기 및 충돌 방지 (유니폼 색상 겹침 해결)
     const homeColor = getTeamColor(matchData.homeTeam);
     let awayColor = getTeamColor(matchData.awayTeam);
 
