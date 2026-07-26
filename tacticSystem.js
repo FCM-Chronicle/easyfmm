@@ -691,7 +691,7 @@ function displayEvent(event, matchData) {
             <span class="event-time">${event.minute}분</span>
             <span class="event-desc">${event.description}</span>
         </div>
-    `;
+    ` + eventList.innerHTML;
 
     if (event.type === 'preGoalSuspense' && window.customCursorInstance && typeof window.customCursorInstance.triggerVibration === 'function') {
         window.customCursorInstance.triggerVibration(180, 0.35, 0.25);
@@ -1440,13 +1440,21 @@ function performSubstitution(playerOut, playerIn, matchData) {
 
 // 모달 닫기 버튼
 function closeSubstitutionModal() {
+    if (window.currentMatchData && window.currentMatchData.isPausedForInjury) {
+        alert("🚨 부상 선수가 있어 반드시 교체해야 합니다!");
+        return;
+    }
     const modal = document.getElementById('substitutionModal');
-    // 강제 교체 중이 아닐 때만 닫기 허용
-    // 여기서는 간단히 닫기만 수행
     if (modal) modal.style.display = 'none';
     selectedFieldPlayer = null;
     selectedBenchPlayer = null;
-} 
+}
+
+// 이벤트 리스너 연결
+document.addEventListener('DOMContentLoaded', () => {
+    const closeBtn = document.getElementById('closeSubstitutionModal');
+    if (closeBtn) closeBtn.addEventListener('click', closeSubstitutionModal);
+});
 
 function handleForcedSubstitution(player, matchData) {
     matchData.isRunning = false;
