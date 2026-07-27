@@ -326,16 +326,23 @@
   let prevHomeScore = -1;
   let prevAwayScore = -1;
 
-  let logosApplied = false;
+  // 마지막으로 로고를 세팅한 팀 키를 기억해서, 경기가 바뀌면(팀 키가 달라지면) 다시 세팅한다.
+  // "한 번만 적용" 플래그 방식은 스코어보드 DOM이 경기 사이에 재사용될 때
+  // 새 경기의 팀으로 로고가 갱신되지 않는 버그가 있어 팀 키 비교 방식으로 변경.
+  let lastLogoHomeKey = null;
+  let lastLogoAwayKey = null;
 
   function applyTeamLogos() {
-    if (logosApplied) return;
     const md = window.currentMatchData;
     const teams = window.allTeams;
     if (!md || !teams) return;
 
     const homeKey = md.homeTeam;
     const awayKey = md.awayTeam;
+
+    // 이전과 팀 키가 동일하면 다시 그릴 필요 없음
+    if (homeKey === lastLogoHomeKey && awayKey === lastLogoAwayKey) return;
+
     const homeInfo = teams[homeKey];
     const awayInfo = teams[awayKey];
     if (!homeInfo || !awayInfo) return;
@@ -355,7 +362,8 @@
     if (homeLogo) { homeLogo.src = homePath; homeLogo.alt = homeKey; homeLogo.style.display = ""; }
     if (awayLogo) { awayLogo.src = awayPath; awayLogo.alt = awayKey; awayLogo.style.display = ""; }
 
-    logosApplied = true;
+    lastLogoHomeKey = homeKey;
+    lastLogoAwayKey = awayKey;
   }
 
   function syncData() {
@@ -366,8 +374,8 @@
     if (homeTeamEl && sbHomeName) sbHomeName.textContent = homeTeamEl.textContent.trim() || "홈팀";
     if (awayTeamEl && sbAwayName) sbAwayName.textContent = awayTeamEl.textContent.trim() || "어웨이팀";
 
-    // 로고 적용 시도 (한 번만)
-    if (!logosApplied) applyTeamLogos();
+    // 매 tick마다 확인하되, 실제로 팀이 바뀐 경우에만 내부적으로 다시 그림
+    applyTeamLogos();
 
     const scoreEl = document.getElementById("scoreDisplay");
     if (scoreEl) {
@@ -461,8 +469,7 @@
     if (!container) return false;
     if (document.getElementById("ingame-scoreboard")) return true;
 
-    // 새 경기 → 로고/점수 상태 리셋
-    logosApplied = false;
+    // 새 경기 → 점수 상태 리셋 (로고 키는 syncData/applyTeamLogos가 알아서 비교 갱신함)
     prevHomeScore = -1;
     prevAwayScore = -1;
 
