@@ -298,24 +298,41 @@ class RealSoccerEngine {
         return v * f;
     }
 
-    generateAIStats(squad) {
+    generateAIStats(squad, tactic = 'balanced') {
         const s = { attack: { stats: {} }, midfield: { stats: {} }, defense: { stats: {} } };
         const avg = a => a.length > 0 ? Math.round(a.reduce((x, y) => x + y.rating, 0) / a.length) : 70;
         const fw = avg(squad.fw.filter(Boolean));
         const mf = avg(squad.mf.filter(Boolean));
         const df = avg([...squad.df.filter(Boolean), squad.gk].filter(Boolean));
+        
+        const dnaPriority = {
+            tikitaka: ['technique', 'mentality', 'attack', 'speed', 'defense', 'physical'],
+            possession: ['technique', 'mentality', 'physical', 'attack', 'defense', 'speed'],
+            lavolpiana: ['technique', 'defense', 'mentality', 'speed', 'attack', 'physical'],
+            gegenpress: ['physical', 'speed', 'defense', 'mentality', 'attack', 'technique'],
+            totalFootball: ['mentality', 'technique', 'physical', 'speed', 'attack', 'defense'],
+            counter: ['speed', 'attack', 'physical', 'mentality', 'defense', 'technique'],
+            longBall: ['physical', 'attack', 'defense', 'speed', 'mentality', 'technique'],
+            twoLine: ['speed', 'defense', 'attack', 'physical', 'mentality', 'technique'],
+            parkBus: ['defense', 'physical', 'mentality', 'speed', 'attack', 'technique'],
+            catenaccio: ['defense', 'mentality', 'physical', 'technique', 'attack', 'speed'],
+            balanced: ['attack', 'speed', 'technique', 'physical', 'defense', 'mentality']
+        };
+        const priorities = dnaPriority[tactic] || dnaPriority.balanced;
+        const offsets = [6, 3, 1, -1, -3, -6];
+
         for (const [line, ovr] of Object.entries({ attack: fw, midfield: mf, defense: df })) {
             const total = ovr * 6, base = Math.floor(total / 6);
             let rem = total % 6;
-            for (const k of ['attack', 'speed', 'technique', 'physical', 'defense', 'mentality']) {
-                s[line].stats[k] = base + (rem-- > 0 ? 1 : 0);
-            }
+            priorities.forEach((k, i) => {
+                s[line].stats[k] = base + offsets[i] + (rem-- > 0 ? 1 : 0);
+            });
         }
         return s;
     }
 
     initTeam(squad, teamId, tactic) {
-        let mul = tactic === 'balanced' ? 0.85 : 1.0;
+        let mul = tactic === 'balanced' ? 0.60 : 1.0;
         // 전술 상성 효과 반영 (tacticSystem.js에서 계산한 teamStrength 보정치 활용)
         if (this.teamStrength && this.teamStrength[teamId] !== undefined) {
             mul *= 1 + ((this.teamStrength[teamId] - 70) * 0.01);
@@ -324,7 +341,7 @@ class RealSoccerEngine {
             const isUser = (teamId === 'home' && gameData.isHomeGame) || (teamId === 'away' && !gameData.isHomeGame);
             let lineStats, morale = 50;
             if (isUser) { lineStats = gameData.lineStats; this.userStats = lineStats; morale = gameData.teamMorale; }
-            else { lineStats = this.aiStats || this.generateAIStats(squad); this.aiStats = lineStats; morale = 60 + Math.floor(Math.random() * 31); }
+            else { lineStats = this.aiStats || this.generateAIStats(squad, tactic); this.aiStats = lineStats; morale = 20 + Math.floor(Math.random() * 71); }
             list.forEach((p, i) => {
                 if (!p) return;
                 let role = (gameData.playerRoles && gameData.playerRoles[p.name])
@@ -438,10 +455,10 @@ class RealSoccerEngine {
             p.vx = 0; p.vy = 0;
             p.y = p.slotY || p.baseY;  // Use SLOT! not arbitrary baseY!
             if (p.teamId === 'home') {
-                const mx = p.position === 'MF' ? 42 : 50;
+                const mx = p.position === 'FW' ? 48 : (p.position === 'MF' ? 42 : 50);
                 p.x = Math.min(p.baseX, mx);
             } else {
-                const mn = p.position === 'MF' ? 58 : 50;
+                const mn = p.position === 'FW' ? 52 : (p.position === 'MF' ? 58 : 50);
                 p.x = Math.max(p.baseX, mn);
             }
         });
@@ -1251,14 +1268,28 @@ class RealSoccerEngine {
             const opS = isHome ? this.awayScore : this.homeScore;
             const ast = (this.ball.lastOwner && this.ball.lastOwner.teamId === shooter.teamId && this.ball.lastOwner.name !== shooter.name)
                 ? this.ball.lastOwner.name : null;
-            this.celebrationType = myS < opS ? 'quick_restart' : 'celebrate';
+            
             this.celebrationActor = shooter;
-            this.celebrationTarget = this.celebrationType === 'quick_restart'
-                ? { x: 50, y: 50 }
-                : { x: isHome ? 100 : 0, y: shooter.y < 50 ? 0 : 100 };
+            if (myS < opS) {
+                this.celebrationType = 'quick_restart';
+                this.celebrationTarget = { x: 50, y: 50 };
+                this.celebrationTimer = 40;
+            } else {
+                const types = ['corner_slide', 'camera', 'dance', 'manager_hug', 'run_around', 'center_slide', 'inside_goal', 'siu'];
+                this.celebrationType = types[Math.floor(Math.random() * types.length)];
+                
+                if (this.celebrationType === 'manager_hug') { this.celebrationTarget = { x: isHome ? 35 : 65, y: 5 }; this.celebrationTimer = 140; }
+                else if (this.celebrationType === 'center_slide') { this.celebrationTarget = { x: 50, y: 50 }; this.celebrationTimer = 110; }
+                else if (this.celebrationType === 'inside_goal') { this.celebrationTarget = { x: isHome ? 98 : 2, y: 50 }; this.celebrationTimer = 90; }
+                else if (this.celebrationType === 'camera' || this.celebrationType === 'dance') { this.celebrationTarget = { x: shooter.x, y: shooter.y < 50 ? 5 : 95 }; this.celebrationTimer = 120; }
+                else if (this.celebrationType === 'siu') { this.celebrationTarget = { x: isHome ? 100 : 0, y: shooter.y < 50 ? 0 : 100 }; this.celebrationTimer = 130; }
+                else if (this.celebrationType === 'run_around') { this.celebrationTarget = { x: 50, y: 50 }; this.celebrationTimer = 150; }
+                else { this.celebrationTarget = { x: isHome ? 100 : 0, y: shooter.y < 50 ? 0 : 100 }; this.celebrationTimer = 100; } // corner_slide
+                
+                this.celebrationState = 0;
+            }
             this.eventsQueue.push({ type: 'goal', scorer: shooter.name, team: shooter.teamId, assister: ast });
             this.lastScorerTeam = shooter.teamId;
-            this.celebrationTimer = 40;
             this.ball.state = BallState.DEAD; this.ball.lastOwner = null;
         } else {
             shooter.forceReturnTimer = 60;
@@ -2007,17 +2038,77 @@ class RealSoccerEngine {
         if (!this.celebrationActor) return;
         const a = this.celebrationActor, t = this.celebrationTarget;
         const tx = t.x, ty = t.y;
-        this.players.forEach(p => {
+        this.celebrationState = (this.celebrationState || 0) + 1;
+        
+        this.players.forEach((p, i) => {
             if (p.teamId === a.teamId) {
                 if (p === a) {
-                    this._physicsStep(p, tx, ty, 0.5);
+                    if (this.celebrationType === 'run_around') {
+                        const phase = this.celebrationState;
+                        let targetX = 50, targetY = 50;
+                        if (phase < 30) { targetX = p.teamId === 'home' ? 100 : 0; targetY = 5; }
+                        else if (phase < 60) { targetX = 50; targetY = 5; }
+                        else if (phase < 90) { targetX = 50; targetY = 50; }
+                        this._physicsStep(p, targetX, targetY, 0.6);
+                    } else if (this.celebrationType === 'siu') {
+                        if (this.celebrationState < 40) {
+                            this._physicsStep(p, tx, ty, 0.6);
+                        } else if (this.celebrationState < 60) {
+                            const ang = this.celebrationState * 0.5;
+                            p.x += Math.cos(ang) * 1.5; p.y += Math.sin(ang) * 1.5;
+                        } else {
+                            p.vx = 0; p.vy = 0;
+                        }
+                    } else if (this.celebrationType === 'center_slide' || this.celebrationType === 'corner_slide' || this.celebrationType === 'inside_goal') {
+                        if (this.celebrationState < 40) this._physicsStep(p, tx, ty, 0.7);
+                        else { p.x += (tx - p.x) * 0.05; p.y += (ty - p.y) * 0.05; }
+                    } else {
+                        this._physicsStep(p, tx, ty, 0.5);
+                    }
+                } else if (p.position === 'GK') {
+                    // GK stays back and just jumps
+                    if (this.celebrationType !== 'quick_restart') {
+                        if (this.celebrationState % 12 < 6) p.y -= 0.5; else p.y += 0.5;
+                        p.x += (p.baseX - p.x) * 0.1;
+                    } else {
+                        this._physicsStep(p, p.baseX, p.slotY, 0.4);
+                    }
                 } else {
-                    const r = 10 + Math.random() * 8;
-                    const ang = Math.random() * Math.PI * 2;
-                    this._physicsStep(p, clamp(tx + Math.cos(ang) * r, 4, 96), clamp(ty + Math.sin(ang) * r, 4, 96), 0.45);
+                    if (this.celebrationType === 'dance') {
+                        if (i % 2 === 0 && i < 10) {
+                            const r = 4;
+                            const ang = (i * Math.PI) / 3 + this.celebrationState * 0.1;
+                            this._physicsStep(p, clamp(tx + Math.cos(ang) * r, 4, 96), clamp(ty + Math.sin(ang) * r, 4, 96), 0.5);
+                        } else {
+                            const r = 15 + (i % 3) * 5;
+                            this._physicsStep(p, clamp(tx + Math.cos(i) * r, 4, 96), clamp(ty + Math.sin(i) * r, 4, 96), 0.2);
+                        }
+                    } else if (this.celebrationType === 'manager_hug') {
+                        if (i % 3 === 0) {
+                            const r = 5 + (i%3)*2;
+                            this._physicsStep(p, clamp(tx + Math.random()*r - r/2, 4, 96), clamp(ty + Math.random()*r, 4, 96), 0.45);
+                        } else {
+                            this._physicsStep(p, p.baseX, p.slotY, 0.2);
+                        }
+                    } else if (this.celebrationType === 'siu') {
+                         if (this.celebrationState < 60) {
+                            const r = 10 + (i%5)*2;
+                            this._physicsStep(p, clamp(a.x + Math.cos(i) * r, 4, 96), clamp(a.y + Math.sin(i) * r, 4, 96), 0.4);
+                         } else {
+                            if (this.celebrationState % 10 < 5) p.y -= 1; else p.y += 1;
+                         }
+                    } else if (this.celebrationType === 'quick_restart') {
+                         this._physicsStep(p, p.baseX, p.slotY, 0.4);
+                    } else {
+                        const targetX = (this.celebrationState > 40) ? a.x : tx;
+                        const targetY = (this.celebrationState > 40) ? a.y : ty;
+                        const r = 8 + Math.random() * 6;
+                        const ang = Math.random() * Math.PI * 2;
+                        this._physicsStep(p, clamp(targetX + Math.cos(ang) * r, 4, 96), clamp(targetY + Math.sin(ang) * r, 4, 96), 0.45);
+                    }
                 }
             } else {
-                this._physicsStep(p, p.baseX, p.slotY, 0.2);
+                this._physicsStep(p, p.baseX, p.slotY, 0.15);
             }
         });
     }
@@ -2053,17 +2144,38 @@ class RealSoccerEngine {
         this.exitAnimTicks = 0;
         this.exitAnimDone = false;
         this.exitWinner = winner;
+        
+        this.exitGroups = [];
+        let pool = [...this.players];
+        pool.sort(() => Math.random() - 0.5);
+        while(pool.length > 0) {
+            const groupSize = Math.floor(Math.random() * 3) + 3;
+            const groupPlayers = pool.splice(0, groupSize);
+            let cx = 0, cy = 0;
+            groupPlayers.forEach(p => { cx += p.x; cy += p.y; });
+            cx /= groupPlayers.length; cy /= groupPlayers.length;
+            this.exitGroups.push({ players: groupPlayers, cx, cy, tx: 50 + (Math.random() * 10 - 5) });
+        }
     }
 
     updatePostMatch() {
         if (!this.exitAnimActive) return this.getSnapshot();
         this.exitAnimTicks++;
-        const dir = this.exitWinner === 'home' ? 1 : (this.exitWinner === 'away' ? -1 : 0);
-        this.players.forEach((p, i) => {
-            p.x = clamp(p.x + dir * 0.8 + (i % 3) * 0.1, 0, 100);
-            p.y = clamp(p.y + ((i % 2) ? 0.3 : -0.3), 5, 95);
+        
+        this.exitGroups.forEach(g => {
+            g.cx += (g.tx - g.cx) * 0.05;
+            g.cy += (100 - g.cy) * 0.02;
+            g.players.forEach((p, idx) => {
+                const ang = (idx * Math.PI * 2) / g.players.length + this.exitAnimTicks * 0.02;
+                const r = 4;
+                const ptx = g.cx + Math.cos(ang) * r;
+                const pty = g.cy + Math.sin(ang) * r;
+                p.x += (ptx - p.x) * 0.1;
+                p.y += (pty - p.y) * 0.1;
+            });
         });
-        if (this.exitAnimTicks >= 45) this.exitAnimDone = true;
+        
+        if (this.exitAnimTicks >= 150) this.exitAnimDone = true;
         return this.getSnapshot();
     }
 

@@ -703,7 +703,7 @@ function displayEvent(event, matchData) {
             <span class="event-time">${event.minute}분</span>
             <span class="event-desc">${event.description}</span>
         </div>
-    ` + eventList.innerHTML;
+    `;
 
     if (event.type === 'preGoalSuspense' && window.customCursorInstance && typeof window.customCursorInstance.triggerVibration === 'function') {
         window.customCursorInstance.triggerVibration(180, 0.35, 0.25);

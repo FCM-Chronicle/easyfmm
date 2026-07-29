@@ -157,9 +157,72 @@ class SNSManager {
                 "기본기가 탄탄해 보이네. 잘 성장했으면 좋겠다.",
                 "제발 근본론만 지키자",
                 "선배님 따라서 열심히 하자 제발"
+            ],
+            
+            rebirth: [
+                "{message}"
             ]
 
         };
+    }
+
+    addPost(post) {
+        this.posts.unshift(post);
+        this.preGenerateAIComments(post);
+    }
+
+    async preGenerateAIComments(post) {
+        if (post.generatedComments) return;
+        if (post.isGeneratingComments) return;
+        
+        post.isGeneratingComments = true;
+        
+        try {
+            const tempDiv = document.createElement("div");
+            tempDiv.innerHTML = post.content;
+            const cleanContent = tempDiv.textContent || tempDiv.innerText || "";
+            
+            const aiCommentsText = await this.callNvidiaForComments(cleanContent);
+            
+            if (aiCommentsText && aiCommentsText.length > 0) {
+                post.generatedComments = aiCommentsText.slice(0, 3).map((text, index) => ({
+                    id: Math.random().toString(36).substr(2, 9),
+                    author: this.generateRandomUsername ? this.generateRandomUsername() : '익명',
+                    text: text,
+                    likes: Math.floor(Math.random() * 100) + 1,
+                    timestamp: post.timestamp + (index + 1) * 60000
+                }));
+                const commentsSection = document.getElementById(`comments-${post.id}`);
+                if (commentsSection && commentsSection.style.display !== 'none' && commentsSection.innerHTML.includes('베댓 생성 중')) {
+                    this.renderComments(commentsSection, post.generatedComments);
+                }
+            }
+        } catch (e) {
+            console.error('AI 댓글 자동 생성 실패:', e);
+        } finally {
+            post.isGeneratingComments = false;
+        }
+    }
+
+    generateRebirthPost(playerName, teamKey, age, message) {
+        const template = this.getRandomTemplate('rebirth');
+        const templateData = { message: message };
+        
+        const post = {
+            id: this.postIdCounter++,
+            type: 'rebirth',
+            content: this.fillTemplate(template, templateData),
+            hashtags: ['#은퇴', '#환생', `#${this.sanitizeHashtag(playerName)}`],
+            timestamp: Date.now(),
+            likes: Math.floor(Math.random() * 2000) + 500,
+            comments: Math.floor(Math.random() * 300) + 50,
+            shares: Math.floor(Math.random() * 100) + 20,
+            playerName: playerName,
+            teamKey: teamKey
+        };
+        
+        this.addPost(post);
+        return post;
     }
 
     // SNSManager 클래스 내부에 추가
@@ -184,7 +247,7 @@ class SNSManager {
             shares: Math.floor(Math.random() * 200) + 50
         };
 
-        this.posts.unshift(post);
+        this.addPost(post);
         return post;
     }
 
@@ -207,7 +270,7 @@ class SNSManager {
             shares: Math.floor(Math.random() * 80) + 20
         };
 
-        this.posts.unshift(post);
+        this.addPost(post);
         return post;
     }
 
@@ -230,7 +293,7 @@ class SNSManager {
             shares: Math.floor(Math.random() * 30) + 5
         };
 
-        this.posts.unshift(post);
+        this.addPost(post);
         return post;
     }
 
@@ -255,7 +318,7 @@ class SNSManager {
             shares: Math.floor(Math.random() * 100) + 30
         };
 
-        this.posts.unshift(post);
+        this.addPost(post);
         return post;
     }
 
@@ -280,7 +343,7 @@ class SNSManager {
             shares: Math.floor(Math.random() * 80) + 20
         };
 
-        this.posts.unshift(post);
+        this.addPost(post);
         return post;
     }
 
@@ -375,7 +438,7 @@ class SNSManager {
                 awayTeam: this.getTeamName(awayTeam),
                 score: score,
                 userTeam: this.getTeamName(gameData.selectedTeam),
-                opponentTeam: this.getTeamName(gameData.currentOpponent)
+                opponentTeam: this.getTeamName(homeTeam === gameData.selectedTeam ? awayTeam : homeTeam)
             };
 
             const isUpset = winnerRating < loserRating;
@@ -397,13 +460,18 @@ class SNSManager {
         }
 
         const hashtags = this.generateHashtags(homeTeam, awayTeam, payload);
-        const goalScorers = this.extractGoalScorers(payload.goalEvents || payload.events);
+        const goalRecords = this.buildGoalRecords(payload.goalEvents || payload.events, payload);
         if (payload.hadDrama) hashtags.push('#극적승부');
+
+        let postContent = this.fillTemplate(template, templateData);
+        if (goalRecords.length > 0) {
+            postContent += '<br><br>⚽ 골 기록<br>' + goalRecords.join('<br>');
+        }
 
         const post = {
             id: this.postIdCounter++,
             type: 'match_result',
-            content: this.fillTemplate(template, templateData),
+            content: postContent,
             hashtags: hashtags,
             timestamp: Date.now(),
             likes: Math.floor(Math.random() * 1000) + 100 + (payload.totalGoals || 0) * 40,
@@ -413,12 +481,13 @@ class SNSManager {
             awayTeam: awayTeam,
             homeScore: homeScore,
             awayScore: awayScore,
-            goalScorers: goalScorers.join(', '),
+            goalScorers: goalRecords.join(', '),
+            goalRecords: goalRecords,
             isUserMatch: isUserMatch,
             userResult: payload.userResult || null
         };
 
-        this.posts.unshift(post);
+        this.addPost(post);
         console.log(`[SNS] 경기 결과 포스트 생성: ${post.content}`);
         return post;
     }
@@ -456,16 +525,52 @@ class SNSManager {
             transferFee: templateData.transferFee
         };
 
-        this.posts.unshift(post);
+        this.addPost(post);
         console.log(`[SNS] 이적 포스트 생성: ${post.content}`);
         return post;
     }
 
-    // 랜덤 AI 소식 생성 (이적 루머 제외)
     generateRandomAINews() {
-        if (Math.random() < 0.2) { // 20% 확률
+        const rand = Math.random();
+        if (rand < 0.2) { // 20% 확률
             this.generateAIMatchPreview();
+        } else if (rand < 0.3) { // 10% 확률로 루머
+            this.generateRandomTransferRumor();
         }
+    }
+
+    generateRandomTransferRumor() {
+        if (typeof allTeams === 'undefined' && typeof teams === 'undefined') return;
+        
+        const teamKeys = Object.keys(allTeams || teams);
+        if (teamKeys.length < 2) return;
+        
+        let targetTeamKey;
+        let newTeamKey;
+        
+        // 30% 확률로 유저 팀이 루머에 포함되도록 (타겟 또는 새 팀)
+        if (Math.random() < 0.3 && typeof gameData !== 'undefined' && gameData.selectedTeam && teamKeys.includes(gameData.selectedTeam)) {
+            if (Math.random() < 0.5) {
+                targetTeamKey = gameData.selectedTeam;
+                do { newTeamKey = teamKeys[Math.floor(Math.random() * teamKeys.length)]; } while (newTeamKey === targetTeamKey);
+            } else {
+                newTeamKey = gameData.selectedTeam;
+                do { targetTeamKey = teamKeys[Math.floor(Math.random() * teamKeys.length)]; } while (newTeamKey === targetTeamKey);
+            }
+        } else {
+            targetTeamKey = teamKeys[Math.floor(Math.random() * teamKeys.length)];
+            do { newTeamKey = teamKeys[Math.floor(Math.random() * teamKeys.length)]; } while (newTeamKey === targetTeamKey);
+        }
+        
+        const targetTeamPlayers = (allTeams && allTeams[targetTeamKey] ? allTeams[targetTeamKey].players : null) || (teams ? teams[targetTeamKey] : []);
+        
+        if (!targetTeamPlayers || targetTeamPlayers.length === 0) return;
+
+        const player = targetTeamPlayers[Math.floor(Math.random() * targetTeamPlayers.length)];
+        
+        const transferFee = this.estimateTransferFee ? this.estimateTransferFee(player) : Math.floor(Math.random() * 500) + 100;
+
+        this.generateTransferPost(player.name, targetTeamKey, newTeamKey, transferFee, true);
     }
 
     // AI 경기 미리보기 생성 (같은 디비전끼리만)
@@ -511,7 +616,7 @@ class SNSManager {
                 team2: team2
             };
 
-            this.posts.unshift(post);
+            this.addPost(post);
             console.log('같은 디비전 경기 미리보기 생성:', post.content);
         } else {
             console.log('같은 디비전에 충분한 팀이 없어 경기 미리보기를 생성하지 않음');
@@ -561,6 +666,23 @@ class SNSManager {
                 if (seen.has(scorer)) return false;
                 seen.add(scorer);
                 return true;
+            });
+    }
+
+    buildGoalRecords(events, matchData) {
+        if (!events) return [];
+
+        return events
+            .filter(event => event.type === 'goal' && event.scorer)
+            .sort((a, b) => (a.minute || 0) - (b.minute || 0))
+            .map(event => {
+                const isHome = event.teamKey
+                    ? event.teamKey === matchData.homeTeam
+                    : null;
+                const side = isHome === null ? '' : (isHome ? '🏠 ' : '🛫 ');
+                let text = `${side}${event.minute}' ${event.scorer}`;
+                if (event.assister) text += ` (도움: ${event.assister})`;
+                return text;
             });
     }
 
@@ -625,9 +747,10 @@ class SNSManager {
         if (post.type === 'match_result') postingTeam = post.homeTeam;
         else if (post.type === 'match_preview') postingTeam = post.team1;
         else if (post.type === 'transfer_confirmed' || post.type === 'transfer_rumor') postingTeam = post.toTeam;
+        else if (post.type === 'rebirth') postingTeam = post.teamKey;
 
         const teamName = this.getTeamName(postingTeam);
-        const stadium = post.type === 'match_result' || post.type === 'match_preview' ? "📍 Official Stadium" : "⚽ Transfer Market";
+        const stadium = post.type === 'match_result' || post.type === 'match_preview' ? "📍 Official Stadium" : post.type === 'rebirth' ? "📍 Youth Academy" : "⚽ Transfer Market";
 
         let mediaHtml = '';
         if (post.type === 'match_result') {
@@ -685,6 +808,16 @@ class SNSManager {
                     ${getTeamLogoHTML(post.team1)}
                     <span class="vs-text">V</span>
                     ${getTeamLogoHTML(post.team2)}
+                </div>
+            </div>
+        `;
+        } else if (post.type === 'rebirth') {
+            const bgUrl = `assets/bg/${post.teamKey}.png`;
+            mediaHtml = `
+            <div class="insta-media preview-graphic-card" style="background-image: url('${bgUrl}'), url('assets/bg/basic.png'); display: flex; flex-direction: column; justify-content: flex-end; align-items: center;">
+                <div class="media-overlay-dark" style="opacity: 0.3;"></div>
+                <div style="z-index: 10; padding-bottom: 40px; color: white; font-weight: 900; font-size: 2rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.8), -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; text-align: center; line-height: 1.4;">
+                    ${post.playerName} 은퇴,<br>이어받을 유망주 등장
                 </div>
             </div>
         `;
@@ -800,6 +933,12 @@ class SNSManager {
             // 1. 캐싱된 댓글이 있으면 바로 표시 (API 낭비 방지)
             if (post.generatedComments) {
                 this.renderComments(commentsSection, post.generatedComments);
+                return;
+            }
+
+            // 1.5 생성 중이라면 대기
+            if (post.isGeneratingComments) {
+                commentsSection.innerHTML = '<div style="padding:15px; color:#aaa; text-align:center; font-size:0.9em;">💬 베댓 생성 중...</div>';
                 return;
             }
 

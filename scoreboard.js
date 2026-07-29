@@ -467,11 +467,12 @@
   function insertScoreboard() {
     const container = document.getElementById("matchVisualizerContainer");
     if (!container) return false;
-    if (document.getElementById("ingame-scoreboard")) return true;
 
     // 새 경기 → 점수 상태 리셋 (로고 키는 syncData/applyTeamLogos가 알아서 비교 갱신함)
     prevHomeScore = -1;
     prevAwayScore = -1;
+    
+    if (document.getElementById("ingame-scoreboard")) return true;
 
     if (getComputedStyle(container).position === "static")
       container.style.position = "relative";

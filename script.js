@@ -3598,7 +3598,11 @@ function processRetirementsAndReincarnations() {
 
                 // 5. SNS 알림 생성
                 if (typeof snsManager !== 'undefined') {
-                    snsManager.posts.unshift({ id: snsManager.postIdCounter++, type: 'transfer_rumor', content: message, hashtags: ['#은퇴', '#환생', `#${snsManager.sanitizeHashtag(player.name)}`], timestamp: Date.now(), likes: Math.floor(Math.random() * 2000) + 500, comments: Math.floor(Math.random() * 300) + 50, shares: Math.floor(Math.random() * 100) + 20 });
+                    if (typeof snsManager.generateRebirthPost === 'function') {
+                        snsManager.generateRebirthPost(player.name, teamKey, player.age, message);
+                    } else {
+                        snsManager.posts.unshift({ id: snsManager.postIdCounter++, type: 'transfer_rumor', content: message, hashtags: ['#은퇴', '#환생', `#${snsManager.sanitizeHashtag(player.name)}`], timestamp: Date.now(), likes: Math.floor(Math.random() * 2000) + 500, comments: Math.floor(Math.random() * 300) + 50, shares: Math.floor(Math.random() * 100) + 20 });
+                    }
                 }
                 console.log(message);
             }

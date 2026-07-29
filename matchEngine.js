@@ -180,7 +180,7 @@ class RealSoccerEngine {
         return all.reduce((s, p) => s + p.rating, 0) / all.length;
     }
 
-    generateAIStats(squad) {
+    generateAIStats(squad, tactic = 'balanced') {
         const aiStats = { attack: { stats: {} }, midfield: { stats: {} }, defense: { stats: {} } };
         const calcAvg = (players) => players.length > 0
             ? Math.round(players.reduce((sum, p) => sum + p.rating, 0) / players.length) : 70;
@@ -191,12 +191,30 @@ class RealSoccerEngine {
             defense: calcAvg([...squad.df.filter(p => p), squad.gk].filter(p => p))
         };
 
+        const dnaPriority = {
+            tikitaka: ['technique', 'mentality', 'attack', 'speed', 'defense', 'physical'],
+            possession: ['technique', 'mentality', 'physical', 'attack', 'defense', 'speed'],
+            lavolpiana: ['technique', 'defense', 'mentality', 'speed', 'attack', 'physical'],
+            gegenpress: ['physical', 'speed', 'defense', 'mentality', 'attack', 'technique'],
+            totalFootball: ['mentality', 'technique', 'physical', 'speed', 'attack', 'defense'],
+            counter: ['speed', 'attack', 'physical', 'mentality', 'defense', 'technique'],
+            longBall: ['physical', 'attack', 'defense', 'speed', 'mentality', 'technique'],
+            twoLine: ['speed', 'defense', 'attack', 'physical', 'mentality', 'technique'],
+            parkBus: ['defense', 'physical', 'mentality', 'speed', 'attack', 'technique'],
+            catenaccio: ['defense', 'mentality', 'physical', 'technique', 'attack', 'speed'],
+            balanced: ['attack', 'speed', 'technique', 'physical', 'defense', 'mentality']
+        };
+
+        const priorities = dnaPriority[tactic] || dnaPriority.balanced;
+        const offsets = [6, 3, 1, -1, -3, -6];
+
         for (const [line, ovr] of Object.entries(lines)) {
             const totalPoints = ovr * 6;
             const baseVal = Math.floor(totalPoints / 6);
             let rem = totalPoints % 6;
-            ['attack', 'speed', 'technique', 'physical', 'defense', 'mentality'].forEach(k => {
-                aiStats[line].stats[k] = baseVal + (rem > 0 ? 1 : 0);
+            
+            priorities.forEach((k, i) => {
+                aiStats[line].stats[k] = baseVal + offsets[i] + (rem > 0 ? 1 : 0);
                 if (rem > 0) rem--;
             });
         }
@@ -224,7 +242,7 @@ class RealSoccerEngine {
     }
 
     initTeam(squad, teamId, tactic) {
-        const tacticMultiplier = tactic === 'balanced' ? 0.85 : 1.0;
+        const tacticMultiplier = tactic === 'balanced' ? 0.60 : 1.0;
         const isUserTeam = (teamId === 'home' && gameData.isHomeGame) || (teamId === 'away' && !gameData.isHomeGame);
 
         let lineStats;
@@ -234,9 +252,9 @@ class RealSoccerEngine {
             this.userStats = lineStats;
             teamMorale = gameData.teamMorale || 50;
         } else {
-            lineStats = this.aiStats || this.generateAIStats(squad);
+            lineStats = this.aiStats || this.generateAIStats(squad, tactic);
             this.aiStats = lineStats;
-            teamMorale = 60 + Math.floor(Math.random() * 31);
+            teamMorale = 20 + Math.floor(Math.random() * 71);
         }
 
         const setupLine = (list, baseX) => {
@@ -1062,17 +1080,38 @@ class RealSoccerEngine {
         this.exitAnimTicks = 0;
         this.exitAnimDone = false;
         this.exitWinner = winner;
+        
+        this.exitGroups = [];
+        let pool = [...this.players];
+        pool.sort(() => Math.random() - 0.5);
+        while(pool.length > 0) {
+            const groupSize = Math.floor(Math.random() * 3) + 3;
+            const groupPlayers = pool.splice(0, groupSize);
+            let cx = 0, cy = 0;
+            groupPlayers.forEach(p => { cx += p.x; cy += p.y; });
+            cx /= groupPlayers.length; cy /= groupPlayers.length;
+            this.exitGroups.push({ players: groupPlayers, cx, cy, tx: 50 + (Math.random() * 10 - 5) });
+        }
     }
 
     updatePostMatch() {
         if (!this.exitAnimActive) return this.getSnapshot();
         this.exitAnimTicks++;
-        const dir = this.exitWinner === 'home' ? 1 : (this.exitWinner === 'away' ? -1 : 0);
-        this.players.forEach((p, i) => {
-            p.x = clamp(p.x + dir * 0.8 + (i % 3) * 0.1, 0, 100);
-            p.y = clamp(p.y + ((i % 2) ? 0.3 : -0.3), 5, 95);
+        
+        this.exitGroups.forEach(g => {
+            g.cx += (g.tx - g.cx) * 0.05;
+            g.cy += (100 - g.cy) * 0.02;
+            g.players.forEach((p, idx) => {
+                const ang = (idx * Math.PI * 2) / g.players.length + this.exitAnimTicks * 0.02;
+                const r = 4;
+                const ptx = g.cx + Math.cos(ang) * r;
+                const pty = g.cy + Math.sin(ang) * r;
+                p.x += (ptx - p.x) * 0.1;
+                p.y += (pty - p.y) * 0.1;
+            });
         });
-        if (this.exitAnimTicks >= 45) this.exitAnimDone = true;
+        
+        if (this.exitAnimTicks >= 150) this.exitAnimDone = true;
         return this.getSnapshot();
     }
 
