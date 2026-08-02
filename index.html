@@ -129,6 +129,683 @@
             }
         }
 
+        /* 재정 관리 탭 스타일 */
+        .finance-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-width: 1180px;
+            margin: 0 auto;
+        }
+
+        .finance-hero {
+            display: flex;
+            align-items: stretch;
+            justify-content: space-between;
+            gap: 20px;
+            padding: 20px 24px;
+            border-radius: 18px;
+            background: linear-gradient(135deg, rgba(243, 156, 18, 0.16), rgba(79, 195, 247, 0.12));
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.22);
+        }
+
+        .finance-hero-copy h3 {
+            margin: 6px 0 8px;
+            font-size: 1.7rem;
+            color: #fff;
+        }
+
+        .finance-kicker {
+            font-size: 0.72rem;
+            letter-spacing: 0.22em;
+            color: #f39c12;
+            font-weight: 700;
+        }
+
+        .finance-hero-copy p {
+            margin: 0;
+            color: #d7dde5;
+            line-height: 1.6;
+            max-width: 720px;
+        }
+
+        .finance-ratio-chip {
+            min-width: 180px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-radius: 14px;
+            padding: 18px 16px;
+            background: rgba(0, 0, 0, 0.22);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            text-align: center;
+        }
+
+        .finance-ratio-chip span {
+            color: #aab3c0;
+            font-size: 0.8rem;
+            margin-bottom: 8px;
+        }
+
+        .finance-ratio-chip strong {
+            color: #fff;
+            font-size: 2rem;
+            letter-spacing: -0.04em;
+        }
+
+        .finance-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .finance-summary-card,
+        .finance-preview-card,
+        .finance-insight-card {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 18px;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+        }
+
+        .finance-label,
+        .finance-preview-label,
+        .finance-insight-title {
+            color: #aab3c0;
+            font-size: 0.82rem;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .finance-value,
+        .finance-preview-value {
+            font-size: 1.7rem;
+            font-weight: 800;
+            letter-spacing: -0.04em;
+        }
+
+        .finance-value.transfer,
+        .finance-preview-card.transfer .finance-preview-value {
+            color: #f1c40f;
+        }
+
+        .finance-value.wage,
+        .finance-preview-card.wage .finance-preview-value {
+            color: #4fc3f7;
+        }
+
+        .finance-value.wage-debt {
+            color: #ff6b6b;
+        }
+
+        .finance-value.annual {
+            color: #7bed9f;
+        }
+
+        .finance-conversion-card {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.03));
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 22px;
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.18);
+        }
+
+        .finance-conversion-header {
+            display: flex;
+            justify-content: space-between;
+            gap: 18px;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        .finance-conversion-header h4 {
+            margin: 0 0 6px;
+            font-size: 1.2rem;
+            color: #fff;
+        }
+
+        .finance-conversion-header p {
+            margin: 0;
+            color: #c8d0da;
+            font-size: 0.92rem;
+        }
+
+        .finance-rate-note {
+            padding: 10px 14px;
+            border-radius: 999px;
+            background: rgba(0, 0, 0, 0.25);
+            color: #e6eef8;
+            font-size: 0.88rem;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            white-space: nowrap;
+        }
+
+        .finance-slider-shell {
+            padding: 18px;
+            border-radius: 18px;
+            background: rgba(0, 0, 0, 0.22);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .finance-slider-labels {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .budget-tag {
+            padding: 7px 12px;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+
+        .budget-tag.transfer {
+            background: rgba(241, 196, 15, 0.15);
+            color: #f1c40f;
+        }
+
+        .budget-tag.neutral {
+            background: rgba(255, 255, 255, 0.08);
+            color: #d7dde5;
+        }
+
+        .budget-tag.wage {
+            background: rgba(79, 195, 247, 0.15);
+            color: #4fc3f7;
+        }
+
+        .finance-range {
+            width: 100%;
+            height: 14px;
+            border-radius: 999px;
+            appearance: none;
+            outline: none;
+            background: linear-gradient(90deg, rgba(243, 156, 18, 0.9) 0%, rgba(243, 156, 18, 0.9) 50%, rgba(79, 195, 247, 0.9) 50%, rgba(79, 195, 247, 0.9) 100%);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+        }
+
+        .finance-range::-webkit-slider-thumb {
+            appearance: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #fff;
+            border: 3px solid #0f172a;
+            box-shadow: 0 0 0 8px rgba(255, 255, 255, 0.08), 0 8px 20px rgba(0, 0, 0, 0.25);
+            cursor: pointer;
+        }
+
+        .finance-range::-moz-range-thumb {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #fff;
+            border: 3px solid #0f172a;
+            box-shadow: 0 0 0 8px rgba(255, 255, 255, 0.08), 0 8px 20px rgba(0, 0, 0, 0.25);
+            cursor: pointer;
+        }
+
+        .finance-scale {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            color: #9aa6b2;
+            font-size: 0.8rem;
+        }
+
+        #financeBalanceState {
+            color: #fff;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .finance-preview-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+            margin-top: 16px;
+        }
+
+        .finance-preview-card {
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .finance-preview-sub {
+            margin-top: 10px;
+            color: #c6d0db;
+            font-size: 0.9rem;
+        }
+
+        .finance-action-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+
+        .finance-apply-btn,
+        .finance-reset-btn {
+            min-width: 220px;
+            padding: 14px 18px;
+            font-size: 1rem;
+            border-radius: 12px;
+        }
+
+        .finance-insight-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .finance-insight-text {
+            color: #d7dde5;
+            line-height: 1.6;
+        }
+
+        .finance-note {
+            color: #b8c2ce;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            padding: 14px 16px;
+            border-left: 3px solid #4fc3f7;
+            background: rgba(79, 195, 247, 0.08);
+            border-radius: 12px;
+        }
+
+        /* 대화 화면 스타일 */
+        .chat-shell {
+            display: grid;
+            grid-template-columns: 320px minmax(0, 1fr);
+            gap: 16px;
+            min-height: 720px;
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+
+        .chat-sidebar,
+        .chat-main {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 22px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.22);
+            overflow: hidden;
+        }
+
+        .chat-sidebar {
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        .chat-sidebar-header {
+            padding: 22px 20px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            background: linear-gradient(135deg, rgba(142, 68, 173, 0.18), rgba(79, 195, 247, 0.08));
+        }
+
+        .chat-sidebar-title {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: #fff;
+        }
+
+        .chat-sidebar-subtitle {
+            margin-top: 6px;
+            color: #b8c2ce;
+            font-size: 0.85rem;
+        }
+
+        .chat-contact-list {
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            overflow-y: auto;
+        }
+
+        .chat-contact {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            padding: 14px 14px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            background: rgba(0, 0, 0, 0.18);
+            color: #fff;
+            text-align: left;
+            cursor: pointer;
+            transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+        }
+
+        .chat-contact:hover {
+            transform: translateY(-1px);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .chat-contact.active {
+            border-color: rgba(79, 195, 247, 0.45);
+            background: linear-gradient(135deg, rgba(79, 195, 247, 0.16), rgba(142, 68, 173, 0.14));
+            box-shadow: 0 0 0 1px rgba(79, 195, 247, 0.08) inset;
+        }
+
+        .chat-contact-avatar,
+        .chat-header-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.35rem;
+            flex: 0 0 auto;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16);
+        }
+
+        .chat-contact-body {
+            min-width: 0;
+            flex: 1;
+        }
+
+        .chat-contact-top {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .chat-contact-top strong {
+            font-size: 0.98rem;
+        }
+
+        .chat-contact-top span {
+            color: #9fb0c1;
+            font-size: 0.75rem;
+            white-space: nowrap;
+        }
+
+        .chat-contact-preview {
+            color: #c7d1dc;
+            font-size: 0.84rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .chat-main {
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        .chat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 18px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            background: rgba(0, 0, 0, 0.16);
+        }
+
+        .chat-header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+        }
+
+        .chat-header-title {
+            color: #fff;
+            font-weight: 800;
+            font-size: 1.05rem;
+        }
+
+        .chat-header-subtitle {
+            color: #b8c2ce;
+            font-size: 0.84rem;
+            margin-top: 4px;
+        }
+
+        .chat-header-meta {
+            color: #7bed9f;
+            background: rgba(123, 237, 159, 0.12);
+            border: 1px solid rgba(123, 237, 159, 0.16);
+            padding: 8px 12px;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+        }
+
+        .chat-thread {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            padding: 22px 18px 18px;
+            background:
+                radial-gradient(circle at top left, rgba(79, 195, 247, 0.08), transparent 30%),
+                radial-gradient(circle at bottom right, rgba(243, 156, 18, 0.08), transparent 35%),
+                rgba(0, 0, 0, 0.12);
+        }
+
+        .chat-row {
+            display: flex;
+            margin-bottom: 12px;
+        }
+
+        .chat-row.user {
+            justify-content: flex-end;
+        }
+
+        .chat-row.other {
+            justify-content: flex-start;
+        }
+
+        .chat-bubble {
+            max-width: min(680px, 84%);
+            padding: 12px 14px 11px;
+            border-radius: 18px;
+            line-height: 1.55;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.16);
+        }
+
+        .chat-bubble.user {
+            background: linear-gradient(135deg, #4fc3f7, #3498db);
+            color: #fff;
+            border-bottom-right-radius: 6px;
+        }
+
+        .chat-bubble.other {
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+            border-bottom-left-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .chat-bubble-meta {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 6px;
+            font-size: 0.72rem;
+            opacity: 0.86;
+        }
+
+        .chat-bubble-sender {
+            font-weight: 700;
+        }
+
+        .chat-bubble-text {
+            word-break: break-word;
+            white-space: normal;
+        }
+
+        .chat-empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 320px;
+            text-align: center;
+            color: #d7dde5;
+        }
+
+        .chat-empty-icon {
+            font-size: 3rem;
+            margin-bottom: 12px;
+        }
+
+        .chat-empty-state h3 {
+            margin: 0 0 8px;
+            color: #fff;
+        }
+
+        .chat-empty-state p {
+            margin: 0;
+            max-width: 420px;
+            color: #b8c2ce;
+            line-height: 1.6;
+        }
+
+        .chat-quick-replies {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 14px 18px 0;
+            background: rgba(0, 0, 0, 0.12);
+        }
+
+        .chat-quick-chip {
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.05);
+            color: #dfe7ef;
+            border-radius: 999px;
+            padding: 8px 12px;
+            font-size: 0.82rem;
+            cursor: pointer;
+        }
+
+        .chat-quick-chip:hover {
+            background: rgba(79, 195, 247, 0.16);
+            border-color: rgba(79, 195, 247, 0.22);
+        }
+
+        .chat-typing {
+            padding: 10px 20px 0;
+            color: #7bed9f;
+            font-size: 0.84rem;
+            min-height: 18px;
+        }
+
+        .chat-composer {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+            padding: 16px 18px 18px;
+            background: rgba(0, 0, 0, 0.16);
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .chat-input {
+            flex: 1;
+            resize: none;
+            border-radius: 16px;
+            padding: 14px 16px;
+            min-height: 60px;
+            max-height: 180px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: #fff;
+            outline: none;
+            line-height: 1.5;
+        }
+
+        .chat-input::placeholder {
+            color: #9aa6b2;
+        }
+
+        .chat-send-btn {
+            min-width: 120px;
+            height: 60px;
+            border-radius: 16px;
+            font-weight: 700;
+        }
+
+        @media (max-width: 1000px) {
+            .chat-shell {
+                grid-template-columns: 1fr;
+                min-height: 0;
+            }
+
+            .chat-sidebar {
+                order: 2;
+            }
+
+            .chat-main {
+                order: 1;
+            }
+        }
+
+        @media (max-width: 700px) {
+            .chat-header,
+            .chat-composer {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .chat-send-btn {
+                width: 100%;
+                min-width: 0;
+            }
+
+            .chat-bubble {
+                max-width: 92%;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .finance-hero,
+            .finance-conversion-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .finance-summary-grid,
+            .finance-preview-grid,
+            .finance-insight-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .finance-ratio-chip {
+                width: 100%;
+            }
+
+            .finance-action-row {
+                flex-direction: column;
+            }
+
+            .finance-apply-btn,
+            .finance-reset-btn {
+                min-width: 0;
+                width: 100%;
+            }
+        }
+
         /* 매치 엔진 가이드 모달 스타일 */
         .engine-guide-content {
             line-height: 1.6;
@@ -1430,6 +2107,26 @@
                 <div id="transferPlayers"></div>
             </div>
 
+            <!-- 재정 탭 -->
+            <div id="finance" class="tab-panel">
+                <div class="finance-header">
+                    <h3>🏦 재정 관리</h3>
+                    <p class="finance-description">
+                        이적 자금과 주급 자금을 분리해서 관리합니다. 필요할 때만 서로 전환하세요.
+                    </p>
+                </div>
+                <div id="financeContent"></div>
+            </div>
+
+            <!-- 대화 탭 -->
+            <div id="chat" class="tab-panel">
+                <div class="chat-header-card" style="margin-bottom: 16px;">
+                    <h3>💬 구단 대화실</h3>
+                    <p style="color: #aaa; margin: 8px 0 0; line-height: 1.6;">비서, 코치, 구단주, 스카우트와 실시간 메신저처럼 대화하세요. 입력한 내용에 따라 상황별 응답이 돌아옵니다.</p>
+                </div>
+                <div id="chatContent"></div>
+            </div>
+
             <!-- 리그 탭 -->
             <div id="league" class="tab-panel">
                 <h3>리그 순위표</h3>
@@ -1942,6 +2639,27 @@
             <span class="close" onclick="closeTacticsModal()">&times;</span>
             <h3 id="tacticsModalTitle">전술 정보</h3>
             <div id="tacticsModalContent"></div>
+        </div>
+    </div>
+
+    <!-- 협상 채팅 모달 -->
+    <div id="negotiationChatModal" class="modal">
+        <div class="modal-content chat-modal-content">
+            <span class="close" onclick="transferSystem.closeNegotiationChat()">&times;</span>
+            <div class="chat-header">
+                <h3 id="chatPlayerName">선수 이름</h3>
+                <p id="chatTeamName">소속 팀</p>
+            </div>
+            <div id="chatMessages" class="chat-messages">
+                <!-- 메시지 동적 추가 -->
+            </div>
+            <div id="chatInputArea" class="chat-input-area">
+                <input type="number" id="chatFeeInput" placeholder="제안할 금액을 입력하세요 (단위: 억)" style="display: none;">
+                <div id="chatQuickReplies" class="chat-quick-replies">
+                    <!-- 빠른 답변 버튼 동적 추가 -->
+                </div>
+                <button id="chatSendBtn" class="btn" style="display: none;" onclick="transferSystem.sendNegotiationChat()">제안하기</button>
+            </div>
         </div>
     </div>
 

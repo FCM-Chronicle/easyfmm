@@ -133,6 +133,7 @@ class MailManager {
                         </div>
                         <p style="font-size: 0.85rem; color: #ccc; margin: 0 0 10px 0;">"${offer.message}"</p>
                         <button class="btn primary" style="width: 100%; padding: 5px;" onclick="transferSystem.acceptUserOffer('${mail.data.playerName}', '${offer.teamKey}', ${offer.fee}, ${mail.id})">이 제안 수락</button>
+                        <button class="btn" style="width: 100%; padding: 5px; margin-top: 5px; background: #f39c12;" onclick="transferSystem.negotiateUserOffer('${mail.data.playerName}', '${offer.teamKey}', ${offer.fee}, ${mail.id})">이적료 협상</button>
                     </div>
                 `).join('');
                 

@@ -9,6 +9,7 @@ let gameData = {
     teamMorale: 80,
     currentSponsor: null,
     totalWeeklyWage: 0, // [신규] 팀 주급 총합
+    wageBudget: 0, // [신규] 주급 자금
     gameMode: 'direct', // [신규] 게임 모드: 'direct' (기본), 'longtime' (하드모드)
     matchesPlayed: 0,
     currentOpponent: null,
@@ -43,7 +44,11 @@ let gameData = {
     temporaryStats: {}, // [신규] 일시적 스탯 버프/디버프 저장소
     secretaryName: "김지수", // [신규] 비서 이름 (secretary.js에서 사용)
     losingStreak: 0, // [신규] 연패 기록
-    userTransferList: [] // [신규] 유저가 이적 명단에 올린 선수들
+    userTransferList: [], // [신규] 유저가 이적 명단에 올린 선수들
+    chatState: {
+        activeContactId: 'secretary',
+        threads: {}
+    }
 };
 
 // [개선] 데이터 중앙화를 통해 수동 매핑 제거
@@ -879,6 +884,9 @@ function selectTeam(teamKey) {
 
     // [신규] 초기 주급 계산
     calculateTotalWages();
+    if (typeof initializeTeamFinance === 'function') {
+        initializeTeamFinance();
+    }
 
     document.getElementById('teamName').innerHTML = getTeamLogoHTML(teamKey) + ' ' + teamKey; // 로고 포함 표시
 
@@ -1113,6 +1121,18 @@ function showTab(tabName) {
             }
             break;
 
+        case 'finance':
+            if (typeof renderFinanceTab === 'function') {
+                renderFinanceTab();
+            }
+            break;
+
+        case 'chat':
+            if (typeof renderChatTab === 'function') {
+                renderChatTab();
+            }
+            break;
+
         case 'tactics': // 전술 탭 추가
             if (typeof DNAManager !== 'undefined') {
                 console.log('🧬 Tactics tab opened, calling DNAManager.renderUI()');
@@ -1183,10 +1203,6 @@ function showTab(tabName) {
             // 일반 설정 UI 생성
             if (typeof renderGeneralSettings === 'function') {
                 renderGeneralSettings();
-            }
-            // [신규] 비서 설정 UI 생성
-            if (typeof renderSecretarySettings === 'function') {
-                renderSecretarySettings();
             }
             break;
 
@@ -1302,7 +1318,9 @@ class CustomCursor {
             return;
         }
 
-        if (this.options.hideDefaultCursor) {
+        const isEnabled = gameData.settings && gameData.settings.customCursor !== undefined ? gameData.settings.customCursor : true;
+        
+        if (isEnabled && this.options.hideDefaultCursor) {
             document.body.classList.add('custom-cursor-active');
         }
 
@@ -1326,8 +1344,27 @@ class CustomCursor {
         });
 
         this.createCursor();
+        
+        if (!isEnabled && this.cursorEl) {
+            this.cursorEl.style.display = 'none';
+        }
+
         this.addEventListeners();
         this.startAnimation();
+    }
+
+    toggle(isOn) {
+        if (gameData.settings) {
+            gameData.settings.customCursor = isOn;
+        }
+        
+        if (isOn) {
+            document.body.classList.add('custom-cursor-active');
+            if (this.cursorEl) this.cursorEl.style.display = 'block';
+        } else {
+            document.body.classList.remove('custom-cursor-active');
+            if (this.cursorEl) this.cursorEl.style.display = 'none';
+        }
     }
 
     createCursor() {
@@ -1929,11 +1966,22 @@ function closeModal() {
 
 // [신규] 개별 선수 주급 계산 (오버롤 및 나이 비례)
 function calculatePlayerWage(player) {
-    // 오버롤 75 기준 주급 0.5억. 오버롤이 높을수록 가파르게 상승 (^5)
-    const base = Math.pow(player.rating / 75, 5) * 0.5;
-    // 32세 이상 노련한 선수는 주급 20% 감가
-    const ageModifier = player.age >= 32 ? 0.8 : 1.0;
-    return Math.max(0.1, parseFloat((base * ageModifier).toFixed(2)));
+    if (typeof player.weeklyWage === 'number') {
+        return parseFloat(player.weeklyWage.toFixed(2));
+    }
+
+    // 오버롤 75 기준 주급 1.0억. 오버롤이 높을수록 훨씬 가파르게 상승
+    const base = Math.pow(player.rating / 72, 6.2) * 1.0;
+
+    // 나이에 따른 편차 확대: 젊은 선수는 프리미엄, 노장은 감가
+    let ageModifier = 1.0;
+    if (player.age <= 20) ageModifier = 1.32;
+    else if (player.age <= 24) ageModifier = 1.14;
+    else if (player.age >= 35) ageModifier = 0.62;
+    else if (player.age >= 32) ageModifier = 0.78;
+    else if (player.age >= 29) ageModifier = 0.92;
+
+    return Math.max(0.25, parseFloat((base * ageModifier).toFixed(2)));
 }
 
 // [신규] 팀 전체 주급 총합 계산
@@ -1942,6 +1990,61 @@ function calculateTotalWages() {
     const total = teams[gameData.selectedTeam].reduce((sum, p) => sum + calculatePlayerWage(p), 0);
     gameData.totalWeeklyWage = parseFloat(total.toFixed(1));
     return gameData.totalWeeklyWage;
+}
+
+function initializeTeamFinance() {
+    if (!gameData.selectedTeam) return;
+
+    if (typeof gameData.wageBudget !== 'number' || gameData.wageBudget <= 0) {
+        gameData.wageBudget = gameData.totalWeeklyWage || 0;
+    }
+
+    updateFinanceDisplay();
+}
+
+function updateFinanceDisplay() {
+    const wageBudgetEl = document.getElementById('wageBudget');
+    if (wageBudgetEl) wageBudgetEl.textContent = gameData.wageBudget + '억';
+}
+
+function convertTransferToWageBudget(amount) {
+    const value = Math.round(Number(amount));
+    if (!Number.isFinite(value) || value <= 0) return { success: false, message: '유효한 금액이 아닙니다.' };
+    if (gameData.teamMoney < value) return { success: false, message: '이적 자금이 부족합니다.' };
+
+    gameData.teamMoney -= value;
+    gameData.wageBudget += value / 12;
+    if (typeof updateDisplay === 'function') updateDisplay();
+    updateFinanceDisplay();
+    return { success: true, message: `${value}억 이적 자금을 주급 자금 ${parseFloat((value / 12).toFixed(2))}억으로 전환했습니다.` };
+}
+
+function convertWageToTransferBudget(amount) {
+    const value = Math.round(Number(amount));
+    if (!Number.isFinite(value) || value <= 0) return { success: false, message: '유효한 금액이 아닙니다.' };
+    if (gameData.wageBudget < value) return { success: false, message: '주급 자금이 부족합니다.' };
+
+    gameData.wageBudget -= value;
+    gameData.teamMoney += value * 12;
+    if (typeof updateDisplay === 'function') updateDisplay();
+    updateFinanceDisplay();
+    return { success: true, message: `${value}억 주급 자금을 이적 자금 ${value * 12}억으로 전환했습니다.` };
+}
+
+function promptBudgetConversion(direction) {
+    const amountText = window.prompt(
+        direction === 'transferToWage'
+            ? `이적 자금을 주급 자금으로 바꿀 금액을 입력하세요.\n(1억 이적 자금 -> 1/12억 주급 자금)`
+            : `주급 자금을 이적 자금으로 바꿀 금액을 입력하세요.\n(1억 주급 자금 -> 12억 이적 자금)`
+    );
+
+    if (amountText === null) return;
+
+    const result = direction === 'transferToWage'
+        ? convertTransferToWageBudget(amountText)
+        : convertWageToTransferBudget(amountText);
+
+    alert(result.message);
 }
 
 function updateDisplay() {
@@ -1953,6 +2056,7 @@ function updateDisplay() {
     // [신규] 주급 표시 업데이트 (HTML에 totalWages ID가 있다고 가정)
     const wageEl = document.getElementById('totalWages');
     if (wageEl) wageEl.textContent = gameData.totalWeeklyWage + '억';
+    updateFinanceDisplay();
 
     if (gameData.currentOpponent) {
         document.getElementById('opponentName').innerHTML =
@@ -2426,6 +2530,9 @@ function loadGame(event) {
             // 기본 게임 데이터 복원
             gameData = saveData.gameData;
             if (!gameData.playerRoles) gameData.playerRoles = {}; // [추가] 구버전 세이브 호환성 보장
+            if (typeof gameData.wageBudget !== 'number') {
+                gameData.wageBudget = gameData.totalWeeklyWage || 0;
+            }
             ensureMatchDramaDefaults();
             // [신규] deepTactics 스키마 마이그레이션 (구버전 matchEngine.js 규격 → deepenTactic.js 규격)
             if (typeof migrateDeepTactics === 'function' && gameData.deepTactics) {
@@ -4102,10 +4209,6 @@ function renderAudioSettings() {
     const isBgmOn = gameData.settings ? gameData.settings.bgm !== false : true;
     const volume = gameData.settings && gameData.settings.bgmVolume !== undefined ? gameData.settings.bgmVolume : 50;
     const sfxVolume = gameData.settings && gameData.settings.sfxVolume !== undefined ? gameData.settings.sfxVolume : 50;
-    const isImmersionOn = gameData.settings ? gameData.settings.immersionMode !== false : true; // 기본값 ON
-    const drama = ensureMatchDramaDefaults();
-    const isDramaOn = drama.enabled !== false;
-    const dramaIntensity = drama.intensity || 'high';
 
     audioContainer.innerHTML = `
         <h4 style="color: #ffd700; margin-top: 0; margin-bottom: 15px;">🎵 배경음악 설정</h4>
@@ -4126,33 +4229,6 @@ function renderAudioSettings() {
             <input type="range" id="sfxVolume" min="0" max="100" value="${sfxVolume}" style="flex-grow: 1; cursor: pointer;">
             <span id="sfxVolumeValue" style="width: 40px; text-align: right;">${sfxVolume}%</span>
         </div>
-
-        <h4 style="color: #ffd700; margin-top: 20px; margin-bottom: 15px;">⚡ 경기 연출 설정</h4>
-        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
-            <label class="switch">
-                <input type="checkbox" id="immersionToggle" ${isImmersionOn ? 'checked' : ''}>
-                <span class="slider round"></span>
-            </label>
-            <span id="immersionStatusText">몰입감 모드 ${isImmersionOn ? 'ON' : 'OFF'}</span>
-        </div>
-        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
-            <label class="switch">
-                <input type="checkbox" id="goalDramaToggle" ${isDramaOn ? 'checked' : ''}>
-                <span class="slider round"></span>
-            </label>
-            <span id="goalDramaStatusText">골 직전 연출 ${isDramaOn ? 'ON' : 'OFF'}</span>
-        </div>
-        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-            <span>연출 강도:</span>
-            <select id="goalDramaIntensity" style="padding: 8px 12px; background: #222; color: white; border: 1px solid #444; border-radius: 6px; min-width: 140px;" ${!isDramaOn ? 'disabled' : ''}>
-                <option value="low" ${dramaIntensity === 'low' ? 'selected' : ''}>낮음 (빠름)</option>
-                <option value="medium" ${dramaIntensity === 'medium' ? 'selected' : ''}>보통</option>
-                <option value="high" ${dramaIntensity === 'high' ? 'selected' : ''}>높음 (극적)</option>
-            </select>
-        </div>
-        <p style="font-size: 0.82rem; color: #aaa; margin-top: 10px; line-height: 1.5;">
-            골 직전 연출이 켜지면 CM 스타일로 텐션이 올라가며, 강도가 높을수록 멈춤과 해설이 더 길어집니다. Shift+F 고속 진행 시 연출이 자동 축약됩니다.
-        </p>
     `;
 
     // 기존에 JS로 주입하던 스타일 제거 (index.html의 CSS로 통합)
@@ -4166,11 +4242,6 @@ function renderAudioSettings() {
     const bgmStatusText = document.getElementById('bgmStatusText');
     const sfxVolumeInput = document.getElementById('sfxVolume'); // Changed name to avoid conflict
     const sfxVolumeValue = document.getElementById('sfxVolumeValue');
-    const immersionToggle = document.getElementById('immersionToggle');
-    const immersionStatusText = document.getElementById('immersionStatusText');
-    const goalDramaToggle = document.getElementById('goalDramaToggle');
-    const goalDramaStatusText = document.getElementById('goalDramaStatusText');
-    const goalDramaIntensity = document.getElementById('goalDramaIntensity');
 
     bgmToggle.addEventListener('change', (e) => {
         const isOn = e.target.checked;
@@ -4192,35 +4263,6 @@ function renderAudioSettings() {
         const val = parseInt(e.target.value);
         sfxVolumeValue.textContent = `${val}%`;
         audioManager.setSfxVolume(val);
-    });
-
-    immersionToggle.addEventListener('change', (e) => {
-        const isOn = e.target.checked;
-        if (!gameData.settings) gameData.settings = {};
-        gameData.settings.immersionMode = isOn;
-        immersionStatusText.textContent = `몰입감 모드 ${isOn ? 'ON' : 'OFF'}`;
-        if (!isOn) {
-            const dramaCfg = ensureMatchDramaDefaults();
-            dramaCfg.enabled = false;
-            if (goalDramaToggle) goalDramaToggle.checked = false;
-            if (goalDramaIntensity) goalDramaIntensity.disabled = true;
-            if (goalDramaStatusText) goalDramaStatusText.textContent = '골 직전 연출 OFF';
-        }
-    });
-
-    goalDramaToggle.addEventListener('change', (e) => {
-        const isOn = e.target.checked;
-        const dramaCfg = ensureMatchDramaDefaults();
-        dramaCfg.enabled = isOn;
-        goalDramaStatusText.textContent = `골 직전 연출 ${isOn ? 'ON' : 'OFF'}`;
-        goalDramaIntensity.disabled = !isOn;
-        if (window.triggerAutoSave) window.triggerAutoSave();
-    });
-
-    goalDramaIntensity.addEventListener('change', (e) => {
-        const dramaCfg = ensureMatchDramaDefaults();
-        dramaCfg.intensity = e.target.value;
-        if (window.triggerAutoSave) window.triggerAutoSave();
     });
 }
 window.renderAudioSettings = renderAudioSettings;
@@ -4255,8 +4297,17 @@ function renderGeneralSettings() {
         }
     }
 
+    const isCustomCursorOn = gameData.settings && gameData.settings.customCursor !== undefined ? gameData.settings.customCursor : true;
+
     generalContainer.innerHTML = `
         <h4 style="color: #ffd700; margin-top: 0; margin-bottom: 15px;">⚙️ 일반 설정</h4>
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+            <label class="switch">
+                <input type="checkbox" id="cursorToggle" ${isCustomCursorOn ? 'checked' : ''}>
+                <span class="slider round"></span>
+            </label>
+            <span id="cursorStatusText">마우스 스타일 ${isCustomCursorOn ? 'ON' : 'OFF'} (커스텀 커서)</span>
+        </div>
         <button class="btn" id="replayTutorialBtn" style="width: 100%; margin-bottom: 10px;">튜토리얼 다시 보기</button>
         <button class="btn" onclick="openDatabaseModal()" style="width: 100%; background: linear-gradient(45deg, #3498db, #2980b9);">📚 데이터베이스 열람</button>
     `;
@@ -4269,39 +4320,23 @@ function renderGeneralSettings() {
             alert('튜토리얼을 실행할 수 없습니다.');
         }
     });
+
+    const cursorToggle = document.getElementById('cursorToggle');
+    const cursorStatusText = document.getElementById('cursorStatusText');
+    if (cursorToggle) {
+        cursorToggle.addEventListener('change', (e) => {
+            const isOn = e.target.checked;
+            if (window.customCursorInstance) {
+                window.customCursorInstance.toggle(isOn);
+            }
+            cursorStatusText.textContent = `마우스 스타일 ${isOn ? 'ON' : 'OFF'} (커스텀 커서)`;
+            if (gameData.settings) {
+                setTimeout(() => window.AutoSaveSystem.triggerSave(), 500);
+            }
+        });
+    }
 }
 window.renderGeneralSettings = renderGeneralSettings;
-
-// [신규] 비서 설정 UI 렌더링
-function renderSecretarySettings() {
-    const settingsTab = document.getElementById('settings');
-    if (!settingsTab) return;
-
-    let secContainer = document.getElementById('secretarySettings');
-    if (!secContainer) {
-        secContainer = document.createElement('div');
-        secContainer.id = 'secretarySettings';
-        secContainer.className = 'settings-section';
-
-        // 일반 설정 다음에 추가
-        const generalSettings = document.getElementById('generalSettings');
-        if (generalSettings) {
-            generalSettings.parentNode.insertBefore(secContainer, generalSettings.nextSibling);
-        } else {
-            settingsTab.appendChild(secContainer);
-        }
-    }
-
-    secContainer.innerHTML = `
-        <h4>👩‍💼 비서 설정</h4>
-        <div style="display: flex; gap: 10px; align-items: center;">
-            <label>비서 이름:</label>
-            <input type="text" id="secretaryNameInput" value="${gameData.secretaryName || '김지수'}" style="padding: 5px; width: 100px; background: #333; color: white; border: 1px solid #555;">
-            <button class="btn" onclick="gameData.secretaryName = document.getElementById('secretaryNameInput').value; alert('비서 이름이 변경되었습니다.');">변경</button>
-        </div>
-    `;
-}
-window.renderSecretarySettings = renderSecretarySettings;
 
 // [신규] 자동 스크롤 시스템 (경기 화면 전용, 조건 없음)
 window.AutoScrollSystem = {
@@ -4586,10 +4621,21 @@ function renderDashboard() {
     const transferCard = createDashboardCard('💰 이적 시장', 'transfer', () => {
         return `
             <div style="text-align: center; display: flex; flex-direction: column; justify-content: center; height: 100%;">
-                <div style="font-size: 0.85rem; color: #aaa;">이적 자금 / 총 주급</div>
+                <div style="font-size: 0.85rem; color: #aaa;">이적 시장 자금과 주급 총합을 확인하세요</div>
                 <div style="font-size: 2.2rem; font-weight: bold; color: #f1c40f; margin: 5px 0;">${gameData.teamMoney}억</div>
+                <div style="font-size: 1rem; color: #4fc3f7; font-weight: bold;">주급 자금: ${gameData.wageBudget}억</div>
                 <div style="font-size: 1.1rem; color: #e74c3c; font-weight: bold;">주급: ${gameData.totalWeeklyWage}억</div>
                 <div style="font-size: 0.75rem; color: #aaa; margin-top: 5px;">연간 예상 지출: ${Math.round(gameData.totalWeeklyWage * 52)}억</div>
+            </div>
+        `;
+    });
+
+    const financeCard = createDashboardCard('🏦 재정', 'finance', () => {
+        return `
+            <div style="text-align: center; display: flex; flex-direction: column; justify-content: center; height: 100%;">
+                <div style="font-size: 0.85rem; color: #aaa;">이적 자금 / 주급 자금 전환</div>
+                <div style="font-size: 2rem; font-weight: bold; color: #f1c40f; margin: 5px 0;">${gameData.teamMoney}억</div>
+                <div style="font-size: 1rem; color: #4fc3f7; font-weight: bold;">주급 자금: ${gameData.wageBudget}억</div>
             </div>
         `;
     });
@@ -4691,6 +4737,18 @@ function renderDashboard() {
         const unread = (typeof mailManager !== 'undefined') ? mailManager.getUnreadCount() : 0;
         return `<div style="text-align:center;">읽지 않은 메일: <span style="color:${unread > 0 ? '#e74c3c' : '#aaa'}; font-weight:bold;">${unread}통</span></div>`;
     });
+    const chatCard = createDashboardCard('💬 대화', 'chat', () => {
+        const state = ensureChatState();
+        const activeContact = getChatContactById(state.activeContactId);
+        const latestMessage = getLatestChatPreview();
+        return `
+            <div style="text-align:center; display:flex; flex-direction:column; justify-content:center; height:100%; gap:8px;">
+                <div style="font-size:0.9rem; color:#aaa;">현재 대화방</div>
+                <div style="font-size:1.2rem; font-weight:bold; color:#4fc3f7;">${activeContact ? activeContact.name : '대화 없음'}</div>
+                <div style="font-size:0.88rem; color:#ddd; line-height:1.4;">${latestMessage || '아직 나눈 대화가 없습니다.'}</div>
+            </div>
+        `;
+    });
     const settingsCard = createDashboardCard('⚙️ 설정 / 저장', 'settings', () => `<div style="text-align:center;">게임 저장 및 불러오기</div>`);
 
     container.appendChild(nextMatchCard);
@@ -4701,10 +4759,12 @@ function renderDashboard() {
     container.appendChild(sponsorCard);
     container.appendChild(youthCard);
     container.appendChild(mailCard);
+    container.appendChild(chatCard);
     container.appendChild(settingsCard);
     container.appendChild(recordsCard);
     container.appendChild(snsCard);
     container.appendChild(transferNewsCard);
+    container.appendChild(financeCard);
 }
 
 function createDashboardCard(title, tabName, contentFn) {
@@ -4717,6 +4777,488 @@ function createDashboardCard(title, tabName, contentFn) {
     `;
     card.onclick = () => showTab(tabName);
     return card;
+}
+
+function ensureChatState() {
+    if (!gameData.chatState || typeof gameData.chatState !== 'object') {
+        gameData.chatState = { activeContactId: 'secretary', threads: {} };
+    }
+    if (!gameData.chatState.threads) gameData.chatState.threads = {};
+    if (!gameData.chatState.activeContactId) gameData.chatState.activeContactId = 'secretary';
+    return gameData.chatState;
+}
+
+function getChatContacts() {
+    return [
+        {
+            id: 'secretary',
+            name: `비서 ${gameData.secretaryName || '김지수'}`,
+            role: '비서실',
+            color: '#8e44ad',
+            avatar: '👩‍💼',
+            description: '구단 운영과 일정, 민원과 제안을 정리합니다.'
+        },
+        {
+            id: 'coach',
+            name: '수석 코치',
+            role: '전술실',
+            color: '#3498db',
+            avatar: '🧠',
+            description: '전술, 경기 준비, 선수 컨디션을 함께 점검합니다.'
+        },
+        {
+            id: 'owner',
+            name: '구단주',
+            role: '운영실',
+            color: '#f39c12',
+            avatar: '🏛️',
+            description: '예산, 이적료, 계약 조건에 대한 최종 판단을 내립니다.'
+        },
+        {
+            id: 'scout',
+            name: '스카우트 팀장',
+            role: '스카우팅',
+            color: '#2ecc71',
+            avatar: '🕵️',
+            description: '이적시장과 유망주 보고서를 전달합니다.'
+        }
+    ];
+}
+
+function getChatContactById(contactId) {
+    return getChatContacts().find(contact => contact.id === contactId) || getChatContacts()[0];
+}
+
+function getChatThread(contactId) {
+    const state = ensureChatState();
+    if (!state.threads[contactId]) {
+        state.threads[contactId] = [];
+    }
+    return state.threads[contactId];
+}
+
+function addChatMessage(contactId, sender, text, options = {}) {
+    const thread = getChatThread(contactId);
+    thread.push({
+        id: Date.now() + Math.random(),
+        sender,
+        text,
+        time: options.time || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        type: options.type || 'text'
+    });
+    if (thread.length > 200) thread.shift();
+}
+
+function getLatestChatPreview() {
+    const state = ensureChatState();
+    const activeContactId = state.activeContactId || 'secretary';
+    const thread = getChatThread(activeContactId);
+    if (thread.length === 0) return '';
+    const last = thread[thread.length - 1];
+    return escapeChatText(`${last.sender === 'user' ? '나' : getChatContactById(activeContactId).name}: ${last.text}`).slice(0, 42);
+}
+
+function renderChatTab() {
+    const container = document.getElementById('chatContent');
+    if (!container) return;
+
+    const state = ensureChatState();
+    const contacts = getChatContacts();
+    const activeContact = getChatContactById(state.activeContactId);
+    const thread = getChatThread(activeContact.id);
+
+    container.innerHTML = `
+        <div class="chat-shell">
+            <aside class="chat-sidebar">
+                <div class="chat-sidebar-header">
+                    <div class="chat-sidebar-title">대화방</div>
+                    <div class="chat-sidebar-subtitle">구단 내부 실시간 메신저</div>
+                </div>
+                <div class="chat-contact-list">
+                    ${contacts.map(contact => {
+                        const contactThread = getChatThread(contact.id);
+                        const lastMessage = contactThread.length > 0 ? contactThread[contactThread.length - 1].text : contact.description;
+                        const isActive = contact.id === activeContact.id;
+                        return `
+                            <button class="chat-contact ${isActive ? 'active' : ''}" onclick="switchChatContact('${contact.id}')">
+                                <div class="chat-contact-avatar" style="background:${contact.color};">${contact.avatar}</div>
+                                <div class="chat-contact-body">
+                                    <div class="chat-contact-top">
+                                        <strong>${contact.name}</strong>
+                                        <span>${contact.role}</span>
+                                    </div>
+                                    <div class="chat-contact-preview">${lastMessage}</div>
+                                </div>
+                            </button>
+                        `;
+                    }).join('')}
+                </div>
+            </aside>
+
+            <section class="chat-main">
+                <header class="chat-header">
+                    <div class="chat-header-left">
+                        <div class="chat-header-avatar" style="background:${activeContact.color};">${activeContact.avatar}</div>
+                        <div>
+                            <div class="chat-header-title">${activeContact.name}</div>
+                            <div class="chat-header-subtitle">${activeContact.description}</div>
+                        </div>
+                    </div>
+                    <div class="chat-header-meta">현재 대화 중</div>
+                </header>
+
+                <div id="chatThread" class="chat-thread">
+                    ${thread.length > 0 ? thread.map(message => renderChatBubble(message, activeContact)).join('') : `<div class="chat-empty-state"><div class="chat-empty-icon">💬</div><h3>대화를 시작해보세요</h3><p>왼쪽에서 상대를 선택하고 아래 입력창에 말을 보내면 즉시 대화가 이어집니다.</p></div>`}
+                </div>
+
+                <div class="chat-quick-replies">
+                    ${getChatQuickReplies(activeContact.id).map(text => `<button class="chat-quick-chip" onclick='fillChatInput(${JSON.stringify(text)})'>${escapeChatText(text)}</button>`).join('')}
+                </div>
+
+                <div class="chat-typing" id="chatTypingIndicator" style="display:none;">${activeContact.name}이(가) 입력 중...</div>
+
+                <div class="chat-composer">
+                    <textarea id="chatInput" class="chat-input" rows="2" placeholder="메시지를 입력하세요..." onkeydown="handleChatKeydown(event)"></textarea>
+                    <button class="btn primary chat-send-btn" onclick="sendChatMessage()">전송</button>
+                </div>
+            </section>
+        </div>
+    `;
+
+    scrollChatToBottom();
+}
+
+function renderChatBubble(message, contact) {
+    const isUser = message.sender === 'user';
+    const senderLabel = isUser ? '나' : contact.name;
+    return `
+        <div class="chat-row ${isUser ? 'user' : 'other'}">
+            <div class="chat-bubble ${isUser ? 'user' : 'other'}">
+                <div class="chat-bubble-meta">
+                    <span class="chat-bubble-sender">${senderLabel}</span>
+                    <span class="chat-bubble-time">${message.time}</span>
+                </div>
+                <div class="chat-bubble-text">${escapeChatText(message.text)}</div>
+            </div>
+        </div>
+    `;
+}
+
+function escapeChatText(text) {
+    return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+        .replace(/\n/g, '<br>');
+}
+
+function getChatQuickReplies(contactId) {
+    const replies = {
+        secretary: ['이번 주 일정 알려줘', '이적시장 상황 어때?', '팀 분위기 어때?'],
+        coach: ['전술 조언 부탁해', '다음 경기 준비는?', '선수 컨디션은 어때?'],
+        owner: ['예산 여유 있어?', '이적료 협상 가능?', '주급 자금 더 필요해'],
+        scout: ['유망주 보고서 줘', '이적시장 후보 있어?', '추천 선수 알려줘']
+    };
+    return replies[contactId] || replies.secretary;
+}
+
+function switchChatContact(contactId) {
+    const state = ensureChatState();
+    state.activeContactId = contactId;
+    renderChatTab();
+}
+
+function fillChatInput(text) {
+    const input = document.getElementById('chatInput');
+    if (input) {
+        input.value = text;
+        input.focus();
+    }
+}
+
+function handleChatKeydown(event) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        sendChatMessage();
+    }
+}
+
+function sendChatMessage() {
+    const input = document.getElementById('chatInput');
+    if (!input) return;
+
+    const text = input.value.trim();
+    if (!text) return;
+
+    const state = ensureChatState();
+    const activeContact = getChatContactById(state.activeContactId);
+
+    addChatMessage(activeContact.id, 'user', text);
+    input.value = '';
+    renderChatTab();
+
+    const typingIndicator = document.getElementById('chatTypingIndicator');
+    if (typingIndicator) typingIndicator.style.display = 'block';
+
+    setTimeout(() => {
+        const reply = generateChatReply(activeContact.id, text);
+        addChatMessage(activeContact.id, activeContact.name, reply);
+        renderChatTab();
+        const refreshedTyping = document.getElementById('chatTypingIndicator');
+        if (refreshedTyping) refreshedTyping.style.display = 'none';
+    }, 700 + Math.random() * 900);
+}
+
+function generateChatReply(contactId, text) {
+    const normalized = String(text).toLowerCase();
+    const contact = getChatContactById(contactId);
+    const isFinance = /예산|돈|자금|주급|이적료|협상/.test(text);
+    const isTactics = /전술|포메이션|경기|상대|압박/.test(text);
+    const isMood = /분위기|사기|컨디션|기분/.test(text);
+    const isScout = /유망주|스카우트|선수|추천|이적시장/.test(text);
+
+    if (contactId === 'owner') {
+        if (isFinance) return '현재 자금은 검토 중입니다. 필요하다면 이적 자금과 주급 자금을 재배분하세요. 다만 무리한 전환은 금지입니다.';
+        if (isTactics) return '전술은 감독 권한입니다. 다만 경기 스타일이 결과에 큰 영향을 주니, 상대 분석은 꼭 하세요.';
+        return '보고는 확인했습니다. 핵심은 결과입니다. 필요하면 더 구체적으로 말해보세요.';
+    }
+
+    if (contactId === 'coach') {
+        if (isTactics) return '상대를 압박할지, 내려앉을지 먼저 정하세요. 포지션 밸런스가 좋으면 점유율 전술도 가능합니다.';
+        if (isMood) return '선수단 분위기는 괜찮습니다. 하지만 연패가 길어지면 사기가 빠르게 떨어질 수 있습니다.';
+        return '좋습니다. 훈련과 준비를 이어가죠. 더 구체적인 질문이 있으면 바로 답해드리겠습니다.';
+    }
+
+    if (contactId === 'scout') {
+        if (isScout) return '후보군을 다시 추려보겠습니다. 예산 범위와 포지션만 주시면 더 정확히 제안할 수 있습니다.';
+        if (isFinance) return '이적료 협상은 가능하지만, 시장가와 구단 자금 상황을 같이 봐야 합니다.';
+        return '새로운 후보를 확인해두겠습니다. 마음에 드는 포지션이 있으면 알려주세요.';
+    }
+
+    if (isFinance) return '일정과 이적 소식은 확인했습니다. 자금이 필요하면 재정 메뉴에서 바로 조정할 수 있어요.';
+    if (isMood) return '팀 분위기는 나쁘지 않습니다. 다만 연출은 줄였으니, 경기력은 운영과 결과로 끌어가야 합니다.';
+    return `감독님, ${contact.name}입니다. 방금 말씀하신 내용은 확인했습니다. 조금 더 구체적으로 말씀해주시면 바로 정리하겠습니다.`;
+}
+
+function scrollChatToBottom() {
+    setTimeout(() => {
+        const thread = document.getElementById('chatThread');
+        if (thread) thread.scrollTop = thread.scrollHeight;
+    }, 0);
+}
+
+window.renderChatTab = renderChatTab;
+window.switchChatContact = switchChatContact;
+window.fillChatInput = fillChatInput;
+window.handleChatKeydown = handleChatKeydown;
+window.sendChatMessage = sendChatMessage;
+
+function renderFinanceTab() {
+    const container = document.getElementById('financeContent');
+    if (!container) return;
+
+    const transferBudget = Math.max(0, gameData.teamMoney || 0);
+    const wageBudget = Math.max(0, typeof gameData.wageBudget === 'number' ? gameData.wageBudget : 0);
+    const totalPool = transferBudget + wageBudget;
+    const wageCoverage = gameData.totalWeeklyWage > 0 ? Math.round((wageBudget / gameData.totalWeeklyWage) * 100) : 0;
+    const transferDefault = transferBudget > 0 ? Math.min(40, Math.max(10, Math.round((transferBudget / Math.max(1, totalPool)) * 50))) : 0;
+
+    container.innerHTML = `
+        <div class="finance-panel">
+            <div class="finance-hero">
+                <div class="finance-hero-copy">
+                    <div class="finance-kicker">FINANCE MANAGEMENT</div>
+                    <h3>예산을 직접 조절하세요</h3>
+                    <p>슬라이더를 오른쪽으로 밀수록 주급 자금이 늘고, 왼쪽으로 밀수록 이적 자금이 늘어납니다. 전환은 각각 12배 / 1/12 배율로 적용됩니다.</p>
+                </div>
+                <div class="finance-ratio-chip">
+                    <span>운영 가능 주급 커버</span>
+                    <strong>${wageCoverage}%</strong>
+                </div>
+            </div>
+
+            <div class="finance-summary-grid">
+                <div class="finance-summary-card">
+                    <div class="finance-label">이적 자금</div>
+                    <div class="finance-value transfer">${transferBudget}억</div>
+                </div>
+                <div class="finance-summary-card">
+                    <div class="finance-label">주급 자금</div>
+                    <div class="finance-value wage">${wageBudget}억</div>
+                </div>
+                <div class="finance-summary-card">
+                    <div class="finance-label">총 주급</div>
+                    <div class="finance-value wage-debt">${gameData.totalWeeklyWage}억</div>
+                </div>
+                <div class="finance-summary-card">
+                    <div class="finance-label">연간 예상 주급 지출</div>
+                    <div class="finance-value annual">${Math.round(gameData.totalWeeklyWage * 52)}억</div>
+                </div>
+            </div>
+
+            <div class="finance-conversion-card">
+                <div class="finance-conversion-header">
+                    <div>
+                        <h4>예산 슬라이더</h4>
+                        <p>가운데는 중립, 왼쪽은 이적 자금 강화, 오른쪽은 주급 자금 강화</p>
+                    </div>
+                    <div class="finance-rate-note">1억 이동 = 12억 / 1/12억</div>
+                </div>
+
+                <div class="finance-slider-shell">
+                    <div class="finance-slider-labels">
+                        <span class="budget-tag transfer">이적 자금</span>
+                        <span class="budget-tag neutral">중립</span>
+                        <span class="budget-tag wage">주급 자금</span>
+                    </div>
+
+                    <input
+                        id="financeBalanceSlider"
+                        class="finance-range"
+                        type="range"
+                        min="-100"
+                        max="100"
+                        step="1"
+                        value="0"
+                        oninput="updateFinanceBalancePreview(this.value)"
+                    >
+
+                    <div class="finance-scale">
+                        <span>-100</span>
+                        <span id="financeBalanceState">중립 상태</span>
+                        <span>+100</span>
+                    </div>
+                </div>
+
+                <div class="finance-preview-grid">
+                    <div class="finance-preview-card transfer">
+                        <div class="finance-preview-label">이적 자금 변화</div>
+                        <div id="financeTransferDelta" class="finance-preview-value">0억</div>
+                        <div id="financeTransferAfter" class="finance-preview-sub">변동 없음</div>
+                    </div>
+                    <div class="finance-preview-card wage">
+                        <div class="finance-preview-label">주급 자금 변화</div>
+                        <div id="financeWageDelta" class="finance-preview-value">0억</div>
+                        <div id="financeWageAfter" class="finance-preview-sub">변동 없음</div>
+                    </div>
+                </div>
+
+                <div class="finance-action-row">
+                    <button class="btn primary finance-apply-btn" onclick="applyFinanceBalanceSlider()">선택한 예산 이동 적용</button>
+                    <button class="btn finance-reset-btn" onclick="resetFinanceSlider()">슬라이더 초기화</button>
+                </div>
+            </div>
+
+            <div class="finance-insight-grid">
+                <div class="finance-insight-card">
+                    <div class="finance-insight-title">이적 운영 상태</div>
+                    <div class="finance-insight-text">현재 팀의 이적 자금은 <strong>${transferBudget}억</strong>이며, 공격적인 영입을 원하면 오른쪽 슬라이더를 높이세요.</div>
+                </div>
+                <div class="finance-insight-card">
+                    <div class="finance-insight-title">주급 운영 상태</div>
+                    <div class="finance-insight-text">현재 주급 자금은 <strong>${wageBudget}억</strong>입니다. 이 수치가 낮으면 연봉 협상과 선수 유지가 어려워집니다.</div>
+                </div>
+            </div>
+
+            <div class="finance-note">
+                주급 자금이 부족하면 협상 단계에서 계약이 막힙니다. 필요할 때만 자금을 이동시키고, 과도한 전환은 피하세요.
+            </div>
+        </div>
+    `;
+
+    if (typeof updateFinanceBalancePreview === 'function') {
+        updateFinanceBalancePreview(transferDefault || 0);
+        const slider = document.getElementById('financeBalanceSlider');
+        if (slider) slider.value = transferDefault || 0;
+    }
+}
+
+function updateFinanceBalancePreview(rawValue) {
+    const sliderValue = Number(rawValue) || 0;
+    const transferBudget = Math.max(0, gameData.teamMoney || 0);
+    const wageBudget = Math.max(0, typeof gameData.wageBudget === 'number' ? gameData.wageBudget : 0);
+    const transferDeltaEl = document.getElementById('financeTransferDelta');
+    const wageDeltaEl = document.getElementById('financeWageDelta');
+    const transferAfterEl = document.getElementById('financeTransferAfter');
+    const wageAfterEl = document.getElementById('financeWageAfter');
+    const stateEl = document.getElementById('financeBalanceState');
+    const slider = document.getElementById('financeBalanceSlider');
+
+    const direction = sliderValue > 0 ? 'transferToWage' : sliderValue < 0 ? 'wageToTransfer' : 'neutral';
+    const ratio = Math.abs(sliderValue) / 100;
+
+    let transferDelta = 0;
+    let wageDelta = 0;
+    let statusText = '중립 상태';
+    const transferSource = Math.max(0, Math.round(transferBudget * ratio));
+    const wageSource = Math.max(0, Math.round(wageBudget * ratio));
+
+    if (direction === 'transferToWage') {
+        transferDelta = -transferSource;
+        wageDelta = parseFloat((transferSource / 12).toFixed(2));
+        statusText = transferSource > 0 ? '오른쪽으로 이동 중: 주급 자금 강화' : '이적 자금이 부족합니다';
+    } else if (direction === 'wageToTransfer') {
+        wageDelta = -wageSource;
+        transferDelta = Math.round(wageSource * 12);
+        statusText = wageSource > 0 ? '왼쪽으로 이동 중: 이적 자금 강화' : '주급 자금이 부족합니다';
+    }
+
+    const nextTransfer = Math.max(0, transferBudget + transferDelta);
+    const nextWage = Math.max(0, wageBudget + wageDelta);
+
+    if (transferDeltaEl) transferDeltaEl.textContent = transferDelta === 0 ? '0억' : `${transferDelta > 0 ? '+' : ''}${transferDelta}억`;
+    if (wageDeltaEl) wageDeltaEl.textContent = wageDelta === 0 ? '0억' : `${wageDelta > 0 ? '+' : ''}${wageDelta}억`;
+    if (transferAfterEl) transferAfterEl.textContent = `전환 후 ${nextTransfer}억`;
+    if (wageAfterEl) wageAfterEl.textContent = `전환 후 ${nextWage}억`;
+    if (stateEl) stateEl.textContent = statusText;
+
+    if (slider) {
+        const percent = (sliderValue + 100) / 2;
+        slider.style.background = `linear-gradient(90deg, rgba(243, 156, 18, 0.85) 0%, rgba(243, 156, 18, 0.85) ${percent}%, rgba(79, 195, 247, 0.85) ${percent}%, rgba(79, 195, 247, 0.85) 100%)`;
+    }
+}
+
+function applyFinanceBalanceSlider() {
+    const slider = document.getElementById('financeBalanceSlider');
+    if (!slider) return;
+
+    const sliderValue = Number(slider.value) || 0;
+    if (sliderValue === 0) {
+        alert('슬라이더를 왼쪽 또는 오른쪽으로 움직여 예산을 조정하세요.');
+        return;
+    }
+
+    const ratio = Math.abs(sliderValue) / 100;
+    const transferSource = Math.max(0, Math.round((gameData.teamMoney || 0) * ratio));
+    const wageSource = Math.max(0, Math.round((gameData.wageBudget || 0) * ratio));
+
+    if (sliderValue > 0 && transferSource <= 0) {
+        alert('이적 자금이 부족해서 주급 자금으로 이동할 수 없습니다.');
+        return;
+    }
+
+    if (sliderValue < 0 && wageSource <= 0) {
+        alert('주급 자금이 부족해서 이적 자금으로 이동할 수 없습니다.');
+        return;
+    }
+
+    const result = sliderValue > 0
+        ? transferSystem.convertTransferToWageBudget(transferSource)
+        : transferSystem.convertWageToTransferBudget(wageSource);
+
+    alert(result.message);
+    renderFinanceTab();
+    updateDisplay();
+}
+
+function resetFinanceSlider() {
+    const slider = document.getElementById('financeBalanceSlider');
+    if (slider) {
+        slider.value = 0;
+        updateFinanceBalancePreview(0);
+    }
 }
 
 // [신규] 다중 시즌 시뮬레이션 함수

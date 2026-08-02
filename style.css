@@ -3195,3 +3195,133 @@ body.team-브라질_연합 {
         0 2px 4px rgba(0, 0, 0, 0.5);
     line-height: 1;
 }
+
+/* --- 협상 채팅 모달 --- */
+.chat-modal-content {
+    width: 90%;
+    max-width: 500px;
+    height: 80vh;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.chat-header {
+    background: #222;
+    padding: 15px 20px;
+    border-bottom: 1px solid #444;
+    text-align: center;
+    position: relative;
+}
+
+.chat-header h3 {
+    margin: 0;
+    color: #fff;
+    font-size: 1.2rem;
+}
+
+.chat-header p {
+    margin: 5px 0 0;
+    color: #aaa;
+    font-size: 0.9rem;
+}
+
+.chat-header .close {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 28px;
+    color: #aaa;
+    cursor: pointer;
+}
+
+.chat-header .close:hover {
+    color: #fff;
+}
+
+.chat-messages {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    background: #121212;
+}
+
+.chat-message {
+    max-width: 80%;
+    padding: 10px 15px;
+    border-radius: 18px;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    word-break: break-word;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.chat-message.ai {
+    align-self: flex-start;
+    background: #333;
+    color: #eee;
+    border-bottom-left-radius: 18px;
+    border-top-left-radius: 4px;
+}
+
+.chat-message.user {
+    align-self: flex-end;
+    background: #2ecc71;
+    color: #111;
+    border-bottom-right-radius: 18px;
+    border-top-right-radius: 4px;
+}
+
+.chat-message.system {
+    align-self: center;
+    background: transparent;
+    color: #888;
+    font-size: 0.85rem;
+    text-align: center;
+    font-style: italic;
+}
+
+.chat-input-area {
+    padding: 15px;
+    background: #222;
+    border-top: 1px solid #444;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.chat-input-area input {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #555;
+    background: #111;
+    color: #fff;
+    font-size: 1rem;
+    box-sizing: border-box;
+}
+
+.chat-quick-replies {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.chat-quick-replies button {
+    flex: 1;
+    min-width: 80px;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
