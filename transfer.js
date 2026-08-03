@@ -97,6 +97,14 @@ class TransferSystem {
         });
         // 최대 50개까지만 저장
         if (this.transferNews.length > 50) this.transferNews.pop();
+
+        // [SNS] 모든 이적 발생 시 SNS 포스트 생성 및 피드 갱신
+        if (typeof snsManager !== 'undefined' && snsManager && typeof snsManager.onPlayerTransfer === 'function') {
+            snsManager.onPlayerTransfer(player.name, fromTeam, toTeam, fee);
+            if (document.getElementById('snsFeed')) {
+                snsManager.displayFeed();
+            }
+        }
     }
 
     // 이적 시장 초기화
@@ -1052,7 +1060,7 @@ class TransferSystem {
         if (typeof calculateTotalWages === 'function') calculateTotalWages();
 
         // [추가] 이적 뉴스 기록
-        this.addTransferNews(newPlayer, player.originalTeam, gameData.selectedTeam, player.price);
+        this.addTransferNews(newPlayer, player.originalTeam, gameData.selectedTeam, transferFee);
 
         // [추가] 영입 후 자동 저장
         if (window.AutoSaveSystem) {

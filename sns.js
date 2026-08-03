@@ -168,12 +168,46 @@ class SNSManager {
 
     addPost(post) {
         this.posts.unshift(post);
-        this.preGenerateAIComments(post);
+        this.enqueuePreGenerate(post);
+    }
+
+    enqueuePreGenerate(post) {
+        if (!this.commentQueue) this.commentQueue = [];
+        this.commentQueue.push(post);
+        if (!this.isProcessingQueue) {
+            this.processCommentQueue();
+        }
+    }
+
+    async processCommentQueue() {
+        this.isProcessingQueue = true;
+        while (this.commentQueue && this.commentQueue.length > 0) {
+            const post = this.commentQueue.shift();
+            // 이미 AI 댓글로 최종 결정된 포스트는 건너뜁니다
+            if (post.isAIFinalized) continue;
+
+            const success = await this.preGenerateAIComments(post);
+            if (!success) {
+                post.aiRetryCount = (post.aiRetryCount || 0) + 1;
+                // 실패 시 일단 임시 템플릿 댓글 적용
+                if (!post.generatedComments) {
+                    post.generatedComments = this.generateComments(post);
+                }
+                // 최대 3회까지 실패하면 큐 제일 뒤로 미뤄서 나중에 AI 댓글로 재시도
+                if (post.aiRetryCount <= 3) {
+                    this.commentQueue.push(post);
+                }
+            }
+
+            // API 래이트 리밋 방지를 위한 800ms 딜레이
+            await new Promise(resolve => setTimeout(resolve, 800));
+        }
+        this.isProcessingQueue = false;
     }
 
     async preGenerateAIComments(post) {
-        if (post.generatedComments) return;
-        if (post.isGeneratingComments) return;
+        if (post.isAIFinalized) return true;
+        if (post.isGeneratingComments) return false;
         
         post.isGeneratingComments = true;
         
@@ -192,13 +226,18 @@ class SNSManager {
                     likes: Math.floor(Math.random() * 100) + 1,
                     timestamp: post.timestamp + (index + 1) * 60000
                 }));
+                post.isAIFinalized = true;
+
                 const commentsSection = document.getElementById(`comments-${post.id}`);
-                if (commentsSection && commentsSection.style.display !== 'none' && commentsSection.innerHTML.includes('베댓 생성 중')) {
+                if (commentsSection && commentsSection.style.display !== 'none') {
                     this.renderComments(commentsSection, post.generatedComments);
                 }
+                return true;
             }
+            return false;
         } catch (e) {
             console.error('AI 댓글 자동 생성 실패:', e);
+            return false;
         } finally {
             post.isGeneratingComments = false;
         }
@@ -875,6 +914,9 @@ class SNSManager {
 
     // [수정] NVIDIA NIM API 호출 함수 (프록시 경유)
     async callNvidiaForComments(postContent) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 9000);
+
         try {
             // 보안을 위해 API 키가 숨겨진 서버(Vercel Function)를 호출합니다.
             const response = await fetch("https://easyfmm.vercel.app/api/groq", {
@@ -882,6 +924,7 @@ class SNSManager {
                 headers: {
                     "Content-Type": "application/json"
                 },
+                signal: controller.signal,
                 body: JSON.stringify({
                     messages: [
                         {
@@ -899,6 +942,7 @@ class SNSManager {
                     max_tokens: 300
                 })
             });
+            clearTimeout(timeoutId);
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
@@ -914,6 +958,7 @@ class SNSManager {
                 .map(line => line.trim().replace(/^\d+[\.\)]\s*/, '').replace(/^["'-]/, '').replace(/["']$/, ''))
                 .filter(line => line.length > 0);
         } catch (error) {
+            clearTimeout(timeoutId);
             console.warn("NVIDIA NIM API 호출 실패 (기존 방식 사용):", error);
             return null; // 실패 시 null 반환 -> 기존 방식 사용
         }
@@ -930,49 +975,39 @@ class SNSManager {
 
             commentsSection.style.display = 'block';
 
-            // 1. 캐싱된 댓글이 있으면 바로 표시 (API 낭비 방지)
+            // 1. 이미 생성된 댓글이 있으면 (AI 댓글 또는 임시 템플릿 댓글) 즉시 열어서 보여줌
             if (post.generatedComments) {
                 this.renderComments(commentsSection, post.generatedComments);
-                return;
-            }
-
-            // 1.5 생성 중이라면 대기
-            if (post.isGeneratingComments) {
-                commentsSection.innerHTML = '<div style="padding:15px; color:#aaa; text-align:center; font-size:0.9em;">💬 베댓 생성 중...</div>';
-                return;
-            }
-
-            // 2. 로딩 표시
-            commentsSection.innerHTML = '<div style="padding:15px; color:#aaa; text-align:center; font-size:0.9em;">💬 베댓 생성 중...</div>';
-
-            // 3. AI 호출 시도
-            // HTML 태그 제거하고 텍스트만 추출
-            const tempDiv = document.createElement("div");
-            tempDiv.innerHTML = post.content;
-            const cleanContent = tempDiv.textContent || tempDiv.innerText || "";
-
-            const aiCommentsText = await this.callNvidiaForComments(cleanContent);
-            let finalComments = [];
-
-            if (aiCommentsText && aiCommentsText.length > 0) {
-                // AI 응답 사용 (최대 3개)
-                finalComments = aiCommentsText.slice(0, 3).map((text, index) => ({
-                    id: Math.random().toString(36).substr(2, 9),
-                    author: this.generateRandomUsername(), // 닉네임은 기존 방식
-                    text: text,
-                    likes: Math.floor(Math.random() * 100) + 1,
-                    timestamp: post.timestamp + (index + 1) * 60000
-                }));
-
-                // 4. AI 성공 시에만 저장(캐싱)
-                post.generatedComments = finalComments;
             } else {
-                // 실패 시 기존 템플릿 방식 사용
-                finalComments = this.generateComments(post);
-                // 주의: 실패한 경우는 post.generatedComments에 저장하지 않음 (다음 클릭 시 재시도 가능하게)
+                // 아직 댓글 데이터가 생성 중이거나 없는 경우 우선 임시 템플릿 댓글 적용 후 보여줌
+                post.generatedComments = this.generateComments(post);
+                this.renderComments(commentsSection, post.generatedComments);
             }
 
-            this.renderComments(commentsSection, finalComments);
+            // 2. AI 댓글 완성이 안 된 상태라면 즉시 비동기로 AI 호출 시도
+            if (!post.isAIFinalized && !post.isGeneratingComments) {
+                post.isGeneratingComments = true;
+                const tempDiv = document.createElement("div");
+                tempDiv.innerHTML = post.content;
+                const cleanContent = tempDiv.textContent || tempDiv.innerText || "";
+
+                const aiCommentsText = await this.callNvidiaForComments(cleanContent);
+                if (aiCommentsText && aiCommentsText.length > 0) {
+                    post.generatedComments = aiCommentsText.slice(0, 3).map((text, index) => ({
+                        id: Math.random().toString(36).substr(2, 9),
+                        author: this.generateRandomUsername(),
+                        text: text,
+                        likes: Math.floor(Math.random() * 100) + 1,
+                        timestamp: post.timestamp + (index + 1) * 60000
+                    }));
+                    post.isAIFinalized = true;
+                    // 댓글창이 계속 열려있는 상태라면 신규 AI 댓글로 화면 갱신
+                    if (commentsSection.style.display !== 'none') {
+                        this.renderComments(commentsSection, post.generatedComments);
+                    }
+                }
+                post.isGeneratingComments = false;
+            }
 
         } else {
             commentsSection.style.display = 'none';
@@ -1348,25 +1383,7 @@ function initializeSNSSystem() {
         initializeSNSSystem.matchEndListenerRegistered = true;
     }
 
-    // 기존 이적 함수 확장
-    if (typeof window.transferSystem !== 'undefined') {
-        const originalSignPlayer = window.transferSystem.signPlayer;
-        window.transferSystem.signPlayer = function (player) {
-            const result = originalSignPlayer.call(this, player);
-            if (result.success) {
-                snsManager.onPlayerTransfer(
-                    player.name,
-                    player.originalTeam,
-                    gameData.selectedTeam,
-                    player.price
-                );
-                if (document.getElementById('snsFeed')) {
-                    snsManager.displayFeed();
-                }
-            }
-            return result;
-        };
-    }
+    // 이적 시 SNS 포스트는 transferSystem.addTransferNews에서 일괄 처리됩니다.
 
     // 정기 업데이트 시작
     setInterval(() => {
