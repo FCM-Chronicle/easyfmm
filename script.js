@@ -2377,6 +2377,29 @@ function processSponsorAfterMatch(matchResult) {
         }
     }
 
+    // === 경기 결과 기반 팀 사기 조절 (난이도 UP) ===
+    if (typeof gameData.losingStreak !== 'number') gameData.losingStreak = 0;
+    const curMorale = typeof gameData.teamMorale === 'number' ? gameData.teamMorale : 80;
+
+    if (matchResult === 'win') {
+        gameData.losingStreak = 0;
+        const gain = 3 + Math.floor(Math.random() * 3); // +3 ~ +5
+        gameData.teamMorale = Math.min(100, curMorale + gain);
+        console.log(`✅ 승리 - 사기 +${gain} (현재 ${gameData.teamMorale})`);
+    } else if (matchResult === 'draw') {
+        gameData.losingStreak = 0;
+        const drop = 1 + Math.floor(Math.random() * 2); // -1 ~ -2
+        gameData.teamMorale = Math.max(0, curMorale - drop);
+        console.log(`🤝 무승부 - 사기 -${drop} (현재 ${gameData.teamMorale})`);
+    } else if (matchResult === 'loss') {
+        gameData.losingStreak++;
+        // 연패 누적될수록 더 크게 떨어뜨림: 기본 -4 + 연패*2 (연패1=-6, 연패2=-8, 연패3=-10 ...)
+        const baseDrop = 4 + (gameData.losingStreak * 2);
+        const drop = baseDrop + Math.floor(Math.random() * 3);
+        gameData.teamMorale = Math.max(0, curMorale - drop);
+        console.log(`❌ 패배 (${gameData.losingStreak}연패) - 사기 -${drop} (현재 ${gameData.teamMorale})`);
+    }
+
     updateDisplay();
 }
 
@@ -3829,6 +3852,12 @@ window.GameState = window.GameState || {
 
     advanceRound() {
         gameData.currentRound++;
+        // 라운드 진행마다 자연스럽게 사기 소폭 감소 (난이도 UP: 시간 지날수록 관리 필요)
+        if (typeof gameData.teamMorale === 'number') {
+            const naturalDrop = 1; // 매 라운드 -1
+            gameData.teamMorale = Math.max(0, gameData.teamMorale - naturalDrop);
+            console.log(`⏳ 라운드 진행 - 사기 자연 감소 -${naturalDrop} (현재 ${gameData.teamMorale})`);
+        }
         return gameData.currentRound;
     },
 
@@ -4908,16 +4937,16 @@ function renderChatTab() {
                 </header>
 
                 <div id="chatThread" class="chat-thread">
-                    ${thread.length > 0 ? thread.map(message => renderChatBubble(message, activeContact)).join('') : `<div class="chat-empty-state"><div class="chat-empty-icon">💬</div><h3>대화를 시작해보세요</h3><p>왼쪽에서 상대를 선택하고 아래 입력창에 말을 보내면 즉시 대화가 이어집니다.</p></div>`}
+                    ${thread.length > 0 ? thread.map(message => renderChatBubble(message, activeContact)).join('') : `<div class="chat-empty-state"><div class="chat-empty-icon">💡</div><h3>꿀팁 & FAQ를 확인하세요</h3><p>아래 추천 질문을 클릭하시면 즉시 해당 내용에 대한 꿀팁과 답변을 확인하실 수 있습니다!</p></div>`}
                 </div>
 
                 <div class="chat-quick-replies">
-                    ${getChatQuickReplies(activeContact.id).map(text => `<button class="chat-quick-chip" onclick='fillChatInput(${JSON.stringify(text)})'>${escapeChatText(text)}</button>`).join('')}
+                    ${getChatQuickReplies(activeContact.id).map(text => `<button class="chat-quick-chip" onclick='sendQuickChatMessage(${JSON.stringify(text)})'>${escapeChatText(text)}</button>`).join('')}
                 </div>
 
                 <div class="chat-typing" id="chatTypingIndicator" style="display:none;">${activeContact.name}이(가) 입력 중...</div>
 
-                <div class="chat-composer">
+                <div class="chat-composer" style="display:none;">
                     <textarea id="chatInput" class="chat-input" rows="2" placeholder="메시지를 입력하세요..." onkeydown="handleChatKeydown(event)"></textarea>
                     <button class="btn primary chat-send-btn" onclick="sendChatMessage()">전송</button>
                 </div>
@@ -4954,14 +4983,42 @@ function escapeChatText(text) {
         .replace(/\n/g, '<br>');
 }
 
+const CHAT_TEMPLATES = {
+    secretary: [
+        { q: '이번 주 일정 알려줘', a: '📋 이번 주 주요 일정입니다:\n• 화요일: 다음 라운드 경기 (홈/원정은 대시보드에서 확인)\n• 수요일: 스폰서 계약 검토\n• 토요일: 유스팀 스카우팅 보고서\n\n💡 꿀팁: 경기 전날에는 반드시 선수 컨디션과 전술을 점검하세요!' },
+        { q: '사기가 뭐야?', a: '😊 현재 팀 분위기 체크리스트:\n• 연패가 이어지면 사기가 빠르게 떨어집니다\n• 주급이 밀리거나 계약 기간이 얼마 안 남은 선수는 불만을 가질 수 있습니다\n• 인터뷰 답변으로 분위기를 올릴 수 있습니다\n\n💡 꿀팁: 승리가 쌓이면 자연스럽게 분위기가 좋아집니다!' },
+        { q: '돈이 없어ㅠㅜ', a: '💵 구단 자금 관리 꿀팁:\n1. 스폰서 계약은 최대한 높은 등급으로 유지하세요\n2. 불필요한 선수는 이적명단에 올리세요. 한번 관심 없어도 꾸준히 등록하면 오퍼가 온답니다\n3. 주급 예산을 넘어가지 않게 주의하세요\n\n💡 꿀팁: 하위 리그에서는 싼 유망주를 사서 성장시킨 후 비싸게 파는 것도 좋은 전략입니다!' },
+        { q: '초보자 추천 꿀팁', a: '🎮 초보 감독님 필수 꿀팁:\n1. 처음에는 강팀을 선택해서 시스템을 익히세요\n2. 로테이션도 중요합니다\n3. 전술을 꼭 설정하세요! DNA 탭과 스쿼드>롤 정보에서 설정 가능합니다!\n4. 프리셋 설정 후 스스로 또 손보세요\n\n💡 꿀팁: Ctrl+Shift+S로 5시즌 빠른 시뮬레이션!' },
+        { q: '이적료/주급 관리 도와줘', a: '💡 선수 처리 비교:\n• 협상을 시도해 보세요! \n• 너무 깎아치진 말고 20 퍼센트정도만 줄이는 것을 추천합니다\n\n💡 주의: 협상에 2번 실패하면 10경기 동안 그 선수에게 다시 제안할 수 없습니다!' },
+        { q: '주급 관리 어떻게 해요?', a: '💰 주급 관리 노하우:\n1. 주급 예산 내에서 운영하는 게 가장 중요합니다\n2. 선수를 영입할때 주급 협상은 꼭 하세요\n3. 재정 탭에서 이적 예산과 주급예산을 조정하세요\n\n💡 꿀팁: 계약 만료 6개월 전부터 미리미리 재계약하세요!' }
+    ],
+    coach: [
+        { q: '전술 조언 부탁해', a: '⚽ 전술 선택 가이드:\n• balanced: 무전술- 절대하지마세요! 나머지는 맘대로 하세요\n• 전술 숙련도가 있으니 주의하세요!' },
+        { q: '다음 경기 준비는?', a: '📋 경기 전 체크리스트:\n1. 상대팀 평균 능력치 확인\n2. 전술 설정\n' },
+        { q: '선수 컨디션?', a: '💪 선수 컨디션 관리:\n• 연속 출전 시 피로도가 쌓입니다\n• 로테이션으로 선수들에게 휴식을 주세요\n\n💡 꿀팁: 중요한 경기를 앞두고 있다면 전 경기에는 교체 출전시키는 게 좋습니다' },
+        { q: '포메이션 추천해줘', a: '📐 포메이션 가이드:\n• 4-3-3: 기본형, 공격과 수비 밸런스 좋음\n• 4-4-2: 전통적인 밸런스형, 미드필더 많음\n• 3-5-2: 윙백 활용, 공격적\n• 5-3-2: 수비 중시, 상대 강팀 상대\n\n💡 꿀팁: 우리 팀의 포지션별 선수 깊이에 맞춰 고르세요' },
+        { q: '전술 뭘 고를까요', a: '🏆 높은 리그라면(혹은 강팀이라면):\n토탈 풋볼 추천\n2. 약한 리그라면\n 마음대로(토탈 풋볼제외)' },
+        ],
+    owner: [
+        { q: '예산 여유 있어?', a: '💵 예산 운영 원칙:\n• 팀 자금은 이적료와 주급 예산으로 나눠서 생각하세요\n• 스폰서 승점 보너스가 가장 큰 수입입니다\n\n💡 꿀팁: 팀 오버롤을 높여서 더 높은 스폰서와 계약하세요' },
+        { q: '이적료 협상 가능?', a: '🤝 이적 협상 노하우:\n1. 선수 능력치, 나이, 남은 계약기간이 가격을 결정합니다\n2. 꼭 협상을 하세요\n3. 너무 비싼 선수는 돈모아서 사세요 그때가 제일 쌉니다\n\n💡 꿀팁: 20세 이하 유망주는 가격대비 쌉니다' },
+        { q: '주급 자금 더 필요해', a: '💰 주급 자금 늘리는 법:\n1. 스폰서 계약 등급 올리기\n2. 불필요한 고주급 선수 방출/이적\n3. 팀 순위가 오르면 자연스레 증액\n\n💡 꿀팁: 승승장구하면 구단주가 특별 보너스를 줄 때도 있습니다!' },
+        { q: '선수 비싸게 파는 법?', a: '💸 선수 매각 노하우:\n1. 능력치 상승 중인 선수가 가장 비쌉니다\n\n💡 꿀팁: 팔때도 협상 하세요' },
+        { q: '파산 직전이에요 도와줘', a: '🚨 긴급 자금 구출 플랜:\n1. 고주급 베테랑 선수부터 방출/매각\n2. 선수 팔기\n💡 꿀팁: 하위 리그로 강등돼도 다시 올라올 수 있으니 포기하지 마세요!' }
+    ],
+    scout: [
+        { q: '유망주 보고서 줘', a: '🌟 유망주 체크리스트:\n• 나이: 18-22세 사이가 가장 좋습니다\n• 현재 능력치 대비 성장 가능성 보기\n• 포지션별 필요성 확인\n\n💡 꿀팁: 스카우트를 통해 영입된 선수는 포텐셜이 높을 가능성이 높아요.' },
+        { q: '사야할 선수 있어?', a: '📊 이적 시장 타입:\n1. 즉전력: 지금 당장 필요한 포지션 보강\n2. 유망주: 미래를 위한 투자\n3. 저가 매물: 로테이션용 나이 좀 있는 선수\n\n💡 꿀팁: 시즌 중간 이적 시즌에 맞춰 구매하는 게 유리합니다' },
+        { q: '추천 선수 알려줘', a: '⭐ 각 포지션별 추천 선수:\n• GK: 본좌: 조안 가르시아, 슈발리에/유망주: 기욤 레스테스 찔러보기(안좋을수도)\n• DF: 본좌: 그바르디올/유망주:쿠바르시, \n• MF: 본좌: 무시알라, 주앙 네베스, 흐라벤베르흐/유망주:옌스, 칼, 배승균 \n• FW: 본좌: 비르츠,  호드리구, 홀란드 등 /유망주: 프란치스코 카마르다\n\n💡 꿀팁: 26세 이상는 성장 안해요! 또 노장 선수는 은퇴했을때 우리팀에서 회귀합니다. 호날두나 메시 등을 노려보는것도 방법' },
+        { q: '스카우터 고용해야 하나요?', a: '🔍 스카우터 활용법:\n• 스카우터 고용 시 유망주가 스카우트됨 \n• 할거 없으면 추천\n• \n💡 꿀팁: 자금 여유가 된다면 빨리 고용하는 게 좋아요' },
+        { q: '유망주 어떻게 키우나요?', a: '🌱 유망주 성장 가이드:\n1. 3경기마다 성장합니다\n2. 교체에 박아놔도 ㄱㅊ\n' },
+        { q: '이적 시장 타이밍은?', a: '⏰ 이적 시장 골든 타이밍:\n• 이적시장에 나온 지 30일 이상 되면 가격이 내려가기 시작합니다!' }
+    ]
+};
+
 function getChatQuickReplies(contactId) {
-    const replies = {
-        secretary: ['이번 주 일정 알려줘', '이적시장 상황 어때?', '팀 분위기 어때?'],
-        coach: ['전술 조언 부탁해', '다음 경기 준비는?', '선수 컨디션은 어때?'],
-        owner: ['예산 여유 있어?', '이적료 협상 가능?', '주급 자금 더 필요해'],
-        scout: ['유망주 보고서 줘', '이적시장 후보 있어?', '추천 선수 알려줘']
-    };
-    return replies[contactId] || replies.secretary;
+    const template = CHAT_TEMPLATES[contactId] || CHAT_TEMPLATES.secretary;
+    return template.map(item => item.q);
 }
 
 function switchChatContact(contactId) {
@@ -4976,6 +5033,25 @@ function fillChatInput(text) {
         input.value = text;
         input.focus();
     }
+}
+
+function sendQuickChatMessage(text) {
+    const state = ensureChatState();
+    const activeContact = getChatContactById(state.activeContactId);
+
+    addChatMessage(activeContact.id, 'user', text);
+    renderChatTab();
+
+    const typingIndicator = document.getElementById('chatTypingIndicator');
+    if (typingIndicator) typingIndicator.style.display = 'block';
+
+    setTimeout(() => {
+        const reply = generateChatReply(activeContact.id, text);
+        addChatMessage(activeContact.id, activeContact.name, reply);
+        renderChatTab();
+        const refreshedTyping = document.getElementById('chatTypingIndicator');
+        if (refreshedTyping) refreshedTyping.style.display = 'none';
+    }, 500 + Math.random() * 700);
 }
 
 function handleChatKeydown(event) {
@@ -5012,34 +5088,11 @@ function sendChatMessage() {
 }
 
 function generateChatReply(contactId, text) {
-    const normalized = String(text).toLowerCase();
+    const template = CHAT_TEMPLATES[contactId] || CHAT_TEMPLATES.secretary;
+    const found = template.find(item => item.q === text);
+    if (found) return found.a;
     const contact = getChatContactById(contactId);
-    const isFinance = /예산|돈|자금|주급|이적료|협상/.test(text);
-    const isTactics = /전술|포메이션|경기|상대|압박/.test(text);
-    const isMood = /분위기|사기|컨디션|기분/.test(text);
-    const isScout = /유망주|스카우트|선수|추천|이적시장/.test(text);
-
-    if (contactId === 'owner') {
-        if (isFinance) return '현재 자금은 검토 중입니다. 필요하다면 이적 자금과 주급 자금을 재배분하세요. 다만 무리한 전환은 금지입니다.';
-        if (isTactics) return '전술은 감독 권한입니다. 다만 경기 스타일이 결과에 큰 영향을 주니, 상대 분석은 꼭 하세요.';
-        return '보고는 확인했습니다. 핵심은 결과입니다. 필요하면 더 구체적으로 말해보세요.';
-    }
-
-    if (contactId === 'coach') {
-        if (isTactics) return '상대를 압박할지, 내려앉을지 먼저 정하세요. 포지션 밸런스가 좋으면 점유율 전술도 가능합니다.';
-        if (isMood) return '선수단 분위기는 괜찮습니다. 하지만 연패가 길어지면 사기가 빠르게 떨어질 수 있습니다.';
-        return '좋습니다. 훈련과 준비를 이어가죠. 더 구체적인 질문이 있으면 바로 답해드리겠습니다.';
-    }
-
-    if (contactId === 'scout') {
-        if (isScout) return '후보군을 다시 추려보겠습니다. 예산 범위와 포지션만 주시면 더 정확히 제안할 수 있습니다.';
-        if (isFinance) return '이적료 협상은 가능하지만, 시장가와 구단 자금 상황을 같이 봐야 합니다.';
-        return '새로운 후보를 확인해두겠습니다. 마음에 드는 포지션이 있으면 알려주세요.';
-    }
-
-    if (isFinance) return '일정과 이적 소식은 확인했습니다. 자금이 필요하면 재정 메뉴에서 바로 조정할 수 있어요.';
-    if (isMood) return '팀 분위기는 나쁘지 않습니다. 다만 연출은 줄였으니, 경기력은 운영과 결과로 끌어가야 합니다.';
-    return `감독님, ${contact.name}입니다. 방금 말씀하신 내용은 확인했습니다. 조금 더 구체적으로 말씀해주시면 바로 정리하겠습니다.`;
+    return `감독님, ${contact.name}입니다. 아래 추천 질문 중 하나를 선택해주세요.`;
 }
 
 function scrollChatToBottom() {
@@ -5054,6 +5107,7 @@ window.switchChatContact = switchChatContact;
 window.fillChatInput = fillChatInput;
 window.handleChatKeydown = handleChatKeydown;
 window.sendChatMessage = sendChatMessage;
+window.sendQuickChatMessage = sendQuickChatMessage;
 
 function renderFinanceTab() {
     const container = document.getElementById('financeContent');
