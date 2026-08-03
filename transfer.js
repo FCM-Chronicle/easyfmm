@@ -9,7 +9,7 @@ class TransferSystem {
         this.aiSquadManagementCooldown = 0; // AI 지능적 영입 쿨타임
         this.basePrice = 600; // 기본 가격 600억으로 하향 조정 (요청사항 반영)
         this.aiTeamBudgets = {}; // AI 팀 현재 자금
-        this.aiTeamWageBudgets = {}; // AI 팀 주급 자금F
+        this.aiTeamWageBudgets = {}; // AI 팀 주급 자금Fㄹ
 
         // 타 리그 선수들
         this.extraPlayers = [
@@ -65,7 +65,6 @@ class TransferSystem {
             { "name": "카림 코네", "position": "FW", "country": "코트디부아르", "rating": 77, "age": 20, "team": "외부리그" },
             { "name": "엄지성", "position": "FW", "country": "대한민국", "rating": 72, "age": 22, "team": "외부리그" },
             { "name": "배준호", "position": "FW", "country": "대한민국", "rating": 75, "age": 21, "team": "외부리그" },
-            { "name": "아데몰라 루크먼", "position": "FW", "country": "나이지리아", "rating": 85, "age": 27, "team": "외부리그" },
             { "name": "기성용", "position": "MF", "country": "대한민국", "rating": 80, "age": 37, "team": "외부리그" },
             { "name": "오현규", "position": "FW", "country": "대한민국", "rating": 75, "age": 23, "team": "외부리그" },
             { "name": "폴 포그바", "position": "MF", "country": "프랑스", "rating": 80, "age": 32, "team": "외부리그" },
