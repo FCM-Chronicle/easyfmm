@@ -823,27 +823,32 @@ class TransferSystem {
 
     calculateFeeNegotiationChance(teamKey, targetFee, marketValue) {
         const budget = this.getTeamBudget(teamKey);
-        const budgetRatio = marketValue > 0 ? budget / marketValue : 1;
         const feeRatio = marketValue > 0 ? targetFee / marketValue : 1;
 
-        let chance = 0.22;
+        // 1. AI 팀 예산을 초과하는 금액 요구 시 거절 (5% 이하)
+        if (targetFee > budget && budget > 0) {
+            return 0.05;
+        }
 
-        if (budget <= 0) chance += 0.33;
-        else if (budgetRatio < 0.5) chance += 0.28;
-        else if (budgetRatio < 1.0) chance += 0.18;
-        else if (budgetRatio > 2.5) chance -= 0.06;
+        let chance = 0.75; // 기본 성공 확률 75%
 
-        if (feeRatio <= 0.5) chance -= 0.08;
-        else if (feeRatio <= 0.65) chance += 0.08;
-        else if (feeRatio <= 0.8) chance += 0.18;
-        else if (feeRatio <= 1.0) chance += 0.3;
-        else chance += 0.4;
+        // 2. 시장가 대비 요구 금액 비율에 따른 확률 조정 (비쌀수록 급감)
+        if (feeRatio > 2.0) {
+            chance -= 0.7;  // 2배 이상 부르면 사실상 거절
+        } else if (feeRatio > 1.5) {
+            chance -= 0.5;
+        } else if (feeRatio > 1.2) {
+            chance -= 0.3;
+        } else if (feeRatio > 1.0) {
+            chance -= 0.15;
+        } else if (feeRatio <= 0.8) {
+            chance += 0.15; // 시장가보다 싸게 주면 넙죽 수락
+        }
 
-        if (targetFee <= budget) chance += 0.1;
-        if (targetFee > budget && budget > 0) chance += 0.05;
-
-        return Math.max(0.12, Math.min(0.97, chance));
+        // 최소 5%, 최대 95%로 제한
+        return Math.max(0.05, Math.min(0.95, chance));
     }
+
 
     finalizeUserTransfer(player, targetTeamKey, fee, mailId, resultMessage) {
         const teamPlayers = teams[gameData.selectedTeam];
