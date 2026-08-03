@@ -40,6 +40,7 @@ class TransferSystem {
             /* 🇨🇻 카보베르데 */
             { "name": "로건 코스타", "position": "DF", "country": "카보베르데", "rating": 78, "age": 24, "team": "외부리그" },
             { "name": "라이언 멘데스", "position": "FW", "country": "카보베르데", "rating": 71, "age": 36, "team": "외부리그" },
+            { "name": "보지냐", "position": "GK", "country": "카보베르데", "rating": 80, "age": 40, "team": "외부리그" },
             { "name": "베베", "position": "FW", "country": "카보베르데", "rating": 70, "age": 35, "team": "외부리그" },
             { "name": "조던 픽포드", "position": "GK", "country": "잉글랜드", "rating": 83, "age": 31, "team": "외부리그" },
             { "name": "조규성", "position": "FW", "country": "대한민국", "rating": 80, "age": 27, "team": "외부리그" },
