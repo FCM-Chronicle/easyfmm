@@ -9,7 +9,7 @@ class TransferSystem {
         this.aiSquadManagementCooldown = 0; // AI 지능적 영입 쿨타임
         this.basePrice = 600; // 기본 가격 600억으로 하향 조정 (요청사항 반영)
         this.aiTeamBudgets = {}; // AI 팀 현재 자금
-        this.aiTeamWageBudgets = {}; // AI 팀 주급 자금
+        this.aiTeamWageBudgets = {}; // AI 팀 주급 자금F
 
         // 타 리그 선수들
         this.extraPlayers = [
@@ -846,7 +846,7 @@ class TransferSystem {
         }
 
         // 최소 5%, 최대 95%로 제한
-        return Math.max(0.05, Math.min(0.95, chance));
+        return Math.max(0, Math.min(0.95, chance));
     }
 
 
