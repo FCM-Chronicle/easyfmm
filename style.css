@@ -392,14 +392,20 @@ body {
     background: var(--bg-container);
     border: 1px solid var(--border-color);
     color: var(--text-primary);
-    padding: 12px 28px;
-    border-radius: 25px;
+    padding: 14px 26px;
+    min-height: 48px;
+    border-radius: 26px;
     cursor: pointer;
     transition: all 0.3s ease;
     backdrop-filter: blur(10px);
     position: relative;
     overflow: hidden;
-    font-weight: 500;
+    font-weight: 600;
+    font-size: 0.95rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
 }
 
 .tab-btn::before {
@@ -756,15 +762,20 @@ body {
     background: var(--bg-container);
     border: 1px solid var(--border-color);
     color: var(--text-primary);
-    padding: 12px 28px;
-    border-radius: 25px;
+    padding: 15px 30px;
+    min-height: 50px;
+    border-radius: 28px;
     cursor: pointer;
     transition: all 0.3s ease;
     backdrop-filter: blur(10px);
     font-size: 1rem;
-    font-weight: 500;
+    font-weight: 600;
     position: relative;
     overflow: hidden;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
 }
 
 .btn::before {
@@ -2054,13 +2065,19 @@ body {
     background: var(--bg-container);
     border: 1px solid var(--border-color);
     color: white;
-    padding: 12px 24px;
-    border-radius: 25px;
+    padding: 14px 24px;
+    min-height: 48px;
+    border-radius: 26px;
     cursor: pointer;
     transition: all 0.3s ease;
     backdrop-filter: blur(10px);
     position: relative;
     overflow: hidden;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
 }
 
 .league-tab-btn:hover {
@@ -3324,4 +3341,294 @@ body.team-브라질_연합 {
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
+}
+
+/* ==========================================================
+   📱 세로형 화면 (모바일 / 좁은 화면) 세련되게 최적화
+   ========================================================== */
+
+/* ----- 1. 기본 모바일 (768px 이하, 대부분 스마트폰) ----- */
+@media (max-width: 768px) {
+
+    /* 기본 screen 패딩 축소로 공간 확보 */
+    .screen {
+        padding: 14px 12px;
+    }
+
+    /* 탭 버튼들만 width 100% 적용 */
+    .tab-btn,
+    .league-tab-btn {
+        width: 100%;
+    }
+
+    /* 일반 버튼(.btn)은 가로 100% 확장에서 제외하되, 터치하기 편한 높이와 패딩은 유지 */
+    .btn,
+    .tab-btn,
+    .league-tab-btn {
+        min-height: 54px !important;
+        padding: 14px 18px !important;
+        font-size: 0.98rem;
+        border-radius: 22px;
+    }
+
+    /* 탭 버튼 영역: 2줄로 자연스럽게 줄바꿈 */
+    .tab-buttons,
+    .league-tabs,
+    .lobby-tabs {
+        gap: 10px;
+    }
+
+    /* Bento 대시보드: 카드 간격과 패딩 줄여서 답답함 해소 */
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+        gap: 14px;
+        padding: 6px 0;
+    }
+
+    .dashboard-card {
+        padding: 16px;
+        min-height: 160px;
+        border-radius: 20px;
+    }
+
+    .dashboard-card h3 {
+        font-size: 1.05rem;
+    }
+
+    /* 카드 내 제목이 너무 길면 줄바꿈 */
+    .dashboard-card-header h3,
+    .team-card h3,
+    .info-box h3 {
+        word-break: keep-all;
+        overflow-wrap: anywhere;
+        line-height: 1.35;
+    }
+
+    /* 팀 카드도 살짝 압축 */
+    .team-card {
+        padding: 18px;
+        border-radius: 20px;
+    }
+
+    /* 정보 아이템 압축 */
+    .team-info-grid,
+    .team-meta-info {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 10px;
+    }
+
+    /* 타이틀/헤딩 폰트 크기 살짝 축소 */
+    #teamSelection h1,
+    .league-title,
+    .sns-header h3 {
+        font-size: clamp(1.5rem, 7vw, 2.2rem);
+        line-height: 1.25;
+        margin-bottom: 1.2rem;
+    }
+
+    /* Modal도 모바일 친화적으로 */
+    .modal-content {
+        padding: 18px !important;
+        border-radius: 22px;
+    }
+
+    /* SNS 카드 */
+    .sns-post,
+    .sns-feed,
+    #sns {
+        padding: 14px;
+        font-size: 0.95rem;
+    }
+}
+
+/* ----- 2. 더 작은 모바일 (480px 이하, 구형 폰) ----- */
+@media (max-width: 480px) {
+
+    body {
+        font-size: 15px;
+    }
+
+    .screen {
+        padding: 10px 8px;
+    }
+
+    /* 버튼들은 완전 터치 퍼스트 */
+    .btn,
+    .tab-btn,
+    .league-tab-btn {
+        min-height: 56px !important;
+        font-size: 1rem;
+        border-radius: 20px;
+        letter-spacing: -0.01em;
+    }
+
+    /* 팀 선택 화면 grid 더 간결히 */
+    .teams-grid {
+        gap: 14px;
+    }
+
+    .team-card {
+        padding: 16px 14px;
+    }
+
+    .team-card h3 {
+        font-size: 1.25rem;
+    }
+
+    /* 대시보드 카드 더 촘촘하게 */
+    .dashboard-card {
+        padding: 14px;
+        border-radius: 18px;
+        min-height: 140px;
+    }
+
+    .dashboard-card h3 {
+        font-size: 1rem;
+    }
+
+    .glass {
+        border-radius: 20px;
+    }
+
+    /* 선수 카드 압축 */
+    .player-card,
+    .player-info {
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        text-align: center;
+    }
+
+    .player-card-image {
+        width: 90px;
+        height: 90px;
+    }
+}
+
+/* ----- 3. 세로 화면 및 태블릿 완벽 대응 ----- */
+/* 태블릿이나 살짝 넓은 화면일 때 (769px ~ 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .dashboard-grid {
+        /* minmax(0, 1fr)가 핵심! 한쪽 카드가 뚱뚱해져서 옆 카드를 찌부시키는 걸 완벽 차단합니다 */
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-auto-rows: minmax(180px, auto); 
+    }
+
+    /* 내용이 빵빵한 주요 카드들은 답답하지 않게 가로 전체(2칸)를 쓰도록 쫙 펴줍니다 */
+    #dashboard-match,
+    #dashboard-league,
+    #dashboard-tactics,
+    #dashboard-mail,
+    #dashboard-settings,
+    #dashboard-transfer_news {
+        grid-column: span 2;
+    }
+}
+
+/* 폰 화면(768px 이하) 절대 방어선 */
+@media (max-width: 768px) {
+    .dashboard-grid {
+        /* 스마트폰에서는 묻지도 따지지도 않고 무조건 시원하게 1열 꽉 채우기! */
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+    .dashboard-card {
+        /* 혹시라도 2칸 차지하려는 눈치 없는 카드들 1칸으로 강제 초기화 */
+        grid-column: span 1 !important;
+    }
+}
+
+/* ----- 4. 채팅창 (챗탭) 세로화면 최적화 ----- */
+#chatContent .chat-shell {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 60px);
+    min-height: 600px;
+    border-radius: 24px;
+    overflow: hidden;
+}
+
+#chatContent .chat-sidebar {
+    max-height: 200px;
+    overflow-y: auto;
+    border-bottom: 1px solid var(--border-color);
+    border-right: none !important;
+}
+
+#chatContent .chat-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+#chatContent .chat-thread {
+    flex: 1;
+    overflow-y: auto;
+    padding: 14px 12px;
+}
+
+/* Quick Reply Chip: 세로에서 자연스럽게 여러 줄 */
+.chat-quick-replies {
+    padding: 10px 12px;
+    gap: 8px;
+    justify-content: flex-start;
+    align-content: flex-start;
+}
+
+.chat-quick-replies button {
+    flex: 0 0 auto;
+    min-width: unset;
+    min-height: 44px;
+    padding: 10px 16px;
+    border-radius: 999px;
+    font-size: 0.9rem;
+    white-space: normal;
+    text-align: left;
+    line-height: 1.3;
+}
+
+/* 데스크톱(가로 넓은 화면)에서는 채팅창 사이드바 + 메인 나란히 */
+@media (min-width: 769px) {
+    #chatContent .chat-shell {
+        flex-direction: row;
+        height: calc(100vh - 80px);
+    }
+
+    #chatContent .chat-sidebar {
+        width: 260px;
+        max-height: none;
+        height: 100%;
+        border-right: 1px solid var(--border-color);
+        border-bottom: none;
+    }
+
+    #chatContent .chat-main {
+        flex: 1;
+        height: 100%;
+    }
+
+    .chat-quick-replies button {
+        min-width: 180px;
+        text-align: center;
+    }
+}
+
+/* 터치 기기 호버 효과 제거 → 눌림만 반응 */
+@media (hover: none) and (pointer: coarse) {
+    .btn:hover,
+    .tab-btn:hover,
+    .league-tab-btn:hover,
+    .dashboard-card:hover,
+    .team-card:hover,
+    .glass:hover {
+        transform: none;
+        box-shadow: none;
+    }
+
+    .btn:active,
+    .tab-btn:active,
+    .league-tab-btn:active {
+        transform: scale(0.97);
+        opacity: 0.85;
+    }
 }
