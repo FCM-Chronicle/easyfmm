@@ -762,6 +762,7 @@
         }
 
         @media (max-width: 700px) {
+
             .chat-header,
             .chat-composer {
                 flex-direction: column;
@@ -779,6 +780,7 @@
         }
 
         @media (max-width: 900px) {
+
             .finance-hero,
             .finance-conversion-header {
                 flex-direction: column;
@@ -2000,6 +2002,22 @@
         </div>
 
         <!-- 기존 탭 컨텐츠 (초기에는 숨김) -->
+        <div id="main-tabs" class="lobby-tabs" style="display:none;">
+            <button class="tab-btn active" data-tab="squad">👥 스쿼드</button>
+            <button class="tab-btn" data-tab="match">⚽ 경기</button>
+            <button class="tab-btn" data-tab="tactics">🧬 전술</button>
+            <button class="tab-btn" data-tab="transfer">💸 이적</button>
+            <button class="tab-btn" data-tab="growth">📈 성장</button>
+            <button class="tab-btn" data-tab="transfer_news">📰 이적뉴스</button>
+            <button class="tab-btn" data-tab="finance">🏦 재정</button>
+            <button class="tab-btn" data-tab="sponsor">🤝 후원</button>
+            <button class="tab-btn" data-tab="records">🏆 기록</button>
+            <button class="tab-btn" data-tab="youth">🌟 유스</button>
+            <button class="tab-btn" data-tab="sns">📱 SNS</button>
+            <button class="tab-btn" data-tab="mail">📬 메일</button>
+            <button class="tab-btn" data-tab="secretary">👩‍💼 비서</button>
+            <button class="tab-btn" data-tab="settings">⚙️ 설정</button>
+        </div>
         <div id="tab-content-area" class="tab-content" style="display: none;">
             <!-- 스쿼드 탭 -->
             <div id="squad" class="tab-panel active">
@@ -2122,7 +2140,8 @@
             <div id="chat" class="tab-panel">
                 <div class="chat-header-card" style="margin-bottom: 16px;">
                     <h3>💬 구단 대화실</h3>
-                    <p style="color: #aaa; margin: 8px 0 0; line-height: 1.6;">비서, 코치, 구단주, 스카우트와 실시간 메신저처럼 대화하세요. 입력한 내용에 따라 상황별 응답이 돌아옵니다.</p>
+                    <p style="color: #aaa; margin: 8px 0 0; line-height: 1.6;">비서, 코치, 구단주, 스카우트와 실시간 메신저처럼 대화하세요. 입력한
+                        내용에 따라 상황별 응답이 돌아옵니다.</p>
                 </div>
                 <div id="chatContent"></div>
             </div>
@@ -2243,6 +2262,68 @@
                         style="background: linear-gradient(45deg, #8e44ad, #9b59b6); padding: 15px 40px; font-size: 1.2rem; border: none; border-radius: 30px; box-shadow: 0 4px 15px rgba(142, 68, 173, 0.4); transition: transform 0.2s;">
                         📋 감독실 입장하기
                     </button>
+                </div>
+            </div>
+
+            <!-- 성장 현황 탭 (신규) -->
+            <div id="growth" class="tab-panel">
+                <div class="growth-header">
+                    <h3>📈 성장 현황</h3>
+                    <p class="growth-description">우리 팀 선수들의 성장 이력과 멘토링 현황을 한눈에 확인하세요.</p>
+                </div>
+                <div class="growth-layout">
+                    <aside class="growth-sidebar">
+                        <div class="growth-sidebar-header">
+                            <h4>🌱 성장 중인 선수</h4>
+                            <span id="growth-count-badge" class="growth-count-badge">0</span>
+                        </div>
+                        <div id="growthPlayerList" class="growth-player-list"></div>
+                        <div class="mentoring-summary-section">
+                            <h4>🤝 멘토링 현황</h4>
+                            <div id="mentoringList" class="mentoring-list"></div>
+                        </div>
+                    </aside>
+                    <section class="growth-main">
+                        <div id="growthEmpty" class="growth-empty" style="display:none;">
+                            <div style="font-size:4rem; margin-bottom:16px;">📊</div>
+                            <h4>선수를 선택하면 성장 그래프를 확인할 수 있어요</h4>
+                            <p style="color:#aaa">좌측 목록에서 성장 중인 선수를 클릭해 주세요</p>
+                        </div>
+                        <div id="growthDetail" class="growth-detail" style="display:none;">
+                            <div class="growth-detail-header">
+                            <div class="growth-detail-player">
+                                <h4 id="growthPlayerTitle">선수 이름</h4>
+                                <p id="growthPlayerMeta" style="color:#aaa;"></p>
+                            </div>
+                            <div class="growth-detail-stats">
+                                <div class="stat-card">
+                                    <span class="stat-label">현재 오버롤</span>
+                                    <span id="growthStatCurrent" class="stat-value gold">-</span>
+                                </div>
+                                <div class="stat-card">
+                                    <span class="stat-label">예상 최종</span>
+                                    <span id="growthStatPotential" class="stat-value green">-</span>
+                                </div>
+                                <div class="stat-card">
+                                    <span class="stat-label">잔여 성장</span>
+                                    <span id="growthStatRemain" class="stat-value">-</span>
+                                </div>
+                                <div class="stat-card">
+                                    <span class="stat-label">기간당 성장률</span>
+                                    <span id="growthStatRate" class="stat-value">-</span>
+                                </div>
+                            </div>
+                            </div>
+                            <div class="growth-chart-wrap">
+                                <canvas id="growthChartCanvas"></canvas>
+                            </div>
+                            <div class="growth-progress-wrap">
+                                <span class="stat-label">전체 성장 진행도</span>
+                                <div class="growth-progress-bar"><div id="growthProgressFill" class="growth-progress-fill"></div></div>
+                                <span id="growthProgressText" style="color:#aaa;font-size:0.85rem;">0%</span>
+                            </div>
+                        </div>
+                    </section>
                 </div>
             </div>
 
@@ -2645,8 +2726,8 @@
     <!-- 협상 채팅 모달 -->
     <div id="negotiationChatModal" class="modal">
         <div class="modal-content chat-modal-content">
-            <span class="close" onclick="transferSystem.closeNegotiationChat()">&times;</span>
             <div class="chat-header">
+                <span class="close" onclick="transferSystem.closeNegotiationChat()">&times;</span>
                 <h3 id="chatPlayerName">선수 이름</h3>
                 <p id="chatTeamName">소속 팀</p>
             </div>
@@ -2658,7 +2739,8 @@
                 <div id="chatQuickReplies" class="chat-quick-replies">
                     <!-- 빠른 답변 버튼 동적 추가 -->
                 </div>
-                <button id="chatSendBtn" class="btn" style="display: none;" onclick="transferSystem.sendNegotiationChat()">제안하기</button>
+                <button id="chatSendBtn" class="btn" style="display: none;"
+                    onclick="transferSystem.sendNegotiationChat()">제안하기</button>
             </div>
         </div>
     </div>

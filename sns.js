@@ -28,6 +28,7 @@ class SNSManager {
 
             // 이적 루머 템플릿
             transferRumor: [
+                "[루머] {newTeam}가 {playerName} 을 최우선 영입 대상으로 삼았습니다",
                 "[이적 루머] {playerName}, {newTeam} 이적설 솔솔... {transferFee} 거론",
                 "[이적설] {playerName}, {newTeam}으로 깜짝 이적하나?",
                 "[이적시장] {playerName}, {newTeam} 이적 임박?",

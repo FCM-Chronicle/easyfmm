@@ -28,6 +28,13 @@ const TeamUtils = {
         return best11;
     },
 
+    // 선수가 해당 팀의 베스트 11에 포함되는지 확인 (핵심 선수 판별용)
+    isPlayerInBest11(teamKey, playerName) {
+        if (!teamKey || teamKey === '외부리그') return false;
+        const best11 = this.getBestEleven(teamKey);
+        return best11.some(p => p.name === playerName);
+    },
+
     // 2. 선수 목록 또는 스쿼드 객체의 평균 능력치 계산
     calculateRating(playersOrSquad) {
         let players = [];

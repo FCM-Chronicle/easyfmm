@@ -324,7 +324,11 @@ class TransferSystem {
     }
 
     // 이적 성공 확률 계산
-    calculateTransferSuccessChance(player) {
+    calculateTransferSuccessChance(player, buyerTeamKey = null) {
+        if (!buyerTeamKey && typeof gameData !== 'undefined' && gameData.selectedTeam) {
+            buyerTeamKey = gameData.selectedTeam;
+        }
+
         let chance = 0.9; // 기본 성공 확률 90%에서 시작
 
         // 1. 능력치 페널티 (높을수록 거절 확률 증가)
@@ -339,8 +343,24 @@ class TransferSystem {
         // 3. 나이 보너스 (노장일수록 이적 쉬움)
         if (player.age >= 33) chance += 0.1;      // +10%
 
-        // 최소 5%, 최대 100% 제한
-        return Math.max(0.05, Math.min(1.0, chance));
+        // 4. 하위 리그로의 이적 거절 로직 (핵심 선수 보호)
+        if (buyerTeamKey && player.originalTeam && player.originalTeam !== "외부리그" && typeof allTeams !== 'undefined') {
+            const buyerLeague = allTeams[buyerTeamKey] ? allTeams[buyerTeamKey].league : 3;
+            const sellerLeague = allTeams[player.originalTeam] ? allTeams[player.originalTeam].league : 3;
+
+            if (buyerLeague > sellerLeague) {
+                // 구매팀이 더 하위 리그일 경우 (1이 1부, 2가 2부)
+                const isCorePlayer = TeamUtils.isPlayerInBest11(player.originalTeam, player.name);
+                if (isCorePlayer && player.age < 35) {
+                    return 0; // 하위 리그 이적 절대 불가
+                }
+                // 핵심 선수가 아니어도 약간의 페널티
+                chance -= (buyerLeague - sellerLeague) * 0.15;
+            }
+        }
+
+        // 최소 5%, 최대 50% 제한
+        return Math.max(0.05, Math.min(0.5, chance));
     }
 
     // 선수 연봉 협상 시작 금액 계산
@@ -370,19 +390,38 @@ class TransferSystem {
             : Math.max(0.2, parseFloat((Math.pow(player.rating / 75, 5) * 0.9).toFixed(2)));
 
         const wagePressure = offeredWeeklyWage / baseWage;
+        
+        // 너무 낮은 주급 제안 (기준 주급의 60% 미만)은 노예계약으로 간주하여 호감도 무관하게 무조건 거절 (확률 0)
+        if (wagePressure < 0.6) {
+            return 0;
+        }
+
         let chance = 0.92;
 
-        if (wagePressure >= 1.35) chance -= 0.2;
-        else if (wagePressure >= 1.25) chance -= 0.12;
-        else if (wagePressure >= 1.15) chance -= 0.05;
+        // 제안 주급에 따른 확률 보정 (기존 버그 수정: 적게 주면 확률 하락, 많이 주면 상승)
+        if (wagePressure < 0.7) chance -= 0.6;
+        else if (wagePressure < 0.85) chance -= 0.3;
+        else if (wagePressure < 0.95) chance -= 0.1;
+        else if (wagePressure >= 1.2) chance += 0.1; // 기준보다 많이 주면 확률 상승
+        else if (wagePressure >= 1.1) chance += 0.05;
 
+        // 선수 스탯에 따른 확률 보정
         if (player.rating >= 90) chance -= 0.1;
         else if (player.rating >= 85) chance -= 0.06;
 
         if (player.age <= 21) chance -= 0.05;
         else if (player.age >= 33) chance += 0.05;
 
-        return Math.max(0.25, Math.min(0.98, chance));
+        // 호감도(언플, 친목질) 반영
+        if (typeof gameData !== 'undefined' && gameData.transferOffers) {
+            const playerKey = `${player.name}_${player.originalTeam}`;
+            const offerData = window.GameState ? window.GameState.getTransferOffer(playerKey) : gameData.transferOffers[playerKey];
+            if (offerData && offerData.favorability) {
+                chance += offerData.favorability;
+            }
+        }
+
+        return Math.max(0, Math.min(0.5, chance));
     }
 
     getInitialTeamBudget(teamKey) {
@@ -596,6 +635,9 @@ class TransferSystem {
         document.getElementById('chatMessages').innerHTML = '';
 
         modal.style.display = 'block';
+        modal.style.visibility = 'visible';
+        modal.style.opacity = '1';
+        modal.style.pointerEvents = 'auto';
 
         this.addChatMessage('system', `--- ${player.name} 영입 협상을 시작합니다 ---`);
 
@@ -606,7 +648,13 @@ class TransferSystem {
     }
 
     closeNegotiationChat() {
-        document.getElementById('negotiationChatModal').style.display = 'none';
+        const modal = document.getElementById('negotiationChatModal');
+        if (modal) {
+            modal.style.display = 'none';
+            modal.style.visibility = 'hidden';
+            modal.style.opacity = '0';
+            modal.style.pointerEvents = 'none';
+        }
         this.chatState = null;
     }
 
@@ -641,6 +689,59 @@ class TransferSystem {
                 qBtn.onclick = () => { input.value = amt; this.sendNegotiationChat(); };
                 quickReplies.appendChild(qBtn);
             });
+
+            // --- 언론 유출 및 선수 설득 버튼 ---
+            const targetPlayer = this.chatState.player;
+            const myTeamPlayers = teams[gameData.selectedTeam];
+            let persuader = null;
+
+            if (myTeamPlayers && targetPlayer.country) {
+                const sameCountryPlayers = myTeamPlayers.filter(p => p.country === targetPlayer.country && p.name !== targetPlayer.name);
+                if (sameCountryPlayers.length > 0) {
+                    persuader = sameCountryPlayers.sort((a, b) => b.rating - a.rating)[0];
+                }
+            }
+
+            const swayContainer = document.createElement('div');
+            swayContainer.style.display = 'flex';
+            swayContainer.style.gap = '5px';
+            swayContainer.style.marginTop = '10px';
+            swayContainer.style.width = '100%';
+
+            const qBtnMedia = document.createElement('button');
+            qBtnMedia.className = 'btn';
+            qBtnMedia.style.flex = '1';
+            qBtnMedia.style.background = '#3498db';
+            qBtnMedia.style.fontSize = '0.8rem';
+            qBtnMedia.innerText = '언론에 유출하기';
+            qBtnMedia.onclick = () => {
+                this.doMediaPlay(targetPlayer.name, targetPlayer.originalTeam, true);
+                qBtnMedia.disabled = true;
+                qBtnMedia.style.opacity = '0.5';
+            };
+
+            const qBtnSocial = document.createElement('button');
+            qBtnSocial.className = 'btn';
+            qBtnSocial.style.flex = '1';
+            qBtnSocial.style.fontSize = '0.8rem';
+            
+            if (persuader) {
+                qBtnSocial.style.background = '#2ecc71';
+                qBtnSocial.innerText = `${persuader.name}을(를) 통해 설득하기`;
+                qBtnSocial.onclick = () => {
+                    this.doSocialize(targetPlayer.name, targetPlayer.originalTeam, true, persuader.name);
+                    qBtnSocial.disabled = true;
+                    qBtnSocial.style.opacity = '0.5';
+                };
+            } else {
+                qBtnSocial.style.background = '#7f8c8d';
+                qBtnSocial.innerText = '설득 불가능';
+                qBtnSocial.disabled = true;
+            }
+
+            swayContainer.appendChild(qBtnMedia);
+            swayContainer.appendChild(qBtnSocial);
+            quickReplies.appendChild(swayContainer);
         } else if (step === 'WAGE') {
             input.style.display = 'block';
             input.placeholder = "제안할 주급을 입력하세요 (단위: 억)";
@@ -730,7 +831,7 @@ class TransferSystem {
             setTimeout(() => {
                 const chance = this.calculateWageNegotiationChance(player, wage);
                 const transferChance = this.calculateTransferSuccessChance(player);
-                const finalChance = chance * transferChance;
+                const finalChance = Math.min(0.5, chance * transferChance);
 
                 if (Math.random() <= finalChance) {
                     state.wage = wage;
@@ -762,54 +863,58 @@ class TransferSystem {
     }
 
     finalizeChatTransfer(player, fee, wage) {
-        if (window.GameState) window.GameState.spendTeamMoney(fee);
-        else gameData.teamMoney -= fee;
+        try {
+            if (window.GameState) window.GameState.spendTeamMoney(fee);
+            else gameData.teamMoney -= fee;
 
-        this.spendTeamWageBudget(gameData.selectedTeam, wage);
+            this.spendTeamWageBudget(gameData.selectedTeam, wage);
 
-        const selectedTeamPlayers = window.GameState ? window.GameState.getSelectedTeamPlayers() : teams[gameData.selectedTeam];
+            const selectedTeamPlayers = window.GameState ? window.GameState.getSelectedTeamPlayers() : teams[gameData.selectedTeam];
 
-        const newPlayer = {
-            name: player.name,
-            position: player.position,
-            rating: player.rating,
-            age: player.age,
-            weeklyWage: wage
-        };
-        selectedTeamPlayers.push(newPlayer);
+            const newPlayer = {
+                name: player.name,
+                position: player.position,
+                rating: player.rating,
+                age: player.age,
+                weeklyWage: wage
+            };
+            selectedTeamPlayers.push(newPlayer);
 
-        this.transferMarket = this.transferMarket.filter(p => !(p.name === player.name && p.originalTeam === player.originalTeam));
+            this.transferMarket = this.transferMarket.filter(p => !(p.name === player.name && p.originalTeam === player.originalTeam));
 
-        const playerKey = `${player.name}_${player.originalTeam}`;
-        if (window.GameState) window.GameState.clearTransferOffer(playerKey);
-        else delete gameData.transferOffers[playerKey];
+            const playerKey = `${player.name}_${player.originalTeam}`;
+            if (window.GameState) window.GameState.clearTransferOffer(playerKey);
+            else delete gameData.transferOffers[playerKey];
 
-        if (player.originalTeam !== "외부리그") {
-            const originalTeamPlayers = teams[player.originalTeam];
-            const playerIndex = originalTeamPlayers.findIndex(p => p.name === player.name && p.position === player.position);
-            if (playerIndex !== -1) originalTeamPlayers.splice(playerIndex, 1);
-        }
+            if (player.originalTeam !== "외부리그") {
+                const originalTeamPlayers = teams[player.originalTeam];
+                const playerIndex = originalTeamPlayers.findIndex(p => p.name === player.name && p.position === player.position);
+                if (playerIndex !== -1) originalTeamPlayers.splice(playerIndex, 1);
+            }
 
-        if (typeof mailManager !== 'undefined') {
-            const content = `${player.name} 선수가 우리 팀에 합류했습니다.\n이적료: ${fee}억\n연봉: ${wage}억/주\n포지션: ${player.position}`;
-            mailManager.addMail(`[영입] ${player.name} 영입 완료`, '스카우트 팀장', content);
-        }
+            if (typeof mailManager !== 'undefined') {
+                const content = `${player.name} 선수가 우리 팀에 합류했습니다.\n이적료: ${fee}억\n연봉: ${wage}억/주\n포지션: ${player.position}`;
+                mailManager.addMail(`[영입] ${player.name} 영입 완료`, '스카우트 팀장', content);
+            }
 
-        if (typeof calculateTotalWages === 'function') calculateTotalWages();
-        this.addTransferNews(newPlayer, player.originalTeam, gameData.selectedTeam, fee);
+            if (typeof calculateTotalWages === 'function') calculateTotalWages();
+            this.addTransferNews(newPlayer, player.originalTeam, gameData.selectedTeam, fee);
 
-        if (window.AutoSaveSystem) setTimeout(() => window.AutoSaveSystem.triggerSave(), 500);
+            if (window.AutoSaveSystem) setTimeout(() => window.AutoSaveSystem.triggerSave(), 500);
 
-        if (window.GameState) window.GameState.clampTeamMoney();
-        else gameData.teamMoney = Math.max(0, gameData.teamMoney);
+            if (window.GameState) window.GameState.clampTeamMoney();
+            else gameData.teamMoney = Math.max(0, gameData.teamMoney);
 
-        updateDisplay();
-        displayTransferPlayers();
-        if (document.getElementById('squad') && document.getElementById('squad').classList.contains('active')) {
-            displayTeamPlayers();
-        }
-        if (newPlayer.age <= 25 && typeof playerGrowthSystem !== 'undefined') {
-            playerGrowthSystem.initializePlayerGrowth();
+            updateDisplay();
+            displayTransferPlayers();
+            if (document.getElementById('squad') && document.getElementById('squad').classList.contains('active')) {
+                displayTeamPlayers();
+            }
+            if (newPlayer.age <= 25 && typeof playerGrowthSystem !== 'undefined') {
+                playerGrowthSystem.initializePlayerGrowth();
+            }
+        } catch (err) {
+            console.error("finalizeChatTransfer 오류:", err);
         }
     }
 
@@ -1298,9 +1403,11 @@ class TransferSystem {
             // 상위 리그로 갈 때의 현실성 (3부->1부 직행은 매우 젊고 유망한 경우만)
             if (sellingLeague > buyingLeague && buyingLeague === 1 && p.rating < 78 && p.age > 24) return false;
 
-            // 상위 리그에서 하위 리그로 이적 시 제한 (전성기 선수 하위리그 이동 금지)
+            // 상위 리그에서 하위 리그로 이적 시 제한 (전성기/핵심 선수 하위리그 이동 금지)
             if (sellingLeague < buyingLeague) {
-                if (p.age <= 29 && p.rating >= 75) return false;
+                const isCore = TeamUtils.isPlayerInBest11(p.originalTeam, p.name);
+                if (isCore && p.age < 35) return false; // 핵심 선수는 나이가 아주 많지 않으면 안 감
+                if (!isCore && p.age <= 29 && p.rating >= 75) return false; // 일반 주전급도 전성기면 하위 리그 기피
             }
 
             return true;
@@ -1838,6 +1945,86 @@ class TransferSystem {
         this.aiTeamBudgets = saveData.aiTeamBudgets || this.aiTeamBudgets || {};
         this.aiTeamWageBudgets = saveData.aiTeamWageBudgets || this.aiTeamWageBudgets || {};
         this.initializeTeamBudgets();
+    }
+
+    // 선수 마음 흔들기: 언플
+    doMediaPlay(playerName, playerOriginalTeam, inChat = false) {
+        if (!gameData || !gameData.selectedTeam) return alert("게임을 시작해야 합니다.");
+        
+        const cost = 50; // 언플 비용 (예: 50억)
+        const currentMoney = window.GameState ? window.GameState.get().teamMoney : gameData.teamMoney;
+        if (currentMoney < cost) {
+            if (inChat) this.addChatMessage('system', `자금이 부족하여 언론에 유출할 수 없습니다. (필요 자금: ${cost}억)`);
+            else alert(`자금이 부족합니다. (필요 자금: ${cost}억)`);
+            return;
+        }
+
+        if (window.GameState) window.GameState.spendTeamMoney(cost);
+        else gameData.teamMoney -= cost;
+        updateDisplay();
+
+        const playerKey = `${playerName}_${playerOriginalTeam}`;
+        const transferOffers = window.GameState ? window.GameState.ensureTransferOffers() : (gameData.transferOffers ||= {});
+        if (!transferOffers[playerKey]) transferOffers[playerKey] = { attempts: 0, lastFailedMatch: -100, favorability: 0 };
+        const offerData = transferOffers[playerKey];
+
+        // 성공 여부 판별 (구단 명성이나 운에 따라)
+        const success = Math.random() >= 0.5; // 50% 성공
+        if (success) {
+            offerData.favorability = (offerData.favorability || 0) + 0.15; // 15% 상승
+            const msg = `성공! 언론 플레이를 통해 ${playerName} 선수의 관심을 끌었습니다. (이적 수락 확률 대폭 상승)`;
+            if (inChat) this.addChatMessage('system', msg);
+            else alert(msg);
+            
+            if (typeof snsManager !== 'undefined') {
+                snsManager.addPost("transferRumor", { playerName: playerName, teamName: teamNames[gameData.selectedTeam], newTeam: teamNames[gameData.selectedTeam] });
+                
+                // 루머 포스트(새로 추가된 템플릿)를 바로 올려줍니다.
+                const content = `[루머] ${teamNames[gameData.selectedTeam]}가 ${playerName} 을 최우선 영입 대상으로 삼았습니다.`;
+                snsManager.posts.unshift({
+                    id: snsManager.postIdCounter++,
+                    type: "transferRumor",
+                    content: content,
+                    time: "방금 전",
+                    likes: Math.floor(Math.random() * 500) + 50
+                });
+                if (document.getElementById('sns').classList.contains('active')) {
+                    snsManager.renderPosts();
+                }
+            }
+        } else {
+            offerData.favorability = (offerData.favorability || 0) - 0.1; // 10% 하락
+            const msg = `실패... 지나친 언론 플레이로 인해 ${playerName} 선수가 반감을 가졌습니다. (이적 수락 확률 하락)`;
+            if (inChat) this.addChatMessage('system', msg);
+            else alert(msg);
+        }
+        
+        if (window.GameState) window.GameState.setTransferOffer(playerKey, offerData);
+    }
+
+    // 선수 마음 흔들기: 친목질 (설득)
+    doSocialize(playerName, playerOriginalTeam, inChat = false, persuaderName = "") {
+        if (!gameData || !gameData.selectedTeam) return alert("게임을 시작해야 합니다.");
+
+        const playerKey = `${playerName}_${playerOriginalTeam}`;
+        const transferOffers = window.GameState ? window.GameState.ensureTransferOffers() : (gameData.transferOffers ||= {});
+        if (!transferOffers[playerKey]) transferOffers[playerKey] = { attempts: 0, lastFailedMatch: -100, favorability: 0 };
+        const offerData = transferOffers[playerKey];
+
+        const success = Math.random() > 0.3; // 70% 성공
+        if (success) {
+            offerData.favorability = (offerData.favorability || 0) + 0.07; // 7% 상승
+            const msg = `성공! ${persuaderName} 선수가 같은 국가 대표팀 인맥을 활용해 ${playerName} 선수를 설득했습니다. (수락 확률 상승)`;
+            if (inChat) this.addChatMessage('system', msg);
+            else alert(msg);
+        } else {
+            offerData.favorability = (offerData.favorability || 0) - 0.05; // 5% 하락
+            const msg = `실패... ${playerName} 선수가 ${persuaderName} 선수의 설득을 부담스러워 합니다. (수락 확률 하락)`;
+            if (inChat) this.addChatMessage('system', msg);
+            else alert(msg);
+        }
+
+        if (window.GameState) window.GameState.setTransferOffer(playerKey, offerData);
     }
 }
 

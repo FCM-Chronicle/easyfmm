@@ -66,7 +66,8 @@ class PlayerGrowthSystem {
                     remainingGrowth: growthPotential,
                     monthlyGrowth: monthlyGrowth,
                     growthMonths: growthMonths,
-                    lastGrowthCheck: Date.now()
+                    lastGrowthCheck: Date.now(),
+                    history: [{ match: 0, rating: Math.round(player.rating * 10) / 10 }]
                 });
 
                 console.log(`${player.name}: 성장 가능성 ${growthPotential}, 성장 기간 ${growthMonths}개월, 월별 성장 ${monthlyGrowth.toFixed(2)}`);
@@ -210,9 +211,34 @@ class PlayerGrowthSystem {
         return gameData.matchesPlayed > 0 && gameData.matchesPlayed % 3 === 0;
     }
 
-    // 성장량 계산 (월별 성장량 그대로 사용)
+    _getPlayerMatchPerformanceBonus(playerName) {
+        let bonus = 1.0;
+        if (!window.recordsSys || !window.recordsSys.playerStats) return bonus;
+        const s = window.recordsSys.playerStats.get(playerName);
+        if (s) {
+            const m = Math.max(1, s.matches || 1);
+            bonus += (s.goals || 0) * 0.08 / m;
+            bonus += (s.assists || 0) * 0.06 / m;
+            bonus += (s.moms || 0) * 0.18;
+            bonus += (s.totw || 0) * 0.08;
+        }
+        return Math.max(0.2, Math.min(2.0, bonus));
+    }
+
+    _getPlayerAppearanceFactor(player) {
+        if (!gameData || !gameData.squad) return 1.0;
+        const sq = gameData.squad;
+        const first11 = [sq.gk, ...sq.df, ...sq.mf, ...sq.fw].filter(Boolean);
+        const name = player.name;
+        const isStarter = first11.some(p => p && p.name === name);
+        if (isStarter) return 1.15;
+        const teamPlayers = teams[gameData.selectedTeam] || [];
+        const isInTeam = teamPlayers.some(p => p.name === name);
+        return isInTeam ? 0.85 : 0.2;
+    }
+
+    // 성장량 계산 (월별 성장량 그대로 사용 + 출장/성적 보정)
     calculateGrowthAmount(player, growthInfo) {
-        // 12개월로 나눈 월별 성장량 그대로 사용
         let growthAmount = growthInfo.monthlyGrowth;
 
         // [신규] 롱타임 모드일 경우 성장 속도 40% 감속
@@ -220,11 +246,19 @@ class PlayerGrowthSystem {
             growthAmount *= 0.6;
         }
 
+        // [신규] 출장 여부 보정: 선발 1.15x / 후보 0.85x / 방출위기 0.2x
+        growthAmount *= this._getPlayerAppearanceFactor(player);
+
+        // [신규] 경기 성적 보정: 득점/어시/MOM/TOTW 기반 ±~2x
+        growthAmount *= this._getPlayerMatchPerformanceBonus(player.name);
+
+        // [신규] 멘토링 보너스
+        growthAmount *= this._getMentoringBonus(player);
+
         // 남은 성장량을 초과하지 않도록
         growthAmount = Math.min(growthAmount, growthInfo.remainingGrowth);
         
-        // [수정] 소수점 단위 성장도 누락 없이 반영되도록 반올림 제거
-        return growthAmount;
+        return Math.max(0, growthAmount);
     }
 
     // 선수가 현재 스쿼드에 포함되어 있는지 확인
@@ -248,33 +282,32 @@ class PlayerGrowthSystem {
         return false;
     }
 
-    // [수정] 성장 적용 (소수점 유지)
+    // [수정] 성장 적용 (소수점 유지 + 성장 이력 기록)
     applyGrowth(player, growthAmount, growthInfo) {
-        // [수정] UI 표시 기준(내림)으로 변경하여 실제 수치가 바뀔 때만 알림
         const oldRating = Math.floor(player.rating);
         
-        // 성장 한계 설정
-        // [수정] 일반 선수는 95까지만 성장 가능 (야말급 대형 유망주도 95가 한계)
         const maxRating = player.isCustom ? 100 : (player.isIcon ? 99 : 95);
+        player.rating = Math.min(maxRating, player.rating + growthAmount);
         
-        player.rating = Math.min(maxRating, player.rating + growthAmount); // 소수점 유지
+        const newRating = Math.floor(player.rating);
         
-        const newRating = Math.floor(player.rating); // 표시는 정수로
-        
-        // 남은 성장량 차감
         growthInfo.remainingGrowth = Math.max(0, growthInfo.remainingGrowth - growthAmount);
         growthInfo.currentRating = newRating;
         growthInfo.lastGrowthCheck = Date.now();
 
-        // 성장 알림 (실제로 올랐을 때만)
+        if (!growthInfo.history) growthInfo.history = [];
+        growthInfo.history.push({
+            match: gameData.matchesPlayed || 0,
+            rating: Math.round(player.rating * 10) / 10
+        });
+        if (growthInfo.history.length > 40) growthInfo.history.shift();
+
         if (newRating > oldRating) {
             this.showGrowthNotification(player, oldRating, newRating);
         }
 
-        // 성장 데이터 업데이트
         this.growthData.set(player.name, growthInfo);
 
-        // 성장 완료 시 데이터 제거
         if (growthInfo.remainingGrowth <= 0) {
             this.growthData.delete(player.name);
             console.log(`${player.name}의 성장이 완료되어 성장 데이터에서 제거되었습니다.`);
@@ -429,13 +462,73 @@ class PlayerGrowthSystem {
                 remainingGrowth: growthPotential,
                 monthlyGrowth: monthlyGrowth,
                 growthMonths: growthMonths,
-                lastGrowthCheck: Date.now()
+                lastGrowthCheck: Date.now(),
+                history: [{ match: gameData.matchesPlayed || 0, rating: Math.round(player.rating * 10) / 10 }]
             });
 
             console.log(`🌟 유망주 콜업: ${player.name}에게 성장 가능성 ${growthPotential} 부여 완료 (성장 기간 ${growthMonths}개월, 콜업 보너스 +${callUpBonus})`);
             return true;
         }
         return false;
+    }
+
+    // 멘토링 보너스 계산: 멘티(25세 미만)이 베테랑 멘토(28세 이상 & 오버롤 80+)와 같은 팀일 때 성장률 업
+    _findMentorFor(mentee) {
+        if (!gameData || !gameData.selectedTeam) return null;
+        if (mentee.age >= 25) return null;
+        const myTeam = teams[gameData.selectedTeam] || [];
+        const candidates = myTeam.filter(p =>
+            p.name !== mentee.name &&
+            p.age >= 28 &&
+            (p.rating || 0) >= 80
+        );
+        if (candidates.length === 0) return null;
+        candidates.sort((a, b) => {
+            const aScore = (a.rating || 0) * 0.6 + Math.max(0, a.age - 28) * 0.4 +
+                ((a.position === mentee.position) ? 10 : 0) +
+                ((a.country && mentee.country && a.country === mentee.country) ? 8 : 0);
+            const bScore = (b.rating || 0) * 0.6 + Math.max(0, b.age - 28) * 0.4 +
+                ((b.position === mentee.position) ? 10 : 0) +
+                ((b.country && mentee.country && b.country === mentee.country) ? 8 : 0);
+            return bScore - aScore;
+        });
+        return candidates[0];
+    }
+
+    _getMentoringBonus(player) {
+        const mentor = this._findMentorFor(player);
+        if (!mentor) return 1.0;
+        const base = 1.08;
+        const samePosBonus = (mentor.position === player.position) ? 0.05 : 0;
+        const sameCountryBonus = (mentor.country && player.country && mentor.country === player.country) ? 0.04 : 0;
+        const ratingDiffBonus = Math.max(0, Math.min(0.08, ((mentor.rating || 0) - (player.rating || 0)) * 0.005));
+        return Math.min(1.35, base + samePosBonus + sameCountryBonus + ratingDiffBonus);
+    }
+
+    // 우리 팀 멘토링 현황 요약 (성장 탭에서 표시)
+    getTeamMentoringSummary() {
+        if (!gameData || !gameData.selectedTeam) return [];
+        const myTeam = teams[gameData.selectedTeam] || [];
+        const mentees = myTeam.filter(p => this.growthData.has(p.name) && p.age < 25);
+        const out = [];
+        mentees.forEach(mentee => {
+            const mentor = this._findMentorFor(mentee);
+            if (mentor) {
+                const bonus = Math.round((this._getMentoringBonus(mentee) - 1) * 100);
+                out.push({
+                    menteeName: mentee.name,
+                    menteePosition: mentee.position,
+                    menteeRating: Math.round(mentee.rating),
+                    mentorName: mentor.name,
+                    mentorPosition: mentor.position,
+                    mentorRating: Math.round(mentor.rating),
+                    samePosition: mentor.position === mentee.position,
+                    sameCountry: !!(mentor.country && mentee.country && mentor.country === mentee.country),
+                    bonusPct: bonus
+                });
+            }
+        });
+        return out.sort((a, b) => b.bonusPct - a.bonusPct);
     }
 
     // [수정] 우리 팀 선수 오버롤 정수 처리 (삭제 또는 비활성화)
@@ -449,7 +542,7 @@ class PlayerGrowthSystem {
         return this.growthData.get(playerName) || null;
     }
 
-    // 팀의 모든 선수 성장 정보 조회
+    // 팀의 모든 선수 성장 정보 조회 (성장그래프를 위해 history 포함)
     getTeamGrowthSummary() {
         if (!gameData.selectedTeam) return [];
 
@@ -459,7 +552,7 @@ class PlayerGrowthSystem {
         teamPlayers.forEach(player => {
             if (this.growthData.has(player.name)) {
                 const growthInfo = this.growthData.get(player.name);
-                const currentRating = Math.round(player.rating);
+                const currentRating = Math.round(player.rating * 10) / 10;
                 const maxPotential = currentRating + growthInfo.remainingGrowth;
                 
                 summary.push({
@@ -467,9 +560,11 @@ class PlayerGrowthSystem {
                     position: player.position,
                     age: player.age,
                     currentRating: currentRating,
-                    maxPotential: Math.round(maxPotential),
-                    remainingGrowth: Math.round(growthInfo.remainingGrowth),
-                    monthlyGrowth: Math.round(growthInfo.monthlyGrowth * 10) / 10 // 소수점 1자리
+                    maxPotential: Math.round(maxPotential * 10) / 10,
+                    remainingGrowth: Math.round(growthInfo.remainingGrowth * 10) / 10,
+                    monthlyGrowth: Math.round(growthInfo.monthlyGrowth * 100) / 100,
+                    maxGrowth: growthInfo.maxGrowth,
+                    history: growthInfo.history || [{ match: 0, rating: currentRating }]
                 });
             }
         });
@@ -482,26 +577,199 @@ class PlayerGrowthSystem {
         this.growthData.clear();
     }
 
-    // 저장 데이터 준비
-    getSaveData() {
-        const saveData = {};
-        this.growthData.forEach((value, key) => {
-            saveData[key] = {
-                currentRating: value.currentRating,
-                maxGrowth: value.maxGrowth,
-                remainingGrowth: value.remainingGrowth,
-                monthlyGrowth: value.monthlyGrowth,
-                lastGrowthCheck: value.lastGrowthCheck
-            };
-        });
-        return saveData;
+    // ============ 성장 탭 UI 렌더러 ============
+    _selectedGrowthPlayer = null;
+    _growthChartInstance = null;
+
+    renderGrowthTab() {
+        const listEl = document.getElementById('growthPlayerList');
+        const mentoringListEl = document.getElementById('mentoringList');
+        const badgeEl = document.getElementById('growth-count-badge');
+        const emptyEl = document.getElementById('growthEmpty');
+        const detailEl = document.getElementById('growthDetail');
+        if (!listEl) return;
+
+        const summary = this.getTeamGrowthSummary();
+        if (badgeEl) badgeEl.textContent = summary.length;
+
+        if (summary.length === 0) {
+            listEl.innerHTML = '<div class="growth-list-empty">아직 성장 중인 선수가 없어요<br>유스 콜업 또는 육성 시스템을 확인해 보세요</div>';
+            if (emptyEl) { emptyEl.style.display = 'flex'; emptyEl.querySelector('h4').textContent = '아직 성장 데이터가 없어요'; }
+            if (detailEl) detailEl.style.display = 'none';
+        } else {
+            listEl.innerHTML = summary.map(s => `
+                <div class="growth-player-item ${this._selectedGrowthPlayer === s.name ? 'active' : ''}" data-name="${s.name}">
+                    <div class="growth-player-main">
+                        <div class="growth-player-avatar">${this._posEmoji(s.position)}</div>
+                        <div class="growth-player-info">
+                            <strong>${s.name}</strong>
+                            <div class="growth-player-sub">${s.position} · ${s.age}세 · ${s.currentRating} → ${s.maxPotential}</div>
+                        </div>
+                    </div>
+                    <div class="growth-player-progress">
+                        <div class="player-progress-bar"><div style="width:${Math.min(100, Math.round((s.maxGrowth - s.remainingGrowth) / Math.max(0.1, s.maxGrowth) * 100))}%"></div></div>
+                        <span>+${s.monthlyGrowth.toFixed(2)}/턴</span>
+                    </div>
+                </div>
+            `).join('');
+
+            listEl.querySelectorAll('.growth-player-item').forEach(el => {
+                el.addEventListener('click', () => {
+                    const name = el.dataset.name;
+                    this._selectedGrowthPlayer = name;
+                    this.renderGrowthTab();
+                });
+            });
+        }
+
+        const mentoringSummary = this.getTeamMentoringSummary();
+        if (mentoringListEl) {
+            if (mentoringSummary.length === 0) {
+                mentoringListEl.innerHTML = `<div class="mentoring-empty" style="color:#aaa; font-size:0.85rem; padding:10px 4px;">멘토링 진행 중인 쌍이 없어요<br>28세 이상·80+ 오버롤 베테랑이 있으면 자동 매칭됩니다.</div>`;
+            } else {
+                mentoringListEl.innerHTML = mentoringSummary.map(m => `
+                    <div class="mentoring-item">
+                        <div class="mentoring-pair">
+                            <span class="mentee-tag">멘티</span>
+                            <strong>${m.menteeName}</strong>
+                            <span class="mentee-pos">(${m.menteePosition})</span>
+                        </div>
+                        <div class="mentoring-arrow">⬇️</div>
+                        <div class="mentoring-pair">
+                            <span class="mentor-tag">멘토</span>
+                            <strong>${m.mentorName}</strong>
+                            <span class="mentor-pos">(${m.mentorPosition})</span>
+                        </div>
+                        <div class="mentoring-badge-row">
+                            ${m.samePosition ? '<span class="mentoring-chip good">동일 포지션</span>' : ''}
+                            ${m.sameCountry ? '<span class="mentoring-chip good">동일 국적</span>' : ''}
+                            <span class="mentoring-chip bonus">+${m.bonusPct}% 성장</span>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        const selectedSummary = summary.find(s => s.name === this._selectedGrowthPlayer) || summary[0];
+        if (selectedSummary) {
+            if (emptyEl) emptyEl.style.display = 'none';
+            if (detailEl) detailEl.style.display = 'block';
+            this._renderGrowthDetail(selectedSummary);
+        } else {
+            if (emptyEl) emptyEl.style.display = 'flex';
+            if (detailEl) detailEl.style.display = 'none';
+        }
     }
 
-    // 저장 데이터 로드
-    loadSaveData(saveData) {
-        this.growthData.clear();
-        Object.entries(saveData).forEach(([key, value]) => {
-            this.growthData.set(key, value);
+    _posEmoji(pos) {
+        if (pos === 'GK') return '🧤';
+        if (pos === 'DF') return '🛡️';
+        if (pos === 'MF') return '🎯';
+        if (pos === 'FW') return '⚡';
+        return '👤';
+    }
+
+    _renderGrowthDetail(s) {
+        const tEl = document.getElementById('growthPlayerTitle');
+        const mEl = document.getElementById('growthPlayerMeta');
+        const cEl = document.getElementById('growthStatCurrent');
+        const pEl = document.getElementById('growthStatPotential');
+        const rEl = document.getElementById('growthStatRemain');
+        const rateEl = document.getElementById('growthStatRate');
+        const pFill = document.getElementById('growthProgressFill');
+        const pText = document.getElementById('growthProgressText');
+
+        if (tEl) tEl.textContent = `${this._posEmoji(s.position)} ${s.name}`;
+        if (mEl) mEl.textContent = `${s.position} | ${s.age}세 | 최대 잠재 성장량 +${s.maxGrowth}`;
+        if (cEl) cEl.textContent = s.currentRating;
+        if (pEl) pEl.textContent = s.maxPotential;
+        if (rEl) rEl.textContent = `+${s.remainingGrowth}`;
+        if (rateEl) rateEl.textContent = `+${s.monthlyGrowth.toFixed(2)}/3경기`;
+
+        const progressPct = Math.max(0, Math.min(100, Math.round((s.maxGrowth - s.remainingGrowth) / Math.max(0.1, s.maxGrowth) * 100)));
+        if (pFill) pFill.style.width = progressPct + '%';
+        if (pText) pText.textContent = progressPct + '% 진행 (' + (s.maxGrowth - s.remainingGrowth).toFixed(1) + ' / ' + s.maxGrowth + ')';
+
+        this._renderChart(s);
+    }
+
+    _renderChart(s) {
+        const canvas = document.getElementById('growthChartCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        if (this._growthChartInstance) {
+            try { this._growthChartInstance.destroy(); } catch (e) { /* noop */ }
+            this._growthChartInstance = null;
+        }
+        const ChartCtor = window.Chart;
+        if (!ChartCtor) {
+            ctx.fillStyle = '#444';
+            ctx.font = '14px sans-serif';
+            ctx.fillText('Chart.js 라이브러리를 불러올 수 없습니다.', 10, 30);
+            return;
+        }
+        const hist = (s.history && s.history.length > 0) ? s.history : [{ match: 0, rating: s.currentRating }];
+        const labels = hist.map(h => `#${h.match}`);
+        const dataVals = hist.map(h => h.rating);
+        const minY = Math.max(40, Math.floor(Math.min.apply(null, dataVals) - 3));
+        const maxY = Math.min(100, Math.ceil(Math.max.apply(null, dataVals) + 3));
+
+        this._growthChartInstance = new ChartCtor(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: `${s.name} 오버롤 추이`,
+                    data: dataVals,
+                    borderColor: '#f39c12',
+                    backgroundColor: 'rgba(243, 156, 18, 0.15)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.35,
+                    pointBackgroundColor: '#fff',
+                    pointBorderColor: '#f39c12',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }, {
+                    label: `목표 잠재력 (${s.maxPotential})`,
+                    data: labels.map(() => s.maxPotential),
+                    borderColor: '#2ecc71',
+                    borderDash: [6, 4],
+                    borderWidth: 2,
+                    fill: false,
+                    pointRadius: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: { color: '#ddd', font: { size: 12 } }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(20, 20, 30, 0.95)',
+                        borderColor: '#f39c12',
+                        borderWidth: 1,
+                        titleColor: '#fff',
+                        bodyColor: '#eee'
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: { color: '#aaa', maxRotation: 0, autoSkipPadding: 12 },
+                        grid: { color: 'rgba(255,255,255,0.04)' }
+                    },
+                    y: {
+                        min: minY,
+                        max: maxY,
+                        ticks: { color: '#aaa', stepSize: 1 },
+                        grid: { color: 'rgba(255,255,255,0.05)' }
+                    }
+                }
+            }
         });
     }
 }

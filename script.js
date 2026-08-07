@@ -1214,6 +1214,12 @@ function showTab(tabName) {
             }
             break;
 
+        case 'growth': // 성장 현황 탭
+            if (typeof playerGrowthSystem !== 'undefined' && typeof playerGrowthSystem.renderGrowthTab === 'function') {
+                playerGrowthSystem.renderGrowthTab();
+            }
+            break;
+
         default:
             console.log(`Unknown tab: ${tabName}`);
             break;
