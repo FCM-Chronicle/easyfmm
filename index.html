@@ -1591,6 +1591,8 @@
             color: #ffd700;
         }
 
+
+
         @media (max-width: 1024px) {
             .team-selection-ui {
                 height: auto;
@@ -1877,6 +1879,75 @@
         .sns-comment-author {
             font-weight: 700;
             margin-right: 8px;
+        }
+
+        /* 멘토 지정 드롭다운 스타일 */
+        .mentor-select-wrap {
+            position: relative;
+            flex: 1;
+        }
+
+        .mentor-select {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            width: 100%;
+            padding: 12px 40px 12px 14px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #fff;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+        }
+
+        .mentor-select:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 215, 0, 0.4);
+        }
+
+        .mentor-select:focus {
+            outline: none;
+            border-color: #ffd700;
+            box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.15);
+        }
+
+        .mentor-select option {
+            background: #1a1a2e;
+            color: #fff;
+            padding: 10px;
+        }
+
+        .mentor-select-wrap::after {
+            content: '▾';
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #ffd700;
+            pointer-events: none;
+            font-size: 0.85rem;
+        }
+
+        .mentor-assign-btn {
+            padding: 12px 20px;
+            border-radius: 12px;
+            border: none;
+            background: linear-gradient(135deg, #ffd700, #f39c12);
+            color: #1a1a1a;
+            font-weight: 800;
+            font-size: 0.9rem;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(243, 156, 18, 0.35);
+            transition: transform 0.15s, box-shadow 0.15s;
+            white-space: nowrap;
+        }
+
+        .mentor-assign-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(243, 156, 18, 0.5);
         }
     </style>
 </head>
@@ -2291,35 +2362,44 @@
                         </div>
                         <div id="growthDetail" class="growth-detail" style="display:none;">
                             <div class="growth-detail-header">
-                            <div class="growth-detail-player">
-                                <h4 id="growthPlayerTitle">선수 이름</h4>
-                                <p id="growthPlayerMeta" style="color:#aaa;"></p>
-                            </div>
-                            <div class="growth-detail-stats">
-                                <div class="stat-card">
-                                    <span class="stat-label">현재 오버롤</span>
-                                    <span id="growthStatCurrent" class="stat-value gold">-</span>
+                                <div class="growth-detail-player">
+                                    <h4 id="growthPlayerTitle">선수 이름</h4>
+                                    <p id="growthPlayerMeta" style="color:#aaa;"></p>
                                 </div>
-                                <div class="stat-card">
-                                    <span class="stat-label">예상 최종</span>
-                                    <span id="growthStatPotential" class="stat-value green">-</span>
+                                <div class="growth-detail-stats">
+                                    <div class="stat-card">
+                                        <span class="stat-label">현재 오버롤</span>
+                                        <span id="growthStatCurrent" class="stat-value gold">-</span>
+                                    </div>
+                                    <div class="stat-card">
+                                        <span class="stat-label">예상 최종</span>
+                                        <span id="growthStatPotential" class="stat-value green">-</span>
+                                    </div>
+                                    <div class="stat-card">
+                                        <span class="stat-label">잔여 성장</span>
+                                        <span id="growthStatRemain" class="stat-value">-</span>
+                                    </div>
+                                    <div class="stat-card">
+                                        <span class="stat-label">기간당 성장률</span>
+                                        <span id="growthStatRate" class="stat-value">-</span>
+                                    </div>
                                 </div>
-                                <div class="stat-card">
-                                    <span class="stat-label">잔여 성장</span>
-                                    <span id="growthStatRemain" class="stat-value">-</span>
-                                </div>
-                                <div class="stat-card">
-                                    <span class="stat-label">기간당 성장률</span>
-                                    <span id="growthStatRate" class="stat-value">-</span>
-                                </div>
-                            </div>
                             </div>
                             <div class="growth-chart-wrap">
                                 <canvas id="growthChartCanvas"></canvas>
                             </div>
+
+                            <div class="mentor-assign-section"
+                                style="margin:16px 0; padding:14px; background:rgba(255,255,255,0.05); border-radius:10px;">
+                                <h4 style="margin:0 0 10px; color:#ffd700; font-size:1rem;">🤝 멘토 지정</h4>
+                                <div id="mentorAssignUI"></div>
+                            </div>
+
                             <div class="growth-progress-wrap">
                                 <span class="stat-label">전체 성장 진행도</span>
-                                <div class="growth-progress-bar"><div id="growthProgressFill" class="growth-progress-fill"></div></div>
+                                <div class="growth-progress-bar">
+                                    <div id="growthProgressFill" class="growth-progress-fill"></div>
+                                </div>
                                 <span id="growthProgressText" style="color:#aaa;font-size:0.85rem;">0%</span>
                             </div>
                         </div>

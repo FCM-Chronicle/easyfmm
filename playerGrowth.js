@@ -7,41 +7,41 @@ class PlayerGrowthSystem {
         // [이동] 고정 포텐셜 명단 (이름: 목표 오버롤)
         this.fixedPotentials = {
             "오현규": 88,
-    "김민수": 92,
-    "배준호": 90,
-    "앙제요안 보니": 88,
-    "조반니 레오니": 93,
-    "트레이 뇨니": 86,
-    "프란치스코 카마르다": 95,
-    "옌스 카스트로프": 92,
-    "조브 벨링엄": 92,
-    "제라르 마르틴": 84,
-    "마르크 베르날": 85,
-    "루니 바르다그지": 83,
-    "파우 쿠바르시": 94,
-    "엔드릭": 90,
-    "리코 루이스": 83,
-    "코비 마이누": 88,
-    "아론 바우만": 91,
-    "요르디 무키오": 84,
-    "부바 상가레": 90,
-    "루카 부슈코비치": 94,
-    "에단 은와네리": 86,
-    "조시 아체암퐁": 87,
-    "맥스 다우먼": 93,
-    "리오 응구모하": 90,
-    "레나르트 칼": 95,
-    "배승균": 92,
-    "윤도영": 87,
-    "강상윤": 92,
-    "디스 얀서": 89,
-    "켄드리 파에스": 89,
-        "아산 우에드라오고": 92,
-        "백인우": 87,
-        "대릴 바콜라": 86,
-        "파트리크 도르구": 92,
-        "파쿤도 부오나오테": 87,
-        "미카 고츠": 88,
+            "김민수": 92,
+            "배준호": 90,
+            "앙제요안 보니": 88,
+            "조반니 레오니": 93,
+            "트레이 뇨니": 86,
+            "프란치스코 카마르다": 92,
+            "옌스 카스트로프": 92,
+            "조브 벨링엄": 92,
+            "제라르 마르틴": 84,
+            "마르크 베르날": 85,
+            "루니 바르다그지": 83,
+            "파우 쿠바르시": 93,
+            "엔드릭": 90,
+            "리코 루이스": 83,
+            "코비 마이누": 88,
+            "아론 바우만": 91,
+            "요르디 무키오": 84,
+            "부바 상가레": 90,
+            "루카 부슈코비치": 94,
+            "에단 은와네리": 86,
+            "조시 아체암퐁": 87,
+            "맥스 다우먼": 93,
+            "리오 응구모하": 90,
+            "레나르트 칼": 95,
+            "배승균": 92,
+            "윤도영": 87,
+            "강상윤": 92,
+            "디스 얀서": 89,
+            "켄드리 파에스": 89,
+            "아산 우에드라오고": 92,
+            "백인우": 87,
+            "대릴 바콜라": 86,
+            "파트리크 도르구": 92,
+            "파쿤도 부오나오테": 87,
+            "미카 고츠": 88,
         };
     }
 
@@ -50,16 +50,16 @@ class PlayerGrowthSystem {
         if (!gameData.selectedTeam) return;
 
         const teamPlayers = teams[gameData.selectedTeam];
-        
+
         teamPlayers.forEach(player => {
             // [수정] 25세 미만만 성장 (25세 이상은 성장 안함)
             if (player.age < 25 && !this.growthData.has(player.name)) {
                 const growthPotential = this.calculateGrowthPotential(player);
-                
+
                 // [수정] 포텐셜에 따라 성장 기간을 3~12개월로 다르게 설정
                 const growthMonths = Math.max(3, Math.min(12, Math.round(growthPotential / 2.5)));
                 const monthlyGrowth = growthPotential / growthMonths;
-                
+
                 this.growthData.set(player.name, {
                     currentRating: Math.round(player.rating),
                     maxGrowth: growthPotential,
@@ -88,7 +88,7 @@ class PlayerGrowthSystem {
         // [밸런스 수정] 기본 성장 폭 하향 (인플레 방지)
         // 기존: 3~13 -> 수정: 2~8
         const baseGrowth = 2 + Math.random() * 8;
-        
+
         // 나이에 따른 보정
         let ageModifier = 1;
         if (player.age <= 18) {
@@ -100,7 +100,7 @@ class PlayerGrowthSystem {
         } else if (player.age <= 25) {
             ageModifier = 0.8;
         }
-        
+
         // 현재 능력치에 따른 보정
         let ratingModifier = 1;
         const currentRating = Math.round(player.rating);
@@ -110,7 +110,7 @@ class PlayerGrowthSystem {
             ratingModifier = 1.4;
         } else if (currentRating >= 88) {
             // [밸런스 수정] 88 이상부터는 성장 속도 급감 (95 도달 어렵게)
-            ratingModifier = 0.3; 
+            ratingModifier = 0.3;
             // 단, 21세 이하의 초신성(Wonderkid)은 페널티를 완화하여 95 도달 가능성을 열어줌
             if (player.age <= 21) {
                 ratingModifier = 0.6; // 초신성 보너스 (성장 둔화 완화)
@@ -132,7 +132,7 @@ class PlayerGrowthSystem {
         if (player.isIcon) {
             teamModifier = 1.5;
             console.log(`⭐ 아이콘 ${player.name}에게 전설적인 성장 보너스 적용`);
-        }   
+        }
 
         // 커스텀 선수 특별 보너스
         if (player.isCustom) {
@@ -147,7 +147,7 @@ class PlayerGrowthSystem {
         }
 
         let finalGrowth = Math.round(baseGrowth * ageModifier * ratingModifier * teamModifier * wonderkidBonus);
-        
+
         // 세륜중학교 선수들은 최소 성장 보장
         if (gameData.selectedTeam === 'seryu3') {
             finalGrowth = Math.max(finalGrowth, 15);
@@ -167,7 +167,7 @@ class PlayerGrowthSystem {
         // [신규] 최종 포텐셜 상한선 체크 (일반 선수는 95를 넘기 힘들게)
         const projectedRating = currentRating + finalGrowth;
         const hardCap = player.isCustom || player.isIcon ? 100 : 95;
-        
+
         if (projectedRating > hardCap) {
             return Math.max(0, hardCap - currentRating);
         }
@@ -184,10 +184,10 @@ class PlayerGrowthSystem {
         teamPlayers.forEach(player => {
             if (this.growthData.has(player.name)) {
                 const growthInfo = this.growthData.get(player.name);
-                
+
                 if (this.shouldPlayerGrow(player, growthInfo)) {
                     const growthAmount = this.calculateGrowthAmount(player, growthInfo);
-                    
+
                     if (growthAmount > 0) {
                         this.applyGrowth(player, growthAmount, growthInfo);
                         growthOccurred = true;
@@ -257,40 +257,40 @@ class PlayerGrowthSystem {
 
         // 남은 성장량을 초과하지 않도록
         growthAmount = Math.min(growthAmount, growthInfo.remainingGrowth);
-        
+
         return Math.max(0, growthAmount);
     }
 
     // 선수가 현재 스쿼드에 포함되어 있는지 확인
     isPlayerInSquad(player) {
         const squad = gameData.squad;
-        
+
         if (squad.gk && squad.gk.name === player.name) return true;
-        
+
         for (let df of squad.df) {
             if (df && df.name === player.name) return true;
         }
-        
+
         for (let mf of squad.mf) {
             if (mf && mf.name === player.name) return true;
         }
-        
+
         for (let fw of squad.fw) {
             if (fw && fw.name === player.name) return true;
         }
-        
+
         return false;
     }
 
     // [수정] 성장 적용 (소수점 유지 + 성장 이력 기록)
     applyGrowth(player, growthAmount, growthInfo) {
         const oldRating = Math.floor(player.rating);
-        
+
         const maxRating = player.isCustom ? 100 : (player.isIcon ? 99 : 95);
         player.rating = Math.min(maxRating, player.rating + growthAmount);
-        
+
         const newRating = Math.floor(player.rating);
-        
+
         growthInfo.remainingGrowth = Math.max(0, growthInfo.remainingGrowth - growthAmount);
         growthInfo.currentRating = newRating;
         growthInfo.lastGrowthCheck = Date.now();
@@ -318,7 +318,7 @@ class PlayerGrowthSystem {
     showGrowthNotification(player, oldRating, newRating) {
         const growthAmount = newRating - oldRating;
         let message = `🌟 ${player.name}의 능력치가 상승했습니다!\n${oldRating} → ${newRating} (+${growthAmount})`;
-        
+
         setTimeout(() => {
             alert(message);
         }, 1000);
@@ -329,7 +329,7 @@ class PlayerGrowthSystem {
     // 우리 팀 평균 오버롤 계산
     calculateTeamAverageRating() {
         if (!gameData.selectedTeam) return 75;
-        
+
         const teamPlayers = teams[gameData.selectedTeam]; // Best 11 로직은 아님 (전체 평균)
         const totalRating = teamPlayers.reduce((sum, player) => sum + Math.round(player.rating), 0);
         return Math.round(totalRating / teamPlayers.length);
@@ -341,21 +341,21 @@ class PlayerGrowthSystem {
         if (gameData.matchesPlayed % 5 !== 0) return;
 
         console.log("🤖 AI 선수 성장 프로세스 시작...");
-        
+
         // 유저 팀 평균 오버롤 계산 (비교용)
         const userTeamAvg = this.calculateTeamAverageRating();
-        
+
         Object.keys(teams).forEach(teamKey => {
             if (teamKey !== gameData.selectedTeam) {
                 const teamPlayers = teams[teamKey];
-                
+
                 // AI 팀 평균 오버롤 계산
                 const aiTeamAvg = Math.round(teamPlayers.reduce((sum, p) => sum + p.rating, 0) / teamPlayers.length);
-                
+
                 // 밸런싱 계수 (유저 팀과의 격차에 따라 성장 속도 조절)
                 let balanceFactor = 1.0;
                 const diff = aiTeamAvg - userTeamAvg;
-                
+
                 // [수정] 5시즌 내 유저 최강팀 등극을 위한 밸런싱 (압도적 차이는 방지)
                 if (diff > 2) {
                     balanceFactor = 0.4; // AI가 유저보다 강하면 성장 대폭 둔화 (유저 추격 지원)
@@ -382,29 +382,29 @@ class PlayerGrowthSystem {
                         // 1. 나이 보정 (어릴수록 빠름)
                         if (player.age <= 20) growthAmount *= 1.5;
                         else if (player.age <= 23) growthAmount *= 1.2;
-                        
+
                         // 2. 현재 능력치 보정 (낮을수록 빨리 큼 - 캐치업)
                         if (player.rating < 70) growthAmount *= 1.3;
                         else if (player.rating > 90) growthAmount *= 0.5; // 고능력치는 성장 둔화
-                        
+
                         // 3. 밸런싱 계수 적용 (신규)
                         growthAmount *= balanceFactor;
-                        
+
                         // AI 프레스티지 선수 보너스
                         const isPrestigePlayer = gameData.aiPrestige && gameData.aiPrestige[teamKey] && gameData.aiPrestige[teamKey].includes(player.name);
-                        
+
                         if (isPrestigePlayer) {
                             growthAmount += 0.5; // 프레스티지 추가 보너스
                         }
 
                         // 소수점 1자리까지 허용
                         growthAmount = Math.round(growthAmount * 10) / 10;
-                        
+
                         // AI 선수 성장 적용
                         const oldRating = player.rating;
                         const newRating = Math.min(99, player.rating + growthAmount);
                         player.rating = Math.round(newRating * 10) / 10; // 소수점 1자리
-                        
+
                         // 로그 출력 (성장폭이 0.5 이상일 때만)
                         if (growthAmount >= 0.5) {
                             console.log(`📈 ${player.name} (${teamNames[teamKey] || teamKey}): ${oldRating.toFixed(1)} -> ${player.rating.toFixed(1)} (+${growthAmount}) [밸런스: x${balanceFactor}]`);
@@ -420,7 +420,7 @@ class PlayerGrowthSystem {
         Object.keys(teams).forEach(teamKey => {
             teams[teamKey].forEach(player => {
                 player.age++;
-                
+
                 // 26세 이상이 되면 성장 데이터 제거
                 if (this.growthData.has(player.name) && player.age > 25) {
                     const growthInfo = this.growthData.get(player.name);
@@ -431,7 +431,7 @@ class PlayerGrowthSystem {
                 }
             });
         });
-        
+
         console.log(`✅ 시즌 종료 후 남은 성장 중인 선수: ${this.growthData.size}명`);
     }
 
@@ -447,15 +447,15 @@ class PlayerGrowthSystem {
     grantPotentialToPlayer(player) {
         if (player.age < 25 && !this.growthData.has(player.name)) {
             let growthPotential = this.calculateGrowthPotential(player);
-            
+
             // 유스 콜업 보너스: 3~6 추가
             const callUpBonus = 3 + Math.floor(Math.random() * 4);
             growthPotential += callUpBonus;
-            
+
             // [수정] 포텐셜에 따라 성장 기간을 3~12개월로 다르게 설정
             const growthMonths = Math.max(3, Math.min(12, Math.round(growthPotential / 2.5)));
             const monthlyGrowth = growthPotential / growthMonths;
-            
+
             this.growthData.set(player.name, {
                 currentRating: Math.round(player.rating),
                 maxGrowth: growthPotential,
@@ -472,27 +472,33 @@ class PlayerGrowthSystem {
         return false;
     }
 
-    // 멘토링 보너스 계산: 멘티(25세 미만)이 베테랑 멘토(28세 이상 & 오버롤 80+)와 같은 팀일 때 성장률 업
-    _findMentorFor(mentee) {
-        if (!gameData || !gameData.selectedTeam) return null;
-        if (mentee.age >= 25) return null;
-        const myTeam = teams[gameData.selectedTeam] || [];
-        const candidates = myTeam.filter(p =>
-            p.name !== mentee.name &&
-            p.age >= 28 &&
-            (p.rating || 0) >= 80
+    // [수동 매칭] 멘토 배정
+    assignMentor(menteeName, mentorName) {
+        if (!gameData.mentoringPairs) gameData.mentoringPairs = [];
+        // 기존 멘토링 관계 제거 (1:1 보장, 한 선수가 멘토이면서 멘티일 수 없음)
+        gameData.mentoringPairs = gameData.mentoringPairs.filter(p =>
+            p.mentee !== menteeName && p.mentor !== menteeName &&
+            p.mentee !== mentorName && p.mentor !== mentorName
         );
-        if (candidates.length === 0) return null;
-        candidates.sort((a, b) => {
-            const aScore = (a.rating || 0) * 0.6 + Math.max(0, a.age - 28) * 0.4 +
-                ((a.position === mentee.position) ? 10 : 0) +
-                ((a.country && mentee.country && a.country === mentee.country) ? 8 : 0);
-            const bScore = (b.rating || 0) * 0.6 + Math.max(0, b.age - 28) * 0.4 +
-                ((b.position === mentee.position) ? 10 : 0) +
-                ((b.country && mentee.country && b.country === mentee.country) ? 8 : 0);
-            return bScore - aScore;
-        });
-        return candidates[0];
+        gameData.mentoringPairs.push({ mentee: menteeName, mentor: mentorName });
+        this.renderGrowthTab();
+    }
+
+    // [수동 매칭] 멘토 배정 해제
+    removeMentor(menteeName) {
+        if (!gameData.mentoringPairs) return;
+        gameData.mentoringPairs = gameData.mentoringPairs.filter(p => p.mentee !== menteeName);
+        this.renderGrowthTab();
+    }
+
+    // 수동으로 매칭된 멘토 찾기
+    _findMentorFor(mentee) {
+        if (!gameData || !gameData.selectedTeam || !gameData.mentoringPairs) return null;
+        const pair = gameData.mentoringPairs.find(p => p.mentee === mentee.name);
+        if (!pair) return null;
+
+        const myTeam = teams[gameData.selectedTeam] || [];
+        return myTeam.find(p => p.name === pair.mentor) || null;
     }
 
     _getMentoringBonus(player) {
@@ -509,25 +515,34 @@ class PlayerGrowthSystem {
     getTeamMentoringSummary() {
         if (!gameData || !gameData.selectedTeam) return [];
         const myTeam = teams[gameData.selectedTeam] || [];
-        const mentees = myTeam.filter(p => this.growthData.has(p.name) && p.age < 25);
         const out = [];
-        mentees.forEach(mentee => {
-            const mentor = this._findMentorFor(mentee);
-            if (mentor) {
-                const bonus = Math.round((this._getMentoringBonus(mentee) - 1) * 100);
-                out.push({
-                    menteeName: mentee.name,
-                    menteePosition: mentee.position,
-                    menteeRating: Math.round(mentee.rating),
-                    mentorName: mentor.name,
-                    mentorPosition: mentor.position,
-                    mentorRating: Math.round(mentor.rating),
-                    samePosition: mentor.position === mentee.position,
-                    sameCountry: !!(mentor.country && mentee.country && mentor.country === mentee.country),
-                    bonusPct: bonus
-                });
-            }
-        });
+
+        // gameData.mentoringPairs 순회
+        if (gameData.mentoringPairs) {
+            // 유효하지 않은 쌍(이적 등으로 선수가 팀에 없는 경우)을 정리하기 위해 필터링
+            gameData.mentoringPairs = gameData.mentoringPairs.filter(pair => {
+                const mentee = myTeam.find(p => p.name === pair.mentee);
+                const mentor = myTeam.find(p => p.name === pair.mentor);
+
+                if (mentee && mentor) {
+                    const bonus = Math.round((this._getMentoringBonus(mentee) - 1) * 100);
+                    out.push({
+                        menteeName: mentee.name,
+                        menteePosition: mentee.position,
+                        menteeRating: Math.round(mentee.rating),
+                        mentorName: mentor.name,
+                        mentorPosition: mentor.position,
+                        mentorRating: Math.round(mentor.rating),
+                        samePosition: mentor.position === mentee.position,
+                        sameCountry: !!(mentor.country && mentee.country && mentor.country === mentee.country),
+                        bonusPct: bonus
+                    });
+                    return true;
+                }
+                return false; // 둘 중 하나라도 팀에 없으면 쌍 삭제
+            });
+        }
+
         return out.sort((a, b) => b.bonusPct - a.bonusPct);
     }
 
@@ -554,7 +569,7 @@ class PlayerGrowthSystem {
                 const growthInfo = this.growthData.get(player.name);
                 const currentRating = Math.round(player.rating * 10) / 10;
                 const maxPotential = currentRating + growthInfo.remainingGrowth;
-                
+
                 summary.push({
                     name: player.name,
                     position: player.position,
@@ -625,7 +640,7 @@ class PlayerGrowthSystem {
         const mentoringSummary = this.getTeamMentoringSummary();
         if (mentoringListEl) {
             if (mentoringSummary.length === 0) {
-                mentoringListEl.innerHTML = `<div class="mentoring-empty" style="color:#aaa; font-size:0.85rem; padding:10px 4px;">멘토링 진행 중인 쌍이 없어요<br>28세 이상·80+ 오버롤 베테랑이 있으면 자동 매칭됩니다.</div>`;
+                mentoringListEl.innerHTML = `<div class="mentoring-empty" style="color:#aaa; font-size:0.85rem; padding:10px 4px;">멘토링 진행 중인 쌍이 없어요<br>28세 이상 베테랑이 있으면 수동 매칭 가능합니다.</div>`;
             } else {
                 mentoringListEl.innerHTML = mentoringSummary.map(m => `
                     <div class="mentoring-item">
@@ -689,6 +704,55 @@ class PlayerGrowthSystem {
         const progressPct = Math.max(0, Math.min(100, Math.round((s.maxGrowth - s.remainingGrowth) / Math.max(0.1, s.maxGrowth) * 100)));
         if (pFill) pFill.style.width = progressPct + '%';
         if (pText) pText.textContent = progressPct + '% 진행 (' + (s.maxGrowth - s.remainingGrowth).toFixed(1) + ' / ' + s.maxGrowth + ')';
+
+        // [신규] 멘토 지정 UI 렌더링
+        const mentorUI = document.getElementById('mentorAssignUI');
+        if (mentorUI) {
+            const currentMentor = this._findMentorFor({ name: s.name });
+            if (currentMentor) {
+                mentorUI.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <span style="color:#aaa; font-size:0.9rem;">현재 멘토:</span>
+                            <strong style="margin-left:8px; font-size:1.1rem;">${currentMentor.name}</strong> (${currentMentor.position})
+                        </div>
+                        <button class="btn btn-danger" onclick="playerGrowthSystem.removeMentor('${s.name}')" style="padding:5px 10px; font-size:0.9rem;">해제</button>
+                    </div>
+                `;
+            } else {
+                const myTeam = teams[gameData.selectedTeam] || [];
+                const availableMentors = myTeam.filter(p =>
+                    p.age >= 28 &&
+                    (!gameData.mentoringPairs || !gameData.mentoringPairs.some(pair => pair.mentor === p.name || pair.mentee === p.name))
+                );
+
+                if (availableMentors.length > 0) {
+                    const options = availableMentors.map(m =>
+                        `<option value="${m.name}">${this._posEmoji(m.position)} ${m.name} · ${m.position} · OVR ${Math.round(m.rating)} · ${m.age}세</option>`
+                    ).join('');
+
+                    mentorUI.innerHTML = `
+                    <div style="display:flex; flex-direction:column; gap:10px;">
+                        <span style="color:#aaa; font-size:0.9rem;">멘토 지정 (28세 이상 베테랑)</span>
+                        <div style="display:flex; gap:10px;">
+                            <div class="mentor-select-wrap">
+                                <select id="mentorSelect_${s.name}" class="mentor-select">
+                                    ${options}
+                                </select>
+                            </div>
+                            <button class="mentor-assign-btn" onclick="playerGrowthSystem.assignMentor('${s.name}', document.getElementById('mentorSelect_${s.name}').value)">배정</button>
+                        </div>
+                    </div>
+                `;
+                } else {
+                    mentorUI.innerHTML = `
+                    <div style="color:#aaa; font-size:0.9rem; text-align:center;">
+                        배정 가능한 멘토가 없습니다. (28세 이상 베테랑 필요)
+                    </div>
+                `;
+                }
+            }
+        }
 
         this._renderChart(s);
     }
@@ -786,7 +850,7 @@ function initializePlayerGrowth() {
 function processPostMatchGrowth() {
     playerGrowthSystem.processPlayerGrowth();
     playerGrowthSystem.processAllTeamsGrowth();
-    
+
     // [신규] 성장으로 인한 주급 변동 반영
     if (typeof calculateTotalWages === 'function') calculateTotalWages();
 
@@ -806,25 +870,24 @@ function advancePlayerAges() {
 // 성장 정보 표시 함수
 function showGrowthSummary() {
     const summary = playerGrowthSystem.getTeamGrowthSummary();
-    
+
     if (summary.length === 0) {
         alert("현재 성장 중인 선수가 없습니다.");
         return;
     }
-    
+
     let message = `📈 선수 성장 현황\n\n`;
-    
+
     summary.forEach((player, index) => {
         message += `${index + 1}. ${player.name} (${player.age}세)\n`;
         message += `   현재: ${player.currentRating} → 최대: ${player.maxPotential}\n`;
         message += `   남은 성장: ${player.remainingGrowth} (월 +${player.monthlyGrowth})\n\n`;
     });
-    
+
     alert(message);
 }
-    
+
 // 경기 종료 후 성장 처리를 전역으로 노출
 window.processPostMatchGrowth = processPostMatchGrowth;
 window.showGrowthSummary = showGrowthSummary;
 window.playerGrowthSystem = playerGrowthSystem;
-    

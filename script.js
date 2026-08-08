@@ -45,6 +45,7 @@ let gameData = {
     secretaryName: "김지수", // [신규] 비서 이름 (secretary.js에서 사용)
     losingStreak: 0, // [신규] 연패 기록
     userTransferList: [], // [신규] 유저가 이적 명단에 올린 선수들
+    mentoringPairs: [], // [신규] 유저가 수동으로 설정한 1:1 멘토링 관계 배열 {mentor: 'Name', mentee: 'Name'}
     chatState: {
         activeContactId: 'secretary',
         threads: {}
@@ -1032,7 +1033,7 @@ function showTab(tabName) {
     document.getElementById('tab-content-area').style.display = 'block';
     document.getElementById('homeBtn').style.display = 'block'; // 홈 버튼 표시
     const lobbyTabs = document.getElementById('main-tabs');
-    if (lobbyTabs) lobbyTabs.style.display = 'flex';
+    if (lobbyTabs) lobbyTabs.style.display = 'none'; // 상단 탭 숨김 처리
 
     // 기존 탭 로직 유지
 
@@ -4786,9 +4787,21 @@ function renderDashboard() {
     });
     const settingsCard = createDashboardCard('⚙️ 설정 / 저장', 'settings', () => `<div style="text-align:center;">게임 저장 및 불러오기</div>`);
 
+    const growthCard = createDashboardCard('📈 성장 현황', 'growth', () => {
+        const growingCount = gameData.playerGrowthData ? Object.keys(gameData.playerGrowthData).length : 0;
+        return `
+            <div style="text-align: center; display: flex; flex-direction: column; justify-content: center; height: 100%;">
+                <div style="font-size: 0.9rem; color: #aaa;">성장 중인 선수</div>
+                <div style="font-size: 1.5rem; font-weight: bold; color: #3498db; margin: 10px 0;">${growingCount}명</div>
+                <div style="font-size: 0.8rem; color: #aaa;">잠재력을 폭발시키세요</div>
+            </div>
+        `;
+    });
+
     container.appendChild(nextMatchCard);
     container.appendChild(leagueCard);
     container.appendChild(squadCard);
+    container.appendChild(growthCard);
     container.appendChild(transferCard);
     container.appendChild(tacticsCard);
     container.appendChild(sponsorCard);
