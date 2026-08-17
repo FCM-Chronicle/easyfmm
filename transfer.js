@@ -70,8 +70,8 @@ class TransferSystem {
             { "name": "오현규", "position": "FW", "country": "대한민국", "rating": 75, "age": 23, "team": "외부리그" },
             { "name": "폴 포그바", "position": "MF", "country": "프랑스", "rating": 80, "age": 32, "team": "외부리그" },
             { "name": "황희찬", "position": "FW", "country": "대한민국", "rating": 82, "age": 29, "team": "외부리그" },
-            { "name": "델레 알리", "position": "MF", "country": "잉글랜드", "rating": 79, "age": 29, "team": "외부리그" }
-
+            { "name": "델레 알리", "position": "MF", "country": "잉글랜드", "rating": 79, "age": 29, "team": "외부리그" },
+            { "name": "니코 파스", "position": "MF", "country": "아르헨티나", "rating": 85, "age": 21, "team": "외부리그" },
         ];
     }
 
@@ -390,7 +390,7 @@ class TransferSystem {
             : Math.max(0.2, parseFloat((Math.pow(player.rating / 75, 5) * 0.9).toFixed(2)));
 
         const wagePressure = offeredWeeklyWage / baseWage;
-        
+
         // 너무 낮은 주급 제안 (기준 주급의 60% 미만)은 노예계약으로 간주하여 호감도 무관하게 무조건 거절 (확률 0)
         if (wagePressure < 0.6) {
             return 0;
@@ -724,7 +724,7 @@ class TransferSystem {
             qBtnSocial.className = 'btn';
             qBtnSocial.style.flex = '1';
             qBtnSocial.style.fontSize = '0.8rem';
-            
+
             if (persuader) {
                 qBtnSocial.style.background = '#2ecc71';
                 qBtnSocial.innerText = `${persuader.name}을(를) 통해 설득하기`;
@@ -1950,7 +1950,7 @@ class TransferSystem {
     // 선수 마음 흔들기: 언플
     doMediaPlay(playerName, playerOriginalTeam, inChat = false) {
         if (!gameData || !gameData.selectedTeam) return alert("게임을 시작해야 합니다.");
-        
+
         const cost = 50; // 언플 비용 (예: 50억)
         const currentMoney = window.GameState ? window.GameState.get().teamMoney : gameData.teamMoney;
         if (currentMoney < cost) {
@@ -1975,10 +1975,10 @@ class TransferSystem {
             const msg = `성공! 언론 플레이를 통해 ${playerName} 선수의 관심을 끌었습니다. (이적 수락 확률 대폭 상승)`;
             if (inChat) this.addChatMessage('system', msg);
             else alert(msg);
-            
+
             if (typeof snsManager !== 'undefined') {
                 snsManager.addPost("transferRumor", { playerName: playerName, teamName: teamNames[gameData.selectedTeam], newTeam: teamNames[gameData.selectedTeam] });
-                
+
                 // 루머 포스트(새로 추가된 템플릿)를 바로 올려줍니다.
                 const content = `[루머] ${teamNames[gameData.selectedTeam]}가 ${playerName} 을 최우선 영입 대상으로 삼았습니다.`;
                 snsManager.posts.unshift({
@@ -1998,7 +1998,7 @@ class TransferSystem {
             if (inChat) this.addChatMessage('system', msg);
             else alert(msg);
         }
-        
+
         if (window.GameState) window.GameState.setTransferOffer(playerKey, offerData);
     }
 

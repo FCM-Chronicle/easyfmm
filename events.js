@@ -58,12 +58,12 @@ class EventManager {
             { id: 3, text: "응원가 떼창: 서포터즈가 전용 응원가를 만들었습니다.", target: 'random', effect: { morale: 3, rating: 1 }, desc: "선수가 힘을 냅니다." },
             { id: 4, text: "서포터즈 난투극: 우리 팬들과 상대 팬들이 다퉜습니다.", effect: { morale: -2, rating: 0 }, desc: "팀 분위기가 어수선합니다." },
             { id: 5, text: "훈련장 간식차: 팬클럽에서 간식차를 보냈습니다.", effect: { morale: 3, rating: 1 }, desc: "선수들이 에너지를 회복했습니다." },
-            
+
             // B. 락커룸 시트콤 (선수 개인)
             { id: 11, text: "얼굴 낙서: 낮잠 자던 선수의 얼굴에 누군가 고양이 수염을 그렸습니다.", target: 'random', effect: { morale: 3, rating: 0 }, desc: "팀 분위기가 화기애애합니다." },
             { id: 14, text: "락커룸 댄스 배틀: 훈련 전 댄스 배틀이 열렸습니다.", effect: { morale: 5, rating: 0 }, desc: "팀워크가 상승했습니다." },
             { id: 15, text: "신발 끈 매듭: 누군가 축구화 끈을 묶어놨습니다.", effect: { morale: 2, rating: 1 }, desc: "가벼운 장난에 팀이 웃었습니다." },
-            
+
             // C. 비서의 밀착 보고
             { id: 26, text: "얼리 버드: 오늘도 새벽에 출근해서 잔디에 물을 주었습니다.", target: 'random', effect: { morale: 0, rating: 1 }, desc: "성실함이 기량에 도움이 될 것입니다." },
             { id: 29, text: "지옥의 셔틀런: 혼자 운동장을 50바퀴 돌았습니다.", target: 'random', effect: { morale: -3, rating: 2 }, desc: "실력은 오르겠지만 체력이 조금 걱정됩니다." },
@@ -75,7 +75,7 @@ class EventManager {
     // 주급 인상 요구 생성
     triggerWageDemand() {
         if (!gameData.selectedTeam) return null;
-        
+
         const teamPlayers = teams[gameData.selectedTeam];
         if (!teamPlayers || teamPlayers.length === 0) return null;
 
@@ -86,7 +86,7 @@ class EventManager {
 
         // 현재 주급을 주급총합 기반으로 대략 추산하거나 랜덤 부여
         // 게임에 선수별 주급이 명확하지 않은 경우, 현재 능력치 비례로 설정
-        const currentWage = randomPlayer.wage || Math.floor(randomPlayer.rating * 1.2); 
+        const currentWage = randomPlayer.wage || Math.floor(randomPlayer.rating * 1.2);
         const demandedWage = Math.floor(currentWage * 1.3); // 약 30% 인상 요구
 
         return {
@@ -102,7 +102,7 @@ class EventManager {
     // 상담/라커룸 랜덤 이벤트 생성
     triggerRandomEvent() {
         const rand = Math.random();
-        
+
         // 50% 확률로 상담 이벤트, 50% 확률로 라커룸 이벤트 발생
         if (rand < 0.5) {
             // 상담 이벤트
@@ -110,7 +110,7 @@ class EventManager {
             const teamPlayers = teams[gameData.selectedTeam];
             const randomPlayer = teamPlayers[Math.floor(Math.random() * teamPlayers.length)];
             const scenario = this.consultingScenarios[Math.floor(Math.random() * this.consultingScenarios.length)];
-            
+
             return {
                 type: 'consulting',
                 player: randomPlayer,
@@ -122,12 +122,12 @@ class EventManager {
             // 라커룸 (자동 통보) 이벤트
             const event = this.lockerRoomEvents[Math.floor(Math.random() * this.lockerRoomEvents.length)];
             let targetPlayer = null;
-            
+
             if (event.target === 'random' && gameData.selectedTeam) {
                 const teamPlayers = teams[gameData.selectedTeam];
                 targetPlayer = teamPlayers[Math.floor(Math.random() * teamPlayers.length)];
             }
-            
+
             return {
                 type: 'locker_room',
                 event: event,
