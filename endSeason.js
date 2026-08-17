@@ -103,14 +103,7 @@ function endSeason(silent = false) {
     }
     
     gameData.teamMoney += reward;
-    
-    // [신규] 시즌 종료 주급 정산 (1년 = 52주)
-    const annualWage = Math.round(gameData.totalWeeklyWage * 52);
-    gameData.teamMoney -= annualWage;
-    
-    if (!silent) {
-        alert(`[연간 재정 보고]\n\n한 시즌 동안 총 ${annualWage}억원의 주급이 지출되었습니다.\n현재 잔액: ${gameData.teamMoney}억원`);
-    }
+
 
     // 2. 올해의 선수상 시상
     let potyMessage = '';

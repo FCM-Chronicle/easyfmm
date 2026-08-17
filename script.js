@@ -1326,7 +1326,7 @@ class CustomCursor {
         }
 
         const isEnabled = gameData.settings && gameData.settings.customCursor !== undefined ? gameData.settings.customCursor : true;
-        
+
         if (isEnabled && this.options.hideDefaultCursor) {
             document.body.classList.add('custom-cursor-active');
         }
@@ -1351,7 +1351,7 @@ class CustomCursor {
         });
 
         this.createCursor();
-        
+
         if (!isEnabled && this.cursorEl) {
             this.cursorEl.style.display = 'none';
         }
@@ -1364,7 +1364,7 @@ class CustomCursor {
         if (gameData.settings) {
             gameData.settings.customCursor = isOn;
         }
-        
+
         if (isOn) {
             document.body.classList.add('custom-cursor-active');
             if (this.cursorEl) this.cursorEl.style.display = 'block';
@@ -2560,6 +2560,7 @@ function loadGame(event) {
             // 기본 게임 데이터 복원
             gameData = saveData.gameData;
             if (!gameData.playerRoles) gameData.playerRoles = {}; // [추가] 구버전 세이브 호환성 보장
+            if (!gameData.mentoringPairs) gameData.mentoringPairs = []; // [추가] 멘토링 세이브 호환성 보장
             if (typeof gameData.wageBudget !== 'number') {
                 gameData.wageBudget = gameData.totalWeeklyWage || 0;
             }
@@ -3473,6 +3474,11 @@ function loadFromSlot(slotNumber) {
 
         // 기본 게임 데이터 복원
         gameData = saveData.gameData;
+        if (!gameData.playerRoles) gameData.playerRoles = {};
+        if (!gameData.mentoringPairs) gameData.mentoringPairs = [];
+        if (typeof gameData.wageBudget !== 'number') {
+            gameData.wageBudget = gameData.totalWeeklyWage || 0;
+        }
         ensureMatchDramaDefaults();
         console.log('gameData 복원 완료');
 
@@ -4661,7 +4667,6 @@ function renderDashboard() {
                 <div style="font-size: 2.2rem; font-weight: bold; color: #f1c40f; margin: 5px 0;">${gameData.teamMoney}억</div>
                 <div style="font-size: 1rem; color: #4fc3f7; font-weight: bold;">주급 자금: ${gameData.wageBudget}억</div>
                 <div style="font-size: 1.1rem; color: #e74c3c; font-weight: bold;">주급: ${gameData.totalWeeklyWage}억</div>
-                <div style="font-size: 0.75rem; color: #aaa; margin-top: 5px;">연간 예상 지출: ${Math.round(gameData.totalWeeklyWage * 52)}억</div>
             </div>
         `;
     });
@@ -4924,10 +4929,10 @@ function renderChatTab() {
                 </div>
                 <div class="chat-contact-list">
                     ${contacts.map(contact => {
-                        const contactThread = getChatThread(contact.id);
-                        const lastMessage = contactThread.length > 0 ? contactThread[contactThread.length - 1].text : contact.description;
-                        const isActive = contact.id === activeContact.id;
-                        return `
+        const contactThread = getChatThread(contact.id);
+        const lastMessage = contactThread.length > 0 ? contactThread[contactThread.length - 1].text : contact.description;
+        const isActive = contact.id === activeContact.id;
+        return `
                             <button class="chat-contact ${isActive ? 'active' : ''}" onclick="switchChatContact('${contact.id}')">
                                 <div class="chat-contact-avatar" style="background:${contact.color};">${contact.avatar}</div>
                                 <div class="chat-contact-body">
@@ -4939,7 +4944,7 @@ function renderChatTab() {
                                 </div>
                             </button>
                         `;
-                    }).join('')}
+    }).join('')}
                 </div>
             </aside>
 
@@ -5018,7 +5023,7 @@ const CHAT_TEMPLATES = {
         { q: '포메이션 추천해줘', a: '📐 포메이션 가이드:\n• 4-3-3: 기본형, 공격과 수비 밸런스 좋음\n• 4-4-2: 전통적인 밸런스형, 미드필더 많음\n• 3-5-2: 윙백 활용, 공격적\n• 5-3-2: 수비 중시, 상대 강팀 상대\n\n💡 꿀팁: 우리 팀의 포지션별 선수 깊이에 맞춰 고르세요' },
         { q: '전술 뭘 고를까요', a: '🏆 높은 리그라면(혹은 강팀이라면):\n토탈 풋볼 추천\n2. 약한 리그라면\n 마음대로(토탈 풋볼제외)' },
         { q: '치트 쓰는법', a: '치트:\n1. json으로 내보낸 후 값을 변경하세요(게임터질수도)\n2. 설정에서 포텐 확인이 가능합니다!' },
-        ],
+    ],
     owner: [
         { q: '예산 여유 있어?', a: '💵 예산 운영 원칙:\n• 팀 자금은 이적료와 주급 예산으로 나눠서 생각하세요\n• 스폰서 승점 보너스가 가장 큰 수입입니다\n\n💡 꿀팁: 팀 오버롤을 높여서 더 높은 스폰서와 계약하세요' },
         { q: '이적료 협상 가능?', a: '🤝 이적 협상 노하우:\n1. 선수 능력치, 나이, 남은 계약기간이 가격을 결정합니다\n2. 꼭 협상을 하세요\n3. 너무 비싼 선수는 돈모아서 사세요 그때가 제일 쌉니다\n\n💡 꿀팁: 20세 이하 유망주는 가격대비 쌉니다' },

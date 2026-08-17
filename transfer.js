@@ -2287,7 +2287,12 @@ function loadGameWithTransfer(event) {
     reader.onload = function (e) {
         try {
             const saveData = JSON.parse(e.target.result);
-            gameData = saveData.gameData;
+            gameData = saveData.gameData || {};
+            if (!gameData.playerRoles) gameData.playerRoles = {};
+            if (!gameData.mentoringPairs) gameData.mentoringPairs = [];
+            if (typeof gameData.wageBudget !== 'number') {
+                gameData.wageBudget = gameData.totalWeeklyWage || 0;
+            }
 
             // 팀 데이터 복원
             if (saveData.teams) {
@@ -2300,8 +2305,13 @@ function loadGameWithTransfer(event) {
             }
 
             // 선수 성장 데이터 복원
-            if (gameData.playerGrowthData && typeof playerGrowthSystem !== 'undefined') {
-                playerGrowthSystem.loadSaveData(gameData.playerGrowthData);
+            if (typeof playerGrowthSystem !== 'undefined') {
+                const growthDataToLoad = saveData.growthData || gameData.playerGrowthData;
+                if (growthDataToLoad) {
+                    playerGrowthSystem.loadSaveData(growthDataToLoad);
+                } else if (typeof playerGrowthSystem.initializePlayerGrowth === 'function') {
+                    playerGrowthSystem.initializePlayerGrowth();
+                }
             }
 
             // 화면 업데이트

@@ -477,7 +477,7 @@ class PlayerGrowthSystem {
         if (!gameData.mentoringPairs) gameData.mentoringPairs = [];
         // 기존 멘토링 관계 제거 (1:1 보장, 한 선수가 멘토이면서 멘티일 수 없음)
         gameData.mentoringPairs = gameData.mentoringPairs.filter(p =>
-            p.mentee !== menteeName && p.mentor !== menteeName &&
+            p && p.mentee !== menteeName && p.mentor !== menteeName &&
             p.mentee !== mentorName && p.mentor !== mentorName
         );
         gameData.mentoringPairs.push({ mentee: menteeName, mentor: mentorName });
@@ -487,21 +487,22 @@ class PlayerGrowthSystem {
     // [수동 매칭] 멘토 배정 해제
     removeMentor(menteeName) {
         if (!gameData.mentoringPairs) return;
-        gameData.mentoringPairs = gameData.mentoringPairs.filter(p => p.mentee !== menteeName);
+        gameData.mentoringPairs = gameData.mentoringPairs.filter(p => p && p.mentee !== menteeName);
         this.renderGrowthTab();
     }
 
     // 수동으로 매칭된 멘토 찾기
     _findMentorFor(mentee) {
-        if (!gameData || !gameData.selectedTeam || !gameData.mentoringPairs) return null;
-        const pair = gameData.mentoringPairs.find(p => p.mentee === mentee.name);
+        if (!mentee || !gameData || !gameData.selectedTeam || !gameData.mentoringPairs || !Array.isArray(gameData.mentoringPairs)) return null;
+        const pair = gameData.mentoringPairs.find(p => p && p.mentee === mentee.name);
         if (!pair) return null;
 
         const myTeam = teams[gameData.selectedTeam] || [];
-        return myTeam.find(p => p.name === pair.mentor) || null;
+        return myTeam.find(p => p && p.name === pair.mentor) || null;
     }
 
     _getMentoringBonus(player) {
+        if (!player) return 1.0;
         const mentor = this._findMentorFor(player);
         if (!mentor) return 1.0;
         const base = 1.08;
@@ -514,25 +515,27 @@ class PlayerGrowthSystem {
     // 우리 팀 멘토링 현황 요약 (성장 탭에서 표시)
     getTeamMentoringSummary() {
         if (!gameData || !gameData.selectedTeam) return [];
+        if (!gameData.mentoringPairs) gameData.mentoringPairs = [];
         const myTeam = teams[gameData.selectedTeam] || [];
         const out = [];
 
         // gameData.mentoringPairs 순회
-        if (gameData.mentoringPairs) {
+        if (Array.isArray(gameData.mentoringPairs)) {
             // 유효하지 않은 쌍(이적 등으로 선수가 팀에 없는 경우)을 정리하기 위해 필터링
             gameData.mentoringPairs = gameData.mentoringPairs.filter(pair => {
-                const mentee = myTeam.find(p => p.name === pair.mentee);
-                const mentor = myTeam.find(p => p.name === pair.mentor);
+                if (!pair || !pair.mentee || !pair.mentor) return false;
+                const mentee = myTeam.find(p => p && p.name === pair.mentee);
+                const mentor = myTeam.find(p => p && p.name === pair.mentor);
 
                 if (mentee && mentor) {
                     const bonus = Math.round((this._getMentoringBonus(mentee) - 1) * 100);
                     out.push({
                         menteeName: mentee.name,
-                        menteePosition: mentee.position,
-                        menteeRating: Math.round(mentee.rating),
+                        menteePosition: mentee.position || '',
+                        menteeRating: Math.round(mentee.rating || 0),
                         mentorName: mentor.name,
-                        mentorPosition: mentor.position,
-                        mentorRating: Math.round(mentor.rating),
+                        mentorPosition: mentor.position || '',
+                        mentorRating: Math.round(mentor.rating || 0),
                         samePosition: mentor.position === mentee.position,
                         sameCountry: !!(mentor.country && mentee.country && mentor.country === mentee.country),
                         bonusPct: bonus
@@ -590,6 +593,30 @@ class PlayerGrowthSystem {
     // 성장 시스템 리셋
     resetGrowthSystem() {
         this.growthData.clear();
+    }
+
+    // 성장 데이터 저장
+    getSaveData() {
+        return {
+            growthData: Array.from(this.growthData.entries())
+        };
+    }
+
+    // 성장 데이터 로드 (구버전 세이브 파일 및 다양한 저장 형식 지원)
+    loadSaveData(data) {
+        this.growthData.clear();
+        if (!data) return;
+
+        if (data.growthData && Array.isArray(data.growthData)) {
+            this.growthData = new Map(data.growthData);
+        } else if (Array.isArray(data)) {
+            this.growthData = new Map(data);
+        } else if (typeof data === 'object') {
+            const entries = Object.entries(data).filter(([k, v]) => k !== 'growthData' && typeof v === 'object');
+            if (entries.length > 0) {
+                this.growthData = new Map(entries);
+            }
+        }
     }
 
     // ============ 성장 탭 UI 렌더러 ============
