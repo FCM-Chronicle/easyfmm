@@ -120,9 +120,11 @@ const DeepTacticManager = {
             gameData.deepTactics = {
                 attackFocus: 'mixed', passStyle: { shortRatio: 7, longRatio: 3 },
                 pressIntensity: 'mid', defensiveLine: 'standard',
-                passTempo: 'normal', passLength: 'mixed'
+                passTempo: 'normal', passLength: 'mixed',
+                attackStyle: 'mixed'
             };
         }
+        if (!gameData.deepTactics.attackStyle) gameData.deepTactics.attackStyle = 'mixed';
         migrateDeepTactics();
         this.renderUI();
     },
@@ -138,24 +140,25 @@ const DeepTacticManager = {
         }
         const dt = gameData.deepTactics;
         const opts = (k, arr) => arr.map(([v, l]) => `<option value="${v}"${dt[k] === v ? ' selected' : ''}>${l}</option>`).join('');
+        const fields = [
+            ['defensiveLine', '수비 라인', [['deep', '딥 (Deep)'], ['standard', '표준'], ['high', '하이 (High)']]],
+            ['pressIntensity', '압박 강도', [['low', '낮음'], ['mid', '보통'], ['high', '높음']]],
+            ['passTempo', '패스 템포', [['slow', '느림'], ['normal', '보통'], ['fast', '빠름']]],
+            ['passLength', '패스 길이', [['short', '짧게'], ['mixed', '혼합'], ['long', '길게']]],
+            ['attackStyle', '⚡ 공격 전개', [['counter', '역습 (Counter)'], ['mixed', '혼합 (Mixed)'], ['possession', '지공 (Possession)']]]
+        ];
         c.innerHTML = `
             <h4 style="color:#ffd700;margin-top:0;">심층 전술 세부 설정</h4>
-            ${['defensiveLine', [['deep', '딥 (Deep)'], ['standard', '표준'], ['high', '하이 (High)']],
-                'pressIntensity', [['low', '낮음'], ['mid', '보통'], ['high', '높음']],
-                'passTempo', [['slow', '느림'], ['normal', '보통'], ['fast', '빠름']],
-                'passLength', [['short', '짧게'], ['mixed', '혼합'], ['long', '길게']]
-            ].reduce((s, _, i, a) => i % 2 ? s : s + `
+            ${fields.map(([k, label, options]) => `
             <div style="margin-bottom:10px;">
-                <label style="display:block;margin-bottom:4px;color:#ccc;">
-                    ${a[i] === 'defensiveLine' ? '수비 라인' : a[i] === 'pressIntensity' ? '압박 강도' : a[i] === 'passTempo' ? '패스 템포' : '패스 길이'}
-                </label>
-                <select id="dt-${a[i]}" style="width:100%;padding:5px;background:#333;color:white;">
-                    ${opts(a[i], a[i + 1])}
+                <label style="display:block;margin-bottom:4px;color:#ccc;">${label}</label>
+                <select id="dt-${k}" style="width:100%;padding:5px;background:#333;color:white;">
+                    ${opts(k, options)}
                 </select>
-            </div>`, '')}
+            </div>`).join('')}
             <div style="color:#aaa;font-size:0.8rem;">* 설정은 자동 적용됩니다</div>
         `;
-        ['defensiveLine', 'pressIntensity', 'passTempo', 'passLength'].forEach(k => {
+        fields.forEach(([k]) => {
             document.getElementById(`dt-${k}`).addEventListener('change', e => { gameData.deepTactics[k] = e.target.value; });
         });
     }
@@ -677,6 +680,45 @@ class RealSoccerEngine {
         return best ? { target: best, score: bestScore } : null;
     }
 
+    // [NEW] Long Ball target finder (지공 모드 롱킥 시스템)
+    // Finds a FW making a channel run for a long diagonal / switch of play
+    _findLongBallTarget(from, phase) {
+        const isHome = from.teamId === 'home';
+        const tid = from.teamId;
+        const goalX = isHome ? 100 : 0;
+        const candidates = this.players.filter(p =>
+            p.teamId === tid &&
+            p !== from &&
+            p.position === 'FW'
+        );
+        let best = null;
+        let bestScore = -Infinity;
+        for (const to of candidates) {
+            const dist = Math.hypot(from.x - to.x, from.y - to.y);
+            if (dist < 28 || dist > 68) continue;
+            const progressive = isHome ? (to.x - from.x) : (from.x - to.x);
+            if (progressive < 18) continue;
+            // Check space around target
+            const oppNear = this.players.filter(p =>
+                p.teamId !== tid && p.position !== 'GK' &&
+                Math.hypot(p.x - to.x, p.y - to.y) < 14
+            ).length;
+            if (oppNear > 2) continue;
+            let score = progressive * 1.4 - oppNear * 14;
+            // Prefer wide channels for long diagonal
+            if (to.y < 22 || to.y > 78) score += 12;
+            // Burst FW bonus
+            if (to._fwMode === 'burst') score += 35;
+            // Proximity to goal
+            score += Math.max(0, 42 - Math.abs(to.x - goalX)) * 0.6;
+            // Check lane is not too congested
+            const laneBlocked = this._numOpponentsAhead(from, 10, 20) >= 3;
+            if (laneBlocked) score -= 20;
+            if (score > bestScore) { bestScore = score; best = to; }
+        }
+        return best && bestScore > 18 ? { target: best, score: bestScore } : null;
+    }
+
     _chooseDribbleYTarget(player, phase, nDef, preferWide = false) {
         const isHome = player.teamId === 'home';
         const probeX = isHome ? player.x + 12 : player.x - 12;
@@ -770,13 +812,43 @@ class RealSoccerEngine {
             bestPassScore = killerPass.score;
         }
 
+        // [NEW] attackStyle integration
+        const atkStyle = (typeof gameData !== 'undefined' && gameData.deepTactics) ? (gameData.deepTactics.attackStyle || 'mixed') : 'mixed';
+        // Possession mode: try long ball when in progressing/finalThird
+        if (atkStyle === 'possession' && (phase === 'progressing' || phase === 'finalThird' || phase === 'counter')) {
+            const longBall = this._findLongBallTarget(player, phase);
+            if (longBall && longBall.score > bestPassScore - 5) {
+                bestPassTarget = longBall.target;
+                bestPassScore = longBall.score + 18;
+            }
+        }
+        // Counter mode: strongly prefer forward passes, boost burst FW target
+        if (atkStyle === 'counter' && phase === 'counter') {
+            const counterBurst = this.players.find(p =>
+                p.teamId === tid && p._fwMode === 'burst' && p.position === 'FW'
+            );
+            if (counterBurst) {
+                const cs = this._scorePass(player, counterBurst, phase);
+                if (cs > bestPassScore - 12) { bestPassTarget = counterBurst; bestPassScore = cs + 25; }
+            }
+        }
+
+        // [BUG FIX] Emergency shoot: player is right at the goal line
+        // Prevents freeze where player oscillates at x=97-98 and never shoots
+        if (distToGoal <= 6 && player.position !== 'GK') {
+            this._attemptShoot(player, goalX);
+            return;
+        }
+
         if (distToGoal < 30) {
             const sc = this._shootChance(player, goalX, distToGoal);
             const shootScore = sc * 100
                 + (player.position === 'FW' ? 10 : 0)
                 - (bestPassTarget ? Math.max(0, bestPassScore - 38) * 0.5 : 0)
                 - (underPressure ? 8 : 0);
-            if (shootScore >= Math.max(bestPassScore, 42)) {
+            // [TUNED] Higher threshold: prefer box entry over long-range attempts
+            const shootThreshold = distToGoal > 28 ? 72 : (distToGoal > 22 ? 58 : 42);
+            if (shootScore >= Math.max(bestPassScore, shootThreshold)) {
                 this._attemptShoot(player, goalX);
                 return;
             }
@@ -900,7 +972,12 @@ class RealSoccerEngine {
         // Direction: huge forward bonus, hard back/lat penalty in final/progress
         if (forward) score += phase === 'building' ? 22 : (phase === 'progressing' ? 35 : 45);
         else if (later) score += (phase === 'building' ? -5 : -10);
-        else if (back) score += (phase === 'building' ? -22 : -45);
+        else if (back) {
+            // [TUNED] Back passes are dangerous — strong penalty
+            if (phase === 'building') score -= 36;
+            else if (phase === 'progressing') score -= 62;
+            else score -= 78; // finalThird: almost never go back
+        }
         // GK never pass target
         if (to.position === 'GK') score -= 120;
 
@@ -959,15 +1036,38 @@ class RealSoccerEngine {
         }
         // Escape press: favor outlet / diagonal / forward options over lazy backpasses
         if (fromUnderPressure) {
-            if (forward) score += 18;
-            if (back) score -= 24;
-            if (later && dist > 8) score += 6;
-            if (to.position === 'FW') score += 14;
-            else if (to.position === 'MF') score += 8;
-            if (oppNearRecv === 0) score += 10;
-            if (laneBlock === 0 && dist > 10) score += 8;
+            if (forward) score += 22;
+            if (back) score -= 40;  // [TUNED] Under pressure, back pass is very dangerous
+            if (later && dist > 8) score += 8;
+            if (to.position === 'FW') score += 18;
+            else if (to.position === 'MF') score += 12;
+            if (oppNearRecv === 0) score += 14;
+            if (laneBlock === 0 && dist > 10) score += 10;
+            // Bonus for short support pass to free nearby teammate
+            if (dist < 12 && oppNearRecv === 0 && !back) score += 12;
         }
         if (phase !== 'finalThird' && to.position === 'DF' && from.position !== 'DF') score -= 10;
+
+        // [NEW] Wing-to-wing pass: from one wide flank to the opposite wide flank
+        // (e.g., left winger to right winger) — nearly impossible in real football
+        const fromFarLeft  = from.y < 24;
+        const fromFarRight = from.y > 76;
+        const toFarLeft    = to.y < 24;
+        const toFarRight   = to.y > 76;
+        const isOppositeFlanks = (fromFarLeft && toFarRight) || (fromFarRight && toFarLeft);
+        if (isOppositeFlanks) score -= 85; // Hard veto: cross-field winger-to-winger
+
+        // [NEW] MF as playmaker: when MF has ball, boost pass to FW runs
+        if (from.position === 'MF' && to.position === 'FW') {
+            score += 12; // MF naturally looks for FW first
+            if (to._fwMode === 'burst') score += 20; // Extra if FW is already running
+        }
+
+        // [NEW] attackStyle modifiers on pass score
+        const atkStyle2 = (typeof gameData !== 'undefined' && gameData.deepTactics) ? (gameData.deepTactics.attackStyle || 'mixed') : 'mixed';
+        if (atkStyle2 === 'counter' && forward && (phase === 'counter' || phase === 'progressing')) score += 22;
+        if (atkStyle2 === 'possession' && !back) score += 6; // patient: reward safe options
+        if (atkStyle2 === 'possession' && back && phase === 'building') score += 8; // recycling is fine
         return score;
     }
 
@@ -1019,6 +1119,11 @@ class RealSoccerEngine {
         // 메인 전술 반영: tempo 높으면 패스 확률↑(빠른전개), directness 높으면 드리블 대신 전진패스↑
         const profile = this.getTacticProfile(player.teamId);
         p += (profile.tempo - 0.92) * 0.25;
+        // [NEW] attackStyle pass probability modifier
+        const atkStyle3 = dt.attackStyle || 'mixed';
+        if (atkStyle3 === 'counter' && (phase === 'counter' || phase === 'progressing')) p = Math.min(0.98, p + 0.16);
+        if (atkStyle3 === 'possession' && phase === 'building') p = Math.min(0.98, p + 0.14);
+        if (atkStyle3 === 'possession' && underPressure) p = Math.min(0.98, p + 0.10); // quick release under pressure
         return clamp(p, 0.08, 0.98);
     }
 
@@ -1153,9 +1258,12 @@ class RealSoccerEngine {
             moveSpd = 0.75 * clamp(sf, 0.78, 1.8);
         }
 
-        // ABSOLUTE: NO BACKWARD DRIBBLING (kills gameplay!)
-        if (moveDir === 1) targetX = Math.max(targetX, player.x + 6);
-        else targetX = Math.min(targetX, player.x - 6);
+        // NO BACKWARD DRIBBLING: prevent backward movement, but respect pitch boundary clamp
+        // [BUG FIX] When player.x is near 97-98, forcing x+6 would exceed clamp(97), creating
+        // a targetX < player.x situation that causes physics oscillation at the goal line.
+        const boundX_hi = 97, boundX_lo = 3;
+        if (moveDir === 1) targetX = Math.min(boundX_hi, Math.max(targetX, Math.min(player.x + 6, boundX_hi)));
+        else targetX = Math.max(boundX_lo, Math.min(targetX, Math.max(player.x - 6, boundX_lo)));
 
         // Final MF unstuck! If player near MF band edge and free ahead, let pass through
         const isMF = player.position === 'MF';
@@ -1219,13 +1327,20 @@ class RealSoccerEngine {
         else if (shotAngle > 0.85) angleFactor = 0.4;
         else if (shotAngle > 0.6) angleFactor = 0.7;
         else if (shotAngle > 0.4) angleFactor = 0.9;
+        // [BUG FIX] Very close to goal line: angle matters much less (can still tap in)
+        if (dToGoal <= 8) angleFactor = Math.max(angleFactor, 0.5);
 
         let b = 0;
+        // [MODE-AWARE] In fast-forward the goal rate is already fine.
+        // Only boost shoot chance in normal (real-time) mode to prevent perpetual 0:0.
+        const _isFastFwd = (typeof window !== 'undefined' && window.currentMatchData) ? !!window.currentMatchData.isFastForward : false;
+        const _shootMult = _isFastFwd ? 1.0 : 1.35; // ~+35% only in normal mode
         if (dToGoal < 14) b = 0.99;
-        else if (dToGoal < 22) b = clamp(1 / dToGoal * 24, 0.10, 0.90);
-        else if (dToGoal < 32) b = clamp(1 / dToGoal * 15, 0.08, 0.35);
-        else if (dToGoal < 40) b = clamp(1 / dToGoal * 5, 0.02, 0.10);
-        else if (dToGoal < 48) b = 0.04;
+        else if (dToGoal < 22) b = clamp(1 / dToGoal * 30, 0.14, 0.92);
+        else if (dToGoal < 32) b = clamp(1 / dToGoal * 14, 0.08, 0.32); // [TUNED] Long range: reduced
+        else if (dToGoal < 40) b = clamp(1 / dToGoal * 5,  0.02, 0.10); // [TUNED] Very long: rare
+        else if (dToGoal < 48) b = 0.03; // [TUNED] Only top-stat players will try from here
+        b *= _shootMult;
 
         if (player.position === 'FW') b *= 1.5;
 
@@ -1248,8 +1363,10 @@ class RealSoccerEngine {
         }
         const effSh = this.getEffectiveStat(shooter, 'shooting');
         const sp = effSh * (0.8 + Math.random() * 0.4) * dF * aF;
-        const sv = gkV * (0.8 + Math.random() * 0.5) + 5;
-        const goalChance = clamp(0.35 + (sp - sv) * 0.006, 0.10, 0.95);
+        const sv = gkV * (0.7 + Math.random() * 0.45) + 3; // [TUNED] GK slightly less dominant
+        // [TUNED] Raise base (0.35→0.52) and scale (0.006→0.009) for avg 3-5 goal matches
+        // Minimum floor raised to 0.22 so even poor-angle shots go in occasionally
+        const goalChance = clamp(0.52 + (sp - sv) * 0.009, 0.22, 0.95);
         this.ball.state = BallState.IN_FLIGHT;
         this.ball._flightOrigin = { x: shooter.x, y: shooter.y };
         this.ball.owner = null;
@@ -1350,23 +1467,27 @@ class RealSoccerEngine {
     _triggerTurnover(winningTeamId) {
         this._attackProgressX = { home: 0, away: 0 };
         const losing = winningTeamId === 'home' ? 'away' : 'home';
-        // Auto set counter phase for winner briefly
+        const atkStyle = (typeof gameData !== 'undefined' && gameData.deepTactics) ? (gameData.deepTactics.attackStyle || 'mixed') : 'mixed';
+        // Auto set counter phase for winner (duration varies by attackStyle)
         this._phase[winningTeamId] = 'counter';
-        this._phaseTimer[winningTeamId] = 30;
+        const counterDuration = atkStyle === 'counter' ? 65 : (atkStyle === 'possession' ? 8 : 30);
+        this._phaseTimer[winningTeamId] = counterDuration;
         this._attackMemories[winningTeamId] = new Array(8).fill(null);
         this._attackMemIdx[winningTeamId] = 0;
-        // trigger burst for 2 forwards of winning team
+        // trigger burst for forwards of winning team (more bursts in counter, fewer in possession)
+        const burstCount = atkStyle === 'counter' ? 3 : (atkStyle === 'possession' ? 1 : 2);
+        const burstDur = atkStyle === 'counter' ? 48 : 28;
         const toBurst = this.players.filter(p => p.teamId === winningTeamId && (p.position === 'FW' || (p.position === 'MF' && this.getRoleBehavior(p.role).runBehind > 0.6)))
             .sort((a, b) => Math.hypot(b.x - (winningTeamId === 'home' ? 100 : 0), b.y - 50) - Math.hypot(a.x - (winningTeamId === 'home' ? 100 : 0), a.y - 50))
-            .slice(0, 2);
-        for (const p of toBurst) { if (p.position === 'FW') { p._fwMode = 'burst'; p.burstTimer = 28; p._timer = 28; } }
+            .slice(0, burstCount);
+        for (const p of toBurst) { if (p.position === 'FW') { p._fwMode = 'burst'; p.burstTimer = burstDur; p._timer = burstDur; } }
     }
 
     // ─────────────────────────────────────────────────────────────
     //  BALL FLIGHT STEP + INTERCEPTION
     // ─────────────────────────────────────────────────────────────
     _stepBallFlight() {
-        const BS = 4.2;
+        const BS = 4.8; // Slightly faster than original (4.2) but not as extreme as 5.8
         const dx = this.ball.targetPos.x - this.ball.x;
         const dy = this.ball.targetPos.y - this.ball.y;
         const d = Math.hypot(dx, dy);
@@ -1410,7 +1531,8 @@ class RealSoccerEngine {
             const ts = this.getEffectiveStat(p, 'tackle') || this.getEffectiveStat(p, 'defense');
             const ss = this.getEffectiveStat(p, 'speed');
             const pB = Math.max(0, (5.5 - prox) / 5.5);
-            const chance = 0.003 + ts / 4200 + ss / 6500 + pB * 0.02;
+            // [TUNED] Slightly increased interception probability
+            const chance = 0.005 + ts / 3800 + ss / 5800 + pB * 0.030;
             if (Math.random() < chance) {
                 this.ball.state = BallState.CONTROLLED; this.ball.owner = p;
                 this.ball.intendedReceiver = null; this.ball.lastOwner = null;
@@ -1562,15 +1684,23 @@ class RealSoccerEngine {
         if (p._fwMode !== 'burst' && this._fwBurstCooldown <= 0 && isPrimaryRunner) {
             const carriers = this.players.filter(q => q.teamId === tid && this.ball.owner === q);
             const carr = carriers[0];
-            const rightZone = (carr && ((isHome && carr.x > 62 && carr.x < 80) || (!isHome && carr.x < 38 && carr.x > 20)));
+            // [EXPANDED] Original zone: MF zone (x>62). Now also triggers when carrier is MF position
+            // regardless of position — so FWs burst when MF picks up ball in central midfield
+            const rightZone = carr && (
+                (isHome && carr.x > 62 && carr.x < 80) || (!isHome && carr.x < 38 && carr.x > 20)
+            );
+            // [NEW] MF carrier zone: even from deep midfield, FW should make runs
+            const mfCarrierZone = carr && carr.position === 'MF' && (
+                (isHome && carr.x > 50) || (!isHome && carr.x < 50)
+            );
             const burstBiasOk = bhv.runBehind > 0.45;
             const phaseOk = phase === 'progressing' || phase === 'finalThird' || phase === 'counter';
             const laneOpen = !this._numOpponentsAhead(p, 8, 16);
             const carrUnder = carr ? this._isUnderPressure(carr) : false;
-            if (carr && rightZone && burstBiasOk && phaseOk && (laneOpen || carrUnder)) {
+            if (carr && (rightZone || mfCarrierZone) && burstBiasOk && phaseOk && (laneOpen || carrUnder)) {
                 p._fwMode = 'burst';
-                p.burstTimer = 28;
-                p._timer = 28;
+                p.burstTimer = 32; // slightly longer when triggered by MF
+                p._timer = 32;
                 this._fwBurstCooldown = 8;
             }
         }
@@ -1591,7 +1721,7 @@ class RealSoccerEngine {
         // Mode timeout
         if (p._timer <= 0 && p._fwMode !== 'shadow') { p._fwMode = 'shadow'; }
 
-        let tx, ty, ms = 0.35 * clamp(sf, 0.75, 1.6);
+        let tx, ty, ms = 0.46 * clamp(sf, 0.82, 1.75);
 
         // ---- Range normalization helpers: ensure lo <= hi before clamp ----
         // (Fixes stuck tx when offside line dropped below ABS_MIN)
@@ -1600,8 +1730,9 @@ class RealSoccerEngine {
 
         if (p._fwMode === 'burst') {
             // Sprint behind defensive line, just before offside
-            tx = isHome ? hh(defLineX + 10, 55, offX - 1.5)
-                : aa(defLineX - 10, offX + 1.5, 45);
+            // [TUNED] Push 2 units deeper toward goal for more box penetration
+            tx = isHome ? hh(defLineX + 12, 58, offX - 1.5)
+                : aa(defLineX - 12, offX + 1.5, 42);
             // Y: slot based + curve towards goal center
             const curve = Math.sin(p._timer * 0.35) * (this.getRoleBehavior(p.role).hugLine ? 3 : 8);
             ty = clamp(p.slotY + curve + (50 - p.slotY) * 0.15,
@@ -1620,13 +1751,14 @@ class RealSoccerEngine {
             // Shadow mode: DEFENSE LINE SHADOW (1-3 behind D line)
             const sLo = ABS_MIN;
             const sHi = isHome ? Math.max(offX - 2, ABS_MIN) : Math.min(offX + 2, 100 - ABS_MIN);
-            tx = isHome ? hh(defLineX - 3, sLo, sHi)
-                : aa(defLineX + 3, 100 - sHi, 100 - sLo);
+            // [TUNED] Push shadow position closer to goal: +4 compared to original
+            tx = isHome ? hh(defLineX + 1, sLo, sHi)
+                : aa(defLineX - 1, 100 - sHi, 100 - sLo);
             // Y: move into channels between CBs + slight follow ball
             const followW = 0.18;
             ty = clamp(p.slotY + (this.ball.y - 50) * followW, p.slotY - 10, p.slotY + 10);
             if (bhv.hugLine) ty = p.slotY < 50 ? 12 : 88;
-            ms = 0.3 * clamp(sf, 0.7, 1.4);
+            ms = 0.34 * clamp(sf, 0.7, 1.5); // slightly faster shadow movement
         }
 
         if (!isPrimaryRunner) {
@@ -1703,6 +1835,22 @@ class RealSoccerEngine {
             ty = 50 + (p.slotY - 50) * 0.45;
         }
 
+        // [NEW] Support run: if ball carrier is isolated (under pressure), nearby MF drifts closer
+        // to offer a short pass outlet — prevents dangerous backpasses
+        const ballOwner = this.ball.owner;
+        if (ballOwner && ballOwner.teamId === tid && ballOwner !== p) {
+            const carrierIsolated = this._isUnderPressure(ballOwner);
+            const distToCarrier = Math.hypot(p.x - ballOwner.x, p.y - ballOwner.y);
+            const noForwardFree = this._numOpponentsAhead(ballOwner, 8, 18) >= 3;
+            if (carrierIsolated && noForwardFree && distToCarrier > 6 && distToCarrier < 22) {
+                // Move to a support position: slightly behind & to the side of the carrier
+                const supportX = isHome ? Math.min(ballOwner.x - 3, tx) : Math.max(ballOwner.x + 3, tx);
+                const supportY = p.slotY + (ballOwner.y - p.slotY) * 0.5;
+                tx = tx * 0.45 + supportX * 0.55;
+                ty = ty * 0.55 + supportY * 0.45;
+            }
+        }
+
         let ms = 0.38 * clamp(sf, 0.7, 1.6);
         tx = clamp(tx, 4, 96);
         ty = clamp(ty, 4, 96);
@@ -1727,7 +1875,12 @@ class RealSoccerEngine {
         // FB state choice: deterministic by side/phase instead of random.
         if (isFB) {
             const sameSide = (p.slotY < 50 && this.ball.y < 45) || (p.slotY > 50 && this.ball.y > 55);
+            // [FIX] Coordinate both FBs: if the OTHER FB is already overlapping, this one holds back
+            // Prevents the "one FB up, one FB down" asymmetric look
+            const otherFB = mates.find(q => q.position === 'DF' && ['FB', 'WB', 'CWB', 'IWB'].includes(q.role));
+            const otherOverlapping = otherFB && (otherFB._fbMode === 'overlap' || otherFB._fbMode === 'underlap');
             if (phase === 'building') p._fbMode = 'hold';
+            else if (otherOverlapping) p._fbMode = 'hold'; // [NEW] If partner FB is up, stay back
             else if (phase === 'finalThird' && sameSide && bhv.attackBias >= 0.5) p._fbMode = 'overlap';
             else if (phase === 'progressing' && sameSide && (bhv.cutInside || p.role === 'IWB')) p._fbMode = 'underlap';
             else if (phase === 'progressing' && sameSide) p._fbMode = 'overlap';
@@ -1756,19 +1909,23 @@ class RealSoccerEngine {
             if (p._fbMode === 'underlap') ty = p.slotY < 50 ? 28 : 72;
             let xShift = 0;
             if (phase === 'building') xShift = 1;
-            else if (phase === 'progressing') xShift = p._fbMode === 'hold' ? 6 : (p._fbMode === 'overlap' ? 12 : 10);
-            else if (phase === 'finalThird') xShift = p._fbMode === 'hold' ? 10 : (p._fbMode === 'overlap' ? 16 : 13);
-            else xShift = 12; // counter
+            // [FIX] Hold mode: position at midfield level (between CB and MF), NOT next to CBs
+            // The hold FB should look like a defensive MF, not a 3rd CB
+            else if (phase === 'progressing') xShift = p._fbMode === 'hold' ? 10 : (p._fbMode === 'overlap' ? 14 : 12);
+            else if (phase === 'finalThird') xShift = p._fbMode === 'hold' ? 12 : (p._fbMode === 'overlap' ? 16 : 14);
+            else xShift = 9; // counter — don't rush too far forward
             tx = lines.dfX + fwd * xShift;
             const cbLine = mates.filter(q => q.position === 'DF' && ['CD', 'BPD', 'NCB', 'LIB'].includes(q.role));
             const cbMean = cbLine.length
                 ? cbLine.reduce((s, q) => s + q.x, 0) / cbLine.length
                 : lines.dfX;
-            const retreatFloor = isHome ? cbMean - 1.5 : cbMean + 1.5;
-            tx = isHome ? Math.max(tx, retreatFloor) : Math.min(tx, retreatFloor);
-            // FB can go high, but not as extreme as before (덜 왕복하도록 완화)
-            tx = clamp(tx, isHome ? 8 : 5, isHome ? 95 : 92);
-            const ms = (p._fbMode === 'overlap' ? 0.42 : 0.32) * clamp(sf, 0.7, 1.4);
+            // [FIX] Floor: hold FB must be at LEAST 8 units ahead of CB mean
+            // (prevents hold FB from sitting right next to CBs)
+            const minAheadCB = isHome ? cbMean + 8 : cbMean - 8;
+            tx = isHome ? Math.max(tx, minAheadCB) : Math.min(tx, minAheadCB);
+            // FB movement: smoothed, no aggressive sprinting up and down
+            tx = clamp(tx, isHome ? 8 : 5, isHome ? 92 : 92);
+            const ms = (p._fbMode === 'overlap' ? 0.30 : 0.22) * clamp(sf, 0.65, 1.25);
             this._physicsStep(p, tx, ty, ms); return;
         }
         // Fallback
@@ -1932,7 +2089,7 @@ class RealSoccerEngine {
         const dvy = dy * accelEff * 0.085;
         p.vx = p.vx * 0.72 + dvx;
         p.vy = p.vy * 0.72 + dvy;
-        const maxSpd = 1.3 + accelEff * 1.15;
+        const maxSpd = 1.6 + accelEff * 1.25;
         const spd = Math.hypot(p.vx, p.vy);
         if (spd > maxSpd) {
             const s = maxSpd / (spd || 1);
