@@ -360,7 +360,7 @@ class TransferSystem {
         }
 
         // 최소 5%, 최대 50% 제한
-        return Math.max(0.05, Math.min(0.5, chance));
+        return Math.max(0.05, Math.min(0.8, chance));
     }
 
     // 선수 연봉 협상 시작 금액 계산
@@ -421,7 +421,7 @@ class TransferSystem {
             }
         }
 
-        return Math.max(0, Math.min(0.5, chance));
+        return Math.max(0, Math.min(0.8, chance));
     }
 
     getInitialTeamBudget(teamKey) {
@@ -790,9 +790,7 @@ class TransferSystem {
                     accepted = true;
                 } else {
                     const sellerTeamKey = player.originalTeam;
-                    const chance = sellerTeamKey && sellerTeamKey !== '외부리그'
-                        ? this.calculateFeeNegotiationChance(sellerTeamKey, fee, player.price)
-                        : Math.max(0.2, Math.min(0.95, 0.35 + (fee / Math.max(1, player.price)) * 0.55));
+                    const chance = this.calculateFeeNegotiationChance(sellerTeamKey, fee, player.price);
 
                     accepted = Math.random() <= chance;
                 }
@@ -831,7 +829,7 @@ class TransferSystem {
             setTimeout(() => {
                 const chance = this.calculateWageNegotiationChance(player, wage);
                 const transferChance = this.calculateTransferSuccessChance(player);
-                const finalChance = Math.min(0.5, chance * transferChance);
+                const finalChance = Math.min(0.8, chance * transferChance);
 
                 if (Math.random() <= finalChance) {
                     state.wage = wage;
@@ -935,32 +933,50 @@ class TransferSystem {
     }
 
     calculateFeeNegotiationChance(teamKey, targetFee, marketValue) {
-        const budget = this.getTeamBudget(teamKey);
-        const feeRatio = marketValue > 0 ? targetFee / marketValue : 1;
+        if (!marketValue || marketValue <= 0) return 0.5;
 
-        // 1. AI 팀 예산을 초과하는 금액 요구 시 거절 (5% 이하)
-        if (targetFee > budget && budget > 0) {
-            return 0.05;
+        const feeRatio = targetFee / marketValue;
+
+        // 1. Buying: when user discounts the fee (targetFee <= marketValue)
+        if (feeRatio <= 1.0) {
+            if (feeRatio >= 1.0) return 1.0;
+
+            // 0~10% discount: 50% ~ 100% chance (8~10% discount gives ~50-60%)
+            if (feeRatio >= 0.90) {
+                return 0.50 + ((feeRatio - 0.90) / 0.10) * 0.50;
+            }
+
+            // 10~20% discount: 10% ~ 50% chance (15% discount gives ~30%)
+            if (feeRatio >= 0.80) {
+                return 0.10 + ((feeRatio - 0.80) / 0.10) * 0.40;
+            }
+
+            // Over 20% discount: steep rejection (1% ~ 10%)
+            return Math.max(0.01, 0.10 * (feeRatio / 0.80));
         }
 
-        let chance = 0.75; // 기본 성공 확률 75%
+        // 2. Selling: when user counter-offers higher fee (targetFee > marketValue)
+        const budget = this.getTeamBudget(teamKey);
+        if (targetFee > budget && budget > 0) {
+            return 0.05; // Over budget
+        }
 
-        // 2. 시장가 대비 요구 금액 비율에 따른 확률 조정 (비쌀수록 급감)
+        let chance = 0.75;
         if (feeRatio > 2.0) {
-            chance -= 0.7;  // 2배 이상 부르면 사실상 거절
+            chance -= 0.70;
         } else if (feeRatio > 1.5) {
-            chance -= 0.5;
+            chance -= 0.50;
         } else if (feeRatio > 1.2) {
-            chance -= 0.3;
+            chance -= 0.30;
         } else if (feeRatio > 1.0) {
             chance -= 0.15;
-        } else if (feeRatio <= 0.8) {
-            chance += 0.15; // 시장가보다 싸게 주면 넙죽 수락
         }
 
-        // 최소 5%, 최대 95%로 제한
-        return Math.max(0, Math.min(0.95, chance));
+        return Math.max(0.05, Math.min(0.95, chance));
     }
+
+
+
 
 
     finalizeUserTransfer(player, targetTeamKey, fee, mailId, resultMessage) {
@@ -1052,11 +1068,9 @@ class TransferSystem {
         }
 
         // 이적료 협상 단계 (낮춘 금액을 제시한 경우)
-        if (transferFee !== player.price) {
+        if (transferFee < player.price) {
             const sellerTeamKey = player.originalTeam;
-            const negotiationChance = sellerTeamKey && sellerTeamKey !== '외부리그'
-                ? this.calculateFeeNegotiationChance(sellerTeamKey, transferFee, player.price)
-                : Math.max(0.2, Math.min(0.95, 0.35 + (transferFee / Math.max(1, player.price)) * 0.55));
+            const negotiationChance = this.calculateFeeNegotiationChance(sellerTeamKey, transferFee, player.price);
 
             if (Math.random() > negotiationChance) {
                 return {
@@ -1563,9 +1577,6 @@ class TransferSystem {
 
         const negotiatedFee = Math.round(Number(suggestedFee));
         if (!Number.isFinite(negotiatedFee) || negotiatedFee <= 0) {
-            const restoredWage = this.estimateWeeklyWage(soldPlayer);
-            this.addTeamWageBudget(gameData.selectedTeam, restoredWage);
-            this.spendTeamWageBudget(targetTeamKey, restoredWage);
             return;
         }
 
