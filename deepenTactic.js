@@ -1363,10 +1363,10 @@ class RealSoccerEngine {
         }
         const effSh = this.getEffectiveStat(shooter, 'shooting');
         const sp = effSh * (0.8 + Math.random() * 0.4) * dF * aF;
-        const sv = gkV * (0.7 + Math.random() * 0.45) + 3; // [TUNED] GK slightly less dominant
-        // [TUNED] Raise base (0.35→0.52) and scale (0.006→0.009) for avg 3-5 goal matches
-        // Minimum floor raised to 0.22 so even poor-angle shots go in occasionally
-        const goalChance = clamp(0.52 + (sp - sv) * 0.009, 0.22, 0.95);
+        const sv = gkV * (0.8 + Math.random() * 0.4) + 5; // [TUNED] Restored some GK dominance
+        // [TUNED] Base lowered from 0.52 to 0.40. Scale lowered from 0.009 to 0.0075.
+        // Floor lowered to 0.15. This is halfway between the original (0.35) and the extreme (0.52).
+        const goalChance = clamp(0.40 + (sp - sv) * 0.0075, 0.15, 0.95);
         this.ball.state = BallState.IN_FLIGHT;
         this.ball._flightOrigin = { x: shooter.x, y: shooter.y };
         this.ball.owner = null;
