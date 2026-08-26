@@ -846,8 +846,8 @@ class RealSoccerEngine {
                 + (player.position === 'FW' ? 10 : 0)
                 - (bestPassTarget ? Math.max(0, bestPassScore - 38) * 0.5 : 0)
                 - (underPressure ? 8 : 0);
-            // [TUNED] Higher threshold: prefer box entry over long-range attempts
-            const shootThreshold = distToGoal > 28 ? 72 : (distToGoal > 22 ? 58 : 42);
+            // [TUNED] Even higher threshold: strongly prefer box entry, almost never shoot from 28+ unless wide open
+            const shootThreshold = distToGoal > 28 ? 88 : (distToGoal > 22 ? 72 : 46);
             if (shootScore >= Math.max(bestPassScore, shootThreshold)) {
                 this._attemptShoot(player, goalX);
                 return;
@@ -1543,6 +1543,30 @@ class RealSoccerEngine {
         });
     }
 
+    _attemptTackle(tackler, carrier) {
+        if (tackler._stealCooldown > 0) return false;
+        const tackleStat = this.getEffectiveStat(tackler, 'tackle') || this.getEffectiveStat(tackler, 'defense');
+        const dribbleStat = this.getEffectiveStat(carrier, 'dribble');
+        
+        // Probability based on stats
+        const chance = 0.2 + (tackleStat - dribbleStat) * 0.005;
+        if (Math.random() < clamp(chance, 0.05, 0.85)) {
+            // Success
+            this.ball.state = BallState.CONTROLLED;
+            this.ball.owner = tackler;
+            this.ball.lastOwner = null;
+            this.ball.intendedReceiver = null;
+            tackler._stealCooldown = 18;
+            this.eventsQueue.push({ type: 'tackle', player: tackler.name, desc: `🛡️ ${tackler.name}, 깔끔한 태클로 공을 탈취합니다!` });
+            this._triggerTurnover(tackler.teamId);
+            return true;
+        } else {
+            // Fail (carrier gets away, tackler cooldown)
+            tackler._stealCooldown = 25;
+            return false;
+        }
+    }
+
     // ─────────────────────────────────────────────────────────────
     //  OFF-BALL AI V3 (TEMPLATE + TRIGGER BASED)
     // ─────────────────────────────────────────────────────────────
@@ -1901,7 +1925,10 @@ class RealSoccerEngine {
                 if (a < 7) ty = o.y + s * 7;
                 else if (a > 18) ty = o.y + s * 18;
             }
-            this._physicsStep(p, tx, ty, 0.3 * clamp(sf, 0.7, 1.5)); return;
+            // [TUNED] CB return speed increased so they can run back faster than FBs
+            const isRetreating = isHome ? (tx < p.x - 2) : (tx > p.x + 2);
+            const cbSpd = isRetreating ? 0.45 : 0.35;
+            this._physicsStep(p, tx, ty, cbSpd * clamp(sf, 0.7, 1.5)); return;
         }
         if (isFB) {
             // Y: Keep EXTREME WIDE (never center!)
