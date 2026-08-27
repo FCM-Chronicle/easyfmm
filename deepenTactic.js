@@ -343,14 +343,25 @@ class RealSoccerEngine {
         const setupLine = (list, baseX) => {
             const isUser = (teamId === 'home' && gameData.isHomeGame) || (teamId === 'away' && !gameData.isHomeGame);
             let lineStats, morale = 50;
-            if (isUser) { lineStats = gameData.lineStats; this.userStats = lineStats; morale = gameData.teamMorale; }
-            else { lineStats = this.aiStats || this.generateAIStats(squad, tactic); this.aiStats = lineStats; morale = 20 + Math.floor(Math.random() * 71); }
+            let finalMul = mul;
+            
+            if (isUser) { 
+                lineStats = gameData.lineStats; 
+                this.userStats = lineStats; 
+                morale = gameData.teamMorale; 
+            } else { 
+                lineStats = this.aiStats || this.generateAIStats(squad, tactic); 
+                this.aiStats = lineStats; 
+                morale = 20 + Math.floor(Math.random() * 71); 
+                finalMul *= 1.11; // [간단한 난이도 조정] AI 팀 능력치 15% 버프
+            }
+            
             list.forEach((p, i) => {
                 if (!p) return;
                 let role = (gameData.playerRoles && gameData.playerRoles[p.name])
                     ? gameData.playerRoles[p.name]
                     : this._bestRoleForTactic(tactic, p.position, i);
-                const sp = new SimPlayer(p, teamId, role, lineStats, morale, mul);
+                const sp = new SimPlayer(p, teamId, role, lineStats, morale, finalMul);
                 sp.baseX = baseX;
                 sp.baseY = (100 / (list.length + 1)) * (i + 1);
                 sp.slotY = sp.baseY;
@@ -974,10 +985,15 @@ class RealSoccerEngine {
         if (forward) score += phase === 'building' ? 22 : (phase === 'progressing' ? 35 : 45);
         else if (later) score += (phase === 'building' ? -5 : -10);
         else if (back) {
-            // [TUNED] Back passes are dangerous — strong penalty
-            if (phase === 'building') score -= 36;
-            else if (phase === 'progressing') score -= 62;
-            else score -= 78; // finalThird: almost never go back
+            // [신규] 압박 탈출용 백패스 (티키타카)
+            if (fromUnderPressure && oppNearRecv === 0 && laneBlock === 0 && (to.position === 'DF' || to.position === 'MF')) {
+                score += 45; // 압박 갇혔을 때 열려있는 뒤쪽 동료에게 빼면 큰 가산점
+            } else {
+                // [TUNED] Back passes are dangerous — strong penalty
+                if (phase === 'building') score -= 36;
+                else if (phase === 'progressing') score -= 62;
+                else score -= 78; // finalThird: almost never go back
+            }
         }
         // GK never pass target
         if (to.position === 'GK') score -= 120;
@@ -1016,8 +1032,22 @@ class RealSoccerEngine {
             else if (to.position === 'MF') score += 10;
             else score -= 60;
             if (to._fwMode === 'burst') score += 75;
-            // Cross bonus when in box area
-            if (Math.abs(to.y - 50) < 25 && dToGoal < 20) score += 30;
+            
+            // [신규] 측면 크로스 & 컷백 로직
+            const isWinger = Math.abs(from.y - 50) > 25;
+            if (isWinger && dFromGoal < 25) {
+                // 크로스 타겟 (박스 안쪽 깊숙한 곳의 FW)
+                if (Math.abs(to.y - 50) < 15 && dToGoal < 15 && to.position === 'FW') {
+                    score += 85; 
+                }
+                // 컷백 타겟 (박스 모서리 부근의 2선 침투 MF나 FW)
+                else if (Math.abs(to.y - 50) < 25 && dToGoal >= 15 && dToGoal <= 28) {
+                    score += 65; 
+                }
+            } else {
+                // 일반적인 골문 앞 패스 보너스
+                if (Math.abs(to.y - 50) < 25 && dToGoal < 20) score += 30;
+            }
         }
         // Lane
         if (laneBlock >= 2) score -= 50;
@@ -1167,10 +1197,13 @@ class RealSoccerEngine {
 
         let passKind = 'safe';
         const isThrough = isBehind && dToGoalFr > dToGoalTo + 5 && dist > 10 && dist < 45;
-        const isCross = Math.abs(from.y - 50) > 70 && Math.abs(to.y - 50) < 35 && dToGoalTo < 25 && dToGoalFr > 20;
+        // [신규] 크로스 판정 범위 확대
+        const isCross = Math.abs(from.y - 50) > 25 && Math.abs(to.y - 50) < 30 && dToGoalTo < 25 && dToGoalFr > 15;
         if (isThrough) passKind = 'risky';
         else if (isCross) passKind = 'cross';
         else if (dist > 30) passKind = 'lateral_long';
+        
+        this.ball.isCross = isCross; // 수신자가 공중볼 경합이나 다이렉트 헤딩을 할 수 있도록 플래그 저장
 
         // accuracy
         let acc = this.getEffectiveStat(from, 'passing');
@@ -1230,7 +1263,19 @@ class RealSoccerEngine {
             targetY = clamp(player.y + (player.y < 50 ? 8 : -8), 12, 88);
             moveSpd = 0.9 * clamp(sf, 0.85, 1.95);
         } else if (underPressure || isBlockedFront) {
-            const evadeSign = nDef ? (nDef.player.y > player.y ? -1 : 1) : (player.y < 50 ? 1 : -1);
+            // [버그 픽스] 벌벌 떠는 현상(Trembling) 방지: 수비수와의 Y축 거리가 너무 가까울 때는 
+            // 매 프레임마다 evadeSign이 반전되어 위아래로 진동하는 것을 막기 위해 기존 vy 방향을 우선하거나, 중앙을 향하도록 고정.
+            let evadeSign = 1;
+            if (nDef) {
+                if (Math.abs(nDef.player.y - player.y) < 1.5) {
+                    evadeSign = (player.vy !== 0 && Math.abs(player.vy) > 0.1) ? Math.sign(player.vy) : (player.y < 50 ? 1 : -1);
+                } else {
+                    evadeSign = nDef.player.y > player.y ? -1 : 1;
+                }
+            } else {
+                evadeSign = player.y < 50 ? 1 : -1;
+            }
+
             if (canOutrun) {
                 // Outrun diagonally away from nearest defender
                 targetX = player.x + moveDir * 42;
@@ -1499,10 +1544,25 @@ class RealSoccerEngine {
             if (this.pendingShot) return;
             // Intended receiver auto pickup if close
             const r = this.ball.intendedReceiver;
-            if (r && Math.hypot(r.x - this.ball.x, r.y - this.ball.y) < 3.2) {
+            if (r && Math.hypot(r.x - this.ball.x, r.y - this.ball.y) < 4.5) { // 약간 판정 반경 넓힘
+                // [신규] 크로스 다이렉트 헤더 슈팅
+                if (this.ball.isCross && r.position === 'FW') {
+                    this.ball.isCross = false;
+                    const isHome = r.teamId === 'home';
+                    const goalX = isHome ? 100 : 0;
+                    
+                    // 곧바로 슛 시도 (일반 슈팅 대신 헤더 슛)
+                    this._attemptShoot(r, goalX);
+                    
+                    // 이벤트 메시지를 슛팅 이벤트에 맞춤
+                    this.eventsQueue.push({ type: 'shoot', player: r.name, desc: `💥 ${r.name}, 크로스를 받아 다이렉트 헤더 슛!!` });
+                    return;
+                }
+
                 this.ball.state = BallState.CONTROLLED;
                 this.ball.owner = r;
                 this.ball.intendedReceiver = null;
+                this.ball.isCross = false; // 플래그 초기화
                 this.ball.x = r.x; this.ball.y = r.y;
             }
         } else {
@@ -1786,6 +1846,22 @@ class RealSoccerEngine {
             ms = 0.34 * clamp(sf, 0.7, 1.5); // slightly faster shadow movement
         }
 
+        // [신규] 측면 돌파 시 크로스 타겟 침투 (FW)
+        const carr = this.ball.owner && this.ball.owner.teamId === tid ? this.ball.owner : null;
+        const isWingerCrossSituation = carr && Math.abs(carr.y - 50) > 25 && (isHome ? carr.x > 75 : carr.x < 25);
+        if (isWingerCrossSituation) {
+            // 크로스 타겟을 위해 박스 중앙(골대 앞 6-15야드 부근)으로 쇄도
+            const crossTx = isHome ? 91 : 9;
+            // 2명의 FW가 있다면 하나는 니어포스트, 하나는 파포스트
+            const postOffset = isPrimaryRunner ? (carr.y < 50 ? -8 : 8) : (carr.y < 50 ? 8 : -8);
+            const crossTy = 50 + postOffset;
+            
+            // 기존 tx, ty보다 우선하여 덮어씀
+            tx = (tx * 0.3) + (crossTx * 0.7);
+            ty = (ty * 0.3) + (crossTy * 0.7);
+            ms = 0.7 * clamp(sf, 0.8, 1.8);
+        }
+
         if (!isPrimaryRunner) {
             const supportX = lines.fwX - fwd * (bhv.linkup >= 0.6 ? 6 : 4);
             tx = isHome ? Math.min(tx, supportX) : Math.max(tx, supportX);
@@ -1874,6 +1950,18 @@ class RealSoccerEngine {
                 tx = tx * 0.45 + supportX * 0.55;
                 ty = ty * 0.55 + supportY * 0.45;
             }
+        }
+
+        // [신규] 측면 돌파 시 컷백 타겟 침투 (MF - 특히 공격형 미드필더 AM, SS 등)
+        const carr = this.ball.owner && this.ball.owner.teamId === tid ? this.ball.owner : null;
+        const isWingerCrossSituation = carr && Math.abs(carr.y - 50) > 25 && (isHome ? carr.x > 75 : carr.x < 25);
+        if (isWingerCrossSituation && (isAM || p.role === 'CM')) {
+            // 박스 외곽(아크 서클 부근)으로 침투하여 컷백 대기
+            const cutbackTx = isHome ? 80 + Math.random() * 5 : 20 - Math.random() * 5;
+            const cutbackTy = clamp(carr.y < 50 ? 35 : 65, 30, 70); // 윙어와 가까운 하프스페이스 쪽 모서리
+            
+            tx = (tx * 0.4) + (cutbackTx * 0.6);
+            ty = (ty * 0.4) + (cutbackTy * 0.6);
         }
 
         let ms = 0.38 * clamp(sf, 0.7, 1.6);
