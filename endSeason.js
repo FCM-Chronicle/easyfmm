@@ -91,6 +91,10 @@ function endSeason(silent = false) {
     if (userPosition === 1) {
         achievement = '우승';
         reward = 1500;
+        // [신규] 감독 성과(우승) 기록
+        if (typeof managerSystem !== 'undefined' && gameData.managerId) {
+            managerSystem.updateManagerStats(gameData.managerId, { trophy: true });
+        }
     } else if (userPosition <= 4) {
         achievement = '상위권';
         reward = 1000;

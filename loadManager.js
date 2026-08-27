@@ -100,8 +100,12 @@ const LoadManager = {
             overlay.style.opacity = '0';
             overlay.style.visibility = 'hidden';
             
-            // 로딩 완료 후 팀 선택 화면으로 안전하게 진입
-            if (typeof showScreen === 'function') showScreen('teamSelection');
+            // 로딩 종료 후 감독 선택 화면으로 진입 (매니저 시스템)
+            if (typeof managerSystem !== 'undefined') {
+                managerSystem.init();
+            } else if (typeof showScreen === 'function') {
+                showScreen('teamSelection');
+            }
             
             setTimeout(() => overlay.remove(), 800);
         }, 1000);

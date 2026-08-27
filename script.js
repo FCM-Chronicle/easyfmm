@@ -3181,8 +3181,11 @@ function applyTeamTheme(teamKey) {
 // 아니진짜왜안되지
 
 // 슬롯 정보 가져오기
-function getSlotInfo(slotNumber) {
-    const savedData = localStorage.getItem(`footballManagerSave_slot${slotNumber}`);
+// 특정 슬롯 정보 가져오기
+function getSlotInfo(slotNumber, managerId = null) {
+    const activeManagerId = managerId || gameData.managerId;
+    const saveKey = activeManagerId ? `fm_save_${activeManagerId}_slot${slotNumber}` : `footballManagerSave_slot${slotNumber}`;
+    const savedData = localStorage.getItem(saveKey);
     if (!savedData) return null;
 
     try {
@@ -3364,8 +3367,12 @@ function saveToSlot(slotNumber, silent = false) {
             timestamp: new Date().toISOString()
         };
 
+        // [수정] 매니저 시스템 적용: gameData.managerId 기반으로 저장키 분리
+        const managerId = gameData.managerId;
+        const saveKey = managerId ? `fm_save_${managerId}_slot${slotNumber}` : `footballManagerSave_slot${slotNumber}`;
+        
         // 로컬스토리지에 저장
-        localStorage.setItem(`footballManagerSave_slot${slotNumber}`, JSON.stringify(saveData));
+        localStorage.setItem(saveKey, JSON.stringify(saveData));
 
         if (!silent) {
             console.log(`슬롯 ${slotNumber}에 저장 완료`);
@@ -3388,9 +3395,11 @@ function saveToSlot(slotNumber, silent = false) {
 }
 
 // 특정 슬롯에서 불러오기
-function loadFromSlot(slotNumber) {
+function loadFromSlot(slotNumber, overrideManagerId = null) {
     try {
-        const savedData = localStorage.getItem(`footballManagerSave_slot${slotNumber}`);
+        const managerId = overrideManagerId || gameData.managerId;
+        const saveKey = managerId ? `fm_save_${managerId}_slot${slotNumber}` : `footballManagerSave_slot${slotNumber}`;
+        const savedData = localStorage.getItem(saveKey);
 
         if (!savedData) {
             alert(`슬롯 ${slotNumber}에 저장된 게임이 없습니다.`);
@@ -3552,11 +3561,16 @@ function deleteSlot(slotNumber) {
     const confirmMessage = `슬롯 ${slotNumber}을(를) 삭제하시겠습니까?\n\n팀: ${slotInfo.teamName}\n경기 수: ${slotInfo.matchesPlayed}\n\n이 작업은 되돌릴 수 없습니다.`;
 
     if (confirm(confirmMessage)) {
-        localStorage.removeItem(`footballManagerSave_slot${slotNumber}`);
+        const managerId = gameData.managerId;
+        const saveKey = managerId ? `fm_save_${managerId}_slot${slotNumber}` : `footballManagerSave_slot${slotNumber}`;
+        localStorage.removeItem(saveKey);
         alert(`슬롯 ${slotNumber}이(가) 삭제되었습니다.`);
 
         // 슬롯 UI 새로고침
         createSaveSlots();
+        if (typeof managerSystem !== 'undefined' && managerId) {
+            managerSystem.renderSaveSlotsForManager(managerId);
+        }
     }
 }
 

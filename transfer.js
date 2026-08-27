@@ -1988,20 +1988,17 @@ class TransferSystem {
             else alert(msg);
 
             if (typeof snsManager !== 'undefined') {
-                snsManager.addPost("transferRumor", { playerName: playerName, teamName: teamNames[gameData.selectedTeam], newTeam: teamNames[gameData.selectedTeam] });
-
-                // 루머 포스트(새로 추가된 템플릿)를 바로 올려줍니다.
                 const content = `[루머] ${teamNames[gameData.selectedTeam]}가 ${playerName} 을 최우선 영입 대상으로 삼았습니다.`;
-                snsManager.posts.unshift({
+                const post = {
                     id: snsManager.postIdCounter++,
-                    type: "transferRumor",
+                    type: "transfer_rumor", // sns.js의 템플릿 키와 일치시킴
                     content: content,
+                    timestamp: Date.now(),
                     time: "방금 전",
                     likes: Math.floor(Math.random() * 500) + 50
-                });
-                if (document.getElementById('sns').classList.contains('active')) {
-                    snsManager.renderPosts();
-                }
+                };
+                // addPost가 알아서 unshift, queue push, render를 모두 처리함
+                snsManager.addPost(post);
             }
         } else {
             offerData.favorability = (offerData.favorability || 0) - 0.1; // 10% 하락

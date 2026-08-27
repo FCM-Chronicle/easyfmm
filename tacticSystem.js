@@ -818,6 +818,15 @@ function endMatch(matchData) {
     if (window.GameState) window.GameState.incrementMatchesPlayed();
     else gameData.matchesPlayed++;
 
+    // 감독 성과 기록
+    if (typeof managerSystem !== 'undefined' && gameData.managerId) {
+        managerSystem.updateManagerStats(gameData.managerId, {
+            win: result === '승리',
+            draw: result === '무승부',
+            loss: result === '패배'
+        });
+    }
+
     // [신규] 전술 숙련도(낭만) 증가 로직 (+2%)
     if (!gameData.tacticMastery) {
         gameData.tacticMastery = {};

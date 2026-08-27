@@ -916,9 +916,10 @@ class SNSManager {
     // [수정] NVIDIA NIM API 호출 함수 (프록시 경유)
     async callNvidiaForComments(postContent) {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 30000); // 9초에서 30초로 늘림 (Deepseek/Vercel 응답 지연 해결)
+        const timeoutId = setTimeout(() => controller.abort(), 60000);
+
         try {
-            // 보안을 위해 API 키가 숨겨진 서버(Vercel Function)를 호출합니다.
+            // 다시 Vercel 프록시로 복구합니다.
             const response = await fetch("https://easyfmm.vercel.app/api/groq", {
                 method: "POST",
                 headers: {
@@ -937,7 +938,7 @@ class SNSManager {
                         }
                     ],
 
-                    model: "deepseek-ai/deepseek-v4-flash-0731",
+                    model: "google/gemma-4-31b-it",
                     temperature: 0.7,
                     max_tokens: 300
                 })
@@ -1089,10 +1090,12 @@ class SNSManager {
     generateComments(post) {
         const commentTemplates = {
             match_result: [
-                "대박 경기였다 ㄷㄷ",
+                "ㄹㅈㄷ 경기였다 ㄷㄷ",
                 "이게 맞나요?? 믿을 수가 없네요",
                 "오늘 경기 레전드다 진짜",
                 "완전 명승부였음",
+                "'축구로 우울할 필요 없어, 인생이 더 중요,' - 미겔 아르테타",
+                "'[WEB발신] 너는나를존중해야한다나는수많은.... 더보기",
                 "이 경기 못본 사람 손?",
                 "역시 축구는 해봐야 아는거다",
                 "감독 전술이 먹혔네요",
@@ -1319,7 +1322,7 @@ class SNSManager {
             '구너스', '레드데빌즈', '블루문', '블루스', '해머스', '스퍼스',
             '꾸레', '마드리디스타', '바르사팬', '로쏘네리', '네라주리',
             '비앙코네리', '파리지앵', '바이에른팬', '돌문팬',
-            '첼시팬', '리버풀팬', '시티팬', '맨유팬',
+            '첼시팬', '리버풀팬', '시티팬', '맨유팬', '첼평', '콥평', '콥등이', '갈락티코', '유베사랑남',
 
             // 커뮤니티
             '펨붕이', '해축갤러',
