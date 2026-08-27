@@ -1,4 +1,4 @@
-﻿// managerSystem.js
+// managerSystem.js
 
 const managerSystem = {
     managers: [],
@@ -33,7 +33,7 @@ const managerSystem = {
         const legacySaves = [];
         
         for (let i = 1; i <= 3; i++) {
-            const save = localStorage.getItem(ootballManagerSave_slot + i);
+            const save = localStorage.getItem(`footballManagerSave_slot${i}`);
             if (save) {
                 hasLegacySaves = true;
                 legacySaves.push({ slot: i, data: save });
@@ -43,7 +43,7 @@ const managerSystem = {
         if (hasLegacySaves) {
             // "기존 감독" 생성
             const legacyManager = {
-                id: 'legacy_' + Date.now(),
+                id: `legacy_${Date.now()}`,
                 name: "기존 감독 (Legacy)",
                 nation: "알 수 없음",
                 age: 40,
@@ -55,8 +55,8 @@ const managerSystem = {
 
             // 기존 세이브 파일을 새로운 키 형식(fm_save_{id}_slot{i})으로 복사/이동
             legacySaves.forEach(item => {
-                localStorage.setItem(m_save_ + legacyManager.id + _slot + item.slot, item.data);
-                localStorage.removeItem(ootballManagerSave_slot + item.slot); // 기존 슬롯 삭제
+                localStorage.setItem(`fm_save_${legacyManager.id}_slot${item.slot}`, item.data);
+                localStorage.removeItem(`footballManagerSave_slot${item.slot}`); // 기존 슬롯 삭제
             });
 
             console.log("레거시 세이브 마이그레이션 완료", legacyManager);
@@ -64,34 +64,28 @@ const managerSystem = {
     },
 
     setupEventListeners() {
-        const createBtn = document.getElementById('createNewManagerBtn');
-        if (createBtn) createBtn.addEventListener('click', () => {
+        document.getElementById('createNewManagerBtn')?.addEventListener('click', () => {
             this.openEditModal();
         });
 
-        const closeEditBtn = document.getElementById('closeManagerEditModal');
-        if (closeEditBtn) closeEditBtn.addEventListener('click', () => {
+        document.getElementById('closeManagerEditModal')?.addEventListener('click', () => {
             document.getElementById('managerEditModal').style.display = 'none';
         });
 
-        const saveInfoBtn = document.getElementById('saveManagerInfoBtn');
-        if (saveInfoBtn) saveInfoBtn.addEventListener('click', () => {
+        document.getElementById('saveManagerInfoBtn')?.addEventListener('click', () => {
             this.saveManagerInfo();
         });
 
-        const closeProfileBtn = document.getElementById('closeManagerProfileModal');
-        if (closeProfileBtn) closeProfileBtn.addEventListener('click', () => {
+        document.getElementById('closeManagerProfileModal')?.addEventListener('click', () => {
             document.getElementById('managerProfileModal').style.display = 'none';
         });
 
-        const editProfileBtn = document.getElementById('editManagerProfileBtn');
-        if (editProfileBtn) editProfileBtn.addEventListener('click', () => {
+        document.getElementById('editManagerProfileBtn')?.addEventListener('click', () => {
             document.getElementById('managerProfileModal').style.display = 'none';
             this.openEditModal(this.activeManagerId);
         });
 
-        const deleteBtn = document.getElementById('deleteManagerBtn');
-        if (deleteBtn) deleteBtn.addEventListener('click', () => {
+        document.getElementById('deleteManagerBtn')?.addEventListener('click', () => {
             if (confirm("정말 이 감독과 관련된 모든 세이브 데이터를 삭제하시겠습니까?")) {
                 this.deleteManager(this.activeManagerId);
             }
@@ -138,7 +132,7 @@ const managerSystem = {
             }
         } else {
             const newManager = {
-                id: 'manager_' + Date.now(),
+                id: `manager_${Date.now()}`,
                 name: name,
                 nation: nation,
                 age: age,
@@ -167,7 +161,7 @@ const managerSystem = {
         
         // 관련 세이브 슬롯 삭제
         for(let i=1; i<=3; i++) {
-            localStorage.removeItem(m_save_ + managerId + _slot + i);
+            localStorage.removeItem(`fm_save_${managerId}_slot${i}`);
         }
 
         document.getElementById('managerProfileModal').style.display = 'none';
@@ -181,20 +175,20 @@ const managerSystem = {
         grid.innerHTML = '';
         
         if (this.managers.length === 0) {
-            grid.innerHTML = <div style="grid-column: 1/-1; text-align: center; color: #aaa; padding: 40px;">등록된 감독이 없습니다. 새 감독을 생성해주세요.</div>;
+            grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: #aaa; padding: 40px;">등록된 감독이 없습니다. 새 감독을 생성해주세요.</div>`;
             return;
         }
 
         this.managers.forEach(manager => {
             const card = document.createElement('div');
-            card.style.cssText = 
+            card.style.cssText = `
                 background: rgba(255,255,255,0.05); 
                 border: 1px solid rgba(255,215,0,0.2); 
                 border-radius: 10px; 
                 padding: 20px; 
                 cursor: pointer;
                 transition: transform 0.2s, background 0.2s;
-            ;
+            `;
             card.onmouseover = () => {
                 card.style.transform = 'translateY(-5px)';
                 card.style.background = 'rgba(255,255,255,0.1)';
@@ -205,14 +199,14 @@ const managerSystem = {
             };
             card.onclick = () => this.openProfileModal(manager.id);
 
-            card.innerHTML = 
-                <h2 style="color: #ffd700; margin-top: 0;"> + manager.name + </h2>
+            card.innerHTML = `
+                <h2 style="color: #ffd700; margin-top: 0;">${manager.name}</h2>
                 <div style="font-size: 0.9rem; color: #ddd; display: grid; gap: 5px;">
-                    <div>국적:  + (manager.nation || '미상') + </div>
-                    <div>우승:  + (manager.stats?.trophies || 0) + 회</div>
-                    <div>전적:  + (manager.stats?.matches || 0) + 전  + (manager.stats?.wins || 0) + 승  + (manager.stats?.draws || 0) + 무  + (manager.stats?.losses || 0) + 패</div>
+                    <div>국적: ${manager.nation || '미상'}</div>
+                    <div>우승: ${manager.stats?.trophies || 0}회</div>
+                    <div>전적: ${manager.stats?.matches || 0}전 ${manager.stats?.wins || 0}승 ${manager.stats?.draws || 0}무 ${manager.stats?.losses || 0}패</div>
                 </div>
-            ;
+            `;
             grid.appendChild(card);
         });
     },
@@ -226,7 +220,7 @@ const managerSystem = {
         document.getElementById('profileManagerNation').textContent = manager.nation || "미상";
         document.getElementById('profileManagerAge').textContent = manager.age || "?";
         document.getElementById('profileManagerMatches').textContent = manager.stats?.matches || 0;
-        document.getElementById('profileManagerWDL').textContent = (manager.stats?.wins || 0) +  /  + (manager.stats?.draws || 0) +  /  + (manager.stats?.losses || 0);
+        document.getElementById('profileManagerWDL').textContent = `${manager.stats?.wins || 0} / ${manager.stats?.draws || 0} / ${manager.stats?.losses || 0}`;
         document.getElementById('profileManagerTrophies').textContent = manager.stats?.trophies || 0;
 
         this.renderSaveSlotsForManager(managerId);
@@ -240,12 +234,12 @@ const managerSystem = {
         grid.innerHTML = '';
 
         for (let i = 1; i <= 3; i++) {
-            const slotKey = m_save_ + managerId + _slot + i;
+            const slotKey = `fm_save_${managerId}_slot${i}`;
             const saveDataStr = localStorage.getItem(slotKey);
             
             const slotDiv = document.createElement('div');
             slotDiv.className = 'save-slot';
-            slotDiv.style.cssText = 
+            slotDiv.style.cssText = `
                 background: rgba(0,0,0,0.3);
                 border: 1px solid #444;
                 border-radius: 8px;
@@ -254,7 +248,7 @@ const managerSystem = {
                 flex-direction: column;
                 justify-content: space-between;
                 min-height: 120px;
-            ;
+            `;
 
             if (saveDataStr) {
                 try {
@@ -264,23 +258,23 @@ const managerSystem = {
                     const sCount = gData.seasonCount || 1;
                     const date = saveData.timestamp ? new Date(saveData.timestamp).toLocaleString() : '날짜 없음';
 
-                    slotDiv.innerHTML = 
+                    slotDiv.innerHTML = `
                         <div>
-                            <h4 style="margin:0 0 5px 0; color:#2ecc71;">슬롯  + i + </h4>
-                            <div style="font-size:0.9rem;"> + tName + </div>
-                            <div style="font-size:0.8rem; color:#aaa;">시즌  + sCount + </div>
-                            <div style="font-size:0.75rem; color:#777; margin-top:5px;"> + date + </div>
+                            <h4 style="margin:0 0 5px 0; color:#2ecc71;">슬롯 ${i}</h4>
+                            <div style="font-size:0.9rem;">${tName}</div>
+                            <div style="font-size:0.8rem; color:#aaa;">시즌 ${sCount}</div>
+                            <div style="font-size:0.75rem; color:#777; margin-top:5px;">${date}</div>
                         </div>
-                        <button class="btn primary small" style="margin-top:10px;" onclick="managerSystem.loadGame(' + managerId + ',  + i + )">불러오기</button>
-                    ;
+                        <button class="btn primary small" style="margin-top:10px;" onclick="managerSystem.loadGame('${managerId}', ${i})">불러오기</button>
+                    `;
                 } catch(e) {
-                    slotDiv.innerHTML = <div>슬롯  + i +  <br> 데이터 오류</div>;
+                    slotDiv.innerHTML = `<div>슬롯 ${i} <br> 데이터 오류</div>`;
                 }
             } else {
-                slotDiv.innerHTML = 
+                slotDiv.innerHTML = `
                     <div style="color:#aaa; text-align:center; margin-bottom:10px;">빈 슬롯</div>
-                    <button class="btn success small" onclick="managerSystem.startNewCareer(' + managerId + ',  + i + )">새 커리어 시작</button>
-                ;
+                    <button class="btn success small" onclick="managerSystem.startNewCareer('${managerId}', ${i})">새 커리어 시작</button>
+                `;
             }
             grid.appendChild(slotDiv);
         }
