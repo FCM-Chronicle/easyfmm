@@ -916,8 +916,7 @@ class SNSManager {
     // [수정] NVIDIA NIM API 호출 함수 (프록시 경유)
     async callNvidiaForComments(postContent) {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 9000);
-
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 9초에서 30초로 늘림 (Deepseek/Vercel 응답 지연 해결)
         try {
             // 보안을 위해 API 키가 숨겨진 서버(Vercel Function)를 호출합니다.
             const response = await fetch("https://easyfmm.vercel.app/api/groq", {
