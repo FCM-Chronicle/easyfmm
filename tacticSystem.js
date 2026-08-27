@@ -431,6 +431,13 @@ function simulateMatch(matchData, engine) {
                             window.matchVisualizer.units[engineEvent.player].triggerSkillEffect(engineEvent.skillId);
                         }
                     }
+                    
+                    // [신규] 태클 시각 효과 연동
+                    if (engineEvent.type === 'tackle') {
+                        if (window.matchVisualizer && window.matchVisualizer.units[engineEvent.player]) {
+                            window.matchVisualizer.units[engineEvent.player].triggerSkillEffect('TACKLE');
+                        }
+                    }
 
                     if (engineEvent.type === 'goal') {
                         if (engineEvent.team === 'home') matchData.homeScore++;
@@ -733,6 +740,36 @@ function endMatch(matchData) {
 
     let result = userScore > oppScore ? '승리' : (userScore < oppScore ? '패배' : '무승부');
     let points = result === '승리' ? 3 : (result === '무승부' ? 1 : 0);
+
+    // [신규] 일회성 이벤트 버프/디버프 원상 복구 (경기 종료 후)
+    if (gameData && gameData.tempEventBuffs) {
+        console.log('🔄 이벤트 일회성 버프 원상 복구:', gameData.tempEventBuffs);
+        
+        // 사기 복구
+        if (gameData.tempEventBuffs.morale) {
+            if (window.GameState) {
+                window.GameState.adjustTeamMorale(-gameData.tempEventBuffs.morale);
+            } else {
+                gameData.teamMorale = Math.max(0, Math.min(100, gameData.teamMorale - gameData.tempEventBuffs.morale));
+            }
+        }
+        
+        // 선수 능력치 복구
+        if (gameData.tempEventBuffs.players && gameData.tempEventBuffs.players.length > 0) {
+            const teamPlayers = window.teams ? window.teams[gameData.selectedTeam] : null;
+            if (teamPlayers) {
+                gameData.tempEventBuffs.players.forEach(buff => {
+                    const player = teamPlayers.find(p => p.name === buff.name);
+                    if (player) {
+                        player.rating = Math.max(1, Math.min(99, player.rating - buff.boost));
+                    }
+                });
+            }
+        }
+        
+        // 버프 기록 초기화
+        gameData.tempEventBuffs = { morale: 0, players: [] };
+    }
 
     // 자금 및 사기 보상
     if (result === '승리') {

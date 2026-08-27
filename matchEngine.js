@@ -520,12 +520,12 @@ class RealSoccerEngine {
                 return tX;
             } else {
                 // DEFENDING TEAM: Properly ordered, realistic defensive lines
-                // [개선] 전체적인 수비 라인을 골키퍼 쪽으로 더 내림
+                // [개선] 전체적인 수비 라인을 골키퍼 쪽으로 더 내림 (CB 더 깊이)
                 const defLine = isHome 
-                    ? Math.max(100 - 10 - (defensivePressMultiplier * 6), 72)  // Away defends left (towards 100). CB drops to 84~72
-                    : Math.min(10 + (defensivePressMultiplier * 6), 28);       // Home defends right (towards 0). CB drops to 16~28
+                    ? Math.max(100 - 5 - (defensivePressMultiplier * 5), 75)  // Away defends left (towards 100). CB drops to 90~75
+                    : Math.min(5 + (defensivePressMultiplier * 5), 25);       // Home defends right (towards 0). CB drops to 10~25
                 
-                const mfLine = isHome ? defLine - 15 : defLine + 15;
+                const mfLine = isHome ? defLine - 22 : defLine + 22;
                 const fwPressLine = isHome ? mfLine - 20 : mfLine + 20;
 
                 switch(player.position) {
@@ -534,8 +534,8 @@ class RealSoccerEngine {
                         return isCenter ? (isHome ? fwPressLine - 10 : fwPressLine + 10) : fwPressLine;
                     case 'MF': return mfLine; // MFs stay ahead of DFs, don't drop to CB
                     case 'DF': 
-                        // [개선] 수비 시 풀백(측면)은 센터백보다 확연히 앞서도록(12칸) 위치하여 공격적 위치 유지
-                        return isCenter ? defLine : (isHome ? defLine - 12 : defLine + 12);
+                        // [개선] 수비 시 풀백(측면)은 덜 내려가도록 오프셋 증가 (12 -> 20)
+                        return isCenter ? defLine : (isHome ? defLine - 20 : defLine + 20);
                     case 'GK': return isHome ? 95 : 5;
                     default: return mfLine;
                 }

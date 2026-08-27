@@ -938,7 +938,7 @@ class SNSManager {
                         }
                     ],
 
-                    model: "google/gemma-4-31b-it",
+                    model: "deepseek-ai/deepseek-v4-flash-0731",
                     temperature: 0.7,
                     max_tokens: 300
                 })

@@ -137,6 +137,132 @@ class EventManager {
             };
         }
     }
+    
+    // 모달을 표시하는 기능 추가
+    showEventModal(eventData, callback) {
+        if (!eventData) {
+            if (callback) callback();
+            return;
+        }
+
+        const modalId = 'randomEventModal';
+        let modal = document.getElementById(modalId);
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = modalId;
+            modal.className = 'modal';
+            modal.style.zIndex = '9999'; // 가장 위
+            document.body.appendChild(modal);
+        }
+        modal.style.display = 'flex';
+
+        // 선수 사진 HTML
+        let playerImgHtml = '';
+        if (eventData.player) {
+            playerImgHtml = `<img src="assets/players/${eventData.player.name}.webp" onerror="this.onerror=null; this.src='assets/players/default.webp'" style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 4px solid #ffd700; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">`;
+        }
+
+        let optionsHtml = '';
+        
+        if (eventData.type === 'consulting') {
+            optionsHtml = eventData.scenario.options.map((opt, idx) => `
+                <button class="btn primary" style="display: block; width: 100%; margin-bottom: 12px; padding: 15px; font-size: 1.1rem; text-align: left;" onclick="window.eventManager.handleEventChoice(${idx})">
+                    <div style="margin-bottom: 5px;">${opt.text}</div>
+                    <span style="font-size: 0.85rem; color: #ffeb3b;">(효과: ${opt.desc})</span>
+                </button>
+            `).join('');
+        } else if (eventData.type === 'locker_room') {
+            let effectText = '';
+            if (eventData.event.effect.morale !== 0) effectText += `팀 사기 ${eventData.event.effect.morale > 0 ? '+' : ''}${eventData.event.effect.morale} `;
+            if (eventData.event.effect.rating !== 0) effectText += `능력치 ${eventData.event.effect.rating > 0 ? '+' : ''}${eventData.event.effect.rating} `;
+            
+            optionsHtml = `
+                <div style="margin-bottom: 25px; padding: 15px; background: rgba(46, 204, 113, 0.2); border-radius: 8px; border: 1px solid rgba(46, 204, 113, 0.5); color: #2ecc71; font-weight: bold; font-size: 1.1rem;">
+                    [발생 효과] ${eventData.event.desc} <br><span style="color: #ffd700; font-size: 0.95rem;">(${effectText})</span>
+                </div>
+                <button class="btn" style="width: 100%; padding: 15px; font-size: 1.1rem;" onclick="window.eventManager.closeEventModal()">확인</button>
+            `;
+        }
+
+        modal.innerHTML = `
+            <div class="modal-content" style="max-width: 500px; text-align: center; padding: 40px; background: #222; border: 2px solid #555;">
+                ${playerImgHtml}
+                <h2 style="margin: 0 0 20px 0; font-size: 1.8rem; color: #fff;">${eventData.title}</h2>
+                <p style="font-size: 1rem; color: #ddd; margin-bottom: 30px; line-height: 1.6; white-space: pre-wrap; text-align: left; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px;">${eventData.content}</p>
+                <div style="font-size: 1.1rem;">
+                    ${optionsHtml}
+                </div>
+            </div>
+        `;
+
+        this.currentEvent = eventData;
+        this.onCloseCallback = callback;
+    }
+
+    handleEventChoice(optionIndex) {
+        if (!this.currentEvent || this.currentEvent.type !== 'consulting') return;
+        
+        const option = this.currentEvent.scenario.options[optionIndex];
+        const player = this.currentEvent.player;
+        
+        if (typeof gameData !== 'undefined') {
+            if (!gameData.tempEventBuffs) gameData.tempEventBuffs = { morale: 0, players: [] };
+            
+            if (player) {
+                const boost = option.result.rating;
+                player.rating = Math.max(1, Math.min(99, player.rating + boost));
+                gameData.tempEventBuffs.players.push({ name: player.name, boost: boost });
+            }
+            
+            const moraleBoost = option.result.morale;
+            if (window.GameState) {
+                window.GameState.adjustTeamMorale(moraleBoost);
+            } else {
+                gameData.teamMorale = Math.max(0, Math.min(100, gameData.teamMorale + moraleBoost));
+            }
+            gameData.tempEventBuffs.morale += moraleBoost;
+        }
+        
+        this.closeEventModal();
+    }
+
+    closeEventModal() {
+        const modal = document.getElementById('randomEventModal');
+        if (modal) modal.style.display = 'none';
+        
+        if (this.currentEvent && this.currentEvent.type === 'locker_room') {
+            const effect = this.currentEvent.event.effect;
+            
+            if (typeof gameData !== 'undefined') {
+                if (!gameData.tempEventBuffs) gameData.tempEventBuffs = { morale: 0, players: [] };
+                
+                if (this.currentEvent.player) {
+                    const boost = effect.rating;
+                    this.currentEvent.player.rating = Math.max(1, Math.min(99, this.currentEvent.player.rating + boost));
+                    gameData.tempEventBuffs.players.push({ name: this.currentEvent.player.name, boost: boost });
+                }
+                
+                const moraleBoost = effect.morale;
+                if (window.GameState) {
+                    window.GameState.adjustTeamMorale(moraleBoost);
+                } else {
+                    gameData.teamMorale = Math.max(0, Math.min(100, gameData.teamMorale + moraleBoost));
+                }
+                gameData.tempEventBuffs.morale += moraleBoost;
+            }
+        }
+
+        // [추가] 사기나 능력치 변동 후 화면 갱신 (상단바 UI 업데이트)
+        if (typeof updateDisplay === 'function') {
+            updateDisplay();
+        }
+
+        if (this.onCloseCallback) {
+            this.onCloseCallback();
+            this.onCloseCallback = null;
+        }
+        this.currentEvent = null;
+    }
 }
 
 window.eventManager = new EventManager();

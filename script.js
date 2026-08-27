@@ -2786,13 +2786,29 @@ function renderMainSaveSlots() {
 
 // [신규] 경기 시작 시퀀스 (캘린더 시뮬레이션 -> 경기 시작)
 function runMatchSequence() {
+    // 30% 확률로 이벤트 모달 표시
+    if (Math.random() < 0.30 && window.eventManager && gameData.selectedTeam) {
+        const eventData = window.eventManager.triggerRandomEvent();
+        if (eventData) {
+            window.eventManager.showEventModal(eventData, _runMatchSequenceInternal);
+            return;
+        }
+    }
+    _runMatchSequenceInternal();
+}
+
+function _runMatchSequenceInternal() {
     const modal = document.getElementById('calendarModal');
     const dateEl = document.getElementById('calendarDate');
     const eventEl = document.getElementById('calendarEvent');
     const opponentEl = document.getElementById('calendarOpponent');
 
     if (!modal) {
-        startMatch(); // 모달 없으면 바로 시작
+        if (typeof window.startMatch === 'function') {
+            window.startMatch();
+        } else {
+            console.error("startMatch function is not defined.");
+        }
         return;
     }
 
@@ -2801,24 +2817,20 @@ function runMatchSequence() {
     opponentEl.style.opacity = '0';
     opponentEl.innerHTML = '';
 
-    // 현재 날짜 계산 (가상: 2025년 8월 1일 개막 기준)
-    // 라운드당 3~4일 간격으로 가정
-    const baseDate = new Date(2025, 7, 1); // 8월 1일
+    // 현재 날짜 계산
+    const baseDate = new Date(2025, 7, 1);
     const currentRound = gameData.currentRound || 1;
-    const daysPassed = (currentRound - 1) * 4; // 라운드당 4일
+    const daysPassed = (currentRound - 1) * 4;
 
     let currentDate = new Date(baseDate);
     currentDate.setDate(baseDate.getDate() + daysPassed);
 
-    // 시뮬레이션 기간 (3일 전부터 당일까지)
     const simDays = 3;
     let dayCount = 0;
-
-    const events = ["전술 훈련", "체력 단련", "비디오 분석", "휴식", "전술 훈련", "가벼운 훈련"];
+    const events = ["전술 훈련", "체력 단련", "비디오 분석", "휴식", "미디어 데이", "가벼운 훈련"];
 
     // 2. 날짜 넘기기 애니메이션
     const interval = setInterval(() => {
-        // 날짜 표시 업데이트
         const displayDate = new Date(currentDate);
         displayDate.setDate(currentDate.getDate() - (simDays - dayCount));
 
@@ -2826,17 +2838,14 @@ function runMatchSequence() {
         const day = displayDate.getDate();
         dateEl.textContent = `${month}월 ${day}일`;
 
-        // 이벤트 텍스트 랜덤 표시
         if (dayCount < simDays) {
             eventEl.textContent = events[Math.floor(Math.random() * events.length)];
             eventEl.style.color = '#aaa';
         } else {
-            // 경기 당일
             eventEl.textContent = "MATCH DAY";
             eventEl.style.color = "#e74c3c";
             eventEl.style.fontWeight = "bold";
 
-            // 상대팀 표시
             const oppName = gameData.currentOpponent ? teamNames[gameData.currentOpponent] : "상대팀";
             opponentEl.innerHTML = `VS <span style="color:#ffd700;">${oppName}</span>`;
             opponentEl.style.opacity = '1';
@@ -2846,11 +2855,13 @@ function runMatchSequence() {
             // 3. 잠시 후 경기 시작
             setTimeout(() => {
                 modal.style.display = 'none';
-                startMatch();
+                if (typeof window.startMatch === 'function') {
+                    window.startMatch();
+                }
             }, 1500);
         }
         dayCount++;
-    }, 400); // 0.4초마다 하루씩
+    }, 400);
 }
 
 // [신규] 메인 화면에 저장된 슬롯 렌더링
@@ -2912,80 +2923,6 @@ function renderMainSaveSlots() {
     section.style.display = hasSave ? 'block' : 'none';
 }
 
-// [신규] 경기 시작 시퀀스 (캘린더 시뮬레이션 -> 경기 시작)
-function runMatchSequence() {
-    const modal = document.getElementById('calendarModal');
-    const dateEl = document.getElementById('calendarDate');
-    const eventEl = document.getElementById('calendarEvent');
-    const opponentEl = document.getElementById('calendarOpponent');
-
-    if (!modal) {
-        if (typeof window.startMatch === 'function') {
-            window.startMatch();
-        } else {
-            console.error("startMatch function is not defined.");
-        }
-        return;
-    }
-
-    // 1. 초기화
-    modal.style.display = 'flex';
-    opponentEl.style.opacity = '0';
-    opponentEl.innerHTML = '';
-
-    // 현재 날짜 계산 (가상: 2025년 8월 1일 개막 기준)
-    // 라운드당 3~4일 간격으로 가정
-    const baseDate = new Date(2025, 7, 1); // 8월 1일
-    const currentRound = gameData.currentRound || 1;
-    const daysPassed = (currentRound - 1) * 4; // 라운드당 4일
-
-    let currentDate = new Date(baseDate);
-    currentDate.setDate(baseDate.getDate() + daysPassed);
-
-    // 시뮬레이션 기간 (3일 전부터 당일까지)
-    const simDays = 3;
-    let dayCount = 0;
-
-    const events = ["전술 훈련", "체력 단련", "비디오 분석", "휴식", "미디어 데이", "가벼운 훈련"];
-
-    // 2. 날짜 넘기기 애니메이션
-    const interval = setInterval(() => {
-        // 날짜 표시 업데이트
-        const displayDate = new Date(currentDate);
-        displayDate.setDate(currentDate.getDate() - (simDays - dayCount));
-
-        const month = displayDate.getMonth() + 1;
-        const day = displayDate.getDate();
-        dateEl.textContent = `${month}월 ${day}일`;
-
-        // 이벤트 텍스트 랜덤 표시
-        if (dayCount < simDays) {
-            eventEl.textContent = events[Math.floor(Math.random() * events.length)];
-            eventEl.style.color = '#aaa';
-        } else {
-            // 경기 당일
-            eventEl.textContent = "MATCH DAY";
-            eventEl.style.color = "#e74c3c";
-            eventEl.style.fontWeight = "bold";
-
-            // 상대팀 표시
-            const oppName = gameData.currentOpponent ? teamNames[gameData.currentOpponent] : "상대팀";
-            opponentEl.innerHTML = `VS <span style="color:#ffd700;">${oppName}</span>`;
-            opponentEl.style.opacity = '1';
-
-            clearInterval(interval);
-
-            // 3. 잠시 후 경기 시작
-            setTimeout(() => {
-                modal.style.display = 'none';
-                if (typeof window.startMatch === 'function') {
-                    window.startMatch();
-                }
-            }, 1500);
-        }
-        dayCount++;
-    }, 400); // 0.4초마다 하루씩
-}
 
 // 이벤트 리스너 설정
 function setupSaveLoadListeners() {

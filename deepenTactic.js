@@ -765,10 +765,11 @@ class RealSoccerEngine {
             mfX = fwX - fwd * (phase === 'building' ? 13 : 11);
             dfX = mfX - fwd * (phase === 'building' ? 14 : 12);
         } else {
-            dfX = isHome ? clamp(threatX - 18 + lineBias, 8, 42)
-                : clamp(threatX + 18 - lineBias, 58, 92);
-            mfX = dfX + fwd * 12;
-            fwX = mfX + fwd * 11;
+            // [개선] 수비 시 수비 라인(CB 기준)이 골대 쪽으로 더 깊이 내려가도록 간격 조정 (18 -> 24)
+            dfX = isHome ? clamp(threatX - 24 + lineBias, 5, 42)
+                : clamp(threatX + 24 - lineBias, 58, 95);
+            mfX = dfX + fwd * 15; // 미드필더와 센터백 사이의 간격을 늘려서 미드필더는 덜 내려가게 조율
+            fwX = mfX + fwd * 12;
         }
 
         return {
@@ -2041,6 +2042,8 @@ class RealSoccerEngine {
             const isFB_role = ['FB', 'WB', 'CWB', 'IWB'].includes(p.role);
             const tidDFs = this.players.filter(q => q.teamId === tid && q.position === 'DF');
             let tx = lines.dfX;
+            // 풀백은 센터백보다 수비 시 덜 내려가도록 오프셋 적용
+            if (isFB_role) tx += fwd * 10;
             tx = isHome ? Math.min(tx, p.baseX + 12) : Math.max(tx, p.baseX - 12);
             let ty = p.slotY;
             ms = 0.4 * clamp(sf, 0.7, 1.6);

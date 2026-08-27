@@ -63,10 +63,15 @@ class VisualUnit {
             
             ctx.save();
             ctx.shadowBlur = 15;
-            ctx.shadowColor = "#f1c40f"; // 황금색 광채
-            r *= 1.2;
+            ctx.shadowColor = this.activeSkillId === 'TACKLE' ? "#ff3333" : "#f1c40f"; // 태클은 붉은색 강렬한 이펙트, 개인기는 황금색
+            r *= (this.activeSkillId === 'TACKLE' ? 1.1 : 1.2);
 
             switch(this.activeSkillId) {
+                case 'TACKLE':
+                    // 깊게 들어가는 슬라이딩 태클 모션 (돌진)
+                    const slideDist = Math.sin(progress * Math.PI) * (r * 3.5);
+                    px += (this.teamType === 'home' ? slideDist : -slideDist);
+                    break;
                 case 'MARSEILLE_TURN':
                 case 'ROULETTE':
                     // 한 바퀴 돌기 (360도 회전)
