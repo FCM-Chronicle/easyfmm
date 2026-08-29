@@ -9,7 +9,7 @@ class TransferSystem {
         this.aiSquadManagementCooldown = 0; // AI 지능적 영입 쿨타임
         this.basePrice = 600; // 기본 가격 600억으로 하향 조정 (요청사항 반영)
         this.aiTeamBudgets = {}; // AI 팀 현재 자금
-        this.aiTeamWageBudgets = {}; // AI 팀 주급 자금Fㄹ
+        this.aiTeamWageBudgets = {}; // AI 팀 주급 자금
 
         // 타 리그 선수들
         this.extraPlayers = [
@@ -54,7 +54,6 @@ class TransferSystem {
             { "name": "디오고 코스타", "position": "GK", "country": "포르투갈", "rating": 86, "age": 25, "team": "외부리그" },
             { "name": "후고 라르손", "position": "MF", "country": "스웨덴", "rating": 81, "age": 20, "team": "외부리그" },
             { "name": "아담 와튼", "position": "MF", "country": "잉글랜드", "rating": 84, "age": 20, "team": "외부리그" },
-            { "name": "아산 우에드라오고", "position": "MF", "country": "독일", "rating": 78, "age": 18, "team": "외부리그" },
             { "name": "마틴 바투리나", "position": "MF", "country": "크로아티아", "rating": 79, "age": 21, "team": "외부리그" },
             { "name": "자비 게라", "position": "MF", "country": "스페인", "rating": 79, "age": 21, "team": "외부리그" },
             { "name": "옌스 카스트로프", "position": "MF", "country": "대한민국", "rating": 80, "age": 21, "team": "외부리그" },
@@ -62,11 +61,9 @@ class TransferSystem {
             { "name": "켄드리 파에스", "position": "MF", "country": "에콰도르", "rating": 76, "age": 17, "team": "외부리그" },
             { "name": "윌프리드 뇽토", "position": "FW", "country": "이탈리아", "rating": 79, "age": 20, "team": "외부리그" },
             { "name": "엘리에스 벤 세기르", "position": "FW", "country": "모로코", "rating": 80, "age": 19, "team": "외부리그" },
-            { "name": "에반 퍼거슨", "position": "FW", "country": "아일랜드", "rating": 83, "age": 19, "team": "외부리그" },
             { "name": "카림 코네", "position": "FW", "country": "코트디부아르", "rating": 77, "age": 20, "team": "외부리그" },
             { "name": "엄지성", "position": "FW", "country": "대한민국", "rating": 72, "age": 22, "team": "외부리그" },
             { "name": "배준호", "position": "FW", "country": "대한민국", "rating": 75, "age": 21, "team": "외부리그" },
-            { "name": "기성용", "position": "MF", "country": "대한민국", "rating": 80, "age": 37, "team": "외부리그" },
             { "name": "오현규", "position": "FW", "country": "대한민국", "rating": 75, "age": 23, "team": "외부리그" },
             { "name": "폴 포그바", "position": "MF", "country": "프랑스", "rating": 80, "age": 32, "team": "외부리그" },
             { "name": "황희찬", "position": "FW", "country": "대한민국", "rating": 82, "age": 29, "team": "외부리그" },

@@ -23,7 +23,7 @@ class PlayerGrowthSystem {
             "리코 루이스": 83,
             "코비 마이누": 88,
             "아론 바우만": 91,
-            "요르디 무키오": 84,
+            "조르티 모키오": 84,
             "부바 상가레": 90,
             "루카 부슈코비치": 94,
             "에단 은와네리": 86,
@@ -42,7 +42,7 @@ class PlayerGrowthSystem {
             "파트리크 도르구": 92,
             "파쿤도 부오나오테": 87,
             "미카 고츠": 88,
-            "양민혁": 92,
+            "양민혁": 94,
             "마이키 무어": 94,
         };
     }
@@ -404,7 +404,8 @@ class PlayerGrowthSystem {
 
                         // AI 선수 성장 적용
                         const oldRating = player.rating;
-                        const newRating = Math.min(99, player.rating + growthAmount);
+                        const maxCap = this.fixedPotentials.hasOwnProperty(player.name) ? this.fixedPotentials[player.name] : 99;
+                        const newRating = Math.min(maxCap, player.rating + growthAmount);
                         player.rating = Math.round(newRating * 10) / 10; // 소수점 1자리
 
                         // 로그 출력 (성장폭이 0.5 이상일 때만)
@@ -425,11 +426,8 @@ class PlayerGrowthSystem {
 
                 // 26세 이상이 되면 성장 데이터 제거
                 if (this.growthData.has(player.name) && player.age > 25) {
-                    const growthInfo = this.growthData.get(player.name);
-                    if (growthInfo.remainingGrowth <= 0) {
-                        console.log(`${player.name}의 성장 완료 및 나이 초과 - 데이터 삭제`);
-                        this.growthData.delete(player.name);
-                    }
+                    console.log(`${player.name}의 나이 초과(${player.age}세) - 성장 데이터 삭제`);
+                    this.growthData.delete(player.name);
                 }
             });
         });

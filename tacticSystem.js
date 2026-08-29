@@ -242,25 +242,24 @@ function startMatch() {
         gameData.teamMorale = Math.max(0, Math.min(100, gameData.teamMorale + tacticEffect));
     }
 
-    // 6. UI ?낅뜲?댄듃
+    // 6. UI 업데이트
     document.getElementById('homeTeam').textContent = teamNames[matchData.homeTeam];
     document.getElementById('awayTeam').textContent = teamNames[matchData.awayTeam];
     document.getElementById('scoreDisplay').textContent = "0 - 0";
     document.getElementById('matchTime').textContent = "0분";
     document.getElementById('eventList').innerHTML = '';
 
-    // 援먯껜 踰꾪듉
+    // 교체 버튼
     const subBtn = document.getElementById('substituteBtn');
     subBtn.style.display = 'inline-block';
     subBtn.onclick = () => openSubstitutionModal(matchData);
     document.getElementById('endMatchBtn').style.display = 'none';
 
-    // 7. ?붿쭊 諛?鍮꾩＜?쇰씪?댁? 珥덇린??
-    // (RealSoccerEngine? deepenTactic.js???뺤쓽?섏뼱 ?덉쓬)
+    // 7. 엔진 및 비주얼라이저 초기화
+    // (RealSoccerEngine은 deepenTactic.js에 정의되어 있음)
     const homeSquad = getSquadData(matchData.homeTeam);
     const awaySquad = getSquadData(matchData.awayTeam);
 
-    // [?섏젙] ??????꾩닠 ?뺣낫瑜??붿쭊???꾨떖
     // [수정] 상대 전술 정보를 선수에 전달
     const homeTactic = (matchData.homeTeam === gameData.selectedTeam) ? gameData.currentTactic : tacticSystem.getOpponentTactic(matchData.homeTeam);
     const awayTactic = (matchData.awayTeam === gameData.selectedTeam) ? gameData.currentTactic : tacticSystem.getOpponentTactic(matchData.awayTeam);
@@ -287,15 +286,15 @@ function startMatch() {
     const homeColor = getTeamColor(matchData.homeTeam);
     let awayColor = getTeamColor(matchData.awayTeam);
 
-    // 二??됱긽 異붿텧 ?ы띁 (諛곗뿴?대㈃ 泥?踰덉㎏ ?됱긽, 臾몄옄?댁씠硫?洹몃?濡?
+    // 주 색상 추출 헬퍼 (배열이면 첫 번째 색상, 문자열이면 그대로)
     const getPrimaryColor = (c) => Array.isArray(c) ? c[0] : c;
 
     const hPrimary = getPrimaryColor(homeColor);
     const aPrimary = getPrimaryColor(awayColor);
 
-    // ?됱긽??媛숈쑝硫??먯젙 ? ?됱긽 蹂寃?
+    // 색상이 같으면 원정 팀 색상 변경
     if (hPrimary.toLowerCase() === aPrimary.toLowerCase()) {
-        // ?덉씠 ?곗깋?대㈃ ?먯젙? 寃?? ?꾨땲硫??먯젙? ?곗깋
+        // 홈이 흰색이면 원정은 검정, 아니면 원정은 흰색
         if (hPrimary.toLowerCase() === '#ffffff' || hPrimary.toLowerCase() === 'white') {
             awayColor = '#000000';
         } else {
@@ -304,16 +303,16 @@ function startMatch() {
         console.log(`🎨 유니폼 색상 충돌 감지! 원정팀 색상을 ${awayColor}로 변경합니다.`);
     }
 
-    // 鍮꾩＜?쇰씪?댁? 珥덇린??
+    // 비주얼라이저 초기화
     if (window.matchVisualizer) {
-        // [?섏젙] ? 而щ윭 ?꾨떖
+        // [수정] 팀 컬러 전달
         window.matchVisualizer.init('matchVisualizerContainer', engine.players, { home: homeColor, away: awayColor });
     } else {
-        // 鍮꾩＜?쇰씪?댁?媛 ?놁쑝硫?罹붾쾭???곸뿭???④린嫄곕굹 ?띿뒪??紐⑤뱶濡??숈옉
+        // 비주얼라이저가 없으면 캔버스 영역을 숨기거나 텍스트 모드로 동작
         console.warn("matchVisualizer not found. Playing in text mode.");
     }
 
-    // 8. ?μ삤??踰꾪듉 ?쒖떆
+    // 8. 킥오프 버튼 표시
     showKickoffButton(matchData, engine);
 }
 
