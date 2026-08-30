@@ -2083,36 +2083,11 @@ function displayTransferPlayers() {
                     <div class="player-team">소속: ${teamInfo}</div>
                     <div class="transfer-price">${player.price}억</div>
                     <div style="color: #e74c3c; font-weight: bold; font-size: 0.9rem; margin-top: 2px;">요구 주급: ${wage}억</div>
-                    <button class="btn" style="width: 100%; margin-top: 6px; padding: 5px; background: #f39c12;" onclick='transferSystem.promptPurchaseNegotiation(${JSON.stringify(player.name)}, ${JSON.stringify(player.originalTeam)}, ${player.price}, ${JSON.stringify(player.position)}, ${player.rating}, ${player.age}); event.stopPropagation();'>이적료 협상</button>
+                    <button class="btn primary" style="width: 100%; margin-top: 8px; padding: 7px; font-weight: bold; font-size: 0.9rem;" onclick='transferSystem.promptPurchaseNegotiation(${JSON.stringify(player.name)}, ${JSON.stringify(player.originalTeam)}, ${player.price}, ${JSON.stringify(player.position)}, ${player.rating}, ${player.age}); event.stopPropagation();'>🤝 영입 협상 시작</button>
                     <div class="market-days">시장 ${player.daysOnMarket}일째</div>
                 </div>
             </div>
         `;
-
-        playerCard.addEventListener('click', () => {
-            const result = transferSystem.signPlayer(player);
-
-            if (result.success) {
-                if (window.GameState) window.GameState.clampTeamMoney();
-                else gameData.teamMoney = Math.max(0, gameData.teamMoney);
-                updateDisplay();
-
-                alert(result.message);
-                displayTransferPlayers(); // 목록 새로고침
-
-                // 성장 시스템에 새 선수 추가
-                if (result.player.age <= 25 && typeof playerGrowthSystem !== 'undefined') {
-                    playerGrowthSystem.initializePlayerGrowth();
-                }
-
-                // 팀 선수 목록 새로고침
-                if (document.getElementById('squad').classList.contains('active')) {
-                    displayTeamPlayers();
-                }
-            } else {
-                alert(result.message);
-            }
-        });
 
         fragment.appendChild(playerCard);
     });
@@ -2154,41 +2129,21 @@ function searchPlayers() {
             `<div class="market-status" style="color: #f39c12;">⚠️ 이적 시장에 없음</div>`;
 
         playerCard.innerHTML = `
-    <div class="player-card-content">
-        <img src="assets/players/${player.name}.webp" class="player-card-image" loading="lazy" onerror="this.onerror=null; this.src='assets/players/default.webp'">
-        <div class="player-info-text">
-            <div class="player-name">${player.name}</div>
-            <div class="player-position">${player.position}</div>
-            <div class="player-rating">능력치: ${Math.floor(player.rating)}</div>
-            <div class="player-age">나이: ${player.age}</div>
-            <div class="player-team">소속: ${teamInfo}</div>
-            <div class="transfer-price">${player.price}억</div>
-            <div style="color: #e74c3c; font-weight: bold; font-size: 0.9rem; margin-top: 2px;">요구 주급: ${wage}억</div>
-            <button class="btn" style="width: 100%; margin-top: 6px; padding: 5px; background: #f39c12;" onclick='transferSystem.promptPurchaseNegotiation(${JSON.stringify(player.name)}, ${JSON.stringify(player.originalTeam)}, ${player.price}, ${JSON.stringify(player.position)}, ${player.rating}, ${player.age}); event.stopPropagation();'>이적료 협상</button>
-            ${marketStatus}
-        </div>
-    </div>
-`;
-
-        playerCard.addEventListener('click', () => {
-            const result = transferSystem.signPlayer(player);
-
-            if (result.success) {
-                if (window.GameState) window.GameState.clampTeamMoney();
-                else gameData.teamMoney = Math.max(0, gameData.teamMoney);
-                updateDisplay();
-
-                alert(result.message);
-                searchPlayers(); // 검색 결과 새로고침
-
-                // 성장 시스템에 새 선수 추가
-                if (result.player.age <= 25 && typeof playerGrowthSystem !== 'undefined') {
-                    playerGrowthSystem.initializePlayerGrowth();
-                }
-            } else {
-                alert(result.message);
-            }
-        });
+            <div class="player-card-content">
+                <img src="assets/players/${player.name}.webp" class="player-card-image" loading="lazy" onerror="this.onerror=null; this.src='assets/players/default.webp'">
+                <div class="player-info-text">
+                    <div class="player-name">${player.name}</div>
+                    <div class="player-position">${player.position}</div>
+                    <div class="player-rating">능력치: ${Math.floor(player.rating)}</div>
+                    <div class="player-age">나이: ${player.age}</div>
+                    <div class="player-team">소속: ${teamInfo}</div>
+                    <div class="transfer-price">${player.price}억</div>
+                    <div style="color: #e74c3c; font-weight: bold; font-size: 0.9rem; margin-top: 2px;">요구 주급: ${wage}억</div>
+                    <button class="btn primary" style="width: 100%; margin-top: 8px; padding: 7px; font-weight: bold; font-size: 0.9rem;" onclick='transferSystem.promptPurchaseNegotiation(${JSON.stringify(player.name)}, ${JSON.stringify(player.originalTeam)}, ${player.price}, ${JSON.stringify(player.position)}, ${player.rating}, ${player.age}); event.stopPropagation();'>🤝 영입 협상 시작</button>
+                    ${marketStatus}
+                </div>
+            </div>
+        `;
 
         fragment.appendChild(playerCard);
     });
