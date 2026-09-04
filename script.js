@@ -3194,7 +3194,7 @@ function showTacticsInfo() {
                         <strong style="color: #e74c3c;">❌ 비효과적 vs:</strong><br>
                         ${tactic.ineffective.map(t => tactics[t].name).join('<br>')}
                     </div>
-                </div>#e74c3c
+                </div>
             </div>
         `;
     });
