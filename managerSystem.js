@@ -233,15 +233,22 @@ const managerSystem = {
     renderAvatarPicker() {
         const grid = document.getElementById('avatarPickerGrid');
         if (!grid) return;
-        grid.innerHTML = '';
+        grid.replaceChildren();
 
         MANAGER_AVATARS.forEach(item => {
             const card = document.createElement('div');
             card.className = `avatar-card-opt ${this.creatorState.avatar === item.emoji ? 'active' : ''}`;
-            card.innerHTML = `
-                <span class="opt-emoji">${item.emoji}</span>
-                <span class="opt-name">${item.label}</span>
-            `;
+
+            const emojiSpan = document.createElement('span');
+            emojiSpan.className = 'opt-emoji';
+            emojiSpan.textContent = item.emoji;
+
+            const nameSpan = document.createElement('span');
+            nameSpan.className = 'opt-name';
+            nameSpan.textContent = item.label;
+
+            card.append(emojiSpan, nameSpan);
+
             card.onclick = () => {
                 this.creatorState.avatar = item.emoji;
                 grid.querySelectorAll('.avatar-card-opt').forEach(el => el.classList.remove('active'));
@@ -255,18 +262,29 @@ const managerSystem = {
     renderPhilosophyPicker() {
         const grid = document.getElementById('philoPickerGrid');
         if (!grid) return;
-        grid.innerHTML = '';
+        grid.replaceChildren();
 
         Object.values(MANAGER_PHILOSOPHIES).forEach(philo => {
             const card = document.createElement('div');
             card.className = `philosophy-card-opt ${this.creatorState.philosophy === philo.id ? 'active' : ''}`;
-            card.innerHTML = `
-                <div class="philo-opt-header">
-                    <span>${philo.icon}</span>
-                    <span>${philo.name}</span>
-                </div>
-                <div class="philo-opt-desc">${philo.desc}</div>
-            `;
+
+            const header = document.createElement('div');
+            header.className = 'philo-opt-header';
+
+            const iconSpan = document.createElement('span');
+            iconSpan.textContent = philo.icon;
+
+            const nameSpan = document.createElement('span');
+            nameSpan.textContent = philo.name;
+
+            header.append(iconSpan, nameSpan);
+
+            const desc = document.createElement('div');
+            desc.className = 'philo-opt-desc';
+            desc.textContent = philo.desc;
+
+            card.append(header, desc);
+
             card.onclick = () => {
                 this.creatorState.philosophy = philo.id;
                 grid.querySelectorAll('.philosophy-card-opt').forEach(el => el.classList.remove('active'));
@@ -303,7 +321,10 @@ const managerSystem = {
 
         const currentPhilo = MANAGER_PHILOSOPHIES[this.creatorState.philosophy] || MANAGER_PHILOSOPHIES.attacking;
         if (philoBadgeEl) {
-            philoBadgeEl.innerHTML = `<span>${currentPhilo.icon}</span> ${currentPhilo.name}`;
+            philoBadgeEl.replaceChildren();
+            const iconSpan = document.createElement('span');
+            iconSpan.textContent = currentPhilo.icon;
+            philoBadgeEl.append(iconSpan, ` ${currentPhilo.name}`);
             philoBadgeEl.style.borderColor = currentPhilo.color;
             philoBadgeEl.style.color = currentPhilo.color;
         }
@@ -430,18 +451,33 @@ const managerSystem = {
         const countBadge = document.getElementById('managerCountBadge');
         if (!grid) return;
         
-        grid.innerHTML = '';
+        grid.replaceChildren();
         if (countBadge) countBadge.textContent = `${this.managers.length}명`;
         
         if (this.managers.length === 0) {
-            grid.innerHTML = `
-                <div style="grid-column: 1/-1; text-align: center; color: #aaa; padding: 60px 20px; background: rgba(255,255,255,0.03); border-radius: 20px; border: 1px dashed rgba(255,215,0,0.2);">
-                    <div style="font-size: 3.5rem; margin-bottom: 12px;">👔</div>
-                    <h3 style="color: #fff; margin-bottom: 8px;">등록된 감독이 없습니다</h3>
-                    <p style="color: #888; margin-bottom: 20px;">'새 감독 생성' 버튼을 눌러 여러분만의 사령탑을 등록하고 축구 세계를 제패하세요!</p>
-                    <button class="btn primary" onclick="managerSystem.openEditModal()" style="font-weight: 800; padding: 12px 28px;">✨ 첫 감독 생성하기</button>
-                </div>
-            `;
+            const emptyBox = document.createElement('div');
+            emptyBox.style.cssText = 'grid-column: 1/-1; text-align: center; color: #aaa; padding: 60px 20px; background: rgba(255,255,255,0.03); border-radius: 20px; border: 1px dashed rgba(255,215,0,0.2);';
+
+            const iconDiv = document.createElement('div');
+            iconDiv.style.cssText = 'font-size: 3.5rem; margin-bottom: 12px;';
+            iconDiv.textContent = '👔';
+
+            const h3 = document.createElement('h3');
+            h3.style.cssText = 'color: #fff; margin-bottom: 8px;';
+            h3.textContent = '등록된 감독이 없습니다';
+
+            const p = document.createElement('p');
+            p.style.cssText = 'color: #888; margin-bottom: 20px;';
+            p.textContent = "'새 감독 생성' 버튼을 눌러 여러분만의 사령탑을 등록하고 축구 세계를 제패하세요!";
+
+            const btn = document.createElement('button');
+            btn.className = 'btn primary';
+            btn.style.cssText = 'font-weight: 800; padding: 12px 28px;';
+            btn.textContent = '✨ 첫 감독 생성하기';
+            btn.onclick = () => managerSystem.openEditModal();
+
+            emptyBox.append(iconDiv, h3, p, btn);
+            grid.appendChild(emptyBox);
             return;
         }
 
@@ -467,44 +503,87 @@ const managerSystem = {
             card.className = 'manager-card-premium';
             card.onclick = () => this.openProfileModal(manager.id);
 
-            card.innerHTML = `
-                <div>
-                    <div class="mgr-card-top">
-                        <div class="mgr-card-avatar">${avatar}</div>
-                        <div class="mgr-card-info">
-                            <h3>${manager.name}</h3>
-                            <div class="mgr-card-meta">
-                                <span>${flag} ${nation}</span>
-                                <span>•</span>
-                                <span>${manager.age || 45}세</span>
-                            </div>
-                        </div>
-                    </div>
+            const cardMain = document.createElement('div');
 
-                    <div style="display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap;">
-                        <span style="background: rgba(255,215,0,0.12); color: #ffd700; border: 1px solid rgba(255,215,0,0.3); padding: 3px 8px; border-radius: 8px; font-size: 0.75rem; font-weight: 700;">
-                            ${philo.icon} ${philo.name}
-                        </span>
-                        ${trophies > 0 ? `<span style="background: rgba(46,204,113,0.15); color: #2ecc71; border: 1px solid rgba(46,204,113,0.3); padding: 3px 8px; border-radius: 8px; font-size: 0.75rem; font-weight: 700;">🏆 우승 ${trophies}회</span>` : ''}
-                    </div>
+            const cardTop = document.createElement('div');
+            cardTop.className = 'mgr-card-top';
 
-                    <div class="mgr-card-stats-grid">
-                        <div class="mgr-stat-item">
-                            <span class="stat-lbl">통산 전적</span>
-                            <span class="stat-val">${matches}전 ${wins}승 ${draws}무 ${losses}패</span>
-                        </div>
-                        <div class="mgr-stat-item">
-                            <span class="stat-lbl">승률</span>
-                            <span class="stat-val" style="color: ${parseFloat(winRate) >= 50 ? '#2ecc71' : '#ffd700'};">${winRate}%</span>
-                        </div>
-                    </div>
-                </div>
+            const avatarDiv = document.createElement('div');
+            avatarDiv.className = 'mgr-card-avatar';
+            avatarDiv.textContent = avatar;
 
-                <div class="mgr-card-footer">
-                    <span style="color: #aaa; font-size: 0.75rem;">💾 저장 슬롯 ${activeSlots}/3</span>
-                    <span>커리어 관리 ➔</span>
-                </div>
-            `;
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'mgr-card-info';
+
+            const nameH3 = document.createElement('h3');
+            nameH3.textContent = manager.name;
+
+            const metaDiv = document.createElement('div');
+            metaDiv.className = 'mgr-card-meta';
+            const flagNationSpan = document.createElement('span');
+            flagNationSpan.textContent = `${flag} ${nation}`;
+            const dotSpan = document.createElement('span');
+            dotSpan.textContent = '•';
+            const ageSpan = document.createElement('span');
+            ageSpan.textContent = `${manager.age || 45}세`;
+            metaDiv.append(flagNationSpan, dotSpan, ageSpan);
+
+            infoDiv.append(nameH3, metaDiv);
+            cardTop.append(avatarDiv, infoDiv);
+
+            const badgesDiv = document.createElement('div');
+            badgesDiv.style.cssText = 'display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap;';
+
+            const philoBadge = document.createElement('span');
+            philoBadge.style.cssText = 'background: rgba(255,215,0,0.12); color: #ffd700; border: 1px solid rgba(255,215,0,0.3); padding: 3px 8px; border-radius: 8px; font-size: 0.75rem; font-weight: 700;';
+            philoBadge.textContent = `${philo.icon} ${philo.name}`;
+            badgesDiv.appendChild(philoBadge);
+
+            if (trophies > 0) {
+                const trophyBadge = document.createElement('span');
+                trophyBadge.style.cssText = 'background: rgba(46,204,113,0.15); color: #2ecc71; border: 1px solid rgba(46,204,113,0.3); padding: 3px 8px; border-radius: 8px; font-size: 0.75rem; font-weight: 700;';
+                trophyBadge.textContent = `🏆 우승 ${trophies}회`;
+                badgesDiv.appendChild(trophyBadge);
+            }
+
+            const statsGrid = document.createElement('div');
+            statsGrid.className = 'mgr-card-stats-grid';
+
+            const statItem1 = document.createElement('div');
+            statItem1.className = 'mgr-stat-item';
+            const statLbl1 = document.createElement('span');
+            statLbl1.className = 'stat-lbl';
+            statLbl1.textContent = '통산 전적';
+            const statVal1 = document.createElement('span');
+            statVal1.className = 'stat-val';
+            statVal1.textContent = `${matches}전 ${wins}승 ${draws}무 ${losses}패`;
+            statItem1.append(statLbl1, statVal1);
+
+            const statItem2 = document.createElement('div');
+            statItem2.className = 'mgr-stat-item';
+            const statLbl2 = document.createElement('span');
+            statLbl2.className = 'stat-lbl';
+            statLbl2.textContent = '승률';
+            const statVal2 = document.createElement('span');
+            statVal2.className = 'stat-val';
+            statVal2.style.color = parseFloat(winRate) >= 50 ? '#2ecc71' : '#ffd700';
+            statVal2.textContent = `${winRate}%`;
+            statItem2.append(statLbl2, statVal2);
+
+            statsGrid.append(statItem1, statItem2);
+
+            cardMain.append(cardTop, badgesDiv, statsGrid);
+
+            const cardFooter = document.createElement('div');
+            cardFooter.className = 'mgr-card-footer';
+            const slotSpan = document.createElement('span');
+            slotSpan.style.cssText = 'color: #aaa; font-size: 0.75rem;';
+            slotSpan.textContent = `💾 저장 슬롯 ${activeSlots}/3`;
+            const actionSpan = document.createElement('span');
+            actionSpan.textContent = '커리어 관리 ➔';
+            cardFooter.append(slotSpan, actionSpan);
+
+            card.append(cardMain, cardFooter);
             grid.appendChild(card);
         });
     },
@@ -531,7 +610,13 @@ const managerSystem = {
         const wdlEl = document.getElementById('profileManagerWDL');
         const trophiesEl = document.getElementById('profileManagerTrophies');
 
-        if (nameEl) nameEl.innerHTML = `<span style="margin-right: 8px;">${avatar}</span>${manager.name}`;
+        if (nameEl) {
+            nameEl.replaceChildren();
+            const avatarSpan = document.createElement('span');
+            avatarSpan.style.marginRight = '8px';
+            avatarSpan.textContent = avatar;
+            nameEl.append(avatarSpan, manager.name);
+        }
         if (nationEl) nationEl.textContent = `${flag} ${nation}`;
         if (ageEl) ageEl.textContent = manager.age || 45;
         if (matchesEl) matchesEl.textContent = matches;
@@ -546,7 +631,7 @@ const managerSystem = {
     renderSaveSlotsForManager(managerId) {
         const grid = document.getElementById('managerSaveSlotsGrid');
         if (!grid) return;
-        grid.innerHTML = '';
+        grid.replaceChildren();
 
         for (let i = 1; i <= 3; i++) {
             const slotKey = `fm_save_${managerId}_slot${i}`;
@@ -572,39 +657,79 @@ const managerSystem = {
                     const gData = saveData.gameData || {};
                     const teamKey = gData.selectedTeam;
                     const tName = teamKey ? (typeof teamNames !== 'undefined' && teamNames[teamKey] ? teamNames[teamKey] : teamKey) : '팀 없음';
-                    const logoHtml = (teamKey && typeof getTeamLogoHTML === 'function') ? getTeamLogoHTML(teamKey) : '';
                     const sCount = gData.seasonCount || 1;
                     const money = gData.teamMoney || 1000;
                     const date = saveData.timestamp ? new Date(saveData.timestamp).toLocaleDateString() : '최근';
 
-                    slotDiv.innerHTML = `
-                        <div>
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                <span style="color: #2ecc71; font-weight: 800; font-size: 0.85rem;">SLOT 0${i}</span>
-                                <span style="font-size: 0.72rem; color: #888;">${date}</span>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
-                                ${logoHtml}
-                                <strong style="font-size: 1.05rem; color: #fff;">${tName}</strong>
-                            </div>
-                            <div style="font-size: 0.8rem; color: #aaa; display: flex; gap: 10px;">
-                                <span>시즌 ${sCount}</span>
-                                <span>자금: <b style="color:#ffd700;">${money}억</b></span>
-                            </div>
-                        </div>
-                        <button class="btn primary small" style="margin-top: 12px; width: 100%; font-weight: 800; padding: 8px;" onclick="managerSystem.loadGame('${managerId}', ${i})">▶ 이어하기</button>
-                    `;
+                    const contentWrap = document.createElement('div');
+
+                    const headerRow = document.createElement('div');
+                    headerRow.style.cssText = 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;';
+                    const slotBadge = document.createElement('span');
+                    slotBadge.style.cssText = 'color: #2ecc71; font-weight: 800; font-size: 0.85rem;';
+                    slotBadge.textContent = `SLOT 0${i}`;
+                    const dateSpan = document.createElement('span');
+                    dateSpan.style.cssText = 'font-size: 0.72rem; color: #888;';
+                    dateSpan.textContent = date;
+                    headerRow.append(slotBadge, dateSpan);
+
+                    const teamRow = document.createElement('div');
+                    teamRow.style.cssText = 'display: flex; align-items: center; gap: 8px; margin-bottom: 6px;';
+                    if (teamKey && typeof createTeamLogoElement === 'function') {
+                        teamRow.appendChild(createTeamLogoElement(teamKey));
+                    }
+                    const teamNameStrong = document.createElement('strong');
+                    teamNameStrong.style.cssText = 'font-size: 1.05rem; color: #fff;';
+                    teamNameStrong.textContent = tName;
+                    teamRow.appendChild(teamNameStrong);
+
+                    const metaRow = document.createElement('div');
+                    metaRow.style.cssText = 'font-size: 0.8rem; color: #aaa; display: flex; gap: 10px;';
+                    const seasonSpan = document.createElement('span');
+                    seasonSpan.textContent = `시즌 ${sCount}`;
+                    const moneySpan = document.createElement('span');
+                    moneySpan.textContent = '자금: ';
+                    const moneyBold = document.createElement('b');
+                    moneyBold.style.color = '#ffd700';
+                    moneyBold.textContent = `${money}억`;
+                    moneySpan.appendChild(moneyBold);
+                    metaRow.append(seasonSpan, moneySpan);
+
+                    contentWrap.append(headerRow, teamRow, metaRow);
+
+                    const loadBtn = document.createElement('button');
+                    loadBtn.className = 'btn primary small';
+                    loadBtn.style.cssText = 'margin-top: 12px; width: 100%; font-weight: 800; padding: 8px;';
+                    loadBtn.textContent = '▶ 이어하기';
+                    loadBtn.onclick = () => managerSystem.loadGame(managerId, i);
+
+                    slotDiv.append(contentWrap, loadBtn);
                 } catch (e) {
-                    slotDiv.innerHTML = `<div>슬롯 ${i} <br> 데이터 오류</div>`;
+                    const errDiv = document.createElement('div');
+                    errDiv.textContent = `슬롯 ${i} 데이터 오류`;
+                    slotDiv.appendChild(errDiv);
                 }
             } else {
-                slotDiv.innerHTML = `
-                    <div style="text-align: center; padding: 10px 0;">
-                        <div style="font-size: 1.8rem; margin-bottom: 4px; opacity: 0.5;">📂</div>
-                        <div style="color: #888; font-size: 0.85rem; font-weight: 600;">빈 슬롯 0${i}</div>
-                    </div>
-                    <button class="btn success small" style="margin-top: 10px; width: 100%; font-weight: 800; padding: 8px;" onclick="managerSystem.startNewCareer('${managerId}', ${i})">✨ 새 커리어 시작</button>
-                `;
+                const emptyBox = document.createElement('div');
+                emptyBox.style.cssText = 'text-align: center; padding: 10px 0;';
+
+                const icon = document.createElement('div');
+                icon.style.cssText = 'font-size: 1.8rem; margin-bottom: 4px; opacity: 0.5;';
+                icon.textContent = '📂';
+
+                const label = document.createElement('div');
+                label.style.cssText = 'color: #888; font-size: 0.85rem; font-weight: 600;';
+                label.textContent = `빈 슬롯 0${i}`;
+
+                emptyBox.append(icon, label);
+
+                const newCareerBtn = document.createElement('button');
+                newCareerBtn.className = 'btn success small';
+                newCareerBtn.style.cssText = 'margin-top: 10px; width: 100%; font-weight: 800; padding: 8px;';
+                newCareerBtn.textContent = '✨ 새 커리어 시작';
+                newCareerBtn.onclick = () => managerSystem.startNewCareer(managerId, i);
+
+                slotDiv.append(emptyBox, newCareerBtn);
             }
             grid.appendChild(slotDiv);
         }

@@ -785,9 +785,12 @@ updateLeagueTableForAIMatch(team1Key, team2Key, score1, score2) {
     displayTopScorers(topScorers) {
         const container = document.getElementById('topScorers');
         if (!container) return;
-        container.innerHTML = '';
+        container.replaceChildren();
         if (topScorers.length === 0) {
-            container.innerHTML = '<p style="text-align: center; opacity: 0.7;">아직 기록이 없습니다.</p>';
+            const p = document.createElement('p');
+            p.style.cssText = 'text-align: center; opacity: 0.7;';
+            p.textContent = '아직 기록이 없습니다.';
+            container.appendChild(p);
             return;
         }
 
@@ -795,14 +798,26 @@ updateLeagueTableForAIMatch(team1Key, team2Key, score1, score2) {
             const isUserPlayer = player.team === gameData.selectedTeam;
             const rankingItem = document.createElement('div');
             rankingItem.className = `ranking-item ${isUserPlayer ? 'user-player' : ''}`;
-            rankingItem.innerHTML = `
-                <div class="player-rank">${index + 1}</div>
-                <div class="player-info">
-                    <div class="player-name">${player.name}</div>
-                    <div class="player-team">${teamNames[player.team] || '알 수 없음'}</div>
-                </div>
-                <div class="player-stats">${player.goals}</div>
-            `;
+
+            const rankDiv = document.createElement('div');
+            rankDiv.className = 'player-rank';
+            rankDiv.textContent = index + 1;
+
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'player-info';
+            const nameDiv = document.createElement('div');
+            nameDiv.className = 'player-name';
+            nameDiv.textContent = player.name;
+            const teamDiv = document.createElement('div');
+            teamDiv.className = 'player-team';
+            teamDiv.textContent = teamNames[player.team] || '알 수 없음';
+            infoDiv.append(nameDiv, teamDiv);
+
+            const statsDiv = document.createElement('div');
+            statsDiv.className = 'player-stats';
+            statsDiv.textContent = player.goals;
+
+            rankingItem.append(rankDiv, infoDiv, statsDiv);
             container.appendChild(rankingItem);
         });
     }
@@ -810,9 +825,12 @@ updateLeagueTableForAIMatch(team1Key, team2Key, score1, score2) {
     displayTopAssisters(topAssisters) {
         const container = document.getElementById('topAssisters');
         if (!container) return;
-        container.innerHTML = '';
+        container.replaceChildren();
         if (topAssisters.length === 0) {
-            container.innerHTML = '<p style="text-align: center; opacity: 0.7;">아직 기록이 없습니다.</p>';
+            const p = document.createElement('p');
+            p.style.cssText = 'text-align: center; opacity: 0.7;';
+            p.textContent = '아직 기록이 없습니다.';
+            container.appendChild(p);
             return;
         }
 
@@ -820,14 +838,26 @@ updateLeagueTableForAIMatch(team1Key, team2Key, score1, score2) {
             const isUserPlayer = player.team === gameData.selectedTeam;
             const rankingItem = document.createElement('div');
             rankingItem.className = `ranking-item ${isUserPlayer ? 'user-player' : ''}`;
-            rankingItem.innerHTML = `
-                <div class="player-rank">${index + 1}</div>
-                <div class="player-info">
-                    <div class="player-name">${player.name}</div>
-                    <div class="player-team">${teamNames[player.team] || '알 수 없음'}</div>
-                </div>
-                <div class="player-stats">${player.assists}</div>
-            `;
+
+            const rankDiv = document.createElement('div');
+            rankDiv.className = 'player-rank';
+            rankDiv.textContent = index + 1;
+
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'player-info';
+            const nameDiv = document.createElement('div');
+            nameDiv.className = 'player-name';
+            nameDiv.textContent = player.name;
+            const teamDiv = document.createElement('div');
+            teamDiv.className = 'player-team';
+            teamDiv.textContent = teamNames[player.team] || '알 수 없음';
+            infoDiv.append(nameDiv, teamDiv);
+
+            const statsDiv = document.createElement('div');
+            statsDiv.className = 'player-stats';
+            statsDiv.textContent = player.assists;
+
+            rankingItem.append(rankDiv, infoDiv, statsDiv);
             container.appendChild(rankingItem);
         });
     }
@@ -835,9 +865,12 @@ updateLeagueTableForAIMatch(team1Key, team2Key, score1, score2) {
     displayTopMOMs(topMOMs) {
         const container = document.getElementById('topMOMs');
         if (!container) return;
-        container.innerHTML = '';
+        container.replaceChildren();
         if (topMOMs.length === 0) {
-            container.innerHTML = '<p style="text-align: center; opacity: 0.7;">아직 기록이 없습니다.</p>';
+            const p = document.createElement('p');
+            p.style.cssText = 'text-align: center; opacity: 0.7;';
+            p.textContent = '아직 기록이 없습니다.';
+            container.appendChild(p);
             return;
         }
 
@@ -845,14 +878,26 @@ updateLeagueTableForAIMatch(team1Key, team2Key, score1, score2) {
             const isUserPlayer = player.team === gameData.selectedTeam;
             const rankingItem = document.createElement('div');
             rankingItem.className = `ranking-item ${isUserPlayer ? 'user-player' : ''}`;
-            rankingItem.innerHTML = `
-                <div class="player-rank">${index + 1}</div>
-                <div class="player-info">
-                    <div class="player-name">${player.name}</div>
-                    <div class="player-team">${teamNames[player.team] || '알 수 없음'}</div>
-                </div>
-                <div class="player-stats">${player.moms}회</div>
-            `;
+
+            const rankDiv = document.createElement('div');
+            rankDiv.className = 'player-rank';
+            rankDiv.textContent = index + 1;
+
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'player-info';
+            const nameDiv = document.createElement('div');
+            nameDiv.className = 'player-name';
+            nameDiv.textContent = player.name;
+            const teamDiv = document.createElement('div');
+            teamDiv.className = 'player-team';
+            teamDiv.textContent = teamNames[player.team] || '알 수 없음';
+            infoDiv.append(nameDiv, teamDiv);
+
+            const statsDiv = document.createElement('div');
+            statsDiv.className = 'player-stats';
+            statsDiv.textContent = `${player.moms}회`;
+
+            rankingItem.append(rankDiv, infoDiv, statsDiv);
             container.appendChild(rankingItem);
         });
     }
@@ -861,12 +906,15 @@ updateLeagueTableForAIMatch(team1Key, team2Key, score1, score2) {
         const container = document.getElementById('weeklyBest11');
         if (!container) return;
         
-        container.innerHTML = '';
+        container.replaceChildren();
         
         const best11 = this.currentBest11[league];
         
         if (!best11 || best11.length === 0) {
-            container.innerHTML = '<p style="text-align: center; opacity: 0.7;">아직 선정되지 않았습니다.</p>';
+            const p = document.createElement('p');
+            p.style.cssText = 'text-align: center; opacity: 0.7;';
+            p.textContent = '아직 선정되지 않았습니다.';
+            container.appendChild(p);
             return;
         }
 
@@ -887,12 +935,29 @@ updateLeagueTableForAIMatch(team1Key, team2Key, score1, score2) {
                 const isUserPlayer = data.team === gameData.selectedTeam;
                 const card = document.createElement('div');
                 card.className = `best11-player ${isUserPlayer ? 'user-player' : ''}`;
-                card.innerHTML = `
-                    <img src="assets/players/${data.player.name}.webp" class="best11-image" loading="lazy" onerror="this.onerror=null; this.src='assets/players/default.webp'">
-                    <div class="best11-rating">★${data.rating}</div>
-                    <div class="best11-name">${data.player.name}</div>
-                    <div class="best11-team">${teamNames[data.team] || data.team}</div>
-                `;
+
+                const img = document.createElement('img');
+                img.src = `assets/players/${data.player.name}.webp`;
+                img.className = 'best11-image';
+                img.loading = 'lazy';
+                img.onerror = function() {
+                    this.onerror = null;
+                    this.src = 'assets/players/default.webp';
+                };
+
+                const ratingDiv = document.createElement('div');
+                ratingDiv.className = 'best11-rating';
+                ratingDiv.textContent = `★${data.rating}`;
+
+                const nameDiv = document.createElement('div');
+                nameDiv.className = 'best11-name';
+                nameDiv.textContent = data.player.name;
+
+                const teamDiv = document.createElement('div');
+                teamDiv.className = 'best11-team';
+                teamDiv.textContent = teamNames[data.team] || data.team;
+
+                card.append(img, ratingDiv, nameDiv, teamDiv);
                 row.appendChild(card);
             });
             return row;
@@ -903,7 +968,6 @@ updateLeagueTableForAIMatch(team1Key, team2Key, score1, score2) {
         pitch.appendChild(createRow(mfs));
         pitch.appendChild(createRow(dfs));
         pitch.appendChild(createRow(gks));
-        
         container.appendChild(pitch);
     }
 
@@ -1131,16 +1195,21 @@ class LeagueBasedRecordsSystem extends RecordsSystem {
         const container = document.getElementById('topScorers');
         if (!container) return;
         
-        container.innerHTML = '';
+        container.replaceChildren();
         
         // 리그 헤더 추가
         const leagueHeader = document.createElement('div');
         leagueHeader.className = 'league-records-header';
-        leagueHeader.innerHTML = `<h5>${league}부리그 득점왕</h5>`;
+        const h5 = document.createElement('h5');
+        h5.textContent = `${league}부리그 득점왕`;
+        leagueHeader.appendChild(h5);
         container.appendChild(leagueHeader);
         
         if (topScorers.length === 0) {
-            container.innerHTML += '<p style="text-align: center; opacity: 0.7;">아직 기록이 없습니다.</p>';
+            const p = document.createElement('p');
+            p.style.cssText = 'text-align: center; opacity: 0.7;';
+            p.textContent = '아직 기록이 없습니다.';
+            container.appendChild(p);
             return;
         }
         
@@ -1149,15 +1218,25 @@ class LeagueBasedRecordsSystem extends RecordsSystem {
             const rankingItem = document.createElement('div');
             rankingItem.className = `ranking-item ${isUserPlayer ? 'user-player' : ''}`;
             
-            rankingItem.innerHTML = `
-                <div class="player-rank">${index + 1}</div>
-                <div class="player-info">
-                    <div class="player-name">${player.name}</div>
-                    <div class="player-team">${teamNames[player.team] || player.team}</div>
-                </div>
-                <div class="player-stats">${player.goals}</div>
-            `;
-            
+            const rankDiv = document.createElement('div');
+            rankDiv.className = 'player-rank';
+            rankDiv.textContent = index + 1;
+
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'player-info';
+            const nameDiv = document.createElement('div');
+            nameDiv.className = 'player-name';
+            nameDiv.textContent = player.name;
+            const teamDiv = document.createElement('div');
+            teamDiv.className = 'player-team';
+            teamDiv.textContent = teamNames[player.team] || player.team;
+            infoDiv.append(nameDiv, teamDiv);
+
+            const statsDiv = document.createElement('div');
+            statsDiv.className = 'player-stats';
+            statsDiv.textContent = player.goals;
+
+            rankingItem.append(rankDiv, infoDiv, statsDiv);
             container.appendChild(rankingItem);
         });
     }
@@ -1167,16 +1246,21 @@ class LeagueBasedRecordsSystem extends RecordsSystem {
         const container = document.getElementById('topAssisters');
         if (!container) return;
         
-        container.innerHTML = '';
+        container.replaceChildren();
         
         // 리그 헤더 추가
         const leagueHeader = document.createElement('div');
         leagueHeader.className = 'league-records-header';
-        leagueHeader.innerHTML = `<h5>${league}부리그 도움왕</h5>`;
+        const h5 = document.createElement('h5');
+        h5.textContent = `${league}부리그 도움왕`;
+        leagueHeader.appendChild(h5);
         container.appendChild(leagueHeader);
         
         if (topAssisters.length === 0) {
-            container.innerHTML += '<p style="text-align: center; opacity: 0.7;">아직 기록이 없습니다.</p>';
+            const p = document.createElement('p');
+            p.style.cssText = 'text-align: center; opacity: 0.7;';
+            p.textContent = '아직 기록이 없습니다.';
+            container.appendChild(p);
             return;
         }
         
@@ -1185,15 +1269,25 @@ class LeagueBasedRecordsSystem extends RecordsSystem {
             const rankingItem = document.createElement('div');
             rankingItem.className = `ranking-item ${isUserPlayer ? 'user-player' : ''}`;
             
-            rankingItem.innerHTML = `
-                <div class="player-rank">${index + 1}</div>
-                <div class="player-info">
-                    <div class="player-name">${player.name}</div>
-                    <div class="player-team">${teamNames[player.team] || player.team}</div>
-                </div>
-                <div class="player-stats">${player.assists}</div>
-            `;
-            
+            const rankDiv = document.createElement('div');
+            rankDiv.className = 'player-rank';
+            rankDiv.textContent = index + 1;
+
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'player-info';
+            const nameDiv = document.createElement('div');
+            nameDiv.className = 'player-name';
+            nameDiv.textContent = player.name;
+            const teamDiv = document.createElement('div');
+            teamDiv.className = 'player-team';
+            teamDiv.textContent = teamNames[player.team] || player.team;
+            infoDiv.append(nameDiv, teamDiv);
+
+            const statsDiv = document.createElement('div');
+            statsDiv.className = 'player-stats';
+            statsDiv.textContent = player.assists;
+
+            rankingItem.append(rankDiv, infoDiv, statsDiv);
             container.appendChild(rankingItem);
         });
     }
@@ -1274,7 +1368,9 @@ class LeagueBasedRecordsSystem extends RecordsSystem {
             historyView.id = 'historyView';
             historyView.className = 'history-view';
             historyView.style.display = 'none';
-            historyView.innerHTML = '<div id="historyList"></div>';
+            const historyList = document.createElement('div');
+            historyList.id = 'historyList';
+            historyView.appendChild(historyList);
             currentView.parentNode.insertBefore(historyView, currentView.nextSibling);
         }
         
@@ -1403,90 +1499,146 @@ class LeagueBasedRecordsSystem extends RecordsSystem {
         const container = document.getElementById('historyList');
         if (!container) return;
         
-        container.innerHTML = '';
+        container.replaceChildren();
         
         if (this.seasonHistory.length === 0) {
-            container.innerHTML = `
-                <div style="text-align: center; padding: 50px; color: #aaa;">
-                    <div style="font-size: 3rem; margin-bottom: 20px;">🏛️</div>
-                    <h3>아직 명예의 전당에 등록된 시즌이 없습니다.</h3>
-                    <p>한 시즌을 완료하면 이곳에 영광스러운 기록이 남습니다.</p>
-                </div>`;
+            const emptyBox = document.createElement('div');
+            emptyBox.style.cssText = 'text-align: center; padding: 50px; color: #aaa;';
+
+            const icon = document.createElement('div');
+            icon.style.cssText = 'font-size: 3rem; margin-bottom: 20px;';
+            icon.textContent = '🏛️';
+
+            const h3 = document.createElement('h3');
+            h3.textContent = '아직 명예의 전당에 등록된 시즌이 없습니다.';
+
+            const p = document.createElement('p');
+            p.textContent = '한 시즌을 완료하면 이곳에 영광스러운 기록이 남습니다.';
+
+            emptyBox.append(icon, h3, p);
+            container.appendChild(emptyBox);
             return;
         }
 
         this.seasonHistory.forEach(data => {
             const seasonCard = document.createElement('div');
             seasonCard.className = 'history-card';
-            
-            let potyHtml = '';
+
+            const headerDiv = document.createElement('div');
+            headerDiv.className = 'history-header';
+            const seasonH4 = document.createElement('h4');
+            seasonH4.textContent = `${data.season} 시즌`;
+            headerDiv.appendChild(seasonH4);
+            seasonCard.appendChild(headerDiv);
+
             if (data.poty) {
-                potyHtml = `
-                    <div class="history-poty">
-                        <div class="poty-icon">👑</div>
-                        <div class="poty-info">
-                            <div class="history-label">올해의 선수 (Ballon d'Or)</div>
-                            <div class="history-value player-name">${data.poty.name}</div>
-                            <div class="history-sub">${teamNames[data.poty.team] || data.poty.team}</div>
-                        </div>
-                    </div>
-                `;
+                const potyDiv = document.createElement('div');
+                potyDiv.className = 'history-poty';
+
+                const potyIcon = document.createElement('div');
+                potyIcon.className = 'poty-icon';
+                potyIcon.textContent = '👑';
+
+                const potyInfo = document.createElement('div');
+                potyInfo.className = 'poty-info';
+
+                const potyLabel = document.createElement('div');
+                potyLabel.className = 'history-label';
+                potyLabel.textContent = "올해의 선수 (Ballon d'Or)";
+
+                const potyVal = document.createElement('div');
+                potyVal.className = 'history-value player-name';
+                potyVal.textContent = data.poty.name;
+
+                const potySub = document.createElement('div');
+                potySub.className = 'history-sub';
+                potySub.textContent = teamNames[data.poty.team] || data.poty.team;
+
+                potyInfo.append(potyLabel, potyVal, potySub);
+                potyDiv.append(potyIcon, potyInfo);
+                seasonCard.appendChild(potyDiv);
             }
 
-            let leaguesHtml = '';
+            const leaguesContainer = document.createElement('div');
+            leaguesContainer.className = 'history-leagues';
+
             for (let i = 1; i <= 3; i++) {
                 const leagueData = data.leagues[i];
                 if (!leagueData) continue;
 
-                // 베스트 11 HTML 생성
-                let best11Html = '';
+                const leagueSection = document.createElement('div');
+                leagueSection.className = 'history-league-section';
+
+                const leagueTitle = document.createElement('h5');
+                leagueTitle.className = 'league-title';
+                leagueTitle.textContent = `${i}부 리그`;
+                leagueSection.appendChild(leagueTitle);
+
+                const statsGrid = document.createElement('div');
+                statsGrid.className = 'history-stats-grid';
+
+                // 득점왕
+                const scorerStat = document.createElement('div');
+                scorerStat.className = 'history-stat';
+                const scorerLabel = document.createElement('span');
+                scorerLabel.className = 'label';
+                scorerLabel.textContent = '⚽ 득점왕';
+                const scorerVal = document.createElement('span');
+                scorerVal.className = 'value';
+                scorerVal.textContent = leagueData.topScorer ? `${leagueData.topScorer.playerName}` : '-';
+                const scorerSub = document.createElement('span');
+                scorerSub.className = 'sub-value';
+                scorerSub.textContent = leagueData.topScorer ? `${leagueData.topScorer.goals}골` : '';
+                scorerStat.append(scorerLabel, scorerVal, scorerSub);
+
+                // 도움왕
+                const assisterStat = document.createElement('div');
+                assisterStat.className = 'history-stat';
+                const assisterLabel = document.createElement('span');
+                assisterLabel.className = 'label';
+                assisterLabel.textContent = '👟 도움왕';
+                const assisterVal = document.createElement('span');
+                assisterVal.className = 'value';
+                assisterVal.textContent = leagueData.topAssister ? `${leagueData.topAssister.playerName}` : '-';
+                const assisterSub = document.createElement('span');
+                assisterSub.className = 'sub-value';
+                assisterSub.textContent = leagueData.topAssister ? `${leagueData.topAssister.assists}도움` : '';
+                assisterStat.append(assisterLabel, assisterVal, assisterSub);
+
+                statsGrid.append(scorerStat, assisterStat);
+                leagueSection.appendChild(statsGrid);
+
+                // 베스트 11
                 if (leagueData.best11 && leagueData.best11.length > 0) {
-                    best11Html = `
-                        <div class="history-best11-section">
-                            <div class="best11-title">BEST 11</div>
-                            <div class="best11-grid">
-                    `;
+                    const best11Sec = document.createElement('div');
+                    best11Sec.className = 'history-best11-section';
+                    const best11Title = document.createElement('div');
+                    best11Title.className = 'best11-title';
+                    best11Title.textContent = 'BEST 11';
+                    const best11Grid = document.createElement('div');
+                    best11Grid.className = 'best11-grid';
+
                     leagueData.best11.forEach(p => {
-                        best11Html += `
-                            <div class="best11-item">
-                                <span class="pos">${p.position}</span>
-                                <span class="name">${p.name}</span>
-                            </div>
-                        `;
+                        const bItem = document.createElement('div');
+                        bItem.className = 'best11-item';
+                        const posSpan = document.createElement('span');
+                        posSpan.className = 'pos';
+                        posSpan.textContent = p.position;
+                        const nameSpan = document.createElement('span');
+                        nameSpan.className = 'name';
+                        nameSpan.textContent = p.name;
+                        bItem.append(posSpan, nameSpan);
+                        best11Grid.appendChild(bItem);
                     });
-                    best11Html += `</div></div>`;
+
+                    best11Sec.append(best11Title, best11Grid);
+                    leagueSection.appendChild(best11Sec);
                 }
 
-                leaguesHtml += `
-                    <div class="history-league-section">
-                        <h5 class="league-title">${i}부 리그</h5>
-                        <div class="history-stats-grid">
-                            <div class="history-stat">
-                                <span class="label">⚽ 득점왕</span>
-                                <span class="value">${leagueData.topScorer ? `${leagueData.topScorer.playerName}` : '-'}</span>
-                                <span class="sub-value">${leagueData.topScorer ? `${leagueData.topScorer.goals}골` : ''}</span>
-                            </div>
-                            <div class="history-stat">
-                                <span class="label">👟 도움왕</span>
-                                <span class="value">${leagueData.topAssister ? `${leagueData.topAssister.playerName}` : '-'}</span>
-                                <span class="sub-value">${leagueData.topAssister ? `${leagueData.topAssister.assists}도움` : ''}</span>
-                            </div>
-                        </div>
-                        ${best11Html}
-                    </div>
-                `;
+                leaguesContainer.appendChild(leagueSection);
             }
 
-            seasonCard.innerHTML = `
-                <div class="history-header">
-                    <h4>${data.season} 시즌</h4>
-                </div>
-                ${potyHtml}
-                <div class="history-leagues">
-                    ${leaguesHtml}
-                </div>
-            `;
-            
+            seasonCard.appendChild(leaguesContainer);
             container.appendChild(seasonCard);
         });
     }

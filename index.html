@@ -863,20 +863,26 @@
             text-align: right;
         }
 
-        /* 자동 저장 토글 스위치 스타일 */
-        .switch {
+        /* 토글 스위치 공통 스타일 */
+        .switch,
+        label.switch {
             position: relative;
             display: inline-block;
-            width: 44px; /* 조금 더 아담한 너비 */
-            height: 24px;
+            width: 44px !important;
+            min-width: 44px !important;
+            max-width: 44px !important;
+            height: 24px !important;
+            flex: 0 0 44px !important;
             vertical-align: middle;
-            margin-right: 10px;
+            margin: 0 10px 0 0;
+            padding: 0;
         }
 
         .switch input {
             opacity: 0;
             width: 0;
             height: 0;
+            position: absolute;
         }
 
         .slider {
@@ -886,8 +892,8 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background-color: #555; /* 기존보다 덜 튀는 어두운 회색 */
-            transition: .3s;
+            background-color: #4b5563;
+            transition: background-color .2s ease;
             border-radius: 24px;
         }
 
@@ -899,18 +905,17 @@
             left: 3px;
             bottom: 3px;
             background-color: white;
-            transition: .3s;
+            transition: transform .2s ease;
             border-radius: 50%;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
         }
 
         input:checked + .slider {
-            background-color: #2ecc71; /* 더 화사하고 모던한 녹색 */
-            box-shadow: 0 0 10px rgba(46, 204, 113, 0.4);
+            background-color: #2ecc71;
         }
 
         input:checked + .slider:before {
-            transform: translateX(20px); /* 너비 감소에 맞춰 이동 거리 20px로 수정 */
+            transform: translateX(20px);
         }
 
         .auto-save-control {
@@ -1995,6 +2000,24 @@
 </head>
 
 <body>
+    <!-- 게임 리소스 및 시스템 로더 오버레이 -->
+    <div id="game-loader-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #12122b 0%, #1a1a3e 100%); z-index: 999999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.8s ease, visibility 0.8s; font-family: 'Segoe UI', sans-serif;">
+        <div style="text-align: center;">
+            <div class="loader-logo" style="margin-bottom: 25px;">
+                <h1 style="color: #ffd700; font-size: 3.5rem; margin: 0; letter-spacing: -2px; text-shadow: 0 0 30px rgba(255,215,0,0.3);">EasyFMM</h1>
+                <div style="color: #a46dff; font-size: 0.8rem; letter-spacing: 5px; font-weight: bold; margin-top: 5px;">NEXT GEN MANAGER</div>
+                <div style="color: rgba(255,255,255,0.4); font-size: 0.65rem; font-weight: normal; margin-top: 6px;">꿀팁을 원한다면 채팅으로 여러 사람들과 이야기를 나눠 보세요!</div>
+            </div>
+            <div style="width: 280px; height: 4px; background: rgba(255,255,255,0.05); border-radius: 10px; overflow: hidden; margin: 0 auto; border: 1px solid rgba(255,255,255,0.1);">
+                <div id="loader-progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #a46dff, #7c4dff); box-shadow: 0 0 15px rgba(164,109,255,0.6); transition: width 0.4s cubic-bezier(0.1, 0.7, 0.1, 1);"></div>
+            </div>
+            <div id="loader-status" style="margin-top: 20px; color: #fff; font-size: 0.85rem; opacity: 0.7; font-weight: 300; text-transform: uppercase;">데이터 분석 중...</div>
+            <div style="position: absolute; bottom: 40px; color: rgba(255,255,255,0.2); font-size: 0.7rem;">
+                © 2026 FCM_CHRONICLE. ALL SYSTEMS OPERATIONAL.
+            </div>
+        </div>
+    </div>
+
     <!-- [신규] 감독 선택 화면 -->
     <div id="managerSelectionScreen" class="screen active">
         <div style="text-align: center; max-width: 1200px; margin: 0 auto 30px;">
@@ -2510,7 +2533,24 @@
                 </div>
                 <div id="youthPlayerList"></div>
                 <!-- 스카우트 섹션 -->
-                <div id="scoutingSection" class="scouting-section"></div>
+                <div id="scoutingSection" class="scouting-section">
+                    <div id="hiredScoutInfo" class="hired-scout-info" style="display: none; background: rgba(46, 204, 113, 0.2); border: 1px solid #2ecc71; padding: 15px; border-radius: 10px; text-align: center; margin-bottom: 20px;">
+                        <h4>현재 고용된 스카우터</h4>
+                        <p><strong id="hiredScoutName"></strong></p>
+                        <p>남은 계약 기간: <span id="hiredScoutMatches"></span> 경기</p>
+                    </div>
+                    <div class="scouting-header" style="margin-top: 40px; border-top: 1px solid #444; padding-top: 20px;">
+                        <h3>스카우터 고용</h3>
+                        <p>스카우터를 고용하여 새로운 유망주를 발굴하세요. 발굴된 선수는 '유스' 탭에서 확인할 수 있습니다.</p>
+                    </div>
+                    <div id="scoutList" class="scout-list"></div>
+                    <div id="scoutingResults" class="scouting-results">
+                        <h4>발굴된 선수 목록</h4>
+                        <div id="scoutedPlayerList">
+                            <p style="text-align: center; opacity: 0.7;">스카우터를 고용하여 유망주를 찾아보세요.</p>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div id="sns" class="tab-panel">
@@ -2625,6 +2665,42 @@
             <div id="settings" class="tab-panel">
                 <h3>⚙️ 게임 설정</h3>
                 <div class="settings-content">
+                    <!-- 오디오 설정 -->
+                    <div id="audioSettings" class="settings-section">
+                        <h4>🎵 배경음악 설정</h4>
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                            <label class="switch">
+                                <input type="checkbox" id="bgmToggle" checked>
+                                <span class="slider round"></span>
+                            </label>
+                            <span id="bgmStatusText">배경음악 ON</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span>BGM 볼륨:</span>
+                            <input type="range" id="bgmVolume" min="0" max="100" value="50" style="flex-grow: 1; cursor: pointer;">
+                            <span id="bgmVolumeValue" style="width: 40px; text-align: right;">50%</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px; margin-top: 10px;">
+                            <span>SFX 볼륨:</span>
+                            <input type="range" id="sfxVolume" min="0" max="100" value="50" style="flex-grow: 1; cursor: pointer;">
+                            <span id="sfxVolumeValue" style="width: 40px; text-align: right;">50%</span>
+                        </div>
+                    </div>
+
+                    <!-- 일반 설정 -->
+                    <div id="generalSettings" class="settings-section">
+                        <h4>⚙️ 일반 설정</h4>
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                            <label class="switch">
+                                <input type="checkbox" id="cursorToggle" checked>
+                                <span class="slider round"></span>
+                            </label>
+                            <span id="cursorStatusText">마우스 스타일 ON (커스텀 커서)</span>
+                        </div>
+                        <button class="btn" id="replayTutorialBtn" style="width: 100%; margin-bottom: 10px;">튜토리얼 다시 보기</button>
+                        <button class="btn" onclick="openDatabaseModal()" style="width: 100%; background: linear-gradient(45deg, #3498db, #2980b9);">📚 데이터베이스 열람</button>
+                    </div>
+
                     <div class="settings-section">
                         <h4>파일로 저장/불러오기</h4>
                         <button id="saveGameBtn" class="btn">💾 파일로 저장</button>
@@ -3098,6 +3174,32 @@
                 <button id="chatSendBtn" class="btn" style="display: none;"
                     onclick="transferSystem.sendNegotiationChat()">제안하기</button>
             </div>
+        </div>
+    </div>
+
+    <!-- 튜토리얼 오버레이 -->
+    <div class="tutorial-overlay" id="tutorialOverlay" style="display: none;">
+        <div class="tutorial-box">
+            <div class="tutorial-step-indicator" id="tutorialStepIndicator"></div>
+            <h3 class="tutorial-title" id="tutorialTitle"></h3>
+            <div class="tutorial-content" id="tutorialContent"></div>
+            <div class="tutorial-controls">
+                <button class="btn" id="tutorialSkipBtn" style="background: rgba(231, 76, 60, 0.8);">건너뛰기</button>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn" id="tutorialPrevBtn" style="display: none; background: rgba(255,255,255,0.2);">이전</button>
+                    <button class="btn primary" id="tutorialNextBtn">다음</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 랜덤 이벤트 모달 -->
+    <div id="randomEventModal" class="modal" style="display: none; z-index: 9999;">
+        <div class="modal-content" style="max-width: 500px; text-align: center; padding: 40px; background: #222; border: 2px solid #555;">
+            <img id="eventPlayerImg" src="" alt="선수 사진" style="display: none; width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 4px solid #ffd700; margin: 0 auto 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
+            <h2 id="eventTitle" style="margin: 0 0 20px 0; font-size: 1.8rem; color: #fff;"></h2>
+            <p id="eventContent" style="font-size: 1rem; color: #ddd; margin-bottom: 30px; line-height: 1.6; white-space: pre-wrap; text-align: left; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px;"></p>
+            <div id="eventOptionsContainer" style="font-size: 1.1rem;"></div>
         </div>
     </div>
 

@@ -364,7 +364,7 @@ const LegendLeagueManager = {
         const btn = document.createElement('button');
         btn.id = 'legendLeagueBtn';
         btn.className = 'btn';
-        btn.innerHTML = '👑 레전드 리그';
+        btn.textContent = '👑 레전드 리그';
         btn.style.cssText = `
             position: fixed; 
             top: 70px; 
@@ -450,11 +450,17 @@ const LegendLeagueManager = {
         if (!teamSelectionScreen) return;
 
         // 기존 내용 초기화
-        teamSelectionScreen.innerHTML = '<h1>팀 선택</h1>';
+        teamSelectionScreen.replaceChildren();
+        const titleH1 = document.createElement('h1');
+        titleH1.textContent = '팀 선택';
+        teamSelectionScreen.appendChild(titleH1);
         
         const section = document.createElement('div');
         section.className = 'league-section';
-        section.innerHTML = '<h2 class="league-title">👑 레전드 슈퍼 리그</h2>';
+        const titleH2 = document.createElement('h2');
+        titleH2.className = 'league-title';
+        titleH2.textContent = '👑 레전드 슈퍼 리그';
+        section.appendChild(titleH2);
         
         const grid = document.createElement('div');
         grid.className = 'teams-grid';
@@ -468,19 +474,30 @@ const LegendLeagueManager = {
             // 대표 스타 3명
             const stars = teamData.players.slice(0, 3).map(p => p.name).join(', ');
 
-            const logoHtml = typeof getTeamLogoHTML === 'function' ? getTeamLogoHTML(teamKey) : '';
+            const headerRow = document.createElement('div');
+            headerRow.style.cssText = 'display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 5px;';
+            if (typeof createTeamLogoElement === 'function') {
+                headerRow.appendChild(createTeamLogoElement(teamKey));
+            }
+            const teamH3 = document.createElement('h3');
+            teamH3.style.margin = '0';
+            teamH3.textContent = window.teamNames[teamKey] || teamKey;
+            headerRow.appendChild(teamH3);
 
-            card.innerHTML = `
-                <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 5px;">
-                    ${logoHtml}
-                    <h3 style="margin: 0;">${window.teamNames[teamKey]}</h3>
-                </div>
-                <div class="team-rating">오버롤: 95+</div>
-                <p class="team-description">${teamData.description}</p>
-                <div class="key-players" style="font-size: 0.8rem; color: #ffd700; margin-top: 5px;">
-                    ⭐ ${stars} 등
-                </div>
-            `;
+            const ratingDiv = document.createElement('div');
+            ratingDiv.className = 'team-rating';
+            ratingDiv.textContent = '오버롤: 95+';
+
+            const descP = document.createElement('p');
+            descP.className = 'team-description';
+            descP.textContent = teamData.description;
+
+            const starsDiv = document.createElement('div');
+            starsDiv.className = 'key-players';
+            starsDiv.style.cssText = 'font-size: 0.8rem; color: #ffd700; margin-top: 5px;';
+            starsDiv.textContent = `⭐ ${stars} 등`;
+
+            card.append(headerRow, ratingDiv, descP, starsDiv);
 
             card.addEventListener('click', function() {
                 if (typeof selectTeam === 'function') {

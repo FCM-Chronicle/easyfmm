@@ -31,12 +31,13 @@ function renderTeamSelectionUI() {
 
     // 1. 좌측: Identity Section (로고, 이름, 별점)
     const logoContainer = document.getElementById('ts-team-logo-container');
-    if (logoContainer && typeof getTeamLogoHTML === 'function') {
-        logoContainer.innerHTML = getTeamLogoHTML(currentTeamKey);
-        const logoImg = logoContainer.querySelector('img');
-        if (logoImg) {
-            logoImg.className = 'ts-team-logo'; // 스타일 클래스 적용
-        }
+    if (logoContainer) {
+        logoContainer.replaceChildren();
+        const logoImg = document.createElement('img');
+        logoImg.className = 'ts-team-logo';
+        logoImg.src = `assets/logos/${currentTeamKey}.webp`;
+        logoImg.onerror = () => { logoImg.src = 'assets/logos/default.webp'; };
+        logoContainer.appendChild(logoImg);
     }
 
     const teamNameEl = document.getElementById('ts-team-name');
@@ -97,18 +98,30 @@ function updateKeyPlayerCard(elementId, player) {
     const el = document.getElementById(elementId);
     if (!el) return;
     
-    if (!player) {
-        el.innerHTML = '';
-        return;
-    }
-    el.innerHTML = `
-        <img src="assets/players/${player.name}.webp" class="ts-kp-img" onerror="this.src='assets/players/default.webp'">
-        <div class="ts-kp-info">
-            <div>${player.name}</div>
-            <div>${player.position} | ${player.age}세</div>
-        </div>
-        <div class="ts-kp-ovr">${Math.floor(player.rating)}</div>
-    `;
+    el.replaceChildren();
+    if (!player) return;
+    
+    const img = document.createElement('img');
+    img.src = `assets/players/${player.name}.webp`;
+    img.className = 'ts-kp-img';
+    img.onerror = () => { img.src = 'assets/players/default.webp'; };
+
+    const info = document.createElement('div');
+    info.className = 'ts-kp-info';
+
+    const nameDiv = document.createElement('div');
+    nameDiv.textContent = player.name;
+
+    const metaDiv = document.createElement('div');
+    metaDiv.textContent = `${player.position} | ${player.age}세`;
+
+    info.append(nameDiv, metaDiv);
+
+    const ovrDiv = document.createElement('div');
+    ovrDiv.className = 'ts-kp-ovr';
+    ovrDiv.textContent = Math.floor(player.rating);
+
+    el.append(img, info, ovrDiv);
 }
 
 // 정적 팀 평점 계산 (allTeams 데이터 기반)

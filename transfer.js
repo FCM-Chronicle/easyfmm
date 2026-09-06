@@ -629,7 +629,7 @@ class TransferSystem {
         const modal = document.getElementById('negotiationChatModal');
         document.getElementById('chatPlayerName').innerText = player.name;
         document.getElementById('chatTeamName').innerText = (teamNames[player.originalTeam] || player.originalTeam) + ` (요구 이적료: ${player.price}억)`;
-        document.getElementById('chatMessages').innerHTML = '';
+        document.getElementById('chatMessages').replaceChildren();
 
         modal.style.display = 'block';
         modal.style.visibility = 'visible';
@@ -670,7 +670,7 @@ class TransferSystem {
         const quickReplies = document.getElementById('chatQuickReplies');
 
         input.value = '';
-        quickReplies.innerHTML = '';
+        quickReplies.replaceChildren();
 
         if (step === 'FEE') {
             input.style.display = 'block';
@@ -2050,46 +2050,111 @@ function loadTransferScreen() {
     displayTransferPlayers();
 }
 
+function createTransferPlayerCard(player, showMarketStatus = false) {
+    const playerCard = document.createElement('div');
+    playerCard.className = 'transfer-player';
+
+    const teamInfo = player.originalTeam === "외부리그" ?
+        "외부리그" : teamNames[player.originalTeam];
+
+    const wage = typeof calculatePlayerWage === 'function' ? calculatePlayerWage(player) : (Math.pow(player.rating / 75, 5) * 0.9).toFixed(2);
+
+    const cardContent = document.createElement('div');
+    cardContent.className = 'player-card-content';
+
+    const img = document.createElement('img');
+    img.src = `assets/players/${player.name}.webp`;
+    img.className = 'player-card-image';
+    img.loading = 'lazy';
+    img.onerror = function() {
+        this.onerror = null;
+        this.src = 'assets/players/default.webp';
+    };
+
+    const infoText = document.createElement('div');
+    infoText.className = 'player-info-text';
+
+    const nameDiv = document.createElement('div');
+    nameDiv.className = 'player-name';
+    nameDiv.textContent = player.name;
+
+    const posDiv = document.createElement('div');
+    posDiv.className = 'player-position';
+    posDiv.textContent = player.position;
+
+    const ratingDiv = document.createElement('div');
+    ratingDiv.className = 'player-rating';
+    ratingDiv.textContent = `능력치: ${Math.floor(player.rating)}`;
+
+    const ageDiv = document.createElement('div');
+    ageDiv.className = 'player-age';
+    ageDiv.textContent = `나이: ${player.age}`;
+
+    const teamDiv = document.createElement('div');
+    teamDiv.className = 'player-team';
+    teamDiv.textContent = `소속: ${teamInfo}`;
+
+    const priceDiv = document.createElement('div');
+    priceDiv.className = 'transfer-price';
+    priceDiv.textContent = `${player.price}억`;
+
+    const wageDiv = document.createElement('div');
+    wageDiv.style.cssText = 'color: #e74c3c; font-weight: bold; font-size: 0.9rem; margin-top: 2px;';
+    wageDiv.textContent = `요구 주급: ${wage}억`;
+
+    const negBtn = document.createElement('button');
+    negBtn.className = 'btn primary';
+    negBtn.style.cssText = 'width: 100%; margin-top: 8px; padding: 7px; font-weight: bold; font-size: 0.9rem;';
+    negBtn.textContent = '🤝 영입 협상 시작';
+    negBtn.onclick = (e) => {
+        e.stopPropagation();
+        transferSystem.promptPurchaseNegotiation(player.name, player.originalTeam, player.price, player.position, player.rating, player.age);
+    };
+
+    infoText.append(nameDiv, posDiv, ratingDiv, ageDiv, teamDiv, priceDiv, wageDiv, negBtn);
+
+    if (showMarketStatus) {
+        if (player.inMarket) {
+            const mDays = document.createElement('div');
+            mDays.className = 'market-days';
+            mDays.textContent = `시장 ${player.daysOnMarket}일째`;
+            infoText.appendChild(mDays);
+        } else {
+            const mStat = document.createElement('div');
+            mStat.className = 'market-status';
+            mStat.style.color = '#f39c12';
+            mStat.textContent = '⚠️ 이적 시장에 없음';
+            infoText.appendChild(mStat);
+        }
+    } else {
+        const mDays = document.createElement('div');
+        mDays.className = 'market-days';
+        mDays.textContent = `시장 ${player.daysOnMarket}일째`;
+        infoText.appendChild(mDays);
+    }
+
+    cardContent.append(img, infoText);
+    playerCard.appendChild(cardContent);
+    return playerCard;
+}
+
 // 이적 가능 선수 표시
 function displayTransferPlayers() {
     const container = document.getElementById('transferPlayers');
+    if (!container) return;
     const fragment = document.createDocumentFragment(); // [성능 개선]
-    container.innerHTML = '';
+    container.replaceChildren();
     const transferPlayers = transferSystem.getTransferMarketDisplay();
 
     if (transferPlayers.length === 0) {
-        container.innerHTML = '<p>현재 이적 가능한 선수가 없습니다.</p>';
+        const p = document.createElement('p');
+        p.textContent = '현재 이적 가능한 선수가 없습니다.';
+        container.appendChild(p);
         return;
     }
 
     transferPlayers.forEach(player => {
-        const playerCard = document.createElement('div');
-        playerCard.className = 'transfer-player';
-
-        const teamInfo = player.originalTeam === "외부리그" ?
-            "외부리그" : teamNames[player.originalTeam];
-
-        // 주급 계산 (script.js의 함수 활용)
-        const wage = typeof calculatePlayerWage === 'function' ? calculatePlayerWage(player) : (Math.pow(player.rating / 75, 5) * 0.9).toFixed(2);
-
-        playerCard.innerHTML = `
-            <div class="player-card-content">
-                <img src="assets/players/${player.name}.webp" class="player-card-image" loading="lazy" onerror="this.onerror=null; this.src='assets/players/default.webp'">
-                <div class="player-info-text">
-                    <div class="player-name">${player.name}</div>
-                    <div class="player-position">${player.position}</div>
-                    <div class="player-rating">능력치: ${Math.floor(player.rating)}</div>
-                    <div class="player-age">나이: ${player.age}</div>
-                    <div class="player-team">소속: ${teamInfo}</div>
-                    <div class="transfer-price">${player.price}억</div>
-                    <div style="color: #e74c3c; font-weight: bold; font-size: 0.9rem; margin-top: 2px;">요구 주급: ${wage}억</div>
-                    <button class="btn primary" style="width: 100%; margin-top: 8px; padding: 7px; font-weight: bold; font-size: 0.9rem;" onclick='transferSystem.promptPurchaseNegotiation(${JSON.stringify(player.name)}, ${JSON.stringify(player.originalTeam)}, ${player.price}, ${JSON.stringify(player.position)}, ${player.rating}, ${player.age}); event.stopPropagation();'>🤝 영입 협상 시작</button>
-                    <div class="market-days">시장 ${player.daysOnMarket}일째</div>
-                </div>
-            </div>
-        `;
-
-        fragment.appendChild(playerCard);
+        fragment.appendChild(createTransferPlayerCard(player, false));
     });
     container.appendChild(fragment); // [성능 개선]
 }
@@ -2104,48 +2169,21 @@ function searchPlayers() {
     };
 
     const container = document.getElementById('transferPlayers');
+    if (!container) return;
     const fragment = document.createDocumentFragment(); // [성능 개선]
-    container.innerHTML = '';
+    container.replaceChildren();
 
     const filteredPlayers = transferSystem.searchPlayers(filters);
 
     if (filteredPlayers.length === 0) {
-        container.innerHTML = '<p>검색 조건에 맞는 선수가 없습니다.</p>';
+        const p = document.createElement('p');
+        p.textContent = '검색 조건에 맞는 선수가 없습니다.';
+        container.appendChild(p);
         return;
     }
 
     filteredPlayers.forEach(player => {
-        const playerCard = document.createElement('div');
-        playerCard.className = 'transfer-player';
-
-        const teamInfo = player.originalTeam === "외부리그" ?
-            "외부리그" : teamNames[player.originalTeam];
-
-        // 주급 계산
-        const wage = typeof calculatePlayerWage === 'function' ? calculatePlayerWage(player) : (Math.pow(player.rating / 75, 5) * 0.9).toFixed(2);
-
-        const marketStatus = player.inMarket ?
-            `<div class="market-days">시장 ${player.daysOnMarket}일째</div>` :
-            `<div class="market-status" style="color: #f39c12;">⚠️ 이적 시장에 없음</div>`;
-
-        playerCard.innerHTML = `
-            <div class="player-card-content">
-                <img src="assets/players/${player.name}.webp" class="player-card-image" loading="lazy" onerror="this.onerror=null; this.src='assets/players/default.webp'">
-                <div class="player-info-text">
-                    <div class="player-name">${player.name}</div>
-                    <div class="player-position">${player.position}</div>
-                    <div class="player-rating">능력치: ${Math.floor(player.rating)}</div>
-                    <div class="player-age">나이: ${player.age}</div>
-                    <div class="player-team">소속: ${teamInfo}</div>
-                    <div class="transfer-price">${player.price}억</div>
-                    <div style="color: #e74c3c; font-weight: bold; font-size: 0.9rem; margin-top: 2px;">요구 주급: ${wage}억</div>
-                    <button class="btn primary" style="width: 100%; margin-top: 8px; padding: 7px; font-weight: bold; font-size: 0.9rem;" onclick='transferSystem.promptPurchaseNegotiation(${JSON.stringify(player.name)}, ${JSON.stringify(player.originalTeam)}, ${player.price}, ${JSON.stringify(player.position)}, ${player.rating}, ${player.age}); event.stopPropagation();'>🤝 영입 협상 시작</button>
-                    ${marketStatus}
-                </div>
-            </div>
-        `;
-
-        fragment.appendChild(playerCard);
+        fragment.appendChild(createTransferPlayerCard(player, true));
     });
     container.appendChild(fragment); // [성능 개선]
 }
@@ -2155,11 +2193,14 @@ function displayTransferNews() {
     const container = document.getElementById('transferNewsList'); // HTML에 이 ID를 가진 div가 있어야 함
     if (!container) return;
 
-    container.innerHTML = '';
+    container.replaceChildren();
     const newsList = transferSystem.transferNews;
 
     if (newsList.length === 0) {
-        container.innerHTML = '<p style="text-align: center; padding: 20px; color: #aaa;">아직 이적 소식이 없습니다.</p>';
+        const emptyP = document.createElement('p');
+        emptyP.style.cssText = 'text-align: center; padding: 20px; color: #aaa;';
+        emptyP.textContent = '아직 이적 소식이 없습니다.';
+        container.appendChild(emptyP);
         return;
     }
 
@@ -2172,23 +2213,36 @@ function displayTransferNews() {
         const fromTeamName = news.from === "외부리그" ? "외부리그" : (teamNames[news.from] || news.from);
         const toTeamName = news.to === "외부리그" ? "외부리그" : (teamNames[news.to] || news.to);
 
-        newsCard.innerHTML = `
-            <div class="news-info">
-                <div class="news-player">
-                    ${news.name} <span style="font-size: 0.8em; font-weight: normal; color: #ddd;">(${news.position}, ${news.age}세)</span>
-                </div>
-                <div class="news-detail">
-                    ${fromTeamName} <span class="transfer-arrow">➔</span> ${toTeamName}
-                </div>
-                <div class="news-rating" style="font-size: 0.85em; color: #aaa; margin-top: 2px;">
-                    능력치: ${Math.floor(news.rating)}
-                </div>
-            </div>
-            <div class="news-fee">
-                ${news.fee}억
-            </div>
-        `;
+        const newsInfo = document.createElement('div');
+        newsInfo.className = 'news-info';
 
+        const newsPlayer = document.createElement('div');
+        newsPlayer.className = 'news-player';
+        newsPlayer.textContent = news.name;
+        const playerMeta = document.createElement('span');
+        playerMeta.style.cssText = 'font-size: 0.8em; font-weight: normal; color: #ddd; margin-left: 4px;';
+        playerMeta.textContent = `(${news.position}, ${news.age}세)`;
+        newsPlayer.appendChild(playerMeta);
+
+        const newsDetail = document.createElement('div');
+        newsDetail.className = 'news-detail';
+        const arrow = document.createElement('span');
+        arrow.className = 'transfer-arrow';
+        arrow.textContent = '➔';
+        newsDetail.append(`${fromTeamName} `, arrow, ` ${toTeamName}`);
+
+        const newsRating = document.createElement('div');
+        newsRating.className = 'news-rating';
+        newsRating.style.cssText = 'font-size: 0.85em; color: #aaa; margin-top: 2px;';
+        newsRating.textContent = `능력치: ${Math.floor(news.rating)}`;
+
+        newsInfo.append(newsPlayer, newsDetail, newsRating);
+
+        const newsFee = document.createElement('div');
+        newsFee.className = 'news-fee';
+        newsFee.textContent = `${news.fee}억`;
+
+        newsCard.append(newsInfo, newsFee);
         container.appendChild(newsCard);
     });
 }

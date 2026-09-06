@@ -213,9 +213,7 @@ class SNSManager {
         post.isGeneratingComments = true;
         
         try {
-            const tempDiv = document.createElement("div");
-            tempDiv.innerHTML = post.content;
-            const cleanContent = tempDiv.textContent || tempDiv.innerText || "";
+            const cleanContent = post.content ? post.content.replace(/<[^>]*>?/gm, '').trim() : "";
             
             const aiCommentsText = await this.callNvidiaForComments(cleanContent);
             
@@ -761,12 +759,15 @@ class SNSManager {
         const container = document.getElementById(containerId);
         if (!container) return;
 
-        container.innerHTML = '';
+        container.replaceChildren();
 
         const postsToShow = this.posts.slice(0, limit);
 
         if (postsToShow.length === 0) {
-            container.innerHTML = '<div class="sns-empty">아직 소식이 없습니다.</div>';
+            const emptyDiv = document.createElement('div');
+            emptyDiv.className = 'sns-empty';
+            emptyDiv.textContent = '아직 소식이 없습니다.';
+            container.appendChild(emptyDiv);
             return;
         }
 
@@ -792,122 +793,229 @@ class SNSManager {
         const teamName = this.getTeamName(postingTeam);
         const stadium = post.type === 'match_result' || post.type === 'match_preview' ? "📍 Official Stadium" : post.type === 'rebirth' ? "📍 Youth Academy" : "⚽ Transfer Market";
 
-        let mediaHtml = '';
-        if (post.type === 'match_result') {
-            const homeLogo = getTeamLogoHTML(post.homeTeam);
-            const awayLogo = getTeamLogoHTML(post.awayTeam);
-            const bgUrl = `assets/bg/${post.homeTeam}.png`;
+        const header = document.createElement('div');
+        header.className = 'insta-header';
 
-            mediaHtml = `
-            <div class="insta-media match-result-card" style="background-image: url('${bgUrl}'), url('assets/bg/basic.png');">
-                <div class="media-overlay-dark"></div>
-                <div class="media-content">
-                    <div class="result-score-row">
-                        <div class="result-team">
-                            ${homeLogo}
-                            <span class="score-num">${post.homeScore}</span>
-                        </div>
-                        <div class="score-vs">:</div>
-                        <div class="result-team">
-                            <span class="score-num">${post.awayScore}</span>
-                            ${awayLogo}
-                        </div>
-                    </div>
-                    <div class="result-scorers">${post.goalScorers ? '⚽ ' + post.goalScorers : ''}</div>
-                </div>
-            </div>
-        `;
+        const profilePic = document.createElement('div');
+        profilePic.className = 'insta-profile-pic';
+        if (typeof createTeamLogoElement === 'function') {
+            profilePic.appendChild(createTeamLogoElement(postingTeam));
+        }
+
+        const headerText = document.createElement('div');
+        headerText.className = 'insta-header-text';
+        const uName = document.createElement('div');
+        uName.className = 'insta-username';
+        uName.textContent = teamName;
+        const uLoc = document.createElement('div');
+        uLoc.className = 'insta-location';
+        uLoc.textContent = stadium;
+        headerText.append(uName, uLoc);
+
+        const moreBtn = document.createElement('div');
+        moreBtn.className = 'insta-more';
+        moreBtn.textContent = '•••';
+
+        header.append(profilePic, headerText, moreBtn);
+
+        let mediaEl = null;
+        if (post.type === 'match_result') {
+            const bgUrl = `assets/bg/${post.homeTeam}.png`;
+            mediaEl = document.createElement('div');
+            mediaEl.className = 'insta-media match-result-card';
+            mediaEl.style.backgroundImage = `url('${bgUrl}'), url('assets/bg/basic.png')`;
+
+            const darkOverlay = document.createElement('div');
+            darkOverlay.className = 'media-overlay-dark';
+
+            const mediaContent = document.createElement('div');
+            mediaContent.className = 'media-content';
+
+            const scoreRow = document.createElement('div');
+            scoreRow.className = 'result-score-row';
+
+            const homeTeamDiv = document.createElement('div');
+            homeTeamDiv.className = 'result-team';
+            if (typeof createTeamLogoElement === 'function') homeTeamDiv.appendChild(createTeamLogoElement(post.homeTeam));
+            const homeScoreSpan = document.createElement('span');
+            homeScoreSpan.className = 'score-num';
+            homeScoreSpan.textContent = post.homeScore;
+            homeTeamDiv.appendChild(homeScoreSpan);
+
+            const vsDiv = document.createElement('div');
+            vsDiv.className = 'score-vs';
+            vsDiv.textContent = ':';
+
+            const awayTeamDiv = document.createElement('div');
+            awayTeamDiv.className = 'result-team';
+            const awayScoreSpan = document.createElement('span');
+            awayScoreSpan.className = 'score-num';
+            awayScoreSpan.textContent = post.awayScore;
+            awayTeamDiv.appendChild(awayScoreSpan);
+            if (typeof createTeamLogoElement === 'function') awayTeamDiv.appendChild(createTeamLogoElement(post.awayTeam));
+
+            scoreRow.append(homeTeamDiv, vsDiv, awayTeamDiv);
+
+            const scorersDiv = document.createElement('div');
+            scorersDiv.className = 'result-scorers';
+            if (post.goalScorers) scorersDiv.textContent = `⚽ ${post.goalScorers}`;
+
+            mediaContent.append(scoreRow, scorersDiv);
+            mediaEl.append(darkOverlay, mediaContent);
+
         } else if (post.type === 'transfer_confirmed' || post.type === 'transfer_rumor') {
             const toTeamName = this.getTeamName(post.toTeam);
             const bgUrl = `assets/bg/${post.toTeam}.png`;
-            const logoHtml = getTeamLogoHTML(post.toTeam);
 
-            mediaHtml = `
-            <div class="insta-media transfer-graphic-card" style="background-image: url('${bgUrl}'), url('assets/bg/basic.png');">
-                <div class="transfer-card-overlay"></div>
-                <img src="assets/players/${post.playerName}.webp" class="transfer-card-player" onerror="this.src='assets/players/default.webp'">
-                <div class="transfer-card-price-badge">${post.transferFee}</div>
-                <div class="transfer-card-footer">
-                    <div class="transfer-footer-top">
-                        ${logoHtml}
-                        <span class="transfer-official-tag">[OFFICIAL]</span>
-                    </div>
-                    <div class="transfer-main-headline">
-                        ${post.playerName}, ${toTeamName}으로 이적
-                    </div>
-                </div>
-            </div>
-        `;
+            mediaEl = document.createElement('div');
+            mediaEl.className = 'insta-media transfer-graphic-card';
+            mediaEl.style.backgroundImage = `url('${bgUrl}'), url('assets/bg/basic.png')`;
+
+            const overlay = document.createElement('div');
+            overlay.className = 'transfer-card-overlay';
+
+            const playerImg = document.createElement('img');
+            playerImg.src = `assets/players/${post.playerName}.webp`;
+            playerImg.className = 'transfer-card-player';
+            playerImg.onerror = function() { this.src = 'assets/players/default.webp'; };
+
+            const badge = document.createElement('div');
+            badge.className = 'transfer-card-price-badge';
+            badge.textContent = post.transferFee;
+
+            const footer = document.createElement('div');
+            footer.className = 'transfer-card-footer';
+
+            const footerTop = document.createElement('div');
+            footerTop.className = 'transfer-footer-top';
+            if (typeof createTeamLogoElement === 'function') footerTop.appendChild(createTeamLogoElement(post.toTeam));
+            const officialTag = document.createElement('span');
+            officialTag.className = 'transfer-official-tag';
+            officialTag.textContent = '[OFFICIAL]';
+            footerTop.appendChild(officialTag);
+
+            const headline = document.createElement('div');
+            headline.className = 'transfer-main-headline';
+            headline.textContent = `${post.playerName}, ${toTeamName}으로 이적`;
+
+            footer.append(footerTop, headline);
+            mediaEl.append(overlay, playerImg, badge, footer);
+
         } else if (post.type === 'match_preview') {
             const bgUrl = `assets/bg/${post.team1}.png`;
-            mediaHtml = `
-            <div class="insta-media preview-graphic-card" style="background-image: url('${bgUrl}'), url('assets/bg/basic.png');">
-                <div class="media-overlay-dark"></div>
-                <div class="preview-headline">NEXT MATCH</div>
-                <div class="preview-teams-row">
-                    ${getTeamLogoHTML(post.team1)}
-                    <span class="vs-text">V</span>
-                    ${getTeamLogoHTML(post.team2)}
-                </div>
-            </div>
-        `;
+
+            mediaEl = document.createElement('div');
+            mediaEl.className = 'insta-media preview-graphic-card';
+            mediaEl.style.backgroundImage = `url('${bgUrl}'), url('assets/bg/basic.png')`;
+
+            const overlay = document.createElement('div');
+            overlay.className = 'media-overlay-dark';
+
+            const headline = document.createElement('div');
+            headline.className = 'preview-headline';
+            headline.textContent = 'NEXT MATCH';
+
+            const teamsRow = document.createElement('div');
+            teamsRow.className = 'preview-teams-row';
+            if (typeof createTeamLogoElement === 'function') teamsRow.appendChild(createTeamLogoElement(post.team1));
+            const vsSpan = document.createElement('span');
+            vsSpan.className = 'vs-text';
+            vsSpan.textContent = 'V';
+            teamsRow.appendChild(vsSpan);
+            if (typeof createTeamLogoElement === 'function') teamsRow.appendChild(createTeamLogoElement(post.team2));
+
+            mediaEl.append(overlay, headline, teamsRow);
+
         } else if (post.type === 'rebirth') {
             const bgUrl = `assets/bg/${post.teamKey}.png`;
-            mediaHtml = `
-            <div class="insta-media preview-graphic-card" style="background-image: url('${bgUrl}'), url('assets/bg/basic.png'); display: flex; flex-direction: column; justify-content: flex-end; align-items: center;">
-                <div class="media-overlay-dark" style="opacity: 0.3;"></div>
-                <div style="z-index: 10; padding-bottom: 40px; color: white; font-weight: 900; font-size: 2rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.8), -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; text-align: center; line-height: 1.4;">
-                    ${post.playerName} 은퇴,<br>이어받을 유망주 등장
-                </div>
-            </div>
-        `;
+
+            mediaEl = document.createElement('div');
+            mediaEl.className = 'insta-media preview-graphic-card';
+            mediaEl.style.cssText = `background-image: url('${bgUrl}'), url('assets/bg/basic.png'); display: flex; flex-direction: column; justify-content: flex-end; align-items: center;`;
+
+            const overlay = document.createElement('div');
+            overlay.className = 'media-overlay-dark';
+            overlay.style.opacity = '0.3';
+
+            const titleDiv = document.createElement('div');
+            titleDiv.style.cssText = 'z-index: 10; padding-bottom: 40px; color: white; font-weight: 900; font-size: 2rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.8), -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; text-align: center; line-height: 1.4;';
+            titleDiv.append(`${post.playerName} 은퇴,`, document.createElement('br'), '이어받을 유망주 등장');
+
+            mediaEl.append(overlay, titleDiv);
         }
 
-        postEl.innerHTML = `
-        <div class="insta-header">
-            <div class="insta-profile-pic">
-                ${getTeamLogoHTML(postingTeam)}
-            </div>
-            <div class="insta-header-text">
-                <div class="insta-username">${teamName}</div>
-                <div class="insta-location">${stadium}</div>
-            </div>
-            <div class="insta-more">•••</div>
-        </div>
-        
-        ${mediaHtml}
+        const actions = document.createElement('div');
+        actions.className = 'insta-actions';
 
-        <div class="insta-actions">
-            <div class="actions-left">
-                <span class="action-icon">❤️</span>
-                <span class="action-icon sns-comments-btn" data-post-id="${post.id}">💬</span>
-                <span class="action-icon">✈️</span>
-            </div>
-            <div class="actions-right">
-                <span class="action-icon">🔖</span>
-            </div>
-        </div>
+        const actionsLeft = document.createElement('div');
+        actionsLeft.className = 'actions-left';
 
-        <div class="insta-content">
-            <div class="insta-likes-count">좋아요 ${post.likes.toLocaleString()}개</div>
-            <div class="insta-caption">
-                <span class="insta-username">${teamName}</span> ${post.content}
-            </div>
-            <div class="insta-hashtags">
-                ${post.hashtags.join(' ')}
-            </div>
-            <div class="insta-view-comments sns-comments-btn" data-post-id="${post.id}">
-                댓글 ${post.comments}개 모두 보기
-            </div>
-            <div class="insta-time">${timeAgo.toUpperCase()}</div>
-        </div>
-        <div class="sns-comments-section" id="comments-${post.id}" style="display: none;"></div>
-    `;
+        const heartIcon = document.createElement('span');
+        heartIcon.className = 'action-icon';
+        heartIcon.textContent = '❤️';
 
-        // 이벤트 리스너를 직접 추가
-        const commentsBtn = postEl.querySelector('.sns-comments-btn');
-        commentsBtn.addEventListener('click', () => {
-            this.toggleComments(post.id);
+        const commentIcon = document.createElement('span');
+        commentIcon.className = 'action-icon sns-comments-btn';
+        commentIcon.dataset.postId = post.id;
+        commentIcon.textContent = '💬';
+
+        const shareIcon = document.createElement('span');
+        shareIcon.className = 'action-icon';
+        shareIcon.textContent = '✈️';
+
+        actionsLeft.append(heartIcon, commentIcon, shareIcon);
+
+        const actionsRight = document.createElement('div');
+        actionsRight.className = 'actions-right';
+        const bookmarkIcon = document.createElement('span');
+        bookmarkIcon.className = 'action-icon';
+        bookmarkIcon.textContent = '🔖';
+        actionsRight.appendChild(bookmarkIcon);
+
+        actions.append(actionsLeft, actionsRight);
+
+        const content = document.createElement('div');
+        content.className = 'insta-content';
+
+        const likesCount = document.createElement('div');
+        likesCount.className = 'insta-likes-count';
+        likesCount.textContent = `좋아요 ${post.likes.toLocaleString()}개`;
+
+        const caption = document.createElement('div');
+        caption.className = 'insta-caption';
+        const captionUser = document.createElement('span');
+        captionUser.className = 'insta-username';
+        captionUser.textContent = teamName;
+        caption.append(captionUser, ` ${post.content}`);
+
+        const hashtags = document.createElement('div');
+        hashtags.className = 'insta-hashtags';
+        hashtags.textContent = post.hashtags.join(' ');
+
+        const viewComments = document.createElement('div');
+        viewComments.className = 'insta-view-comments sns-comments-btn';
+        viewComments.dataset.postId = post.id;
+        viewComments.textContent = `댓글 ${post.comments}개 모두 보기`;
+
+        const time = document.createElement('div');
+        time.className = 'insta-time';
+        time.textContent = timeAgo.toUpperCase();
+
+        content.append(likesCount, caption, hashtags, viewComments, time);
+
+        const commentsSection = document.createElement('div');
+        commentsSection.className = 'sns-comments-section';
+        commentsSection.id = `comments-${post.id}`;
+        commentsSection.style.display = 'none';
+
+        postEl.append(header);
+        if (mediaEl) postEl.appendChild(mediaEl);
+        postEl.append(actions, content, commentsSection);
+
+        postEl.querySelectorAll('.sns-comments-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                this.toggleComments(post.id);
+            });
         });
 
         return postEl;
@@ -988,9 +1096,7 @@ class SNSManager {
             // 2. AI 댓글 완성이 안 된 상태라면 즉시 비동기로 AI 호출 시도
             if (!post.isAIFinalized && !post.isGeneratingComments) {
                 post.isGeneratingComments = true;
-                const tempDiv = document.createElement("div");
-                tempDiv.innerHTML = post.content;
-                const cleanContent = tempDiv.textContent || tempDiv.innerText || "";
+                const cleanContent = post.content ? post.content.replace(/<[^>]*>?/gm, '').trim() : "";
 
                 const aiCommentsText = await this.callNvidiaForComments(cleanContent);
                 if (aiCommentsText && aiCommentsText.length > 0) {
@@ -1017,16 +1123,35 @@ class SNSManager {
 
     // [신규] 댓글 렌더링 헬퍼
     renderComments(container, comments) {
-        container.innerHTML = comments.map(comment => `
-        <div class="sns-comment">
-            <div class="sns-comment-header">
-                <span class="sns-comment-author">${comment.author}</span>
-                <span class="sns-comment-time">${this.formatTimeAgo(comment.timestamp)}</span>
-            </div>
-            <div class="sns-comment-text">${comment.text}</div>
-            <div class="sns-comment-likes">❤️ ${comment.likes}</div>
-        </div>
-    `).join('');
+        container.replaceChildren();
+        comments.forEach(comment => {
+            const commentEl = document.createElement('div');
+            commentEl.className = 'sns-comment';
+
+            const header = document.createElement('div');
+            header.className = 'sns-comment-header';
+
+            const author = document.createElement('span');
+            author.className = 'sns-comment-author';
+            author.textContent = comment.author;
+
+            const time = document.createElement('span');
+            time.className = 'sns-comment-time';
+            time.textContent = this.formatTimeAgo(comment.timestamp);
+
+            header.append(author, time);
+
+            const text = document.createElement('div');
+            text.className = 'sns-comment-text';
+            text.textContent = comment.text;
+
+            const likes = document.createElement('div');
+            likes.className = 'sns-comment-likes';
+            likes.textContent = `❤️ ${comment.likes}`;
+
+            commentEl.append(header, text, likes);
+            container.appendChild(commentEl);
+        });
     }
 
     formatTimeAgo(timestamp) {

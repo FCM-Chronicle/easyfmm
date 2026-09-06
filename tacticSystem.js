@@ -50,12 +50,21 @@ function updateTeamStrength() {
         const strengthData = calculateTeamStrengthDifference();
         const strengthDisplay = document.getElementById('strengthDisplay');
         if (strengthDisplay) {
-            strengthDisplay.innerHTML = `
-                <div>우리팀 전력: ${strengthData.userRating.toFixed(1)}</div>
-                <div>상대팀 전력: ${strengthData.opponentRating.toFixed(1)}</div>
-                <div>전력 차이: ${strengthData.difference > 0 ? '+' : ''}${strengthData.difference.toFixed(1)}</div>
-                <div>상대적 우위: ${strengthData.userAdvantage ? '유리' : '불리'}</div>
-            `;
+            strengthDisplay.replaceChildren();
+
+            const userRatingDiv = document.createElement('div');
+            userRatingDiv.textContent = `우리팀 전력: ${strengthData.userRating.toFixed(1)}`;
+
+            const oppRatingDiv = document.createElement('div');
+            oppRatingDiv.textContent = `상대팀 전력: ${strengthData.opponentRating.toFixed(1)}`;
+
+            const diffDiv = document.createElement('div');
+            diffDiv.textContent = `전력 차이: ${strengthData.difference > 0 ? '+' : ''}${strengthData.difference.toFixed(1)}`;
+
+            const advDiv = document.createElement('div');
+            advDiv.textContent = `상대적 우위: ${strengthData.userAdvantage ? '유리' : '불리'}`;
+
+            strengthDisplay.append(userRatingDiv, oppRatingDiv, diffDiv, advDiv);
         }
         return strengthData;
     }
@@ -247,7 +256,8 @@ function startMatch() {
     document.getElementById('awayTeam').textContent = teamNames[matchData.awayTeam];
     document.getElementById('scoreDisplay').textContent = "0 - 0";
     document.getElementById('matchTime').textContent = "0분";
-    document.getElementById('eventList').innerHTML = '';
+    const elList = document.getElementById('eventList');
+    if (elList) elList.replaceChildren();
 
     // 교체 버튼
     const subBtn = document.getElementById('substituteBtn');
@@ -318,16 +328,27 @@ function startMatch() {
 
 function showKickoffButton(matchData, engine) {
     const eventList = document.getElementById('eventList');
+    if (!eventList) return;
     const kickoffInfo = document.createElement('div');
     kickoffInfo.className = 'event-card kickoff-ready';
-    kickoffInfo.innerHTML = `
-        <div class="event-time">준비 완료</div>
-        <div>경기 시작 준비가 완료되었습니다.</div>
-        <button id="kickoffBtn" class="btn primary" style="margin-top: 15px; padding: 12px 30px; font-size: 1.1rem; font-weight: bold; width: 100%;">⚽ 킥오프</button>
-    `;
+
+    const timeDiv = document.createElement('div');
+    timeDiv.className = 'event-time';
+    timeDiv.textContent = '준비 완료';
+
+    const descDiv = document.createElement('div');
+    descDiv.textContent = '경기 시작 준비가 완료되었습니다.';
+
+    const kickoffBtn = document.createElement('button');
+    kickoffBtn.id = 'kickoffBtn';
+    kickoffBtn.className = 'btn primary';
+    kickoffBtn.style.cssText = 'margin-top: 15px; padding: 12px 30px; font-size: 1.1rem; font-weight: bold; width: 100%;';
+    kickoffBtn.textContent = '⚽ 킥오프';
+
+    kickoffInfo.append(timeDiv, descDiv, kickoffBtn);
     eventList.appendChild(kickoffInfo);
 
-    document.getElementById('kickoffBtn').addEventListener('click', () => {
+    kickoffBtn.addEventListener('click', () => {
         startMatchSimulation(matchData, engine);
         kickoffInfo.remove();
     });
@@ -704,12 +725,21 @@ function displayEvent(event, matchData) {
     const eventList = document.getElementById('eventList');
     if (!eventList) return;
 
-    eventList.innerHTML = `
-        <div class="event-card ${event.type}">
-            <span class="event-time">${event.minute}분</span>
-            <span class="event-desc">${event.description}</span>
-        </div>
-    `;
+    eventList.replaceChildren();
+
+    const card = document.createElement('div');
+    card.className = `event-card ${event.type}`;
+
+    const timeSpan = document.createElement('span');
+    timeSpan.className = 'event-time';
+    timeSpan.textContent = `${event.minute}분`;
+
+    const descSpan = document.createElement('span');
+    descSpan.className = 'event-desc';
+    descSpan.textContent = event.description;
+
+    card.append(timeSpan, descSpan);
+    eventList.appendChild(card);
 
     if (event.type === 'preGoalSuspense' && window.customCursorInstance && typeof window.customCursorInstance.triggerVibration === 'function') {
         window.customCursorInstance.triggerVibration(180, 0.35, 0.25);
@@ -1206,18 +1236,22 @@ function showMatchResultModal(matchData, ratings, result, userScore, oppScore, d
 
     const render = (id, list) => {
         const el = document.getElementById(id);
-        el.innerHTML = '';
+        if (!el) return;
+        el.replaceChildren();
         list.forEach(r => {
             const div = document.createElement('div');
             div.className = 'rating-row';
             let stats = '';
-            if (r.goals > 0) stats += ` ⚽${r.goals})`;
+            if (r.goals > 0) stats += ` ⚽(${r.goals})`;
             if (r.assists > 0) stats += ` 👟(${r.assists})`;
 
-            div.innerHTML = `
-                <span>${r.player.name}${stats}</span>
-                <span>${r.rating}</span>
-            `;
+            const nameSpan = document.createElement('span');
+            nameSpan.textContent = `${r.player.name}${stats}`;
+
+            const ratingSpan = document.createElement('span');
+            ratingSpan.textContent = r.rating;
+
+            div.append(nameSpan, ratingSpan);
             el.appendChild(div);
         });
     };
@@ -1313,10 +1347,16 @@ function createSubPlayerElement(player) {
     const el = document.createElement('div');
     el.className = 'substitution-player';
     el.dataset.playerName = player.name;
-    el.innerHTML = `
-        <div class="name">${player.name} (${player.position})</div>
-        <div class="details">OVR ${Math.floor(player.rating)}</div>
-    `;
+
+    const nameDiv = document.createElement('div');
+    nameDiv.className = 'name';
+    nameDiv.textContent = `${player.name} (${player.position})`;
+
+    const detailsDiv = document.createElement('div');
+    detailsDiv.className = 'details';
+    detailsDiv.textContent = `OVR ${Math.floor(player.rating)}`;
+
+    el.append(nameDiv, detailsDiv);
     return el;
 }
 
@@ -1333,8 +1373,8 @@ function openSubstitutionModal(matchData, isForced = false, injuredPlayer = null
     const modalTitle = document.getElementById('substitutionModalTitle');
 
     // 초기화
-    fieldPlayersList.innerHTML = '';
-    benchPlayersList.innerHTML = '';
+    if (fieldPlayersList) fieldPlayersList.replaceChildren();
+    if (benchPlayersList) benchPlayersList.replaceChildren();
     selectedFieldPlayer = null;
     selectedBenchPlayer = null;
 

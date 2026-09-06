@@ -427,36 +427,46 @@ const DNAManager = {
 
         // 데이터 유효성 검사 추가
         if (!gameData || !gameData.lineStats) {
-            container.innerHTML = '<p style="color: #e74c3c; text-align: center; padding: 20px;">⚠️ 팀 DNA 데이터가 초기화되지 않았습니다. 팀 선택 화면으로 돌아가 다시 팀을 선택해주세요.</p>';
+            container.replaceChildren();
+            const errP = document.createElement('p');
+            errP.style.cssText = 'color: #e74c3c; text-align: center; padding: 20px;';
+            errP.textContent = '⚠️ 팀 DNA 데이터가 초기화되지 않았습니다. 팀 선택 화면으로 돌아가 다시 팀을 선택해주세요.';
+            container.appendChild(errP);
             console.error('Error: gameData.lineStats is not initialized. Cannot render DNA UI.');
             return;
         }
 
-        container.innerHTML = '';
+        container.replaceChildren();
 
         // [신규] 메인 전술 선택 UI 추가
         const tacticSelectionContainer = document.createElement('div');
         tacticSelectionContainer.className = 'tactic-selection-container';
         tacticSelectionContainer.style.marginBottom = '20px';
 
+        const tacticTitle = document.createElement('h4');
+        tacticTitle.style.cssText = 'color: #ffd700; margin-top: 0; margin-bottom: 10px;';
+        tacticTitle.textContent = '📋 메인 전술';
+
+        const tacticSelect = document.createElement('select');
+        tacticSelect.id = 'dnaTacticSelect';
+        tacticSelect.style.cssText = 'width: 100%; padding: 10px; background: #333; color: white; border: 1px solid #555; border-radius: 5px;';
+
         const tacticSystem = new TacticSystem();
         const allTactics = tacticSystem.getAllTactics();
 
-        let tacticOptions = '';
         allTactics.forEach(tactic => {
-            tacticOptions += `<option value="${tactic.key}" ${gameData.currentTactic === tactic.key ? 'selected' : ''}>${tactic.name}</option>`;
+            const opt = document.createElement('option');
+            opt.value = tactic.key;
+            opt.textContent = tactic.name;
+            if (gameData.currentTactic === tactic.key) opt.selected = true;
+            tacticSelect.appendChild(opt);
         });
 
-        tacticSelectionContainer.innerHTML = `
-            <h4 style="color: #ffd700; margin-top: 0; margin-bottom: 10px;">📋 메인 전술</h4>
-            <select id="dnaTacticSelect" style="width: 100%; padding: 10px; background: #333; color: white; border: 1px solid #555; border-radius: 5px;">
-                ${tacticOptions}
-            </select>
-        `;
+        tacticSelectionContainer.append(tacticTitle, tacticSelect);
         container.appendChild(tacticSelectionContainer);
 
         // 전술 변경 이벤트 리스너 추가
-        document.getElementById('dnaTacticSelect').addEventListener('change', function() {
+        tacticSelect.addEventListener('change', function() {
             gameData.currentTactic = this.value;
             
             // [추가] 경기 탭의 전술 선택 드롭다운과 동기화
@@ -474,14 +484,30 @@ const DNAManager = {
         const presetContainer = document.createElement('div');
         presetContainer.className = 'dna-preset-container';
         presetContainer.style.cssText = 'background: rgba(0,0,0,0.2); padding: 15px; border-radius: 10px; margin-bottom: 20px;';
-        let presetButtonsHtml = '<h4 style="color: #ffd700; margin-top: 0; margin-bottom: 10px;">💡 추천 DNA 분배 (프리셋)</h4><div style="display: flex; flex-wrap: wrap; gap: 10px;">';
-        for (const [key, preset] of Object.entries(DNAPresets)) {
-            presetButtonsHtml += `<button class="btn" onclick="DNAManager.handlePresetApply('${key}')" title="${preset.description}" style="background: #4a4a4a;">${preset.name}</button>`;
-        }
-        presetButtonsHtml += '</div><p style="font-size: 0.8rem; color: #aaa; margin-top: 10px;">* 프리셋을 적용하면 모든 라인(공격/미드/수비)의 포인트가 해당 컨셉에 맞게 재분배됩니다.</p>';
-        presetContainer.innerHTML = presetButtonsHtml;
-        container.appendChild(presetContainer);
 
+        const presetTitle = document.createElement('h4');
+        presetTitle.style.cssText = 'color: #ffd700; margin-top: 0; margin-bottom: 10px;';
+        presetTitle.textContent = '💡 추천 DNA 분배 (프리셋)';
+
+        const presetBtnRow = document.createElement('div');
+        presetBtnRow.style.cssText = 'display: flex; flex-wrap: wrap; gap: 10px;';
+
+        for (const [key, preset] of Object.entries(DNAPresets)) {
+            const pBtn = document.createElement('button');
+            pBtn.className = 'btn';
+            pBtn.title = preset.description;
+            pBtn.style.background = '#4a4a4a';
+            pBtn.textContent = preset.name;
+            pBtn.addEventListener('click', () => DNAManager.handlePresetApply(key));
+            presetBtnRow.appendChild(pBtn);
+        }
+
+        const presetDesc = document.createElement('p');
+        presetDesc.style.cssText = 'font-size: 0.8rem; color: #aaa; margin-top: 10px;';
+        presetDesc.textContent = '* 프리셋을 적용하면 모든 라인(공격/미드/수비)의 포인트가 해당 컨셉에 맞게 재분배됩니다.';
+
+        presetContainer.append(presetTitle, presetBtnRow, presetDesc);
+        container.appendChild(presetContainer);
 
         ['attack', 'midfield', 'defense'].forEach(line => {
             const lineData = gameData.lineStats[line];
@@ -494,22 +520,34 @@ const DNAManager = {
             
             const section = document.createElement('div');
             section.className = 'dna-section';
-            section.innerHTML = `
-                <div class="dna-header">
-                    <h4 style="margin-bottom: 5px;">${lineName} - OVR: ${lineData.ovr}</h4>
-                    <div class="dna-points">
-                        사용 포인트: <span class="${lineData.usedPoints === lineData.totalPoints ? 'text-green' : 'text-red'}">${lineData.usedPoints}</span> / ${lineData.totalPoints}
-                    </div>
-                </div>
-                <div class="dna-body">
-                    <div class="dna-chart-container">
-                        <canvas id="chart-${line}"></canvas>
-                    </div>
-                    <div class="dna-stats-grid"></div>
-                </div>
-            `;
 
-            const grid = section.querySelector('.dna-stats-grid');
+            const header = document.createElement('div');
+            header.className = 'dna-header';
+
+            const h4 = document.createElement('h4');
+            h4.style.marginBottom = '5px';
+            h4.textContent = `${lineName} - OVR: ${lineData.ovr}`;
+
+            const pointsDiv = document.createElement('div');
+            pointsDiv.className = 'dna-points';
+            const usedSpan = document.createElement('span');
+            usedSpan.className = lineData.usedPoints === lineData.totalPoints ? 'text-green' : 'text-red';
+            usedSpan.textContent = lineData.usedPoints;
+            pointsDiv.append(document.createTextNode('사용 포인트: '), usedSpan, document.createTextNode(` / ${lineData.totalPoints}`));
+
+            header.append(h4, pointsDiv);
+
+            const body = document.createElement('div');
+            body.className = 'dna-body';
+
+            const chartContainer = document.createElement('div');
+            chartContainer.className = 'dna-chart-container';
+            const canvas = document.createElement('canvas');
+            canvas.id = `chart-${line}`;
+            chartContainer.appendChild(canvas);
+
+            const grid = document.createElement('div');
+            grid.className = 'dna-stats-grid';
 
             Object.keys(definitions).forEach(statKey => {
                 const statName = definitions[statKey];
@@ -517,19 +555,41 @@ const DNAManager = {
 
                 const row = document.createElement('div');
                 row.className = 'dna-stat-row';
-                row.innerHTML = `
-                    <div class="stat-label">${statName}</div>
-                    <div class="stat-controls">
-                        <button class="btn-control" onclick="DNAManager.handleUpdate('${line}', '${statKey}', -10)">-10</button>
-                        <button class="btn-control" onclick="DNAManager.handleUpdate('${line}', '${statKey}', -1)">-1</button>
-                        <span class="stat-value">${statValue}</span>
-                        <button class="btn-control" onclick="DNAManager.handleUpdate('${line}', '${statKey}', 1)">+1</button>
-                        <button class="btn-control" onclick="DNAManager.handleUpdate('${line}', '${statKey}', 10)">+10</button>
-                    </div>
-                `;
+
+                const label = document.createElement('div');
+                label.className = 'stat-label';
+                label.textContent = statName;
+
+                const controls = document.createElement('div');
+                controls.className = 'stat-controls';
+
+                [-10, -1].forEach(delta => {
+                    const btn = document.createElement('button');
+                    btn.className = 'btn-control';
+                    btn.textContent = `${delta}`;
+                    btn.addEventListener('click', () => DNAManager.handleUpdate(line, statKey, delta));
+                    controls.appendChild(btn);
+                });
+
+                const valSpan = document.createElement('span');
+                valSpan.className = 'stat-value';
+                valSpan.textContent = statValue;
+                controls.appendChild(valSpan);
+
+                [1, 10].forEach(delta => {
+                    const btn = document.createElement('button');
+                    btn.className = 'btn-control';
+                    btn.textContent = `+${delta}`;
+                    btn.addEventListener('click', () => DNAManager.handleUpdate(line, statKey, delta));
+                    controls.appendChild(btn);
+                });
+
+                row.append(label, controls);
                 grid.appendChild(row);
             });
 
+            body.append(chartContainer, grid);
+            section.append(header, body);
             container.appendChild(section);
 
             // DOM에 추가 후 차트 생성

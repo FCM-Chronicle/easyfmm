@@ -266,37 +266,81 @@
   function buildScoreboard() {
     const sb = document.createElement("div");
     sb.id = "ingame-scoreboard";
-    sb.innerHTML = `
-      <div id="sb-main-bar">
-        <!-- 홈팀 -->
-        <div id="sb-home" class="sb-team-section">
-          <div class="sb-name-box">
-            <img id="sb-home-logo" class="sb-team-logo" src="" alt="" style="display:none;">
-            <span id="sb-home-name">홈팀</span>
-          </div>
-        </div>
 
-        <!-- 스코어 -->
-        <div id="sb-score-center">
-          <div id="sb-home-score-box" class="sb-score-box">
-            <span id="sb-score-home" class="sb-score-num">0</span>
-          </div>
-          <div id="sb-score-divider"><span></span></div>
-          <div id="sb-away-score-box" class="sb-score-box">
-            <span id="sb-score-away" class="sb-score-num">0</span>
-          </div>
-        </div>
+    const mainBar = document.createElement("div");
+    mainBar.id = "sb-main-bar";
 
-        <!-- 어웨이팀 -->
-        <div id="sb-away" class="sb-team-section">
-          <div class="sb-name-box">
-            <span id="sb-away-name">어웨이팀</span>
-            <img id="sb-away-logo" class="sb-team-logo" src="" alt="" style="display:none;">
-          </div>
-        </div>
-      </div>
-      <div id="sb-timer-box">00:00</div>
-    `;
+    // 홈팀
+    const homeSection = document.createElement("div");
+    homeSection.id = "sb-home";
+    homeSection.className = "sb-team-section";
+    const homeNameBox = document.createElement("div");
+    homeNameBox.className = "sb-name-box";
+    const homeLogo = document.createElement("img");
+    homeLogo.id = "sb-home-logo";
+    homeLogo.className = "sb-team-logo";
+    homeLogo.src = "";
+    homeLogo.alt = "";
+    homeLogo.style.display = "none";
+    const homeName = document.createElement("span");
+    homeName.id = "sb-home-name";
+    homeName.textContent = "홈팀";
+    homeNameBox.append(homeLogo, homeName);
+    homeSection.appendChild(homeNameBox);
+
+    // 스코어
+    const scoreCenter = document.createElement("div");
+    scoreCenter.id = "sb-score-center";
+
+    const homeScoreBox = document.createElement("div");
+    homeScoreBox.id = "sb-home-score-box";
+    homeScoreBox.className = "sb-score-box";
+    const homeScore = document.createElement("span");
+    homeScore.id = "sb-score-home";
+    homeScore.className = "sb-score-num";
+    homeScore.textContent = "0";
+    homeScoreBox.appendChild(homeScore);
+
+    const divider = document.createElement("div");
+    divider.id = "sb-score-divider";
+    divider.appendChild(document.createElement("span"));
+
+    const awayScoreBox = document.createElement("div");
+    awayScoreBox.id = "sb-away-score-box";
+    awayScoreBox.className = "sb-score-box";
+    const awayScore = document.createElement("span");
+    awayScore.id = "sb-score-away";
+    awayScore.className = "sb-score-num";
+    awayScore.textContent = "0";
+    awayScoreBox.appendChild(awayScore);
+
+    scoreCenter.append(homeScoreBox, divider, awayScoreBox);
+
+    // 어웨이팀
+    const awaySection = document.createElement("div");
+    awaySection.id = "sb-away";
+    awaySection.className = "sb-team-section";
+    const awayNameBox = document.createElement("div");
+    awayNameBox.className = "sb-name-box";
+    const awayName = document.createElement("span");
+    awayName.id = "sb-away-name";
+    awayName.textContent = "어웨이팀";
+    const awayLogo = document.createElement("img");
+    awayLogo.id = "sb-away-logo";
+    awayLogo.className = "sb-team-logo";
+    awayLogo.src = "";
+    awayLogo.alt = "";
+    awayLogo.style.display = "none";
+    awayNameBox.append(awayName, awayLogo);
+    awaySection.appendChild(awayNameBox);
+
+    mainBar.append(homeSection, scoreCenter, awaySection);
+
+    const timerBox = document.createElement("div");
+    timerBox.id = "sb-timer-box";
+    timerBox.textContent = "00:00";
+
+    sb.append(mainBar, timerBox);
     return sb;
   }
 

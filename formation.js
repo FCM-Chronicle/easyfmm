@@ -44,7 +44,7 @@ class FormationSystem {
         const container = document.querySelector('.squad-controls');
         if (!container) return;
         
-        container.innerHTML = ''; // 기존 내용 초기화
+        container.replaceChildren(); // 기존 내용 초기화
 
         // 버튼 컨테이너
         const controlsDiv = document.createElement('div');
@@ -60,7 +60,7 @@ class FormationSystem {
         const roleBtn = document.createElement('button');
         roleBtn.id = 'viewRoleBtn';
         roleBtn.className = 'btn';
-        roleBtn.innerHTML = '📋 롤 정보';
+        roleBtn.textContent = '📋 롤 정보';
         roleBtn.style.cssText = `
             padding: 8px 16px;
             font-size: 0.9rem;
@@ -79,7 +79,7 @@ class FormationSystem {
         const editBtn = document.createElement('button');
         editBtn.id = 'editFormationBtn';
         editBtn.className = 'btn primary';
-        editBtn.innerHTML = '⚙️ 포메이션 수정';
+        editBtn.textContent = '⚙️ 포메이션 수정';
         editBtn.style.cssText = `
             padding: 8px 16px;
             font-size: 0.9rem;
@@ -136,11 +136,11 @@ class FormationSystem {
         const field = document.querySelector('.field');
         
         if (this.isRoleViewMode) {
-            btn.innerHTML = '❌ 닫기';
+            btn.textContent = '❌ 닫기';
             btn.style.backgroundColor = '#e74c3c';
             field.classList.add('role-view-mode'); // 커서 스타일 변경용 클래스
         } else {
-            btn.innerHTML = '📋 롤 정보';
+            btn.textContent = '📋 롤 정보';
             btn.style.backgroundColor = 'rgba(52, 152, 219, 0.6)';
             field.classList.remove('role-view-mode');
             this.hideSubstitutionSheet();
@@ -148,7 +148,7 @@ class FormationSystem {
     }
     
     displayCurrentSquad() {
-        Object.values(this.areas).forEach(area => area.innerHTML = '');
+        Object.values(this.areas).forEach(area => area.replaceChildren());
         
         const squad = gameData.squad;
         const positions = ['GK', 'DF', 'MF', 'FW'];
@@ -198,15 +198,40 @@ class FormationSystem {
             else if (condition < 90) condColor = '#f1c40f'; // Yellow
 
             // 선수가 있는 경우
-            slot.innerHTML = `
-                <img src="assets/players/${player.name}.webp" class="player-slot-image" loading="lazy" onerror="this.onerror=null; this.src='assets/players/default.webp'">
-                <div class="player-name">${player.name}</div>
-                <div class="player-rating">${Math.floor(player.rating)}</div>
-                <div class="player-condition-bar">
-                    <div class="condition-fill" style="width: ${condition}%; background-color: ${condColor};"></div>
-                </div>
-                ${roleDisplay ? `<div class="player-role">${roleDisplay}</div>` : ''}
-            `;
+            const slotImg = document.createElement('img');
+            slotImg.src = `assets/players/${player.name}.webp`;
+            slotImg.className = 'player-slot-image';
+            slotImg.loading = 'lazy';
+            slotImg.onerror = function() {
+                this.onerror = null;
+                this.src = 'assets/players/default.webp';
+            };
+
+            const slotName = document.createElement('div');
+            slotName.className = 'player-name';
+            slotName.textContent = player.name;
+
+            const slotRating = document.createElement('div');
+            slotRating.className = 'player-rating';
+            slotRating.textContent = Math.floor(player.rating);
+
+            const condBar = document.createElement('div');
+            condBar.className = 'player-condition-bar';
+            const condFill = document.createElement('div');
+            condFill.className = 'condition-fill';
+            condFill.style.width = `${condition}%`;
+            condFill.style.backgroundColor = condColor;
+            condBar.appendChild(condFill);
+
+            slot.append(slotImg, slotName, slotRating, condBar);
+
+            if (roleDisplay) {
+                const roleDiv = document.createElement('div');
+                roleDiv.className = 'player-role';
+                roleDiv.textContent = roleDisplay;
+                slot.appendChild(roleDiv);
+            }
+
             slot.dataset.playerName = player.name;
             slot.dataset.positionType = positionType;
             slot.classList.add('filled');
@@ -224,10 +249,17 @@ class FormationSystem {
 
         } else {
             // 선수가 없는 경우 (공석)
-            slot.innerHTML = `
-                <div class="player-name" style="opacity: 0.5;">공석</div>
-                <div class="player-rating" style="opacity: 0.5;">-</div>
-            `;
+            const emptyName = document.createElement('div');
+            emptyName.className = 'player-name';
+            emptyName.style.opacity = '0.5';
+            emptyName.textContent = '공석';
+
+            const emptyRating = document.createElement('div');
+            emptyRating.className = 'player-rating';
+            emptyRating.style.opacity = '0.5';
+            emptyRating.textContent = '-';
+
+            slot.append(emptyName, emptyRating);
             slot.dataset.positionType = positionType;
             slot.classList.add('empty');
     
@@ -658,7 +690,7 @@ class FormationSystem {
     // [신규] 교체용 바텀 시트 표시
     showSubstitutionSheet(playerOut, positionType) {
         this.sheetTitle.textContent = `${playerOut.name} 교체`;
-        this.sheetPlayerList.innerHTML = '';
+        this.sheetPlayerList.replaceChildren();
 
         const teamPlayers = teams[gameData.selectedTeam];
         const candidates = teamPlayers.filter(p => {
@@ -673,20 +705,41 @@ class FormationSystem {
         });
 
         if (candidates.length === 0) {
-            this.sheetPlayerList.innerHTML = '<p style="text-align: center; padding: 20px 0; color: #aaa;">교체 가능한 선수가 없습니다.</p>';
+            const emptyP = document.createElement('p');
+            emptyP.style.cssText = 'text-align: center; padding: 20px 0; color: #aaa;';
+            emptyP.textContent = '교체 가능한 선수가 없습니다.';
+            this.sheetPlayerList.appendChild(emptyP);
         } else {
             candidates.forEach(candidate => {
                 const playerCard = document.createElement('div');
                 playerCard.className = 'player-card'; // 기존 스타일 재사용
-                playerCard.innerHTML = `
-                    <div class="player-card-content">
-                        <img src="assets/players/${candidate.name}.webp" class="player-card-image" loading="lazy" onerror="this.onerror=null; this.src='assets/players/default.webp'">
-                        <div class="player-info-text">
-                            <div class="name">${candidate.name}</div>
-                            <div class="details">능력치: ${candidate.rating} | 나이: ${candidate.age}</div>
-                        </div>
-                    </div>
-                `;
+
+                const contentDiv = document.createElement('div');
+                contentDiv.className = 'player-card-content';
+
+                const img = document.createElement('img');
+                img.src = `assets/players/${candidate.name}.webp`;
+                img.className = 'player-card-image';
+                img.loading = 'lazy';
+                img.onerror = function() {
+                    this.onerror = null;
+                    this.src = 'assets/players/default.webp';
+                };
+
+                const infoText = document.createElement('div');
+                infoText.className = 'player-info-text';
+
+                const nameDiv = document.createElement('div');
+                nameDiv.className = 'name';
+                nameDiv.textContent = candidate.name;
+
+                const detailsDiv = document.createElement('div');
+                detailsDiv.className = 'details';
+                detailsDiv.textContent = `능력치: ${candidate.rating} | 나이: ${candidate.age}`;
+
+                infoText.append(nameDiv, detailsDiv);
+                contentDiv.append(img, infoText);
+                playerCard.appendChild(contentDiv);
                 
                 // [수정] 롱프레스(방출) 및 클릭(교체) 이벤트 처리
                 let pressTimer;
@@ -793,60 +846,98 @@ class FormationSystem {
             }
             
             // [추가] 역할 변경 셀렉터 생성
-            let selectorHtml = `<div style="margin-bottom: 20px; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);">
-                <label style="color: #ffd700; font-size: 0.9rem; margin-bottom: 8px; display: block; font-weight: bold;">
-                    🔄 ${player.name}의 역할 변경
-                </label>
-                <div style="position: relative;">
-                    <select id="roleSelector" style="width: 100%; padding: 12px; padding-right: 30px; background: #2c3e50; color: white; border: 1px solid #555; border-radius: 6px; font-size: 1rem; appearance: none; cursor: pointer; outline: none;">`;
-            
+            const selectorWrap = document.createElement('div');
+            selectorWrap.style.cssText = 'margin-bottom: 20px; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);';
+
+            const label = document.createElement('label');
+            label.style.cssText = 'color: #ffd700; font-size: 0.9rem; margin-bottom: 8px; display: block; font-weight: bold;';
+            label.textContent = `🔄 ${player.name}의 역할 변경`;
+
+            const selectContainer = document.createElement('div');
+            selectContainer.style.position = 'relative';
+
+            const select = document.createElement('select');
+            select.id = 'roleSelector';
+            select.style.cssText = 'width: 100%; padding: 12px; padding-right: 30px; background: #2c3e50; color: white; border: 1px solid #555; border-radius: 6px; font-size: 1rem; appearance: none; cursor: pointer; outline: none;';
+
             for (const [key, data] of Object.entries(roleDataMap)) {
-                const selected = key === currentRoleKey ? 'selected' : '';
-                selectorHtml += `<option value="${key}" ${selected}>${data.name}</option>`;
+                const opt = document.createElement('option');
+                opt.value = key;
+                opt.textContent = data.name;
+                if (key === currentRoleKey) opt.selected = true;
+                select.appendChild(opt);
             }
-            selectorHtml += `</select>
-                    <div style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); pointer-events: none; color: #aaa;">▼</div>
-                </div>
-                <p style="color: #aaa; font-size: 0.8rem; margin-top: 8px; margin-bottom: 0;">* 이 선수의 개인 전술 역할입니다.</p>
-            </div>`;
+
+            const arrow = document.createElement('div');
+            arrow.style.cssText = 'position: absolute; right: 12px; top: 50%; transform: translateY(-50%); pointer-events: none; color: #aaa;';
+            arrow.textContent = '▼';
+
+            selectContainer.append(select, arrow);
+
+            const hint = document.createElement('p');
+            hint.style.cssText = 'color: #aaa; font-size: 0.8rem; margin-top: 8px; margin-bottom: 0;';
+            hint.textContent = '* 이 선수의 개인 전술 역할입니다.';
+
+            selectorWrap.append(label, selectContainer, hint);
 
             const lineName = line === 'attack' ? '공격진' : line === 'midfield' ? '미드필더진' : '수비진';
-            this.showSheetContent(player.name, currentRoleData ? currentRoleData.name : "역할 없음", currentRoleData ? `${lineName} 역할` : "", bonuses, selectorHtml);
+            this.showSheetContent(player.name, currentRoleData ? currentRoleData.name : "역할 없음", currentRoleData ? `${lineName} 역할` : "", bonuses, selectorWrap);
 
             // 셀렉터 이벤트 바인딩
-            const select = document.getElementById('roleSelector');
-            if (select) {
-                select.addEventListener('change', (e) => {
-                    // [수정] 개별 선수 역할 저장
-                    gameData.playerRoles[player.name] = e.target.value;
-                    
-                    if (typeof window.triggerAutoSave === 'function') window.triggerAutoSave();
-                    render(); // 변경 후 UI 갱신
-                    this.displayCurrentSquad(); // [추가] 필드 UI 즉시 갱신 (역할 태그 업데이트)
-                });
-            }
+            select.addEventListener('change', (e) => {
+                // [수정] 개별 선수 역할 저장
+                gameData.playerRoles[player.name] = e.target.value;
+                
+                if (typeof window.triggerAutoSave === 'function') window.triggerAutoSave();
+                render(); // 변경 후 UI 갱신
+                this.displayCurrentSquad(); // [추가] 필드 UI 즉시 갱신 (역할 태그 업데이트)
+            });
         };
         render();
     }
 
     // [신규] 바텀 시트 내용 채우기 (롤 정보용)
-    showSheetContent(title, subtitle, description, stats, extraHtml = '') {
+    showSheetContent(title, subtitle, description, stats, extraEl = null) {
         this.sheetTitle.textContent = title;
-        this.sheetPlayerList.innerHTML = `
-            <div style="padding: 20px; color: white;">
-                ${extraHtml}
-                <h3 style="color: #ffd700; margin-top: 0; margin-bottom: 10px;">${subtitle}</h3>
-                <p style="color: #ccc; font-size: 0.9rem; margin-bottom: 20px;">${description}</p>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    ${stats.map(s => `
-                        <div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 5px; display: flex; justify-content: space-between; align-items: center;">
-                            <span style="font-size: 0.9rem;">${s.name}</span>
-                            <span style="color: ${s.isPositive ? '#2ecc71' : '#e74c3c'}; font-weight: bold;">${s.value}</span>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        `;
+        this.sheetPlayerList.replaceChildren();
+
+        const wrap = document.createElement('div');
+        wrap.style.cssText = 'padding: 20px; color: white;';
+
+        if (extraEl) {
+            wrap.appendChild(extraEl);
+        }
+
+        const h3 = document.createElement('h3');
+        h3.style.cssText = 'color: #ffd700; margin-top: 0; margin-bottom: 10px;';
+        h3.textContent = subtitle;
+
+        const p = document.createElement('p');
+        p.style.cssText = 'color: #ccc; font-size: 0.9rem; margin-bottom: 20px;';
+        p.textContent = description;
+
+        const grid = document.createElement('div');
+        grid.style.cssText = 'display: grid; grid-template-columns: 1fr 1fr; gap: 10px;';
+
+        stats.forEach(s => {
+            const statCard = document.createElement('div');
+            statCard.style.cssText = 'background: rgba(255,255,255,0.1); padding: 10px; border-radius: 5px; display: flex; justify-content: space-between; align-items: center;';
+
+            const nameSpan = document.createElement('span');
+            nameSpan.style.fontSize = '0.9rem';
+            nameSpan.textContent = s.name;
+
+            const valSpan = document.createElement('span');
+            valSpan.style.color = s.isPositive ? '#2ecc71' : '#e74c3c';
+            valSpan.style.fontWeight = 'bold';
+            valSpan.textContent = s.value;
+
+            statCard.append(nameSpan, valSpan);
+            grid.appendChild(statCard);
+        });
+
+        wrap.append(h3, p, grid);
+        this.sheetPlayerList.appendChild(wrap);
         this.substitutionSheet.classList.add('active');
     }
 }

@@ -154,51 +154,50 @@ const DeepTacticManager = {
             tacticsTab.appendChild(container);
         }
         const dt = gameData.deepTactics;
-        container.innerHTML = `
-            <h4 style="color:#ffd700;margin-top:0;">심층 전술 세부 설정</h4>
+        container.replaceChildren();
 
-            <div style="margin-bottom:10px;">
-                <label style="display:block;margin-bottom:4px;color:#ccc;">수비 라인</label>
-                <select id="dt-defensiveLine" style="width:100%;padding:5px;background:#333;color:white;">
-                    <option value="deep"     ${dt.defensiveLine==='deep'     ?'selected':''}>딥 (Deep)</option>
-                    <option value="standard" ${dt.defensiveLine==='standard' ?'selected':''}>표준</option>
-                    <option value="high"     ${dt.defensiveLine==='high'     ?'selected':''}>하이 (High)</option>
-                </select>
-            </div>
+        const title = document.createElement('h4');
+        title.style.cssText = 'color:#ffd700;margin-top:0;';
+        title.textContent = '심층 전술 세부 설정';
+        container.appendChild(title);
 
-            <div style="margin-bottom:10px;">
-                <label style="display:block;margin-bottom:4px;color:#ccc;">압박 강도</label>
-                <select id="dt-pressIntensity" style="width:100%;padding:5px;background:#333;color:white;">
-                    <option value="low"  ${dt.pressIntensity==='low'  ?'selected':''}>낮음</option>
-                    <option value="mid"  ${dt.pressIntensity==='mid'  ?'selected':''}>보통</option>
-                    <option value="high" ${dt.pressIntensity==='high' ?'selected':''}>높음</option>
-                </select>
-            </div>
+        const fields = [
+            ['defensiveLine', '수비 라인', [['deep', '딥 (Deep)'], ['standard', '표준'], ['high', '하이 (High)']]],
+            ['pressIntensity', '압박 강도', [['low', '낮음'], ['mid', '보통'], ['high', '높음']]],
+            ['passTempo', '패스 템포', [['slow', '느림'], ['normal', '보통'], ['fast', '빠름']]],
+            ['passLength', '패스 길이', [['short', '짧게'], ['mixed', '혼합'], ['long', '길게']]]
+        ];
 
-            <div style="margin-bottom:10px;">
-                <label style="display:block;margin-bottom:4px;color:#ccc;">패스 템포</label>
-                <select id="dt-passTempo" style="width:100%;padding:5px;background:#333;color:white;">
-                    <option value="slow"   ${dt.passTempo==='slow'   ?'selected':''}>느림</option>
-                    <option value="normal" ${dt.passTempo==='normal' ?'selected':''}>보통</option>
-                    <option value="fast"   ${dt.passTempo==='fast'   ?'selected':''}>빠름</option>
-                </select>
-            </div>
+        fields.forEach(([k, label, options]) => {
+            const div = document.createElement('div');
+            div.style.marginBottom = '10px';
 
-            <div style="margin-bottom:10px;">
-                <label style="display:block;margin-bottom:4px;color:#ccc;">패스 길이</label>
-                <select id="dt-passLength" style="width:100%;padding:5px;background:#333;color:white;">
-                    <option value="short" ${dt.passLength==='short' ?'selected':''}>짧게</option>
-                    <option value="mixed" ${dt.passLength==='mixed' ?'selected':''}>혼합</option>
-                    <option value="long"  ${dt.passLength==='long'  ?'selected':''}>길게</option>
-                </select>
-            </div>
+            const lbl = document.createElement('label');
+            lbl.style.cssText = 'display:block;margin-bottom:4px;color:#ccc;';
+            lbl.textContent = label;
 
-            <div style="color:#aaa;font-size:0.8rem;">* 설정은 자동 적용됩니다</div>
-        `;
-        ['defensiveLine','pressIntensity','passTempo','passLength'].forEach(key => {
-            document.getElementById(`dt-${key}`)
-                .addEventListener('change', e => { gameData.deepTactics[key] = e.target.value; });
+            const select = document.createElement('select');
+            select.id = `dt-${k}`;
+            select.style.cssText = 'width:100%;padding:5px;background:#333;color:white;';
+
+            options.forEach(([v, l]) => {
+                const opt = document.createElement('option');
+                opt.value = v;
+                opt.textContent = l;
+                if (dt[k] === v) opt.selected = true;
+                select.appendChild(opt);
+            });
+
+            select.addEventListener('change', e => { gameData.deepTactics[k] = e.target.value; });
+
+            div.append(lbl, select);
+            container.appendChild(div);
         });
+
+        const note = document.createElement('div');
+        note.style.cssText = 'color:#aaa;font-size:0.8rem;';
+        note.textContent = '* 설정은 자동 적용됩니다';
+        container.appendChild(note);
     }
 };
 

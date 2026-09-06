@@ -150,62 +150,57 @@ function displayScoutingScreen() {
     const container = document.getElementById('scoutingSection');
     if (!container) return;
 
-    container.innerHTML = `
-        <div class="scouting-header" style="margin-top: 40px; border-top: 1px solid #444; padding-top: 20px;">
-            <h3>스카우터 고용</h3>
-            <p>스카우터를 고용하여 새로운 유망주를 발굴하세요. 발굴된 선수는 '유스' 탭에서 확인할 수 있습니다.</p>
-        </div>
-        <div id="scoutList" class="scout-list"></div>
-        <div id="scoutingResults" class="scouting-results">
-            <h4>발굴된 선수 목록</h4>
-            <div id="scoutedPlayerList">
-                <p style="text-align: center; opacity: 0.7;">스카우터를 고용하여 유망주를 찾아보세요.</p>
-            </div>
-        </div>
-    `;
+    // 현재 고용된 스카우터 정보 표시 (정적 마크업 참조)
+    const hiredScoutInfo = document.getElementById('hiredScoutInfo');
+    const hiredScoutName = document.getElementById('hiredScoutName');
+    const hiredScoutMatches = document.getElementById('hiredScoutMatches');
 
-    // 현재 고용된 스카우터 정보 표시
-    if (gameData.hiredScout) {
-        const hiredScoutInfo = document.createElement('div');
-        hiredScoutInfo.className = 'hired-scout-info';
-        const scout = scoutingSystem.scouts[gameData.hiredScout.tier];
-        hiredScoutInfo.innerHTML = `
-            <h4>현재 고용된 스카우터</h4>
-            <p><strong>${scout.name}</strong></p>
-            <p>남은 계약 기간: ${gameData.hiredScout.remainingMatches} 경기</p>
-        `;
-        hiredScoutInfo.style.cssText = `
-            background: rgba(46, 204, 113, 0.2);
-            border: 1px solid #2ecc71;
-            padding: 15px;
-            border-radius: 10px;
-            text-align: center;
-            margin-bottom: 20px;
-        `;
-        container.insertBefore(hiredScoutInfo, container.querySelector('.scout-list'));
+    if (hiredScoutInfo && hiredScoutName && hiredScoutMatches) {
+        if (gameData.hiredScout) {
+            const scout = scoutingSystem.scouts[gameData.hiredScout.tier];
+            hiredScoutName.textContent = scout ? scout.name : '';
+            hiredScoutMatches.textContent = gameData.hiredScout.remainingMatches;
+            hiredScoutInfo.style.display = 'block';
+        } else {
+            hiredScoutInfo.style.display = 'none';
+        }
     }
 
     const scoutList = document.getElementById('scoutList');
-    scoutList.innerHTML = ''; // 목록 초기화
+    if (!scoutList) return;
+
+    scoutList.replaceChildren(); // 목록 초기화
+    const isHired = !!gameData.hiredScout;
+
     Object.entries(scoutingSystem.scouts).forEach(([tier, scout]) => {
         const scoutCard = document.createElement('div');
         scoutCard.className = 'scout-card';
-        const isHired = !!gameData.hiredScout;
-
         if (isHired) {
             scoutCard.classList.add('disabled');
         }
 
-        scoutCard.innerHTML = `
-            <h4>${scout.name}</h4>
-            <p>비용: ${scout.cost}억</p>
-            <p>발굴 성공 확률: ${scout.chance * 100}% (경기당)</p>
-            <p>예상 능력치: ${scout.minRating}~${scout.maxRating}</p>
-            <button class="btn primary" ${isHired ? 'disabled' : ''}>고용하기</button>
-        `;
-        if (!isHired) {
-            scoutCard.querySelector('button').addEventListener('click', () => hireScoutAndRefresh(tier));
+        const h4 = document.createElement('h4');
+        h4.textContent = scout.name;
+
+        const pCost = document.createElement('p');
+        pCost.textContent = `비용: ${scout.cost}억`;
+
+        const pChance = document.createElement('p');
+        pChance.textContent = `발굴 성공 확률: ${scout.chance * 100}% (경기당)`;
+
+        const pRating = document.createElement('p');
+        pRating.textContent = `예상 능력치: ${scout.minRating}~${scout.maxRating}`;
+
+        const btn = document.createElement('button');
+        btn.className = 'btn primary';
+        btn.textContent = '고용하기';
+        if (isHired) {
+            btn.disabled = true;
+        } else {
+            btn.addEventListener('click', () => hireScoutAndRefresh(tier));
         }
+
+        scoutCard.append(h4, pCost, pChance, pRating, btn);
         scoutList.appendChild(scoutCard);
     });
 }
@@ -226,22 +221,30 @@ function displayScoutedPlayers(players) {
     const listContainer = document.getElementById('scoutedPlayerList');
     if (!listContainer) return;
 
-    listContainer.innerHTML = '';
+    listContainer.replaceChildren();
 
     if (!players || players.length === 0) {
-        listContainer.innerHTML = '<p style="text-align: center; opacity: 0.7;">발굴된 선수가 없습니다.</p>';
+        const emptyMsg = document.createElement('p');
+        emptyMsg.style.textAlign = 'center';
+        emptyMsg.style.opacity = '0.7';
+        emptyMsg.textContent = '발굴된 선수가 없습니다.';
+        listContainer.appendChild(emptyMsg);
         return;
     }
 
     players.forEach(player => {
         const playerCard = document.createElement('div');
-        playerCard.className = 'player-card small'; // 작은 카드 스타일
-        playerCard.innerHTML = `
-            <div class="name">${player.name}</div>
-            <div class="details">
-                ${player.position} | 능력치: ${Math.round(player.rating)} | 나이: ${player.age}
-            </div>
-        `;
+        playerCard.className = 'player-card small';
+
+        const nameDiv = document.createElement('div');
+        nameDiv.className = 'name';
+        nameDiv.textContent = player.name;
+
+        const detailsDiv = document.createElement('div');
+        detailsDiv.className = 'details';
+        detailsDiv.textContent = `${player.position} | 능력치: ${Math.round(player.rating)} | 나이: ${player.age}`;
+
+        playerCard.append(nameDiv, detailsDiv);
         listContainer.appendChild(playerCard);
     });
 }

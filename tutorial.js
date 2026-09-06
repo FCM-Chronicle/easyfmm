@@ -53,47 +53,52 @@ class TutorialSystem {
     }
 
     showTutorial() {
-        // UI 생성
-        const overlay = document.createElement('div');
-        overlay.className = 'tutorial-overlay';
-        overlay.id = 'tutorialOverlay';
+        const overlay = document.getElementById('tutorialOverlay');
+        if (!overlay) return;
+        overlay.style.display = 'flex';
         
-        overlay.innerHTML = `
-            <div class="tutorial-box">
-                <div class="tutorial-step-indicator" id="tutorialStepIndicator">1 / ${this.steps.length}</div>
-                <h3 class="tutorial-title" id="tutorialTitle"></h3>
-                <div class="tutorial-content" id="tutorialContent"></div>
-                <div class="tutorial-controls">
-                    <button class="btn" id="tutorialSkipBtn" style="background: rgba(231, 76, 60, 0.8);">건너뛰기</button>
-                    <div style="display: flex; gap: 10px;">
-                        <button class="btn" id="tutorialPrevBtn" style="display: none; background: rgba(255,255,255,0.2);">이전</button>
-                        <button class="btn primary" id="tutorialNextBtn">다음</button>
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        document.body.appendChild(overlay);
-        
-        // 이벤트 리스너
-        document.getElementById('tutorialNextBtn').addEventListener('click', () => this.nextStep());
-        document.getElementById('tutorialPrevBtn').addEventListener('click', () => this.prevStep());
-        document.getElementById('tutorialSkipBtn').addEventListener('click', () => this.completeTutorial());
+        // 이벤트 리스너는 1회만 등록
+        if (!this.initializedEvents) {
+            this.initializedEvents = true;
+            document.getElementById('tutorialNextBtn')?.addEventListener('click', () => this.nextStep());
+            document.getElementById('tutorialPrevBtn')?.addEventListener('click', () => this.prevStep());
+            document.getElementById('tutorialSkipBtn')?.addEventListener('click', () => this.completeTutorial());
+        }
         
         this.updateContent();
     }
 
     updateContent() {
         const step = this.steps[this.currentStep];
-        document.getElementById('tutorialTitle').textContent = step.title;
-        document.getElementById('tutorialContent').innerHTML = step.content;
-        document.getElementById('tutorialStepIndicator').textContent = `${this.currentStep + 1} / ${this.steps.length}`;
-        
+        const titleEl = document.getElementById('tutorialTitle');
+        const contentEl = document.getElementById('tutorialContent');
+        const indicatorEl = document.getElementById('tutorialStepIndicator');
         const prevBtn = document.getElementById('tutorialPrevBtn');
         const nextBtn = document.getElementById('tutorialNextBtn');
+
+        if (titleEl) titleEl.textContent = step.title;
+        if (indicatorEl) indicatorEl.textContent = `${this.currentStep + 1} / ${this.steps.length}`;
+
+        if (contentEl) {
+            contentEl.replaceChildren();
+            const lines = step.content.split('<br>');
+            lines.forEach((line, idx) => {
+                if (idx > 0) contentEl.appendChild(document.createElement('br'));
+                const parts = line.split(/(<b>.*?<\/b>)/g);
+                parts.forEach(part => {
+                    if (part.startsWith('<b>') && part.endsWith('</b>')) {
+                        const strong = document.createElement('strong');
+                        strong.textContent = part.slice(3, -4);
+                        contentEl.appendChild(strong);
+                    } else if (part) {
+                        contentEl.appendChild(document.createTextNode(part));
+                    }
+                });
+            });
+        }
         
-        prevBtn.style.display = this.currentStep === 0 ? 'none' : 'block';
-        nextBtn.textContent = this.currentStep === this.steps.length - 1 ? '시작하기' : '다음';
+        if (prevBtn) prevBtn.style.display = this.currentStep === 0 ? 'none' : 'block';
+        if (nextBtn) nextBtn.textContent = this.currentStep === this.steps.length - 1 ? '시작하기' : '다음';
     }
 
     nextStep() {
@@ -120,7 +125,7 @@ class TutorialSystem {
         }
         const overlay = document.getElementById('tutorialOverlay');
         if (overlay) {
-            overlay.remove();
+            overlay.style.display = 'none';
         }
     }
 }

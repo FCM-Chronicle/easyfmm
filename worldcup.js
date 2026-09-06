@@ -85,7 +85,7 @@ const WorldCupManager = {
         const btn = document.createElement('button');
         btn.id = 'worldCupBtn';
         btn.className = 'btn';
-        btn.innerHTML = '🏆 월드컵 모드';
+        btn.textContent = '🏆 월드컵 모드';
         btn.style.cssText = `position: fixed; top: 20px; left: 20px; z-index: 100000; background: linear-gradient(45deg, #e74c3c, #c0392b); color: white; padding: 10px 20px; border: none; border-radius: 5px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); cursor: pointer; font-weight: bold;`;
         btn.onclick = () => this.openWorldCupMenu();
         document.body.appendChild(btn);
@@ -98,18 +98,45 @@ const WorldCupManager = {
             modal.id = 'wcModal';
             modal.className = 'modal';
             modal.style.zIndex = '10000';
-            modal.innerHTML = `
-                <div class="modal-content" style="background: #2c3e50; color: white; max-width: 600px;">
-                    <span class="close" onclick="document.getElementById('wcModal').style.display='none'">&times;</span>
-                    <h2 style="color: #ffd700; text-align: center;">🏆 FIFA 월드컵 모드</h2>
-                    <p style="text-align: center; margin-bottom: 20px;">48개국이 펼치는 세계 최고의 축제!</p>
-                    <div style="display: flex; flex-direction: column; gap: 10px;">
-                        <button class="btn primary" onclick="WorldCupManager.startNewWorldCup()">새 월드컵 시작</button>
-                        <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); width: 100%; margin: 10px 0;">
-                        <h4 style="margin: 0;">불러오기 (월드컵 전용 슬롯)</h4>
-                        <div id="wcSaveSlots"></div>
-                    </div>
-                </div>`;
+
+            const content = document.createElement('div');
+            content.className = 'modal-content';
+            content.style.cssText = 'background: #2c3e50; color: white; max-width: 600px;';
+
+            const closeSpan = document.createElement('span');
+            closeSpan.className = 'close';
+            closeSpan.textContent = '×';
+            closeSpan.onclick = () => { modal.style.display = 'none'; };
+
+            const h2 = document.createElement('h2');
+            h2.style.cssText = 'color: #ffd700; text-align: center;';
+            h2.textContent = '🏆 FIFA 월드컵 모드';
+
+            const desc = document.createElement('p');
+            desc.style.cssText = 'text-align: center; margin-bottom: 20px;';
+            desc.textContent = '48개국이 펼치는 세계 최고의 축제!';
+
+            const col = document.createElement('div');
+            col.style.cssText = 'display: flex; flex-direction: column; gap: 10px;';
+
+            const startBtn = document.createElement('button');
+            startBtn.className = 'btn primary';
+            startBtn.textContent = '새 월드컵 시작';
+            startBtn.onclick = () => WorldCupManager.startNewWorldCup();
+
+            const hr = document.createElement('hr');
+            hr.style.cssText = 'border: 0; border-top: 1px solid rgba(255,255,255,0.1); width: 100%; margin: 10px 0;';
+
+            const h4 = document.createElement('h4');
+            h4.style.margin = '0';
+            h4.textContent = '불러오기 (월드컵 전용 슬롯)';
+
+            const slotsDiv = document.createElement('div');
+            slotsDiv.id = 'wcSaveSlots';
+
+            col.append(startBtn, hr, h4, slotsDiv);
+            content.append(closeSpan, h2, desc, col);
+            modal.appendChild(content);
             document.body.appendChild(modal);
         }
         this.renderSaveSlots();
@@ -118,14 +145,43 @@ const WorldCupManager = {
 
     renderSaveSlots() {
         const container = document.getElementById('wcSaveSlots');
-        container.innerHTML = '';
+        if (!container) return;
+        container.replaceChildren();
         for (let i = 1; i <= 3; i++) {
             const slotData = localStorage.getItem(`worldcup_save_${i}`);
             const info = slotData ? JSON.parse(slotData).timestamp : null;
             const dateStr = info ? new Date(info).toLocaleString() : '비어있음';
+
             const slotBtn = document.createElement('div');
             slotBtn.style.cssText = `background: rgba(255,255,255,0.1); padding: 10px; margin-bottom: 5px; border-radius: 5px; display: flex; justify-content: space-between; align-items: center;`;
-            slotBtn.innerHTML = `<span>슬롯 ${i} <small style="color: #aaa;">(${dateStr})</small></span><div style="display: flex; gap: 5px;">${slotData ? `<button class="btn" onclick="WorldCupManager.loadWorldCup(${i})" style="padding: 5px 10px; font-size: 0.8rem;">로드</button>` : ''}${slotData ? `<button class="btn" onclick="WorldCupManager.deleteWorldCup(${i})" style="padding: 5px 10px; font-size: 0.8rem; background: #c0392b;">삭제</button>` : ''}</div>`;
+
+            const leftSpan = document.createElement('span');
+            leftSpan.append(`슬롯 ${i} `);
+            const dateSmall = document.createElement('small');
+            dateSmall.style.color = '#aaa';
+            dateSmall.textContent = `(${dateStr})`;
+            leftSpan.appendChild(dateSmall);
+
+            const btnWrap = document.createElement('div');
+            btnWrap.style.cssText = 'display: flex; gap: 5px;';
+
+            if (slotData) {
+                const loadBtn = document.createElement('button');
+                loadBtn.className = 'btn';
+                loadBtn.style.cssText = 'padding: 5px 10px; font-size: 0.8rem;';
+                loadBtn.textContent = '로드';
+                loadBtn.onclick = () => WorldCupManager.loadWorldCup(i);
+
+                const delBtn = document.createElement('button');
+                delBtn.className = 'btn';
+                delBtn.style.cssText = 'padding: 5px 10px; font-size: 0.8rem; background: #c0392b;';
+                delBtn.textContent = '삭제';
+                delBtn.onclick = () => WorldCupManager.deleteWorldCup(i);
+
+                btnWrap.append(loadBtn, delBtn);
+            }
+
+            slotBtn.append(leftSpan, btnWrap);
             container.appendChild(slotBtn);
         }
     },
@@ -320,29 +376,62 @@ const WorldCupManager = {
             modal.id = 'wcGroupsModal';
             modal.className = 'modal';
             modal.style.zIndex = '10001';
-            modal.innerHTML = `
-                <div class="modal-content" style="background: #2c3e50; color: white; max-width: 900px; max-height: 90vh; overflow-y: auto;">
-                    <span class="close" onclick="document.getElementById('wcGroupsModal').style.display='none'">&times;</span>
-                    <h2 style="color: #ffd700; text-align: center;">🏆 조별리그 대진표</h2>
-                    <p style="text-align: center; font-size: 1.1rem; color: #2ecc71; margin-bottom: 20px;">▼ 감독을 맡을 국가대표팀을 클릭하세요! ▼</p>
-                    <div id="wcGroupsContainer" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 20px;"></div>
-                </div>`;
+
+            const modalContent = document.createElement('div');
+            modalContent.className = 'modal-content';
+            modalContent.style.cssText = 'background: #2c3e50; color: white; max-width: 900px; max-height: 90vh; overflow-y: auto;';
+
+            const closeBtn = document.createElement('span');
+            closeBtn.className = 'close';
+            closeBtn.textContent = '×';
+            closeBtn.onclick = () => {
+                const target = document.getElementById('wcGroupsModal');
+                if (target) target.style.display = 'none';
+            };
+
+            const title = document.createElement('h2');
+            title.style.cssText = 'color: #ffd700; text-align: center;';
+            title.textContent = '🏆 조별리그 대진표';
+
+            const subtitle = document.createElement('p');
+            subtitle.style.cssText = 'text-align: center; font-size: 1.1rem; color: #2ecc71; margin-bottom: 20px;';
+            subtitle.textContent = '▼ 감독을 맡을 국가대표팀을 클릭하세요! ▼';
+
+            const groupsContainer = document.createElement('div');
+            groupsContainer.id = 'wcGroupsContainer';
+            groupsContainer.style.cssText = 'display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 20px;';
+
+            modalContent.append(closeBtn, title, subtitle, groupsContainer);
+            modal.appendChild(modalContent);
             document.body.appendChild(modal);
         }
         const container = document.getElementById('wcGroupsContainer');
-        container.innerHTML = '';
+        container.replaceChildren();
         Object.keys(this.groups).forEach(groupName => {
             const teams = this.groups[groupName];
             const groupDiv = document.createElement('div');
-            groupDiv.style.cssText = `background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2);`;
-            let teamsHtml = teams.map(t => `
-                <div onclick="WorldCupManager.selectTeam('${t}')" 
-                     style="padding: 8px; margin: 5px 0; border-radius: 5px; background: rgba(0,0,0,0.3); cursor: pointer; transition: all 0.2s; text-align: center; border: 1px solid transparent;"
-                     onmouseover="this.style.background='#2980b9'; this.style.borderColor='#3498db';"
-                     onmouseout="this.style.background='rgba(0,0,0,0.3)'; this.style.borderColor='transparent';">
-                    ${t}
-                </div>`).join('');
-            groupDiv.innerHTML = `<h3 style="color: #ffd700; margin-top: 0; border-bottom: 2px solid #ffd700; padding-bottom: 5px;">${groupName}조</h3>${teamsHtml}`;
+            groupDiv.style.cssText = 'background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2);';
+
+            const groupHeader = document.createElement('h3');
+            groupHeader.style.cssText = 'color: #ffd700; margin-top: 0; border-bottom: 2px solid #ffd700; padding-bottom: 5px;';
+            groupHeader.textContent = `${groupName}조`;
+            groupDiv.appendChild(groupHeader);
+
+            teams.forEach(t => {
+                const teamItem = document.createElement('div');
+                teamItem.style.cssText = 'padding: 8px; margin: 5px 0; border-radius: 5px; background: rgba(0,0,0,0.3); cursor: pointer; transition: all 0.2s; text-align: center; border: 1px solid transparent;';
+                teamItem.textContent = t;
+                teamItem.onclick = () => WorldCupManager.selectTeam(t);
+                teamItem.onmouseover = () => {
+                    teamItem.style.background = '#2980b9';
+                    teamItem.style.borderColor = '#3498db';
+                };
+                teamItem.onmouseout = () => {
+                    teamItem.style.background = 'rgba(0,0,0,0.3)';
+                    teamItem.style.borderColor = 'transparent';
+                };
+                groupDiv.appendChild(teamItem);
+            });
             container.appendChild(groupDiv);
         });
         modal.style.display = 'block';
@@ -480,25 +569,60 @@ const WorldCupManager = {
         
         // 첫 경기 시작 전까지만 차출 가능
         if (gameData.matchesPlayed > 0) {
-            container.innerHTML = '<div style="text-align:center; padding: 50px; color:#e74c3c;"><h3>🚫 차출 기간 종료</h3><p>대회가 시작되어 더 이상 선수를 교체할 수 없습니다.</p></div>';
+            container.replaceChildren();
+            const endMsg = document.createElement('div');
+            endMsg.style.cssText = 'text-align:center; padding: 50px; color:#e74c3c;';
+            const h3 = document.createElement('h3');
+            h3.textContent = '🚫 차출 기간 종료';
+            const p = document.createElement('p');
+            p.textContent = '대회가 시작되어 더 이상 선수를 교체할 수 없습니다.';
+            endMsg.append(h3, p);
+            container.appendChild(endMsg);
             return;
         }
 
-        container.innerHTML = `
-            <div style="padding: 15px; background: rgba(0,0,0,0.2); margin-bottom: 15px; border-radius: 5px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <h3 style="color: #ffd700; margin: 0;">국가대표 선수단 관리 (25인)</h3>
-                    <div style="display: flex; gap: 5px;">
-                        <button class="btn" onclick="WorldCupManager.renderCallUpTab('ovr')" style="padding: 5px 10px; font-size: 0.8rem; ${this.currentCallUpSort === 'ovr' ? 'background-color: #2ecc71;' : 'background-color: #555;'}">능력치순</button>
-                        <button class="btn" onclick="WorldCupManager.renderCallUpTab('name')" style="padding: 5px 10px; font-size: 0.8rem; ${this.currentCallUpSort === 'name' ? 'background-color: #2ecc71;' : 'background-color: #555;'}">이름순</button>
-                    </div>
-                </div>
-                <p style="color: #ccc; font-size: 0.9rem; margin: 0;">현재 스쿼드에 없는 선수를 클릭하여 스쿼드 내 선수와 교체할 수 있습니다.</p>
-            </div>
-            <div id="callupList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px;"></div>
-        `;
+        container.replaceChildren();
 
-        const list = document.getElementById('callupList');
+        const headerDiv = document.createElement('div');
+        headerDiv.style.cssText = 'padding: 15px; background: rgba(0,0,0,0.2); margin-bottom: 15px; border-radius: 5px;';
+
+        const topRow = document.createElement('div');
+        topRow.style.cssText = 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;';
+
+        const headerTitle = document.createElement('h3');
+        headerTitle.style.cssText = 'color: #ffd700; margin: 0;';
+        headerTitle.textContent = '국가대표 선수단 관리 (25인)';
+
+        const btnGroup = document.createElement('div');
+        btnGroup.style.cssText = 'display: flex; gap: 5px;';
+
+        const ovrBtn = document.createElement('button');
+        ovrBtn.className = 'btn';
+        ovrBtn.textContent = '능력치순';
+        ovrBtn.style.cssText = `padding: 5px 10px; font-size: 0.8rem; background-color: ${this.currentCallUpSort === 'ovr' ? '#2ecc71' : '#555'};`;
+        ovrBtn.onclick = () => WorldCupManager.renderCallUpTab('ovr');
+
+        const nameBtn = document.createElement('button');
+        nameBtn.className = 'btn';
+        nameBtn.textContent = '이름순';
+        nameBtn.style.cssText = `padding: 5px 10px; font-size: 0.8rem; background-color: ${this.currentCallUpSort === 'name' ? '#2ecc71' : '#555'};`;
+        nameBtn.onclick = () => WorldCupManager.renderCallUpTab('name');
+
+        btnGroup.append(ovrBtn, nameBtn);
+        topRow.append(headerTitle, btnGroup);
+
+        const subText = document.createElement('p');
+        subText.style.cssText = 'color: #ccc; font-size: 0.9rem; margin: 0;';
+        subText.textContent = '현재 스쿼드에 없는 선수를 클릭하여 스쿼드 내 선수와 교체할 수 있습니다.';
+
+        headerDiv.append(topRow, subText);
+
+        const list = document.createElement('div');
+        list.id = 'callupList';
+        list.style.cssText = 'display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px;';
+
+        container.append(headerDiv, list);
+
         const pool = this.nationalPools[this.userTeam] || [];
         const currentSquad = window.teams[this.userTeam];
         const currentNames = new Set(currentSquad.map(p => p.name));
@@ -514,18 +638,30 @@ const WorldCupManager = {
         }
 
         if (candidates.length === 0) {
-            list.innerHTML = '<p style="grid-column: 1/-1; text-align: center;">교체 가능한 선수가 없습니다.</p>';
+            const emptyP = document.createElement('p');
+            emptyP.style.cssText = 'grid-column: 1/-1; text-align: center;';
+            emptyP.textContent = '교체 가능한 선수가 없습니다.';
+            list.appendChild(emptyP);
             return;
         }
 
         candidates.forEach(player => {
             const card = document.createElement('div');
             card.className = 'player-card';
-            card.innerHTML = `
-                <div class="name">${player.name}</div>
-                <div class="details">${player.position} | OVR: ${player.rating} | ${player.age}세</div>
-                <div style="font-size: 0.8rem; color: #aaa;">${player.originalClub}</div>
-            `;
+
+            const nameDiv = document.createElement('div');
+            nameDiv.className = 'name';
+            nameDiv.textContent = player.name;
+
+            const detailsDiv = document.createElement('div');
+            detailsDiv.className = 'details';
+            detailsDiv.textContent = `${player.position} | OVR: ${player.rating} | ${player.age}세`;
+
+            const clubDiv = document.createElement('div');
+            clubDiv.style.cssText = 'font-size: 0.8rem; color: #aaa;';
+            clubDiv.textContent = player.originalClub;
+
+            card.append(nameDiv, detailsDiv, clubDiv);
             card.onclick = () => this.swapSquadPlayer(player);
             list.appendChild(card);
         });
@@ -561,12 +697,15 @@ const WorldCupManager = {
         const container = document.querySelector('.records-content');
         if (!container) return;
 
-        container.innerHTML = '';
+        container.replaceChildren();
         container.style.display = 'block'; // 그리드 대신 블록으로
 
         // 1. 조별리그 순위표
         const groupSection = document.createElement('div');
-        groupSection.innerHTML = `<h3 style="color: #ffd700; border-bottom: 2px solid #ffd700; padding-bottom: 10px;">🏆 조별리그 현황</h3>`;
+        const groupHeader = document.createElement('h3');
+        groupHeader.style.cssText = 'color: #ffd700; border-bottom: 2px solid #ffd700; padding-bottom: 10px;';
+        groupHeader.textContent = '🏆 조별리그 현황';
+        groupSection.appendChild(groupHeader);
 
         const standings = this.calculateAllGroupStandings();
         const grid = document.createElement('div');
@@ -576,16 +715,35 @@ const WorldCupManager = {
             const table = document.createElement('div');
             table.style.cssText = 'background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px;';
 
-            let rows = standings[group].map((t, i) => `
-                <div style="display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.1); ${t.team === this.userTeam ? 'color: #2ecc71; font-weight: bold;' : ''}">
-                    <span style="width: 20px;">${i+1}</span>
-                    <span style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${t.team}</span>
-                    <span style="width: 30px; text-align: center;">${t.points}</span>
-                    <span style="width: 30px; text-align: center;">${t.goalDiff}</span>
-                </div>
-            `).join('');
+            const title = document.createElement('h4');
+            title.style.cssText = 'margin: 0 0 10px 0; color: #3498db;';
+            title.textContent = `${group}조`;
+            table.appendChild(title);
 
-            table.innerHTML = `<h4 style="margin: 0 0 10px 0; color: #3498db;">${group}조</h4>${rows}`;
+            standings[group].forEach((t, i) => {
+                const row = document.createElement('div');
+                row.style.cssText = `display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.1); ${t.team === this.userTeam ? 'color: #2ecc71; font-weight: bold;' : ''}`;
+
+                const rankSpan = document.createElement('span');
+                rankSpan.style.width = '20px';
+                rankSpan.textContent = i + 1;
+
+                const teamSpan = document.createElement('span');
+                teamSpan.style.cssText = 'flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;';
+                teamSpan.textContent = t.team;
+
+                const ptsSpan = document.createElement('span');
+                ptsSpan.style.cssText = 'width: 30px; text-align: center;';
+                ptsSpan.textContent = t.points;
+
+                const gdSpan = document.createElement('span');
+                gdSpan.style.cssText = 'width: 30px; text-align: center;';
+                gdSpan.textContent = t.goalDiff;
+
+                row.append(rankSpan, teamSpan, ptsSpan, gdSpan);
+                table.appendChild(row);
+            });
+
             grid.appendChild(table);
         });
         groupSection.appendChild(grid);
@@ -595,42 +753,64 @@ const WorldCupManager = {
         if (this.currentStage !== 'group') {
             const bracketSection = document.createElement('div');
             bracketSection.style.marginTop = '30px';
-            bracketSection.innerHTML = `<h3 style="color: #ffd700; border-bottom: 2px solid #ffd700; padding-bottom: 10px;">⚔️ 토너먼트 대진</h3>`;
 
-            const bracketHTML = this.renderTournamentBracket();
-            bracketSection.innerHTML += bracketHTML;
+            const bracketTitle = document.createElement('h3');
+            bracketTitle.style.cssText = 'color: #ffd700; border-bottom: 2px solid #ffd700; padding-bottom: 10px;';
+            bracketTitle.textContent = '⚔️ 토너먼트 대진';
+            bracketSection.appendChild(bracketTitle);
+
+            const bracketEl = this.renderTournamentBracket();
+            if (bracketEl) {
+                bracketSection.appendChild(bracketEl);
+            }
 
             container.appendChild(bracketSection);
         }
     },
 
     renderTournamentBracket() {
-        if (!this.tournamentBracket || Object.keys(this.tournamentBracket).length === 0) return '';
+        if (!this.tournamentBracket || Object.keys(this.tournamentBracket).length === 0) return null;
 
         const stages = ['r32', 'r16', 'qf', 'sf', 'final'];
-        let html = '<div class="bracket-container">';
+        const container = document.createElement('div');
+        container.className = 'bracket-container';
 
         stages.forEach(stage => {
             const matches = this.tournamentBracket[stage];
             if (matches && matches.length > 0) {
-                html += `<div class="round round-${stage}">`;
-                html += `<h4 class="round-title">${this.getStageKoreanName(stage)}</h4>`;
+                const roundDiv = document.createElement('div');
+                roundDiv.className = `round round-${stage}`;
+
+                const roundTitle = document.createElement('h4');
+                roundTitle.className = 'round-title';
+                roundTitle.textContent = this.getStageKoreanName(stage);
+                roundDiv.appendChild(roundTitle);
+
                 matches.forEach(match => {
                     const isUserMatch = match.home === this.userTeam || match.away === this.userTeam;
-                    html += `
-                        <div class="match ${isUserMatch ? 'user-match' : ''}">
-                            <div class="team">${match.home || '?'}</div>
-                            <div class="vs">vs</div>
-                            <div class="team">${match.away || '?'}</div>
-                        </div>
-                    `;
+                    const matchDiv = document.createElement('div');
+                    matchDiv.className = `match ${isUserMatch ? 'user-match' : ''}`.trim();
+
+                    const homeTeam = document.createElement('div');
+                    homeTeam.className = 'team';
+                    homeTeam.textContent = match.home || '?';
+
+                    const vsDiv = document.createElement('div');
+                    vsDiv.className = 'vs';
+                    vsDiv.textContent = 'vs';
+
+                    const awayTeam = document.createElement('div');
+                    awayTeam.className = 'team';
+                    awayTeam.textContent = match.away || '?';
+
+                    matchDiv.append(homeTeam, vsDiv, awayTeam);
+                    roundDiv.appendChild(matchDiv);
                 });
-                html += `</div>`;
+                container.appendChild(roundDiv);
             }
         });
 
-        html += '</div>';
-        return html;
+        return container;
     },
 
     simulateAITournamentMatch(team1, team2) {
@@ -972,17 +1152,51 @@ const WorldCupManager = {
             modal.style.zIndex = '100005';
             document.body.appendChild(modal);
         }
-        modal.innerHTML = `
-            <div class="modal-content" style="background: linear-gradient(135deg, #1f2430, #0f1219); color: white; max-width: 500px; text-align: center; border-radius: 16px; border: 1px solid rgba(255,215,0,0.3); padding: 30px;">
-                <div style="font-size: 3rem; margin-bottom: 10px;">${this.isEliminated ? '😢' : '🏆'}</div>
-                <h2 style="color: #ffd700; margin: 0 0 10px 0;">${title}</h2>
-                <p style="color: #ddd; font-size: 1rem; line-height: 1.6; margin-bottom: 25px;">${msg}</p>
-                <div style="display: flex; gap: 10px; justify-content: center;">
-                    <button class="btn" onclick="WorldCupManager.renderRecordsTab(); document.getElementById('wcResultModal').style.display='none'; if(typeof showTab==='function') showTab('records');" style="background: rgba(255,255,255,0.1); border: 1px solid #fff; padding: 10px 20px;">📊 대회 기록</button>
-                    <button class="btn primary" onclick="WorldCupManager.exitWorldCupMode(); document.getElementById('wcResultModal').style.display='none';" style="padding: 10px 20px;">🏠 메인 메뉴로 복귀</button>
-                </div>
-            </div>
-        `;
+        modal.replaceChildren();
+
+        const content = document.createElement('div');
+        content.className = 'modal-content';
+        content.style.cssText = 'background: linear-gradient(135deg, #1f2430, #0f1219); color: white; max-width: 500px; text-align: center; border-radius: 16px; border: 1px solid rgba(255,215,0,0.3); padding: 30px;';
+
+        const iconDiv = document.createElement('div');
+        iconDiv.style.cssText = 'font-size: 3rem; margin-bottom: 10px;';
+        iconDiv.textContent = this.isEliminated ? '😢' : '🏆';
+
+        const titleEl = document.createElement('h2');
+        titleEl.style.cssText = 'color: #ffd700; margin: 0 0 10px 0;';
+        titleEl.textContent = title;
+
+        const msgEl = document.createElement('p');
+        msgEl.style.cssText = 'color: #ddd; font-size: 1rem; line-height: 1.6; margin-bottom: 25px;';
+        msgEl.textContent = msg;
+
+        const btnGroup = document.createElement('div');
+        btnGroup.style.cssText = 'display: flex; gap: 10px; justify-content: center;';
+
+        const recordsBtn = document.createElement('button');
+        recordsBtn.className = 'btn';
+        recordsBtn.style.cssText = 'background: rgba(255,255,255,0.1); border: 1px solid #fff; padding: 10px 20px;';
+        recordsBtn.textContent = '📊 대회 기록';
+        recordsBtn.onclick = () => {
+            WorldCupManager.renderRecordsTab();
+            const targetModal = document.getElementById('wcResultModal');
+            if (targetModal) targetModal.style.display = 'none';
+            if (typeof showTab === 'function') showTab('records');
+        };
+
+        const exitBtn = document.createElement('button');
+        exitBtn.className = 'btn primary';
+        exitBtn.style.cssText = 'padding: 10px 20px;';
+        exitBtn.textContent = '🏠 메인 메뉴로 복귀';
+        exitBtn.onclick = () => {
+            WorldCupManager.exitWorldCupMode();
+            const targetModal = document.getElementById('wcResultModal');
+            if (targetModal) targetModal.style.display = 'none';
+        };
+
+        btnGroup.append(recordsBtn, exitBtn);
+        content.append(iconDiv, titleEl, msgEl, btnGroup);
+        modal.appendChild(content);
         modal.style.display = 'block';
     },
 

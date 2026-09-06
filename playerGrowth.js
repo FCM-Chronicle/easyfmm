@@ -635,60 +635,132 @@ class PlayerGrowthSystem {
         if (badgeEl) badgeEl.textContent = summary.length;
 
         if (summary.length === 0) {
-            listEl.innerHTML = '<div class="growth-list-empty">아직 성장 중인 선수가 없어요<br>유스 콜업 또는 육성 시스템을 확인해 보세요</div>';
+            listEl.replaceChildren();
+            const emptyDiv = document.createElement('div');
+            emptyDiv.className = 'growth-list-empty';
+            emptyDiv.append('아직 성장 중인 선수가 없어요', document.createElement('br'), '유스 콜업 또는 육성 시스템을 확인해 보세요');
+            listEl.appendChild(emptyDiv);
             if (emptyEl) { emptyEl.style.display = 'flex'; emptyEl.querySelector('h4').textContent = '아직 성장 데이터가 없어요'; }
             if (detailEl) detailEl.style.display = 'none';
         } else {
-            listEl.innerHTML = summary.map(s => `
-                <div class="growth-player-item ${this._selectedGrowthPlayer === s.name ? 'active' : ''}" data-name="${s.name}">
-                    <div class="growth-player-main">
-                        <div class="growth-player-avatar">${this._posEmoji(s.position)}</div>
-                        <div class="growth-player-info">
-                            <strong>${s.name}</strong>
-                            <div class="growth-player-sub">${s.position} · ${s.age}세 · ${s.currentRating} → ${s.maxPotential}</div>
-                        </div>
-                    </div>
-                    <div class="growth-player-progress">
-                        <div class="player-progress-bar"><div style="width:${Math.min(100, Math.round((s.maxGrowth - s.remainingGrowth) / Math.max(0.1, s.maxGrowth) * 100))}%"></div></div>
-                        <span>+${s.monthlyGrowth.toFixed(2)}/턴</span>
-                    </div>
-                </div>
-            `).join('');
+            listEl.replaceChildren();
+            summary.forEach(s => {
+                const item = document.createElement('div');
+                item.className = `growth-player-item ${this._selectedGrowthPlayer === s.name ? 'active' : ''}`.trim();
+                item.dataset.name = s.name;
 
-            listEl.querySelectorAll('.growth-player-item').forEach(el => {
-                el.addEventListener('click', () => {
-                    const name = el.dataset.name;
-                    this._selectedGrowthPlayer = name;
+                const mainDiv = document.createElement('div');
+                mainDiv.className = 'growth-player-main';
+
+                const avatarDiv = document.createElement('div');
+                avatarDiv.className = 'growth-player-avatar';
+                avatarDiv.textContent = this._posEmoji(s.position);
+
+                const infoDiv = document.createElement('div');
+                infoDiv.className = 'growth-player-info';
+
+                const strong = document.createElement('strong');
+                strong.textContent = s.name;
+
+                const subDiv = document.createElement('div');
+                subDiv.className = 'growth-player-sub';
+                subDiv.textContent = `${s.position} · ${s.age}세 · ${s.currentRating} → ${s.maxPotential}`;
+
+                infoDiv.append(strong, subDiv);
+                mainDiv.append(avatarDiv, infoDiv);
+
+                const progressDiv = document.createElement('div');
+                progressDiv.className = 'growth-player-progress';
+
+                const barWrap = document.createElement('div');
+                barWrap.className = 'player-progress-bar';
+
+                const barInner = document.createElement('div');
+                barInner.style.width = `${Math.min(100, Math.round((s.maxGrowth - s.remainingGrowth) / Math.max(0.1, s.maxGrowth) * 100))}%`;
+                barWrap.appendChild(barInner);
+
+                const spanRate = document.createElement('span');
+                spanRate.textContent = `+${s.monthlyGrowth.toFixed(2)}/턴`;
+
+                progressDiv.append(barWrap, spanRate);
+                item.append(mainDiv, progressDiv);
+
+                item.addEventListener('click', () => {
+                    this._selectedGrowthPlayer = s.name;
                     this.renderGrowthTab();
                 });
+
+                listEl.appendChild(item);
             });
         }
 
         const mentoringSummary = this.getTeamMentoringSummary();
         if (mentoringListEl) {
+            mentoringListEl.replaceChildren();
             if (mentoringSummary.length === 0) {
-                mentoringListEl.innerHTML = `<div class="mentoring-empty" style="color:#aaa; font-size:0.85rem; padding:10px 4px;">멘토링 진행 중인 쌍이 없어요<br>28세 이상 베테랑이 있으면 수동 매칭 가능합니다.</div>`;
+                const emptyM = document.createElement('div');
+                emptyM.className = 'mentoring-empty';
+                emptyM.style.cssText = 'color:#aaa; font-size:0.85rem; padding:10px 4px;';
+                emptyM.append('멘토링 진행 중인 쌍이 없어요', document.createElement('br'), '28세 이상 베테랑이 있으면 수동 매칭 가능합니다.');
+                mentoringListEl.appendChild(emptyM);
             } else {
-                mentoringListEl.innerHTML = mentoringSummary.map(m => `
-                    <div class="mentoring-item">
-                        <div class="mentoring-pair">
-                            <span class="mentee-tag">멘티</span>
-                            <strong>${m.menteeName}</strong>
-                            <span class="mentee-pos">(${m.menteePosition})</span>
-                        </div>
-                        <div class="mentoring-arrow">⬇️</div>
-                        <div class="mentoring-pair">
-                            <span class="mentor-tag">멘토</span>
-                            <strong>${m.mentorName}</strong>
-                            <span class="mentor-pos">(${m.mentorPosition})</span>
-                        </div>
-                        <div class="mentoring-badge-row">
-                            ${m.samePosition ? '<span class="mentoring-chip good">동일 포지션</span>' : ''}
-                            ${m.sameCountry ? '<span class="mentoring-chip good">동일 국적</span>' : ''}
-                            <span class="mentoring-chip bonus">+${m.bonusPct}% 성장</span>
-                        </div>
-                    </div>
-                `).join('');
+                mentoringSummary.forEach(m => {
+                    const item = document.createElement('div');
+                    item.className = 'mentoring-item';
+
+                    // mentee
+                    const menteePair = document.createElement('div');
+                    menteePair.className = 'mentoring-pair';
+                    const menteeTag = document.createElement('span');
+                    menteeTag.className = 'mentee-tag';
+                    menteeTag.textContent = '멘티';
+                    const menteeName = document.createElement('strong');
+                    menteeName.textContent = m.menteeName;
+                    const menteePos = document.createElement('span');
+                    menteePos.className = 'mentee-pos';
+                    menteePos.textContent = `(${m.menteePosition})`;
+                    menteePair.append(menteeTag, menteeName, menteePos);
+
+                    const arrow = document.createElement('div');
+                    arrow.className = 'mentoring-arrow';
+                    arrow.textContent = '⬇️';
+
+                    // mentor
+                    const mentorPair = document.createElement('div');
+                    mentorPair.className = 'mentoring-pair';
+                    const mentorTag = document.createElement('span');
+                    mentorTag.className = 'mentor-tag';
+                    mentorTag.textContent = '멘토';
+                    const mentorName = document.createElement('strong');
+                    mentorName.textContent = m.mentorName;
+                    const mentorPos = document.createElement('span');
+                    mentorPos.className = 'mentor-pos';
+                    mentorPos.textContent = `(${m.mentorPosition})`;
+                    mentorPair.append(mentorTag, mentorName, mentorPos);
+
+                    // badges
+                    const badgeRow = document.createElement('div');
+                    badgeRow.className = 'mentoring-badge-row';
+                    if (m.samePosition) {
+                        const chip = document.createElement('span');
+                        chip.className = 'mentoring-chip good';
+                        chip.textContent = '동일 포지션';
+                        badgeRow.appendChild(chip);
+                    }
+                    if (m.sameCountry) {
+                        const chip = document.createElement('span');
+                        chip.className = 'mentoring-chip good';
+                        chip.textContent = '동일 국적';
+                        badgeRow.appendChild(chip);
+                    }
+                    const bonusChip = document.createElement('span');
+                    bonusChip.className = 'mentoring-chip bonus';
+                    bonusChip.textContent = `+${m.bonusPct}% 성장`;
+                    badgeRow.appendChild(bonusChip);
+
+                    item.append(menteePair, arrow, mentorPair, badgeRow);
+                    mentoringListEl.appendChild(item);
+                });
             }
         }
 
@@ -735,17 +807,30 @@ class PlayerGrowthSystem {
         // [신규] 멘토 지정 UI 렌더링
         const mentorUI = document.getElementById('mentorAssignUI');
         if (mentorUI) {
+            mentorUI.replaceChildren();
             const currentMentor = this._findMentorFor({ name: s.name });
             if (currentMentor) {
-                mentorUI.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <div>
-                            <span style="color:#aaa; font-size:0.9rem;">현재 멘토:</span>
-                            <strong style="margin-left:8px; font-size:1.1rem;">${currentMentor.name}</strong> (${currentMentor.position})
-                        </div>
-                        <button class="btn btn-danger" onclick="playerGrowthSystem.removeMentor('${s.name}')" style="padding:5px 10px; font-size:0.9rem;">해제</button>
-                    </div>
-                `;
+                const wrap = document.createElement('div');
+                wrap.style.cssText = 'display:flex; justify-content:space-between; align-items:center;';
+
+                const leftDiv = document.createElement('div');
+                const lbl = document.createElement('span');
+                lbl.style.cssText = 'color:#aaa; font-size:0.9rem;';
+                lbl.textContent = '현재 멘토:';
+                const nameEl = document.createElement('strong');
+                nameEl.style.cssText = 'margin-left:8px; font-size:1.1rem;';
+                nameEl.textContent = currentMentor.name;
+                const posEl = document.createTextNode(` (${currentMentor.position})`);
+                leftDiv.append(lbl, nameEl, posEl);
+
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'btn btn-danger';
+                removeBtn.style.cssText = 'padding:5px 10px; font-size:0.9rem;';
+                removeBtn.textContent = '해제';
+                removeBtn.onclick = () => playerGrowthSystem.removeMentor(s.name);
+
+                wrap.append(leftDiv, removeBtn);
+                mentorUI.appendChild(wrap);
             } else {
                 const myTeam = teams[gameData.selectedTeam] || [];
                 const availableMentors = myTeam.filter(p =>
@@ -754,29 +839,47 @@ class PlayerGrowthSystem {
                 );
 
                 if (availableMentors.length > 0) {
-                    const options = availableMentors.map(m =>
-                        `<option value="${m.name}">${this._posEmoji(m.position)} ${m.name} · ${m.position} · OVR ${Math.round(m.rating)} · ${m.age}세</option>`
-                    ).join('');
+                    const wrap = document.createElement('div');
+                    wrap.style.cssText = 'display:flex; flex-direction:column; gap:10px;';
 
-                    mentorUI.innerHTML = `
-                    <div style="display:flex; flex-direction:column; gap:10px;">
-                        <span style="color:#aaa; font-size:0.9rem;">멘토 지정 (28세 이상 베테랑)</span>
-                        <div style="display:flex; gap:10px;">
-                            <div class="mentor-select-wrap">
-                                <select id="mentorSelect_${s.name}" class="mentor-select">
-                                    ${options}
-                                </select>
-                            </div>
-                            <button class="mentor-assign-btn" onclick="playerGrowthSystem.assignMentor('${s.name}', document.getElementById('mentorSelect_${s.name}').value)">배정</button>
-                        </div>
-                    </div>
-                `;
+                    const lbl = document.createElement('span');
+                    lbl.style.cssText = 'color:#aaa; font-size:0.9rem;';
+                    lbl.textContent = '멘토 지정 (28세 이상 베테랑)';
+
+                    const row = document.createElement('div');
+                    row.style.cssText = 'display:flex; gap:10px;';
+
+                    const selectWrap = document.createElement('div');
+                    selectWrap.className = 'mentor-select-wrap';
+
+                    const select = document.createElement('select');
+                    select.id = `mentorSelect_${s.name}`;
+                    select.className = 'mentor-select';
+
+                    availableMentors.forEach(m => {
+                        const opt = document.createElement('option');
+                        opt.value = m.name;
+                        opt.textContent = `${this._posEmoji(m.position)} ${m.name} · ${m.position} · OVR ${Math.round(m.rating)} · ${m.age}세`;
+                        select.appendChild(opt);
+                    });
+                    selectWrap.appendChild(select);
+
+                    const assignBtn = document.createElement('button');
+                    assignBtn.className = 'mentor-assign-btn';
+                    assignBtn.textContent = '배정';
+                    assignBtn.onclick = () => {
+                        const sel = document.getElementById(`mentorSelect_${s.name}`);
+                        if (sel) playerGrowthSystem.assignMentor(s.name, sel.value);
+                    };
+
+                    row.append(selectWrap, assignBtn);
+                    wrap.append(lbl, row);
+                    mentorUI.appendChild(wrap);
                 } else {
-                    mentorUI.innerHTML = `
-                    <div style="color:#aaa; font-size:0.9rem; text-align:center;">
-                        배정 가능한 멘토가 없습니다. (28세 이상 베테랑 필요)
-                    </div>
-                `;
+                    const emptyNote = document.createElement('div');
+                    emptyNote.style.cssText = 'color:#aaa; font-size:0.9rem; text-align:center;';
+                    emptyNote.textContent = '배정 가능한 멘토가 없습니다. (28세 이상 베테랑 필요)';
+                    mentorUI.appendChild(emptyNote);
                 }
             }
         }

@@ -150,7 +150,7 @@ window.AutoSaveSystem = {
 
     showToast: function () {
         const toast = document.createElement('div');
-        toast.innerHTML = '💾 자동 저장됨';
+        toast.textContent = '💾 자동 저장됨';
         toast.style.cssText = `
             position: fixed;
             bottom: 20px;
@@ -171,7 +171,7 @@ window.AutoSaveSystem = {
         if (!document.getElementById('toast-style')) {
             const style = document.createElement('style');
             style.id = 'toast-style';
-            style.innerHTML = `
+            style.textContent = `
                 @keyframes fadeUp {
                     0% { opacity: 0; transform: translateY(20px); }
                     15% { opacity: 1; transform: translateY(0); }
@@ -232,6 +232,59 @@ function getTeamLogoHTML(teamName) {
     }
 
     return `<img src="assets/logo/${team.league}/${code}.webp" class="team-logo" alt="${teamName}" onerror="this.outerHTML='<span class=\\'team-logo-fallback\\' style=\\'display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; background:linear-gradient(135deg, #ffd700, #f39c12); color:#000; border-radius:50%; font-weight:900; font-size:0.8rem; border:1px solid #ffd700; margin-right:6px; flex-shrink:0; vertical-align:middle;\\'>⚽</span>'">`;
+}
+
+function createTeamLogoElement(teamName) {
+    if (!teamName) return document.createDocumentFragment();
+
+    if ((typeof gameData !== 'undefined' && gameData.isWorldCupMode) || (typeof WORLD_CUP_FLAGS !== 'undefined' && WORLD_CUP_FLAGS[teamName])) {
+        const flag = (typeof WORLD_CUP_FLAGS !== 'undefined' && WORLD_CUP_FLAGS[teamName]) || '🌐';
+        const span = document.createElement('span');
+        span.className = 'team-logo-flag';
+        span.style.cssText = 'display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; font-size:1.35rem; margin-right:6px; flex-shrink:0; vertical-align:middle;';
+        span.textContent = flag;
+        return span;
+    }
+
+    const team = typeof allTeams !== 'undefined' ? allTeams[teamName] : null;
+    if (!team) return document.createDocumentFragment();
+    const code = team.logoCode || "DFT";
+
+    if (teamName.startsWith("Legend_")) {
+        const img = document.createElement('img');
+        img.src = `assets/logo/legend/${code}.webp`;
+        img.className = 'team-logo';
+        img.alt = teamName;
+        img.onerror = function() {
+            const fallback = document.createElement('span');
+            fallback.className = 'team-logo-fallback';
+            fallback.textContent = '👑';
+            this.replaceWith(fallback);
+        };
+        return img;
+    }
+
+    if (code === "DFT" || team.isCustom || team.isIcon || !team.league) {
+        const initials = ((typeof teamNames !== 'undefined' && teamNames[teamName]) || teamName || 'FC').substring(0, 2).toUpperCase();
+        const span = document.createElement('span');
+        span.className = 'team-logo-fallback';
+        span.style.cssText = 'display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; background:linear-gradient(135deg, #ffd700, #f39c12); color:#000; border-radius:50%; font-weight:900; font-size:0.8rem; border:1px solid #ffd700; margin-right:6px; flex-shrink:0; vertical-align:middle;';
+        span.textContent = initials;
+        return span;
+    }
+
+    const img = document.createElement('img');
+    img.src = `assets/logo/${team.league}/${code}.webp`;
+    img.className = 'team-logo';
+    img.alt = teamName;
+    img.onerror = function() {
+        const fallback = document.createElement('span');
+        fallback.className = 'team-logo-fallback';
+        fallback.style.cssText = 'display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; background:linear-gradient(135deg, #ffd700, #f39c12); color:#000; border-radius:50%; font-weight:900; font-size:0.8rem; border:1px solid #ffd700; margin-right:6px; flex-shrink:0; vertical-align:middle;';
+        fallback.textContent = '⚽';
+        this.replaceWith(fallback);
+    };
+    return img;
 }
 
 
@@ -420,23 +473,37 @@ function addGameModeSelectorUI() {
         animation: fadeIn 0.5s ease;
     `;
 
-    selector.innerHTML = `
-        <div class="glass" style="display: flex; align-items: center; gap: 20px; padding: 10px 30px; border-radius: 50px; background: rgba(31, 31, 69, 0.9);">
-            <span style="font-weight: bold; color: #ffd700;">🎮 모드 설정:</span>
-            <div style="display: flex; gap: 10px;">
-                <button id="btn-mode-direct" class="btn primary" style="padding: 8px 20px; font-size: 0.9rem;">다이렉트 모드</button>
-                <button id="btn-mode-longtime" class="btn" style="padding: 8px 20px; font-size: 0.9rem; background: rgba(255,255,255,0.1);">롱타임 모드</button>
-            </div>
-        </div>
-    `;
+    const glass = document.createElement('div');
+    glass.className = 'glass';
+    glass.style.cssText = 'display: flex; align-items: center; gap: 20px; padding: 10px 30px; border-radius: 50px; background: rgba(31, 31, 69, 0.9);';
+
+    const span = document.createElement('span');
+    span.style.cssText = 'font-weight: bold; color: #ffd700;';
+    span.textContent = '🎮 모드 설정:';
+
+    const btnWrap = document.createElement('div');
+    btnWrap.style.cssText = 'display: flex; gap: 10px;';
+
+    const btnDirect = document.createElement('button');
+    btnDirect.id = 'btn-mode-direct';
+    btnDirect.className = 'btn primary';
+    btnDirect.style.cssText = 'padding: 8px 20px; font-size: 0.9rem;';
+    btnDirect.textContent = '다이렉트 모드';
+
+    const btnLong = document.createElement('button');
+    btnLong.id = 'btn-mode-longtime';
+    btnLong.className = 'btn';
+    btnLong.style.cssText = 'padding: 8px 20px; font-size: 0.9rem; background: rgba(255,255,255,0.1);';
+    btnLong.textContent = '롱타임 모드';
+
+    btnWrap.append(btnDirect, btnLong);
+    glass.append(span, btnWrap);
+    selector.appendChild(glass);
 
     // h1 다음에 삽입
     const h1 = screen.querySelector('h1');
     if (h1) h1.after(selector);
     else screen.prepend(selector);
-
-    const btnDirect = document.getElementById('btn-mode-direct');
-    const btnLong = document.getElementById('btn-mode-longtime');
 
     btnDirect.onclick = () => {
         gameData.gameMode = 'direct';
@@ -638,14 +705,16 @@ function showIconTeamCreation() {
 
     // 교체할 팀 목록 채우기 (2부 리그)
     const teamSelect = document.getElementById('replacementTeamSelect');
-    teamSelect.innerHTML = '';
-    const league2Teams = Object.keys(allTeams).filter(key => allTeams[key].league === 2);
-    league2Teams.forEach(teamKey => {
-        const option = document.createElement('option');
-        option.value = teamKey;
-        option.textContent = teamNames[teamKey] || teamKey;
-        teamSelect.appendChild(option);
-    });
+    if (teamSelect) {
+        teamSelect.replaceChildren();
+        const league2Teams = Object.keys(allTeams).filter(key => allTeams[key].league === 2);
+        league2Teams.forEach(teamKey => {
+            const option = document.createElement('option');
+            option.value = teamKey;
+            option.textContent = teamNames[teamKey] || teamKey;
+            teamSelect.appendChild(option);
+        });
+    }
 
     // 정렬 (GK -> DF -> MF -> FW)
     const positionOrder = { 'GK': 1, 'DF': 2, 'MF': 3, 'FW': 4 };
@@ -669,24 +738,43 @@ function filterIconPlayers(pos) {
 function renderIconPlayersList() {
     const listContainer = document.getElementById('iconPlayerSelectionList');
     if (!listContainer) return;
-    listContainer.innerHTML = '';
+    listContainer.replaceChildren();
 
     iconPlayersList.forEach((player, index) => {
         if (currentIconPosFilter !== "ALL" && player.position !== currentIconPosFilter) return;
 
         const isSelected = selectedIconIndices.has(index);
         const item = document.createElement('div');
-        item.className = `icon-player-card-item ${isSelected ? 'selected' : ''}`;
-        item.innerHTML = `
-            <div class="icon-player-info">
-                <div class="icon-player-name">${player.name}</div>
-                <div class="icon-player-meta">${player.country} · OVR 81</div>
-            </div>
-            <div style="display: flex; align-items: center; gap: 6px;">
-                <span class="icon-pos-tag ${player.position}">${player.position}</span>
-                <span class="check-mark" style="font-size: 1rem; ${isSelected ? '' : 'display:none;'}">✅</span>
-            </div>
-        `;
+        item.className = `icon-player-card-item ${isSelected ? 'selected' : ''}`.trim();
+
+        const infoDiv = document.createElement('div');
+        infoDiv.className = 'icon-player-info';
+
+        const nameDiv = document.createElement('div');
+        nameDiv.className = 'icon-player-name';
+        nameDiv.textContent = player.name;
+
+        const metaDiv = document.createElement('div');
+        metaDiv.className = 'icon-player-meta';
+        metaDiv.textContent = `${player.country} · OVR 81`;
+
+        infoDiv.append(nameDiv, metaDiv);
+
+        const rightDiv = document.createElement('div');
+        rightDiv.style.cssText = 'display: flex; align-items: center; gap: 6px;';
+
+        const tag = document.createElement('span');
+        tag.className = `icon-pos-tag ${player.position}`;
+        tag.textContent = player.position;
+
+        const checkMark = document.createElement('span');
+        checkMark.className = 'check-mark';
+        checkMark.style.fontSize = '1rem';
+        if (!isSelected) checkMark.style.display = 'none';
+        checkMark.textContent = '✅';
+
+        rightDiv.append(tag, checkMark);
+        item.append(infoDiv, rightDiv);
 
         item.addEventListener('click', () => toggleIconPlayerSelection(index));
         listContainer.appendChild(item);
@@ -847,7 +935,7 @@ function updateCustomReplacementTeams() {
     const league = parseInt(document.getElementById('customLeagueSelect').value) || 2;
     const select = document.getElementById('customReplacementSelect');
     if (!select) return;
-    select.innerHTML = '';
+    select.replaceChildren();
 
     const leagueTeams = Object.keys(allTeams).filter(key => allTeams[key].league === league);
     leagueTeams.forEach(teamKey => {
@@ -861,7 +949,7 @@ function updateCustomReplacementTeams() {
 function generateCustomPlayerInputs() {
     const container = document.getElementById('customPlayerInputs');
     if (!container) return;
-    container.innerHTML = '';
+    container.replaceChildren();
 
     const structure = [
         { pos: 'GK', count: 2 },
@@ -874,14 +962,26 @@ function generateCustomPlayerInputs() {
         for (let i = 1; i <= group.count; i++) {
             const div = document.createElement('div');
             div.className = 'custom-player-row-item';
-            div.innerHTML = `
-                <span class="icon-pos-tag ${group.pos}">${group.pos} ${i}</span>
-                <input type="text" class="custom-player-input" data-pos="${group.pos}" placeholder="선수 이름 입력" maxlength="12">
-                <button type="button" class="dice-mini-btn" title="랜덤 이름 추천">🎲</button>
-            `;
-            const input = div.querySelector('input');
-            const diceBtn = div.querySelector('.dice-mini-btn');
+
+            const tag = document.createElement('span');
+            tag.className = `icon-pos-tag ${group.pos}`;
+            tag.textContent = `${group.pos} ${i}`;
+
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'custom-player-input';
+            input.dataset.pos = group.pos;
+            input.placeholder = '선수 이름 입력';
+            input.maxLength = 12;
+
+            const diceBtn = document.createElement('button');
+            diceBtn.type = 'button';
+            diceBtn.className = 'dice-mini-btn';
+            diceBtn.title = '랜덤 이름 추천';
+            diceBtn.textContent = '🎲';
             diceBtn.onclick = () => randomizeSingleCustomPlayer(input, group.pos);
+
+            div.append(tag, input, diceBtn);
             container.appendChild(div);
         }
     });
@@ -1022,7 +1122,10 @@ function selectTeam(teamKey) {
         initializeTeamFinance();
     }
 
-    document.getElementById('teamName').innerHTML = getTeamLogoHTML(teamKey) + ' ' + teamKey; // 로고 포함 표시
+    const teamNameEl = document.getElementById('teamName');
+    if (teamNameEl) {
+        teamNameEl.replaceChildren(createTeamLogoElement(teamKey), document.createTextNode(' ' + (teamNames[teamKey] || teamKey)));
+    }
 
     // 자동으로 최고 능력치 선수들로 스쿼드 채우기
     autoFillSquad();
@@ -1304,7 +1407,11 @@ function showTab(tabName) {
                 // SNS 컨테이너가 있다면 로딩 메시지 표시
                 const feedContainer = document.getElementById('snsFeed');
                 if (feedContainer) {
-                    feedContainer.innerHTML = '<div class="sns-empty">SNS 시스템을 초기화하는 중입니다...</div>';
+                    feedContainer.replaceChildren();
+                    const emptyDiv = document.createElement('div');
+                    emptyDiv.className = 'sns-empty';
+                    emptyDiv.textContent = 'SNS 시스템을 초기화하는 중입니다...';
+                    feedContainer.appendChild(emptyDiv);
                 }
 
                 // 잠시 후 다시 시도
@@ -1314,10 +1421,14 @@ function showTab(tabName) {
                     } else {
                         // 여전히 로드되지 않은 경우 에러 메시지
                         if (feedContainer) {
-                            feedContainer.innerHTML = '<div class="sns-empty">SNS 시스템을 불러올 수 없습니다. 페이지를 새로고침해 주세요.</div>';
+                            feedContainer.replaceChildren();
+                            const errorDiv = document.createElement('div');
+                            errorDiv.className = 'sns-empty';
+                            errorDiv.textContent = 'SNS 시스템을 불러올 수 없습니다. 페이지를 새로고침해 주세요.';
+                            feedContainer.appendChild(errorDiv);
                         }
                     }
-                }, 2000);
+                }, 500);
             }
             break;
 
@@ -1857,10 +1968,11 @@ function activateTabUI(tabName) {
 // 선수가 이미 스쿼드에 있는지 확인하는 함수
 function displayTeamPlayers() {
     const playerList = document.getElementById('playerList');
+    if (!playerList) return;
     const fragment = document.createDocumentFragment(); // [성능 개선] DocumentFragment 사용
-    playerList.innerHTML = '';
+    playerList.replaceChildren();
 
-    const teamPlayers = teams[gameData.selectedTeam];
+    const teamPlayers = teams[gameData.selectedTeam] || [];
 
     // [성능 개선] 스쿼드 선수 이름을 Set으로 만들어 O(1) 시간 복잡도로 조회
     const squadPlayerNames = new Set();
@@ -1879,25 +1991,42 @@ function displayTeamPlayers() {
             playerCard.classList.add('used');
         }
 
+        const cardContent = document.createElement('div');
+        cardContent.className = 'player-card-content';
+
+        const img = document.createElement('img');
+        img.src = `assets/players/${player.name}.webp`;
+        img.className = 'player-card-image';
+        img.loading = 'lazy';
+        img.onerror = () => {
+            img.onerror = null;
+            img.src = 'assets/players/default.webp';
+        };
+
+        const infoText = document.createElement('div');
+        infoText.className = 'player-info-text';
+
+        const nameDiv = document.createElement('div');
+        nameDiv.className = 'name';
+        nameDiv.textContent = player.name;
+
+        const detailsDiv = document.createElement('div');
+        detailsDiv.className = 'details';
+
+        const posRatingDiv = document.createElement('div');
+        posRatingDiv.textContent = `${player.position} | ★${Math.floor(player.rating)}`;
+        detailsDiv.appendChild(posRatingDiv);
+
         const isInjured = typeof injurySystem !== 'undefined' && injurySystem.isInjured(gameData.selectedTeam, player.name);
         if (isInjured) {
             playerCard.classList.add('injured');
             const injuryInfo = injurySystem.getInjuredPlayers(gameData.selectedTeam).find(i => i.name === player.name);
             const gamesLeft = injuryInfo ? injuryInfo.gamesRemaining : '?';
 
-            // 부상자는 체력바 대신 부상 표시
-            playerCard.innerHTML = `
-                <div class="player-card-content">
-                    <img src="assets/players/${player.name}.webp" class="player-card-image" loading="lazy" onerror="this.onerror=null; this.src='assets/players/default.webp'">
-                    <div class="player-info-text">
-                        <div class="name">${player.name}</div>
-                        <div class="details">
-                            <div>${player.position} | ★${Math.floor(player.rating)}</div>
-                            <div style="color: #e74c3c; font-weight: bold; font-size: 0.8rem;">🚑 부상중 (${gamesLeft}경기)</div>
-                        </div>
-                    </div>
-                </div>
-            `;
+            const injuredDiv = document.createElement('div');
+            injuredDiv.style.cssText = 'color: #e74c3c; font-weight: bold; font-size: 0.8rem;';
+            injuredDiv.textContent = `🚑 부상중 (${gamesLeft}경기)`;
+            detailsDiv.appendChild(injuredDiv);
         } else {
             // [신규] 체력바 추가
             const condition = (player.condition !== undefined) ? player.condition : 100;
@@ -1905,29 +2034,31 @@ function displayTeamPlayers() {
             if (condition < 70) condColor = '#e74c3c';
             else if (condition < 90) condColor = '#f1c40f';
 
-            playerCard.innerHTML = `
-                <div class="player-card-content">
-                    <img src="assets/players/${player.name}.webp" class="player-card-image" loading="lazy" onerror="this.onerror=null; this.src='assets/players/default.webp'">
-                    <div class="player-info-text">
-                        <div class="name">${player.name}</div>
-                        <div class="details">
-                            <div>${player.position} | ★${Math.floor(player.rating)}</div>
-                            <div class="player-list-condition" style="width: 100%; height: 4px; background: rgba(255,255,255,0.2); margin-top: 4px; border-radius: 2px;">
-                                <div style="width: ${condition}%; height: 100%; background: ${condColor}; border-radius: 2px;"></div>
-                            </div>
-                            ${isUsed ? '<div style="color: #ffd700; font-size: 0.8rem;">★ 출전 중</div>' : ''}
-                        </div>
-                    </div>
-                </div>
-            `;
+            const condBar = document.createElement('div');
+            condBar.className = 'player-list-condition';
+            condBar.style.cssText = 'width: 100%; height: 4px; background: rgba(255,255,255,0.2); margin-top: 4px; border-radius: 2px;';
+
+            const condFill = document.createElement('div');
+            condFill.style.cssText = `width: ${condition}%; height: 100%; background: ${condColor}; border-radius: 2px;`;
+            condBar.appendChild(condFill);
+            detailsDiv.appendChild(condBar);
+
+            if (isUsed) {
+                const usedDiv = document.createElement('div');
+                usedDiv.style.cssText = 'color: #ffd700; font-size: 0.8rem;';
+                usedDiv.textContent = '★ 출전 중';
+                detailsDiv.appendChild(usedDiv);
+            }
         }
+
+        infoText.append(nameDiv, detailsDiv);
+        cardContent.append(img, infoText);
+        playerCard.appendChild(cardContent);
         fragment.appendChild(playerCard);
     });
 
     playerList.appendChild(fragment); // [성능 개선] 한 번에 DOM에 추가
 }
-
-
 
 // 이적료를 받고 선수 방출
 function releasePlayerWithFee(player) {
@@ -1970,29 +2101,39 @@ function removePlayerFromSquad(player) {
         p && p.name === player.name ? null : p
     );
 }
+
 function openPlayerModal(position, index) {
     selectedPosition = { position, index };
     const modal = document.getElementById('playerModal');
     const modalPlayerList = document.getElementById('modalPlayerList');
+    if (!modalPlayerList) return;
 
-    modalPlayerList.innerHTML = '';
+    modalPlayerList.replaceChildren();
 
-    const teamPlayers = teams[gameData.selectedTeam];
+    const teamPlayers = teams[gameData.selectedTeam] || [];
     const filteredPlayers = teamPlayers.filter(player =>
         !isPlayerInSquad(player)
     );
 
     if (filteredPlayers.length === 0) {
-        modalPlayerList.innerHTML = '<p>배치 가능한 선수가 없습니다.</p>';
-        modal.style.display = 'block';
+        const emptyP = document.createElement('p');
+        emptyP.textContent = '배치 가능한 선수가 없습니다.';
+        modalPlayerList.appendChild(emptyP);
+        if (modal) modal.style.display = 'block';
     } else {
         filteredPlayers.forEach(player => {
             const playerCard = document.createElement('div');
             playerCard.className = 'player-card';
-            playerCard.innerHTML = `
-                <div class="name">${player.name}</div>
-                <div class="details">능력치: ${player.rating} | 나이: ${player.age}</div>
-            `;
+
+            const nameDiv = document.createElement('div');
+            nameDiv.className = 'name';
+            nameDiv.textContent = player.name;
+
+            const detailsDiv = document.createElement('div');
+            detailsDiv.className = 'details';
+            detailsDiv.textContent = `능력치: ${player.rating} | 나이: ${player.age}`;
+
+            playerCard.append(nameDiv, detailsDiv);
 
             playerCard.addEventListener('click', () => {
                 // assignPlayerToPosition(player);
@@ -2033,69 +2174,44 @@ function assignPlayerToPosition(player) {
 }
 
 function updateFormationDisplay() {
-
     // ✅ 이 3줄만 추가
     if (typeof refreshFormation === 'function') {
         refreshFormation();
         return;
     }
 
+    const setSlotContent = (slot, player, defaultText) => {
+        if (!slot) return;
+        slot.replaceChildren();
+        if (player) {
+            const nameDiv = document.createElement('div');
+            nameDiv.textContent = player.name;
+            const ratingDiv = document.createElement('div');
+            ratingDiv.textContent = Math.floor(player.rating);
+            slot.append(nameDiv, ratingDiv);
+            slot.classList.add('filled');
+        } else {
+            slot.textContent = defaultText;
+            slot.classList.remove('filled');
+        }
+    };
+
     // GK 업데이트
-    const gkSlot = document.getElementById('gk-slot');
-    if (gameData.squad.gk) {
-        gkSlot.innerHTML = `
-            <div>${gameData.squad.gk.name}</div>
-            <div>${Math.floor(gameData.squad.gk.rating)}</div>
-        `;
-        gkSlot.classList.add('filled');
-    } else {
-        gkSlot.innerHTML = 'GK';
-        gkSlot.classList.remove('filled');
-    }
+    setSlotContent(document.getElementById('gk-slot'), gameData.squad.gk, 'GK');
 
     // DF 업데이트
     for (let i = 0; i < 4; i++) {
-        const dfSlot = document.querySelector(`.df-${i + 1} .player-slot`);
-        if (gameData.squad.df[i]) {
-            dfSlot.innerHTML = `
-                <div>${gameData.squad.df[i].name}</div>
-                <div>${Math.floor(gameData.squad.df[i].rating)}</div>
-            `;
-            dfSlot.classList.add('filled');
-        } else {
-            dfSlot.innerHTML = 'DF';
-            dfSlot.classList.remove('filled');
-        }
+        setSlotContent(document.querySelector(`.df-${i + 1} .player-slot`), gameData.squad.df[i], 'DF');
     }
 
     // MF 업데이트
     for (let i = 0; i < 3; i++) {
-        const mfSlot = document.querySelector(`.mf-${i + 1} .player-slot`);
-        if (gameData.squad.mf[i]) {
-            mfSlot.innerHTML = `
-                <div>${gameData.squad.mf[i].name}</div>
-                <div>${Math.floor(gameData.squad.mf[i].rating)}</div>
-            `;
-            mfSlot.classList.add('filled');
-        } else {
-            mfSlot.innerHTML = 'MF';
-            mfSlot.classList.remove('filled');
-        }
+        setSlotContent(document.querySelector(`.mf-${i + 1} .player-slot`), gameData.squad.mf[i], 'MF');
     }
 
     // FW 업데이트
     for (let i = 0; i < 3; i++) {
-        const fwSlot = document.querySelector(`.fw-${i + 1} .player-slot`);
-        if (gameData.squad.fw[i]) {
-            fwSlot.innerHTML = `
-                <div>${gameData.squad.fw[i].name}</div>
-                <div>${Math.floor(gameData.squad.fw[i].rating)}</div>
-            `;
-            fwSlot.classList.add('filled');
-        } else {
-            fwSlot.innerHTML = 'FW';
-            fwSlot.classList.remove('filled');
-        }
+        setSlotContent(document.querySelector(`.fw-${i + 1} .player-slot`), gameData.squad.fw[i], 'FW');
     }
 }
 
@@ -2199,8 +2315,13 @@ function updateDisplay() {
     updateFinanceDisplay();
 
     if (gameData.currentOpponent) {
-        document.getElementById('opponentName').innerHTML =
-            getTeamLogoHTML(gameData.currentOpponent) + ' ' + teamNames[gameData.currentOpponent];
+        const oppEl = document.getElementById('opponentName');
+        if (oppEl) {
+            oppEl.replaceChildren(
+                createTeamLogoElement(gameData.currentOpponent),
+                document.createTextNode(' ' + (teamNames[gameData.currentOpponent] || gameData.currentOpponent))
+            );
+        }
     }
 }
 
@@ -2364,6 +2485,7 @@ function initializeLeagueData() {
 
 function displayLeagueTable() {
     const leagueTable = document.getElementById('leagueTable');
+    if (!leagueTable) return;
 
     // 현재 리그 확인
     const currentLeague = gameData.currentLeague;
@@ -2371,7 +2493,10 @@ function displayLeagueTable() {
 
     // 해당 리그 데이터 존재 여부 확인
     if (!gameData.leagueData || !gameData.leagueData[divisionKey]) {
-        leagueTable.innerHTML = '<p>리그 데이터를 불러올 수 없습니다.</p>';
+        leagueTable.replaceChildren();
+        const p = document.createElement('p');
+        p.textContent = '리그 데이터를 불러올 수 없습니다.';
+        leagueTable.appendChild(p);
         return;
     }
 
@@ -2386,51 +2511,70 @@ function displayLeagueTable() {
         return b.goalsFor - a.goalsFor;
     });
 
-    let tableHTML = `
-    <table class='league-table'>
-        <thead>
-            <tr>
-                <th>순위</th>
-                <th>팀</th>
-                <th>경기</th>
-                <th>승</th>
-                <th>무</th>
-                <th>패</th>
-                <th>득점</th>
-                <th>실점</th>
-                <th>득실차</th>
-                <th>승점</th>
-            </tr>
-        </thead>
-        <tbody>
-`;
+    leagueTable.replaceChildren();
 
+    const table = document.createElement('table');
+    table.className = 'league-table';
+
+    const thead = document.createElement('thead');
+    const headerRow = document.createElement('tr');
+    const headers = ['순위', '팀', '경기', '승', '무', '패', '득점', '실점', '득실차', '승점'];
+    headers.forEach(h => {
+        const th = document.createElement('th');
+        th.textContent = h;
+        headerRow.appendChild(th);
+    });
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+
+    const tbody = document.createElement('tbody');
     standings.forEach((team, index) => {
         const isUserTeam = team.team === gameData.selectedTeam;
-        tableHTML += `
-            <tr class="${isUserTeam ? 'user-team' : ''}">
-                <td>${index + 1}</td>
-                <td>${getTeamLogoHTML(team.team)} ${teamNames[team.team]}</td>
-                <td>${team.matches}</td>
-                <td>${team.wins}</td>
-                <td>${team.draws}</td>
-                <td>${team.losses}</td>
-                <td>${team.goalsFor}</td>
-                <td>${team.goalsAgainst}</td>
-                <td>${team.goalDiff > 0 ? '+' : ''}${team.goalDiff}</td>
-                <td>${team.points}</td>
-            </tr>
-        `;
-    });
+        const tr = document.createElement('tr');
+        if (isUserTeam) tr.className = 'user-team';
 
-    tableHTML += '</tbody></table>';
-    leagueTable.innerHTML = tableHTML;
+        const tdRank = document.createElement('td');
+        tdRank.textContent = index + 1;
+
+        const tdTeam = document.createElement('td');
+        tdTeam.append(createTeamLogoElement(team.team), document.createTextNode(' ' + (teamNames[team.team] || team.team)));
+
+        const tdMatches = document.createElement('td');
+        tdMatches.textContent = team.matches;
+
+        const tdWins = document.createElement('td');
+        tdWins.textContent = team.wins;
+
+        const tdDraws = document.createElement('td');
+        tdDraws.textContent = team.draws;
+
+        const tdLosses = document.createElement('td');
+        tdLosses.textContent = team.losses;
+
+        const tdGf = document.createElement('td');
+        tdGf.textContent = team.goalsFor;
+
+        const tdGa = document.createElement('td');
+        tdGa.textContent = team.goalsAgainst;
+
+        const tdGd = document.createElement('td');
+        tdGd.textContent = (team.goalDiff > 0 ? '+' : '') + team.goalDiff;
+
+        const tdPts = document.createElement('td');
+        tdPts.textContent = team.points;
+
+        tr.append(tdRank, tdTeam, tdMatches, tdWins, tdDraws, tdLosses, tdGf, tdGa, tdGd, tdPts);
+        tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    leagueTable.appendChild(table);
 }
 
 // 스폰서 계약 체결 시 (기존 displaySponsors 함수 수정)
 function displaySponsors() {
     const sponsorList = document.getElementById('sponsorList');
-    sponsorList.innerHTML = '';
+    if (!sponsorList) return;
+    sponsorList.replaceChildren();
 
     const teamRating = calculateTeamRating();
 
@@ -2450,38 +2594,54 @@ function displaySponsors() {
 
         sponsorCard.className = cardClass;
 
-        // 계약 중인 경우 남은 경기 수 표시
-        let contractInfo = '';
-        if (isContracted && gameData.sponsorRemainingMatches) {
-            contractInfo = `<div style="color: #f39c12; font-weight: bold; margin-top: 10px;">남은 계약: ${gameData.sponsorRemainingMatches}경기</div>`;
-        }
+        const title = document.createElement('h4');
+        title.textContent = sponsor.name;
 
-        sponsorCard.innerHTML = `
-            <h4>${sponsor.name}</h4>
-            <p>${sponsor.description}</p>
-            <div class="sponsor-details">
-                <div class="sponsor-detail">
-                    <strong>승리당:</strong> ${sponsor.payPerWin}억
-                </div>
-                <div class="sponsor-detail">
-                    <strong>패배당:</strong> ${sponsor.payPerLoss}억
-                </div>
-                <div class="sponsor-detail">
-                    <strong>계약금:</strong> ${sponsor.signingBonus}억
-                </div>
-                <div class="sponsor-detail">
-                    <strong>기간:</strong> ${sponsor.contractLength}경기
-                </div>
-            </div>
-            <div class="sponsor-requirements">
-                <strong>요구 능력치:</strong> ${sponsor.requirements.minRating} 
-                <span style="color: ${teamRating >= sponsor.requirements.minRating ? '#2ecc71' : '#e74c3c'};">
-                    (현재: ${teamRating.toFixed(1)})
-                </span>
-            </div>
-            ${isContracted ? '<div style="color: #2ecc71; font-weight: bold; margin-top: 10px;">✓ 계약 중</div>' : ''}
-            ${contractInfo}
-        `;
+        const desc = document.createElement('p');
+        desc.textContent = sponsor.description;
+
+        const detailsDiv = document.createElement('div');
+        detailsDiv.className = 'sponsor-details';
+
+        const detailItems = [
+            ['승리당:', `${sponsor.payPerWin}억`],
+            ['패배당:', `${sponsor.payPerLoss}억`],
+            ['계약금:', `${sponsor.signingBonus}억`],
+            ['기간:', `${sponsor.contractLength}경기`]
+        ];
+        detailItems.forEach(([lbl, val]) => {
+            const item = document.createElement('div');
+            item.className = 'sponsor-detail';
+            const strong = document.createElement('strong');
+            strong.textContent = lbl + ' ';
+            item.append(strong, document.createTextNode(val));
+            detailsDiv.appendChild(item);
+        });
+
+        const reqDiv = document.createElement('div');
+        reqDiv.className = 'sponsor-requirements';
+        const reqStrong = document.createElement('strong');
+        reqStrong.textContent = '요구 능력치: ';
+        const reqSpan = document.createElement('span');
+        reqSpan.style.color = teamRating >= sponsor.requirements.minRating ? '#2ecc71' : '#e74c3c';
+        reqSpan.textContent = ` (현재: ${teamRating.toFixed(1)})`;
+        reqDiv.append(reqStrong, document.createTextNode(String(sponsor.requirements.minRating)), reqSpan);
+
+        sponsorCard.append(title, desc, detailsDiv, reqDiv);
+
+        if (isContracted) {
+            const contractedTag = document.createElement('div');
+            contractedTag.style.cssText = 'color: #2ecc71; font-weight: bold; margin-top: 10px;';
+            contractedTag.textContent = '✓ 계약 중';
+            sponsorCard.appendChild(contractedTag);
+
+            if (gameData.sponsorRemainingMatches) {
+                const remainDiv = document.createElement('div');
+                remainDiv.style.cssText = 'color: #f39c12; font-weight: bold; margin-top: 10px;';
+                remainDiv.textContent = `남은 계약: ${gameData.sponsorRemainingMatches}경기`;
+                sponsorCard.appendChild(remainDiv);
+            }
+        }
 
         if (isAvailable && !gameData.currentSponsor) {
             sponsorCard.addEventListener('click', () => {
@@ -2828,7 +2988,10 @@ function loadGame(event) {
 
             // 화면 업데이트
             console.log('=== 화면 업데이트 시작 ===');
-            document.getElementById('teamName').innerHTML = getTeamLogoHTML(gameData.selectedTeam) + ' ' + teamNames[gameData.selectedTeam];
+            const teamNameEl = document.getElementById('teamName');
+            if (teamNameEl) {
+                teamNameEl.replaceChildren(createTeamLogoElement(gameData.selectedTeam), document.createTextNode(' ' + (teamNames[gameData.selectedTeam] || gameData.selectedTeam)));
+            }
             updateDisplay();
             updateFormationDisplay();
             displayTeamPlayers();
@@ -2887,7 +3050,7 @@ function renderMainSaveSlots() {
     const section = document.getElementById('mainLoadSection');
     if (!container || !section) return;
 
-    container.innerHTML = '';
+    container.replaceChildren();
     let hasSave = false;
 
     for (let i = 1; i <= 3; i++) {
@@ -2920,18 +3083,34 @@ function renderMainSaveSlots() {
                 slotDiv.style.boxShadow = 'none';
             };
 
-            slotDiv.innerHTML = `
-                <div style="font-size: 2rem;">💾</div>
-                <div style="flex: 1;">
-                    <div style="color: #ffd700; font-weight: bold; font-size: 1.1rem;">${slotInfo.teamName}</div>
-                    <div style="font-size: 0.85rem; color: #ccc;">
-                        시즌 ${slotInfo.season} | ${slotInfo.matchesPlayed}경기 진행<br>
-                        <span style="color: #aaa;">${new Date(slotInfo.timestamp).toLocaleDateString()} 저장됨</span>
-                    </div>
-                </div>
-                <div style="font-size: 1.5rem; color: #2ecc71;">▶</div>
-            `;
+            const iconDiv = document.createElement('div');
+            iconDiv.style.fontSize = '2rem';
+            iconDiv.textContent = '💾';
 
+            const infoDiv = document.createElement('div');
+            infoDiv.style.flex = '1';
+
+            const teamNameDiv = document.createElement('div');
+            teamNameDiv.style.cssText = 'color: #ffd700; font-weight: bold; font-size: 1.1rem;';
+            teamNameDiv.textContent = slotInfo.teamName;
+
+            const descDiv = document.createElement('div');
+            descDiv.style.cssText = 'font-size: 0.85rem; color: #ccc;';
+
+            const line1 = document.createTextNode(`시즌 ${slotInfo.season} | ${slotInfo.matchesPlayed}경기 진행`);
+            const br = document.createElement('br');
+            const dateSpan = document.createElement('span');
+            dateSpan.style.color = '#aaa';
+            dateSpan.textContent = `${new Date(slotInfo.timestamp).toLocaleDateString()} 저장됨`;
+
+            descDiv.append(line1, br, dateSpan);
+            infoDiv.append(teamNameDiv, descDiv);
+
+            const arrowDiv = document.createElement('div');
+            arrowDiv.style.cssText = 'font-size: 1.5rem; color: #2ecc71;';
+            arrowDiv.textContent = '▶';
+
+            slotDiv.append(iconDiv, infoDiv, arrowDiv);
             slotDiv.onclick = () => loadFromSlot(i);
             container.appendChild(slotDiv);
         }
@@ -2971,7 +3150,7 @@ function _runMatchSequenceInternal() {
     // 1. 초기화
     modal.style.display = 'flex';
     opponentEl.style.opacity = '0';
-    opponentEl.innerHTML = '';
+    opponentEl.replaceChildren();
 
     // 현재 날짜 계산
     const baseDate = new Date(2025, 7, 1);
@@ -3003,7 +3182,11 @@ function _runMatchSequenceInternal() {
             eventEl.style.fontWeight = "bold";
 
             const oppName = gameData.currentOpponent ? teamNames[gameData.currentOpponent] : "상대팀";
-            opponentEl.innerHTML = `VS <span style="color:#ffd700;">${oppName}</span>`;
+            opponentEl.replaceChildren(document.createTextNode('VS '));
+            const oppSpan = document.createElement('span');
+            oppSpan.style.color = '#ffd700';
+            oppSpan.textContent = oppName;
+            opponentEl.appendChild(oppSpan);
             opponentEl.style.opacity = '1';
 
             clearInterval(interval);
@@ -3018,65 +3201,6 @@ function _runMatchSequenceInternal() {
         }
         dayCount++;
     }, 400);
-}
-
-// [신규] 메인 화면에 저장된 슬롯 렌더링
-function renderMainSaveSlots() {
-    const container = document.getElementById('mainLoadSlots');
-    const section = document.getElementById('mainLoadSection');
-    if (!container || !section) return;
-
-    container.innerHTML = '';
-    let hasSave = false;
-
-    for (let i = 1; i <= 3; i++) {
-        const slotInfo = getSlotInfo(i);
-        if (slotInfo) {
-            hasSave = true;
-            const slotDiv = document.createElement('div');
-            slotDiv.className = 'main-load-slot';
-            slotDiv.style.cssText = `
-                background: rgba(255, 255, 255, 0.1);
-                border: 1px solid rgba(255, 255, 255, 0.2);
-                border-radius: 10px;
-                padding: 15px;
-                display: flex;
-                align-items: center;
-                gap: 15px;
-                cursor: pointer;
-                transition: all 0.2s;
-            `;
-
-            // 호버 효과
-            slotDiv.onmouseover = () => {
-                slotDiv.style.background = 'rgba(255, 255, 255, 0.2)';
-                slotDiv.style.transform = 'translateY(-3px)';
-                slotDiv.style.boxShadow = '0 5px 15px rgba(0,0,0,0.3)';
-            };
-            slotDiv.onmouseout = () => {
-                slotDiv.style.background = 'rgba(255, 255, 255, 0.1)';
-                slotDiv.style.transform = 'none';
-                slotDiv.style.boxShadow = 'none';
-            };
-
-            slotDiv.innerHTML = `
-                <div style="font-size: 2rem;">💾</div>
-                <div style="flex: 1;">
-                    <div style="color: #ffd700; font-weight: bold; font-size: 1.1rem;">${slotInfo.teamName}</div>
-                    <div style="font-size: 0.85rem; color: #ccc;">
-                        시즌 ${slotInfo.season} | ${slotInfo.matchesPlayed}경기 진행<br>
-                        <span style="color: #aaa;">${new Date(slotInfo.timestamp).toLocaleDateString()} 저장됨</span>
-                    </div>
-                </div>
-                <div style="font-size: 1.5rem; color: #2ecc71;">▶</div>
-            `;
-
-            slotDiv.onclick = () => loadFromSlot(i);
-            container.appendChild(slotDiv);
-        }
-    }
-
-    section.style.display = hasSave ? 'block' : 'none';
 }
 
 
@@ -3178,34 +3302,68 @@ function showTacticsInfo() {
 
     document.getElementById('tacticsModalTitle').textContent = '🎯 전술 상성표';
 
-    let content = '<div style="max-height: 500px; overflow-y: auto;">';
+    const modalContent = document.getElementById('tacticsModalContent');
+    if (!modalContent) return;
+    modalContent.replaceChildren();
+
+    const scrollContainer = document.createElement('div');
+    scrollContainer.style.cssText = 'max-height: 500px; overflow-y: auto;';
 
     Object.entries(tactics).forEach(([key, tactic]) => {
-        content += `
-            <div style="background: rgba(255, 255, 255, 0.1); border-radius: 10px; padding: 20px; margin-bottom: 15px;">
-                <h4 style="color: #ffd700; font-size: 1.3rem; margin-bottom: 10px;">【${tactic.name}】</h4>
-                <p style="margin-bottom: 15px; line-height: 1.4; opacity: 0.9;">📖 ${tactic.description}</p>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                    <div style="background: rgba(46, 204, 113, 0.2); padding: 10px; border-radius: 8px; border-left: 3px solid #2ecc71;">
-                        <strong style="color: #2ecc71;">✅ 효과적 vs:</strong><br>
-                        ${tactic.effective.map(t => tactics[t].name).join('<br>')}
-                    </div>
-                    <div style="background: rgba(231, 76, 60, 0.2); padding: 10px; border-radius: 8px; border-left: 3px solid #e74c3c;">
-                        <strong style="color: #e74c3c;">❌ 비효과적 vs:</strong><br>
-                        ${tactic.ineffective.map(t => tactics[t].name).join('<br>')}
-                    </div>
-                </div>
-            </div>
-        `;
+        const card = document.createElement('div');
+        card.style.cssText = 'background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 10px; padding: 16px; margin-bottom: 14px;';
+
+        const title = document.createElement('h4');
+        title.style.cssText = 'color: #ffd700; font-size: 1.15rem; margin: 0 0 8px 0;';
+        title.textContent = `【${tactic.name}】`;
+
+        const desc = document.createElement('p');
+        desc.style.cssText = 'margin: 0 0 12px 0; line-height: 1.4; color: #ccc; font-size: 0.9rem;';
+        desc.textContent = `📖 ${tactic.description}`;
+
+        const grid = document.createElement('div');
+        grid.style.cssText = 'display: grid; grid-template-columns: 1fr 1fr; gap: 12px;';
+
+        const effBox = document.createElement('div');
+        effBox.style.cssText = 'background: rgba(46, 204, 113, 0.15); padding: 10px; border-radius: 8px; border-left: 3px solid #2ecc71;';
+        const effTitle = document.createElement('strong');
+        effTitle.style.cssText = 'color: #2ecc71; display: block; margin-bottom: 6px; font-size: 0.85rem;';
+        effTitle.textContent = '✅ 상대가 이 전술일 때 유리:';
+        effBox.appendChild(effTitle);
+        tactic.effective.forEach(t => {
+            const line = document.createElement('div');
+            line.style.cssText = 'color: #e0e0e0; font-size: 0.85rem; padding: 2px 0;';
+            line.textContent = `· ${tactics[t] ? tactics[t].name : t}`;
+            effBox.appendChild(line);
+        });
+
+        const ineffBox = document.createElement('div');
+        ineffBox.style.cssText = 'background: rgba(231, 76, 60, 0.15); padding: 10px; border-radius: 8px; border-left: 3px solid #e74c3c;';
+        const ineffTitle = document.createElement('strong');
+        ineffTitle.style.cssText = 'color: #e74c3c; display: block; margin-bottom: 6px; font-size: 0.85rem;';
+        ineffTitle.textContent = '❌ 상대가 이 전술일 때 불리:';
+        ineffBox.appendChild(ineffTitle);
+        tactic.ineffective.forEach(t => {
+            const line = document.createElement('div');
+            line.style.cssText = 'color: #e0e0e0; font-size: 0.85rem; padding: 2px 0;';
+            line.textContent = `· ${tactics[t] ? tactics[t].name : t}`;
+            ineffBox.appendChild(line);
+        });
+
+        grid.append(effBox, ineffBox);
+        card.append(title, desc, grid);
+        scrollContainer.appendChild(card);
     });
 
-    content += `
-        <div style="background: rgba(255, 215, 0, 0.1); border: 1px solid rgba(255, 215, 0, 0.3); border-radius: 10px; padding: 15px; margin-top: 20px; text-align: center;">
-            <strong style="color: #ffd700;">💡 팁: 상대팀의 전술을 파악하고 유리한 전술을 선택하세요(비효과적 vs라는 건 상대가 그 전술일때 비효과적이라는 뜻)<strong>
-        </div>
-    </div>`;
+    const tipDiv = document.createElement('div');
+    tipDiv.style.cssText = 'background: rgba(255, 215, 0, 0.1); border: 1px solid rgba(255, 215, 0, 0.3); border-radius: 10px; padding: 14px; margin-top: 15px; text-align: center;';
+    const tipStrong = document.createElement('strong');
+    tipStrong.style.cssText = 'color: #ffd700; font-size: 0.9rem;';
+    tipStrong.textContent = '💡 팁: 경기 전 상대팀의 전술을 확인하고, 상대 전술에 상성상 유리한 전술을 선택하세요!';
+    tipDiv.appendChild(tipStrong);
+    scrollContainer.appendChild(tipDiv);
 
-    document.getElementById('tacticsModalContent').innerHTML = content;
+    modalContent.appendChild(scrollContainer);
     document.getElementById('tacticsModal').style.display = 'block';
 }
 
@@ -3268,34 +3426,47 @@ function showTeamTacticsInfo() {
         if (!tacticGroups[tacticKey]) {
             tacticGroups[tacticKey] = [];
         }
-        tacticGroups[tacticKey].push(teamNames[teamKey]);
+        tacticGroups[tacticKey].push(teamNames[teamKey] || teamKey);
     });
 
-    let content = '<div style="max-height: 500px; overflow-y: auto;">';
+    const modalContent = document.getElementById('tacticsModalContent');
+    if (!modalContent) return;
+    modalContent.replaceChildren();
+
+    const scrollContainer = document.createElement('div');
+    scrollContainer.style.cssText = 'max-height: 500px; overflow-y: auto;';
+
     Object.entries(tacticGroups).forEach(([tacticKey, teams]) => {
-        content += `
-            <div style="background: rgba(255, 255, 255, 0.1); border-radius: 10px; padding: 20px; margin-bottom: 15px;">
-                <h4 style="color: #ffd700; font-size: 1.3rem; margin-bottom: 15px; display: flex; align-items: center;">
-                    🎯 ${tacticNames[tacticKey]}
-                </h4>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
-                    ${teams.map(team =>
-            '<div style="background: rgba(255, 255, 255, 0.1); padding: 10px; border-radius: 8px; text-align: center; border: 1px solid rgba(255, 255, 255, 0.2);">' +
-            team +
-            '</div>'
-        ).join('')}
-                </div>
-            </div>
-        `;
+        const card = document.createElement('div');
+        card.style.cssText = 'background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 10px; padding: 16px; margin-bottom: 14px;';
+
+        const title = document.createElement('h4');
+        title.style.cssText = 'color: #ffd700; font-size: 1.15rem; margin: 0 0 12px 0; display: flex; align-items: center;';
+        title.textContent = `🎯 ${tacticNames[tacticKey] || tacticKey}`;
+
+        const grid = document.createElement('div');
+        grid.style.cssText = 'display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px;';
+
+        teams.forEach(team => {
+            const teamDiv = document.createElement('div');
+            teamDiv.style.cssText = 'background: rgba(255, 255, 255, 0.08); padding: 8px 12px; border-radius: 6px; text-align: center; border: 1px solid rgba(255, 255, 255, 0.15); font-size: 0.9rem; color: #f0f0f0;';
+            teamDiv.textContent = team;
+            grid.appendChild(teamDiv);
+        });
+
+        card.append(title, grid);
+        scrollContainer.appendChild(card);
     });
 
-    content += `
-        <div style="background: rgba(255, 215, 0, 0.1); border: 1px solid rgba(255, 215, 0, 0.3); border-radius: 10px; padding: 15px; margin-top: 20px; text-align: center;">
-            <strong style="color: #ffd700;">💡 경기 전에 상대팀의 전술을 확인하고 대응 전술을 준비하세요!</strong>
-        </div>
-    </div>`;
+    const tipDiv = document.createElement('div');
+    tipDiv.style.cssText = 'background: rgba(255, 215, 0, 0.1); border: 1px solid rgba(255, 215, 0, 0.3); border-radius: 10px; padding: 14px; margin-top: 15px; text-align: center;';
+    const tipStrong = document.createElement('strong');
+    tipStrong.style.cssText = 'color: #ffd700; font-size: 0.9rem;';
+    tipStrong.textContent = '💡 경기 전에 상대팀의 전술을 확인하고 대응 전술을 준비하세요!';
+    tipDiv.appendChild(tipStrong);
+    scrollContainer.appendChild(tipDiv);
 
-    document.getElementById('tacticsModalContent').innerHTML = content;
+    modalContent.appendChild(scrollContainer);
     document.getElementById('tacticsModal').style.display = 'block';
 }
 
@@ -3394,7 +3565,7 @@ function createSaveSlots() {
     const container = document.getElementById('saveSlots');
     if (!container) return;
 
-    container.innerHTML = '';
+    container.replaceChildren();
 
     for (let i = 1; i <= 3; i++) {
         const slotDiv = document.createElement('div');
@@ -3411,53 +3582,81 @@ function createSaveSlots() {
 
         const slotInfo = getSlotInfo(i);
 
-        let infoHTML = '';
+        const headerDiv = document.createElement('div');
+        headerDiv.style.cssText = 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;';
+
+        const h4 = document.createElement('h4');
+        h4.style.cssText = 'margin: 0; color: #ffd700;';
+        h4.textContent = `슬롯 ${i}`;
+
+        const statusSpan = document.createElement('span');
+        statusSpan.style.fontSize = '0.9rem';
         if (slotInfo) {
+            statusSpan.style.color = '#2ecc71';
+            statusSpan.textContent = '✓ 저장됨';
+        } else {
+            statusSpan.style.color = '#95a5a6';
+            statusSpan.textContent = '빈 슬롯';
+        }
+        headerDiv.append(h4, statusSpan);
+
+        const infoDiv = document.createElement('div');
+        if (slotInfo) {
+            infoDiv.style.cssText = 'background: rgba(255, 255, 255, 0.1); padding: 10px; border-radius: 5px;';
+
+            const teamNameDiv = document.createElement('div');
+            teamNameDiv.style.cssText = 'color: #ffd700; font-weight: bold; font-size: 1.1rem; margin-bottom: 5px;';
+            teamNameDiv.textContent = slotInfo.teamName;
+
             const date = new Date(slotInfo.timestamp);
             const formattedDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 
-            infoHTML = `
-                <div style="background: rgba(255, 255, 255, 0.1); padding: 10px; border-radius: 5px;">
-                    <div style="color: #ffd700; font-weight: bold; font-size: 1.1rem; margin-bottom: 5px;">
-                        ${slotInfo.teamName}
-                    </div>
-                    <div style="font-size: 0.9rem; opacity: 0.9;">
-                        📅 ${formattedDate}<br>
-                        🏆 시즌 ${slotInfo.season} | ${slotInfo.league}부 리그 ${slotInfo.rank}위<br>
-                        ⚽ 경기 수: ${slotInfo.matchesPlayed}<br>
-                        💰 자금: ${slotInfo.money}억<br>
-                        🎯 다음 상대: ${slotInfo.nextOpponent}
-                    </div>
-                </div>
-            `;
+            const descDiv = document.createElement('div');
+            descDiv.style.cssText = 'font-size: 0.9rem; opacity: 0.9;';
+            descDiv.append(
+                `📅 ${formattedDate}`, document.createElement('br'),
+                `🏆 시즌 ${slotInfo.season} | ${slotInfo.league}부 리그 ${slotInfo.rank}위`, document.createElement('br'),
+                `⚽ 경기 수: ${slotInfo.matchesPlayed}`, document.createElement('br'),
+                `💰 자금: ${slotInfo.money}억`, document.createElement('br'),
+                `🎯 다음 상대: ${slotInfo.nextOpponent}`
+            );
+            infoDiv.append(teamNameDiv, descDiv);
         } else {
-            infoHTML = `
-                <div style="text-align: center; padding: 20px; opacity: 0.5;">
-                    <div style="font-size: 2rem; margin-bottom: 10px;">📁</div>
-                    <div>비어있는 슬롯</div>
-                </div>
-            `;
+            infoDiv.style.cssText = 'text-align: center; padding: 20px; opacity: 0.5;';
+            const icon = document.createElement('div');
+            icon.style.cssText = 'font-size: 2rem; margin-bottom: 10px;';
+            icon.textContent = '📁';
+            const emptyLabel = document.createElement('div');
+            emptyLabel.textContent = '비어있는 슬롯';
+            infoDiv.append(icon, emptyLabel);
         }
 
-        slotDiv.innerHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <h4 style="margin: 0; color: #ffd700;">슬롯 ${i}</h4>
-                ${slotInfo ? '<span style="color: #2ecc71; font-size: 0.9rem;">✓ 저장됨</span>' : '<span style="color: #95a5a6; font-size: 0.9rem;">빈 슬롯</span>'}
-            </div>
-            ${infoHTML}
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <button class="btn" onclick="saveToSlot(${i})" style="padding: 8px;">
-                    💾 저장
-                </button>
-                <button class="btn" onclick="loadFromSlot(${i})" style="padding: 8px;" ${!slotInfo ? 'disabled' : ''}>
-                    📁 불러오기
-                </button>
-            </div>
-            <button class="btn" onclick="deleteSlot(${i})" style="background: #e74c3c; padding: 8px;" ${!slotInfo ? 'disabled' : ''}>
-                🗑️ 이 슬롯 삭제
-            </button>
-        `;
+        const btnGrid = document.createElement('div');
+        btnGrid.style.cssText = 'display: grid; grid-template-columns: 1fr 1fr; gap: 10px;';
 
+        const saveBtn = document.createElement('button');
+        saveBtn.className = 'btn';
+        saveBtn.style.padding = '8px';
+        saveBtn.textContent = '💾 저장';
+        saveBtn.onclick = () => saveToSlot(i);
+
+        const loadBtn = document.createElement('button');
+        loadBtn.className = 'btn';
+        loadBtn.style.padding = '8px';
+        loadBtn.textContent = '📁 불러오기';
+        if (!slotInfo) loadBtn.disabled = true;
+        loadBtn.onclick = () => loadFromSlot(i);
+
+        btnGrid.append(saveBtn, loadBtn);
+
+        const delBtn = document.createElement('button');
+        delBtn.className = 'btn';
+        delBtn.style.cssText = 'background: #e74c3c; padding: 8px;';
+        delBtn.textContent = '🗑️ 이 슬롯 삭제';
+        if (!slotInfo) delBtn.disabled = true;
+        delBtn.onclick = () => deleteSlot(i);
+
+        slotDiv.append(headerDiv, infoDiv, btnGrid, delBtn);
         container.appendChild(slotDiv);
     }
 }
@@ -3661,7 +3860,10 @@ function loadFromSlot(slotNumber, overrideManagerId = null) {
 
         // 화면 업데이트
         console.log('=== 화면 업데이트 시작 ===');
-        document.getElementById('teamName').innerHTML = getTeamLogoHTML(gameData.selectedTeam) + ' ' + teamNames[gameData.selectedTeam];
+        const teamNameEl = document.getElementById('teamName');
+        if (teamNameEl) {
+            teamNameEl.replaceChildren(createTeamLogoElement(gameData.selectedTeam), document.createTextNode(' ' + (teamNames[gameData.selectedTeam] || gameData.selectedTeam)));
+        }
         updateDisplay();
         updateFormationDisplay();
         displayTeamPlayers();
@@ -3735,12 +3937,16 @@ function deleteSlot(slotNumber) {
 // 유스팀 선수 표시
 function displayYouthPlayers() {
     const container = document.getElementById('youthPlayerList');
+    if (!container) return;
     const fragment = document.createDocumentFragment(); // [성능 개선]
-    container.innerHTML = '';
+    container.replaceChildren();
     console.log('🔄 displayYouthPlayers 호출됨. 현재 gameData.youthSquad:', gameData.youthSquad);
 
-    if (gameData.youthSquad.length === 0) {
-        container.innerHTML = '<p style="text-align: center; opacity: 0.7; padding: 20px;">현재 유스팀에 소속된 선수가 없습니다.</p>';
+    if (!gameData.youthSquad || gameData.youthSquad.length === 0) {
+        const p = document.createElement('p');
+        p.style.cssText = 'text-align: center; opacity: 0.7; padding: 20px;';
+        p.textContent = '현재 유스팀에 소속된 선수가 없습니다.';
+        container.appendChild(p);
         return;
     }
 
@@ -3749,18 +3955,39 @@ function displayYouthPlayers() {
         playerCard.className = 'player-card';
         playerCard.dataset.playerName = player.name; // [성능 개선] 데이터 속성 추가
 
-        playerCard.innerHTML = `
-            <div class="player-card-content">
-                <img src="assets/players/${player.name}.webp" class="player-card-image" loading="lazy" onerror="this.onerror=null; this.src='assets/players/default.webp'">
-                <div class="player-info-text">
-                    <div class="name">${player.name}</div>
-                    <div class="details">
-                        <div>${player.position} | 능력치: ${player.rating} | 나이: ${player.age}</div>
-                        <div style="color: #2ecc71; font-size: 0.8rem;">유망주</div>
-                    </div>
-                </div>
-            </div>
-        `;
+        const cardContent = document.createElement('div');
+        cardContent.className = 'player-card-content';
+
+        const img = document.createElement('img');
+        img.src = `assets/players/${player.name}.webp`;
+        img.className = 'player-card-image';
+        img.loading = 'lazy';
+        img.onerror = () => {
+            img.onerror = null;
+            img.src = 'assets/players/default.webp';
+        };
+
+        const infoText = document.createElement('div');
+        infoText.className = 'player-info-text';
+
+        const nameDiv = document.createElement('div');
+        nameDiv.className = 'name';
+        nameDiv.textContent = player.name;
+
+        const detailsDiv = document.createElement('div');
+        detailsDiv.className = 'details';
+
+        const statDiv = document.createElement('div');
+        statDiv.textContent = `${player.position} | 능력치: ${player.rating} | 나이: ${player.age}`;
+
+        const badgeDiv = document.createElement('div');
+        badgeDiv.style.cssText = 'color: #2ecc71; font-size: 0.8rem;';
+        badgeDiv.textContent = '유망주';
+
+        detailsDiv.append(statDiv, badgeDiv);
+        infoText.append(nameDiv, detailsDiv);
+        cardContent.append(img, infoText);
+        playerCard.appendChild(cardContent);
         playerCard.addEventListener('click', () => {
             // 콜업 로직으로 변경
             if (teams[gameData.selectedTeam].length >= 50) {
@@ -4330,159 +4557,103 @@ window.audioManager = audioManager;
 
 // 설정 탭에 오디오 설정 UI 렌더링
 function renderAudioSettings() {
-    const settingsTab = document.getElementById('settings');
-    if (!settingsTab) return;
-
-    let audioContainer = document.getElementById('audioSettings');
-    if (!audioContainer) {
-        // ... (기존 코드 유지)
-        audioContainer = document.createElement('div');
-        audioContainer.id = 'audioSettings';
-        audioContainer.style.cssText = `
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        `;
-
-        // 설정 콘텐츠 영역(.settings-content)의 맨 위에 추가
-        const settingsContent = settingsTab.querySelector('.settings-content');
-        if (settingsContent) {
-            settingsContent.insertBefore(audioContainer, settingsContent.firstChild);
-        } else {
-            settingsTab.appendChild(audioContainer);
-        }
-    }
+    const audioContainer = document.getElementById('audioSettings');
+    if (!audioContainer) return;
 
     const isBgmOn = gameData.settings ? gameData.settings.bgm !== false : true;
     const volume = gameData.settings && gameData.settings.bgmVolume !== undefined ? gameData.settings.bgmVolume : 50;
-    const sfxVolume = gameData.settings && gameData.settings.sfxVolume !== undefined ? gameData.settings.sfxVolume : 50;
+    const sfxVolumeVal = gameData.settings && gameData.settings.sfxVolume !== undefined ? gameData.settings.sfxVolume : 50;
 
-    audioContainer.innerHTML = `
-        <h4 style="color: #ffd700; margin-top: 0; margin-bottom: 15px;">🎵 배경음악 설정</h4>
-        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
-            <label class="switch">
-                <input type="checkbox" id="bgmToggle" ${isBgmOn ? 'checked' : ''}>
-                <span class="slider round"></span>
-            </label>
-            <span id="bgmStatusText">배경음악 ${isBgmOn ? 'ON' : 'OFF'}</span>
-        </div>
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <span>BGM 볼륨:</span>
-            <input type="range" id="bgmVolume" min="0" max="100" value="${volume}" style="flex-grow: 1; cursor: pointer;">
-            <span id="bgmVolumeValue" style="width: 40px; text-align: right;">${volume}%</span>
-        </div>
-        <div style="display: flex; align-items: center; gap: 10px; margin-top: 10px;">
-            <span>SFX 볼륨:</span>
-            <input type="range" id="sfxVolume" min="0" max="100" value="${sfxVolume}" style="flex-grow: 1; cursor: pointer;">
-            <span id="sfxVolumeValue" style="width: 40px; text-align: right;">${sfxVolume}%</span>
-        </div>
-    `;
-
-    // 기존에 JS로 주입하던 스타일 제거 (index.html의 CSS로 통합)
-    const oldStyle = document.getElementById('audioStyles');
-    if (oldStyle) oldStyle.remove();
-
-    // 이벤트 리스너
     const bgmToggle = document.getElementById('bgmToggle');
+    const bgmStatusText = document.getElementById('bgmStatusText');
     const bgmVolume = document.getElementById('bgmVolume');
     const bgmVolumeValue = document.getElementById('bgmVolumeValue');
-    const bgmStatusText = document.getElementById('bgmStatusText');
-    const sfxVolumeInput = document.getElementById('sfxVolume'); // Changed name to avoid conflict
+    const sfxVolumeInput = document.getElementById('sfxVolume');
     const sfxVolumeValue = document.getElementById('sfxVolumeValue');
 
-    bgmToggle.addEventListener('change', (e) => {
-        const isOn = e.target.checked;
-        audioManager.toggleBgm(isOn);
-        bgmStatusText.textContent = `배경음악 ${isOn ? 'ON' : 'OFF'}`;
-    });
-    // Initial play attempt for BGM (due to browser autoplay policies)
+    if (bgmToggle) bgmToggle.checked = isBgmOn;
+    if (bgmStatusText) bgmStatusText.textContent = `배경음악 ${isBgmOn ? 'ON' : 'OFF'}`;
+    if (bgmVolume) bgmVolume.value = volume;
+    if (bgmVolumeValue) bgmVolumeValue.textContent = `${volume}%`;
+    if (sfxVolumeInput) sfxVolumeInput.value = sfxVolumeVal;
+    if (sfxVolumeValue) sfxVolumeValue.textContent = `${sfxVolumeVal}%`;
+
+    // 이벤트 리스너는 한 번만 등록
+    if (!audioContainer.dataset.initialized) {
+        audioContainer.dataset.initialized = 'true';
+
+        if (bgmToggle) {
+            bgmToggle.addEventListener('change', (e) => {
+                const isOn = e.target.checked;
+                audioManager.toggleBgm(isOn);
+                if (bgmStatusText) bgmStatusText.textContent = `배경음악 ${isOn ? 'ON' : 'OFF'}`;
+            });
+        }
+
+        if (bgmVolume && bgmVolumeValue) {
+            bgmVolume.addEventListener('input', (e) => {
+                const val = parseInt(e.target.value);
+                bgmVolumeValue.textContent = `${val}%`;
+                audioManager.setVolume(val);
+            });
+        }
+
+        if (sfxVolumeInput && sfxVolumeValue) {
+            sfxVolumeInput.addEventListener('input', (e) => {
+                const val = parseInt(e.target.value);
+                sfxVolumeValue.textContent = `${val}%`;
+                audioManager.setSfxVolume(val);
+            });
+        }
+    }
+
     if (isBgmOn) {
         audioManager.play();
     }
-
-    bgmVolume.addEventListener('input', (e) => {
-        const val = parseInt(e.target.value);
-        bgmVolumeValue.textContent = `${val}%`;
-        audioManager.setVolume(val);
-    });
-
-    sfxVolumeInput.addEventListener('input', (e) => { // Use sfxVolumeInput
-        const val = parseInt(e.target.value);
-        sfxVolumeValue.textContent = `${val}%`;
-        audioManager.setSfxVolume(val);
-    });
 }
 window.renderAudioSettings = renderAudioSettings;
 
 // 일반 설정 UI 렌더링
 function renderGeneralSettings() {
-    const settingsTab = document.getElementById('settings');
-    if (!settingsTab) return;
-
-    let generalContainer = document.getElementById('generalSettings');
-    if (!generalContainer) {
-        generalContainer = document.createElement('div');
-        generalContainer.id = 'generalSettings';
-        generalContainer.style.cssText = `
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        `;
-
-        const settingsContent = settingsTab.querySelector('.settings-content');
-        if (settingsContent) {
-            const audioSettings = document.getElementById('audioSettings');
-            if (audioSettings && audioSettings.parentNode === settingsContent) {
-                settingsContent.insertBefore(generalContainer, audioSettings.nextSibling);
-            } else {
-                settingsContent.insertBefore(generalContainer, settingsContent.firstChild);
-            }
-        } else {
-            settingsTab.appendChild(generalContainer);
-        }
-    }
+    const generalContainer = document.getElementById('generalSettings');
+    if (!generalContainer) return;
 
     const isCustomCursorOn = gameData.settings && gameData.settings.customCursor !== undefined ? gameData.settings.customCursor : true;
 
-    generalContainer.innerHTML = `
-        <h4 style="color: #ffd700; margin-top: 0; margin-bottom: 15px;">⚙️ 일반 설정</h4>
-        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
-            <label class="switch">
-                <input type="checkbox" id="cursorToggle" ${isCustomCursorOn ? 'checked' : ''}>
-                <span class="slider round"></span>
-            </label>
-            <span id="cursorStatusText">마우스 스타일 ${isCustomCursorOn ? 'ON' : 'OFF'} (커스텀 커서)</span>
-        </div>
-        <button class="btn" id="replayTutorialBtn" style="width: 100%; margin-bottom: 10px;">튜토리얼 다시 보기</button>
-        <button class="btn" onclick="openDatabaseModal()" style="width: 100%; background: linear-gradient(45deg, #3498db, #2980b9);">📚 데이터베이스 열람</button>
-    `;
-
-    document.getElementById('replayTutorialBtn').addEventListener('click', () => {
-        if (window.tutorialSystem) {
-            window.tutorialSystem.currentStep = 0;
-            window.tutorialSystem.showTutorial();
-        } else {
-            alert('튜토리얼을 실행할 수 없습니다.');
-        }
-    });
-
     const cursorToggle = document.getElementById('cursorToggle');
     const cursorStatusText = document.getElementById('cursorStatusText');
-    if (cursorToggle) {
-        cursorToggle.addEventListener('change', (e) => {
-            const isOn = e.target.checked;
-            if (window.customCursorInstance) {
-                window.customCursorInstance.toggle(isOn);
-            }
-            cursorStatusText.textContent = `마우스 스타일 ${isOn ? 'ON' : 'OFF'} (커스텀 커서)`;
-            if (gameData.settings) {
-                setTimeout(() => window.AutoSaveSystem.triggerSave(), 500);
-            }
-        });
+    const replayTutorialBtn = document.getElementById('replayTutorialBtn');
+
+    if (cursorToggle) cursorToggle.checked = isCustomCursorOn;
+    if (cursorStatusText) cursorStatusText.textContent = `마우스 스타일 ${isCustomCursorOn ? 'ON' : 'OFF'} (커스텀 커서)`;
+
+    // 이벤트 리스너는 한 번만 등록
+    if (!generalContainer.dataset.initialized) {
+        generalContainer.dataset.initialized = 'true';
+
+        if (replayTutorialBtn) {
+            replayTutorialBtn.addEventListener('click', () => {
+                if (window.tutorialSystem) {
+                    window.tutorialSystem.currentStep = 0;
+                    window.tutorialSystem.showTutorial();
+                } else {
+                    alert('튜토리얼을 실행할 수 없습니다.');
+                }
+            });
+        }
+
+        if (cursorToggle) {
+            cursorToggle.addEventListener('change', (e) => {
+                const isOn = e.target.checked;
+                if (window.customCursorInstance) {
+                    window.customCursorInstance.toggle(isOn);
+                }
+                if (cursorStatusText) cursorStatusText.textContent = `마우스 스타일 ${isOn ? 'ON' : 'OFF'} (커스텀 커서)`;
+                if (gameData.settings) {
+                    setTimeout(() => window.AutoSaveSystem.triggerSave(), 500);
+                }
+            });
+        }
     }
 }
 window.renderGeneralSettings = renderGeneralSettings;
@@ -4543,16 +4714,42 @@ function openDatabaseModal() {
         modal.id = 'databaseModal';
         modal.className = 'modal';
         modal.style.zIndex = '9999'; // 최상위
-        modal.innerHTML = `
-            <div class="modal-content" style="max-width: 800px; height: 80vh; display: flex; flex-direction: column; background: #2c3e50; color: white;">
-                <span class="close" onclick="document.getElementById('databaseModal').style.display='none'" style="color: white; align-self: flex-end; cursor: pointer; font-size: 28px;">&times;</span>
-                <h3 id="dbModalTitle" style="text-align: center; color: #ffd700; margin-bottom: 20px; margin-top: 0;">데이터베이스</h3>
-                <div id="dbModalContent" style="flex: 1; overflow-y: auto; padding: 10px;"></div>
-                <div id="dbModalControls" style="margin-top: 15px; text-align: center; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1);">
-                    <button id="dbBackBtn" class="btn" style="display: none; background: #7f8c8d;">⬅️ 뒤로가기</button>
-                </div>
-            </div>
-        `;
+
+        const modalContent = document.createElement('div');
+        modalContent.className = 'modal-content';
+        modalContent.style.cssText = 'max-width: 800px; height: 80vh; display: flex; flex-direction: column; background: #2c3e50; color: white;';
+
+        const closeBtn = document.createElement('span');
+        closeBtn.className = 'close';
+        closeBtn.style.cssText = 'color: white; align-self: flex-end; cursor: pointer; font-size: 28px;';
+        closeBtn.textContent = '×';
+        closeBtn.onclick = () => {
+            const dbModal = document.getElementById('databaseModal');
+            if (dbModal) dbModal.style.display = 'none';
+        };
+
+        const title = document.createElement('h3');
+        title.id = 'dbModalTitle';
+        title.style.cssText = 'text-align: center; color: #ffd700; margin-bottom: 20px; margin-top: 0;';
+        title.textContent = '데이터베이스';
+
+        const content = document.createElement('div');
+        content.id = 'dbModalContent';
+        content.style.cssText = 'flex: 1; overflow-y: auto; padding: 10px;';
+
+        const controls = document.createElement('div');
+        controls.id = 'dbModalControls';
+        controls.style.cssText = 'margin-top: 15px; text-align: center; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1);';
+
+        const backBtn = document.createElement('button');
+        backBtn.id = 'dbBackBtn';
+        backBtn.className = 'btn';
+        backBtn.style.cssText = 'display: none; background: #7f8c8d;';
+        backBtn.textContent = '⬅️ 뒤로가기';
+        controls.appendChild(backBtn);
+
+        modalContent.append(closeBtn, title, content, controls);
+        modal.appendChild(modalContent);
         document.body.appendChild(modal);
 
         // 뒤로가기 버튼 이벤트
@@ -4584,17 +4781,30 @@ function renderDatabaseLeagues() {
     const backBtn = document.getElementById('dbBackBtn');
     const title = document.getElementById('dbModalTitle');
 
+    if (!modal || !content) return;
     modal.dataset.view = 'leagues';
-    backBtn.style.display = 'none';
-    title.textContent = '리그 선택';
+    if (backBtn) backBtn.style.display = 'none';
+    if (title) title.textContent = '리그 선택';
 
-    content.innerHTML = `
-        <div style="display: grid; gap: 15px;">
-            <button class="btn" onclick="renderDatabaseTeams(1)" style="padding: 20px; font-size: 1.2rem; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);">🏆 1부 리그</button>
-            <button class="btn" onclick="renderDatabaseTeams(2)" style="padding: 20px; font-size: 1.2rem; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);">⚽ 2부 리그</button>
-            <button class="btn" onclick="renderDatabaseTeams(3)" style="padding: 20px; font-size: 1.2rem; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);">🌟 3부 리그</button>
-        </div>
-    `;
+    content.replaceChildren();
+
+    const grid = document.createElement('div');
+    grid.style.cssText = 'display: grid; gap: 15px;';
+
+    const leagues = [
+        [1, '🏆 1부 리그'],
+        [2, '⚽ 2부 리그'],
+        [3, '🌟 3부 리그']
+    ];
+    leagues.forEach(([num, label]) => {
+        const btn = document.createElement('button');
+        btn.className = 'btn';
+        btn.style.cssText = 'padding: 20px; font-size: 1.2rem; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);';
+        btn.textContent = label;
+        btn.onclick = () => renderDatabaseTeams(num);
+        grid.appendChild(btn);
+    });
+    content.appendChild(grid);
 }
 
 function renderDatabaseTeams(league) {
@@ -4603,26 +4813,39 @@ function renderDatabaseTeams(league) {
     const backBtn = document.getElementById('dbBackBtn');
     const title = document.getElementById('dbModalTitle');
 
+    if (!modal || !content) return;
     modal.dataset.view = 'teams';
     modal.dataset.league = league;
-    backBtn.style.display = 'inline-block';
-    title.textContent = `${league}부 리그 팀 목록`;
+    if (backBtn) backBtn.style.display = 'inline-block';
+    if (title) title.textContent = `${league}부 리그 팀 목록`;
+
+    content.replaceChildren();
 
     const leagueTeams = Object.keys(allTeams).filter(key => allTeams[key].league == league);
+    const grid = document.createElement('div');
+    grid.style.cssText = 'display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px;';
 
-    let html = '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px;">';
     leagueTeams.forEach(teamKey => {
         const teamName = teamNames[teamKey] || teamKey;
         const currentPlayers = teams[teamKey] ? teams[teamKey].length : allTeams[teamKey].players.length;
-        html += `
-            <div onclick="renderDatabasePlayers('${teamKey}')" style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; cursor: pointer; text-align: center; transition: background 0.2s; border: 1px solid rgba(255,255,255,0.1);">
-                <div style="font-weight: bold; font-size: 1.1rem; margin-bottom: 5px; color: #fff;">${teamName}</div>
-                <div style="font-size: 0.9rem; color: #aaa;">선수 ${currentPlayers}명</div>
-            </div>
-        `;
+
+        const card = document.createElement('div');
+        card.style.cssText = 'background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; cursor: pointer; text-align: center; transition: background 0.2s; border: 1px solid rgba(255,255,255,0.1);';
+
+        const nameDiv = document.createElement('div');
+        nameDiv.style.cssText = 'font-weight: bold; font-size: 1.1rem; margin-bottom: 5px; color: #fff;';
+        nameDiv.textContent = teamName;
+
+        const countDiv = document.createElement('div');
+        countDiv.style.cssText = 'font-size: 0.9rem; color: #aaa;';
+        countDiv.textContent = `선수 ${currentPlayers}명`;
+
+        card.append(nameDiv, countDiv);
+        card.onclick = () => renderDatabasePlayers(teamKey);
+        grid.appendChild(card);
     });
-    html += '</div>';
-    content.innerHTML = html;
+
+    content.appendChild(grid);
 }
 
 function renderDatabasePlayers(teamKey) {
@@ -4631,16 +4854,21 @@ function renderDatabasePlayers(teamKey) {
     const backBtn = document.getElementById('dbBackBtn');
     const title = document.getElementById('dbModalTitle');
 
+    if (!modal || !content) return;
     modal.dataset.view = 'players';
-    backBtn.style.display = 'inline-block';
+    if (backBtn) backBtn.style.display = 'inline-block';
     const teamName = teamNames[teamKey] || teamKey;
-    title.textContent = `${teamName} 선수 명단`;
+    if (title) title.textContent = `${teamName} 선수 명단`;
+
+    content.replaceChildren();
 
     const players = teams[teamKey] || allTeams[teamKey].players;
     const posOrder = { 'GK': 1, 'DF': 2, 'MF': 3, 'FW': 4 };
     const sortedPlayers = [...players].sort((a, b) => (posOrder[a.position] || 5) - (posOrder[b.position] || 5) || b.rating - a.rating);
 
-    let html = '<div style="display: flex; flex-direction: column; gap: 10px;">';
+    const listDiv = document.createElement('div');
+    listDiv.style.cssText = 'display: flex; flex-direction: column; gap: 10px;';
+
     sortedPlayers.forEach(player => {
         let stats = { goals: 0, assists: 0, matches: 0, moms: 0 };
         if (typeof leagueBasedRecordsSystem !== 'undefined' && leagueBasedRecordsSystem.playerStats.has(player.name)) {
@@ -4648,28 +4876,55 @@ function renderDatabasePlayers(teamKey) {
             if (record.team === teamKey) stats = record;
         }
         let posColor = player.position === 'FW' ? '#e74c3c' : player.position === 'MF' ? '#2ecc71' : player.position === 'DF' ? '#3498db' : '#f1c40f';
-        html += `
-            <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid ${posColor};">
-                <div style="flex: 1;">
-                    <div style="font-weight: bold; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
-                        <span style="color: ${posColor}; font-size: 0.9rem; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px;">${player.position}</span>
-                        ${player.name}
-                    </div>
-                    <div style="font-size: 0.85rem; color: #ccc; margin-top: 6px;">
-                        ${player.country || '국적 미상'} | ${player.age}세 | 오버롤 <span style="color: #ffd700; font-weight: bold;">${Math.floor(player.rating)}</span>
-                    </div>
-                </div>
-                <div style="text-align: right; font-size: 0.85rem; color: #ddd; min-width: 100px;">
-                    <div style="margin-bottom: 2px;">🏟️ 경기: ${stats.matches}</div>
-                    <div style="margin-bottom: 2px;">⚽ 골: ${stats.goals}</div>
-                    <div style="margin-bottom: 2px;">👟 도움: ${stats.assists}</div>
-                    <div>⭐ MOM: ${stats.moms}</div>
-                </div>
-            </div>
-        `;
+
+        const row = document.createElement('div');
+        row.style.cssText = `background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid ${posColor};`;
+
+        const leftDiv = document.createElement('div');
+        leftDiv.style.flex = '1';
+
+        const nameRow = document.createElement('div');
+        nameRow.style.cssText = 'font-weight: bold; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;';
+
+        const posTag = document.createElement('span');
+        posTag.style.cssText = `color: ${posColor}; font-size: 0.9rem; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px;`;
+        posTag.textContent = player.position;
+
+        nameRow.append(posTag, document.createTextNode(player.name));
+
+        const metaRow = document.createElement('div');
+        metaRow.style.cssText = 'font-size: 0.85rem; color: #ccc; margin-top: 6px;';
+        const ovrSpan = document.createElement('span');
+        ovrSpan.style.cssText = 'color: #ffd700; font-weight: bold;';
+        ovrSpan.textContent = Math.floor(player.rating);
+        metaRow.append(document.createTextNode(`${player.country || '국적 미상'} | ${player.age}세 | 오버롤 `), ovrSpan);
+
+        leftDiv.append(nameRow, metaRow);
+
+        const rightDiv = document.createElement('div');
+        rightDiv.style.cssText = 'text-align: right; font-size: 0.85rem; color: #ddd; min-width: 100px;';
+
+        const mDiv = document.createElement('div');
+        mDiv.style.marginBottom = '2px';
+        mDiv.textContent = `🏟️ 경기: ${stats.matches}`;
+
+        const gDiv = document.createElement('div');
+        gDiv.style.marginBottom = '2px';
+        gDiv.textContent = `⚽ 골: ${stats.goals}`;
+
+        const aDiv = document.createElement('div');
+        aDiv.style.marginBottom = '2px';
+        aDiv.textContent = `👟 도움: ${stats.assists}`;
+
+        const momDiv = document.createElement('div');
+        momDiv.textContent = `⭐ MOM: ${stats.moms}`;
+
+        rightDiv.append(mDiv, gDiv, aDiv, momDiv);
+        row.append(leftDiv, rightDiv);
+        listDiv.appendChild(row);
     });
-    html += '</div>';
-    content.innerHTML = html;
+
+    content.appendChild(listDiv);
 }
 
 // 전역 노출
@@ -4697,19 +4952,38 @@ function showDashboard() {
 function renderDashboard() {
     const container = document.getElementById('dashboard-container');
     if (!container) return; // 안전 장치
-    container.innerHTML = '';
 
     // 1. 다음 경기 카드
     const nextMatchCard = createDashboardCard('🏆 다음 경기', 'match', () => {
-        const opponentName = gameData.currentOpponent ? teamNames[gameData.currentOpponent] : '미정';
-        const opponentLogo = gameData.currentOpponent ? getTeamLogoHTML(gameData.currentOpponent) : '';
-        return `
-            <div style="text-align: center;">
-                <div style="font-size: 1.5rem; font-weight: bold; margin-bottom: 10px;">VS ${opponentLogo} ${opponentName}</div>
-                <div style="color: #aaa;">${gameData.isHomeGame ? '홈 경기' : '원정 경기'}</div>
-                <div style="margin-top: 15px; color: #2ecc71; font-weight: bold;">킥오프 준비 완료</div>
-            </div>
-        `;
+        const opponentName = gameData.currentOpponent ? (teamNames[gameData.currentOpponent] || gameData.currentOpponent) : '미정';
+        const wrapper = document.createElement('div');
+        wrapper.style.textAlign = 'center';
+
+        const vsDiv = document.createElement('div');
+        vsDiv.style.fontSize = '1.5rem';
+        vsDiv.style.fontWeight = 'bold';
+        vsDiv.style.marginBottom = '10px';
+        vsDiv.append(document.createTextNode('VS '));
+        if (gameData.currentOpponent) {
+            vsDiv.appendChild(createTeamLogoElement(gameData.currentOpponent));
+            vsDiv.append(document.createTextNode(' '));
+        }
+        vsDiv.append(document.createTextNode(opponentName));
+        wrapper.appendChild(vsDiv);
+
+        const typeDiv = document.createElement('div');
+        typeDiv.style.color = '#aaa';
+        typeDiv.textContent = gameData.isHomeGame ? '홈 경기' : '원정 경기';
+        wrapper.appendChild(typeDiv);
+
+        const readyDiv = document.createElement('div');
+        readyDiv.style.marginTop = '15px';
+        readyDiv.style.color = '#2ecc71';
+        readyDiv.style.fontWeight = 'bold';
+        readyDiv.textContent = '킥오프 준비 완료';
+        wrapper.appendChild(readyDiv);
+
+        return wrapper;
     });
 
     // 2. 리그 순위 카드
@@ -4718,7 +4992,14 @@ function renderDashboard() {
         const divisionKey = `division${league}`;
         const table = gameData.leagueData[divisionKey];
 
-        if (!table) return '<div style="text-align:center; color:#aaa;">데이터 없음</div>';
+        const wrapper = document.createElement('div');
+        if (!table) {
+            const emptyDiv = document.createElement('div');
+            emptyDiv.style.textAlign = 'center';
+            emptyDiv.style.color = '#aaa';
+            emptyDiv.textContent = '데이터 없음';
+            return emptyDiv;
+        }
 
         const standings = Object.keys(table).map(key => ({
             name: teamNames[key] || key,
@@ -4728,23 +5009,31 @@ function renderDashboard() {
         })).sort((a, b) => b.points - a.points || b.diff - a.diff || b.goalsFor - a.goalsFor);
 
         const myIndex = standings.findIndex(t => t.key === gameData.selectedTeam);
-        let html = '';
 
         const range = [myIndex - 1, myIndex, myIndex + 1];
         range.forEach(idx => {
             if (standings[idx]) {
                 const team = standings[idx];
                 const isMe = idx === myIndex;
-                html += `
-                    <div class="rank-row ${isMe ? 'my-team' : ''}">
-                        <span>${idx + 1}위</span>
-                        <span style="display: flex; align-items: center;">${getTeamLogoHTML(team.key)} ${team.name}</span>
-                        <span>${team.points}pts</span>
-                    </div>
-                `;
+                const row = document.createElement('div');
+                row.className = `rank-row ${isMe ? 'my-team' : ''}`;
+
+                const rankSpan = document.createElement('span');
+                rankSpan.textContent = `${idx + 1}위`;
+
+                const teamSpan = document.createElement('span');
+                teamSpan.style.display = 'flex';
+                teamSpan.style.alignItems = 'center';
+                teamSpan.append(createTeamLogoElement(team.key), document.createTextNode(' ' + team.name));
+
+                const ptsSpan = document.createElement('span');
+                ptsSpan.textContent = `${team.points}pts`;
+
+                row.append(rankSpan, teamSpan, ptsSpan);
+                wrapper.appendChild(row);
             }
         });
-        return html;
+        return wrapper;
     });
 
     // 3. 스쿼드 요약 카드
@@ -4752,52 +5041,132 @@ function renderDashboard() {
         const rating = typeof calculateTeamRating === 'function' ? calculateTeamRating().toFixed(1) : '0.0';
         const realInjuredCount = (typeof injurySystem !== 'undefined') ? injurySystem.getInjuredPlayers(gameData.selectedTeam).length : 0;
 
-        return `
-            <div style="text-align: center; display: flex; flex-direction: column; justify-content: center; height: 100%;">
-                <div>
-                    <div style="font-size: 0.9rem; color: #aaa;">평균 능력치</div>
-                    <div style="font-size: 2rem; font-weight: bold; color: #3498db; margin-bottom: 15px;">${rating}</div>
-                </div>
-                <div>
-                    <div style="font-size: 0.9rem; color: #aaa;">부상자</div>
-                    <div style="font-size: 1.5rem; font-weight: bold; color: ${realInjuredCount > 0 ? '#e74c3c' : '#2ecc71'};">${realInjuredCount}명</div>
-                </div>
-            </div>
-        `;
+        const wrapper = document.createElement('div');
+        wrapper.style.textAlign = 'center';
+        wrapper.style.display = 'flex';
+        wrapper.style.flexDirection = 'column';
+        wrapper.style.justifyContent = 'center';
+        wrapper.style.height = '100%';
+
+        const ratingDiv = document.createElement('div');
+        const ratingLabel = document.createElement('div');
+        ratingLabel.style.fontSize = '0.9rem';
+        ratingLabel.style.color = '#aaa';
+        ratingLabel.textContent = '평균 능력치';
+        const ratingVal = document.createElement('div');
+        ratingVal.style.fontSize = '2rem';
+        ratingVal.style.fontWeight = 'bold';
+        ratingVal.style.color = '#3498db';
+        ratingVal.style.marginBottom = '15px';
+        ratingVal.textContent = rating;
+        ratingDiv.append(ratingLabel, ratingVal);
+
+        const injDiv = document.createElement('div');
+        const injLabel = document.createElement('div');
+        injLabel.style.fontSize = '0.9rem';
+        injLabel.style.color = '#aaa';
+        injLabel.textContent = '부상자';
+        const injVal = document.createElement('div');
+        injVal.style.fontSize = '1.5rem';
+        injVal.style.fontWeight = 'bold';
+        injVal.style.color = realInjuredCount > 0 ? '#e74c3c' : '#2ecc71';
+        injVal.textContent = `${realInjuredCount}명`;
+        injDiv.append(injLabel, injVal);
+
+        wrapper.append(ratingDiv, injDiv);
+        return wrapper;
     });
 
     // 4. 이적 시장 카드
     const transferCard = createDashboardCard('💰 이적 시장', 'transfer', () => {
-        return `
-            <div style="text-align: center; display: flex; flex-direction: column; justify-content: center; height: 100%;">
-                <div style="font-size: 0.85rem; color: #aaa;">이적 시장 자금과 주급 총합을 확인하세요</div>
-                <div style="font-size: 2.2rem; font-weight: bold; color: #f1c40f; margin: 5px 0;">${gameData.teamMoney}억</div>
-                <div style="font-size: 1rem; color: #4fc3f7; font-weight: bold;">주급 자금: ${gameData.wageBudget}억</div>
-                <div style="font-size: 1.1rem; color: #e74c3c; font-weight: bold;">주급: ${gameData.totalWeeklyWage}억</div>
-            </div>
-        `;
+        const wrapper = document.createElement('div');
+        wrapper.style.textAlign = 'center';
+        wrapper.style.display = 'flex';
+        wrapper.style.flexDirection = 'column';
+        wrapper.style.justifyContent = 'center';
+        wrapper.style.height = '100%';
+
+        const tipDiv = document.createElement('div');
+        tipDiv.style.fontSize = '0.85rem';
+        tipDiv.style.color = '#aaa';
+        tipDiv.textContent = '이적 시장 자금과 주급 총합을 확인하세요';
+
+        const moneyDiv = document.createElement('div');
+        moneyDiv.style.fontSize = '2.2rem';
+        moneyDiv.style.fontWeight = 'bold';
+        moneyDiv.style.color = '#f1c40f';
+        moneyDiv.style.margin = '5px 0';
+        moneyDiv.textContent = `${gameData.teamMoney}억`;
+
+        const budgetDiv = document.createElement('div');
+        budgetDiv.style.fontSize = '1rem';
+        budgetDiv.style.color = '#4fc3f7';
+        budgetDiv.style.fontWeight = 'bold';
+        budgetDiv.textContent = `주급 자금: ${gameData.wageBudget}억`;
+
+        const wageDiv = document.createElement('div');
+        wageDiv.style.fontSize = '1.1rem';
+        wageDiv.style.color = '#e74c3c';
+        wageDiv.style.fontWeight = 'bold';
+        wageDiv.textContent = `주급: ${gameData.totalWeeklyWage}억`;
+
+        wrapper.append(tipDiv, moneyDiv, budgetDiv, wageDiv);
+        return wrapper;
     });
 
     const financeCard = createDashboardCard('🏦 재정', 'finance', () => {
-        return `
-            <div style="text-align: center; display: flex; flex-direction: column; justify-content: center; height: 100%;">
-                <div style="font-size: 0.85rem; color: #aaa;">이적 자금 / 주급 자금 전환</div>
-                <div style="font-size: 2rem; font-weight: bold; color: #f1c40f; margin: 5px 0;">${gameData.teamMoney}억</div>
-                <div style="font-size: 1rem; color: #4fc3f7; font-weight: bold;">주급 자금: ${gameData.wageBudget}억</div>
-            </div>
-        `;
+        const wrapper = document.createElement('div');
+        wrapper.style.textAlign = 'center';
+        wrapper.style.display = 'flex';
+        wrapper.style.flexDirection = 'column';
+        wrapper.style.justifyContent = 'center';
+        wrapper.style.height = '100%';
+
+        const tipDiv = document.createElement('div');
+        tipDiv.style.fontSize = '0.85rem';
+        tipDiv.style.color = '#aaa';
+        tipDiv.textContent = '이적 자금 / 주급 자금 전환';
+
+        const moneyDiv = document.createElement('div');
+        moneyDiv.style.fontSize = '2rem';
+        moneyDiv.style.fontWeight = 'bold';
+        moneyDiv.style.color = '#f1c40f';
+        moneyDiv.style.margin = '5px 0';
+        moneyDiv.textContent = `${gameData.teamMoney}억`;
+
+        const budgetDiv = document.createElement('div');
+        budgetDiv.style.fontSize = '1rem';
+        budgetDiv.style.color = '#4fc3f7';
+        budgetDiv.style.fontWeight = 'bold';
+        budgetDiv.textContent = `주급 자금: ${gameData.wageBudget}억`;
+
+        wrapper.append(tipDiv, moneyDiv, budgetDiv);
+        return wrapper;
     });
 
     // 5. 기타 카드들
     const tacticsCard = createDashboardCard('🧬 전술/DNA', 'tactics', () => {
         const ts = (typeof TacticSystem !== 'undefined') ? new TacticSystem() : null;
         const tacticName = (ts && ts.tactics[gameData.currentTactic]) ? ts.tactics[gameData.currentTactic].name : gameData.currentTactic;
-        return `
-            <div style="text-align:center;">
-                <div style="margin-bottom:5px;">현재 전술: <span style="color:#ffd700;">${tacticName}</span></div>
-                <div style="font-size:0.8rem; color:#aaa;">DNA 및 세부 전술 설정</div>
-            </div>
-        `;
+
+        const wrapper = document.createElement('div');
+        wrapper.style.textAlign = 'center';
+
+        const curDiv = document.createElement('div');
+        curDiv.style.marginBottom = '5px';
+        curDiv.append(document.createTextNode('현재 전술: '));
+        const nameSpan = document.createElement('span');
+        nameSpan.style.color = '#ffd700';
+        nameSpan.textContent = tacticName;
+        curDiv.appendChild(nameSpan);
+
+        const subDiv = document.createElement('div');
+        subDiv.style.fontSize = '0.8rem';
+        subDiv.style.color = '#aaa';
+        subDiv.textContent = 'DNA 및 세부 전술 설정';
+
+        wrapper.append(curDiv, subDiv);
+        return wrapper;
     });
 
     // [추가] 개인 기록 카드
@@ -4813,31 +5182,53 @@ function renderDashboard() {
             }
         }
 
-        return `
-            <div style="text-align: center;">
-                <div style="font-size: 0.9rem; color: #aaa;">현재 득점 1위</div>
-                <div style="font-size: 1.2rem; font-weight: bold; color: #e74c3c; margin: 5px 0;">${topScorerName}</div>
-                <div style="font-size: 0.9rem;">${topScorerGoals}골</div>
-            </div>
-        `;
+        const wrapper = document.createElement('div');
+        wrapper.style.textAlign = 'center';
+
+        const titleDiv = document.createElement('div');
+        titleDiv.style.fontSize = '0.9rem';
+        titleDiv.style.color = '#aaa';
+        titleDiv.textContent = '현재 득점 1위';
+
+        const nameDiv = document.createElement('div');
+        nameDiv.style.fontSize = '1.2rem';
+        nameDiv.style.fontWeight = 'bold';
+        nameDiv.style.color = '#e74c3c';
+        nameDiv.style.margin = '5px 0';
+        nameDiv.textContent = topScorerName;
+
+        const goalsDiv = document.createElement('div');
+        goalsDiv.style.fontSize = '0.9rem';
+        goalsDiv.textContent = `${topScorerGoals}골`;
+
+        wrapper.append(titleDiv, nameDiv, goalsDiv);
+        return wrapper;
     });
 
     // [추가] SNS 카드
     const snsCard = createDashboardCard('📱 SNS', 'sns', () => {
         let latestPost = "새로운 소식이 없습니다.";
         if (typeof snsManager !== 'undefined' && snsManager.posts.length > 0) {
-            // HTML 태그 제거 및 길이 제한
-            const div = document.createElement("div");
-            div.innerHTML = snsManager.posts[0].content;
-            latestPost = div.textContent || div.innerText || "";
+            const raw = snsManager.posts[0].content || "";
+            latestPost = raw.replace(/<[^>]+>/g, '').trim();
             if (latestPost.length > 18) latestPost = latestPost.substring(0, 18) + "...";
         }
-        return `
-            <div style="text-align: center;">
-                <div style="font-size: 0.9rem; color: #aaa;">최신 피드</div>
-                <div style="font-size: 0.95rem; margin-top: 5px;">"${latestPost}"</div>
-            </div>
-        `;
+
+        const wrapper = document.createElement('div');
+        wrapper.style.textAlign = 'center';
+
+        const titleDiv = document.createElement('div');
+        titleDiv.style.fontSize = '0.9rem';
+        titleDiv.style.color = '#aaa';
+        titleDiv.textContent = '최신 피드';
+
+        const postDiv = document.createElement('div');
+        postDiv.style.fontSize = '0.95rem';
+        postDiv.style.marginTop = '5px';
+        postDiv.textContent = `"${latestPost}"`;
+
+        wrapper.append(titleDiv, postDiv);
+        return wrapper;
     });
 
     // [추가] 이적 뉴스 카드
@@ -4847,94 +5238,211 @@ function renderDashboard() {
             const news = transferSystem.transferNews[0];
             latestNews = `${news.name}: ${news.from} ➔ ${news.to}`;
         }
-        return `
-            <div style="text-align: center;">
-                <div style="font-size: 0.9rem; color: #aaa;">최신 이적</div>
-                <div style="font-size: 0.95rem; margin-top: 5px;">${latestNews}</div>
-            </div>
-        `;
+
+        const wrapper = document.createElement('div');
+        wrapper.style.textAlign = 'center';
+
+        const titleDiv = document.createElement('div');
+        titleDiv.style.fontSize = '0.9rem';
+        titleDiv.style.color = '#aaa';
+        titleDiv.textContent = '최신 이적';
+
+        const newsDiv = document.createElement('div');
+        newsDiv.style.fontSize = '0.95rem';
+        newsDiv.style.marginTop = '5px';
+        newsDiv.textContent = latestNews;
+
+        wrapper.append(titleDiv, newsDiv);
+        return wrapper;
     });
 
     // [추가] 유스 카드
     const youthCard = createDashboardCard('🌟 유스/스카우트', 'youth', () => {
         const youthCount = gameData.youthSquad ? gameData.youthSquad.length : 0;
         const scoutStatus = gameData.hiredScout ? '고용 중' : '미고용';
-        return `
-            <div style="text-align: center;">
-                <div style="font-size: 0.9rem; color: #aaa;">유망주</div>
-                <div style="font-size: 1.2rem; font-weight: bold; color: #2ecc71; margin: 5px 0;">${youthCount}명</div>
-                <div style="font-size: 0.8rem; color: #aaa;">스카우터: ${scoutStatus}</div>
-            </div>
-        `;
+
+        const wrapper = document.createElement('div');
+        wrapper.style.textAlign = 'center';
+
+        const titleDiv = document.createElement('div');
+        titleDiv.style.fontSize = '0.9rem';
+        titleDiv.style.color = '#aaa';
+        titleDiv.textContent = '유망주';
+
+        const countDiv = document.createElement('div');
+        countDiv.style.fontSize = '1.2rem';
+        countDiv.style.fontWeight = 'bold';
+        countDiv.style.color = '#2ecc71';
+        countDiv.style.margin = '5px 0';
+        countDiv.textContent = `${youthCount}명`;
+
+        const statusDiv = document.createElement('div');
+        statusDiv.style.fontSize = '0.8rem';
+        statusDiv.style.color = '#aaa';
+        statusDiv.textContent = `스카우터: ${scoutStatus}`;
+
+        wrapper.append(titleDiv, countDiv, statusDiv);
+        return wrapper;
     });
 
     // [추가] 스폰서 카드
     const sponsorCard = createDashboardCard('💼 스폰서', 'sponsor', () => {
         const sponsorName = gameData.currentSponsor ? gameData.currentSponsor.name : '계약 없음';
         const remainingMatches = gameData.sponsorRemainingMatches || 0;
-        return `
-            <div style="text-align: center; display: flex; flex-direction: column; justify-content: center; height: 100%;">
-                <div style="font-size: 0.9rem; color: #aaa;">현재 스폰서</div>
-                <div style="font-size: 1.5rem; font-weight: bold; color: #2ecc71; margin: 10px 0;">${sponsorName}</div>
-                ${gameData.currentSponsor ? `<div style="font-size: 0.9rem;">남은 계약: ${remainingMatches}경기</div>` : '<div style="font-size: 0.9rem;">새로운 계약을 찾아보세요</div>'}
-            </div>
-        `;
+
+        const wrapper = document.createElement('div');
+        wrapper.style.textAlign = 'center';
+        wrapper.style.display = 'flex';
+        wrapper.style.flexDirection = 'column';
+        wrapper.style.justifyContent = 'center';
+        wrapper.style.height = '100%';
+
+        const titleDiv = document.createElement('div');
+        titleDiv.style.fontSize = '0.9rem';
+        titleDiv.style.color = '#aaa';
+        titleDiv.textContent = '현재 스폰서';
+
+        const nameDiv = document.createElement('div');
+        nameDiv.style.fontSize = '1.5rem';
+        nameDiv.style.fontWeight = 'bold';
+        nameDiv.style.color = '#2ecc71';
+        nameDiv.style.margin = '10px 0';
+        nameDiv.textContent = sponsorName;
+
+        const subDiv = document.createElement('div');
+        subDiv.style.fontSize = '0.9rem';
+        subDiv.textContent = gameData.currentSponsor ? `남은 계약: ${remainingMatches}경기` : '새로운 계약을 찾아보세요';
+
+        wrapper.append(titleDiv, nameDiv, subDiv);
+        return wrapper;
     });
 
     const mailCard = createDashboardCard('📬 메일함', 'mail', () => {
         const unread = (typeof mailManager !== 'undefined') ? mailManager.getUnreadCount() : 0;
-        return `<div style="text-align:center;">읽지 않은 메일: <span style="color:${unread > 0 ? '#e74c3c' : '#aaa'}; font-weight:bold;">${unread}통</span></div>`;
+        const wrapper = document.createElement('div');
+        wrapper.style.textAlign = 'center';
+        wrapper.append(document.createTextNode('읽지 않은 메일: '));
+        const countSpan = document.createElement('span');
+        countSpan.style.color = unread > 0 ? '#e74c3c' : '#aaa';
+        countSpan.style.fontWeight = 'bold';
+        countSpan.textContent = `${unread}통`;
+        wrapper.appendChild(countSpan);
+        return wrapper;
     });
+
     const chatCard = createDashboardCard('💬 대화', 'chat', () => {
         const state = ensureChatState();
         const activeContact = getChatContactById(state.activeContactId);
         const latestMessage = getLatestChatPreview();
-        return `
-            <div style="text-align:center; display:flex; flex-direction:column; justify-content:center; height:100%; gap:8px;">
-                <div style="font-size:0.9rem; color:#aaa;">현재 대화방</div>
-                <div style="font-size:1.2rem; font-weight:bold; color:#4fc3f7;">${activeContact ? activeContact.name : '대화 없음'}</div>
-                <div style="font-size:0.88rem; color:#ddd; line-height:1.4;">${latestMessage || '아직 나눈 대화가 없습니다.'}</div>
-            </div>
-        `;
+
+        const wrapper = document.createElement('div');
+        wrapper.style.textAlign = 'center';
+        wrapper.style.display = 'flex';
+        wrapper.style.flexDirection = 'column';
+        wrapper.style.justifyContent = 'center';
+        wrapper.style.height = '100%';
+        wrapper.style.gap = '8px';
+
+        const titleDiv = document.createElement('div');
+        titleDiv.style.fontSize = '0.9rem';
+        titleDiv.style.color = '#aaa';
+        titleDiv.textContent = '현재 대화방';
+
+        const nameDiv = document.createElement('div');
+        nameDiv.style.fontSize = '1.2rem';
+        nameDiv.style.fontWeight = 'bold';
+        nameDiv.style.color = '#4fc3f7';
+        nameDiv.textContent = activeContact ? activeContact.name : '대화 없음';
+
+        const msgDiv = document.createElement('div');
+        msgDiv.style.fontSize = '0.88rem';
+        msgDiv.style.color = '#ddd';
+        msgDiv.style.lineHeight = '1.4';
+        msgDiv.textContent = latestMessage || '아직 나눈 대화가 없습니다.';
+
+        wrapper.append(titleDiv, nameDiv, msgDiv);
+        return wrapper;
     });
-    const settingsCard = createDashboardCard('⚙️ 설정 / 저장', 'settings', () => `<div style="text-align:center;">게임 저장 및 불러오기</div>`);
+
+    const settingsCard = createDashboardCard('⚙️ 설정 / 저장', 'settings', () => {
+        const wrapper = document.createElement('div');
+        wrapper.style.textAlign = 'center';
+        wrapper.textContent = '게임 저장 및 불러오기';
+        return wrapper;
+    });
 
     const growthCard = createDashboardCard('📈 성장 현황', 'growth', () => {
         const growingCount = gameData.playerGrowthData ? Object.keys(gameData.playerGrowthData).length : 0;
-        return `
-            <div style="text-align: center; display: flex; flex-direction: column; justify-content: center; height: 100%;">
-                <div style="font-size: 0.9rem; color: #aaa;">성장 중인 선수</div>
-                <div style="font-size: 1.5rem; font-weight: bold; color: #3498db; margin: 10px 0;">${growingCount}명</div>
-                <div style="font-size: 0.8rem; color: #aaa;">잠재력을 폭발시키세요</div>
-            </div>
-        `;
+
+        const wrapper = document.createElement('div');
+        wrapper.style.textAlign = 'center';
+        wrapper.style.display = 'flex';
+        wrapper.style.flexDirection = 'column';
+        wrapper.style.justifyContent = 'center';
+        wrapper.style.height = '100%';
+
+        const titleDiv = document.createElement('div');
+        titleDiv.style.fontSize = '0.9rem';
+        titleDiv.style.color = '#aaa';
+        titleDiv.textContent = '성장 중인 선수';
+
+        const countDiv = document.createElement('div');
+        countDiv.style.fontSize = '1.5rem';
+        countDiv.style.fontWeight = 'bold';
+        countDiv.style.color = '#3498db';
+        countDiv.style.margin = '10px 0';
+        countDiv.textContent = `${growingCount}명`;
+
+        const subDiv = document.createElement('div');
+        subDiv.style.fontSize = '0.8rem';
+        subDiv.style.color = '#aaa';
+        subDiv.textContent = '잠재력을 폭발시키세요';
+
+        wrapper.append(titleDiv, countDiv, subDiv);
+        return wrapper;
     });
 
-    container.appendChild(nextMatchCard);
-    container.appendChild(leagueCard);
-    container.appendChild(squadCard);
-    container.appendChild(growthCard);
-    container.appendChild(transferCard);
-    container.appendChild(tacticsCard);
-    container.appendChild(sponsorCard);
-    container.appendChild(youthCard);
-    container.appendChild(mailCard);
-    container.appendChild(chatCard);
-    container.appendChild(settingsCard);
-    container.appendChild(recordsCard);
-    container.appendChild(snsCard);
-    container.appendChild(transferNewsCard);
-    container.appendChild(financeCard);
+    container.replaceChildren(
+        nextMatchCard,
+        leagueCard,
+        squadCard,
+        growthCard,
+        transferCard,
+        tacticsCard,
+        sponsorCard,
+        youthCard,
+        mailCard,
+        chatCard,
+        settingsCard,
+        recordsCard,
+        snsCard,
+        transferNewsCard,
+        financeCard
+    );
 }
 
 function createDashboardCard(title, tabName, contentFn) {
     const card = document.createElement('div');
     card.className = 'dashboard-card';
     card.id = `dashboard-${tabName}`; // Bento UI를 위한 ID 추가
-    card.innerHTML = `
-        <h3>${title} <span>➔</span></h3>
-        <div class="dashboard-content">${contentFn()}</div>
-    `;
+
+    const h3 = document.createElement('h3');
+    h3.append(document.createTextNode(title + ' '));
+    const arrow = document.createElement('span');
+    arrow.textContent = '➔';
+    h3.appendChild(arrow);
+    card.appendChild(h3);
+
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'dashboard-content';
+    const content = contentFn();
+    if (typeof content === 'string') {
+        contentDiv.textContent = content;
+    } else if (content instanceof Node) {
+        contentDiv.appendChild(content);
+    }
+    card.appendChild(contentDiv);
+
     card.onclick = () => showTab(tabName);
     return card;
 }
@@ -5015,7 +5523,7 @@ function getLatestChatPreview() {
     const thread = getChatThread(activeContactId);
     if (thread.length === 0) return '';
     const last = thread[thread.length - 1];
-    return escapeChatText(`${last.sender === 'user' ? '나' : getChatContactById(activeContactId).name}: ${last.text}`).slice(0, 42);
+    return `${last.sender === 'user' ? '나' : getChatContactById(activeContactId).name}: ${last.text}`.slice(0, 42);
 }
 
 function renderChatTab() {
@@ -5027,81 +5535,210 @@ function renderChatTab() {
     const activeContact = getChatContactById(state.activeContactId);
     const thread = getChatThread(activeContact.id);
 
-    container.innerHTML = `
-        <div class="chat-shell">
-            <aside class="chat-sidebar">
-                <div class="chat-sidebar-header">
-                    <div class="chat-sidebar-title">대화방</div>
-                    <div class="chat-sidebar-subtitle">구단 내부 실시간 메신저</div>
-                </div>
-                <div class="chat-contact-list">
-                    ${contacts.map(contact => {
+    const chatShell = document.createElement('div');
+    chatShell.className = 'chat-shell';
+
+    // Aside / Sidebar
+    const aside = document.createElement('aside');
+    aside.className = 'chat-sidebar';
+
+    const sidebarHeader = document.createElement('div');
+    sidebarHeader.className = 'chat-sidebar-header';
+
+    const sidebarTitle = document.createElement('div');
+    sidebarTitle.className = 'chat-sidebar-title';
+    sidebarTitle.textContent = '대화방';
+
+    const sidebarSubtitle = document.createElement('div');
+    sidebarSubtitle.className = 'chat-sidebar-subtitle';
+    sidebarSubtitle.textContent = '구단 내부 실시간 메신저';
+
+    sidebarHeader.append(sidebarTitle, sidebarSubtitle);
+    aside.appendChild(sidebarHeader);
+
+    const contactList = document.createElement('div');
+    contactList.className = 'chat-contact-list';
+
+    contacts.forEach(contact => {
         const contactThread = getChatThread(contact.id);
         const lastMessage = contactThread.length > 0 ? contactThread[contactThread.length - 1].text : contact.description;
         const isActive = contact.id === activeContact.id;
-        return `
-                            <button class="chat-contact ${isActive ? 'active' : ''}" onclick="switchChatContact('${contact.id}')">
-                                <div class="chat-contact-avatar" style="background:${contact.color};">${contact.avatar}</div>
-                                <div class="chat-contact-body">
-                                    <div class="chat-contact-top">
-                                        <strong>${contact.name}</strong>
-                                        <span>${contact.role}</span>
-                                    </div>
-                                    <div class="chat-contact-preview">${lastMessage}</div>
-                                </div>
-                            </button>
-                        `;
-    }).join('')}
-                </div>
-            </aside>
 
-            <section class="chat-main">
-                <header class="chat-header">
-                    <div class="chat-header-left">
-                        <div class="chat-header-avatar" style="background:${activeContact.color};">${activeContact.avatar}</div>
-                        <div>
-                            <div class="chat-header-title">${activeContact.name}</div>
-                            <div class="chat-header-subtitle">${activeContact.description}</div>
-                        </div>
-                    </div>
-                    <div class="chat-header-meta">현재 대화 중</div>
-                </header>
+        const btn = document.createElement('button');
+        btn.className = `chat-contact ${isActive ? 'active' : ''}`;
+        btn.onclick = () => switchChatContact(contact.id);
 
-                <div id="chatThread" class="chat-thread">
-                    ${thread.length > 0 ? thread.map(message => renderChatBubble(message, activeContact)).join('') : `<div class="chat-empty-state"><div class="chat-empty-icon">💡</div><h3>꿀팁 & FAQ를 확인하세요</h3><p>아래 추천 질문을 클릭하시면 즉시 해당 내용에 대한 꿀팁과 답변을 확인하실 수 있습니다!</p></div>`}
-                </div>
+        const avatar = document.createElement('div');
+        avatar.className = 'chat-contact-avatar';
+        avatar.style.background = contact.color;
+        avatar.textContent = contact.avatar;
 
-                <div class="chat-quick-replies">
-                    ${getChatQuickReplies(activeContact.id).map(text => `<button class="chat-quick-chip" onclick='sendQuickChatMessage(${JSON.stringify(text)})'>${escapeChatText(text)}</button>`).join('')}
-                </div>
+        const body = document.createElement('div');
+        body.className = 'chat-contact-body';
 
-                <div class="chat-typing" id="chatTypingIndicator" style="display:none;">${activeContact.name}이(가) 입력 중...</div>
+        const top = document.createElement('div');
+        top.className = 'chat-contact-top';
+        const nameStrong = document.createElement('strong');
+        nameStrong.textContent = contact.name;
+        const roleSpan = document.createElement('span');
+        roleSpan.textContent = contact.role;
+        top.append(nameStrong, roleSpan);
 
-                <div class="chat-composer" style="display:none;">
-                    <textarea id="chatInput" class="chat-input" rows="2" placeholder="메시지를 입력하세요..." onkeydown="handleChatKeydown(event)"></textarea>
-                    <button class="btn primary chat-send-btn" onclick="sendChatMessage()">전송</button>
-                </div>
-            </section>
-        </div>
-    `;
+        const preview = document.createElement('div');
+        preview.className = 'chat-contact-preview';
+        preview.textContent = lastMessage;
 
+        body.append(top, preview);
+        btn.append(avatar, body);
+        contactList.appendChild(btn);
+    });
+
+    aside.appendChild(contactList);
+    chatShell.appendChild(aside);
+
+    // Main section
+    const mainSection = document.createElement('section');
+    mainSection.className = 'chat-main';
+
+    const header = document.createElement('header');
+    header.className = 'chat-header';
+
+    const headerLeft = document.createElement('div');
+    headerLeft.className = 'chat-header-left';
+
+    const headerAvatar = document.createElement('div');
+    headerAvatar.className = 'chat-header-avatar';
+    headerAvatar.style.background = activeContact.color;
+    headerAvatar.textContent = activeContact.avatar;
+
+    const headerTitles = document.createElement('div');
+    const headerTitle = document.createElement('div');
+    headerTitle.className = 'chat-header-title';
+    headerTitle.textContent = activeContact.name;
+
+    const headerSubtitle = document.createElement('div');
+    headerSubtitle.className = 'chat-header-subtitle';
+    headerSubtitle.textContent = activeContact.description;
+
+    headerTitles.append(headerTitle, headerSubtitle);
+    headerLeft.append(headerAvatar, headerTitles);
+
+    const headerMeta = document.createElement('div');
+    headerMeta.className = 'chat-header-meta';
+    headerMeta.textContent = '현재 대화 중';
+
+    header.append(headerLeft, headerMeta);
+    mainSection.appendChild(header);
+
+    // Chat thread
+    const threadContainer = document.createElement('div');
+    threadContainer.id = 'chatThread';
+    threadContainer.className = 'chat-thread';
+
+    if (thread.length > 0) {
+        thread.forEach(msg => {
+            threadContainer.appendChild(renderChatBubble(msg, activeContact));
+        });
+    } else {
+        const emptyState = document.createElement('div');
+        emptyState.className = 'chat-empty-state';
+
+        const emptyIcon = document.createElement('div');
+        emptyIcon.className = 'chat-empty-icon';
+        emptyIcon.textContent = '💡';
+
+        const emptyH3 = document.createElement('h3');
+        emptyH3.textContent = '꿀팁 & FAQ를 확인하세요';
+
+        const emptyP = document.createElement('p');
+        emptyP.textContent = '아래 추천 질문을 클릭하시면 즉시 해당 내용에 대한 꿀팁과 답변을 확인하실 수 있습니다!';
+
+        emptyState.append(emptyIcon, emptyH3, emptyP);
+        threadContainer.appendChild(emptyState);
+    }
+    mainSection.appendChild(threadContainer);
+
+    // Quick replies
+    const quickReplies = document.createElement('div');
+    quickReplies.className = 'chat-quick-replies';
+
+    getChatQuickReplies(activeContact.id).forEach(text => {
+        const chip = document.createElement('button');
+        chip.className = 'chat-quick-chip';
+        chip.textContent = text;
+        chip.onclick = () => sendQuickChatMessage(text);
+        quickReplies.appendChild(chip);
+    });
+    mainSection.appendChild(quickReplies);
+
+    // Typing indicator
+    const typingIndicator = document.createElement('div');
+    typingIndicator.className = 'chat-typing';
+    typingIndicator.id = 'chatTypingIndicator';
+    typingIndicator.style.display = 'none';
+    typingIndicator.textContent = `${activeContact.name}이(가) 입력 중...`;
+    mainSection.appendChild(typingIndicator);
+
+    // Composer
+    const composer = document.createElement('div');
+    composer.className = 'chat-composer';
+    composer.style.display = 'none';
+
+    const input = document.createElement('textarea');
+    input.id = 'chatInput';
+    input.className = 'chat-input';
+    input.rows = 2;
+    input.placeholder = '메시지를 입력하세요...';
+    input.onkeydown = (event) => handleChatKeydown(event);
+
+    const sendBtn = document.createElement('button');
+    sendBtn.className = 'btn primary chat-send-btn';
+    sendBtn.textContent = '전송';
+    sendBtn.onclick = () => sendChatMessage();
+
+    composer.append(input, sendBtn);
+    mainSection.appendChild(composer);
+
+    chatShell.appendChild(mainSection);
+
+    container.replaceChildren(chatShell);
     scrollChatToBottom();
 }
 
 function renderChatBubble(message, contact) {
     const isUser = message.sender === 'user';
     const senderLabel = isUser ? '나' : contact.name;
-    return `
-        <div class="chat-row ${isUser ? 'user' : 'other'}">
-            <div class="chat-bubble ${isUser ? 'user' : 'other'}">
-                <div class="chat-bubble-meta">
-                    <span class="chat-bubble-sender">${senderLabel}</span>
-                    <span class="chat-bubble-time">${message.time}</span>
-                </div>
-                <div class="chat-bubble-text">${escapeChatText(message.text)}</div>
-            </div>
-        </div>
-    `;
+
+    const row = document.createElement('div');
+    row.className = `chat-row ${isUser ? 'user' : 'other'}`;
+
+    const bubble = document.createElement('div');
+    bubble.className = `chat-bubble ${isUser ? 'user' : 'other'}`;
+
+    const meta = document.createElement('div');
+    meta.className = 'chat-bubble-meta';
+
+    const senderSpan = document.createElement('span');
+    senderSpan.className = 'chat-bubble-sender';
+    senderSpan.textContent = senderLabel;
+
+    const timeSpan = document.createElement('span');
+    timeSpan.className = 'chat-bubble-time';
+    timeSpan.textContent = message.time;
+
+    meta.append(senderSpan, timeSpan);
+
+    const textDiv = document.createElement('div');
+    textDiv.className = 'chat-bubble-text';
+    const lines = String(message.text || '').split('\n');
+    lines.forEach((line, idx) => {
+        if (idx > 0) textDiv.appendChild(document.createElement('br'));
+        textDiv.appendChild(document.createTextNode(line));
+    });
+
+    bubble.append(meta, textDiv);
+    row.appendChild(bubble);
+    return row;
 }
 
 function escapeChatText(text) {
@@ -5251,108 +5888,209 @@ function renderFinanceTab() {
     const wageCoverage = gameData.totalWeeklyWage > 0 ? Math.round((wageBudget / gameData.totalWeeklyWage) * 100) : 0;
     const transferDefault = transferBudget > 0 ? Math.min(40, Math.max(10, Math.round((transferBudget / Math.max(1, totalPool)) * 50))) : 0;
 
-    container.innerHTML = `
-        <div class="finance-panel">
-            <div class="finance-hero">
-                <div class="finance-hero-copy">
-                    <div class="finance-kicker">FINANCE MANAGEMENT</div>
-                    <h3>예산을 직접 조절하세요</h3>
-                    <p>슬라이더를 오른쪽으로 밀수록 주급 자금이 늘고, 왼쪽으로 밀수록 이적 자금이 늘어납니다. 전환은 각각 12배 / 1/12 배율로 적용됩니다.</p>
-                </div>
-                <div class="finance-ratio-chip">
-                    <span>운영 가능 주급 커버</span>
-                    <strong>${wageCoverage}%</strong>
-                </div>
-            </div>
+    const panel = document.createElement('div');
+    panel.className = 'finance-panel';
 
-            <div class="finance-summary-grid">
-                <div class="finance-summary-card">
-                    <div class="finance-label">이적 자금</div>
-                    <div class="finance-value transfer">${transferBudget}억</div>
-                </div>
-                <div class="finance-summary-card">
-                    <div class="finance-label">주급 자금</div>
-                    <div class="finance-value wage">${wageBudget}억</div>
-                </div>
-                <div class="finance-summary-card">
-                    <div class="finance-label">총 주급</div>
-                    <div class="finance-value wage-debt">${gameData.totalWeeklyWage}억</div>
-                </div>
-                <div class="finance-summary-card">
-                    <div class="finance-label">연간 예상 주급 지출</div>
-                    <div class="finance-value annual">${Math.round(gameData.totalWeeklyWage * 52)}억</div>
-                </div>
-            </div>
+    // 1. Hero
+    const hero = document.createElement('div');
+    hero.className = 'finance-hero';
 
-            <div class="finance-conversion-card">
-                <div class="finance-conversion-header">
-                    <div>
-                        <h4>예산 슬라이더</h4>
-                        <p>가운데는 중립, 왼쪽은 이적 자금 강화, 오른쪽은 주급 자금 강화</p>
-                    </div>
-                    <div class="finance-rate-note">1억 이동 = 12억 / 1/12억</div>
-                </div>
+    const heroCopy = document.createElement('div');
+    heroCopy.className = 'finance-hero-copy';
 
-                <div class="finance-slider-shell">
-                    <div class="finance-slider-labels">
-                        <span class="budget-tag transfer">이적 자금</span>
-                        <span class="budget-tag neutral">중립</span>
-                        <span class="budget-tag wage">주급 자금</span>
-                    </div>
+    const kicker = document.createElement('div');
+    kicker.className = 'finance-kicker';
+    kicker.textContent = 'FINANCE MANAGEMENT';
 
-                    <input
-                        id="financeBalanceSlider"
-                        class="finance-range"
-                        type="range"
-                        min="-100"
-                        max="100"
-                        step="1"
-                        value="0"
-                        oninput="updateFinanceBalancePreview(this.value)"
-                    >
+    const heroH3 = document.createElement('h3');
+    heroH3.textContent = '예산을 직접 조절하세요';
 
-                    <div class="finance-scale">
-                        <span>-100</span>
-                        <span id="financeBalanceState">중립 상태</span>
-                        <span>+100</span>
-                    </div>
-                </div>
+    const heroP = document.createElement('p');
+    heroP.textContent = '슬라이더를 오른쪽으로 밀수록 주급 자금이 늘고, 왼쪽으로 밀수록 이적 자금이 늘어납니다. 전환은 각각 12배 / 1/12 배율로 적용됩니다.';
 
-                <div class="finance-preview-grid">
-                    <div class="finance-preview-card transfer">
-                        <div class="finance-preview-label">이적 자금 변화</div>
-                        <div id="financeTransferDelta" class="finance-preview-value">0억</div>
-                        <div id="financeTransferAfter" class="finance-preview-sub">변동 없음</div>
-                    </div>
-                    <div class="finance-preview-card wage">
-                        <div class="finance-preview-label">주급 자금 변화</div>
-                        <div id="financeWageDelta" class="finance-preview-value">0억</div>
-                        <div id="financeWageAfter" class="finance-preview-sub">변동 없음</div>
-                    </div>
-                </div>
+    heroCopy.append(kicker, heroH3, heroP);
 
-                <div class="finance-action-row">
-                    <button class="btn primary finance-apply-btn" onclick="applyFinanceBalanceSlider()">선택한 예산 이동 적용</button>
-                    <button class="btn finance-reset-btn" onclick="resetFinanceSlider()">슬라이더 초기화</button>
-                </div>
-            </div>
+    const ratioChip = document.createElement('div');
+    ratioChip.className = 'finance-ratio-chip';
+    const ratioSpan = document.createElement('span');
+    ratioSpan.textContent = '운영 가능 주급 커버';
+    const ratioStrong = document.createElement('strong');
+    ratioStrong.textContent = `${wageCoverage}%`;
+    ratioChip.append(ratioSpan, ratioStrong);
 
-            <div class="finance-insight-grid">
-                <div class="finance-insight-card">
-                    <div class="finance-insight-title">이적 운영 상태</div>
-                    <div class="finance-insight-text">현재 팀의 이적 자금은 <strong>${transferBudget}억</strong>이며, 공격적인 영입을 원하면 오른쪽 슬라이더를 높이세요.</div>
-                </div>
-                <div class="finance-insight-card">
-                    <div class="finance-insight-title">주급 운영 상태</div>
-                    <div class="finance-insight-text">현재 주급 자금은 <strong>${wageBudget}억</strong>입니다. 이 수치가 낮으면 연봉 협상과 선수 유지가 어려워집니다.</div>
-                </div>
-            </div>
+    hero.append(heroCopy, ratioChip);
+    panel.appendChild(hero);
 
-            <div class="finance-note">
-                주급 자금이 부족하면 협상 단계에서 계약이 막힙니다. 필요할 때만 자금을 이동시키고, 과도한 전환은 피하세요.
-            </div>
-        </div>
-    `;
+    // 2. Summary grid
+    const summaryGrid = document.createElement('div');
+    summaryGrid.className = 'finance-summary-grid';
+
+    const createSummaryCard = (label, valueText, valueClass) => {
+        const card = document.createElement('div');
+        card.className = 'finance-summary-card';
+        const lbl = document.createElement('div');
+        lbl.className = 'finance-label';
+        lbl.textContent = label;
+        const val = document.createElement('div');
+        val.className = `finance-value ${valueClass}`;
+        val.textContent = valueText;
+        card.append(lbl, val);
+        return card;
+    };
+
+    summaryGrid.append(
+        createSummaryCard('이적 자금', `${transferBudget}억`, 'transfer'),
+        createSummaryCard('주급 자금', `${wageBudget}억`, 'wage'),
+        createSummaryCard('총 주급', `${gameData.totalWeeklyWage}억`, 'wage-debt'),
+        createSummaryCard('연간 예상 주급 지출', `${Math.round(gameData.totalWeeklyWage * 52)}억`, 'annual')
+    );
+    panel.appendChild(summaryGrid);
+
+    // 3. Conversion card
+    const convCard = document.createElement('div');
+    convCard.className = 'finance-conversion-card';
+
+    const convHeader = document.createElement('div');
+    convHeader.className = 'finance-conversion-header';
+    const convHeaderLeft = document.createElement('div');
+    const convH4 = document.createElement('h4');
+    convH4.textContent = '예산 슬라이더';
+    const convP = document.createElement('p');
+    convP.textContent = '가운데는 중립, 왼쪽은 이적 자금 강화, 오른쪽은 주급 자금 강화';
+    convHeaderLeft.append(convH4, convP);
+    const rateNote = document.createElement('div');
+    rateNote.className = 'finance-rate-note';
+    rateNote.textContent = '1억 이동 = 12억 / 1/12억';
+    convHeader.append(convHeaderLeft, rateNote);
+    convCard.appendChild(convHeader);
+
+    // Slider shell
+    const sliderShell = document.createElement('div');
+    sliderShell.className = 'finance-slider-shell';
+
+    const sliderLabels = document.createElement('div');
+    sliderLabels.className = 'finance-slider-labels';
+    const tagTransfer = document.createElement('span');
+    tagTransfer.className = 'budget-tag transfer';
+    tagTransfer.textContent = '이적 자금';
+    const tagNeutral = document.createElement('span');
+    tagNeutral.className = 'budget-tag neutral';
+    tagNeutral.textContent = '중립';
+    const tagWage = document.createElement('span');
+    tagWage.className = 'budget-tag wage';
+    tagWage.textContent = '주급 자금';
+    sliderLabels.append(tagTransfer, tagNeutral, tagWage);
+
+    const sliderInput = document.createElement('input');
+    sliderInput.id = 'financeBalanceSlider';
+    sliderInput.className = 'finance-range';
+    sliderInput.type = 'range';
+    sliderInput.min = '-100';
+    sliderInput.max = '100';
+    sliderInput.step = '1';
+    sliderInput.value = '0';
+    sliderInput.oninput = () => updateFinanceBalancePreview(sliderInput.value);
+
+    const scaleDiv = document.createElement('div');
+    scaleDiv.className = 'finance-scale';
+    const scaleMin = document.createElement('span');
+    scaleMin.textContent = '-100';
+    const scaleState = document.createElement('span');
+    scaleState.id = 'financeBalanceState';
+    scaleState.textContent = '중립 상태';
+    const scaleMax = document.createElement('span');
+    scaleMax.textContent = '+100';
+    scaleDiv.append(scaleMin, scaleState, scaleMax);
+
+    sliderShell.append(sliderLabels, sliderInput, scaleDiv);
+    convCard.appendChild(sliderShell);
+
+    // Preview grid
+    const previewGrid = document.createElement('div');
+    previewGrid.className = 'finance-preview-grid';
+
+    const cardTransfer = document.createElement('div');
+    cardTransfer.className = 'finance-preview-card transfer';
+    const lblT = document.createElement('div');
+    lblT.className = 'finance-preview-label';
+    lblT.textContent = '이적 자금 변화';
+    const valT = document.createElement('div');
+    valT.id = 'financeTransferDelta';
+    valT.className = 'finance-preview-value';
+    valT.textContent = '0억';
+    const subT = document.createElement('div');
+    subT.id = 'financeTransferAfter';
+    subT.className = 'finance-preview-sub';
+    subT.textContent = '변동 없음';
+    cardTransfer.append(lblT, valT, subT);
+
+    const cardWage = document.createElement('div');
+    cardWage.className = 'finance-preview-card wage';
+    const lblW = document.createElement('div');
+    lblW.className = 'finance-preview-label';
+    lblW.textContent = '주급 자금 변화';
+    const valW = document.createElement('div');
+    valW.id = 'financeWageDelta';
+    valW.className = 'finance-preview-value';
+    valW.textContent = '0억';
+    const subW = document.createElement('div');
+    subW.id = 'financeWageAfter';
+    subW.className = 'finance-preview-sub';
+    subW.textContent = '변동 없음';
+    cardWage.append(lblW, valW, subW);
+
+    previewGrid.append(cardTransfer, cardWage);
+    convCard.appendChild(previewGrid);
+
+    // Action row
+    const actionRow = document.createElement('div');
+    actionRow.className = 'finance-action-row';
+    const applyBtn = document.createElement('button');
+    applyBtn.className = 'btn primary finance-apply-btn';
+    applyBtn.textContent = '선택한 예산 이동 적용';
+    applyBtn.onclick = () => applyFinanceBalanceSlider();
+
+    const resetBtn = document.createElement('button');
+    resetBtn.className = 'btn finance-reset-btn';
+    resetBtn.textContent = '슬라이더 초기화';
+    resetBtn.onclick = () => resetFinanceSlider();
+
+    actionRow.append(applyBtn, resetBtn);
+    convCard.appendChild(actionRow);
+    panel.appendChild(convCard);
+
+    // 4. Insight grid
+    const insightGrid = document.createElement('div');
+    insightGrid.className = 'finance-insight-grid';
+
+    const createInsightCard = (title, textBefore, boldText, textAfter) => {
+        const card = document.createElement('div');
+        card.className = 'finance-insight-card';
+        const t = document.createElement('div');
+        t.className = 'finance-insight-title';
+        t.textContent = title;
+        const body = document.createElement('div');
+        body.className = 'finance-insight-text';
+        const b = document.createElement('strong');
+        b.textContent = boldText;
+        body.append(document.createTextNode(textBefore), b, document.createTextNode(textAfter));
+        card.append(t, body);
+        return card;
+    };
+
+    insightGrid.append(
+        createInsightCard('이적 운영 상태', '현재 팀의 이적 자금은 ', `${transferBudget}억`, '이며, 공격적인 영입을 원하면 오른쪽 슬라이더를 높이세요.'),
+        createInsightCard('주급 운영 상태', '현재 주급 자금은 ', `${wageBudget}억`, '입니다. 이 수치가 낮으면 연봉 협상과 선수 유지가 어려워집니다.')
+    );
+    panel.appendChild(insightGrid);
+
+    // Note
+    const noteDiv = document.createElement('div');
+    noteDiv.className = 'finance-note';
+    noteDiv.textContent = '주급 자금이 부족하면 협상 단계에서 계약이 막힙니다. 필요할 때만 자금을 이동시키고, 과도한 전환은 피하세요.';
+    panel.appendChild(noteDiv);
+
+    container.replaceChildren(panel);
 
     if (typeof updateFinanceBalancePreview === 'function') {
         updateFinanceBalancePreview(transferDefault || 0);
@@ -5452,10 +6190,17 @@ async function simulateMultipleSeasons(count) {
     const loadingOverlay = document.createElement('div');
     loadingOverlay.id = 'simLoading';
     loadingOverlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);color:white;display:flex;justify-content:center;align-items:center;z-index:99999;font-size:2rem;flex-direction:column;';
-    loadingOverlay.innerHTML = `<div>⏳ ${count}시즌 시뮬레이션 중...</div><div id="simProgress" style="font-size:1rem;margin-top:20px;">준비 중</div>`;
-    document.body.appendChild(loadingOverlay);
 
-    const progressEl = document.getElementById('simProgress');
+    const countDiv = document.createElement('div');
+    countDiv.textContent = `⏳ ${count}시즌 시뮬레이션 중...`;
+
+    const progressEl = document.createElement('div');
+    progressEl.id = 'simProgress';
+    progressEl.style.cssText = 'font-size:1rem;margin-top:20px;';
+    progressEl.textContent = '준비 중';
+
+    loadingOverlay.append(countDiv, progressEl);
+    document.body.appendChild(loadingOverlay);
 
     // UI 렌더링 대기
     await new Promise(r => setTimeout(r, 50));

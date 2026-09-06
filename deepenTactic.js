@@ -139,7 +139,6 @@ const DeepTacticManager = {
             t.appendChild(c);
         }
         const dt = gameData.deepTactics;
-        const opts = (k, arr) => arr.map(([v, l]) => `<option value="${v}"${dt[k] === v ? ' selected' : ''}>${l}</option>`).join('');
         const fields = [
             ['defensiveLine', '수비 라인', [['deep', '딥 (Deep)'], ['standard', '표준'], ['high', '하이 (High)']]],
             ['pressIntensity', '압박 강도', [['low', '낮음'], ['mid', '보통'], ['high', '높음']]],
@@ -147,20 +146,44 @@ const DeepTacticManager = {
             ['passLength', '패스 길이', [['short', '짧게'], ['mixed', '혼합'], ['long', '길게']]],
             ['attackStyle', '⚡ 공격 전개', [['counter', '역습 (Counter)'], ['mixed', '혼합 (Mixed)'], ['possession', '지공 (Possession)']]]
         ];
-        c.innerHTML = `
-            <h4 style="color:#ffd700;margin-top:0;">심층 전술 세부 설정</h4>
-            ${fields.map(([k, label, options]) => `
-            <div style="margin-bottom:10px;">
-                <label style="display:block;margin-bottom:4px;color:#ccc;">${label}</label>
-                <select id="dt-${k}" style="width:100%;padding:5px;background:#333;color:white;">
-                    ${opts(k, options)}
-                </select>
-            </div>`).join('')}
-            <div style="color:#aaa;font-size:0.8rem;">* 설정은 자동 적용됩니다</div>
-        `;
-        fields.forEach(([k]) => {
-            document.getElementById(`dt-${k}`).addEventListener('change', e => { gameData.deepTactics[k] = e.target.value; });
+
+        c.replaceChildren();
+
+        const title = document.createElement('h4');
+        title.style.cssText = 'color:#ffd700;margin-top:0;';
+        title.textContent = '심층 전술 세부 설정';
+        c.appendChild(title);
+
+        fields.forEach(([k, label, options]) => {
+            const div = document.createElement('div');
+            div.style.marginBottom = '10px';
+
+            const lbl = document.createElement('label');
+            lbl.style.cssText = 'display:block;margin-bottom:4px;color:#ccc;';
+            lbl.textContent = label;
+
+            const select = document.createElement('select');
+            select.id = `dt-${k}`;
+            select.style.cssText = 'width:100%;padding:6px 8px;background:#2a2d34;color:#f0f0f0;border:1px solid #444;border-radius:4px;outline:none;box-sizing:border-box;font-size:0.9rem;';
+
+            options.forEach(([v, l]) => {
+                const opt = document.createElement('option');
+                opt.value = v;
+                opt.textContent = l;
+                if (dt[k] === v) opt.selected = true;
+                select.appendChild(opt);
+            });
+
+            select.addEventListener('change', e => { gameData.deepTactics[k] = e.target.value; });
+
+            div.append(lbl, select);
+            c.appendChild(div);
         });
+
+        const note = document.createElement('div');
+        note.style.cssText = 'color:#aaa;font-size:0.8rem;';
+        note.textContent = '* 설정은 자동 적용됩니다';
+        c.appendChild(note);
     }
 };
 

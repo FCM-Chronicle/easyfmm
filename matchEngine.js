@@ -1205,73 +1205,100 @@ window.DeepTacticManager = {
         }
         const el = document.getElementById('deepTacticsContainer');
         const dt = gameData.deepTactics;
-        el.innerHTML = `
-            <h3 style="color:#ffd700;margin-top:0;margin-bottom:18px;">세부 전술 지시</h3>
-            
-            <!-- [신규] 메인 전술 연동 원클릭 프리셋 -->
-            <div style="margin-bottom:14px; background:rgba(255,215,0,0.1); padding:10px; border-radius:8px; border:1px solid rgba(255,215,0,0.3);">
-                <label style="display:block;margin-bottom:4px;font-size:0.85rem;color:#ffd700;font-weight:bold;">✨ 메인 전술 기반 세부설정 자동 세팅</label>
-                <select id="dt-presetSelect" style="width:100%;padding:9px;background:#222;color:white;border:1px solid #444;border-radius:5px;cursor:pointer;">
-                    <option value="">-- 메인 전술을 선택하면 세부 전술이 자동 세팅됩니다 --</option>
-                    <option value="balanced">기본 전술 (무전술)</option>
-                    <option value="gegenpress">게겐프레싱 (강한 압박, 다이렉트)</option>
-                    <option value="twoLine">다이렉트 축구 (롱볼, 넓은 측면)</option>
-                    <option value="lavolpiana">라볼피아나 (후방 빌드업, 측면)</option>
-                    <option value="longBall">롱볼 축구 (수비적 롱볼)</option>
-                    <option value="possession">점유율 축구 (점유율 기반)</option>
-                    <option value="parkBus">역습 축구 / 텐백 (극단적 수비)</option>
-                    <option value="catenaccio">카테나치오 (대인방어 기반 수비)</option>
-                    <option value="totalFootball">토탈 풋볼 (전원 공격/전원 수비)</option>
-                    <option value="tikitaka">티키타카 (짧은 패스, 중앙 집중)</option>
-                </select>
-            </div>
+        el.replaceChildren();
 
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-                <div>
-                    <label style="display:block;margin-bottom:4px;font-size:0.85rem;color:#aaa;">공격 방향</label>
-                    <select id="dt-attackingSide" style="width:100%;padding:9px;background:#222;color:white;border:1px solid #444;border-radius:5px;">
-                        <option value="all" ${dt.attackingSide==='all'?'selected':''}>전체</option>
-                        <option value="middle" ${dt.attackingSide==='middle'?'selected':''}>중앙</option>
-                        <option value="left" ${dt.attackingSide==='left'?'selected':''}>좌측</option>
-                        <option value="right" ${dt.attackingSide==='right'?'selected':''}>우측</option>
-                    </select>
-                </div>
-                <div>
-                    <label style="display:block;margin-bottom:4px;font-size:0.85rem;color:#aaa;">패스 스타일</label>
-                    <select id="dt-passStyle" style="width:100%;padding:9px;background:#222;color:white;border:1px solid #444;border-radius:5px;">
-                        <option value="short" ${dt.passStyle==='short'?'selected':''}>짧은 패스</option>
-                        <option value="long" ${dt.passStyle==='long'?'selected':''}>긴 패스</option>
-                        <option value="direct" ${dt.passStyle==='direct'?'selected':''}>직접적인 패스</option>
-                    </select>
-                </div>
-                <div>
-                    <label style="display:block;margin-bottom:4px;font-size:0.85rem;color:#aaa;">팀 성향</label>
-                    <select id="dt-teamTendency" style="width:100%;padding:9px;background:#222;color:white;border:1px solid #444;border-radius:5px;">
-                        <option value="defensive" ${dt.teamTendency==='defensive'?'selected':''}>수비적</option>
-                        <option value="balanced" ${dt.teamTendency==='balanced'?'selected':''}>균형</option>
-                        <option value="offensive" ${dt.teamTendency==='offensive'?'selected':''}>공격적</option>
-                    </select>
-                </div>
-                <div>
-                    <label style="display:block;margin-bottom:4px;font-size:0.85rem;color:#aaa;">팀 너비</label>
-                    <select id="dt-teamWidth" style="width:100%;padding:9px;background:#222;color:white;border:1px solid #444;border-radius:5px;">
-                        <option value="narrow" ${dt.teamWidth==='narrow'?'selected':''}>좁게</option>
-                        <option value="middle" ${dt.teamWidth==='middle'?'selected':''}>보통</option>
-                        <option value="wide" ${dt.teamWidth==='wide'?'selected':''}>넓게</option>
-                    </select>
-                </div>
-                <div style="grid-column:1/-1;">
-                    <label style="display:block;margin-bottom:4px;font-size:0.85rem;color:#aaa;">압박 강도</label>
-                    <select id="dt-pressingStrength" style="width:100%;padding:9px;background:#222;color:white;border:1px solid #444;border-radius:5px;">
-                        <option value="low" ${dt.pressingStrength==='low'?'selected':''}>약하게</option>
-                        <option value="middle" ${dt.pressingStrength==='middle'?'selected':''}>보통</option>
-                        <option value="high" ${dt.pressingStrength==='high'?'selected':''}>강하게</option>
-                    </select>
-                </div>
-            </div>
-            <div style="margin-top:14px;color:#888;font-size:0.78rem;">
-                * 세부 전술은 공격 전개, 찬스 생성, 골 직전 연출 확률에 실시간으로 영향을 줍니다.
-            </div>`;
+        const h3 = document.createElement('h3');
+        h3.style.cssText = 'color:#ffd700;margin-top:0;margin-bottom:18px;';
+        h3.textContent = '세부 전술 지시';
+        el.appendChild(h3);
+
+        // [신규] 메인 전술 연동 원클릭 프리셋
+        const presetWrap = document.createElement('div');
+        presetWrap.style.cssText = 'margin-bottom:14px; background:rgba(255,215,0,0.1); padding:10px; border-radius:8px; border:1px solid rgba(255,215,0,0.3);';
+
+        const presetLabel = document.createElement('label');
+        presetLabel.style.cssText = 'display:block;margin-bottom:4px;font-size:0.85rem;color:#ffd700;font-weight:bold;';
+        presetLabel.textContent = '✨ 메인 전술 기반 세부설정 자동 세팅';
+
+        const presetSelect = document.createElement('select');
+        presetSelect.id = 'dt-presetSelect';
+        presetSelect.style.cssText = 'width:100%;padding:9px;background:#222;color:white;border:1px solid #444;border-radius:5px;cursor:pointer;';
+
+        const presetOptions = [
+            ['', '-- 메인 전술을 선택하면 세부 전술이 자동 세팅됩니다 --'],
+            ['balanced', '기본 전술 (무전술)'],
+            ['gegenpress', '게겐프레싱 (강한 압박, 다이렉트)'],
+            ['twoLine', '다이렉트 축구 (롱볼, 넓은 측면)'],
+            ['lavolpiana', '라볼피아나 (후방 빌드업, 측면)'],
+            ['longBall', '롱볼 축구 (수비적 롱볼)'],
+            ['possession', '점유율 축구 (점유율 기반)'],
+            ['parkBus', '역습 축구 / 텐백 (극단적 수비)'],
+            ['catenaccio', '카테나치오 (대인방어 기반 수비)'],
+            ['totalFootball', '토탈 풋볼 (전원 공격/전원 수비)'],
+            ['tikitaka', '티키타카 (짧은 패스, 중앙 집중)']
+        ];
+        presetOptions.forEach(([val, txt]) => {
+            const opt = document.createElement('option');
+            opt.value = val;
+            opt.textContent = txt;
+            presetSelect.appendChild(opt);
+        });
+        presetWrap.append(presetLabel, presetSelect);
+        el.appendChild(presetWrap);
+
+        const grid = document.createElement('div');
+        grid.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:14px;';
+
+        const createField = (id, labelText, options, currentVal, isFullWidth = false) => {
+            const fieldDiv = document.createElement('div');
+            if (isFullWidth) fieldDiv.style.gridColumn = '1/-1';
+
+            const lbl = document.createElement('label');
+            lbl.style.cssText = 'display:block;margin-bottom:4px;font-size:0.85rem;color:#aaa;';
+            lbl.textContent = labelText;
+
+            const select = document.createElement('select');
+            select.id = id;
+            select.style.cssText = 'width:100%;padding:9px;background:#222;color:white;border:1px solid #444;border-radius:5px;';
+
+            options.forEach(([val, txt]) => {
+                const opt = document.createElement('option');
+                opt.value = val;
+                opt.textContent = txt;
+                if (val === currentVal) opt.selected = true;
+                select.appendChild(opt);
+            });
+
+            fieldDiv.append(lbl, select);
+            return fieldDiv;
+        };
+
+        grid.appendChild(createField('dt-attackingSide', '공격 방향', [
+            ['all', '전체'], ['middle', '중앙'], ['left', '좌측'], ['right', '우측']
+        ], dt.attackingSide));
+
+        grid.appendChild(createField('dt-passStyle', '패스 스타일', [
+            ['short', '짧은 패스'], ['long', '긴 패스'], ['direct', '직접적인 패스']
+        ], dt.passStyle));
+
+        grid.appendChild(createField('dt-teamTendency', '팀 성향', [
+            ['defensive', '수비적'], ['balanced', '균형'], ['offensive', '공격적']
+        ], dt.teamTendency));
+
+        grid.appendChild(createField('dt-teamWidth', '팀 너비', [
+            ['narrow', '좁게'], ['middle', '보통'], ['wide', '넓게']
+        ], dt.teamWidth));
+
+        grid.appendChild(createField('dt-pressingStrength', '압박 강도', [
+            ['low', '약하게'], ['middle', '보통'], ['high', '강하게']
+        ], dt.pressingStrength, true));
+
+        el.appendChild(grid);
+
+        const noteDiv = document.createElement('div');
+        noteDiv.style.cssText = 'margin-top:14px;color:#888;font-size:0.78rem;';
+        noteDiv.textContent = '* 세부 전술은 공격 전개, 찬스 생성, 골 직전 연출 확률에 실시간으로 영향을 줍니다.';
+        el.appendChild(noteDiv);
             
         document.getElementById('dt-presetSelect').onchange = (e) => {
             const v = e.target.value;
