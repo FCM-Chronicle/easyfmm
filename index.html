@@ -2021,7 +2021,7 @@
     <!-- [신규] 감독 선택 화면 -->
     <div id="managerSelectionScreen" class="screen active">
         <div style="text-align: center; max-width: 1200px; margin: 0 auto 30px;">
-            <h1 style="font-size: 2.8rem; margin-bottom: 8px; background: linear-gradient(135deg, #ffd700, #f39c12); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">🏆 EASY FOOTBALL CLUB</h1>
+            <h1 style="font-size: 2.8rem; margin-bottom: 8px; background: linear-gradient(135deg, #ffd700, #f39c12); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">🏆 FOOTBALL MANAGER</h1>
             <p style="color: #bbb; font-size: 1.05rem; margin: 0;">구단을 이끌 명장을 선택하거나 새로운 감독 커리어를 시작하세요.</p>
         </div>
         
@@ -2698,6 +2698,7 @@
                             <span id="cursorStatusText">마우스 스타일 ON (커스텀 커서)</span>
                         </div>
                         <button class="btn" id="replayTutorialBtn" style="width: 100%; margin-bottom: 10px;">튜토리얼 다시 보기</button>
+                        <button class="btn" onclick="if (typeof playCinematicIntro === 'function') playCinematicIntro({ teamKey: gameData.selectedTeam, onComplete: () => { if (typeof showScreen === 'function') showScreen('lobby'); } })" style="width: 100%; margin-bottom: 10px; background: linear-gradient(45deg, #f39c12, #d35400);">🎬 오프닝 시네마틱 다시 보기</button>
                         <button class="btn" onclick="openDatabaseModal()" style="width: 100%; background: linear-gradient(45deg, #3498db, #2980b9);">📚 데이터베이스 열람</button>
                     </div>
 

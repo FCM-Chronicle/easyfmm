@@ -1158,28 +1158,39 @@ function selectTeam(teamKey) {
         generateFullSchedule();
     }
 
-    // 로비로 이동
-    showScreen('lobby');
-    displayTeamPlayers();
-    showScreen('lobby');
-    showDashboard(); // [수정] 로비 진입 시 대시보드 표시
-    updateDisplay();
-    displaySponsors();
+    // 로비 진입 공통 처리 함수
+    const enterLobby = () => {
+        showScreen('lobby');
+        displayTeamPlayers();
+        showDashboard(); // [수정] 로비 진입 시 대시보드 표시
+        updateDisplay();
+        displaySponsors();
 
-    // 환영 메일 발송
-    if (typeof mailManager !== 'undefined') {
-        mailManager.sendWelcomeMail();
-    }
+        // 환영 메일 발송
+        if (typeof mailManager !== 'undefined') {
+            mailManager.sendWelcomeMail();
+        }
 
-    // 배경음악 재생 시작
-    if (typeof audioManager !== 'undefined') {
-        audioManager.init();
-        audioManager.play();
-    }
+        // 배경음악 재생 시작
+        if (typeof audioManager !== 'undefined') {
+            audioManager.init();
+            audioManager.play();
+        }
 
-    // 튜토리얼 시작 (처음인 경우)
-    if (window.tutorialSystem) {
-        window.tutorialSystem.init();
+        // 튜토리얼 시작 (처음인 경우)
+        if (window.tutorialSystem) {
+            window.tutorialSystem.init();
+        }
+    };
+
+    // 오프닝 시네마틱 연출 실행 (스킵 또는 종료 시 로비 진입)
+    if (typeof playCinematicIntro === 'function') {
+        playCinematicIntro({
+            teamKey: teamKey,
+            onComplete: enterLobby
+        });
+    } else {
+        enterLobby();
     }
 
     // [신규] 랜덤 이벤트 트리거 (경기 전/후 등 적절한 시점에 호출 가능)
