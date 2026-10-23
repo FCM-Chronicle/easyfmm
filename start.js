@@ -35,8 +35,18 @@ function renderTeamSelectionUI() {
         logoContainer.replaceChildren();
         const logoImg = document.createElement('img');
         logoImg.className = 'ts-team-logo';
-        logoImg.src = `assets/logos/${currentTeamKey}.webp`;
-        logoImg.onerror = () => { logoImg.src = 'assets/logos/default.webp'; };
+        const logoCode = teamData?.logoCode || "DFT";
+        const logoLeague = teamData?.league || league;
+        logoImg.src = `assets/logo/${logoLeague}/${logoCode}.webp`;
+        logoImg.alt = teamName;
+        logoImg.onerror = function() {
+            this.onerror = null;
+            const fallback = document.createElement('div');
+            fallback.className = 'ts-team-logo-fallback';
+            fallback.style.cssText = 'width: 180px; height: 180px; display: inline-flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #ffd700, #f39c12); color: #000; border-radius: 50%; font-weight: 900; font-size: 3rem; border: 3px solid #ffd700;';
+            fallback.textContent = (teamName || 'FC').substring(0, 2).toUpperCase();
+            this.replaceWith(fallback);
+        };
         logoContainer.appendChild(logoImg);
     }
 

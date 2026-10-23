@@ -212,22 +212,25 @@ function getTeamLogoHTML(teamName) {
     if (!teamName) return '';
 
     // 월드컵 모드이거나 국가대표팀 국기가 존재하는 경우 국기 이모지 배지 표시
-    if ((typeof gameData !== 'undefined' && gameData.isWorldCupMode) || WORLD_CUP_FLAGS[teamName]) {
-        const flag = WORLD_CUP_FLAGS[teamName] || '🌐';
+    if ((typeof gameData !== 'undefined' && gameData.isWorldCupMode) || (typeof WORLD_CUP_FLAGS !== 'undefined' && WORLD_CUP_FLAGS[teamName])) {
+        const flag = (typeof WORLD_CUP_FLAGS !== 'undefined' && WORLD_CUP_FLAGS[teamName]) || '🌐';
         return `<span class="team-logo-flag" style="display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; font-size:1.35rem; margin-right:6px; flex-shrink:0; vertical-align:middle;">${flag}</span>`;
     }
 
-    const team = allTeams[teamName];
+    // 레전드 팀
+    if (teamName.startsWith("Legend_")) {
+        const legendCode = (typeof LegendLeagueManager !== 'undefined' && LegendLeagueManager.legendLogoCodes && LegendLeagueManager.legendLogoCodes[teamName])
+            || (typeof LegendLeagueManager !== 'undefined' && LegendLeagueManager.legendTeams && LegendLeagueManager.legendTeams[teamName]?.logoCode)
+            || "DFT";
+        return `<img src="assets/logo/legend/${legendCode}.webp" class="team-logo" alt="${teamName}" onerror="this.outerHTML='<span class=\\'team-logo-fallback\\'>👑</span>'">`;
+    }
+
+    const team = typeof allTeams !== 'undefined' ? allTeams[teamName] : null;
     if (!team) return '';
     const code = team.logoCode || "DFT";
 
-    // 레전드 팀
-    if (teamName.startsWith("Legend_")) {
-        return `<img src="assets/logo/legend/${code}.webp" class="team-logo" alt="${teamName}" onerror="this.outerHTML='<span class=\\'team-logo-fallback\\'>👑</span>'">`;
-    }
-
     if (code === "DFT" || team.isCustom || team.isIcon || !team.league) {
-        const initials = (teamNames[teamName] || teamName || 'FC').substring(0, 2).toUpperCase();
+        const initials = ((typeof teamNames !== 'undefined' && teamNames[teamName]) || teamName || 'FC').substring(0, 2).toUpperCase();
         return `<span class="team-logo-fallback" style="display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; background:linear-gradient(135deg, #ffd700, #f39c12); color:#000; border-radius:50%; font-weight:900; font-size:0.8rem; border:1px solid #ffd700; margin-right:6px; flex-shrink:0; vertical-align:middle;">${initials}</span>`;
     }
 
@@ -246,11 +249,10 @@ function createTeamLogoElement(teamName) {
         return span;
     }
 
-    const team = typeof allTeams !== 'undefined' ? allTeams[teamName] : null;
-    if (!team) return document.createDocumentFragment();
-    const code = team.logoCode || "DFT";
-
     if (teamName.startsWith("Legend_")) {
+        const code = (typeof LegendLeagueManager !== 'undefined' && LegendLeagueManager.legendLogoCodes && LegendLeagueManager.legendLogoCodes[teamName])
+            || (typeof LegendLeagueManager !== 'undefined' && LegendLeagueManager.legendTeams && LegendLeagueManager.legendTeams[teamName]?.logoCode)
+            || "DFT";
         const img = document.createElement('img');
         img.src = `assets/logo/legend/${code}.webp`;
         img.className = 'team-logo';
@@ -263,6 +265,10 @@ function createTeamLogoElement(teamName) {
         };
         return img;
     }
+
+    const team = typeof allTeams !== 'undefined' ? allTeams[teamName] : null;
+    if (!team) return document.createDocumentFragment();
+    const code = team.logoCode || "DFT";
 
     if (code === "DFT" || team.isCustom || team.isIcon || !team.league) {
         const initials = ((typeof teamNames !== 'undefined' && teamNames[teamName]) || teamName || 'FC').substring(0, 2).toUpperCase();

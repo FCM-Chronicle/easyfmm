@@ -379,7 +379,7 @@
   function applyTeamLogos() {
     const md = window.currentMatchData;
     const teams = window.allTeams;
-    if (!md || !teams) return;
+    if (!md) return;
 
     const homeKey = md.homeTeam;
     const awayKey = md.awayTeam;
@@ -387,24 +387,41 @@
     // 이전과 팀 키가 동일하면 다시 그릴 필요 없음
     if (homeKey === lastLogoHomeKey && awayKey === lastLogoAwayKey) return;
 
-    const homeInfo = teams[homeKey];
-    const awayInfo = teams[awayKey];
+    const getTeamInfo = (key) => {
+      if (key && key.startsWith("Legend_")) {
+        const code = (window.LegendLeagueManager && window.LegendLeagueManager.legendLogoCodes && window.LegendLeagueManager.legendLogoCodes[key])
+          || (window.LegendLeagueManager && window.LegendLeagueManager.legendTeams && window.LegendLeagueManager.legendTeams[key]?.logoCode)
+          || "DFT";
+        return { isLegend: true, logoCode: code };
+      }
+      return teams ? teams[key] : null;
+    };
+
+    const homeInfo = getTeamInfo(homeKey);
+    const awayInfo = getTeamInfo(awayKey);
     if (!homeInfo || !awayInfo) return;
 
-    const homeCode = homeInfo.logoCode || "DFT";
-    const awayCode = awayInfo.logoCode || "DFT";
-
-    const homePath = homeKey.startsWith("Legend_")
-      ? `assets/logo/legend/${homeCode}.webp`
-      : `assets/logo/${homeInfo.league}/${homeCode}.webp`;
-    const awayPath = awayKey.startsWith("Legend_")
-      ? `assets/logo/legend/${awayCode}.webp`
-      : `assets/logo/${awayInfo.league}/${awayCode}.webp`;
+    const homePath = homeInfo.isLegend
+      ? `assets/logo/legend/${homeInfo.logoCode}.webp`
+      : `assets/logo/${homeInfo.league || 1}/${homeInfo.logoCode || "DFT"}.webp`;
+    const awayPath = awayInfo.isLegend
+      ? `assets/logo/legend/${awayInfo.logoCode}.webp`
+      : `assets/logo/${awayInfo.league || 1}/${awayInfo.logoCode || "DFT"}.webp`;
 
     const homeLogo = document.getElementById("sb-home-logo");
     const awayLogo = document.getElementById("sb-away-logo");
-    if (homeLogo) { homeLogo.src = homePath; homeLogo.alt = homeKey; homeLogo.style.display = ""; }
-    if (awayLogo) { awayLogo.src = awayPath; awayLogo.alt = awayKey; awayLogo.style.display = ""; }
+    if (homeLogo) {
+      homeLogo.src = homePath;
+      homeLogo.alt = homeKey;
+      homeLogo.style.display = "";
+      homeLogo.onerror = function() { this.style.display = "none"; };
+    }
+    if (awayLogo) {
+      awayLogo.src = awayPath;
+      awayLogo.alt = awayKey;
+      awayLogo.style.display = "";
+      awayLogo.onerror = function() { this.style.display = "none"; };
+    }
 
     lastLogoHomeKey = homeKey;
     lastLogoAwayKey = awayKey;
