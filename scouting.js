@@ -1,4 +1,4 @@
-// scouting.js - 유스 스카우트 시스템
+﻿// scouting.js - 유스 스카우트 시스템
 
 class ScoutingSystem {
     constructor() {
@@ -166,42 +166,18 @@ function displayScoutingScreen() {
         }
     }
 
+    // 스카우터 목록 UI 상태 갱신 (index.html 정적 마크업 연동)
     const scoutList = document.getElementById('scoutList');
     if (!scoutList) return;
 
-    scoutList.replaceChildren(); // 목록 초기화
     const isHired = !!gameData.hiredScout;
-
-    Object.entries(scoutingSystem.scouts).forEach(([tier, scout]) => {
-        const scoutCard = document.createElement('div');
-        scoutCard.className = 'scout-card';
-        if (isHired) {
-            scoutCard.classList.add('disabled');
+    const cards = scoutList.querySelectorAll('.scout-card');
+    cards.forEach(card => {
+        card.classList.toggle('disabled', isHired);
+        const btn = card.querySelector('button');
+        if (btn) {
+            btn.disabled = isHired;
         }
-
-        const h4 = document.createElement('h4');
-        h4.textContent = scout.name;
-
-        const pCost = document.createElement('p');
-        pCost.textContent = `비용: ${scout.cost}억`;
-
-        const pChance = document.createElement('p');
-        pChance.textContent = `발굴 성공 확률: ${scout.chance * 100}% (경기당)`;
-
-        const pRating = document.createElement('p');
-        pRating.textContent = `예상 능력치: ${scout.minRating}~${scout.maxRating}`;
-
-        const btn = document.createElement('button');
-        btn.className = 'btn primary';
-        btn.textContent = '고용하기';
-        if (isHired) {
-            btn.disabled = true;
-        } else {
-            btn.addEventListener('click', () => hireScoutAndRefresh(tier));
-        }
-
-        scoutCard.append(h4, pCost, pChance, pRating, btn);
-        scoutList.appendChild(scoutCard);
     });
 }
 
