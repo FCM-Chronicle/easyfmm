@@ -1,0 +1,1285 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net"crossorigin>
+    <link rel="stylesheet" as="style"crossorigin
+        href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+    <meta name="google-site-verification" content="0EUjE6lQoq4jdx7OwHEU6rxA0N_vDB36l44mRzGV8Xc" />
+    <meta name="viewport" content=" width=device-width, initial-scale=1.0">
+    <title>무료 풋볼 매니저 게임</title>
+    <meta name="description" content="초보자도 쉽게 즐길 수 있는 축구 감독 게임입니다. '슈퍼리그'세계관에서 강한 팀으로 우승하거나, 약체 팀으로 차근차근 올라가세요. 팀을 구성하고, 전술을 선택하고, 승리하세요!">
+    <link rel="shortcut icon" href="./favicon.ico">
+    <link rel="stylesheet" href="style.css?v=20261024_07">
+</head>
+
+<body>
+    <!-- 게임 리소스 및 시스템 로더 오버레이 -->
+    <div id="game-loader-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #0a1220 0%, #0e1a2f 100%); z-index: 999999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.8s ease, visibility 0.8s; font-family: var(--font-main);">
+        <div style="text-align: center;">
+            <div class="loader-logo" style="margin-bottom: 25px;">
+                <h1 style="color: #ffd700; font-size: 3.5rem; margin: 0; letter-spacing: -2px; text-shadow: 0 0 30px rgba(255,215,0,0.3);">EasyFMM</h1>
+                <div style="color: #6b9ae0; font-size: 0.8rem; letter-spacing: 5px; font-weight: bold; margin-top: 5px;">NEXT GEN MANAGER</div>
+                <div style="color: rgba(255,255,255,0.4); font-size: 0.65rem; font-weight: normal; margin-top: 6px;">꿀팁을 원한다면 채팅으로 여러 사람들과 이야기를 나눠 보세요!</div>
+            </div>
+            <div style="width: 280px; height: 4px; background: rgba(255,255,255,0.05); border-radius: 10px; overflow: hidden; margin: 0 auto; border: 1px solid rgba(255,255,255,0.1);">
+                <div id="loader-progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #6b9ae0, #4a7bc8); box-shadow: 0 0 15px rgba(107, 154, 224,0.6); transition: width 0.4s cubic-bezier(0.1, 0.7, 0.1, 1);"></div>
+            </div>
+            <div id="loader-status" style="margin-top: 20px; color: #fff; font-size: 0.85rem; opacity: 0.7; font-weight: 300; text-transform: uppercase;">데이터 분석 중...</div>
+            <div style="position: absolute; bottom: 40px; color: rgba(255,255,255,0.2); font-size: 0.7rem;">
+                © 2026 FCM_CHRONICLE. ALL SYSTEMS OPERATIONAL.
+            </div>
+        </div>
+    </div>
+
+    <!-- [신규] 감독 선택 화면 -->
+    <div id="managerSelectionScreen" class="screen active">
+        <div style="text-align: center; max-width: 1200px; margin: 0 auto 30px;">
+            <h1 style="font-size: 2.8rem; margin-bottom: 8px; display: inline-flex; align-items: center; gap: 12px; color: #F8FAFC; font-weight: 900; letter-spacing: -0.03em;"><span data-icon="trophy" data-icon-class="lg"></span><span>FOOTBALL MANAGER</span></h1>
+            <p style="color: #94A3B8; font-size: 1.05rem; margin: 0;">구단을 이끌 명장을 선택하거나 새로운 감독 커리어를 시작하세요.</p>
+        </div>
+        
+        <div style="max-width: 1200px; margin: 0 auto 24px; display: flex; justify-content: space-between; align-items: center; background: #111827; padding: 16px 24px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08);">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span data-icon="clipboard"></span>
+                <span style="color: #F8FAFC; font-weight: 800; font-size: 1.1rem; letter-spacing: -0.03em;">등록된 감독 목록</span>
+                <span id="managerCountBadge" style="background: rgba(56, 189, 248, 0.15); color: #38BDF8; border: 1px solid rgba(56, 189, 248, 0.35); padding: 2px 10px; border-radius: 6px; font-size: 0.85rem; font-weight: 800; font-variant-numeric: tabular-nums;">0명</span>
+            </div>
+            <button id="createNewManagerBtn" class="btn primary">
+                <span data-icon="sparkles"></span>
+                <span>새 감독 생성</span>
+            </button>
+        </div>
+
+        <div id="managerListGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; max-width: 1200px; margin: 0 auto;">
+            <!-- JS로 감독 목록 동적 렌더링 -->
+        </div>
+    </div>
+
+    <!-- [신규] 프리미엄 감독 생성/수정 모달 (라이브 카드 프리뷰 & 철학 선택) -->
+    <div id="managerEditModal" class="modal">
+        <div class="modal-content manager-creator-modal">
+            <span class="close-btn" id="closeManagerEditModal">&times;</span>
+            
+            <div class="manager-creator-shell">
+                <!-- 좌측: 실시간 라이센스 ID 카드 프리뷰 -->
+                <div class="manager-preview-col">
+                    <div class="manager-license-card" id="creatorLiveCard">
+                        <div class="license-top-bar">
+                            <span class="license-org">EASY FOOTBALL FEDERATION</span>
+                            <span class="license-badge-pill">OFFICIAL</span>
+                        </div>
+                        <div class="license-avatar-wrap">
+                            <div class="avatar-glow-ring"></div>
+                            <div class="license-avatar-display" id="prevAvatar"><span data-icon="briefcase" data-icon-class="lg"></span></div>
+                        </div>
+                        <div class="license-body">
+                            <div class="license-name-label">HEAD COACH / MANAGER</div>
+                            <div class="license-name" id="prevName">신임 감독</div>
+                            <div class="license-meta-row">
+                                <span class="license-flag" id="prevFlag">KR</span>
+                                <span class="license-nation" id="prevNation">대한민국</span>
+                                <span class="license-divider">•</span>
+                                <span class="license-age" id="prevAge">45세</span>
+                            </div>
+                            <div class="license-title-badge" id="prevTitleBadge">전성기 명장</div>
+                            <div class="license-philo-badge" id="prevPhiloBadge">
+                                <span data-icon="zap"></span> 닥공 & 게겐프레싱
+                            </div>
+                        </div>
+                        <div class="license-footer">
+                            <div class="license-rank">
+                                <span class="rank-label">CLASS</span>
+                                <span class="rank-stars">UEFA PRO LEVEL 5</span>
+                            </div>
+                            <div class="license-id-code" id="prevIdCode">ID: MGR-2026</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 우측: 인터랙티브 커스터마이저 폼 -->
+                <div class="manager-form-col">
+                    <div class="creator-header">
+                        <h2 id="managerEditTitle">새 감독 등록</h2>
+                        <p class="creator-subtitle">구단을 이끌 새로운 사령탑의 프로필과 축구 철학을 설정하세요.</p>
+                    </div>
+
+                    <!-- 1. 기본 인적사항 -->
+                    <div class="creator-section">
+                        <div class="section-label">1. 기본 프로필</div>
+                        <div class="name-input-group">
+                            <input type="text" id="managerNameInput" class="creator-input" placeholder="감독 이름 입력" maxlength="16">
+                            <button type="button" id="randomNameBtn" class="dice-btn" title="랜덤 명장 이름 생성">랜덤 이름</button>
+                        </div>
+
+                        <div class="form-row-2">
+                            <div>
+                                <label class="sub-label">국적</label>
+                                <select id="managerNationSelect" class="creator-select">
+                                    <option value="대한민국" data-flag="KR">KR 대한민국</option>
+                                    <option value="잉글랜드" data-flag="ENG">ENG 잉글랜드</option>
+                                    <option value="스페인" data-flag="ESP">ESP 스페인</option>
+                                    <option value="독일" data-flag="GER">GER 독일</option>
+                                    <option value="프랑스" data-flag="FRA">FRA 프랑스</option>
+                                    <option value="이탈리아" data-flag="ITA">ITA 이탈리아</option>
+                                    <option value="브라질" data-flag="BRA">BRA 브라질</option>
+                                    <option value="아르헨티나" data-flag="ARG">ARG 아르헨티나</option>
+                                    <option value="포르투갈" data-flag="POR">POR 포르투갈</option>
+                                    <option value="네덜란드" data-flag="NED">NED 네덜란드</option>
+                                    <option value="일본" data-flag="JPN">JPN 일본</option>
+                                    <option value="기타" data-flag="GLB">GLB 기타</option>
+                                </select>
+                            </div>
+                            <div>
+                                <div style="display:flex; justify-content:space-between; align-items:center;">
+                                    <label class="sub-label">나이</label>
+                                    <span id="ageValueDisplay" class="age-badge">45세</span>
+                                </div>
+                                <input type="range" id="managerAgeRange" min="32" max="72" value="45" class="creator-range">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. 외형 / 아바타 선택 -->
+                    <div class="creator-section">
+                        <div class="section-label">2. 감독 비주얼 아바타</div>
+                        <div class="avatar-picker-grid" id="avatarPickerGrid">
+                            <!-- JS로 8종 렌더링 -->
+                        </div>
+                    </div>
+
+                    <!-- 3. 전술 철학 선택 -->
+                    <div class="creator-section">
+                        <div class="section-label">3. 감독 전술 철학 & 특성</div>
+                        <div class="philosophy-picker-grid" id="philoPickerGrid">
+                            <!-- JS로 4종 카드 렌더링 -->
+                        </div>
+                    </div>
+
+                    <!-- 계약 체결 버튼 -->
+                    <div class="creator-actions">
+                        <button id="saveManagerInfoBtn" class="creator-submit-btn">
+                            <span data-icon="rocket"></span>
+                            <span>정식 감독 계약 체결 및 등록</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- [신규] 감독 프로필 및 세이브 슬롯 모달 -->
+    <div id="managerProfileModal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <span class="close-btn" id="closeManagerProfileModal">&times;</span>
+            
+            <div style="display: flex; gap: 20px; align-items: flex-start; margin-bottom: 30px;">
+                <!-- 감독 정보 표시 -->
+                <div style="flex: 1; background: rgba(255,255,255,0.05); padding: 20px; border-radius: 10px; border: 1px solid rgba(255,215,0,0.3);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; margin-bottom: 15px;">
+                        <h2 id="profileManagerName" style="margin: 0; color: #ffd700;">감독 이름</h2>
+                        <button id="editManagerProfileBtn" class="btn small" style="background: rgba(255,255,255,0.1);">정보 수정</button>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 1rem;">
+                        <div><span style="color:#aaa;">국적:</span> <span id="profileManagerNation">대한민국</span></div>
+                        <div><span style="color:#aaa;">나이:</span> <span id="profileManagerAge">45</span>세</div>
+                        <div><span style="color:#aaa;">통산 전적:</span> <span id="profileManagerMatches">0</span>전</div>
+                        <div><span style="color:#aaa;">승/무/패:</span> <span id="profileManagerWDL" style="color:#2ecc71;">0 / 0 / 0</span></div>
+                        <div style="grid-column: 1 / -1;"><span style="color:#aaa;">우승 트로피:</span> <span id="profileManagerTrophies">0</span>개</div>
+                    </div>
+                </div>
+            </div>
+
+            <h3 style="color: #fff; margin-bottom: 15px;">저장 슬롯 (해당 감독 전용)</h3>
+            <div id="managerSaveSlotsGrid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
+                <!-- JS로 세이브 슬롯 3개 렌더링 -->
+            </div>
+            
+            <div style="margin-top: 25px; text-align: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
+                <button id="deleteManagerBtn" class="btn danger" style="opacity: 0.7;">감독 삭제</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 팀 선택 화면 (active 클래스 제거) -->
+    <div id="teamSelection" class="screen">
+        <div style="max-width: 1400px; margin: 0 auto 10px; display: flex; justify-content: space-between; align-items: center;">
+            <button id="backToManagerBtn" class="back-nav-btn">감독 선택으로 돌아가기</button>
+            <h1 style="margin: 0; font-size: 2rem;">팀 선택</h1>
+            <div style="width: 160px;"></div> <!-- 균형용 빈 공간 -->
+        </div>
+
+        <!-- [신규] 저장된 게임 이어하기 섹션 -->
+        <div id="mainLoadSection" style="max-width: 1200px; margin: 0 auto 30px; display: none;">
+            <h3
+                style="color: #ffd700; border-bottom: 2px solid rgba(255,255,255,0.1); padding-bottom: 10px; margin-bottom: 15px;">저장된 게임 이어하기</h3>
+            <div id="mainLoadSlots" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px;">
+                <!-- 자바스크립트로 슬롯 생성 -->
+            </div>
+        </div>
+
+        <!-- 나만의 팀 만들기 버튼 -->
+        <button id="openCreateTeamModalBtn" class="btn primary" style="width: 100%; max-width: 1200px; margin: 0 auto 24px; display: flex;">나만의 팀 만들기</button>
+
+        <!-- [신규] FC26 스타일 팀 선택 UI -->
+        <div id="teamSelectionUI" class="team-selection-ui" style="max-width: 1400px; margin: 0 auto;">
+            <!-- 본문: 3단 레이아웃 -->
+            <div class="ts-body">
+                <!-- 좌측: Identity -->
+                <div class="ts-section ts-left">
+                    <!-- [수정] 리그 선택기 (팀 로고 위) -->
+                    <div class="ts-league-selector">
+                        <button class="ts-nav-arrow small" onclick="changeLeague(-1)" aria-label="이전 리그"><span class="ui-icon" data-icon="chevron-left"></span></button>
+                        <span id="ts-league-name" class="ts-league-name">1부 리그</span>
+                        <button class="ts-nav-arrow small" onclick="changeLeague(1)" aria-label="다음 리그"><span class="ui-icon" data-icon="chevron-right"></span></button>
+                    </div>
+
+                    <div class="ts-logo-container">
+                        <button class="ts-nav-arrow prev" onclick="changeSelectionTeam(-1)">&#10094;</button>
+                        <div id="ts-team-logo-container">
+                            <!-- 로고 이미지 -->
+                        </div>
+                        <button class="ts-nav-arrow next" onclick="changeSelectionTeam(1)">&#10095;</button>
+                    </div>
+                    <div id="ts-team-name" class="ts-team-name">Team Name</div>
+                    <div id="ts-team-stars" class="ts-team-stars"></div>
+                    <button id="ts-select-btn" class="btn primary" style="padding: 15px 40px; font-size: 1.2rem; margin-top: 20px;">이 팀으로 시작</button>
+                </div>
+
+                <!-- 중앙: The Story -->
+                <div class="ts-section ts-center">
+                    <div class="ts-desc-box">
+                        <h3>TEAM STORY</h3>
+                        <div id="ts-team-desc" class="ts-desc-text">
+                            팀 설명이 들어갑니다.
+                        </div>
+                    </div>
+
+                    <div class="ts-info-row">
+                        <span class="ts-info-label">연고지</span>
+                        <span id="ts-team-city" class="ts-info-value">City Name</span>
+                    </div>
+                </div>
+
+                <!-- 우측: Key Assets -->
+                <div class="ts-section ts-right">
+                    <h3 style="color: #aaa; font-size: 0.9rem; text-transform: uppercase; margin-bottom: 20px;">KEY
+                        PLAYERS</h3>
+
+                    <div id="ts-key-player-1" class="ts-key-player">
+                        <!-- JS로 채움 -->
+                    </div>
+
+                    <div id="ts-key-player-2" class="ts-key-player">
+                        <!-- JS로 채움 -->
+                    </div>
+
+                    <div id="ts-key-player-3" class="ts-key-player">
+                        <!-- JS로 채움 -->
+                    </div>
+
+                    <!-- [수정] 구단 가치 -> 시작 자금으로 변경 -->
+                    <div
+                        style="margin-top: 30px; background: rgba(255,255,255,0.05); padding: 20px; border-radius: 10px; text-align: center;">
+                        <div style="color: #aaa; font-size: 0.9rem; margin-bottom: 5px;">시작 자금 (Starting Budget)</div>
+                        <div id="ts-team-budget" class="ts-budget-value">1000억</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- 로비 화면 -->
+    <div id="lobby" class="screen">
+        <div class="lobby-header">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <button id="homeBtn" class="btn" style="display: none; padding: 8px 15px; font-size: 1.2rem;">홈</button>
+                <h1 id="teamName" style="margin: 0;">팀 이름</h1>
+            </div>
+            <div id="topbarTitle" class="topbar-title"></div>
+            <div class="team-info">
+                <div class="info-item">
+                    <span class="label">자금:</span>
+                    <span id="teamMoney">1000억</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">사기:</span>
+                    <span id="teamMorale">50</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">스폰서:</span>
+                    <span id="currentSponsor">없음</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">라운드:</span>
+                    <span id="teamRound">1</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- [신규] 대시보드 컨테이너 -->
+        <div id="dashboard-container" class="dashboard-grid">
+            <!-- 자바스크립트로 카드가 생성됩니다 -->
+        </div>
+
+        <!-- 기존 탭 컨텐츠 (초기에는 숨김) -->
+        <div id="main-tabs" class="lobby-tabs" style="display:none;">
+            <button class="tab-btn active" data-tab="squad"><span class="tab-ico"></span><span class="tab-label">스쿼드</span></button>
+            <button class="tab-btn" data-tab="match"><span class="tab-ico"></span><span class="tab-label">경기</span></button>
+            <button class="tab-btn" data-tab="league"><span class="tab-ico"></span><span class="tab-label">리그</span></button>
+            <button class="tab-btn" data-tab="tactics"><span class="tab-ico"></span><span class="tab-label">전술</span></button>
+            <button class="tab-btn" data-tab="transfer"><span class="tab-ico"></span><span class="tab-label">이적</span></button>
+            <button class="tab-btn" data-tab="growth"><span class="tab-ico"></span><span class="tab-label">성장</span></button>
+            <button class="tab-btn" data-tab="transfer_news"><span class="tab-ico"></span><span class="tab-label">이적뉴스</span></button>
+            <button class="tab-btn" data-tab="finance"><span class="tab-ico"></span><span class="tab-label">재정</span></button>
+            <button class="tab-btn" data-tab="sponsor"><span class="tab-ico"></span><span class="tab-label">후원</span></button>
+            <button class="tab-btn" data-tab="records"><span class="tab-ico"></span><span class="tab-label">기록</span></button>
+            <button class="tab-btn" data-tab="youth"><span class="tab-ico"></span><span class="tab-label">유스</span></button>
+            <button class="tab-btn" data-tab="sns"><span class="tab-ico"></span><span class="tab-label">SNS</span></button>
+            <button class="tab-btn" data-tab="mail"><span class="tab-ico"></span><span class="tab-label">메일</span></button>
+            <button class="tab-btn" data-tab="chat"><span class="tab-ico"></span><span class="tab-label">대화</span></button>
+            <button class="tab-btn" data-tab="settings"><span class="tab-ico"></span><span class="tab-label">설정</span></button>
+        </div>
+        <div id="tab-content-area" class="tab-content" style="display: none;">
+            <!-- 스쿼드 탭 -->
+            <div id="squad" class="tab-panel active">
+                <div class="squad-controls">
+                    <!-- 포메이션 수정 버튼은 이 곳으로 이동됩니다. (scouting.js에서 처리) -->
+                </div>
+
+                <div class="formation-container">
+                    <div class="field-wrapper">
+                        <div class="field">
+                            <div class="field-line"></div>
+                            <div class="center-circle"></div>
+                            <div class="penalty-box penalty-box-top"></div>
+                            <div class="penalty-box penalty-box-bottom"></div>
+
+                            <!-- 선수 영역 -->
+                            <div class="player-area" id="fw-area" data-position-type="FW"></div>
+                            <div class="player-area" id="mf-area" data-position-type="MF"></div>
+                            <div class="player-area" id="df-area" data-position-type="DF"></div>
+                            <div class="player-area" id="gk-area" data-position-type="GK"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="team-players">
+                    <h3>구단 선수 명단</h3>
+                    <div id="playerList"></div>
+                </div>
+            </div>
+
+            <!-- 개선된 경기 탭 -->
+            <div id="match" class="tab-panel">
+                <div class="match-info">
+                    <h3>다음 경기 일정</h3>
+                    <div class="opponent-info">
+                        <div class="opponent-details">
+                            <div class="opponent-name">
+                                <span id="opponentName">상대팀</span>
+                            </div>
+                            <div class="match-details">
+                                <span class="match-type">리그전</span>
+                                <span class="match-time">킥오프 예정</span>
+                            </div>
+                        </div>
+                        <button id="startMatchBtn" class="btn primary" style="padding: 15px 40px; font-size: 1.2rem; font-weight: bold;">경기 시작</button>
+                    </div>
+                </div>
+
+                <div class="tactic-selection">
+                    <h3>전술 선택</h3>
+                    <div class="tactic-info">
+                        <p>상대팀의 전술에 따라 승부의 향방이 결정될 수 있습니다.</p>
+                    </div>
+                    <select id="tacticSelect">
+                        <option value="gegenpress">게겐프레싱 - 높은 압박으로 빠른 역습</option>
+                        <option value="twoLine">다이렉트 축구 - 상대의 허점 파고들기</option>
+                        <option value="lavolpiana">라볼피아나 - 측면 공격 중심</option>
+                        <option value="longBall">롱볼축구 - 긴 패스로 빠른 공격</option>
+                        <option value="possession">점유율 축구 - 천천히 기회 창출</option>
+                        <option value="parkBus">역습 축구 - 수비 후 빠른 역습</option>
+                        <option value="catenaccio">카테나치오 - 이탈리아식 수비</option>
+                        <option value="totalFootball">토탈 풋볼 - 모든 선수가 공수 참여</option>
+                        <option value="tikitaka">티키타카 - 짧은 패스 연결</option>
+                    </select>
+                    <div class="tactic-tip">
+                        <span data-icon="lightbulb"></span> 팁: 설정에서 상대팀의 전술 스타일을 파악한 후 적절한 전술을 선택하세요
+                    </div>
+                    <div class="tactic-tip" style="margin-top: 8px; color: #FBBF24;">
+                        <span data-icon="clapperboard"></span> 골 직전 연출은 설정 탭 → 경기 연출에서 On/Off 및 강도를 조절할 수 있습니다.
+                    </div>
+                </div>
+            </div>
+
+            <!-- 전술(DNA) 탭 -->
+            <div id="tactics" class="tab-panel">
+                <div class="tactics-header-flex">
+                    <h3>팀 DNA 설정</h3>
+                    <button id="openEngineGuideBtn" class="btn btn-sm">매치 엔진 가이드</button>
+                </div>
+                <p style="color: #94A3B8; font-size: 0.9rem; margin-bottom: 20px;">라인별 총 포인트(OVR x 6)를 6대 핵심 스탯에 직접
+                    분배하여 팀의 색깔을 결정하세요.</p>
+                <div id="tacticsContent"></div>
+            </div>
+
+            <!-- 이적 탭 -->
+            <div id="transfer" class="tab-panel">
+                <div class="transfer-controls">
+                    <h3>이적 시장</h3>
+                    <div class="search-filters">
+                        <input type="text" id="nameSearch" placeholder="선수 이름 검색">
+                        <select id="positionFilter">
+                            <option value="">모든 포지션</option>
+                            <option value="GK">골키퍼</option>
+                            <option value="DF">수비수</option>
+                            <option value="MF">미드필더</option>
+                            <option value="FW">공격수</option>
+                        </select>
+                        <input type="number" id="minRating" placeholder="최소 능력치">
+                        <input type="number" id="maxAge" placeholder="최대 나이">
+                        <button id="searchBtn" class="btn">검색</button>
+                    </div>
+                </div>
+                <div id="transferPlayers"></div>
+            </div>
+
+            <!-- 재정 탭 -->
+            <div id="finance" class="tab-panel">
+                <div class="finance-header">
+                    <h3>재정 관리</h3>
+                    <p class="finance-description">
+                        이적 자금과 주급 자금을 분리해서 관리합니다. 필요할 때만 서로 전환하세요.
+                    </p>
+                </div>
+                <div id="financeContent"></div>
+            </div>
+
+            <!-- 대화 탭 -->
+            <div id="chat" class="tab-panel">
+                <div class="chat-header-card" style="margin-bottom: 16px;">
+                    <h3>구단 대화실</h3>
+                    <p style="color: #aaa; margin: 8px 0 0; line-height: 1.6;">비서, 코치, 구단주, 스카우트와 실시간 메신저처럼 대화하세요. 입력한
+                        내용에 따라 상황별 응답이 돌아옵니다.</p>
+                </div>
+                <div id="chatContent"></div>
+            </div>
+
+            <!-- 리그 탭 -->
+            <div id="league" class="tab-panel">
+                <h3>리그 순위표</h3>
+                <div id="leagueTable"></div>
+            </div>
+
+            <!-- 개선된 스폰서 탭 -->
+            <div id="sponsor" class="tab-panel">
+                <div class="sponsor-header">
+                    <h3>스폰서 계약</h3>
+                    <p class="sponsor-description">
+                        스폰서와 계약하여 경기당 추가 수익을 얻으세요. 팀의 평균 능력치가 높을수록 더 좋은 스폰서와 계약할 수 있습니다.
+                    </p>
+                    <div class="current-sponsor-info">
+                        <div class="info-label">현재 스폰서:</div>
+                        <div class="current-sponsor-name" id="currentSponsorDisplay">계약 없음</div>
+                    </div>
+                </div>
+                <div id="sponsorList"></div>
+            </div>
+            <!-- 탭 콘텐츠 영역에 추가 -->
+            <div id="transfer_news" class="tab-panel">
+                <h3>최신 이적 소식</h3>
+                <div id="transferNewsList"></div> <!-- 여기에 카드가 생성됩니다 -->
+            </div>
+
+            <!-- 개인 기록 탭 -->
+            <div id="records" class="tab-panel">
+                <div class="records-header">
+                    <div class="records-header-text">
+                        <h3>기록 & 어워즈</h3>
+                        <p class="records-description">시즌 기록, 명예의 전당(발롱도르), 그리고 NXGN 세계 10대 유망주를 확인하세요!</p>
+                    </div>
+                    <div class="records-subtabs" id="recordsSubtabs">
+                        <button type="button" class="records-subtab-btn active" data-subtab="current"><span data-icon="chart"></span> 시즌 개인 기록</button>
+                        <button type="button" class="records-subtab-btn" data-subtab="history"><span data-icon="trophy"></span> 명예의 전당 (발롱도르)</button>
+                        <button type="button" class="records-subtab-btn" data-subtab="nxgn"><span data-icon="star"></span> NXGN 유망주 TOP 10</button>
+                    </div>
+                </div>
+
+                <!-- 1. 시즌 개인 기록 뷰 -->
+                <div id="recordsCurrentView" class="records-view-panel">
+                    <div class="records-content">
+                        <div class="records-section">
+                            <h4>득점왕 순위 (TOP 5)</h4>
+                            <div id="topScorers" class="ranking-list">
+                                <p style="text-align: center; opacity: 0.7;">아직 기록이 없습니다.</p>
+                            </div>
+                        </div>
+
+                        <div class="records-section">
+                            <h4>도움왕 순위 (TOP 5)</h4>
+                            <div id="topAssisters" class="ranking-list">
+                                <p style="text-align: center; opacity: 0.7;">아직 기록이 없습니다.</p>
+                            </div>
+                        </div>
+
+                        <!-- MOM 순위 추가 -->
+                        <div class="records-section">
+                            <h4>MOM 최다 선정 (TOP 5)</h4>
+                            <div id="topMOMs" class="ranking-list">
+                                <p style="text-align: center; opacity: 0.7;">아직 기록이 없습니다.</p>
+                            </div>
+                        </div>
+
+                        <!-- 베스트 11 추가 -->
+                        <div class="records-section full-width">
+                            <h4>이번 라운드 베스트 11</h4>
+                            <div id="weeklyBest11" class="best11-list">
+                                <p style="text-align: center; opacity: 0.7;">아직 선정되지 않았습니다.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. 역대 기록 뷰 (명예의 전당) -->
+                <div id="historyView" class="records-view-panel" style="display: none;">
+                    <div id="historyList"></div>
+                </div>
+
+                <!-- 3. NXGN 10대 유망주 뷰 -->
+                <div id="nxgnView" class="records-view-panel" style="display: none;">
+                    <div id="nxgnList"></div>
+                </div>
+            </div>
+
+            <!-- 유스 탭 -->
+            <div id="youth" class="tab-panel">
+                <div class="youth-header">
+                    <h3>유스팀</h3>
+                    <p>환생했거나 발굴된 유망주를 확인하고 1군으로 콜업하세요. (선수 교체 방식)</p>
+                </div>
+                <div id="youthPlayerList"></div>
+                <!-- 스카우트 섹션 -->
+                <div id="scoutingSection" class="scouting-section">
+                    <div id="hiredScoutInfo" class="hired-scout-info" style="display: none; background: rgba(46, 204, 113, 0.2); border: 1px solid #2ecc71; padding: 15px; border-radius: 10px; text-align: center; margin-bottom: 20px;">
+                        <h4>현재 고용된 스카우터</h4>
+                        <p><strong id="hiredScoutName"></strong></p>
+                        <p>남은 계약 기간: <span id="hiredScoutMatches"></span> 경기</p>
+                    </div>
+                    <div class="scouting-header" style="margin-top: 40px; border-top: 1px solid #444; padding-top: 20px;">
+                        <h3>스카우터 고용</h3>
+                        <p>스카우터를 고용하여 새로운 유망주를 발굴하세요. 발굴된 선수는 '유스'탭에서 확인할 수 있습니다.</p>
+                    </div>
+                    <div id="scoutList" class="scout-list">
+                        <div class="scout-card" data-tier="novice">
+                            <h4>초급 스카우터 (1성)</h4>
+                            <p>비용: 100억</p>
+                            <p>발굴 성공 확률: 50% (경기당)</p>
+                            <p>예상 능력치: 50~65</p>
+                            <button class="btn primary" onclick="hireScoutAndRefresh('novice')">고용하기</button>
+                        </div>
+                        <div class="scout-card" data-tier="professional">
+                            <h4>프로 스카우터 (2성)</h4>
+                            <p>비용: 300억</p>
+                            <p>발굴 성공 확률: 70% (경기당)</p>
+                            <p>예상 능력치: 55~70</p>
+                            <button class="btn primary" onclick="hireScoutAndRefresh('professional')">고용하기</button>
+                        </div>
+                        <div class="scout-card" data-tier="worldClass">
+                            <h4>월드클래스 스카우터 (3성)</h4>
+                            <p>비용: 700억</p>
+                            <p>발굴 성공 확률: 100% (경기당)</p>
+                            <p>예상 능력치: 60~74</p>
+                            <button class="btn primary" onclick="hireScoutAndRefresh('worldClass')">고용하기</button>
+                        </div>
+                    </div>
+                    <div id="scoutingResults" class="scouting-results">
+                        <h4>발굴된 선수 목록</h4>
+                        <div id="scoutedPlayerList">
+                            <p style="text-align: center; opacity: 0.7;">스카우터를 고용하여 유망주를 찾아보세요.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="sns" class="tab-panel">
+                <div class="sns-header">
+                    <h3>소셜 피드</h3>
+                    <p class="sns-description">최신 이적 소식과 경기 결과를 확인하세요!</p>
+                </div>
+                <div id="snsFeed" class="sns-feed"></div>
+            </div>
+
+            <!-- 메일함 탭 -->
+            <div id="mail" class="tab-panel">
+                <h3>개인 메일함</h3>
+                <div class="mail-container">
+                    <div id="mailList" class="mail-list"></div>
+                    <div id="mailDetail" class="mail-detail">
+                        <div style="text-align: center; color: #aaa; margin-top: 100px;">메일을 선택하여 내용을 확인하세요.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 비서 탭 -->
+            <div id="secretary" class="tab-panel">
+                <div class="secretary-container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; min-height: 400px; background: rgba(0,0,0,0.2); border-radius: 8px; padding: 20px;">
+                    <div style="margin-bottom: 20px; color: #38BDF8;"><span data-icon="user" data-icon-class="xl"></span></div>
+                    <h3 style="color: #FBBF24; margin-bottom: 10px;">비서실</h3>
+                    <p
+                        style="color: #F8FAFC; text-align: center; max-width: 500px; margin-bottom: 30px; line-height: 1.6;">
+                        감독님, 선수들이 면담을 기다리고 있습니다.<br>
+                        선수들의 고민을 해결해주면 경기력이 향상될 수 있습니다.
+                    </p>
+                    <button id="openOfficeBtn" class="btn primary" style="padding: 14px 36px; font-size: 1.1rem; border-radius: 8px;">감독실 입장하기
+                    </button>
+                </div>
+            </div>
+
+            <!-- 성장 현황 탭 (신규) -->
+            <div id="growth" class="tab-panel">
+                <div class="growth-header">
+                    <h3>성장 현황</h3>
+                    <p class="growth-description">우리 팀 선수들의 성장 이력과 멘토링 현황을 한눈에 확인하세요.</p>
+                </div>
+                <div class="growth-layout">
+                    <aside class="growth-sidebar">
+                        <div class="growth-sidebar-header">
+                            <h4>성장 중인 선수</h4>
+                            <span id="growth-count-badge" class="growth-count-badge">0</span>
+                        </div>
+                        <div id="growthPlayerList" class="growth-player-list"></div>
+                        <div class="mentoring-summary-section">
+                            <h4>멘토링 현황</h4>
+                            <div id="mentoringList" class="mentoring-list"></div>
+                        </div>
+                    </aside>
+                    <section class="growth-main">
+                        <div id="growthEmpty" class="growth-empty" style="display:none;">
+                            <div style="margin-bottom:16px; color: #38BDF8;"><span data-icon="chart" data-icon-class="xl"></span></div>
+                            <h4>선수를 선택하면 성장 그래프를 확인할 수 있어요</h4>
+                            <p style="color:#94A3B8">좌측 목록에서 성장 중인 선수를 클릭해 주세요</p>
+                        </div>
+                        <div id="growthDetail" class="growth-detail" style="display:none;">
+                            <div class="growth-detail-header">
+                                <div class="growth-detail-player">
+                                    <h4 id="growthPlayerTitle">선수 이름</h4>
+                                    <p id="growthPlayerMeta" style="color:#94A3B8;"></p>
+                                </div>
+                                <div class="growth-detail-stats">
+                                    <div class="stat-card">
+                                        <span class="stat-label">현재 오버롤</span>
+                                        <span id="growthStatCurrent" class="stat-value gold">-</span>
+                                    </div>
+                                    <div class="stat-card">
+                                        <span class="stat-label">성장 단계</span>
+                                        <span id="growthStatStage" class="stat-value green">-</span>
+                                    </div>
+                                    <div class="stat-card">
+                                        <span class="stat-label">성장 추세</span>
+                                        <span id="growthStatTrend" class="stat-value">-</span>
+                                    </div>
+                                    <div class="stat-card">
+                                        <span class="stat-label">기간당 성장률</span>
+                                        <span id="growthStatRate" class="stat-value">-</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="growth-chart-wrap">
+                                <canvas id="growthChartCanvas"></canvas>
+                            </div>
+
+                            <div class="mentor-assign-section" style="margin:16px 0; padding:14px; background:rgba(255,255,255,0.05); border-radius:8px;">
+                                <h4 style="margin:0 0 10px; color:#FBBF24; font-size:1rem;">멘토 지정</h4>
+                                <div id="mentorAssignUI"></div>
+                            </div>
+
+                            <div class="growth-progress-wrap">
+                                <span class="stat-label" style="word-break: keep-all; white-space: nowrap;">전체 성장 진행도</span>
+                                <div class="growth-progress-bar">
+                                    <div id="growthProgressFill" class="growth-progress-fill"></div>
+                                </div>
+                                <span id="growthProgressText" style="color:#94A3B8;font-size:0.85rem; word-break: keep-all; white-space: nowrap;">0%</span>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <!-- 설정 탭 -->
+            <div id="settings" class="tab-panel">
+                <h3>게임 설정</h3>
+                <div class="settings-content">
+                    <!-- 오디오 설정 -->
+                    <div id="audioSettings" class="settings-section">
+                        <h4>배경음악 설정</h4>
+                        <div class="setting-toggle-row" style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 16px;">
+                            <span id="bgmStatusText" style="font-size: 0.92rem; font-weight: 600; color: #F8FAFC;">배경음악 ON</span>
+                            <label class="switch" style="position: relative; display: inline-block; width: 48px; min-width: 48px; max-width: 48px; height: 26px; flex: 0 0 48px; margin: 0; padding: 0; box-sizing: border-box; border-radius: 999px; cursor: pointer;">
+                                <input type="checkbox" id="bgmToggle" checked>
+                                <span class="slider round" style="position: absolute; inset: 0; width: 48px; height: 26px; border-radius: 999px; box-sizing: border-box;"></span>
+                            </label>
+                        </div>
+                        <div class="setting-slider-row" style="display: flex; align-items: center; gap: 12px; margin-top: 14px;">
+                            <span class="setting-slider-label" style="min-width: 76px; font-size: 0.88rem; font-weight: 600; color: #CBD5E1;">BGM 볼륨</span>
+                            <input type="range" id="bgmVolume" min="0" max="100" value="50" class="game-range-slider" style="flex: 1; cursor: pointer;">
+                            <span id="bgmVolumeValue" class="slider-val-badge">50%</span>
+                        </div>
+                        <div class="setting-slider-row" style="display: flex; align-items: center; gap: 12px; margin-top: 12px;">
+                            <span class="setting-slider-label" style="min-width: 76px; font-size: 0.88rem; font-weight: 600; color: #CBD5E1;">SFX 볼륨</span>
+                            <input type="range" id="sfxVolume" min="0" max="100" value="50" class="game-range-slider" style="flex: 1; cursor: pointer;">
+                            <span id="sfxVolumeValue" class="slider-val-badge">50%</span>
+                        </div>
+                    </div>
+
+                    <!-- 일반 설정 -->
+                    <div id="generalSettings" class="settings-section">
+                        <h4>일반 설정</h4>
+                        <div class="setting-toggle-row" style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 16px;">
+                            <span id="cursorStatusText" style="font-size: 0.92rem; font-weight: 600; color: #F8FAFC;">마우스 스타일 ON (커스텀 커서)</span>
+                            <label class="switch" style="position: relative; display: inline-block; width: 48px; min-width: 48px; max-width: 48px; height: 26px; flex: 0 0 48px; margin: 0; padding: 0; box-sizing: border-box; border-radius: 999px; cursor: pointer;">
+                                <input type="checkbox" id="cursorToggle" checked>
+                                <span class="slider round" style="position: absolute; inset: 0; width: 48px; height: 26px; border-radius: 999px; box-sizing: border-box;"></span>
+                            </label>
+                        </div>
+                        <button class="btn" id="replayTutorialBtn" style="width: 100%; margin-bottom: 10px;">튜토리얼 다시 보기</button>
+                        <button class="btn" onclick="if (typeof playCinematicIntro === 'function') playCinematicIntro({ teamKey: gameData.selectedTeam, onComplete: () => { if (typeof showScreen === 'function') showScreen('lobby'); } })" style="width: 100%; margin-bottom: 10px; background: linear-gradient(45deg, #f39c12, #d35400);"><span data-icon="clapperboard"></span> 오프닝 시네마틱 다시 보기</button>
+                        <button class="btn" onclick="openDatabaseModal()" style="width: 100%;">데이터베이스 열람</button>
+                    </div>
+
+                    <div class="settings-section">
+                        <h4>파일로 저장/불러오기</h4>
+                        <button id="saveGameBtn" class="btn">파일로 저장</button>
+                        <button id="loadGameBtn" class="btn">파일에서 불러오기</button>
+                        <input type="file" id="loadGameInput" accept=".json, .txt" style="display: none;">
+                    </div>
+                    <div class="settings-section">
+                        <h4>자동 저장</h4>
+                        <div class="auto-save-control setting-toggle-row" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                            <span id="autoSaveStatus" style="font-size: 0.92rem; font-weight: 600;">자동 저장이 꺼져있습니다.</span>
+                            <label class="switch" style="position: relative; display: inline-block; width: 48px; min-width: 48px; max-width: 48px; height: 26px; flex: 0 0 48px; margin: 0; padding: 0; box-sizing: border-box; border-radius: 999px; cursor: pointer;">
+                                <input type="checkbox" id="autoSaveToggle">
+                                <span class="slider round" style="position: absolute; inset: 0; width: 48px; height: 26px; border-radius: 999px; box-sizing: border-box;"></span>
+                            </label>
+                        </div>
+                        <p class="setting-desc" style="font-size: 0.85rem; color: #94A3B8; margin-top: 8px;">경기가 끝나거나 자금이 변동될 때, 마지막으로 저장했던 슬롯에 자동으로 저장합니다.</p>
+                    </div>
+                    <div class="settings-section">
+                        <h4>브라우저에 저장/불러오기 (슬롯 시스템)</h4>
+                        <div id="saveSlots" style="display: grid; gap: 15px; margin-top: 15px;">
+                            <!-- 슬롯들이 여기에 동적으로 생성됩니다 -->
+                        </div>
+                    </div>
+                    <div class="settings-section">
+                        <h4>선수 관리</h4>
+                        <button id="showGrowthBtn" class="btn">성장 현황</button>
+                    </div>
+                    <div class="settings-section">
+                        <h4>전술 정보</h4>
+                        <button id="showTacticsBtn" class="btn">전술 상성표</button>
+                        <button id="showTeamTacticsBtn" class="btn">팀별 전술</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- 경기 화면 -->
+    <div id="matchScreen" class="screen cm-match-layout">
+        <div class="match-header">
+            <h2 id="matchTitle">경기 진행</h2>
+            <div class="score">
+                <span id="homeTeam">홈팀</span>
+                <span id="scoreDisplay">0 - 0</span>
+                <span id="awayTeam">어웨이팀</span>
+            </div>
+            <div class="time">
+                <span id="matchTime">0분</span>
+            </div>
+            <!-- 스태미나 표시기 -->
+            <div id="staminaContainer" style="margin-top: 15px; width: 90%; max-width: 500px; display: flex; gap: 10px; justify-content: center; background: rgba(0,0,0,0.4); padding: 10px; border-radius: 10px; margin-left: auto; margin-right: auto;">
+                <!-- 공격진 -->
+                <div class="stamina-group" style="flex: 1;">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px;">
+                        <span style="color: #e74c3c; font-weight: bold;">FW</span>
+                        <span id="atkStaminaText" style="color: #fff;">100%</span>
+                    </div>
+                    <div
+                        style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
+                        <div id="atkStaminaBar" style="width: 100%; height: 100%; background: #e74c3c; transition: width 0.5s, background-color 0.3s;">
+                        </div>
+                    </div>
+                </div>
+                <!-- 미드필더 -->
+                <div class="stamina-group" style="flex: 1;">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px;">
+                        <span style="color: #3498db; font-weight: bold;">MF</span>
+                        <span id="midStaminaText" style="color: #fff;">100%</span>
+                    </div>
+                    <div
+                        style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
+                        <div id="midStaminaBar" style="width: 100%; height: 100%; background: #3498db; transition: width 0.5s, background-color 0.3s;">
+                        </div>
+                    </div>
+                </div>
+                <!-- 수비진 -->
+                <div class="stamina-group" style="flex: 1;">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px;">
+                        <span style="color: #2ecc71; font-weight: bold;">DF</span>
+                        <span id="defStaminaText" style="color: #fff;">100%</span>
+                    </div>
+                    <div
+                        style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
+                        <div id="defStaminaBar" style="width: 100%; height: 100%; background: #2ecc71; transition: width 0.5s, background-color 0.3s;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2D 피치 시각화 컨테이너 (visibleMatch.js 캔버스 + scoreboard.js 오버레이) -->
+        <div id="matchVisualizerContainer"></div>
+
+        <!-- 중계창 (CM 텍스트 피드) -->
+        <div class="match-events cm-feed">
+            <div id="eventList">
+                <div style="text-align: center; color: #aaa;">경기를 시작해 주세요.</div>
+            </div>
+        </div>
+        <div class="match-hint-bar">
+            <span>Shift+F 고속 진행</span> · 설정에서 <strong>골 직전 연출</strong> On/Off · 강도 조절 가능
+        </div>
+
+        <div class="match-controls" style="text-align: center; margin-top: 20px; display: flex; justify-content: center; gap: 15px;">
+            <button id="substituteBtn" class="btn" style="display: none;">교체</button>
+            <button id="endMatchBtn" class="btn" style="display: none;">경기 종료</button>
+        </div>
+    </div>
+
+    <!-- 인터뷰 화면 -->
+    <div id="interviewScreen" class="screen">
+        <div class="interview-container">
+            <h2>경기 후 인터뷰</h2>
+            <div id="interviewQuestion"></div>
+            <div class="interview-options">
+                <button class="interview-btn" data-option="1"></button>
+                <button class="interview-btn" data-option="2"></button>
+                <button class="interview-btn" data-option="3"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- [신규/개편] 나만의 팀 만들기 모달 -->
+    <div id="createTeamModal" class="modal">
+        <div class="modal-content create-team-modal">
+            <span class="close-btn" id="closeCreateTeamModal">&times;</span>
+            <div style="text-align: center; margin-bottom: 20px;">
+                <h2 style="font-size: 2rem; color: #ffd700; margin: 0 0 6px 0;">나만의 구단 창단 센터</h2>
+                <p style="color: #bbb; font-size: 0.95rem; margin: 0;">원하는 창단 방식을 선택하여 축구 세계에 새로운 바람을 일으키세요.</p>
+            </div>
+
+            <!-- 1. 모드 선택 화면 -->
+            <div id="createTeamModeSelection" class="mode-select-grid">
+                <div id="createIconTeamBtn" class="mode-select-card">
+                    <div>
+                        <div class="mode-card-icon"><span data-icon="crown" data-icon-class="lg"></span></div>
+                        <div class="mode-card-title">아이콘 드림팀 창단</div>
+                        <div class="mode-card-desc">
+                            마라도나, 펠레, 지단, 차범근 등 시대를 풍미한 전설의 아이콘 18명을 드래프트하여 2부 리그에서 시작합니다.
+                        </div>
+                    </div>
+                    <span class="mode-card-badge">2부 리그 시작 · OVR 81 · 19세</span>
+                </div>
+
+                <div id="createCustomTeamBtn" class="mode-select-card">
+                    <div>
+                        <div class="mode-card-icon"><span data-icon="palette" data-icon-class="lg"></span></div>
+                        <div class="mode-card-title">커스텀 구단 창단</div>
+                        <div class="mode-card-desc">
+                            구단 이름, 참가 리그(1~3부), 연고지/국적, 시작 자금을 직접 커스터마이징하고 선수단을 직접 구성합니다.
+                        </div>
+                    </div>
+                    <span class="mode-card-badge">1~3부 리그 자유 선택 · 원클릭 선수단 생성</span>
+                </div>
+            </div>
+
+            <!-- 2. 아이콘 팀 생성 화면 -->
+            <div id="iconTeamCreationArea" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <button type="button" class="back-nav-btn" onclick="openCreateTeamModal()" style="margin-bottom: 0;">모드 선택으로</button>
+                    <button type="button" id="autoDraftIconBtn" class="btn btn-sm primary">18명 밸런스 자동 드래프트</button>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 15px;">
+                    <div>
+                        <label class="sub-label">팀 이름 (최대 6자)</label>
+                        <div style="display: flex; gap: 6px;">
+                            <input type="text" id="customTeamName" maxlength="6" placeholder="팀 이름" class="creator-input" style="padding: 8px;">
+                            <button type="button" id="randomIconTeamNameBtn" class="dice-mini-btn" title="랜덤 팀명"></button>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="sub-label">교체할 2부 구단</label>
+                        <select id="replacementTeamSelect" class="creator-select" style="padding: 8px;"></select>
+                    </div>
+                    <div>
+                        <label class="sub-label">초기 예산</label>
+                        <select id="iconTeamBudgetSelect" class="creator-select" style="padding: 8px;">
+                            <option value="100">100억 (도전적)</option>
+                            <option value="300"selected>300억 (스탠다드)</option>
+                            <option value="500">500억 (풍족)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- 포지션 카운터 바 -->
+                <div class="pos-counter-bar">
+                    <div style="font-weight: 800; color: #fff;">
+                        선수단 선택: <span id="selectedCount" style="color: #ffd700; font-size: 1.2rem;">0</span> / 18명
+                    </div>
+                    <div class="pos-pill-group">
+                        <span class="pos-pill" id="pill-GK">GK <b id="cnt-GK">0</b>/2</span>
+                        <span class="pos-pill" id="pill-DF">DF <b id="cnt-DF">0</b>/5</span>
+                        <span class="pos-pill" id="pill-MF">MF <b id="cnt-MF">0</b>/5</span>
+                        <span class="pos-pill" id="pill-FW">FW <b id="cnt-FW">0</b>/1</span>
+                    </div>
+                </div>
+
+                <!-- 포지션 필터 탭 -->
+                <div class="filter-tabs-row" id="iconFilterTabs">
+                    <button type="button" class="filter-tab-pill active" data-pos="ALL">전체 (44)</button>
+                    <button type="button" class="filter-tab-pill" data-pos="GK">골키퍼 (GK)</button>
+                    <button type="button" class="filter-tab-pill" data-pos="DF">수비수 (DF)</button>
+                    <button type="button" class="filter-tab-pill" data-pos="MF">미드필더 (MF)</button>
+                    <button type="button" class="filter-tab-pill" data-pos="FW">공격수 (FW)</button>
+                </div>
+
+                <!-- 아이콘 선수 목록 그리드 -->
+                <div id="iconPlayerSelectionList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; max-height: 380px; overflow-y: auto; margin-bottom: 18px; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 12px; border: 1px solid rgba(255,255,255,0.08);">
+                    <!-- 자바스크립트로 선수 목록 동적 생성 -->
+                </div>
+
+                <button id="confirmCreateTeamBtn" class="creator-submit-btn" disabled>
+                    <span data-icon="rocket"></span>
+                    <span>아이콘 드림팀 창단 완료</span>
+                </button>
+            </div>
+
+            <!-- 3. 커스텀 팀 생성 화면 -->
+            <div id="customTeamCreationArea" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <button type="button" class="back-nav-btn" onclick="openCreateTeamModal()" style="margin-bottom: 0;">모드 선택으로</button>
+                    <button type="button" id="autoFillCustomPlayersBtn" class="btn btn-sm confirm">선수단 18명 일괄 자동 생성</button>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1.2fr 1fr 1fr 1fr 1fr; gap: 10px; margin-bottom: 16px;">
+                    <div>
+                        <label class="sub-label">팀 이름 (최대 6자)</label>
+                        <div style="display: flex; gap: 6px;">
+                            <input type="text" id="customTeamNameInput" maxlength="6" placeholder="팀 이름" class="creator-input" style="padding: 8px;">
+                            <button type="button" id="randomCustomTeamNameBtn" class="dice-mini-btn" title="랜덤 팀명"></button>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="sub-label">참가 리그</label>
+                        <select id="customLeagueSelect" class="creator-select" style="padding: 8px;">
+                            <option value="1">1부 리그</option>
+                            <option value="2"selected>2부 리그</option>
+                            <option value="3">3부 리그</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="sub-label">교체할 기존 구단</label>
+                        <select id="customReplacementSelect" class="creator-select" style="padding: 8px;"></select>
+                    </div>
+                    <div>
+                        <label class="sub-label">구단 국적</label>
+                        <select id="customNationSelect" class="creator-select" style="padding: 8px;">
+                            <option value="random">GLB 랜덤</option>
+                            <option value="대한민국"selected>KR 대한민국</option>
+                            <option value="잉글랜드">ENG 잉글랜드</option>
+                            <option value="스페인">ESP 스페인</option>
+                            <option value="독일">GER 독일</option>
+                            <option value="프랑스">FRA 프랑스</option>
+                            <option value="이탈리아">ITA 이탈리아</option>
+                            <option value="브라질">BRA 브라질</option>
+                            <option value="아르헨티나">ARG 아르헨티나</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="sub-label">시작 자금</label>
+                        <select id="customBudgetSelect" class="creator-select" style="padding: 8px;">
+                            <option value="100">100억 (소형 구단)</option>
+                            <option value="300"selected>300억 (중견 구단)</option>
+                            <option value="600">600억 (명문 구단)</option>
+                            <option value="1200">1,200억 (빅클럽)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="font-size: 0.85rem; color: #FBBF24; margin-bottom: 8px; font-weight: 700; display: flex; align-items: center; gap: 6px;">
+                    <span data-icon="users"></span>
+                    <span>선수단 구성 (총 18명: GK 2명, DF 6명, MF 5명, FW 5명)</span>
+                </div>
+
+                <div id="customPlayerInputs" class="custom-player-grid-styled">
+                    <!-- 자바스크립트로 입력 필드 생성 -->
+                </div>
+
+                <button id="confirmCreateCustomTeamBtn" class="creator-submit-btn" style="margin-top: 18px;">
+                    <span data-icon="rocket"></span>
+                    <span>커스텀 구단 창단 및 리그 참가</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 경기 결과(평점) 모달 -->
+    <div id="matchResultModal" class="modal">
+        <div class="modal-content" style="max-width: 900px;">
+            <h3 id="matchResultTitle" style="text-align: center; color: #ffd700; margin-bottom: 20px;">경기 결과 & 평점</h3>
+            <div class="match-score-summary" style="text-align: center; margin-bottom: 20px; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 10px;">
+                <span id="resultHomeTeam" style="font-size: 1.5rem; font-weight: bold;"></span>
+                <span id="resultScore" style="font-size: 2.5rem; margin: 0 20px; font-weight: bold; color: #ffd700;"></span>
+                <span id="resultAwayTeam" style="font-size: 1.5rem; font-weight: bold;"></span>
+            </div>
+            <div class="ratings-container" style="display: flex; gap: 20px; max-height: 500px; overflow-y: auto;">
+                <div class="team-ratings" id="homeTeamRatings" style="flex: 1;"></div>
+                <div class="team-ratings" id="awayTeamRatings" style="flex: 1;"></div>
+            </div>
+            <div style="text-align: center; margin-top: 20px;">
+                <button id="confirmResultBtn" class="btn primary">확인 (인터뷰 진행)</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 매치 엔진 가이드 모달 -->
+    <div id="engineGuideModal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <span class="close-btn" id="closeEngineGuideModal">&times;</span>
+            <h3 style="text-align: center; color: #ffd700; margin-bottom: 20px;">매치 엔진 작동 원리</h3>
+            <div class="engine-guide-content" style="max-height: 600px; overflow-y: auto;">
+
+                <div class="engine-guide-section">
+                    <h4>1. CM 스타일 경기 흐름</h4>
+                    <p>경기는 <strong>텍스트 중계</strong> 중심으로 진행됩니다. 엔진이 <strong>전개 → 공격 → 찬스 → 결정적 순간</strong> 단계를 순환하며,
+                        패스·드리블·태클·슈팅 이벤트가 생성됩니다.</p>
+                </div>
+
+                <div class="engine-guide-section">
+                    <h4>2. <span class="engine-guide-badge badge-mid">전술 영향</span></h4>
+                    <p>선택한 전술과 DNA 세부 지시(공격 성향, 패스 스타일, 압박 강도)가 <strong>찬스 생성 확률</strong>과 <strong>공격 전개 속도</strong>에
+                        반영됩니다. 게겐프레싱·역습 전술은 템포가 빠르고, 카테나치오는 찬스가 적지만 수비가 견고합니다.</p>
+                </div>
+
+                <div class="engine-guide-section">
+                    <h4>3. <span class="engine-guide-badge badge-atk">골 직전 연출</span></h4>
+                    <p>설정 탭에서 <strong>골 직전 연출</strong>을 켜면, 득점 직전에 CM처럼 텐션이 올라가며 해설이 강화되고 잠시 멈춥니다. 강도(낮음/보통/높음)에 따라 연출
+                        길이가 달라집니다.</p>
+                    <p><span data-icon="zap"></span> <strong>Shift+F</strong>로 고속 진행 시 연출이 자동 축약됩니다.</p>
+                </div>
+
+                <div class="engine-guide-section">
+                    <h4>4. <span class="engine-guide-badge badge-def">AI 리그 시뮬레이션</span></h4>
+                    <p>유저가 직접 뛰는 경기는 CM 텍스트 엔진으로 진행됩니다. 다른 팀 간 리그 경기(AI vs AI)는 성능을 위해 별도의 <strong>빠른 확률
+                            시뮬레이션</strong>으로 처리되며, 결과는 리그 순위·기록·SNS(이변 경기)에 반영됩니다.</p>
+                </div>
+
+                <div class="engine-guide-section">
+                    <h4>5. <span class="engine-guide-badge badge-counter">체력과 교체</span></h4>
+                    <p>시간이 지날수록 선수 체력이 소모됩니다. 후반 교체와 DNA 체력 관리가 승부에 영향을 줍니다.</p>
+                </div>
+
+                <div class="engine-guide-section">
+                    <h4>6. <span class="engine-guide-badge" style="background: #9b59b6; color: white;">DNA 전술 활용</span>
+                    </h4>
+                    <p>라인별 총 포인트(OVR x 6)를 6대 핵심 스탯에 직접 분배하여 팀의 색깔을 결정할 수 있습니다. balanced 프리셋은 최악의 선택이므로 여러분만의 색깔을 만드십시오.
+                    </p>
+                    <ul style="margin-top: 10px; padding-left: 20px; color: #ccc; line-height: 1.6;">
+                        <li style="margin-bottom: 8px;"><strong>닥공 축구:</strong> 수비 라인의 '수비'스탯을 최소한으로 낮추고, 그 포인트를
+                            '기술(빌드업)'이나 '스피드'에 몰아주어 공격적인 수비진을 구성할 수 있습니다.</li>
+                        <li><strong>질식 수비:</strong> 미드필더진의 '공격'을 줄이고 '수비'와 '피지컬'을 높여 중원을 장악하고 상대 공격을 질식시키는 형태를 만들 수
+                            있습니다.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- [신규] 비서 상담실 모달 -->
+    <div id="secretaryModal" class="modal" style="z-index: 3000;">
+        <div class="secretary-room">
+            <div class="secretary-header">
+                <div class="secretary-profile">
+                    <div class="secretary-avatar"><span data-icon="user"></span></div>
+                    <div class="secretary-info">
+                        <div class="secretary-role">비서실장</div>
+                        <div class="secretary-name" id="secretaryNameDisplay">김지수</div>
+                    </div>
+                </div>
+            </div>
+            <div id="secretaryContent" class="secretary-content">
+                <!-- 동적으로 내용이 채워집니다 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 선수 교체 모달 -->
+    <div id="substitutionModal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <span class="close-btn" id="closeSubstitutionModal">&times;</span>
+            <h3 id="substitutionModalTitle">선수 교체</h3>
+            <p id="substitutionsLeft">남은 교체 횟수: 5</p>
+            <div class="substitution-container">
+                <div class="substitution-section">
+                    <h4>현재 필드</h4>
+                    <div id="fieldPlayersList"></div>
+                </div>
+                <div class="substitution-section">
+                    <h4>벤치</h4>
+                    <div id="benchPlayersList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- [신규] 선수 교체용 바텀 시트 -->
+    <div id="substitutionSheet" class="bottom-sheet">
+        <div class="sheet-header">
+            <h4 id="sheetTitle">선수 교체</h4>
+            <span class="close-sheet-btn" id="closeSubstitutionSheet">&times;</span>
+        </div>
+        <div id="sheetPlayerList" class="sheet-player-list">
+            <!-- 선수 목록이 여기에 동적으로 생성됩니다 -->
+        </div>
+    </div>
+
+    <!-- [신규] 캘린더 시뮬레이션 모달 -->
+    <div id="calendarModal" class="modal" style="z-index: 20000; background: rgba(0,0,0,0.9);">
+        <div class="modal-content" style="background: transparent; box-shadow: none; border: none; text-align: center; color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
+            <h2 style="color: #aaa; font-weight: normal; margin-bottom: 20px;">NEXT MATCH</h2>
+
+            <div
+                style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); padding: 40px 60px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.2); min-width: 300px;">
+                <div id="calendarDate" style="font-size: 4rem; font-weight: bold; color: #ffd700; margin-bottom: 10px;">
+                    <!-- 날짜 표시 -->
+                </div>
+                <div id="calendarEvent" style="font-size: 1.5rem; color: #fff; height: 30px;">
+                    <!-- 이벤트 텍스트 (훈련, 휴식 등) -->
+                </div>
+            </div>
+
+            <div id="calendarOpponent" style="margin-top: 30px; font-size: 2rem; font-weight: bold; opacity: 0; transition: opacity 0.5s;">
+                <!-- VS 상대팀 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 선수 선택 모달 -->
+    <div id="playerModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h3 class="modal-title">선수 선택</h3>
+            <div id="modalPlayerList"></div>
+        </div>
+    </div>
+
+    <!-- 전술 정보 모달 -->
+    <div id="tacticsModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeTacticsModal()">&times;</span>
+            <h3 id="tacticsModalTitle">전술 정보</h3>
+            <div id="tacticsModalContent"></div>
+        </div>
+    </div>
+
+    <!-- 협상 채팅 모달 -->
+    <div id="negotiationChatModal" class="modal">
+        <div class="modal-content chat-modal-content">
+            <div class="chat-header">
+                <span class="close" onclick="transferSystem.closeNegotiationChat()">&times;</span>
+                <h3 id="chatPlayerName">선수 이름</h3>
+                <p id="chatTeamName">소속 팀</p>
+            </div>
+            <div id="chatMessages" class="chat-messages">
+                <!-- 메시지 동적 추가 -->
+            </div>
+            <div id="chatInputArea" class="chat-input-area">
+                <input type="number" id="chatFeeInput" placeholder="제안할 금액을 입력하세요 (단위: 억)" style="display: none;">
+                <div id="chatQuickReplies" class="chat-quick-replies">
+                    <!-- 빠른 답변 버튼 동적 추가 -->
+                </div>
+                <button id="chatSendBtn" class="btn" style="display: none;" onclick="transferSystem.sendNegotiationChat()">제안하기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 튜토리얼 오버레이 -->
+    <div class="tutorial-overlay" id="tutorialOverlay" style="display: none;">
+        <div class="tutorial-box">
+            <div class="tutorial-step-indicator" id="tutorialStepIndicator"></div>
+            <h3 class="tutorial-title" id="tutorialTitle"></h3>
+            <div class="tutorial-content" id="tutorialContent"></div>
+            <div class="tutorial-controls">
+                <button class="btn" id="tutorialSkipBtn" style="background: rgba(231, 76, 60, 0.8);">건너뛰기</button>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn" id="tutorialPrevBtn" style="display: none; background: rgba(255,255,255,0.2);">이전</button>
+                    <button class="btn primary" id="tutorialNextBtn">다음</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 랜덤 이벤트 모달 -->
+    <div id="randomEventModal" class="modal" style="display: none; z-index: 9999;">
+        <div class="modal-content" style="max-width: 500px; text-align: center; padding: 40px; background: #222; border: 2px solid #555;">
+            <img id="eventPlayerImg" src="" alt="선수 사진" style="display: none; width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 4px solid #ffd700; margin: 0 auto 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
+            <h2 id="eventTitle" style="margin: 0 0 20px 0; font-size: 1.8rem; color: #fff;"></h2>
+            <p id="eventContent" style="font-size: 1rem; color: #ddd; margin-bottom: 30px; line-height: 1.6; white-space: pre-wrap; text-align: left; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px;"></p>
+            <div id="eventOptionsContainer" style="font-size: 1.1rem;"></div>
+        </div>
+    </div>
+
+    <!-- 라이브러리 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- 로딩 매니저 (가장 먼저 실행되어 화면을 덮어야 함) -->
+    <script src="loadManager.js"></script>
+
+    <!-- 핵심 데이터 및 시스템 (순서 중요) -->
+    <script src="teamsData.js"></script>
+    <script src="teamUtils.js"></script>
+    <script src="managerSystem.js"></script>
+    <script src="icons.js"></script>
+    <script src="script.js"></script>
+    <script src="tactics.js"></script>
+    <script src="deepenTactic.js"></script>
+    <script src="tacticSystem.js"></script>
+
+    <!-- 나머지 시스템들 -->
+    <script src="start.js"></script>
+    <script src="transfer.js"></script>
+    <script src="sns.js"></script>
+    <script src="records.js"></script>
+    <script src="playerGrowth.js"></script>
+    <script src="endSeason.js"></script>
+    <script src="scouting.js"></script>
+    <script src="formation.js"></script>
+    <!-- autosave.js는 script.js에 통합되었으므로 제거합니다. -->
+    <!-- <script src="autosave.js"></script> -->
+    <script src="events.js"></script>
+    <script src="mail.js"></script>
+    <script src="worldcup.js"></script>
+    <script src="legendLeague.js"></script>
+
+    <!-- 시각화 (다른 시스템에 의존하므로 마지막) -->
+    <!-- pitch 시각화(scoreboard.js, visibleMatch.js) 복구: 2D 캔버스 중계 사용 -->
+    <script src="scoreboard.js"></script>
+    <script src="visibleMatch.js"></script>
+    <script src="skillMoves.js"></script>
+</body>
+
+</html>
