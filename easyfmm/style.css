@@ -1124,6 +1124,18 @@ body {
     border-color: rgba(255, 255, 255, 0.12);
 }
 
+.event-card.substitution {
+    background: rgba(41, 128, 185, 0.35);
+    border-color: rgba(52, 152, 219, 0.6);
+    font-weight: bold;
+}
+
+.event-card.shoot {
+    background: rgba(241, 196, 15, 0.25);
+    border-color: rgba(241, 196, 15, 0.55);
+    font-weight: bold;
+}
+
 .event-card.final {
     background: rgba(241, 196, 15, 0.22);
     border-color: rgba(241, 196, 15, 0.55);

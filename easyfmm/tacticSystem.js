@@ -479,7 +479,11 @@ function simulateMatch(matchData, engine) {
         if (injuryResult.occurred) {
             const event = createInjuryEvent(matchData, injuryResult);
             displayEvent(event, matchData);
-            if (injuryResult.isUserTeam) handleForcedSubstitution(injuryResult.player, matchData);
+            if (injuryResult.isUserTeam) {
+                handleForcedSubstitution(injuryResult.player, matchData);
+            } else {
+                handleAIForcedSubstitution(injuryResult.player, matchData);
+            }
             // 부상 발생 시 처리를 위해 루프는 계속 돌되 다음 틱에 isRunning 체크로 대기 상태 진입
         }
 
@@ -496,6 +500,9 @@ function simulateMatch(matchData, engine) {
                 if (window.ScoreboardUI) {
                     window.ScoreboardUI.updateTime(matchData.minute, matchData.seconds);
                 }
+
+                // [신규] AI 팀 교체 타이밍 체크
+                checkAISubstitutions(matchData);
             }
         }
 
@@ -709,6 +716,12 @@ function convertToTextEvent(engineEvent, matchData) {
             minute: matchData.minute,
             type: 'block',
             description: getRandomCommentary('block', data)
+        };
+    } else if (engineEvent.type === 'shoot') {
+        return {
+            minute: matchData.minute,
+            type: 'shoot',
+            description: engineEvent.desc || `${engineEvent.player || '공격수'}의 날카로운 슈팅!`
         };
     } else if (engineEvent.type === 'preGoalSuspense') {
         const desc = engineEvent.desc || '결정적인 순간이 다가옵니다...';
@@ -1404,12 +1417,14 @@ function openSubstitutionModal(matchData, isForced = false, injuredPlayer = null
         fieldPlayersList.appendChild(playerEl);
     });
 
-    // 2. 벤치 선수 목록 (전체 선수 중 필드/부상 제외)
+    // 2. 벤치 선수 목록 (전체 선수 중 필드/교체아웃/부상 제외)
     const allPlayers = teams[gameData.selectedTeam];
     const fieldPlayerNames = new Set(fieldPlayers.map(p => p.name));
+    matchData.subbedOutPlayers = matchData.subbedOutPlayers || new Set();
 
     const benchPlayers = allPlayers.filter(p =>
         !fieldPlayerNames.has(p.name) &&
+        !matchData.subbedOutPlayers.has(p.name) &&
         (!injurySystem || !injurySystem.isInjured(gameData.selectedTeam, p.name))
     );
 
@@ -1471,7 +1486,7 @@ function performSubstitution(playerOut, playerIn, matchData) {
     // 2. 엔진 데이터 업데이트 (SimPlayer 교체)
     if (matchData.engine) {
         const simPlayers = matchData.engine.players;
-        const simPlayerIndex = simPlayers.findIndex(p => p.id === playerOut.name);
+        const simPlayerIndex = simPlayers.findIndex(p => p.id === playerOut.name || p.name === playerOut.name);
 
         if (simPlayerIndex !== -1) {
             const simPlayer = simPlayers[simPlayerIndex];
@@ -1480,29 +1495,50 @@ function performSubstitution(playerOut, playerIn, matchData) {
             simPlayer.id = playerIn.name;
             simPlayer.name = playerIn.name;
             simPlayer.rating = playerIn.rating;
+            simPlayer.position = playerIn.position;
             // [수정] 교체 투입 선수 체력 반영
             simPlayer.stamina = (playerIn.condition !== undefined) ? playerIn.condition : 100;
-
-            // 능력치 업데이트
-            simPlayer.stats = {
-                speed: playerIn.rating,
-                passing: playerIn.rating,
-                shooting: playerIn.rating,
-                defense: playerIn.rating,
-                decision: playerIn.rating
-            };
 
             // 역할 재설정
             let role = 'CM';
             if (gameData.playerRoles && gameData.playerRoles[playerIn.name]) {
                 role = gameData.playerRoles[playerIn.name];
             } else {
-                if (playerIn.position === 'FW') role = 'AF';
-                else if (playerIn.position === 'MF') role = 'BBM';
-                else if (playerIn.position === 'DF') role = 'CD';
-                else if (playerIn.position === 'GK') role = 'GK';
+                const tactic = matchData.engine.getTeamTactic ? matchData.engine.getTeamTactic(simPlayer.teamId) : 'balanced';
+                if (matchData.engine && typeof matchData.engine._bestRoleForTactic === 'function') {
+                    role = matchData.engine._bestRoleForTactic(tactic, playerIn.position, 0);
+                } else {
+                    if (playerIn.position === 'FW') role = 'AF';
+                    else if (playerIn.position === 'MF') role = 'BBM';
+                    else if (playerIn.position === 'DF') role = 'CD';
+                    else if (playerIn.position === 'GK') role = 'GK';
+                }
             }
             simPlayer.role = role;
+
+            // [수정] 능력치 업데이트 시 tackle, physical 포함 및 DNA/역할 가중치 정밀 반영
+            if (typeof simPlayer._buildStats === 'function') {
+                const isUser = (simPlayer.teamId === 'home' && gameData.isHomeGame) || (simPlayer.teamId === 'away' && !gameData.isHomeGame);
+                const lineStats = isUser ? gameData.lineStats : (matchData.engine.aiStats || null);
+                const morale = isUser ? (gameData.teamMorale || 50) : 50;
+                const tactic = matchData.engine.getTeamTactic ? matchData.engine.getTeamTactic(simPlayer.teamId) : 'balanced';
+                const mul = tactic === 'balanced' ? 0.60 : 1.0;
+                simPlayer.stats = simPlayer._buildStats(playerIn, role, lineStats, morale, mul);
+            } else {
+                simPlayer.stats = {
+                    speed: playerIn.rating,
+                    passing: playerIn.rating,
+                    shooting: playerIn.rating,
+                    defense: playerIn.rating,
+                    decision: playerIn.rating,
+                    physical: playerIn.rating,
+                    tackle: playerIn.rating
+                };
+            }
+            if (simPlayer.stats) {
+                if (simPlayer.stats.tackle === undefined) simPlayer.stats.tackle = simPlayer.stats.defense || playerIn.rating;
+                if (simPlayer.stats.physical === undefined) simPlayer.stats.physical = playerIn.rating;
+            }
 
             // [시각화 동기화] 비주얼라이저 유닛 업데이트
             if (window.matchVisualizer && window.matchVisualizer.units[playerOut.name]) {
@@ -1514,11 +1550,15 @@ function performSubstitution(playerOut, playerIn, matchData) {
             }
         }
 
-        // 스테미나 재계산 (엔진 메서드 호출)
+        // 스테미나 재계산 (교체 투입된 선수 기준으로 정확히 전달)
         if (typeof matchData.engine.recalculateStaminaOnSub === 'function') {
-            matchData.engine.recalculateStaminaOnSub(playerOut);
+            matchData.engine.recalculateStaminaOnSub(playerIn);
         }
     }
+
+    // 이미 교체되어 나간 선수는 다시 투입 불가
+    matchData.subbedOutPlayers = matchData.subbedOutPlayers || new Set();
+    matchData.subbedOutPlayers.add(playerOut.name);
 
     // 3. 기록 및 이벤트
     matchData.substitutionsMade++;
@@ -1568,6 +1608,178 @@ function handleForcedSubstitution(player, matchData) {
         alert(` ${player.name} 부상 발생! 경기를 뛸 수 없어 교체가 필요합니다.`);
         openSubstitutionModal(matchData, true, player);
     }, 100);
+}
+
+// [신규] AI 팀 교체 실행
+function performAISubstitution(playerOut, playerIn, aiTeam, matchData) {
+    if (!matchData.engine || !playerOut || !playerIn) return;
+
+    const outName = playerOut.name || playerOut.id;
+    const inName = playerIn.name;
+
+    const simPlayers = matchData.engine.players;
+    const simPlayerIndex = simPlayers.findIndex(p => p.id === outName || p.name === outName);
+
+    if (simPlayerIndex !== -1) {
+        const simPlayer = simPlayers[simPlayerIndex];
+
+        simPlayer.id = inName;
+        simPlayer.name = inName;
+        simPlayer.rating = playerIn.rating;
+        simPlayer.position = playerIn.position;
+        simPlayer.stamina = (playerIn.condition !== undefined) ? playerIn.condition : 100;
+
+        const tactic = matchData.engine.getTeamTactic ? matchData.engine.getTeamTactic(simPlayer.teamId) : 'balanced';
+        let role = 'CM';
+        if (typeof matchData.engine._bestRoleForTactic === 'function') {
+            role = matchData.engine._bestRoleForTactic(tactic, playerIn.position, 0);
+        } else {
+            if (playerIn.position === 'FW') role = 'AF';
+            else if (playerIn.position === 'MF') role = 'BBM';
+            else if (playerIn.position === 'DF') role = 'CD';
+            else if (playerIn.position === 'GK') role = 'GK';
+        }
+        simPlayer.role = role;
+
+        if (typeof simPlayer._buildStats === 'function') {
+            const lineStats = matchData.engine.aiStats || null;
+            const mul = (tactic === 'balanced' ? 0.60 : 1.0) * 1.11;
+            simPlayer.stats = simPlayer._buildStats(playerIn, role, lineStats, 50, mul);
+        } else {
+            simPlayer.stats = {
+                speed: playerIn.rating,
+                passing: playerIn.rating,
+                shooting: playerIn.rating,
+                defense: playerIn.rating,
+                decision: playerIn.rating,
+                physical: playerIn.rating,
+                tackle: playerIn.rating
+            };
+        }
+        if (simPlayer.stats) {
+            if (simPlayer.stats.tackle === undefined) simPlayer.stats.tackle = simPlayer.stats.defense || playerIn.rating;
+            if (simPlayer.stats.physical === undefined) simPlayer.stats.physical = playerIn.rating;
+        }
+
+        // [시각화 동기화] 비주얼라이저 유닛 업데이트
+        if (window.matchVisualizer && window.matchVisualizer.units[outName]) {
+            const unit = window.matchVisualizer.units[outName];
+            delete window.matchVisualizer.units[outName];
+            unit.id = inName;
+            unit.name = inName;
+            window.matchVisualizer.units[inName] = unit;
+        }
+
+        if (typeof matchData.engine.recalculateStaminaOnSub === 'function') {
+            matchData.engine.recalculateStaminaOnSub(playerIn);
+        }
+    }
+
+    matchData.subbedOutPlayers = matchData.subbedOutPlayers || new Set();
+    matchData.subbedOutPlayers.add(outName);
+
+    matchData.aiSubs = matchData.aiSubs || {};
+    matchData.aiSubs[aiTeam.side] = (matchData.aiSubs[aiTeam.side] || 0) + 1;
+    matchData.lastAISubMinute = matchData.minute;
+
+    const teamDisp = (typeof teamNames !== 'undefined' && teamNames[aiTeam.key]) ? teamNames[aiTeam.key] : aiTeam.key;
+    const subEvent = {
+        minute: matchData.minute,
+        type: 'substitution',
+        description: `[${teamDisp}] 교체: ${outName} OUT / ${inName} IN`
+    };
+    displayEvent(subEvent, matchData);
+}
+
+// [신규] 경기 중 AI 교체 주기적 체크
+function checkAISubstitutions(matchData) {
+    if (!matchData.engine || !matchData.isRunning) return;
+
+    const userTeam = (typeof gameData !== 'undefined' && gameData.selectedTeam) ? gameData.selectedTeam : null;
+    const aiTeams = [];
+    if (matchData.homeTeam !== userTeam) aiTeams.push({ side: 'home', key: matchData.homeTeam });
+    if (matchData.awayTeam !== userTeam) aiTeams.push({ side: 'away', key: matchData.awayTeam });
+
+    matchData.aiSubs = matchData.aiSubs || {};
+    matchData.subbedOutPlayers = matchData.subbedOutPlayers || new Set();
+
+    aiTeams.forEach(aiTeam => {
+        const subsCount = matchData.aiSubs[aiTeam.side] || 0;
+        if (subsCount >= 3) return; // 최대 3회 교체
+
+        // 교체 간격: 최소 3분 간격
+        if (matchData.lastAISubMinute && (matchData.minute - matchData.lastAISubMinute < 3)) return;
+
+        // 체력이 가장 떨어진 필드 플레이어 탐색
+        const activeOutfield = matchData.engine.players.filter(p => p.teamId === aiTeam.side && p.position !== 'GK');
+        if (!activeOutfield.length) return;
+        activeOutfield.sort((a, b) => a.stamina - b.stamina);
+        const mostTired = activeOutfield[0];
+
+        // 교체 기준 (실제 엔진 분당 체력 소모량에 맞춘 현실적 기준)
+        // 엔진 소모율: 60분경 MF 약 56, FW 약 65 / 70분경 MF 약 49, FW 약 59
+        // 70 미만 시 스탯 10% 저하, 60 미만 시 스탯 25% 저하, 50 미만 시 스탯 50% 반토막
+        let shouldSub = false;
+        if (matchData.minute >= 55 && mostTired.stamina < 55) shouldSub = true;
+        else if (matchData.minute >= 60 && subsCount === 0 && mostTired.stamina < 68) shouldSub = true;
+        else if (matchData.minute >= 70 && subsCount <= 1 && mostTired.stamina < 62) shouldSub = true;
+        else if (matchData.minute >= 78 && subsCount <= 2 && mostTired.stamina < 65) shouldSub = true;
+
+        if (!shouldSub) return;
+
+        // 벤치 선수 탐색 (이미 교체되어 나간 선수 및 부상자 제외)
+        const teamPlayers = (window.teams && window.teams[aiTeam.key]) || (typeof teams !== 'undefined' ? teams[aiTeam.key] : []);
+        const activeNames = new Set(matchData.engine.players.filter(p => p.teamId === aiTeam.side).map(p => p.name));
+        const bench = teamPlayers.filter(p => !activeNames.has(p.name) && !matchData.subbedOutPlayers.has(p.name) && !(window.injurySystem && window.injurySystem.isInjured(aiTeam.key, p.name)));
+
+        if (!bench.length) return;
+
+        // 동일 포지션 우선 탐색, 없으면 필드 플레이어 중 선택
+        let available = bench.filter(p => p.position === mostTired.position);
+        if (!available.length) available = bench.filter(p => p.position !== 'GK');
+        if (!available.length) return;
+
+        // 컨디션과 능력치가 높은 선수 선택
+        available.sort((a, b) => (b.condition || 100) - (a.condition || 100) || b.rating - a.rating);
+        const bestBench = available[0];
+
+        performAISubstitution(mostTired, bestBench, aiTeam, matchData);
+    });
+}
+
+// [신규] AI 선수 부상 시 즉시 강제 교체
+function handleAIForcedSubstitution(injuredPlayer, matchData) {
+    if (!matchData.engine || !injuredPlayer) return;
+
+    const userTeam = (typeof gameData !== 'undefined' && gameData.selectedTeam) ? gameData.selectedTeam : null;
+    let aiTeamSide = null;
+    let aiTeamKey = null;
+
+    if (matchData.homeTeam !== userTeam) {
+        const found = matchData.engine.players.find(p => p.teamId === 'home' && (p.name === injuredPlayer.name || p.id === injuredPlayer.name));
+        if (found) { aiTeamSide = 'home'; aiTeamKey = matchData.homeTeam; }
+    }
+    if (!aiTeamSide && matchData.awayTeam !== userTeam) {
+        const found = matchData.engine.players.find(p => p.teamId === 'away' && (p.name === injuredPlayer.name || p.id === injuredPlayer.name));
+        if (found) { aiTeamSide = 'away'; aiTeamKey = matchData.awayTeam; }
+    }
+    if (!aiTeamSide || !aiTeamKey) return;
+
+    const teamPlayers = (window.teams && window.teams[aiTeamKey]) || (typeof teams !== 'undefined' ? teams[aiTeamKey] : []);
+    const activeNames = new Set(matchData.engine.players.filter(p => p.teamId === aiTeamSide).map(p => p.name));
+    matchData.subbedOutPlayers = matchData.subbedOutPlayers || new Set();
+    const bench = teamPlayers.filter(p => !activeNames.has(p.name) && !matchData.subbedOutPlayers.has(p.name) && !(window.injurySystem && window.injurySystem.isInjured(aiTeamKey, p.name)));
+
+    if (!bench.length) return;
+
+    let available = bench.filter(p => p.position === injuredPlayer.position);
+    if (!available.length) available = bench.filter(p => p.position !== 'GK');
+    if (!available.length) return;
+
+    available.sort((a, b) => b.rating - a.rating);
+    const bestBench = available[0];
+
+    performAISubstitution(injuredPlayer, bestBench, { side: aiTeamSide, key: aiTeamKey }, matchData);
 }
 
 // 전역 인스턴스

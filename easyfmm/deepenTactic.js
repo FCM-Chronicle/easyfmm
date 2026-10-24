@@ -1852,16 +1852,21 @@ class RealSoccerEngine {
             const linkBase = isPrimaryRunner ? lines.mfX + fwd * 8 : lines.mfX + fwd * 4;
             const drop = isHome ? Math.max(linkBase, defLineX - 18)
                 : Math.min(linkBase, defLineX + 18);
-            tx = hh(drop, ABS_MIN + 6, isHome ? 90 : 10);
+            tx = isHome ? hh(drop, ABS_MIN - 4, 90) : aa(drop, 10, ABS_MIN + 4);
             ty = clamp(p.slotY * 0.55 + this.ball.y * 0.45, p.slotY - 12, p.slotY + 12);
             ms = 0.48 * clamp(sf, 0.75, 1.7);
         } else {
             // Shadow mode: DEFENSE LINE SHADOW (1-3 behind D line)
-            const sLo = ABS_MIN;
-            const sHi = isHome ? Math.max(offX - 2, ABS_MIN) : Math.min(offX + 2, 100 - ABS_MIN);
-            // [TUNED] Push shadow position closer to goal: +4 compared to original
-            tx = isHome ? hh(defLineX + 1, sLo, sHi)
-                : aa(defLineX - 1, 100 - sHi, 100 - sLo);
+            let sLo, sHi;
+            if (isHome) {
+                sLo = ABS_MIN;
+                sHi = Math.max(offX - 2, ABS_MIN);
+                tx = hh(defLineX + 1, sLo, sHi);
+            } else {
+                sLo = Math.min(offX + 2, ABS_MIN);
+                sHi = ABS_MIN;
+                tx = aa(defLineX - 1, sLo, sHi);
+            }
             // Y: move into channels between CBs + slight follow ball
             const followW = 0.18;
             ty = clamp(p.slotY + (this.ball.y - 50) * followW, p.slotY - 10, p.slotY + 10);
@@ -2028,7 +2033,7 @@ class RealSoccerEngine {
             tx = lines.dfX + fwd * (phase === 'building' ? -2 : 0);
             const mfCap = isHome ? mfFront - 7 : mfFront + 7;
             tx = isHome ? Math.min(tx, mfCap) : Math.max(tx, mfCap);
-            tx = clamp(tx, isHome ? 8 : 5, isHome ? 80 : 92);
+            tx = clamp(tx, isHome ? 8 : 20, isHome ? 80 : 92);
             ty = p.slotY;
             // Keep 7-15 vertical gap from other CB
             const otherCBs = mates.filter(q => q.position === 'DF' && ['CD', 'BPD', 'NCB', 'LIB'].includes(q.role));
@@ -2063,7 +2068,7 @@ class RealSoccerEngine {
             const minAheadCB = isHome ? cbMean + 8 : cbMean - 8;
             tx = isHome ? Math.max(tx, minAheadCB) : Math.min(tx, minAheadCB);
             // FB movement: smoothed, no aggressive sprinting up and down
-            tx = clamp(tx, isHome ? 8 : 5, isHome ? 92 : 92);
+            tx = clamp(tx, 8, 92);
             const ms = (p._fbMode === 'overlap' ? 0.30 : 0.22) * clamp(sf, 0.65, 1.25);
             this._physicsStep(p, tx, ty, ms); return;
         }
@@ -2414,18 +2419,13 @@ class RealSoccerEngine {
     // ─────────────────────────────────────────────────────────────
     //  COMPATIBILITY API (tacticSystem.js hooks)
     // ─────────────────────────────────────────────────────────────
-    recalculateStaminaOnSub(playerOut) {
-        const userSide = (typeof gameData !== 'undefined' && gameData.isHomeGame) ? 'home' : 'away';
-        const lineX = { GK: 5, DF: 22, MF: 45, FW: 72 };
-        const targetX = userSide === 'away'
-            ? { GK: 95, DF: 78, MF: 55, FW: 28 }[playerOut.position] || 50
-            : lineX[playerOut.position] || 50;
-        const simP = this.players.find(p =>
-            p.teamId === userSide &&
-            p.position === playerOut.position &&
-            Math.abs(p.baseX - targetX) < 12
-        );
-        if (simP) simP.stamina = 100;
+    recalculateStaminaOnSub(player) {
+        if (!player) return;
+        const targetName = typeof player === 'string' ? player : (player.name || player.id);
+        const simP = this.players.find(p => p.id === targetName || p.name === targetName);
+        if (simP) {
+            simP.stamina = (typeof player === 'object' && player.condition !== undefined) ? player.condition : 100;
+        }
     }
 
     applyTacticBoost(userTeamId, boostPercent) {
