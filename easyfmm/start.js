@@ -1,22 +1,50 @@
 // start.js - 팀 선택 화면 UI 로직 및 데이터 표시
 
-// 전역 변수 selectionState가 script.js에 정의되어 있다고 가정 (없으면 초기화)
+const AVAILABLE_LEAGUES = [
+    { id: "premier_league", name: "🇬🇧 잉글랜드 프리미어리그" },
+    { id: "laliga", name: "🇪🇸 스페인 라리가" },
+    { id: "bundesliga", name: "🇩🇪 독일 분데스리가" },
+    { id: "serie_a", name: "🇮🇹 이탈리아 세리에 A" },
+    { id: "ligue_1", name: "🇫🇷 프랑스 리그 1" },
+    { id: "eredivisie", name: "🇳🇱 네덜란드 에레디비시" },
+    { id: "liga_portugal", name: "🇵🇹 포르투갈 프리메이라리가" },
+    { id: "super_lig", name: "🇹🇷 튀르키예 쉬페르리그" },
+    { id: "kleague_1", name: "🇰🇷 대한민국 K리그 1" },
+    { id: "other", name: "🌍 기타 및 연합 클럽" }
+];
+
 if (typeof selectionState === 'undefined') {
     window.selectionState = {
-        league: 1,
+        leagueIndex: 0,
         teamIndex: 0
     };
 }
 
+function getTeamsInCurrentSelection() {
+    if (typeof allTeams === 'undefined') return [];
+    const curIdx = selectionState.leagueIndex || 0;
+    const curLeague = AVAILABLE_LEAGUES[curIdx] || AVAILABLE_LEAGUES[0];
+
+    if (curLeague.id === 'other') {
+        const knownLeagueIds = AVAILABLE_LEAGUES.map(l => l.id);
+        return Object.keys(allTeams).filter(k => allTeams[k] && (!allTeams[k].leagueId || !knownLeagueIds.includes(allTeams[k].leagueId)));
+    }
+    return Object.keys(allTeams).filter(k => allTeams[k] && allTeams[k].leagueId === curLeague.id);
+}
+
 // 팀 선택 UI 렌더링 함수
 function renderTeamSelectionUI() {
-    // 데이터 로드 확인
     if (typeof allTeams === 'undefined' || typeof teamNames === 'undefined') return;
 
-    const league = selectionState.league;
-    const teamsInLeague = Object.keys(allTeams).filter(key => allTeams[key].league === league);
-    
-    // 인덱스 안전 장치
+    if (selectionState.leagueIndex === undefined) selectionState.leagueIndex = 0;
+    const curLeague = AVAILABLE_LEAGUES[selectionState.leagueIndex] || AVAILABLE_LEAGUES[0];
+    const teamsInLeague = getTeamsInCurrentSelection();
+
+    if (!teamsInLeague.length) {
+        console.warn("[start.js] 선택된 리그에 팀이 없습니다:", curLeague.id);
+        return;
+    }
+
     if (selectionState.teamIndex >= teamsInLeague.length) selectionState.teamIndex = 0;
     if (selectionState.teamIndex < 0) selectionState.teamIndex = teamsInLeague.length - 1;
 
@@ -25,9 +53,8 @@ function renderTeamSelectionUI() {
     const teamName = teamNames[currentTeamKey] || currentTeamKey;
 
     // 0. 리그 표시 업데이트
-    const leagueNames = { 1: "1부 리그 (1ST DIVISION)", 2: "2부 리그 (2ND DIVISION)", 3: "3부 리그 (3RD DIVISION)" };
     const leagueNameEl = document.getElementById('ts-league-name');
-    if (leagueNameEl) leagueNameEl.textContent = leagueNames[league];
+    if (leagueNameEl) leagueNameEl.textContent = curLeague.name;
 
     // 1. 좌측: Identity Section (로고, 이름, 별점)
     const logoContainer = document.getElementById('ts-team-logo-container');
@@ -36,10 +63,10 @@ function renderTeamSelectionUI() {
         const logoImg = document.createElement('img');
         logoImg.className = 'ts-team-logo';
         const logoCode = teamData?.logoCode || "DFT";
-        const logoLeague = teamData?.league || league;
+        const logoLeague = teamData?.league || 1;
         logoImg.src = `assets/logo/${logoLeague}/${logoCode}.webp`;
         logoImg.alt = teamName;
-        logoImg.onerror = function() {
+        logoImg.onerror = function () {
             this.onerror = null;
             const fallback = document.createElement('div');
             fallback.className = 'ts-team-logo-fallback';
@@ -52,7 +79,7 @@ function renderTeamSelectionUI() {
 
     const teamNameEl = document.getElementById('ts-team-name');
     if (teamNameEl) teamNameEl.textContent = teamName;
-    
+
     // 별점 계산 (평균 오버롤 기반)
     const avgRating = calculateStaticTeamRating(currentTeamKey);
     let starCount = 3;
@@ -61,7 +88,7 @@ function renderTeamSelectionUI() {
     else if (avgRating >= 75) starCount = 3;
     else if (avgRating >= 70) starCount = 2;
     else starCount = 1;
-    
+
     const starsEl = document.getElementById('ts-team-stars');
     if (starsEl) {
         starsEl.replaceChildren();
@@ -85,27 +112,23 @@ function renderTeamSelectionUI() {
 
     // 2. 중앙: The Story Section (설명, 연고지, 자금)
     const descEl = document.getElementById('ts-team-desc');
-    if (descEl) descEl.textContent = teamData.description || "전통의 강호이자 새로운 도전자";
-    
+    if (descEl) descEl.textContent = teamData.description || (teamData.country + " " + (teamData.city || "") + " 연고 구단");
+
     const cityEl = document.getElementById('ts-team-city');
     if (cityEl) {
-        // teamCities는 script.js에 정의되어 있음
-        const city = (typeof teamCities !== 'undefined' && teamCities[currentTeamKey]) ? teamCities[currentTeamKey] : "알 수 없음";
+        const city = teamData.city || (typeof teamCities !== 'undefined' && teamCities[currentTeamKey]) || teamData.country || "알 수 없음";
         cityEl.textContent = city;
     }
 
-    // 시작 자금 설정 (데이터에 정의된 팀별 실제 예산 표시)
-    const budget = (teamData.budget !== undefined ? teamData.budget : (league === 3 ? 10 : 1000)) + "억";
+    // 시작 자금 설정 (FC 27 데이터에 정의된 팀별 실제 이적 예산 표시)
+    const budgetVal = (teamData.budget !== undefined) ? teamData.budget : 100;
     const budgetEl = document.getElementById('ts-team-budget');
-    if (budgetEl) budgetEl.textContent = budget;
+    if (budgetEl) budgetEl.textContent = budgetVal + "억원";
 
     // 3. 우측: Key Assets Section (핵심 선수)
-    const players = teamData.players;
-    // 오버롤 순 정렬
+    const players = teamData.players || [];
     const sortedPlayers = [...players].sort((a, b) => b.rating - a.rating);
-    
-    // Key Player 1 & 2 업데이트
-    // Key Player 1, 2, 3 업데이트
+
     updateKeyPlayerCard('ts-key-player-1', sortedPlayers[0]);
     updateKeyPlayerCard('ts-key-player-2', sortedPlayers[1]);
     updateKeyPlayerCard('ts-key-player-3', sortedPlayers[2]);
@@ -115,10 +138,13 @@ function renderTeamSelectionUI() {
 function updateKeyPlayerCard(elementId, player) {
     const el = document.getElementById(elementId);
     if (!el) return;
-    
+
     el.replaceChildren();
     if (!player) return;
-    
+
+    const card = document.createElement('div');
+    card.className = 'ts-key-player-card';
+
     const img = document.createElement('img');
     img.src = `assets/players/${player.name}.webp`;
     img.className = 'ts-kp-img';
@@ -128,41 +154,39 @@ function updateKeyPlayerCard(elementId, player) {
     info.className = 'ts-kp-info';
 
     const nameDiv = document.createElement('div');
+    nameDiv.className = 'ts-kp-name';
     nameDiv.textContent = player.name;
 
     const metaDiv = document.createElement('div');
-    metaDiv.textContent = `${player.position} | ${player.age}세`;
+    metaDiv.className = 'ts-kp-meta';
+    metaDiv.textContent = `${player.position} | ${player.age}세 | OVR ${player.rating}`;
 
     info.append(nameDiv, metaDiv);
-
-    const ovrDiv = document.createElement('div');
-    ovrDiv.className = 'ts-kp-ovr';
-    ovrDiv.textContent = Math.floor(player.rating);
-
-    el.append(img, info, ovrDiv);
+    card.append(img, info);
+    el.appendChild(card);
 }
 
-// 정적 팀 평점 계산 (allTeams 데이터 기반)
+// 팀 전력(평균 OVR) 계산
 function calculateStaticTeamRating(teamKey) {
-    if (typeof allTeams === 'undefined') return 0;
+    if (!allTeams || !allTeams[teamKey] || !allTeams[teamKey].players) return 70;
     const players = allTeams[teamKey].players;
-    if (!players || players.length === 0) return 0;
-    
-    // 상위 11명 기준 평균
+    if (players.length === 0) return 70;
+
     const top11 = [...players].sort((a, b) => b.rating - a.rating).slice(0, 11);
     const sum = top11.reduce((acc, p) => acc + p.rating, 0);
-    return sum / top11.length;
+    return Math.round(sum / top11.length);
 }
 
 // 리그 변경 함수 (화살표용)
 function changeLeague(direction) {
     if (typeof selectionState === 'undefined') return;
-    
-    let newLeague = selectionState.league + direction;
-    if (newLeague > 3) newLeague = 1;
-    if (newLeague < 1) newLeague = 3;
-    
-    selectionState.league = newLeague;
+    if (selectionState.leagueIndex === undefined) selectionState.leagueIndex = 0;
+
+    let newIdx = selectionState.leagueIndex + direction;
+    if (newIdx >= AVAILABLE_LEAGUES.length) newIdx = 0;
+    if (newIdx < 0) newIdx = AVAILABLE_LEAGUES.length - 1;
+
+    selectionState.leagueIndex = newIdx;
     selectionState.teamIndex = 0; // 리그 변경 시 첫 팀으로 리셋
     renderTeamSelectionUI();
 }
@@ -171,22 +195,22 @@ function changeLeague(direction) {
 function changeSelectionTeam(direction) {
     if (typeof selectionState === 'undefined' || typeof allTeams === 'undefined') return;
 
-    const league = selectionState.league;
-    const teamsInLeague = Object.keys(allTeams).filter(key => allTeams[key].league === league);
-    
+    const teamsInLeague = getTeamsInCurrentSelection();
+    if (!teamsInLeague.length) return;
+
     selectionState.teamIndex += direction;
-    
-    // 순환 로직
+
     if (selectionState.teamIndex >= teamsInLeague.length) selectionState.teamIndex = 0;
     if (selectionState.teamIndex < 0) selectionState.teamIndex = teamsInLeague.length - 1;
-    
+
     renderTeamSelectionUI();
 }
 
-// 전역 함수로 노출 (HTML onclick 속성에서 접근 가능하도록)
+window.AVAILABLE_LEAGUES = AVAILABLE_LEAGUES;
 window.renderTeamSelectionUI = renderTeamSelectionUI;
 window.changeLeague = changeLeague;
 window.changeSelectionTeam = changeSelectionTeam;
+window.getTeamsInCurrentSelection = getTeamsInCurrentSelection;
 
 // =============================================================================
 // 오프닝 시네마틱 시스템 (Pure DOM 기반 - 0 innerHTML)
@@ -579,4 +603,3 @@ function playCinematicIntro(options = {}) {
 }
 
 window.playCinematicIntro = playCinematicIntro;
-

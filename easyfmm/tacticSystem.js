@@ -496,7 +496,7 @@ function simulateMatch(matchData, engine) {
                             window.matchVisualizer.units[engineEvent.player].triggerSkillEffect(engineEvent.skillId);
                         }
                     }
-                    
+
                     // [신규] 태클 시각 효과 연동
                     if (engineEvent.type === 'tackle') {
                         if (window.matchVisualizer && window.matchVisualizer.units[engineEvent.player]) {
@@ -837,7 +837,7 @@ function endMatch(matchData) {
     // [신규] 일회성 이벤트 버프/디버프 원상 복구 (경기 종료 후)
     if (gameData && gameData.tempEventBuffs) {
         console.log('이벤트 일회성 버프 원상 복구:', gameData.tempEventBuffs);
-        
+
         // 사기 복구
         if (gameData.tempEventBuffs.morale) {
             if (window.GameState) {
@@ -846,7 +846,7 @@ function endMatch(matchData) {
                 gameData.teamMorale = Math.max(0, Math.min(100, gameData.teamMorale - gameData.tempEventBuffs.morale));
             }
         }
-        
+
         // 선수 능력치 복구
         if (gameData.tempEventBuffs.players && gameData.tempEventBuffs.players.length > 0) {
             const teamPlayers = window.teams ? window.teams[gameData.selectedTeam] : null;
@@ -859,7 +859,7 @@ function endMatch(matchData) {
                 });
             }
         }
-        
+
         // 버프 기록 초기화
         gameData.tempEventBuffs = { morale: 0, players: [] };
     }
@@ -1009,10 +1009,10 @@ function endMatch(matchData) {
                 // 알림 및 메일 발송
                 setTimeout(() => {
                     alert(`🌟 [유스 스카우트 보고서]\n${scoutName}이(가) 10경기 탐색 끝에 새로운 유망주를 발굴했습니다!\n\n` +
-                          `선수: ${discovered.name} (${discovered.position}, ${discovered.age}세)\n` +
-                          `현재 능력치: OVR ${discovered.rating}\n` +
-                          `잠재력 등급: [${discovered.potentialName}] (최대 OVR ~${discovered.maxPotential})\n` +
-                          `평가: ${tierDesc}`);
+                        `선수: ${discovered.name} (${discovered.position}, ${discovered.age}세)\n` +
+                        `현재 능력치: OVR ${discovered.rating}\n` +
+                        `잠재력 등급: [${discovered.potentialName}] (최대 OVR ~${discovered.maxPotential})\n` +
+                        `평가: ${tierDesc}`);
                     if (typeof displayYouthPlayers === 'function') displayYouthPlayers();
                     if (typeof displayScoutingScreen === 'function') displayScoutingScreen();
                 }, 1200);
@@ -1050,7 +1050,7 @@ function endMatch(matchData) {
         else gameData.temporaryStats = {};
     }
 
-// 다음 라운드 준비 (FA컵 경기면 FA컵 결과 처리 후 리그 라운드는 유지)
+    // 다음 라운드 준비 (FA컵 경기면 FA컵 결과 처리 후 리그 라운드는 유지)
     if (gameData.isFACupMatch && typeof faCupManager !== 'undefined') {
         faCupManager.handleUserMatchEnd(matchData);
         gameData.isFACupMatch = false;
@@ -1088,7 +1088,7 @@ function endMatch(matchData) {
             }
         });
 
-        // 2. 寃쎄린 ?????좎닔 ?먯쭊???뚮났 (+25)
+        // 2. 경기 미출전 선수 컨디션 회복 (+25)
         userPlayers.forEach(p => {
             if (!playedPlayerNames.has(p.name)) {
                 const current = p.condition !== undefined ? p.condition : 100;
@@ -1109,9 +1109,11 @@ function endMatch(matchData) {
 }
 
 function updateLeagueData(matchData, points) {
-    const divisionKey = `division${gameData.currentLeague}`;
-    const userData = gameData.leagueData[divisionKey][gameData.selectedTeam];
-    const oppData = gameData.leagueData[divisionKey][gameData.currentOpponent];
+    let uLId = (typeof LeagueManager !== 'undefined') ? LeagueManager.getLeagueIdByTeam(gameData.selectedTeam) : null;
+    let tTable = (uLId && gameData.leagueData && gameData.leagueData[uLId]) ? gameData.leagueData[uLId] : (gameData.leagueData ? gameData.leagueData[`division${gameData.currentLeague}`] : null);
+    if (!tTable) return;
+    const userData = tTable[gameData.selectedTeam];
+    const oppData = tTable[gameData.currentOpponent];
 
     if (!userData || !oppData) return;
 

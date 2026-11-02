@@ -2585,6 +2585,13 @@ function generateFullSchedule() {
         return;
     }
 
+    if (typeof LeagueManager !== 'undefined') {
+        LeagueManager.generateAllLeagueSchedules();
+        gameData.currentRound = 1;
+        console.log('새 시즌 스케줄 생성 완료 (LeagueManager)');
+        return;
+    }
+
     gameData.schedule = {};
     for (let i = 1; i <= 3; i++) {
         const leagueTeams = Object.keys(allTeams).filter(key => allTeams[key] && allTeams[key].league === i);
@@ -2611,7 +2618,8 @@ function setNextOpponent() {
         generateFullSchedule();
     }
 
-    const currentLeagueKey = `division${gameData.currentLeague}`;
+    const userLeagueId = (typeof LeagueManager !== 'undefined') ? LeagueManager.getLeagueIdByTeam(gameData.selectedTeam) : null;
+    const currentLeagueKey = (userLeagueId && gameData.schedule && gameData.schedule[userLeagueId]) ? userLeagueId : `division${gameData.currentLeague}`;
     const leagueSchedule = gameData.schedule ? gameData.schedule[currentLeagueKey] : null;
 
     if (!leagueSchedule || !Array.isArray(leagueSchedule) || gameData.currentRound > leagueSchedule.length || gameData.currentRound <= 0) {
@@ -2633,6 +2641,11 @@ function setNextOpponent() {
 }
 
 function initializeLeagueData() {
+    if (typeof LeagueManager !== 'undefined') {
+        LeagueManager.initializeAllLeagueData();
+        return;
+    }
+
     if (!gameData.leagueData) {
         gameData.leagueData = {};
     }
@@ -2704,6 +2717,11 @@ function initializeLeagueData() {
 }
 
 function displayLeagueTable() {
+    if (typeof LeagueManager !== 'undefined') {
+        LeagueManager.renderLeagueStandingsUI();
+        return;
+    }
+
     const leagueTable = document.getElementById('leagueTable');
     if (!leagueTable) return;
 

@@ -1,4 +1,4 @@
-// records.js
+﻿// records.js
 // 개인기록 시스템 구현
 // gameData, teams, teamNames, allTeams 객체가 이미 정의되어 있다고 가정    
 // 개인기록 시스템 (리그별)
@@ -179,6 +179,10 @@ class RecordsSystem {
             return;
         }
         this.lastSimulatedRound = gameData.currentRound;
+        if (typeof LeagueManager !== 'undefined') {
+            LeagueManager.simulateAllLeaguesRound(gameData.currentRound);
+            return;
+        }
 
         console.log(`=== ${gameData.currentRound}라운드 AI 경기 시뮬레이션 ===`);
         
@@ -671,6 +675,13 @@ getSeasonBest11(league) {
 
 // 리그 테이블 업데이트 메서드 (Records System 클래스에 추가)
 updateLeagueTableForAIMatch(team1Key, team2Key, score1, score2) {
+    if (typeof LeagueManager !== 'undefined') {
+        const lId1 = LeagueManager.getLeagueIdByTeam(team1Key);
+        if (gameData.leagueData && gameData.leagueData[lId1]) {
+            this.applyMatchResultToTable(gameData.leagueData[lId1], team1Key, team2Key, score1, score2);
+        }
+        return;
+    }
     // updateLeagueTableForAIMatch 함수 맨 첫 줄에 이것만 추가
     console.log(`리그 테이블 업데이트 호출: ${team1Key} vs ${team2Key}`);
 

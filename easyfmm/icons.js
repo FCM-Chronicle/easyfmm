@@ -1,4 +1,4 @@
-/* ==========================================================================
+﻿/* ==========================================================================
    icons.js - 라인 아이콘 (Lucide 스타일, 24x24 stroke) / 모노톤 벡터 아이콘 시스템
    사용:
      createIcon('squad')        → <svg class="ui-icon">...</svg> (DOM Node)
@@ -93,9 +93,12 @@
         if (!def) return svg;
         def.forEach(([tag, ...vals]) => {
             const el = document.createElementNS(SVG_NS, tag);
-            ATTRS[tag].forEach((attr, i) => {
-                if (vals[i] !== undefined) el.setAttribute(attr, vals[i]);
-            });
+            const attrs = ATTRS[tag];
+            if (attrs) {
+                attrs.forEach((attr, i) => {
+                    if (vals[i] !== undefined) el.setAttribute(attr, vals[i]);
+                });
+            }
             svg.appendChild(el);
         });
         return svg;

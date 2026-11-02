@@ -1,4 +1,4 @@
-// faCupSystem.js - 1·2·3부 42개 전 구단 통합 FA컵 (Easy Cup) 토너먼트 시스템
+﻿// faCupSystem.js - 1·2·3부 42개 전 구단 통합 FA컵 (Easy Cup) 토너먼트 시스템
 
 class FACupManager {
     constructor() {
@@ -128,7 +128,13 @@ class FACupManager {
         if (stage === 'R32') {
             // 1라운드 승자 10팀 + 시드 22팀 = 32팀
             const r1Winners = (cup.bracket['R1'] || []).map(m => m.winner || m.home);
-            const all32 = shuffle([...cup.seedTeams, ...r1Winners]);
+            let pool = [...cup.seedTeams, ...r1Winners];
+            if (pool.length > 32) {
+                const uTeam = (typeof gameData !== 'undefined') ? gameData.selectedTeam : null;
+                const poolNoUser = pool.filter(t => t !== uTeam);
+                pool = uTeam ? [uTeam, ...shuffle(poolNoUser).slice(0, 31)] : shuffle(pool).slice(0, 32);
+            }
+            const all32 = shuffle(pool);
             const r32Matches = [];
             for (let i = 0; i < all32.length; i += 2) {
                 r32Matches.push({

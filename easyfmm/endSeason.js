@@ -1,4 +1,4 @@
-// endSeason.js - 승강제 시스템
+﻿// endSeason.js - 승강제 시스템
 // 다른 파일들의 의존성을 최소화하여 독립적으로 작동
 
 
@@ -45,6 +45,18 @@ function addToLeagueTable(teamKey, league) {
 
 // 시즌 종료 조건 체크
 function checkSeasonEnd() {
+    if (typeof LeagueManager !== 'undefined') {
+        const uLId = LeagueManager.getLeagueIdByTeam(gameData.selectedTeam);
+        const targetRounds = (typeof LEAGUES_CONFIG !== 'undefined' && LEAGUES_CONFIG[uLId]) ? LEAGUES_CONFIG[uLId].rounds : 38;
+        const leagueTeams = LeagueManager.getTeamsInLeague(uLId);
+        const uTable = (gameData.leagueData && gameData.leagueData[uLId]) ? gameData.leagueData[uLId] : (gameData.leagueData ? gameData.leagueData.division1 : null);
+        if (!uTable) return;
+        const allDone = leagueTeams.every(k => uTable[k] && uTable[k].matches >= targetRounds);
+        if (allDone) {
+            endSeason();
+        }
+        return;
+    }
     // 현재 리그의 모든 팀이 26경기를 완료했는지 확인 (14팀 리그에서 홈&어웨이)
     const currentLeagueTeams = Object.keys(allTeams).filter(team => 
         allTeams[team].league === gameData.currentLeague
@@ -154,7 +166,7 @@ function endSeason(silent = false) {
     let userPromotionStatus = { status: 'stay' };
     let promotionMessage = '';
 
-    if (typeof allTeams !== 'undefined' && Object.keys(allTeams).length > 19) {
+    if (typeof LeagueManager === 'undefined' && typeof allTeams !== 'undefined' && Object.keys(allTeams).length > 19) {
         // 현재 상태의 상세 순위 계산 (데이터 변경 전)
         const detailedStandings = calculateDetailedStandings();
         promotionRelegationData = calculatePromotionRelegationNew(detailedStandings);
