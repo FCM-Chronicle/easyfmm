@@ -105,6 +105,22 @@ function endSeason(silent = false) {
         achievement = '강등권';
         reward = 200;
     }
+
+    // [신규] 통합 FA컵과의 더블(Double) 달성 체크
+    let doubleMessage = '';
+    const isFaCupChamp = (gameData.faCup && gameData.faCup.champion === gameData.selectedTeam);
+    if (userPosition === 1 && isFaCupChamp && gameData.currentLeague === 1) {
+        reward += 500;
+        doubleMessage = '\n\n✨ [역사적인 더블(Double) 달성!]\n1부 리그와 통합 FA컵을 동시 제패했습니다! (더블 보너스 +500억원)';
+        if (typeof mailManager !== 'undefined') {
+            mailManager.addMail(
+                `[신화] 1부리그 & FA컵 동시 석권! 시즌 더블(Double) 위업 달성!`,
+                '리그 & FA컵 연맹',
+                `위대한 감독님의 지도력 아래 구단이 한 시즌에 1부 리그 챔피언과 FA컵 챔피언을 동시에 거머쥐는 '더블(Double)' 신화를 완성했습니다!\n\n` +
+                `- 1부리그 최종 1위 우승\n- 통합 FA컵 최종 우승 (The Double)\n- 특별 축하 상금: +500억원 지급\n\n구단의 전설로 영원히 기억될 것입니다!`
+            );
+        }
+    }
     
     gameData.teamMoney += reward;
 
@@ -161,7 +177,7 @@ function endSeason(silent = false) {
     
     // 4. 결과 알림 표시
     if (!silent) {
-        alert(`시즌 종료!\n최종 순위: ${userPosition}위 (${achievement})\n보상: ${reward}억원${promotionMessage}${potyMessage}`);
+        alert(`시즌 종료!\n최종 순위: ${userPosition}위 (${achievement})\n보상: ${reward}억원${promotionMessage}${doubleMessage}${potyMessage}`);
     }
     
     // 5. 다른 팀 승강제 현황 표시
@@ -244,6 +260,11 @@ function endSeason(silent = false) {
         advancePlayerAges();
     }
 
+    // [신규] 계약 만료 및 따박따박 재계약/FA 방출 처리
+    if (typeof contractSystem !== 'undefined' && typeof contractSystem.processSeasonEndContracts === 'function') {
+        contractSystem.processSeasonEndContracts();
+    }
+
     if (typeof injurySystem !== 'undefined') {
         injurySystem.reset();
         console.log('시즌 종료: 모든 부상 선수가 회복되었습니다.');
@@ -265,6 +286,11 @@ function endSeason(silent = false) {
     
     if (typeof generateFullSchedule === 'function') {
         generateFullSchedule(); // 새 시즌 스케줄 생성
+    }
+
+    // [신규] 새 시즌 통합 FA컵 토너먼트 재구성
+    if (typeof faCupManager !== 'undefined' && !gameData.isWorldCupMode) {
+        faCupManager.initSeason();
     }
     
     if (!gameData.startYear) gameData.startYear = 2025;

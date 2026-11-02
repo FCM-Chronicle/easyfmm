@@ -13,63 +13,64 @@ class TransferSystem {
 
         // 타 리그 선수들
         this.extraPlayers = [
-
-            { "name": "바르트 페르브뤼헌", "position": "GK", "country": "네덜란드", "rating": 85, "age": 22, "team": "외부리그" },
-            { "name": "설영우", "position": "DF", "country": "대한민국", "rating": 77, "age": 27, "team": "외부리그" },
-            { "name": "이한범", "position": "DF", "country": "대한민국", "rating": 78, "age": 23, "team": "외부리그" },/* 카타르 */
-            { "name": "아크람 아피프", "position": "FW", "country": "카타르", "rating": 79, "age": 29, "team": "외부리그" },
-            { "name": "알모에즈 알리", "position": "FW", "country": "카타르", "rating": 78, "age": 29, "team": "외부리그" },
-            { "name": "메샬 바르샴", "position": "GK", "country": "카타르", "rating": 74, "age": 27, "team": "외부리그" },
-            { "name": "이재성", "position": "MF", "country": "대한민국", "rating": 81, "age": 33, "team": "외부리그" },
-            { "name": "네이마르", "position": "FW", "country": "브라질", "rating": 86, "age": 34, "team": "외부리그" },
+            { "name": "바르트 페르브뤼헌", "position": "GK", "country": "네덜란드", "rating": 85, "age": 22, "team": "브라이튼" },
+            { "name": "설영우", "position": "DF", "country": "대한민국", "rating": 77, "age": 27, "team": "츠르베나 즈베즈다" },
+            { "name": "이한범", "position": "DF", "country": "대한민국", "rating": 78, "age": 23, "team": "미트윌란" },
+            /* 카타르 */
+            { "name": "아크람 아피프", "position": "FW", "country": "카타르", "rating": 79, "age": 29, "team": "알 사드" },
+            { "name": "알모에즈 알리", "position": "FW", "country": "카타르", "rating": 78, "age": 29, "team": "알 두하일" },
+            { "name": "메샬 바르샴", "position": "GK", "country": "카타르", "rating": 74, "age": 27, "team": "알 사드" },
+            { "name": "이재성", "position": "MF", "country": "대한민국", "rating": 81, "age": 33, "team": "마인츠" },
+            { "name": "네이마르", "position": "FW", "country": "브라질", "rating": 86, "age": 34, "team": "알 힐랄" },
             /* 우즈베키스탄 */
-            { "name": "엘도르 쇼무로도프", "position": "FW", "country": "우즈베키스탄", "rating": 77, "age": 30, "team": "외부리그" },
-            { "name": "압보스벡 파이줄라예프", "position": "MF", "country": "우즈베키스탄", "rating": 75, "age": 22, "team": "외부리그" },
-            { "name": "오스톤 우루노프", "position": "MF", "country": "우즈베키스탄", "rating": 73, "age": 25, "team": "외부리그" },
+            { "name": "엘도르 쇼무로도프", "position": "FW", "country": "우즈베키스탄", "rating": 77, "age": 30, "team": "AS 로마" },
+            { "name": "압보스벡 파이줄라예프", "position": "MF", "country": "우즈베키스탄", "rating": 75, "age": 22, "team": "CSKA 모스크바" },
+            { "name": "오스톤 우루노프", "position": "MF", "country": "우즈베키스탄", "rating": 73, "age": 25, "team": "페르세폴리스" },
             /* 요르단 */
-            { "name": "무사 알 타마리", "position": "FW", "country": "요르단", "rating": 79, "age": 28, "team": "외부리그" },
-            { "name": "야잔 알 나이마트", "position": "FW", "country": "요르단", "rating": 75, "age": 26, "team": "외부리그" },
+            { "name": "무사 알 타마리", "position": "FW", "country": "요르단", "rating": 79, "age": 28, "team": "몽펠리에" },
+            { "name": "야잔 알 나이마트", "position": "FW", "country": "요르단", "rating": 75, "age": 26, "team": "알 아라비" },
             /* 남아프리카공화국 */
-            { "name": "론웬 윌리엄스", "position": "GK", "country": "남아프리카공화국", "rating": 74, "age": 34, "team": "외부리그" },
-            { "name": "퍼시 타우", "position": "FW", "country": "남아프리카공화국", "rating": 72, "age": 31, "team": "외부리그" },
-            { "name": "테보호 모코에나", "position": "MF", "country": "남아프리카공화국", "rating": 68, "age": 29, "team": "외부리그" },
+            { "name": "론웬 윌리엄스", "position": "GK", "country": "남아프리카공화국", "rating": 74, "age": 34, "team": "마멜로디 선다운스" },
+            { "name": "퍼시 타우", "position": "FW", "country": "남아프리카공화국", "rating": 72, "age": 31, "team": "알 아흘리" },
+            { "name": "테보호 모코에나", "position": "MF", "country": "남아프리카공화국", "rating": 68, "age": 29, "team": "마멜로디 선다운스" },
             /* 퀴라소 */
-            { "name": "타히트 총", "position": "MF", "country": "퀴라소", "rating": 77, "age": 26, "team": "외부리그" },
-            { "name": "주니뇨 바쿠나", "position": "MF", "country": "퀴라소", "rating": 74, "age": 28, "team": "외부리그" },
-            { "name": "랑헬로 장가", "position": "FW", "country": "퀴라소", "rating": 69, "age": 33, "team": "외부리그" },
+            { "name": "타히트 총", "position": "MF", "country": "퀴라소", "rating": 77, "age": 26, "team": "루턴 타운" },
+            { "name": "주니뇨 바쿠나", "position": "MF", "country": "퀴라소", "rating": 74, "age": 28, "team": "알 와흐다" },
+            { "name": "랑헬로 장가", "position": "FW", "country": "퀴라소", "rating": 69, "age": 33, "team": "FC 아인트호벤" },
             /* 카보베르데 */
-            { "name": "로건 코스타", "position": "DF", "country": "카보베르데", "rating": 78, "age": 24, "team": "외부리그" },
-            { "name": "라이언 멘데스", "position": "FW", "country": "카보베르데", "rating": 71, "age": 36, "team": "외부리그" },
-            { "name": "보지냐", "position": "GK", "country": "카보베르데", "rating": 80, "age": 40, "team": "외부리그" },
-            { "name": "루카 부슈코비치", "position": "DF", "country": "크로아티아", "age": 18, "rating": 74, "team": "외부리그" },
-            { "name": "베베", "position": "FW", "country": "카보베르데", "rating": 70, "age": 35, "team": "외부리그" },
-            { "name": "조던 픽포드", "position": "GK", "country": "잉글랜드", "rating": 83, "age": 31, "team": "외부리그" },
-            { "name": "조규성", "position": "FW", "country": "대한민국", "rating": 80, "age": 27, "team": "외부리그" },
-            { "name": "기욤 레스테스", "position": "GK", "country": "프랑스", "rating": 78, "age": 19, "team": "외부리그" },
-            { "name": "토마소 마르티넬리", "position": "GK", "country": "이탈리아", "rating": 72, "age": 18, "team": "외부리그" },
-            { "name": "윤도영", "position": "FW", "country": "대한민국", "rating": 77, "age": 19, "team": "외부리그" },
-            { "name": "조르조 스칼비니", "position": "DF", "country": "이탈리아", "rating": 85, "age": 21, "team": "외부리그" },
-            { "name": "우스망 디오망데", "position": "DF", "country": "코트디부아르", "rating": 83, "age": 21, "team": "외부리그" },
-            { "name": "파비오 카발리", "position": "DF", "country": "이탈리아", "rating": 73, "age": 19, "team": "외부리그" },
-            { "name": "아론 히키", "position": "DF", "country": "스코틀랜드", "rating": 80, "age": 22, "team": "외부리그" },
-            { "name": "디오고 코스타", "position": "GK", "country": "포르투갈", "rating": 86, "age": 25, "team": "외부리그" },
-            { "name": "후고 라르손", "position": "MF", "country": "스웨덴", "rating": 81, "age": 20, "team": "외부리그" },
-            { "name": "아담 와튼", "position": "MF", "country": "잉글랜드", "rating": 84, "age": 20, "team": "외부리그" },
-            { "name": "마틴 바투리나", "position": "MF", "country": "크로아티아", "rating": 79, "age": 21, "team": "외부리그" },
-            { "name": "자비 게라", "position": "MF", "country": "스페인", "rating": 79, "age": 21, "team": "외부리그" },
-            { "name": "옌스 카스트로프", "position": "MF", "country": "대한민국", "rating": 80, "age": 21, "team": "외부리그" },
-            { "name": "히오르히 수다코프", "position": "MF", "country": "우크라이나", "rating": 82, "age": 22, "team": "외부리그" },
-            { "name": "켄드리 파에스", "position": "MF", "country": "에콰도르", "rating": 76, "age": 17, "team": "외부리그" },
-            { "name": "윌프리드 뇽토", "position": "FW", "country": "이탈리아", "rating": 79, "age": 20, "team": "외부리그" },
-            { "name": "엘리에스 벤 세기르", "position": "FW", "country": "모로코", "rating": 80, "age": 19, "team": "외부리그" },
-            { "name": "카림 코네", "position": "FW", "country": "코트디부아르", "rating": 77, "age": 20, "team": "외부리그" },
-            { "name": "엄지성", "position": "FW", "country": "대한민국", "rating": 72, "age": 22, "team": "외부리그" },
-            { "name": "배준호", "position": "FW", "country": "대한민국", "rating": 75, "age": 21, "team": "외부리그" },
-            { "name": "오현규", "position": "FW", "country": "대한민국", "rating": 75, "age": 23, "team": "외부리그" },
-            { "name": "폴 포그바", "position": "MF", "country": "프랑스", "rating": 80, "age": 32, "team": "외부리그" },
-            { "name": "황희찬", "position": "FW", "country": "대한민국", "rating": 82, "age": 29, "team": "외부리그" },
-            { "name": "델레 알리", "position": "MF", "country": "잉글랜드", "rating": 79, "age": 29, "team": "외부리그" },
-            { "name": "니코 파스", "position": "MF", "country": "아르헨티나", "rating": 85, "age": 21, "team": "외부리그" },
+            { "name": "로건 코스타", "position": "DF", "country": "카보베르데", "rating": 78, "age": 24, "team": "비야레알" },
+            { "name": "라이언 멘데스", "position": "FW", "country": "카보베르데", "rating": 71, "age": 36, "team": "코자엘리스포르" },
+            { "name": "보지냐", "position": "GK", "country": "카보베르데", "rating": 80, "age": 40, "team": "GD 샤베스" },
+            { "name": "루카 부슈코비치", "position": "DF", "country": "크로아티아", "age": 18, "rating": 74, "team": "KVC 베스테를로" },
+            { "name": "베베", "position": "FW", "country": "카보베르데", "rating": 70, "age": 35, "team": "라싱 페롤" },
+            { "name": "조던 픽포드", "position": "GK", "country": "잉글랜드", "rating": 83, "age": 31, "team": "에버턴" },
+            { "name": "조규성", "position": "FW", "country": "대한민국", "rating": 80, "age": 27, "team": "미트윌란" },
+            { "name": "기욤 레스테스", "position": "GK", "country": "프랑스", "rating": 78, "age": 19, "team": "툴루즈" },
+            { "name": "토마소 마르티넬리", "position": "GK", "country": "이탈리아", "rating": 72, "age": 18, "team": "피오렌티나" },
+            { "name": "윤도영", "position": "FW", "country": "대한민국", "rating": 77, "age": 19, "team": "대전 하나 시티즌" },
+            { "name": "조르조 스칼비니", "position": "DF", "country": "이탈리아", "rating": 85, "age": 21, "team": "아탈란타" },
+            { "name": "우스망 디오망데", "position": "DF", "country": "코트디부아르", "rating": 83, "age": 21, "team": "스포르팅 CP" },
+            { "name": "파비오 카발리", "position": "DF", "country": "이탈리아", "rating": 73, "age": 19, "team": "보루시아 묀헨글라트바흐" },
+            { "name": "아론 히키", "position": "DF", "country": "스코틀랜드", "rating": 80, "age": 22, "team": "브렌트포드" },
+            { "name": "디오고 코스타", "position": "GK", "country": "포르투갈", "rating": 86, "age": 25, "team": "FC 포르투" },
+            { "name": "후고 라르손", "position": "MF", "country": "스웨덴", "rating": 81, "age": 20, "team": "프랑크푸르트" },
+            { "name": "아담 와튼", "position": "MF", "country": "잉글랜드", "rating": 84, "age": 20, "team": "크리스탈 팰리스" },
+            { "name": "마틴 바투리나", "position": "MF", "country": "크로아티아", "rating": 79, "age": 21, "team": "디나모 자그레브" },
+            { "name": "자비 게라", "position": "MF", "country": "스페인", "rating": 79, "age": 21, "team": "발렌시아" },
+            { "name": "옌스 카스트로프", "position": "MF", "country": "대한민국", "rating": 80, "age": 21, "team": "뉘른베르크" },
+            { "name": "히오르히 수다코프", "position": "MF", "country": "우크라이나", "rating": 82, "age": 22, "team": "샤흐타르 도네츠크" },
+            { "name": "켄드리 파에스", "position": "MF", "country": "에콰도르", "rating": 76, "age": 17, "team": "인디펜디엔테 델 바예" },
+            { "name": "윌프리드 뇽토", "position": "FW", "country": "이탈리아", "rating": 79, "age": 20, "team": "리즈 유나이티드" },
+            { "name": "엘리에스 벤 세기르", "position": "FW", "country": "모로코", "rating": 80, "age": 19, "team": "AS 모나코" },
+            { "name": "카림 코네", "position": "FW", "country": "코트디부아르", "rating": 77, "age": 20, "team": "레드불 잘츠부르크" },
+            { "name": "엄지성", "position": "FW", "country": "대한민국", "rating": 72, "age": 22, "team": "스완지 시티" },
+            { "name": "배준호", "position": "FW", "country": "대한민국", "rating": 75, "age": 21, "team": "스토크 시티" },
+            { "name": "오현규", "position": "FW", "country": "대한민국", "rating": 75, "age": 23, "team": "KRC 헹크" },
+            { "name": "폴 포그바", "position": "MF", "country": "프랑스", "rating": 80, "age": 32, "team": "유벤투스" },
+            { "name": "황희찬", "position": "FW", "country": "대한민국", "rating": 82, "age": 29, "team": "울버햄튼" },
+            { "name": "델레 알리", "position": "MF", "country": "잉글랜드", "rating": 79, "age": 29, "team": "에버턴" },
+            { "name": "니코 파스", "position": "MF", "country": "아르헨티나", "rating": 85, "age": 21, "team": "코모 1907" },
+            { "name": "크리스티아누 호날두 JR", "position": "MF", "country": "아르헨티나", "rating": 62, "age": 16, "team": "알 나스르 U-17" },
         ];
     }
 
@@ -149,8 +150,8 @@ class TransferSystem {
 
             this.transferMarket.push({
                 ...player,
-                originalTeam: "외부리그",
-                price: this.calculatePlayerPrice(player, "외부리그"),
+                originalTeam: player.team || "외부리그",
+                price: this.calculatePlayerPrice(player, player.team || "외부리그"),
                 daysOnMarket: Math.floor(Math.random() * 30)
             });
         });
@@ -219,12 +220,13 @@ class TransferSystem {
         const randomFactor = 0.9 + Math.random() * 0.2;
         price *= randomFactor;
 
-        // [수정] 나이 많고 오버롤 낮은 경우 1억 미만(0)으로 처리
+        // [수정] 나이 많고 오버롤 낮은 경우 큰 폭 감가 (단, 최소 1억 보장)
         if (player.rating < 70 && player.age >= 32) {
             price *= 0.1;
         }
 
-        return Math.round(price);
+        // [수정] 최소 1억 보장 (0억 협상 불가 오류 방지)
+        return Math.max(1, Math.round(price));
     }
 
     // 모든 선수 검색 (이름 검색용)
@@ -261,13 +263,13 @@ class TransferSystem {
         // 3. 외부 리그 선수들 (이적 시장에 없는)
         this.extraPlayers.forEach(player => {
             if (player.name.toLowerCase().includes(lowerSearchName) &&
-                !this.transferMarket.some(p => p.name === player.name && p.originalTeam === "외부리그") &&
+                !this.transferMarket.some(p => p.name === player.name) &&
                 !this.isPlayerInUserTeam(player.name)) {
 
                 allPlayers.push({
                     ...player,
-                    originalTeam: "외부리그",
-                    price: this.calculatePlayerPrice(player, "외부리그"),
+                    originalTeam: player.team || "외부리그",
+                    price: this.calculatePlayerPrice(player, player.team || "외부리그"),
                     daysOnMarket: 0,
                     inMarket: false
                 });
@@ -342,7 +344,7 @@ class TransferSystem {
         if (player.age >= 33) chance += 0.1;      // +10%
 
         // 4. 하위 리그로의 이적 거절 로직 (핵심 선수 보호)
-        if (buyerTeamKey && player.originalTeam && player.originalTeam !== "외부리그" && typeof allTeams !== 'undefined') {
+        if (buyerTeamKey && player.originalTeam && typeof allTeams !== 'undefined' && allTeams[player.originalTeam]) {
             const buyerLeague = allTeams[buyerTeamKey] ? allTeams[buyerTeamKey].league : 3;
             const sellerLeague = allTeams[player.originalTeam] ? allTeams[player.originalTeam].league : 3;
 
@@ -616,8 +618,13 @@ class TransferSystem {
                 return;
             } else {
                 transferOffers[playerKey].attempts = 0;
+                delete transferOffers[playerKey].hasMediaPlayed;
+                delete transferOffers[playerKey].hasSocialized;
+                delete transferOffers[playerKey].favorability;
             }
         }
+
+        player.price = Math.max(1, Math.round(player.price || 1));
 
         if (this.isPlayerInUserTeam(player.name)) {
             alert("이미 우리 팀에 소속된 선수입니다.");
@@ -693,6 +700,11 @@ class TransferSystem {
 
             // --- 언론 유출 및 선수 설득 버튼 ---
             const targetPlayer = this.chatState.player;
+            const playerKey = `${targetPlayer.name}_${targetPlayer.originalTeam}`;
+            const offerData = window.GameState ? window.GameState.getTransferOffer(playerKey) : (gameData.transferOffers ? gameData.transferOffers[playerKey] : null);
+            const hasMediaPlayed = !!(offerData && offerData.hasMediaPlayed);
+            const hasSocialized = !!(offerData && offerData.hasSocialized);
+
             const myTeamPlayers = teams[gameData.selectedTeam];
             let persuader = null;
 
@@ -714,11 +726,16 @@ class TransferSystem {
             qBtnMedia.style.flex = '1';
             qBtnMedia.style.background = '#3498db';
             qBtnMedia.style.fontSize = '0.8rem';
-            qBtnMedia.innerText = '언론에 유출하기';
+            qBtnMedia.innerText = hasMediaPlayed ? '언론 유출 완료' : '언론에 유출하기';
+            if (hasMediaPlayed) {
+                qBtnMedia.disabled = true;
+                qBtnMedia.style.opacity = '0.5';
+            }
             qBtnMedia.onclick = () => {
                 this.doMediaPlay(targetPlayer.name, targetPlayer.originalTeam, true);
                 qBtnMedia.disabled = true;
                 qBtnMedia.style.opacity = '0.5';
+                qBtnMedia.innerText = '언론 유출 완료';
             };
 
             const qBtnSocial = document.createElement('button');
@@ -728,11 +745,16 @@ class TransferSystem {
 
             if (persuader) {
                 qBtnSocial.style.background = '#2ecc71';
-                qBtnSocial.innerText = `${persuader.name}을(를) 통해 설득하기`;
+                qBtnSocial.innerText = hasSocialized ? '설득 완료' : `${persuader.name}을(를) 통해 설득하기`;
+                if (hasSocialized) {
+                    qBtnSocial.disabled = true;
+                    qBtnSocial.style.opacity = '0.5';
+                }
                 qBtnSocial.onclick = () => {
                     this.doSocialize(targetPlayer.name, targetPlayer.originalTeam, true, persuader.name);
                     qBtnSocial.disabled = true;
                     qBtnSocial.style.opacity = '0.5';
+                    qBtnSocial.innerText = '설득 완료';
                 };
             } else {
                 qBtnSocial.style.background = '#7f8c8d';
@@ -885,10 +907,14 @@ class TransferSystem {
             if (window.GameState) window.GameState.clearTransferOffer(playerKey);
             else delete gameData.transferOffers[playerKey];
 
-            if (player.originalTeam !== "외부리그") {
+            if (player.originalTeam && player.originalTeam !== "외부리그" && typeof teams !== 'undefined' && teams[player.originalTeam]) {
                 const originalTeamPlayers = teams[player.originalTeam];
                 const playerIndex = originalTeamPlayers.findIndex(p => p.name === player.name && p.position === player.position);
                 if (playerIndex !== -1) originalTeamPlayers.splice(playerIndex, 1);
+
+                // [수정] 판매 구단에 이적료 입금 및 주급 예산 복구 (AI 구단 재정 유지)
+                this.addTeamBudget(player.originalTeam, fee);
+                this.addTeamWageBudget(player.originalTeam, this.estimateWeeklyWage(player));
             }
 
             if (typeof mailManager !== 'undefined') {
@@ -1159,8 +1185,8 @@ class TransferSystem {
         if (window.GameState) window.GameState.clearTransferOffer(playerKey);
         else delete gameData.transferOffers[playerKey];
 
-        // AI 팀에서 선수 제거 (외부리그가 아닌 경우)
-        if (player.originalTeam !== "외부리그") {
+        // AI 팀에서 선수 제거 (게임 내 리그 팀인 경우)
+        if (player.originalTeam && typeof teams !== 'undefined' && teams[player.originalTeam]) {
             const originalTeamPlayers = teams[player.originalTeam];
             const playerIndex = originalTeamPlayers.findIndex(p =>
                 p.name === player.name && p.position === player.position
@@ -1408,6 +1434,57 @@ class TransferSystem {
             targetRatingMax = 75; // 3부 리그는 75 이하 선호
         }
 
+        // [수정] 30% 확률로 이적 시장 매물(외부 리그 스타 및 타 구단 등록 매물)에서 먼저 영입 시도
+        if (Math.random() < 0.3 && this.transferMarket.length > 0) {
+            const buyingBudget = this.getTeamBudget(buyingTeam);
+            const marketCandidates = this.transferMarket.filter(p => {
+                if (p.position !== targetPosition) return false;
+                if (this.isPlayerInUserTeam(p.name)) return false;
+                if (p.originalTeam === buyingTeam) return false;
+                if (!isEmergency && (p.rating < targetRatingMin || p.rating > targetRatingMax)) return false;
+                if (p.price > buyingBudget) return false;
+                return true;
+            });
+
+            if (marketCandidates.length > 0) {
+                marketCandidates.sort((a, b) => b.rating - a.rating);
+                const pickIndex = Math.floor(Math.random() * Math.min(3, marketCandidates.length));
+                const pickedPlayer = marketCandidates[pickIndex];
+
+                // 시장에서 제거
+                const mIdx = this.transferMarket.indexOf(pickedPlayer);
+                if (mIdx > -1) this.transferMarket.splice(mIdx, 1);
+
+                const fee = pickedPlayer.price;
+                const weeklyWage = this.estimateWeeklyWage(pickedPlayer);
+                const fromTeam = pickedPlayer.originalTeam || "외부리그";
+
+                const newPlayer = {
+                    name: pickedPlayer.name,
+                    position: pickedPlayer.position,
+                    rating: pickedPlayer.rating,
+                    age: pickedPlayer.age,
+                    weeklyWage: weeklyWage
+                };
+                teams[buyingTeam].push(newPlayer);
+
+                this.spendTeamBudget(buyingTeam, fee);
+                this.spendTeamWageBudget(buyingTeam, weeklyWage);
+
+                if (fromTeam !== "외부리그" && teams[fromTeam]) {
+                    const originalPlayers = teams[fromTeam];
+                    const pIdx = originalPlayers.findIndex(p => p.name === pickedPlayer.name);
+                    if (pIdx > -1) originalPlayers.splice(pIdx, 1);
+                    this.addTeamBudget(fromTeam, fee);
+                    this.addTeamWageBudget(fromTeam, weeklyWage);
+                }
+
+                console.log(`[시장 AI 영입] ${pickedPlayer.name}(${pickedPlayer.position}, ${pickedPlayer.rating})이(가) ${teamNames[fromTeam] || fromTeam}에서 ${teamNames[buyingTeam]}로 이적했습니다.`);
+                this.addTransferNews(pickedPlayer, fromTeam, buyingTeam, fee);
+                return;
+            }
+        }
+
         let candidates = sellingTeamPlayers.filter(p => {
             // 포지션 일치 여부
             if (p.position !== targetPosition) return false;
@@ -1633,9 +1710,17 @@ class TransferSystem {
         // 유저가 직접 리스트에 올린 선수 처리 로직
         const userTransferList = window.GameState ? window.GameState.getUserTransferList() : gameData.userTransferList;
         if (userTransferList && userTransferList.length > 0) {
-            // [수정] 오퍼 발생 확률 적용을 위해 역순 순회 (실패 시 리스트 제거)
+            const teamPlayers = teams[gameData.selectedTeam] || [];
+            // [수정] 오퍼 발생 확률 적용 및 방치된 오퍼 만료 처리를 위해 역순 순회
             for (let i = userTransferList.length - 1; i >= 0; i--) {
                 const entry = userTransferList[i];
+
+                // [안전 장치] 해당 선수가 더 이상 우리 팀에 없으면 리스트에서 즉시 제거
+                if (!teamPlayers.some(p => p.name === entry.player.name)) {
+                    userTransferList.splice(i, 1);
+                    continue;
+                }
+
                 if (entry.waitRounds > 0) {
                     entry.waitRounds--;
                 }
@@ -1645,6 +1730,7 @@ class TransferSystem {
                     if (Math.random() < 0.4) {
                         this.processUserTransferOffers(entry.player);
                         entry.isOfferSent = true; // 중복 발송 방지
+                        entry.expireRounds = 5; // 5경기 동안 응답 없으면 자동 만료
                     } else {
                         // 관심 구단 없음 안내 메일 발송
                         if (typeof mailManager !== 'undefined') {
@@ -1656,6 +1742,16 @@ class TransferSystem {
                         }
                         // 제안이 오지 않은 경우 리스트에서 제거하여 나중에 다시 등록 가능하게 함
                         userTransferList.splice(i, 1);
+                    }
+                } else if (entry.isOfferSent) {
+                    // [고착 방지] 이미 오퍼가 발송된 상태에서 장기 방치된 경우 만료 카운트다운
+                    if (typeof entry.expireRounds === 'number') {
+                        entry.expireRounds--;
+                        if (entry.expireRounds <= 0) {
+                            userTransferList.splice(i, 1);
+                        }
+                    } else {
+                        entry.expireRounds = 5;
                     }
                 }
             }
@@ -1874,10 +1970,17 @@ class TransferSystem {
         }
     }
 
-    // 판매 의사 확인 (핵심 선수 보호)
+    // 판매 의사 확인 (핵심 선수 및 포지션 뎁스 보호)
     checkSellingWillingness(player, teamKey) {
         const teamPlayers = teams[teamKey];
         if (!teamPlayers || teamPlayers.length <= 18) return false; // 최소 인원 보호
+
+        // [추가] 포지션별 최소 인원 보호 (골키퍼 1명 잔여 등 스쿼드 붕괴 방지)
+        const posCount = teamPlayers.filter(p => p.position === player.position).length;
+        if (player.position === 'GK' && posCount <= 2) return false;
+        if (player.position === 'DF' && posCount <= 5) return false;
+        if (player.position === 'MF' && posCount <= 5) return false;
+        if (player.position === 'FW' && posCount <= 3) return false;
 
         // 오버롤 순으로 정렬하여 순위 확인
         const sortedPlayers = [...teamPlayers].sort((a, b) => b.rating - a.rating);
@@ -1963,6 +2066,19 @@ class TransferSystem {
     doMediaPlay(playerName, playerOriginalTeam, inChat = false) {
         if (!gameData || !gameData.selectedTeam) return alert("게임을 시작해야 합니다.");
 
+        const playerKey = `${playerName}_${playerOriginalTeam}`;
+        const transferOffers = window.GameState ? window.GameState.ensureTransferOffers() : (gameData.transferOffers ||= {});
+        if (!transferOffers[playerKey]) transferOffers[playerKey] = { attempts: 0, lastFailedMatch: -100, favorability: 0 };
+        const offerData = transferOffers[playerKey];
+
+        // [중복 방지] 이미 언플을 시도한 경우 차단
+        if (offerData.hasMediaPlayed) {
+            const warnMsg = `이미 ${playerName} 선수를 향한 언론 작업을 진행했습니다.`;
+            if (inChat) this.addChatMessage('system', warnMsg);
+            else alert(warnMsg);
+            return;
+        }
+
         const cost = 50; // 언플 비용 (예: 50억)
         const currentMoney = window.GameState ? window.GameState.get().teamMoney : gameData.teamMoney;
         if (currentMoney < cost) {
@@ -1975,10 +2091,7 @@ class TransferSystem {
         else gameData.teamMoney -= cost;
         updateDisplay();
 
-        const playerKey = `${playerName}_${playerOriginalTeam}`;
-        const transferOffers = window.GameState ? window.GameState.ensureTransferOffers() : (gameData.transferOffers ||= {});
-        if (!transferOffers[playerKey]) transferOffers[playerKey] = { attempts: 0, lastFailedMatch: -100, favorability: 0 };
-        const offerData = transferOffers[playerKey];
+        offerData.hasMediaPlayed = true;
 
         // 성공 여부 판별 (구단 명성이나 운에 따라)
         const success = Math.random() >= 0.5; // 50% 성공
@@ -2019,6 +2132,16 @@ class TransferSystem {
         const transferOffers = window.GameState ? window.GameState.ensureTransferOffers() : (gameData.transferOffers ||= {});
         if (!transferOffers[playerKey]) transferOffers[playerKey] = { attempts: 0, lastFailedMatch: -100, favorability: 0 };
         const offerData = transferOffers[playerKey];
+
+        // [중복 방지] 이미 친목 설득을 시도한 경우 차단
+        if (offerData.hasSocialized) {
+            const warnMsg = `이미 ${persuaderName} 선수를 통해 설득을 시도했습니다.`;
+            if (inChat) this.addChatMessage('system', warnMsg);
+            else alert(warnMsg);
+            return;
+        }
+
+        offerData.hasSocialized = true;
 
         const success = Math.random() > 0.3; // 70% 성공
         if (success) {

@@ -212,14 +212,24 @@ class RecordsSystem {
     const team1Rating = this.calculateAITeamRating(team1Key);
     const team2Rating = this.calculateAITeamRating(team2Key);
     const ratingDiff = team1Rating - team2Rating;
-    // [수정] 이변 확률 감소 (8% -> 3%) : 강팀이 너무 자주 지는 현상 방지
+    // [수정] 현실적 홈 어드밴티지 및 무승부 확률 반영 (홈 44%, 원정 30%, 무 26% 기준)
     const upsetChance = (typeof gameData !== 'undefined' && gameData.isWorldCupMode) ? 0.02 : 0.03;
     const upsetOccurs = Math.random() < upsetChance;
-    let team1WinChance = 0.375;
-    let team2WinChance = 0.375;
-    let drawChance = 0.25;
+    let team1WinChance = 0.44; // 홈팀 기본 승률
+    let team2WinChance = 0.30; // 원정팀 기본 승률
+    let drawChance = 0.26;
 
-    // 전술 상성 반영
+    // [신규] 홈 구장 관중 위압감 (빅클럽 홈 어드밴티지 강화)
+    if (typeof stadiumSystem !== 'undefined') {
+        const stadiumRes = stadiumSystem.calculateMatchday(team1Key, team2Key);
+        if (stadiumRes && stadiumRes.attendance >= 50000) {
+            team1WinChance += 0.04;
+            team2WinChance -= 0.03;
+            drawChance -= 0.01;
+        }
+    }
+
+    // 전술 상성 반영 강화 (체감도 대폭 상승)
     if (typeof TacticSystem !== 'undefined') {
         const ts = new TacticSystem();
         const t1Tactic = ts.getOpponentTactic(team1Key);
@@ -227,13 +237,13 @@ class RecordsSystem {
         const matchup = ts.getTacticMatchup(t1Tactic, t2Tactic);
         
         if (matchup.advantage > 0) {
-            team1WinChance += 0.05;
-            team2WinChance -= 0.03;
-            drawChance -= 0.02;
+            team1WinChance += 0.08;
+            team2WinChance -= 0.05;
+            drawChance -= 0.03;
         } else if (matchup.advantage < 0) {
-            team1WinChance -= 0.03;
-            team2WinChance += 0.05;
-            drawChance -= 0.02;
+            team1WinChance -= 0.05;
+            team2WinChance += 0.08;
+            drawChance -= 0.03;
         }
     }
 
@@ -743,6 +753,11 @@ updateLeagueTableForAIMatch(team1Key, team2Key, score1, score2) {
     }
 
     generateRealisticScore(isWin, isUpset) {
+        const lowPref = (typeof MatchTuning !== 'undefined' && MatchTuning.aiLowScorePreference !== undefined)
+            ? MatchTuning.aiLowScorePreference : 0.70;
+        const maxGoals = (typeof MatchTuning !== 'undefined' && MatchTuning.aiMaxTeamGoals !== undefined)
+            ? MatchTuning.aiMaxTeamGoals : 4;
+
         if (isUpset) {
             const winScore = Math.floor(Math.random() * 2) + 1;
             const loseScore = Math.floor(Math.random() * 2);
@@ -750,28 +765,30 @@ updateLeagueTableForAIMatch(team1Key, team2Key, score1, score2) {
         }
 
         const goalType = Math.random();
-        if (goalType < 0.4) {
+        if (goalType < lowPref * 0.65) {
             return [1, 0];
-        } else if (goalType < 0.7) {
-            return [2, Math.random() < 0.5 ? 0 : 1];
-        } else if (goalType < 0.9) {
-            return [Math.floor(Math.random() * 2) + 2, Math.floor(Math.random() * 2)];
+        } else if (goalType < lowPref + 0.12) {
+            return [2, Math.random() < 0.6 ? 0 : 1];
+        } else if (goalType < 0.93) {
+            return [Math.min(maxGoals, Math.floor(Math.random() * 2) + 2), Math.floor(Math.random() * 2)];
         } else {
-            return [Math.floor(Math.random() * 3) + 2, Math.floor(Math.random() * 3)];
+            return [Math.min(maxGoals, Math.floor(Math.random() * 2) + 3), Math.floor(Math.random() * 2) + 1];
         }
     }
 
     generateDrawScore() {
+        const lowPref = (typeof MatchTuning !== 'undefined' && MatchTuning.aiLowScorePreference !== undefined)
+            ? MatchTuning.aiLowScorePreference : 0.70;
+
         const drawType = Math.random();
-        if (drawType < 0.4) {
+        if (drawType < lowPref * 0.65) {
             return [0, 0];
-        } else if (drawType < 0.7) {
+        } else if (drawType < lowPref + 0.18) {
             return [1, 1];
-        } else if (drawType < 0.9) {
+        } else if (drawType < 0.96) {
             return [2, 2];
         } else {
-            const drawScore = Math.floor(Math.random() * 2) + 3;
-            return [drawScore, drawScore];
+            return [3, 3];
         }
     }
 
@@ -1507,6 +1524,153 @@ class LeagueBasedRecordsSystem extends RecordsSystem {
         }
     }
 
+    // NXGN 스카우팅 평가 코멘트 생성 (다양하고 현실감 넘치는 멘트 풀)
+    generateNXGNBlurb(p, stats, ovr, ceiling) {
+        const { goals = 0, assists = 0, moms = 0, avgRating = 0 } = stats;
+        const age = p.age || 18;
+        const pos = p.position || 'MF';
+
+        // 선수 이름과 나이를 조합한 결정적 시드 (동일 선수에게 일관되면서도 고유한 멘트 매칭)
+        let hash = 0;
+        const str = (p.name || '') + age;
+        for (let i = 0; i < str.length; i++) {
+            hash = (hash << 5) - hash + str.charCodeAt(i);
+            hash |= 0;
+        }
+        const pick = (arr) => arr[Math.abs(hash) % arr.length];
+
+        // 1. 경기 지배자 / 특급 MOM 스타 (MOM 2회 이상 or 평점 7.2 이상)
+        if (moms >= 2 || avgRating >= 7.2) {
+            const clutchList = [
+                '경기마다 결정적인 차이를 만들어내는 클러치 플레이어! 빅매치에 유독 강한 대담함',
+                '매 경기 팀의 핵심으로 활약하며 유럽 빅클럽 스카우터들의 리포트를 뜨겁게 달구고 있는 특급 에이스',
+                '어린 나이에도 팀의 승리를 직접 짊어지는 승부사 기질과 탁월한 위기 대처 능력',
+                '중요한 순간마다 번뜩이는 플레이로 승부의 추를 기울이는 타고난 게임 체인저'
+            ];
+            return pick(clutchList);
+        }
+
+        // 2. 포지션별 세부 멘트
+        if (pos === 'FW') {
+            if (ovr >= 85) {
+                const eliteList = [
+                    '이미 빅리그 정상급 수비진을 초토화하고 있는 세계 최고의 10대 스트라이커',
+                    '축구계의 모든 스포트라이트를 독식하는 슈퍼 탤런트! 차세대 발롱도르 0순위',
+                    '경이로운 스피드와 파괴적인 피니시로 무결점 공격수의 탄생을 알린 괴물 크랙'
+                ];
+                return pick(eliteList);
+            }
+            if (goals >= 4) {
+                const goalList = [
+                    '문전 앞에서의 얼음장 같은 냉혹함! 10대라는 나이가 믿기지 않는 천재 골잡이',
+                    '수비 라인을 허무는 동물적인 침투 본능과 폭발적인 결정력을 지닌 차세대 피니셔',
+                    '양발을 가리지 않는 강력한 슈팅과 박스 안 위치 선정으로 골망을 찢는 킬러',
+                    '골 냄새를 맡는 탁월한 후각! 상대 수비진의 집중 견제 속에서도 기어코 득점을 올리는 골게터'
+                ];
+                return pick(goalList);
+            }
+            if (assists >= 3) {
+                const assistList = [
+                    '폭발적인 주력과 번뜩이는 1대1 돌파로 상대 측면을 완전히 붕괴시키는 차세대 크랙',
+                    '마치 중력을 거스르는 듯한 화려한 드리블과 정교한 컷백으로 공격을 이끄는 테크니션',
+                    '현란한 방향 전환과 가속으로 상대 풀백을 절망에 빠뜨리는 현대 축구형 윙어'
+                ];
+                return pick(assistList);
+            }
+            if (age <= 17) {
+                const youngList = [
+                    '나이를 잊게 만드는 대담한 플레이! 유스 무대를 평정하고 성인 무대에 센세이션을 일으킨 신성',
+                    '10년에 한 번 나올까 말까 한 세기의 원더키드! 전 세계 메가클럽들이 눈독 들이는 보석'
+                ];
+                return pick(youngList);
+            }
+            const generalFw = [
+                '탁월한 축구 센스와 날카로운 슈팅 궤적으로 미래가 더욱 기대되는 다이아몬드 원석',
+                '전방에서의 성실한 압박과 민첩한 공간 창출로 팀 공격에 활력을 불어넣는 신예 스트라이커',
+                '유연한 연계 플레이와 침착한 퍼스트 터치를 겸비한 잠재력 만점의 타깃맨',
+                '탁월한 센스와 득점 감각을 자랑하며 차세대 주포로 급부상한 특급 공격수'
+            ];
+            return pick(generalFw);
+        } else if (pos === 'MF') {
+            if (ovr >= 82) {
+                const eliteList = [
+                    '넓은 시야와 우아한 볼 컨트롤로 이미 성인 무대 중원을 장악한 차세대 월드클래스',
+                    '압도적인 축구 지능과 탈압박 기술을 뽐내며 팀의 전술 그 자체가 된 중원의 마에스트로',
+                    '마치 그라운드 전체를 위에서 내려다보는 듯한 시야! 제2의 지단/모드리치로 평가받는 신동'
+                ];
+                return pick(eliteList);
+            }
+            if (assists >= 3) {
+                const assistList = [
+                    '압박 속에서도 여유롭게 킬패스를 찔러넣는 현대 축구의 교과서적인 플레이메이커',
+                    '상대 수비 블록의 틈을 정확하게 베어내는 명품 스루패스로 찬스를 제조하는 마법사',
+                    '경기의 템포를 손바닥 위에 올려두고 조율하는 차세대 중원 사령관'
+                ];
+                return pick(assistList);
+            }
+            if (goals >= 3) {
+                const scoringMid = [
+                    '기습적인 박스 침투와 강력한 중거리포로 골까지 뽑아내는 완성형 미들라이커',
+                    '공격 가담과 중원 지배를 완벽히 겸비한 현대 축구 최적화 육각형 미드필더'
+                ];
+                return pick(scoringMid);
+            }
+            if (age <= 17) {
+                const youngList = [
+                    '10대 초반부터 축구 천재로 불린 특급 유망주! 전술 이해도가 베테랑 수준에 달한다',
+                    '차세대 국가대표 중원을 10년 이상 책임질 세기의 테크니션'
+                ];
+                return pick(youngList);
+            }
+            const generalMf = [
+                '기동력과 테크닉을 겸비한 다재다능한 신성 플레이메이커',
+                '경쾌한 발밑 기술과 유기적인 원터치 패스로 공격 전개의 기점이 되는 보석',
+                '지치지 않는 심장과 압도적인 활동량으로 그라운드 전역을 누비는 다재다능한 엔진',
+                '탄탄한 기본기와 성실한 활동량을 바탕으로 무서운 속도로 성장 중인 미드필더'
+            ];
+            return pick(generalMf);
+        } else if (pos === 'DF') {
+            if (ovr >= 82) {
+                const eliteList = [
+                    '나이를 잊은 침착한 빌드업과 대인 방어력을 지닌 차세대 월드클래스 센터백',
+                    '수비수로서 갖추어야 할 모든 툴을 완벽히 흡수한 10대 최고의 후방 지휘관',
+                    '압도적인 피지컬과 영리한 인터셉트 능력으로 통곡의 벽을 쌓아올린 대형 수비수'
+                ];
+                return pick(eliteList);
+            }
+            if (assists >= 2) {
+                const attackingDf = [
+                    '폭발적인 주력으로 측면 전체를 지배하는 현대 축구 맞춤형 공격형 윙백',
+                    '정교한 얼리 크로스와 날카로운 오버래핑으로 팀 공격에 결정적인 옵션을 제공한다',
+                    '공수 전환 속도가 경이적인 수준! 왕성한 활동량으로 측면을 집어삼키는 특급 풀백'
+                ];
+                return pick(attackingDf);
+            }
+            if (age <= 17) {
+                const youngDf = [
+                    '어린 나이에도 흔들림 없는 침착함! 대형 센터백 계보를 이을 특급 유망주',
+                    '성인 공격수들과의 거친 몸싸움에서도 절대 밀리지 않는 피지컬 괴물'
+                ];
+                return pick(youngDf);
+            }
+            const generalDf = [
+                '우수한 피지컬과 뛰어난 상황 판단력을 갖춘 미래의 후방 수호자',
+                '침착한 커버 플레이와 기민한 라인 조절로 후방을 안정시키는 든든한 센터백',
+                '상대 공격수의 패스 길목을 완벽히 읽고 차단하는 경이로운 인터셉트 스페셜리스트',
+                '빠른 주력으로 뒷공간 커버에 능한 미래의 수비 핵심 자원'
+            ];
+            return pick(generalDf);
+        } else {
+            const gkList = [
+                '동물적인 반사신경과 눈부신 슈퍼세이브로 수 차례 팀을 위기에서 구해낸 거미손',
+                '넓은 페널티 박스 장악력과 스위퍼 키퍼로서의 뛰어난 발밑 기술을 겸비한 수문장',
+                '나이답지 않은 침착한 포지셔닝과 공중볼 처리로 안정감을 뽐내는 차세대 No.1',
+                '골문 앞에서의 압도적인 존재감! 1대1 찬스에서도 끝까지 각도를 좁히는 철벽 골키퍼'
+            ];
+            return pick(gkList);
+        }
+    }
+
     // NXGN 세계 10대 유망주 BEST 10 선정 (만 19세 이하)
     generateNXGNTop10() {
         const candidates = [];
@@ -1542,17 +1706,8 @@ class LeagueBasedRecordsSystem extends RecordsSystem {
                         score += (avgRating - 6.5) * 10;
                     }
 
-                    // 스카우팅 평가 코멘트
-                    let blurb = '';
-                    if (p.position === 'FW') {
-                        blurb = ovr >= 85 ? '폭발적인 드리블과 피니시를 갖춘 세계 최고의 10대 크랙' : '탁월한 센스와 득점 감각을 자랑하는 차세대 골잡이';
-                    } else if (p.position === 'MF') {
-                        blurb = ovr >= 82 ? '넓은 시야와 정교한 패스로 경기를 지배하는 미드필드의 미래' : '기동력과 테크닉을 겸비한 다재다능한 신성 플레이메이커';
-                    } else if (p.position === 'DF') {
-                        blurb = ovr >= 82 ? '나이를 잊은 침착한 빌드업과 대인 방어력을 지닌 월드클래스 센터백' : '우수한 피지컬과 판단력을 갖춘 미래의 후방 수호자';
-                    } else {
-                        blurb = '뛰어난 반사신경과 안정적인 공중볼 처리를 겸비한 유망 골키퍼';
-                    }
+                    // 스카우팅 평가 코멘트 (다채로운 멘트 생성)
+                    const blurb = this.generateNXGNBlurb(p, { goals, assists, matches, moms, avgRating: avgRating || 0 }, ovr, ceiling);
 
                     candidates.push({
                         name: p.name,

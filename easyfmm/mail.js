@@ -518,9 +518,12 @@ class MailManager {
             gameData.currentTactic = data.targetTactic;
             mail.data.resultMessage = `전술을 '${data.tacticName}'(으)로 변경했습니다.`;
             
-            // UI 갱신 (전술 드롭다운이 있다면)
+            // UI 갱신 (전술 드롭다운 및 경기 탭 디스플레이)
             const tacticSelect = document.getElementById('tacticSelect');
             if (tacticSelect) tacticSelect.value = data.targetTactic;
+            if (typeof window.updateMatchTabCurrentTacticDisplay === 'function') {
+                window.updateMatchTabCurrentTacticDisplay();
+            }
             
             alert(`전술이 '${data.tacticName}'(으)로 변경되었습니다.`);
         } else if (data.subType === 'morale') {
@@ -597,8 +600,33 @@ class MailManager {
             teams[targetTeam].push(player);
         }
         
-        // 4. 돈 추가
-        gameData.teamMoney += price;
+        // 4. 자금 및 주급 예산 동기화
+        if (window.GameState) {
+            window.GameState.addTeamMoney(price);
+        } else {
+            gameData.teamMoney += price;
+        }
+
+        if (typeof transferSystem !== 'undefined') {
+            const restoredWage = transferSystem.estimateWeeklyWage(player);
+            // 유저 주급 예산 복구
+            transferSystem.addTeamWageBudget(gameData.selectedTeam, restoredWage);
+            // 상대 AI 팀 예산 및 주급 차감
+            transferSystem.spendTeamBudget(targetTeam, price);
+            transferSystem.spendTeamWageBudget(targetTeam, restoredWage);
+            // 이적 뉴스 등록
+            transferSystem.addTransferNews(player, gameData.selectedTeam, targetTeam, price);
+        }
+
+        // 이적 명단(userTransferList)에서도 제거
+        if (window.GameState) {
+            window.GameState.removeUserTransferListByPlayer(player.name);
+        } else if (gameData.userTransferList) {
+            gameData.userTransferList = gameData.userTransferList.filter(entry => entry.player.name !== player.name);
+        }
+
+        if (typeof calculateTotalWages === 'function') calculateTotalWages();
+        if (typeof DNAManager !== 'undefined') DNAManager.recalculateLineOVRs();
         
         // 5. 처리 완료 표시
         mail.isProcessed = true;
@@ -608,6 +636,7 @@ class MailManager {
         updateDisplay();
         if (typeof displayTeamPlayers === 'function') displayTeamPlayers();
         if (typeof updateFormationDisplay === 'function') updateFormationDisplay();
+        if (window.AutoSaveSystem) setTimeout(() => window.AutoSaveSystem.triggerSave(), 500);
         
         alert(`${player.name} 선수를 ${targetTeamName}에 ${price}억으로 이적시켰습니다.`);
         this.openMail(mail); // 버튼 숨기기 위해 다시 렌더링

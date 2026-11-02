@@ -21,10 +21,10 @@ class VisualUnit {
         this.pulse = 0; // [신규] 공 소유 시 강조 애니메이션용
     }
 
-    //  [7. 선수 이동] 보간 (Lerp) 업데이트
+    //  [FLR 이식] 어댑티브 거리 기반 부드러운 가감속 보간
     update() {
-        // [개선] 선수들 이동 속도를 낮춰서 순간이동(휙휙)하는 느낌 방지
-        const lerpFactor = 0.12; 
+        const d = Math.hypot(this.targetX - this.x, this.targetY - this.y);
+        const lerpFactor = d > 8 ? 0.18 : 0.13; 
         this.x += (this.targetX - this.x) * lerpFactor;
         this.y += (this.targetY - this.y) * lerpFactor;
 
@@ -181,31 +181,36 @@ class VisualUnit {
 class VisualBall {
     constructor() {
         this.x = 50; this.y = 50;
-        this.z = 0; // [신규] 시각적 높이 (가짜 3D 효과)
+        this.z = 0; // [FLR 물리 이식] 실제 3D 포물선 높이
         this.targetX = 50; this.targetY = 50;
-        this.accelFactor = 0.35; // [개선] 공 속도를 대폭 상향하여 사람 속도를 따라가게 함
+        this.targetZ = 0;
+        this.accelFactor = 0.25; // 60ms 틱 간격을 60FPS(16ms)에서 부드럽게 글라이딩
         this.state = 0; // 공 상태
     }
-    update() {
-        // 가속도 효과 제거: 단순 보간(Lerp) 방식으로 변경
-        this.x += (this.targetX - this.x) * this.accelFactor;
-        this.y += (this.targetY - this.y) * this.accelFactor;
-        
-        // [신규] 공이 날아갈 때(IN_FLIGHT) 속도감에 따른 높이 효과 부여
-        if (this.state === 2) { // IN_FLIGHT
-            const dist = Math.hypot(this.targetX - this.x, this.targetY - this.y);
-            let targetZ = 0;
-            
-            // [수정] 거리가 멀 때만 공이 뜨도록 변경 (짧은 패스는 땅볼)
-            // 높이 계수도 3.0 -> 0.5로 대폭 낮춤 (폴짝거림 방지)
-            if (dist > 15) {
-                targetZ = Math.min(15, dist * 0.5); 
+    update(units) {
+        // [FLR 이식] 드리블 시 볼 캐리어 발밑에 100% 동기화 (프레임 단위 뚝뚝 끊김 완전 제거)
+        if (this.state === 1 && units) {
+            const carrier = Object.values(units).find(u => u.hasBall);
+            if (carrier) {
+                this.x = carrier.x;
+                this.y = carrier.y;
+                this.z = 0;
+                return;
             }
-            
-            this.z += (targetZ - this.z) * 0.1;
-        } else {
-            this.z += (0 - this.z) * 0.3; // 땅으로 착지
         }
+        // [FLR 물리 이식] 패스/슈팅 비행 시 부드러운 연속 글라이딩 보간 (뚝뚝 끊김 완전 해결)
+        const d = Math.hypot(this.targetX - this.x, this.targetY - this.y);
+        if (d > 28) {
+            // 킥오프, 리셋 등 대규모 좌표 이동 시 즉시 이동
+            this.x = this.targetX;
+            this.y = this.targetY;
+            this.z = this.targetZ;
+            return;
+        }
+        const factor = this.accelFactor || 0.35;
+        this.x += (this.targetX - this.x) * factor;
+        this.y += (this.targetY - this.y) * factor;
+        this.z += (this.targetZ - this.z) * factor;
     }
     draw(ctx, width, height) {
         const isPortrait = height > width;
@@ -221,21 +226,23 @@ class VisualBall {
         const scale = Math.min(width, height);
         const r = Math.max(2.5, scale * 0.010); 
         
-        // [신규] 그림자 (땅에 고정)
+        // [FLR 물리 이식] 입체 그림자 (고도가 높을수록 그림자가 옅어지고 자연스럽게 번짐)
+        const shadowScale = 1 + (this.z * 0.04);
+        const shadowAlpha = Math.max(0.06, 0.35 - (this.z * 0.022));
         ctx.beginPath();
-        ctx.ellipse(px, py + r * 0.5, r * 0.8, r * 0.4, 0, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(0,0,0,0.3)';
+        ctx.ellipse(px, py + r * 0.5, r * 0.8 * shadowScale, r * 0.4 * shadowScale, 0, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(0,0,0,${shadowAlpha})`;
         ctx.fill();
 
-        // [신규] 공 본체 (Z축 적용)
-        const visualY = py - (this.z * (height / 100) * 0.5); // 화면 비율 고려
+        // [FLR 물리 이식] 공 본체 높이 적용 (포물선 궤적)
+        const visualY = py - (this.z * (height / 100) * 0.85);
 
         ctx.beginPath();
         ctx.arc(px, visualY, r, 0, Math.PI * 2);
         ctx.fillStyle = '#fff';
         ctx.fill();
         ctx.strokeStyle = '#000';
-        ctx.lineWidth = 1.5; // 외곽선 조금 더 진하게
+        ctx.lineWidth = 1.5;
         ctx.stroke();
     }
 }
@@ -299,26 +306,7 @@ class MatchVisualizer {
 
     // 엔진에서 온 데이터로 동기화
     sync(snapshot) {
-        // [수정] 공 상태 업데이트
-        this.ball.state = snapshot.ball.state; // 0:LOOSE, 1:CONTROLLED, 2:IN_FLIGHT
-
-        // [수정] 상태 기반 속도 제어 (이벤트 기반보다 더 정확함)
-        if (snapshot.ball.state === 2) { 
-            // IN_FLIGHT (패스, 슛) - 빠르고 직선적인 움직임
-            this.ball.accelFactor = 0.25; // 훨씬 빠르게 엔진 위치를 따라가 부메랑 효과 제거
-        } else if (snapshot.ball.state === 1) { 
-            // CONTROLLED (드리블) - 선수 발에 붙어다님
-            this.ball.accelFactor = 0.9; // 드리블 시에는 즉각적으로 따라붙음
-        } else {
-            // LOOSE / DEAD - 자연스러운 감속
-            this.ball.accelFactor = 0.2;
-        }
-
-        // 공 위치 업데이트
-        this.ball.targetX = snapshot.ball.x;
-        this.ball.targetY = snapshot.ball.y;
-
-        // 선수 위치 업데이트
+        // 1) 선수 위치 업데이트
         snapshot.players.forEach(pData => {
             const unit = this.units[pData.id];
             if (unit) {
@@ -327,6 +315,40 @@ class MatchVisualizer {
                 unit.hasBall = pData.hasBall;
             }
         });
+
+        // 2) [FLR 이식] 공 상태 및 탄도학 동기화
+        this.ball.state = snapshot.ball.state; // 0:DEAD, 1:CONTROLLED, 2:IN_FLIGHT, 3:LOOSE
+
+        if (snapshot.ball.state === 1) { 
+            // CONTROLLED (드리블) - 볼 캐리어 발밑에 100% 동기화하여 발밑 이탈/끊김 완전 방지
+            const carrierUnit = Object.values(this.units).find(u => u.hasBall);
+            if (carrierUnit) {
+                this.ball.x = carrierUnit.x;
+                this.ball.y = carrierUnit.y;
+                this.ball.z = 0;
+                this.ball.targetX = carrierUnit.targetX;
+                this.ball.targetY = carrierUnit.targetY;
+                this.ball.targetZ = 0;
+                this.ball.accelFactor = 1.0;
+            } else {
+                this.ball.targetX = snapshot.ball.x;
+                this.ball.targetY = snapshot.ball.y;
+                this.ball.targetZ = 0;
+                this.ball.accelFactor = 0.40;
+            }
+        } else if (snapshot.ball.state === 2) { 
+            // IN_FLIGHT (패스, 슛, 롱볼) - 60ms 틱 사이를 16ms 프레임으로 매끄럽고 부드럽게 글라이딩
+            this.ball.accelFactor = 0.38; 
+            this.ball.targetX = snapshot.ball.x;
+            this.ball.targetY = snapshot.ball.y;
+            this.ball.targetZ = Number.isFinite(snapshot.ball.z) ? snapshot.ball.z : 0;
+        } else {
+            // LOOSE / DEAD - 자연스러운 지면 감속
+            this.ball.accelFactor = 0.28;
+            this.ball.targetX = snapshot.ball.x;
+            this.ball.targetY = snapshot.ball.y;
+            this.ball.targetZ = 0;
+        }
     }
 
     resize() {
@@ -356,7 +378,7 @@ class MatchVisualizer {
             u.update();
             u.draw(this.ctx, this.width, this.height);
         });
-        this.ball.update();
+        this.ball.update(this.units);
         this.ball.draw(this.ctx, this.width, this.height);
 
         requestAnimationFrame(() => this.animate());

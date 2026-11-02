@@ -107,8 +107,9 @@ class TacticSystem {
         if (!userTacticData) return 0;
 
         let effect = 0;
-        if (userTacticData.effective.includes(opponentTactic)) effect += 5;
-        else if (userTacticData.ineffective.includes(opponentTactic)) effect -= 5;
+        // [수정] 전술 상성 차이 대폭 확대 (±5 -> ±8) : 상성 우위 시 체급 극복 가능
+        if (userTacticData.effective.includes(opponentTactic)) effect += 8;
+        else if (userTacticData.ineffective.includes(opponentTactic)) effect -= 8;
 
         // [신규] 전술 숙련도 낭만 보너스 적용 (숙련도 100일 경우 최대 +5 상쇄/추가)
         if (window.gameData && window.gameData.tacticMastery && window.gameData.tacticMastery[userTactic]) {
@@ -256,6 +257,20 @@ function startMatch() {
     document.getElementById('awayTeam').textContent = teamNames[matchData.awayTeam];
     document.getElementById('scoreDisplay').textContent = "0 - 0";
     document.getElementById('matchTime').textContent = "0분";
+
+    // [신규] 스타디움 경기 장소 및 관중 프리뷰 연동
+    if (typeof stadiumSystem !== 'undefined') {
+        const stadiumRes = stadiumSystem.calculateMatchday(matchData.homeTeam, matchData.awayTeam);
+        matchData.stadiumInfo = stadiumRes;
+        const matchTitleEl = document.getElementById('matchTitle');
+        if (matchTitleEl) {
+            const selloutTag = stadiumRes.isSellout ? " ★전석 매진" : "";
+            const cupPrefix = (gameData.isFACupMatch && typeof faCupManager !== 'undefined')
+                ? `🏆 FA컵 [${faCupManager.stageNames[gameData.faCupStage] || '토너먼트'}] · `
+                : '';
+            matchTitleEl.textContent = `${cupPrefix}🏟️ ${stadiumRes.stadiumName} (관중: ${stadiumRes.attendance.toLocaleString()}명${selloutTag})`;
+        }
+    }
     const elList = document.getElementById('eventList');
     if (elList) elList.replaceChildren();
 
@@ -276,19 +291,31 @@ function startMatch() {
 
     const engine = new RealSoccerEngine(homeSquad, awaySquad, homeTactic, awayTactic);
 
-    // [신규] 전술 상성 효과를 팀 전력(Team Strength)에 직접 반영 (약하게 적용)
-    // tacticEffect: 유리 +5, 불리 -5 (약 60% 반영으로 팀 전력 격차 상쇄)
-    if (matchData.homeTeam === gameData.selectedTeam) {
-        engine.teamStrength.home += (tacticEffect * 0.6);
-        engine.teamStrength.away -= (tacticEffect * 0.6);
-    } else {
-        engine.teamStrength.away += (tacticEffect * 0.6);
-        engine.teamStrength.home -= (tacticEffect * 0.6);
+    // [신규] 스타디움 및 경기 장소(홈/어웨이/관중 위압감) 컨텍스트 주입
+    if (typeof engine.setMatchContext === 'function') {
+        engine.setMatchContext({
+            stadiumInfo: matchData.stadiumInfo,
+            homeTeam: matchData.homeTeam,
+            awayTeam: matchData.awayTeam,
+            userTeam: gameData.selectedTeam,
+            isHomeGame: matchData.homeTeam === gameData.selectedTeam
+        });
     }
 
-    // [신규] 전술 상성 효과를 실제 선수 스탯에 직접 주입 (진짜 체감 버프)
+    // [신규] 전술 상성 효과를 팀 전력(Team Strength)에 직접 반영
+    if (matchData.homeTeam === gameData.selectedTeam) {
+        engine.teamStrength.home += (tacticEffect * 0.8);
+        engine.teamStrength.away -= (tacticEffect * 0.8);
+    } else {
+        engine.teamStrength.away += (tacticEffect * 0.8);
+        engine.teamStrength.home -= (tacticEffect * 0.8);
+    }
+
+    // [신규] 전술 상성 효과를 실제 선수 스탯에 직접 주입 (체감 버프 확대)
     const userTeamId = matchData.homeTeam === gameData.selectedTeam ? 'home' : 'away';
-    engine.applyTacticBoost(userTeamId, tacticEffect * 0.02);
+    if (typeof engine.applyTacticBoost === 'function') {
+        engine.applyTacticBoost(userTeamId, tacticEffect * 0.025);
+    }
 
     matchData.engine = engine; // 엔진 참조 저장
 
@@ -358,6 +385,19 @@ function startMatchSimulation(matchData, engine) {
     console.log('[Match] 경기 시뮬레이션 시작');
     matchData.isRunning = true;
 
+    // [신규] 경기 화면(피치) 클릭 시 세리머니 즉시 스킵
+    const pitchContainer = document.getElementById('matchVisualizerContainer');
+    if (pitchContainer && !pitchContainer._celebrationSkipBound) {
+        pitchContainer._celebrationSkipBound = true;
+        pitchContainer.addEventListener('click', () => {
+            if (window.currentMatchData && window.currentMatchData.isRunning && window.currentMatchData.engine) {
+                if (typeof window.currentMatchData.engine.skipCelebration === 'function') {
+                    window.currentMatchData.engine.skipCelebration();
+                }
+            }
+        });
+    }
+
     const kickoffEvent = {
         minute: 0,
         type: 'kickoff',
@@ -371,6 +411,7 @@ function startMatchSimulation(matchData, engine) {
 function simulateMatch(matchData, engine) {
     let tickCount = 0;
     matchData.seconds = 0; // [신규] 초 단위 정밀 시간 계산용
+    matchData._lastMinute = -1; // [신규] 중복 체력 소모 방지
     const tickDuration = 60; // [수정] 140ms -> 60ms (약 16FPS 연산) : 훨씬 부드러운 움직임
 
     // [최적화] setInterval 대신 setTimeout 재귀 호출 사용
@@ -421,8 +462,12 @@ function simulateMatch(matchData, engine) {
         const startTime = performance.now();
 
         // 2. 엔진 업데이트 (1틱 = 4초)
-        // [수정] 현재 분과 1분 경과 여부(seconds가 0일 때)를 엔진에 전달하여 체력 소모 로직 트리거
-        const snapshot = engine.update(matchData.minute, matchData.seconds === 0);
+        // [수정] 분이 바뀔 때만 isNewMinute를 1회 전달하여 체력 소모 중복 호출(골 세리머니 등) 방지
+        const isNewMinute = (matchData.minute !== matchData._lastMinute);
+        if (isNewMinute) {
+            matchData._lastMinute = matchData.minute;
+        }
+        const snapshot = engine.update(matchData.minute, isNewMinute);
 
         // [추가] 경기 중 실시간 라인 체력(숫자) 업데이트
         if (gameData.lineStats) {
@@ -730,6 +775,12 @@ function convertToTextEvent(engineEvent, matchData) {
             type: 'preGoalSuspense',
             description: getRandomCommentary('preGoalSuspense', { desc })
         };
+    } else if (engineEvent.type === 'tactical_change' || engineEvent.type === 'notice') {
+        return {
+            minute: matchData.minute,
+            type: engineEvent.type,
+            description: engineEvent.desc
+        };
     }
     return null;
 }
@@ -855,8 +906,10 @@ function endMatch(matchData) {
         }
     }
 
-    // 리그 데이터 업데이트
-    updateLeagueData(matchData, points);
+    // 리그 데이터 업데이트 (FA컵이 아닐 때만 리그 순위표 반영)
+    if (!gameData.isFACupMatch) {
+        updateLeagueData(matchData, points);
+    }
     if (window.GameState) window.GameState.incrementMatchesPlayed();
     else gameData.matchesPlayed++;
 
@@ -867,6 +920,26 @@ function endMatch(matchData) {
             draw: result === '무승부',
             loss: result === '패배'
         });
+    }
+
+    // [신규] 스타디움 매치데이 관중 및 수익 정산
+    let matchdayReport = null;
+    if (isUserHome && typeof stadiumSystem !== 'undefined') {
+        matchdayReport = stadiumSystem.processMatchdayRevenue(matchData);
+        if (matchdayReport && typeof mailManager !== 'undefined') {
+            const selloutTxt = matchdayReport.isSellout ? " (★전석 매진!)" : "";
+            mailManager.addMail(
+                `[매치데이 수익] ${teamNames[matchData.awayTeam] || matchData.awayTeam}전 관중 및 수입 결산`,
+                '구단 재정국',
+                `경기장: ${matchdayReport.stadiumName}\n` +
+                `- 관중 수: ${matchdayReport.attendance.toLocaleString()}명 (${matchdayReport.occupancyRate}%)${selloutTxt}\n` +
+                `- 티켓 수입: +${matchdayReport.ticketRevenue}억원\n` +
+                (matchdayReport.skyboxRevenue > 0 ? `- VIP 스카이박스: +${matchdayReport.skyboxRevenue}억원\n` : '') +
+                (matchdayReport.megastoreRevenue > 0 ? `- 공식 메가스토어: +${matchdayReport.megastoreRevenue}억원\n` : '') +
+                `------------------------------------\n` +
+                `총 매치데이 입금액: +${matchdayReport.totalRevenue}억원\n\n구단 금고에 정상 입금되었습니다.`
+            );
+        }
     }
 
     // [신규] 전술 숙련도(낭만) 증가 로직 (+2%)
@@ -880,6 +953,9 @@ function endMatch(matchData) {
     let finalMsg = `경기 종료! ${result} (${userScore}-${oppScore})`;
     if ((result === '승리' && !strengthDiff.userAdvantage) || (result === '패배' && strengthDiff.userAdvantage)) {
         finalMsg += result === '승리' ? `\n 대이변! 불리한 전력을 뒤집고 승리!` : `\n 충격! 유리한 경기에서 패배...`;
+    }
+    if (matchdayReport) {
+        finalMsg += `\n🏟️ 관중: ${matchdayReport.attendance.toLocaleString()}명 (매치데이 수익 +${matchdayReport.totalRevenue}억원)`;
     }
 
     const finalEvent = {
@@ -917,25 +993,44 @@ function endMatch(matchData) {
         showMatchResultModal(matchData, ratings, result, userScore, oppScore, matchData.strengthDiff);
     };
 
-    // [蹂듦뎄] 寃쎄린 ???ㅼ뭅?고듃 ?쒕룞 泥섎━
+    // [개편] 스카우터 10경기 주기 유망주 발굴 처리 (능동적 해지 전까지 영구 유지)
     if (!gameData.isWorldCupMode && gameData.hiredScout && typeof scoutingSystem !== 'undefined') {
-        const scout = scoutingSystem.scouts[gameData.hiredScout.tier];
-        if (scout && Math.random() < scout.chance) {
-            const result = scoutingSystem.scoutForPlayers(gameData.hiredScout.tier);
-            if (result.success) {
+        gameData.hiredScout.progressMatches = (gameData.hiredScout.progressMatches || 0) + 1;
+        const targetInterval = gameData.hiredScout.targetInterval || 10;
+
+        if (gameData.hiredScout.progressMatches >= targetInterval) {
+            gameData.hiredScout.progressMatches = 0;
+            const discovered = scoutingSystem.discoverYouthPlayer();
+            if (discovered) {
+                const tierDesc = (typeof POTENTIAL_TIERS !== 'undefined' && POTENTIAL_TIERS[discovered.potentialTier]) ? POTENTIAL_TIERS[discovered.potentialTier].desc : '';
+                const scoutObj = scoutingSystem.scouts[gameData.hiredScout.tier];
+                const scoutName = scoutObj ? scoutObj.name : '스카우터';
+
+                // 알림 및 메일 발송
                 setTimeout(() => {
-                    alert(`[스카우트 보고서]\n${result.message}`);
-                    if (typeof displayScoutedPlayers === 'function') displayScoutedPlayers(result.players);
+                    alert(`🌟 [유스 스카우트 보고서]\n${scoutName}이(가) 10경기 탐색 끝에 새로운 유망주를 발굴했습니다!\n\n` +
+                          `선수: ${discovered.name} (${discovered.position}, ${discovered.age}세)\n` +
+                          `현재 능력치: OVR ${discovered.rating}\n` +
+                          `잠재력 등급: [${discovered.potentialName}] (최대 OVR ~${discovered.maxPotential})\n` +
+                          `평가: ${tierDesc}`);
                     if (typeof displayYouthPlayers === 'function') displayYouthPlayers();
-                }, 1500);
+                    if (typeof displayScoutingScreen === 'function') displayScoutingScreen();
+                }, 1200);
+
+                if (typeof mailManager !== 'undefined') {
+                    mailManager.addMail(
+                        `[유스 발굴] ${discovered.name} (${discovered.potentialName}) 유망주 입단 보고서`,
+                        scoutName,
+                        `감독님, 지난 10경기 동안 전 세계 각지를 탐색한 끝에 구단의 미래를 책임질 유망주를 발굴했습니다!\n\n` +
+                        `- 선수명: ${discovered.name}\n` +
+                        `- 포지션: ${discovered.position} | 나이: ${discovered.age}세\n` +
+                        `- 현재 능력치: OVR ${discovered.rating}\n` +
+                        `- 잠재력 등급: [${discovered.potentialName}] (예상 포텐셜: ~${discovered.maxPotential})\n` +
+                        `- 스카우터 코멘트: ${tierDesc}\n\n` +
+                        `해당 선수는 현재 [유스팀]에 등록되어 있으며, 언제든지 1군 스쿼드로 콜업하여 훈련 및 실전 경기에 투입할 수 있습니다.`
+                    );
+                }
             }
-        }
-        gameData.hiredScout.remainingMatches--;
-        if (gameData.hiredScout.remainingMatches <= 0) {
-            setTimeout(() => {
-                alert(`[계약 만료] ${scout.name}과의 계약이 만료되었습니다.`);
-                gameData.hiredScout = null;
-            }, 2000);
         }
     }
 
@@ -955,10 +1050,16 @@ function endMatch(matchData) {
         else gameData.temporaryStats = {};
     }
 
-    // ?ㅼ쓬 ?쇱슫??以鍮?
-    if (window.GameState) window.GameState.advanceRound();
-    else gameData.currentRound++;
-    setNextOpponent();
+// 다음 라운드 준비 (FA컵 경기면 FA컵 결과 처리 후 리그 라운드는 유지)
+    if (gameData.isFACupMatch && typeof faCupManager !== 'undefined') {
+        faCupManager.handleUserMatchEnd(matchData);
+        gameData.isFACupMatch = false;
+        setNextOpponent();
+    } else {
+        if (window.GameState) window.GameState.advanceRound();
+        else gameData.currentRound++;
+        setNextOpponent();
+    }
 
     // [?섏젙] 泥대젰 ?뚮났 ?쒖뒪??媛쒗렪 (媛쒕퀎 ?좎닔 ?⑥쐞)
     if (matchData.engine && matchData.engine.players && gameData.selectedTeam) {
@@ -1788,7 +1889,7 @@ window.injurySystem = injurySystem;
 window.startMatch = startMatch;
 window.handleInterview = handleInterview;
 
-// [신규] 경기 속도 조절 치트키 (Shift + F)
+// [신규] 경기 속도 조절 치트키 (Shift + F) 및 세리머니 스킵 (Space / ESC)
 document.addEventListener('keydown', (e) => {
     if (e.shiftKey && (e.key === 'f' || e.key === 'F')) {
         if (window.currentMatchData && window.currentMatchData.isRunning) {
@@ -1799,6 +1900,18 @@ document.addEventListener('keydown', (e) => {
             if (timeEl) {
                 timeEl.style.color = window.currentMatchData.isFastForward ? '#f1c40f' : '';
                 timeEl.style.textShadow = window.currentMatchData.isFastForward ? '0 0 10px #f1c40f' : '';
+            }
+        }
+    }
+
+    // [신규] 세리머니 즉시 스킵 (Space 또는 ESC 키)
+    if (e.code === 'Space' || e.key === 'Escape') {
+        const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : '';
+        if (tag !== 'input' && tag !== 'textarea') {
+            if (window.currentMatchData && window.currentMatchData.isRunning && window.currentMatchData.engine) {
+                if (typeof window.currentMatchData.engine.skipCelebration === 'function') {
+                    window.currentMatchData.engine.skipCelebration();
+                }
             }
         }
     }

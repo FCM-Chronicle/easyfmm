@@ -4,49 +4,51 @@
 class PlayerGrowthSystem {
     constructor() {
         this.growthData = new Map(); // 선수별 성장 데이터 저장
-        // [이동] 고정 포텐셜 명단 (이름: 목표 오버롤)
+        // [수정] 고정 포텐셜 현실화 디플레이션 (오버롤 인플레 방지)
         this.fixedPotentials = {
-            "오현규": 88,
-            "김민수": 92,
-            "배준호": 90,
-            "앙제요안 보니": 88,
-            "조반니 레오니": 93,
-            "트레이 뇨니": 86,
-            "프란치스코 카마르다": 92,
-            "옌스 카스트로프": 92,
-            "조브 벨링엄": 92,
-            "제라르 마르틴": 84,
-            "마르크 베르날": 85,
-            "루니 바르다그지": 83,
-            "파우 쿠바르시": 93,
-            "엔드릭": 90,
-            "리코 루이스": 83,
-            "코비 마이누": 88,
-            "아론 바우만": 91,
-            "조르티 모키오": 84,
-            "부바 상가레": 90,
-            "루카 부슈코비치": 94,
-            "에단 은와네리": 86,
-            "조시 아체암퐁": 87,
-            "맥스 다우먼": 93,
-            "리오 응구모하": 90,
-            "레나르트 칼": 95,
-            "배승균": 92,
-            "윤도영": 87,
-            "강상윤": 92,
-            "디스 얀서": 89,
-            "켄드리 파에스": 89,
-            "아산 우에드라오고": 92,
-            "백인우": 87,
-            "대릴 바콜라": 86,
-            "파트리크 도르구": 92,
-            "파쿤도 부오나오테": 87,
-            "미카 고츠": 88,
-            "양민혁": 94,
-            "마이키 무어": 94,
-            "다비데 바르테사기": 87,
-            "루카 윌리엄스-바넷": 94,
-            "드로": 91,
+            "오현규": 82,
+            "김민수": 85,
+            "배준호": 84,
+            "앙제요안 보니": 82,
+            "조반니 레오니": 86,
+            "트레이 뇨니": 81,
+            "프란치스코 카마르다": 86,
+            "옌스 카스트로프": 84,
+            "조브 벨링엄": 85,
+            "제라르 마르틴": 80,
+            "마르크 베르날": 81,
+            "루니 바르다그지": 79,
+            "파우 쿠바르시": 87,
+            "엔드릭": 86,
+            "리코 루이스": 80,
+            "코비 마이누": 84,
+            "아론 바우만": 85,
+            "조르티 모키오": 80,
+            "부바 상가레": 84,
+            "루카 부슈코비치": 87,
+            "에단 은와네리": 82,
+            "조시 아체암퐁": 82,
+            "맥스 다우먼": 87,
+            "리오 응구모하": 85,
+            "레나르트 칼": 88,
+            "배승균": 85,
+            "카를로스 에스피": 86,
+            "크리스티아누 호날두 JR": 88,
+            "윤도영": 81,
+            "강상윤": 79,
+            "디스 얀서": 83,
+            "켄드리 파에스": 84,
+            "아산 우에드라오고": 85,
+            "백인우": 81,
+            "대릴 바콜라": 81,
+            "파트리크 도르구": 85,
+            "파쿤도 부오나오테": 82,
+            "미카 고츠": 82,
+            "양민혁": 87,
+            "마이키 무어": 87,
+            "다비데 바르테사기": 82,
+            "루카 윌리엄스-바넷": 87,
+            "드로": 84,
         };
     }
 
@@ -80,28 +82,47 @@ class PlayerGrowthSystem {
         });
     }
 
-    // 성장 가능성 계산 (3-15 사이의 랜덤 값)
-    calculateGrowthPotential(player) {
+    // [신규] 구단 최첨단 훈련 시설 보유 여부 확인 (스타디움 시스템 연동)
+    hasAdvancedTrainingFacility(teamKey = null) {
+        const isUserTeam = !teamKey || (gameData && gameData.selectedTeam === teamKey);
+        if (isUserTeam) {
+            const stadium = (gameData && gameData.stadiumInfo) || 
+                            (typeof window !== 'undefined' && window.stadiumSystem && window.stadiumSystem.getUserStadium());
+            return !!(stadium && stadium.upgrades && stadium.upgrades.trainingCenter);
+        }
+        // AI 상위 명문 빅클럽은 훈련 시설 보유로 판정
+        const eliteAI = ['레알_마드리드', '맨체스터_시티', '바이에른_뮌헨', '파리_생제르맹', '바르셀로나'];
+        return eliteAI.includes(teamKey);
+    }
+
+    // 성장 가능성 계산 (출전 시간과 훈련 시설에 따라 풀포텐 해금)
+    calculateGrowthPotential(player, teamKey = null) {
         // [수정] this.fixedPotentials 사용
         if (this.fixedPotentials.hasOwnProperty(player.name)) {
             const targetRating = this.fixedPotentials[player.name];
-            const growthNeeded = Math.max(0, targetRating - Math.round(player.rating));
-            console.log(`[Growth] ${player.name}: 고정 포텐셜 적용 (목표: ${targetRating}, 필요 성장: ${growthNeeded})`);
-            return growthNeeded;
+            const maxGrowth = Math.max(0, targetRating - Math.round(player.rating));
+            console.log(`[Growth] ${player.name}: 고정 포텐셜 적용 (목표: ${targetRating}, 필요 성장: ${maxGrowth})`);
+            return maxGrowth;
         }
 
-        // [밸런스 수정] 기본 성장 폭 하향 (인플레 방지)
-        // 기존: 3~13 -> 수정: 2~8
-        const baseGrowth = 2 + Math.random() * 8;
+        // [신규] 유스 스카우트 4단계 포텐셜 적용
+        if (player.maxPotential) {
+            const maxGrowth = Math.max(0, player.maxPotential - Math.round(player.rating));
+            console.log(`[Growth] ${player.name}: 유스 포텐셜 적용 (등급: ${player.potentialName || player.potentialTier}, 목표: ${player.maxPotential}, 필요 성장: ${maxGrowth})`);
+            return maxGrowth;
+        }
+
+        // [밸런스 수정] 기본 성장 폭
+        const baseGrowth = 2 + Math.random() * 5;
 
         // 나이에 따른 보정
         let ageModifier = 1;
         if (player.age <= 18) {
-            ageModifier = 1.3; // 1.5 -> 1.3
+            ageModifier = 1.3;
         } else if (player.age <= 21) {
-            ageModifier = 1.1; // 1.3 -> 1.1
+            ageModifier = 1.1;
         } else if (player.age <= 23) {
-            ageModifier = 1.0; // 1.1 -> 1.0
+            ageModifier = 1.0;
         } else if (player.age <= 25) {
             ageModifier = 0.8;
         }
@@ -169,9 +190,9 @@ class PlayerGrowthSystem {
             finalGrowth = Math.max(finalGrowth, gap + Math.floor(Math.random() * 5));
         }
 
-        // [신규] 최종 포텐셜 상한선 체크 (일반 선수는 95를 넘기 힘들게)
+        // [신규] 최종 포텐셜 상한선 체크 (일반 선수는 89를 넘기 힘들게)
         const projectedRating = currentRating + finalGrowth;
-        const hardCap = player.isCustom || player.isIcon ? 100 : 95;
+        const hardCap = player.isCustom || player.isIcon ? 98 : 89;
 
         if (projectedRating > hardCap) {
             return Math.max(0, hardCap - currentRating);
@@ -236,13 +257,13 @@ class PlayerGrowthSystem {
         const first11 = [sq.gk, ...sq.df, ...sq.mf, ...sq.fw].filter(Boolean);
         const name = player.name;
         const isStarter = first11.some(p => p && p.name === name);
-        if (isStarter) return 1.15;
+        if (isStarter) return 1.35; // 선발 출전 시 성장 35% 대폭 가속!
         const teamPlayers = teams[gameData.selectedTeam] || [];
         const isInTeam = teamPlayers.some(p => p.name === name);
-        return isInTeam ? 0.85 : 0.2;
+        return isInTeam ? 0.70 : 0.15; // 벤치 후보 0.70x, 미소집 방치 0.15x (출전 없으면 정체)
     }
 
-    // 성장량 계산 (월별 성장량 그대로 사용 + 출장/성적 보정)
+    // 성장량 계산 (출전 시간과 훈련 시설에 따라 풀포텐 해금)
     calculateGrowthAmount(player, growthInfo) {
         let growthAmount = growthInfo.monthlyGrowth;
 
@@ -251,8 +272,20 @@ class PlayerGrowthSystem {
             growthAmount *= 0.6;
         }
 
-        // [신규] 출장 여부 보정: 선발 1.15x / 후보 0.85x / 방출위기 0.2x
+        // [신규] 출장 여부 보정: 선발 1.35x / 후보 0.70x / 방출위기 0.15x
         growthAmount *= this._getPlayerAppearanceFactor(player);
+
+        // [신규] 최첨단 훈련 시설 보너스: +30% 가속!
+        const hasFacility = this.hasAdvancedTrainingFacility(gameData.selectedTeam);
+        if (hasFacility) {
+            growthAmount *= 1.30;
+        } else if (growthInfo.maxGrowth > 0) {
+            // 훈련시설 미보유 시 소프트 캡: 최대 잠재력의 70% 도달 후 성장 급격 둔화 (풀포텐 불가)
+            const grown = growthInfo.maxGrowth - growthInfo.remainingGrowth;
+            if ((grown / growthInfo.maxGrowth) >= 0.70) {
+                growthAmount *= 0.20;
+            }
+        }
 
         // [신규] 경기 성적 보정: 득점/어시/MOM/TOTW 기반 ±~2x
         growthAmount *= this._getPlayerMatchPerformanceBonus(player.name);
@@ -381,16 +414,16 @@ class PlayerGrowthSystem {
                             if (player.rating >= targetRating) return; // 목표치 도달 시 성장 중단
                         }
 
-                        // 기본 성장치 (5경기당 0.3 ~ 0.7)
-                        let growthAmount = 0.3 + Math.random() * 0.4;
+                        // 기본 성장치 (5경기당 0.15 ~ 0.35로 감속하여 인플레 억제)
+                        let growthAmount = 0.15 + Math.random() * 0.2;
 
                         // 1. 나이 보정 (어릴수록 빠름)
-                        if (player.age <= 20) growthAmount *= 1.5;
-                        else if (player.age <= 23) growthAmount *= 1.2;
+                        if (player.age <= 20) growthAmount *= 1.3;
+                        else if (player.age <= 23) growthAmount *= 1.1;
 
                         // 2. 현재 능력치 보정 (낮을수록 빨리 큼 - 캐치업)
-                        if (player.rating < 70) growthAmount *= 1.3;
-                        else if (player.rating > 90) growthAmount *= 0.5; // 고능력치는 성장 둔화
+                        if (player.rating < 70) growthAmount *= 1.2;
+                        else if (player.rating >= 85) growthAmount *= 0.3; // 85 이상은 성장 급감
 
                         // 3. 밸런싱 계수 적용 (신규)
                         growthAmount *= balanceFactor;
@@ -399,15 +432,17 @@ class PlayerGrowthSystem {
                         const isPrestigePlayer = gameData.aiPrestige && gameData.aiPrestige[teamKey] && gameData.aiPrestige[teamKey].includes(player.name);
 
                         if (isPrestigePlayer) {
-                            growthAmount += 0.5; // 프레스티지 추가 보너스
+                            growthAmount += 0.3; // 프레스티지 추가 보너스
                         }
 
                         // 소수점 1자리까지 허용
                         growthAmount = Math.round(growthAmount * 10) / 10;
 
-                        // AI 선수 성장 적용
+                        // AI 선수 성장 적용 (일반 선수는 최대 88로 캡, 15%만 풀포텐 도달)
                         const oldRating = player.rating;
-                        const maxCap = this.fixedPotentials.hasOwnProperty(player.name) ? this.fixedPotentials[player.name] : 99;
+                        const theoreticalCap = this.fixedPotentials.hasOwnProperty(player.name) ? this.fixedPotentials[player.name] : 88;
+                        const playerRealizedCap = player._realizedCap || (player._realizedCap = (Math.random() < 0.15 ? theoreticalCap : Math.max(70, theoreticalCap - 2 - Math.floor(Math.random() * 4))));
+                        const maxCap = Math.min(88, playerRealizedCap);
                         const newRating = Math.min(maxCap, player.rating + growthAmount);
                         player.rating = Math.round(newRating * 10) / 10; // 소수점 1자리
 
@@ -421,21 +456,139 @@ class PlayerGrowthSystem {
         });
     }
 
-    // 시즌 종료 시 나이 증가
+    // 시즌 종료 시 나이 증가 및 32세 이상 노화(에이징 커브) 적용
     advancePlayerAges() {
+        const recordsSys = window.leagueBasedRecordsSystem || window.recordsSystem;
+        const agingReport = [];
+
         Object.keys(teams).forEach(teamKey => {
+            const isUserTeam = (gameData && gameData.selectedTeam === teamKey);
             teams[teamKey].forEach(player => {
                 player.age++;
 
-                // 26세 이상이 되면 성장 데이터 제거
+                // 1. 26세 이상이 되면 성장 데이터 제거
                 if (this.growthData.has(player.name) && player.age > 25) {
-                    console.log(`${player.name}의 나이 초과(${player.age}세) - 성장 데이터 삭제`);
                     this.growthData.delete(player.name);
+                }
+
+                // 2. [신규] 출전 시간 & 훈련 시설에 따른 성장 지속 vs 정체 (Plateau 판정)
+                if (this.growthData.has(player.name)) {
+                    const stats = (recordsSys && recordsSys.playerStats) ? recordsSys.playerStats.get(player.name) : null;
+                    const matchCount = (stats && stats.ratingCount) ? stats.ratingCount : 0;
+                    const hasFacility = this.hasAdvancedTrainingFacility(teamKey);
+
+                    let shouldStagnate = false;
+                    let stagnateReason = "";
+
+                    // [조건 1] 완벽한 육성 환경: 시즌 10경기 이상 출전 + 최첨단 훈련 시설 보유
+                    // -> 풀포텐 보장! 절대 조기 정체 없음!
+                    if (matchCount >= 10 && hasFacility) {
+                        shouldStagnate = false;
+                    }
+                    // [조건 2] 벤치 방치: 21세 이상인데 시즌 4경기 미만 출전 시 75% 확률로 성장 조기 중단!
+                    else if (player.age >= 21 && matchCount < 4 && Math.random() < 0.75) {
+                        shouldStagnate = true;
+                        stagnateReason = "출전 시간 부족(벤치 방치)으로 인한 성장 조기 정체";
+                    }
+                    // [조건 3] 훈련 시설 미보유: 훈련소 한계로 22세 이상에서 50% 확률로 성장 한계 봉착!
+                    else if (player.age >= 22 && !hasFacility && Math.random() < 0.50) {
+                        shouldStagnate = true;
+                        stagnateReason = "구단 훈련 시설 한계로 인한 성장 마감 (최첨단 훈련 아카데미 필요)";
+                    }
+                    // [조건 4] 출전 부족 & 훈련시설 미보유 복합: 85% 확률로 성장 실패
+                    else if (player.age >= 21 && matchCount < 8 && !hasFacility && Math.random() < 0.85) {
+                        shouldStagnate = true;
+                        stagnateReason = "출전 기회 결핍 및 훈련 인프라 한계로 인한 성장 마감";
+                    }
+
+                    if (shouldStagnate) {
+                        this.growthData.delete(player.name);
+                        console.log(`[Growth] ${player.name} (${player.age}세): ${stagnateReason} (최종 OVR: ${Math.floor(player.rating)})`);
+                    }
+                }
+
+                // 3. 32세부터 노화 (Aging Curve)
+                if (player.age >= 32) {
+                    const stats = (recordsSys && recordsSys.playerStats) ? recordsSys.playerStats.get(player.name) : null;
+                    const hasStats = stats && stats.ratingCount && stats.ratingCount >= 5;
+                    const avgRating = hasStats ? (stats.ratingSum / stats.ratingCount) : null;
+
+                    let decline = 0;
+                    let reason = "";
+
+                    if (hasStats && avgRating >= 7.3) {
+                        // [폼 방어] 시즌 평점 7.3 이상 월클급 맹활약!
+                        if (player.age >= 36) {
+                            decline = 0.5; // 36세 이상은 최소한의 세월 감쇠만
+                            reason = `평점 ${avgRating.toFixed(2)} 맹활약으로 노쇠화 최소 방어 (-0.5)`;
+                        } else {
+                            decline = 0; // 32~35세는 완전 방어!
+                            reason = `평점 ${avgRating.toFixed(2)} 맹활약으로 에이징 커브 완전 방어 (유지!)`;
+                        }
+                    } else if (hasStats && avgRating >= 6.8) {
+                        // [평범한 주전] -1점 자연 감쇠
+                        decline = (player.age >= 35) ? 1.5 : 1.0;
+                        reason = `평점 ${avgRating.toFixed(2)} 주전 활약, 자연 노쇠화 (-${decline})`;
+                    } else {
+                        // [벤치 방치 or 부진] 출전 부족/부진으로 인한 노쇠화 직격탄 (-2 ~ -3)
+                        decline = (player.age >= 35) ? 3.0 : 2.0;
+                        const ratingTxt = hasStats ? `평점 ${avgRating.toFixed(2)} 부진` : '출전 기회 부족';
+                        reason = `${ratingTxt}으로 노쇠화 직격탄 (-${decline})`;
+                    }
+
+                    if (decline > 0) {
+                        const oldRating = Math.round(player.rating * 10) / 10;
+                        player.rating = Math.max(50, Math.round((player.rating - decline) * 10) / 10);
+                        if (isUserTeam) {
+                            agingReport.push({
+                                name: player.name,
+                                age: player.age,
+                                oldRating: oldRating,
+                                newRating: player.rating,
+                                decline: decline,
+                                reason: reason
+                            });
+                        }
+                    } else if (isUserTeam) {
+                        agingReport.push({
+                            name: player.name,
+                            age: player.age,
+                            oldRating: player.rating,
+                            newRating: player.rating,
+                            decline: 0,
+                            reason: reason
+                        });
+                    }
                 }
             });
         });
 
-        console.log(`[Growth] 시즌 종료 후 남은 성장 중인 선수: ${this.growthData.size}명`);
+        // 유저 팀 에이징 커브 리포트 메일 발송
+        if (agingReport.length > 0 && typeof mailManager !== 'undefined') {
+            const reportLines = agingReport.map(r => {
+                if (r.decline === 0) {
+                    return `✨ ${r.name} (${r.age}세): OVR ${r.newRating} [유지] - ${r.reason}`;
+                } else {
+                    return `📉 ${r.name} (${r.age}세): OVR ${r.oldRating} → ${r.newRating} (-${r.decline}) - ${r.reason}`;
+                }
+            }).join('\n');
+
+            mailManager.addMail(
+                `[시즌 결산] 32세 이상 베테랑 에이징 커브 분석 보고서`,
+                '구단 피지컬 코칭스태프',
+                `감독님, 이번 시즌 종료에 따른 32세 이상 베테랑 선수단의 신체 능력 및 폼 분석 리포트입니다.\n\n` +
+                `선수의 현 폼(시즌 평균 평점)에 따라 에이징 커브 방어 여부가 결정되었습니다.\n\n` +
+                `${reportLines}\n\n` +
+                `고령 선수의 급격한 기량 저하를 방지하려면 꾸준한 경기 출전과 높은 경기 평점 관리가 필수적입니다.`
+            );
+        }
+
+        // 라인별 OVR 및 전술 DNA 재계산
+        if (typeof DNAManager !== 'undefined') {
+            DNAManager.recalculateLineOVRs();
+        }
+
+        console.log(`[Growth] 시즌 종료 후 남은 성장 중인 선수: ${this.growthData.size}명 (32세 이상 노화 적용 완료)`);
     }
 
     // 스쿼드 화면 업데이트
@@ -451,8 +604,8 @@ class PlayerGrowthSystem {
         if (player.age < 25 && !this.growthData.has(player.name)) {
             let growthPotential = this.calculateGrowthPotential(player);
 
-            // 유스 콜업 보너스: 3~6 추가
-            const callUpBonus = 3 + Math.floor(Math.random() * 4);
+            // [수정] 콜업 보너스 제거 (실현율로 산출된 잠재력 그대로 적용)
+            const callUpBonus = 0;
             growthPotential += callUpBonus;
 
             // [수정] 포텐셜에 따라 성장 기간을 3~12개월로 다르게 설정

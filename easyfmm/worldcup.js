@@ -231,7 +231,7 @@ const WorldCupManager = {
 
                 if (p.country && p.country !== "국적 미상") {
                     if (!countries[p.country]) countries[p.country] = [];
-                    countries[p.country].push({ ...p, originalClub: "외부 리그" });
+                    countries[p.country].push({ ...p, originalClub: p.team || "외부 리그" });
                 }
             });
         }

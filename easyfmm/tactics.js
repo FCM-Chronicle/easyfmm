@@ -472,9 +472,12 @@ const DNAManager = {
         tacticSelect.addEventListener('change', function() {
             gameData.currentTactic = this.value;
             
-            // [추가] 경기 탭의 전술 선택 드롭다운과 동기화
+            // [추가] 경기 탭의 전술 디스플레이 동기화
             const matchTacticSelect = document.getElementById('tacticSelect');
             if (matchTacticSelect) matchTacticSelect.value = this.value;
+            if (typeof window.updateMatchTabCurrentTacticDisplay === 'function') {
+                window.updateMatchTabCurrentTacticDisplay();
+            }
 
             // [추가] 전술 변경 시 자동 저장 및 UI 즉시 갱신
             if (typeof window.triggerAutoSave === 'function') {
