@@ -1094,13 +1094,9 @@ updateLeagueTableForAIMatch(team1Key, team2Key, score1, score2) {
                 avatarWrap.className = 'best11-avatar-wrap';
 
                 const img = document.createElement('img');
-                img.src = `assets/players/${data.player.name}.webp`;
                 img.className = 'best11-image';
                 img.loading = 'lazy';
-                img.onerror = function() {
-                    this.onerror = null;
-                    this.src = 'assets/players/default.webp';
-                };
+                setPlayerPhoto(img, data.player);
 
                 const ratingDiv = document.createElement('div');
                 ratingDiv.className = 'best11-rating';
@@ -1850,12 +1846,8 @@ class LeagueBasedRecordsSystem extends RecordsSystem {
 
             const img = document.createElement('img');
             img.className = 'nxgn-avatar';
-            img.src = `assets/players/${player.name}.webp`;
             img.loading = 'lazy';
-            img.onerror = () => {
-                img.onerror = null;
-                img.src = 'assets/players/default.webp';
-            };
+            setPlayerPhoto(img, player);
 
             const infoWrap = document.createElement('div');
             infoWrap.className = 'nxgn-info';

@@ -1,0 +1,5002 @@
+[
+    {
+        "id":  69992,
+        "rawName":  "Miloš Luković",
+        "knownAs":  "",
+        "firstName":  "Miloš",
+        "lastName":  "Luković",
+        "club":  "Strasbourg",
+        "country":  "Serbia",
+        "ovr":  67
+    },
+    {
+        "id":  69997,
+        "rawName":  "Arthur Avom Ebong",
+        "knownAs":  "",
+        "firstName":  "Arthur",
+        "lastName":  "Avom Ebong",
+        "club":  "FC Lorient",
+        "country":  "Cameroon",
+        "ovr":  75
+    },
+    {
+        "id":  70004,
+        "rawName":  "Senny Mayulu",
+        "knownAs":  "",
+        "firstName":  "Senny",
+        "lastName":  "Mayulu",
+        "club":  "Paris SG",
+        "country":  "France",
+        "ovr":  79
+    },
+    {
+        "id":  70005,
+        "rawName":  "Anthony Bermont",
+        "knownAs":  "",
+        "firstName":  "Anthony",
+        "lastName":  "Bermont",
+        "club":  "Angers SCO",
+        "country":  "France",
+        "ovr":  68
+    },
+    {
+        "id":  70012,
+        "rawName":  "Nhoa Sangui",
+        "knownAs":  "",
+        "firstName":  "Nhoa",
+        "lastName":  "Sangui",
+        "club":  "Paris FC",
+        "country":  "France",
+        "ovr":  73
+    },
+    {
+        "id":  70017,
+        "rawName":  "Gessime Yassine",
+        "knownAs":  "",
+        "firstName":  "Gessime",
+        "lastName":  "Yassine",
+        "club":  "Strasbourg",
+        "country":  "Morocco",
+        "ovr":  73
+    },
+    {
+        "id":  70020,
+        "rawName":  "Mathis Amougou",
+        "knownAs":  "",
+        "firstName":  "Mathis",
+        "lastName":  "Amougou",
+        "club":  "Strasbourg",
+        "country":  "France",
+        "ovr":  71
+    },
+    {
+        "id":  70415,
+        "rawName":  "Estéban Lepaul",
+        "knownAs":  "",
+        "firstName":  "Estéban",
+        "lastName":  "Lepaul",
+        "club":  "Stade Rennais FC",
+        "country":  "France",
+        "ovr":  81
+    },
+    {
+        "id":  70541,
+        "rawName":  "Oumar Pona",
+        "knownAs":  "",
+        "firstName":  "Oumar",
+        "lastName":  "Pona",
+        "club":  "Angers SCO",
+        "country":  "Mali",
+        "ovr":  62
+    },
+    {
+        "id":  70766,
+        "rawName":  "Yoram Zague",
+        "knownAs":  "",
+        "firstName":  "Yoram",
+        "lastName":  "Zague",
+        "club":  "Paris SG",
+        "country":  "France",
+        "ovr":  64
+    },
+    {
+        "id":  70893,
+        "rawName":  "Stanis Idumbo",
+        "knownAs":  "",
+        "firstName":  "Stanis",
+        "lastName":  "Idumbo",
+        "club":  "AS Monaco",
+        "country":  "Belgium",
+        "ovr":  68
+    },
+    {
+        "id":  71114,
+        "rawName":  "Djaoui Cissé",
+        "knownAs":  "",
+        "firstName":  "Djaoui",
+        "lastName":  "Cissé",
+        "club":  "Stade Rennais FC",
+        "country":  "France",
+        "ovr":  73
+    },
+    {
+        "id":  71170,
+        "rawName":  "Noah Nartey",
+        "knownAs":  "",
+        "firstName":  "Noah",
+        "lastName":  "Nartey",
+        "club":  "OL",
+        "country":  "Denmark",
+        "ovr":  71
+    },
+    {
+        "id":  71174,
+        "rawName":  "Thomas Jørgensen",
+        "knownAs":  "",
+        "firstName":  "Thomas",
+        "lastName":  "Jørgensen",
+        "club":  "Toulouse FC",
+        "country":  "Denmark",
+        "ovr":  72
+    },
+    {
+        "id":  71265,
+        "rawName":  "Paul Argney",
+        "knownAs":  "",
+        "firstName":  "Paul",
+        "lastName":  "Argney",
+        "club":  "Havre AC",
+        "country":  "France",
+        "ovr":  63
+    },
+    {
+        "id":  71477,
+        "rawName":  "Diogo Sousa",
+        "knownAs":  "Diogo Sousa",
+        "firstName":  "Diogo",
+        "lastName":  "Lobão de Sousa",
+        "club":  "Strasbourg",
+        "country":  "Portugal",
+        "ovr":  70
+    },
+    {
+        "id":  71722,
+        "rawName":  "Benjamin Brantlind",
+        "knownAs":  "",
+        "firstName":  "Benjamin",
+        "lastName":  "Brantlind",
+        "club":  "Strasbourg",
+        "country":  "Sweden",
+        "ovr":  66
+    },
+    {
+        "id":  71778,
+        "rawName":  "Rayan Bamba",
+        "knownAs":  "",
+        "firstName":  "Rayan",
+        "lastName":  "Bamba",
+        "club":  "Le Mans FC",
+        "country":  "France",
+        "ovr":  66
+    },
+    {
+        "id":  72020,
+        "rawName":  "Keyliane Abdallah",
+        "knownAs":  "",
+        "firstName":  "Keyliane",
+        "lastName":  "Abdallah",
+        "club":  "OM",
+        "country":  "France",
+        "ovr":  66
+    },
+    {
+        "id":  72099,
+        "rawName":  "Rafik Messali",
+        "knownAs":  "",
+        "firstName":  "Rafik",
+        "lastName":  "Messali",
+        "club":  "Toulouse FC",
+        "country":  "Algeria",
+        "ovr":  70
+    },
+    {
+        "id":  72100,
+        "rawName":  "Arsène Kouassi",
+        "knownAs":  "",
+        "firstName":  "Arsène",
+        "lastName":  "Kouassi",
+        "club":  "FC Lorient",
+        "country":  "Burkina Faso",
+        "ovr":  77
+    },
+    {
+        "id":  72138,
+        "rawName":  "Merwan Ifnaoui",
+        "knownAs":  "",
+        "firstName":  "Merwan",
+        "lastName":  "Ifnaoui",
+        "club":  "ESTAC Troyes",
+        "country":  "France",
+        "ovr":  71
+    },
+    {
+        "id":  72374,
+        "rawName":  "Yanis Zouaoui",
+        "knownAs":  "",
+        "firstName":  "Yanis",
+        "lastName":  "Zouaoui",
+        "club":  "Havre AC",
+        "country":  "France",
+        "ovr":  72
+    },
+    {
+        "id":  73085,
+        "rawName":  "Antoine Mille",
+        "knownAs":  "",
+        "firstName":  "Antoine",
+        "lastName":  "Mille",
+        "club":  "ESTAC Troyes",
+        "country":  "France",
+        "ovr":  73
+    },
+    {
+        "id":  73192,
+        "rawName":  "Abdelhamid Aït Boudlal",
+        "knownAs":  "",
+        "firstName":  "Abdelhamid",
+        "lastName":  "Aït Boudlal",
+        "club":  "Stade Rennais FC",
+        "country":  "Morocco",
+        "ovr":  73
+    },
+    {
+        "id":  73238,
+        "rawName":  "Jeyland Mitchell",
+        "knownAs":  "",
+        "firstName":  "Jeyland",
+        "lastName":  "Mitchell",
+        "club":  "Strasbourg",
+        "country":  "Costa Rica",
+        "ovr":  70
+    },
+    {
+        "id":  73286,
+        "rawName":  "David Odogu",
+        "knownAs":  "",
+        "firstName":  "David",
+        "lastName":  "Odogu",
+        "club":  "Toulouse FC",
+        "country":  "Germany",
+        "ovr":  65
+    },
+    {
+        "id":  73348,
+        "rawName":  "Yacine Titraoui",
+        "knownAs":  "",
+        "firstName":  "Yacine",
+        "lastName":  "Titraoui",
+        "club":  "RC Lens",
+        "country":  "Algeria",
+        "ovr":  73
+    },
+    {
+        "id":  73355,
+        "rawName":  "Başar Önal",
+        "knownAs":  "",
+        "firstName":  "Başar",
+        "lastName":  "Önal",
+        "club":  "LOSC Lille",
+        "country":  "Turkey",
+        "ovr":  74
+    },
+    {
+        "id":  73377,
+        "rawName":  "Loun Srdanovic",
+        "knownAs":  "",
+        "firstName":  "Loun",
+        "lastName":  "Srdanovic",
+        "club":  "LOSC Lille",
+        "country":  "Switzerland",
+        "ovr":  65
+    },
+    {
+        "id":  73430,
+        "rawName":  "Pape Diong",
+        "knownAs":  "",
+        "firstName":  "Pape",
+        "lastName":  "Diong",
+        "club":  "Strasbourg",
+        "country":  "Senegal",
+        "ovr":  65
+    },
+    {
+        "id":  73449,
+        "rawName":  "Hamza Igamane",
+        "knownAs":  "",
+        "firstName":  "Hamza",
+        "lastName":  "Igamane",
+        "club":  "LOSC Lille",
+        "country":  "Morocco",
+        "ovr":  76
+    },
+    {
+        "id":  73487,
+        "rawName":  "Mathys Niflore",
+        "knownAs":  "",
+        "firstName":  "Mathys",
+        "lastName":  "Niflore",
+        "club":  "Toulouse FC",
+        "country":  "France",
+        "ovr":  69
+    },
+    {
+        "id":  73624,
+        "rawName":  "Daren Mosengo",
+        "knownAs":  "",
+        "firstName":  "Daren",
+        "lastName":  "Mosengo",
+        "club":  "Havre AC",
+        "country":  "France",
+        "ovr":  63
+    },
+    {
+        "id":  73625,
+        "rawName":  "Guy Noël Zohouri",
+        "knownAs":  "",
+        "firstName":  "Guy Noël",
+        "lastName":  "Zohouri",
+        "club":  "Havre AC",
+        "country":  "Côte d\u0027Ivoire",
+        "ovr":  61
+    },
+    {
+        "id":  74102,
+        "rawName":  "Fábio Baldé",
+        "knownAs":  "",
+        "firstName":  "Fábio",
+        "lastName":  "Baldé",
+        "club":  "Strasbourg",
+        "country":  "Portugal",
+        "ovr":  68
+    },
+    {
+        "id":  74134,
+        "rawName":  "Mathis Saka",
+        "knownAs":  "",
+        "firstName":  "Mathis",
+        "lastName":  "Saka",
+        "club":  "Toulouse FC",
+        "country":  "France",
+        "ovr":  61
+    },
+    {
+        "id":  74442,
+        "rawName":  "Joseph Kalulu",
+        "knownAs":  "",
+        "firstName":  "Joseph",
+        "lastName":  "Kalulu",
+        "club":  "Angers SCO",
+        "country":  "France",
+        "ovr":  67
+    },
+    {
+        "id":  74449,
+        "rawName":  "Ibrahim Mbaye",
+        "knownAs":  "",
+        "firstName":  "Ibrahim",
+        "lastName":  "Mbaye",
+        "club":  "Paris SG",
+        "country":  "Senegal",
+        "ovr":  76
+    },
+    {
+        "id":  74478,
+        "rawName":  "Issiaga Camara",
+        "knownAs":  "",
+        "firstName":  "Issiaga",
+        "lastName":  "Camara",
+        "club":  "OGC Nice",
+        "country":  "Guinea",
+        "ovr":  66
+    },
+    {
+        "id":  74480,
+        "rawName":  "Victor Orakpo",
+        "knownAs":  "",
+        "firstName":  "Victor",
+        "lastName":  "Orakpo",
+        "club":  "OGC Nice",
+        "country":  "Nigeria",
+        "ovr":  63
+    },
+    {
+        "id":  74489,
+        "rawName":  "Ibrahim Kanté",
+        "knownAs":  "",
+        "firstName":  "Ibrahim",
+        "lastName":  "Kanté",
+        "club":  "Stade Brestois 29",
+        "country":  "France",
+        "ovr":  59
+    },
+    {
+        "id":  74507,
+        "rawName":  "Tom Akpakoun",
+        "knownAs":  "",
+        "firstName":  "Tom",
+        "lastName":  "Akpakoun",
+        "club":  "ESTAC Troyes",
+        "country":  "France",
+        "ovr":  60
+    },
+    {
+        "id":  74589,
+        "rawName":  "Ibrahim Traoré",
+        "knownAs":  "",
+        "firstName":  "Ibrahim",
+        "lastName":  "Traoré",
+        "club":  "ESTAC Troyes",
+        "country":  "France",
+        "ovr":  59
+    },
+    {
+        "id":  74896,
+        "rawName":  "Franjo Ivanović",
+        "knownAs":  "",
+        "firstName":  "Franjo",
+        "lastName":  "Ivanović",
+        "club":  "RC Lens",
+        "country":  "Croatia",
+        "ovr":  75
+    },
+    {
+        "id":  75051,
+        "rawName":  "Aristide Zossou",
+        "knownAs":  "",
+        "firstName":  "Aristide",
+        "lastName":  "Zossou",
+        "club":  "AJ Auxerre",
+        "country":  "Côte d\u0027Ivoire",
+        "ovr":  63
+    },
+    {
+        "id":  75059,
+        "rawName":  "Enzo Genton",
+        "knownAs":  "",
+        "firstName":  "Enzo",
+        "lastName":  "Genton",
+        "club":  "FC Lorient",
+        "country":  "France",
+        "ovr":  63
+    },
+    {
+        "id":  75252,
+        "rawName":  "Jérémy Hatchi",
+        "knownAs":  "",
+        "firstName":  "Jérémy",
+        "lastName":  "Hatchi",
+        "club":  "FC Lorient",
+        "country":  "France",
+        "ovr":  64
+    },
+    {
+        "id":  75319,
+        "rawName":  "Kyllian Antonio",
+        "knownAs":  "",
+        "firstName":  "Kyllian",
+        "lastName":  "Antonio",
+        "club":  "RC Lens",
+        "country":  "France",
+        "ovr":  69
+    },
+    {
+        "id":  75320,
+        "rawName":  "Ismaëlo Ganiou",
+        "knownAs":  "",
+        "firstName":  "Ismaëlo",
+        "lastName":  "Ganiou",
+        "club":  "RC Lens",
+        "country":  "France",
+        "ovr":  77
+    },
+    {
+        "id":  75423,
+        "rawName":  "Marius Louër",
+        "knownAs":  "",
+        "firstName":  "Marius",
+        "lastName":  "Louër",
+        "club":  "Angers SCO",
+        "country":  "France",
+        "ovr":  67
+    },
+    {
+        "id":  75554,
+        "rawName":  "Samuel Nibombé",
+        "knownAs":  "",
+        "firstName":  "Samuel",
+        "lastName":  "Nibombé",
+        "club":  "AS Monaco",
+        "country":  "Belgium",
+        "ovr":  62
+    },
+    {
+        "id":  75924,
+        "rawName":  "Jules Stawiecki",
+        "knownAs":  "",
+        "firstName":  "Jules",
+        "lastName":  "Stawiecki",
+        "club":  "AS Monaco",
+        "country":  "France",
+        "ovr":  60
+    },
+    {
+        "id":  75925,
+        "rawName":  "Everton Pereira",
+        "knownAs":  "Everton Pereira",
+        "firstName":  "Everton",
+        "lastName":  "Pereira da Silva",
+        "club":  "OGC Nice",
+        "country":  "France",
+        "ovr":  64
+    },
+    {
+        "id":  76035,
+        "rawName":  "Raphaël Le Guen",
+        "knownAs":  "",
+        "firstName":  "Raphaël",
+        "lastName":  "Le Guen",
+        "club":  "Stade Brestois 29",
+        "country":  "France",
+        "ovr":  70
+    },
+    {
+        "id":  76509,
+        "rawName":  "Dermane Karim",
+        "knownAs":  "",
+        "firstName":  "Dermane",
+        "lastName":  "Karim",
+        "club":  "ESTAC Troyes",
+        "country":  "Togo",
+        "ovr":  71
+    },
+    {
+        "id":  76522,
+        "rawName":  "Sion Oppong",
+        "knownAs":  "",
+        "firstName":  "Sion",
+        "lastName":  "Oppong",
+        "club":  "Toulouse FC",
+        "country":  "Sweden",
+        "ovr":  63
+    },
+    {
+        "id":  76616,
+        "rawName":  "Mathys Detourbet",
+        "knownAs":  "",
+        "firstName":  "Mathys",
+        "lastName":  "Detourbet",
+        "club":  "AS Monaco",
+        "country":  "France",
+        "ovr":  73
+    },
+    {
+        "id":  76730,
+        "rawName":  "Justin Bourgault",
+        "knownAs":  "",
+        "firstName":  "Justin",
+        "lastName":  "Bourgault",
+        "club":  "Stade Brestois 29",
+        "country":  "France",
+        "ovr":  65
+    },
+    {
+        "id":  76759,
+        "rawName":  "Isaac Cossier",
+        "knownAs":  "",
+        "firstName":  "Isaac",
+        "lastName":  "Cossier",
+        "club":  "LOSC Lille",
+        "country":  "France",
+        "ovr":  66
+    },
+    {
+        "id":  76760,
+        "rawName":  "Patrick Zabi",
+        "knownAs":  "",
+        "firstName":  "Patrick",
+        "lastName":  "Zabi",
+        "club":  "Paris FC",
+        "country":  "Côte d\u0027Ivoire",
+        "ovr":  71
+    },
+    {
+        "id":  77056,
+        "rawName":  "Nidal Čelik",
+        "knownAs":  "",
+        "firstName":  "Nidal",
+        "lastName":  "Čelik",
+        "club":  "RC Lens",
+        "country":  "Bosnia and Herzegovina",
+        "ovr":  71
+    },
+    {
+        "id":  77093,
+        "rawName":  "Lassine Diarra",
+        "knownAs":  "",
+        "firstName":  "Lassine",
+        "lastName":  "Diarra",
+        "club":  "OL",
+        "country":  "Mali",
+        "ovr":  64
+    },
+    {
+        "id":  77105,
+        "rawName":  "Andrija Bulatović",
+        "knownAs":  "",
+        "firstName":  "Andrija",
+        "lastName":  "Bulatović",
+        "club":  "RC Lens",
+        "country":  "Montenegro",
+        "ovr":  73
+    },
+    {
+        "id":  77111,
+        "rawName":  "Joan Tincres",
+        "knownAs":  "",
+        "firstName":  "Joan",
+        "lastName":  "Tincres",
+        "club":  "Havre AC",
+        "country":  "France",
+        "ovr":  64
+    },
+    {
+        "id":  77364,
+        "rawName":  "Soriba Diaoune",
+        "knownAs":  "",
+        "firstName":  "Soriba",
+        "lastName":  "Diaoune",
+        "club":  "LOSC Lille",
+        "country":  "France",
+        "ovr":  67
+    },
+    {
+        "id":  77633,
+        "rawName":  "Rayan Fofana",
+        "knownAs":  "",
+        "firstName":  "Rayan",
+        "lastName":  "Fofana",
+        "club":  "RC Lens",
+        "country":  "France",
+        "ovr":  73
+    },
+    {
+        "id":  77636,
+        "rawName":  "Karim Coulibaly",
+        "knownAs":  "",
+        "firstName":  "Karim",
+        "lastName":  "Coulibaly",
+        "club":  "Strasbourg",
+        "country":  "Germany",
+        "ovr":  73
+    },
+    {
+        "id":  77709,
+        "rawName":  "Souleymane Sagnan",
+        "knownAs":  "",
+        "firstName":  "Souleymane",
+        "lastName":  "Sagnan",
+        "club":  "RC Lens",
+        "country":  "Mali",
+        "ovr":  66
+    },
+    {
+        "id":  77757,
+        "rawName":  "Genesis Antwi",
+        "knownAs":  "",
+        "firstName":  "Genesis",
+        "lastName":  "Antwi",
+        "club":  "Strasbourg",
+        "country":  "Sweden",
+        "ovr":  67
+    },
+    {
+        "id":  77826,
+        "rawName":  "Stephan Zagadou",
+        "knownAs":  "",
+        "firstName":  "Stephan",
+        "lastName":  "Zagadou",
+        "club":  "Havre AC",
+        "country":  "France",
+        "ovr":  67
+    },
+    {
+        "id":  77829,
+        "rawName":  "Hamidou Makalou",
+        "knownAs":  "",
+        "firstName":  "Hamidou",
+        "lastName":  "Makalou",
+        "club":  "Stade Brestois 29",
+        "country":  "Mali",
+        "ovr":  68
+    },
+    {
+        "id":  77912,
+        "rawName":  "Wei Xiangxin",
+        "knownAs":  "Wei Xiangxin",
+        "firstName":  "Xiangxin",
+        "lastName":  "Wei",
+        "club":  "AJ Auxerre",
+        "country":  "China PR",
+        "ovr":  60
+    },
+    {
+        "id":  78070,
+        "rawName":  "Rudy Matondo",
+        "knownAs":  "",
+        "firstName":  "Rudy",
+        "lastName":  "Matondo",
+        "club":  "Paris FC",
+        "country":  "France",
+        "ovr":  74
+    },
+    {
+        "id":  78145,
+        "rawName":  "Alejandro Gomes Rodríguez",
+        "knownAs":  "",
+        "firstName":  "Alejandro",
+        "lastName":  "Gomes Rodríguez",
+        "club":  "OL",
+        "country":  "England",
+        "ovr":  64
+    },
+    {
+        "id":  78215,
+        "rawName":  "Telli Siwe",
+        "knownAs":  "",
+        "firstName":  "Telli",
+        "lastName":  "Siwe",
+        "club":  "AJ Auxerre",
+        "country":  "France",
+        "ovr":  66
+    },
+    {
+        "id":  78216,
+        "rawName":  "Noham Kamara",
+        "knownAs":  "",
+        "firstName":  "Noham",
+        "lastName":  "Kamara",
+        "club":  "OL",
+        "country":  "France",
+        "ovr":  68
+    },
+    {
+        "id":  78295,
+        "rawName":  "Prosper Peter",
+        "knownAs":  "",
+        "firstName":  "Prosper",
+        "lastName":  "Peter",
+        "club":  "Angers SCO",
+        "country":  "France",
+        "ovr":  72
+    },
+    {
+        "id":  78379,
+        "rawName":  "Ilyas Azizi",
+        "knownAs":  "",
+        "firstName":  "Ilyas",
+        "lastName":  "Azizi",
+        "club":  "Toulouse FC",
+        "country":  "France",
+        "ovr":  65
+    },
+    {
+        "id":  78424,
+        "rawName":  "Tochukwu Nnadi",
+        "knownAs":  "",
+        "firstName":  "Tochukwu",
+        "lastName":  "Nnadi",
+        "club":  "OM",
+        "country":  "Nigeria",
+        "ovr":  70
+    },
+    {
+        "id":  78547,
+        "rawName":  "Ilan Jourdren",
+        "knownAs":  "",
+        "firstName":  "Ilan",
+        "lastName":  "Jourdren",
+        "club":  "RC Lens",
+        "country":  "France",
+        "ovr":  62
+    },
+    {
+        "id":  78549,
+        "rawName":  "Quentin Ndjantou",
+        "knownAs":  "",
+        "firstName":  "Quentin",
+        "lastName":  "Ndjantou",
+        "club":  "Paris SG",
+        "country":  "France",
+        "ovr":  70
+    },
+    {
+        "id":  78756,
+        "rawName":  "Augustin Delbecque",
+        "knownAs":  "",
+        "firstName":  "Augustin",
+        "lastName":  "Delbecque",
+        "club":  "Le Mans FC",
+        "country":  "France",
+        "ovr":  57
+    },
+    {
+        "id":  78757,
+        "rawName":  "Harold Voyer",
+        "knownAs":  "",
+        "firstName":  "Harold",
+        "lastName":  "Voyer",
+        "club":  "Le Mans FC",
+        "country":  "France",
+        "ovr":  68
+    },
+    {
+        "id":  78760,
+        "rawName":  "Noa Boissé",
+        "knownAs":  "",
+        "firstName":  "Noa",
+        "lastName":  "Boissé",
+        "club":  "Le Mans FC",
+        "country":  "France",
+        "ovr":  68
+    },
+    {
+        "id":  78761,
+        "rawName":  "Théo Eyoum",
+        "knownAs":  "",
+        "firstName":  "Théo",
+        "lastName":  "Eyoum",
+        "club":  "Le Mans FC",
+        "country":  "France",
+        "ovr":  68
+    },
+    {
+        "id":  78764,
+        "rawName":  "Edwin Quarshie",
+        "knownAs":  "",
+        "firstName":  "Edwin",
+        "lastName":  "Quarshie",
+        "club":  "Le Mans FC",
+        "country":  "France",
+        "ovr":  68
+    },
+    {
+        "id":  78765,
+        "rawName":  "Gabin Bernardeau",
+        "knownAs":  "",
+        "firstName":  "Gabin",
+        "lastName":  "Bernardeau",
+        "club":  "FC Lorient",
+        "country":  "France",
+        "ovr":  67
+    },
+    {
+        "id":  78766,
+        "rawName":  "Martin Rossignol",
+        "knownAs":  "",
+        "firstName":  "Martin",
+        "lastName":  "Rossignol",
+        "club":  "Le Mans FC",
+        "country":  "France",
+        "ovr":  64
+    },
+    {
+        "id":  78771,
+        "rawName":  "Erwan Colas",
+        "knownAs":  "",
+        "firstName":  "Erwan",
+        "lastName":  "Colas",
+        "club":  "Le Mans FC",
+        "country":  "France",
+        "ovr":  66
+    },
+    {
+        "id":  78878,
+        "rawName":  "Dame Gueye",
+        "knownAs":  "",
+        "firstName":  "Dame",
+        "lastName":  "Gueye",
+        "club":  "Le Mans FC",
+        "country":  "Senegal",
+        "ovr":  71
+    },
+    {
+        "id":  79109,
+        "rawName":  "Jean Vercruysse",
+        "knownAs":  "",
+        "firstName":  "Jean",
+        "lastName":  "Vercruysse",
+        "club":  "Le Mans FC",
+        "country":  "France",
+        "ovr":  63
+    },
+    {
+        "id":  79390,
+        "rawName":  "Mário Sauer",
+        "knownAs":  "",
+        "firstName":  "Mário",
+        "lastName":  "Sauer",
+        "club":  "Toulouse FC",
+        "country":  "Slovakia",
+        "ovr":  69
+    },
+    {
+        "id":  79497,
+        "rawName":  "Lucas Bretelle",
+        "knownAs":  "",
+        "firstName":  "Lucas",
+        "lastName":  "Bretelle",
+        "club":  "Le Mans FC",
+        "country":  "France",
+        "ovr":  64
+    },
+    {
+        "id":  79547,
+        "rawName":  "Souleymane Faye",
+        "knownAs":  "",
+        "firstName":  "Souleymane",
+        "lastName":  "Faye",
+        "club":  "FC Lorient",
+        "country":  "Senegal",
+        "ovr":  67
+    },
+    {
+        "id":  79690,
+        "rawName":  "Gonçalo Oliveira",
+        "knownAs":  "Gonçalo Oliveira",
+        "firstName":  "Gonçalo",
+        "lastName":  "Calisto Oliveira",
+        "club":  "Stade Rennais FC",
+        "country":  "Portugal",
+        "ovr":  65
+    },
+    {
+        "id":  80063,
+        "rawName":  "Djibril Coulibaly",
+        "knownAs":  "",
+        "firstName":  "Djibril",
+        "lastName":  "Coulibaly",
+        "club":  "OGC Nice",
+        "country":  "France",
+        "ovr":  61
+    },
+    {
+        "id":  80067,
+        "rawName":  "Khalis Merah",
+        "knownAs":  "",
+        "firstName":  "Khalis",
+        "lastName":  "Merah",
+        "club":  "OL",
+        "country":  "France",
+        "ovr":  73
+    },
+    {
+        "id":  80229,
+        "rawName":  "William Harhouz",
+        "knownAs":  "",
+        "firstName":  "William",
+        "lastName":  "Harhouz",
+        "club":  "Le Mans FC",
+        "country":  "France",
+        "ovr":  65
+    },
+    {
+        "id":  80538,
+        "rawName":  "Anis Ouzenadji",
+        "knownAs":  "",
+        "firstName":  "Anis",
+        "lastName":  "Ouzenadji",
+        "club":  "ESTAC Troyes",
+        "country":  "France",
+        "ovr":  63
+    },
+    {
+        "id":  80542,
+        "rawName":  "Roman Murcy",
+        "knownAs":  "",
+        "firstName":  "Roman",
+        "lastName":  "Murcy",
+        "club":  "ESTAC Troyes",
+        "country":  "France",
+        "ovr":  58
+    },
+    {
+        "id":  80647,
+        "rawName":  "Elikya Legros",
+        "knownAs":  "",
+        "firstName":  "Elikya",
+        "lastName":  "Legros",
+        "club":  "AJ Auxerre",
+        "country":  "France",
+        "ovr":  59
+    },
+    {
+        "id":  80648,
+        "rawName":  "Louis Mezerette",
+        "knownAs":  "",
+        "firstName":  "Louis",
+        "lastName":  "Mezerette",
+        "club":  "AJ Auxerre",
+        "country":  "France",
+        "ovr":  60
+    },
+    {
+        "id":  80649,
+        "rawName":  "Rayan Mandengue",
+        "knownAs":  "",
+        "firstName":  "Rayan",
+        "lastName":  "Mandengue",
+        "club":  "AJ Auxerre",
+        "country":  "Cameroon",
+        "ovr":  62
+    },
+    {
+        "id":  80650,
+        "rawName":  "Ryan Rodin",
+        "knownAs":  "",
+        "firstName":  "Ryan",
+        "lastName":  "Rodin",
+        "club":  "AJ Auxerre",
+        "country":  "France",
+        "ovr":  59
+    },
+    {
+        "id":  80651,
+        "rawName":  "Tidiane Devernois",
+        "knownAs":  "",
+        "firstName":  "Tidiane",
+        "lastName":  "Devernois",
+        "club":  "AJ Auxerre",
+        "country":  "France",
+        "ovr":  58
+    },
+    {
+        "id":  80674,
+        "rawName":  "Dro Fernández",
+        "knownAs":  "Dro Fernández",
+        "firstName":  "Pedro",
+        "lastName":  "Fernández",
+        "club":  "Paris SG",
+        "country":  "Spain",
+        "ovr":  73
+    },
+    {
+        "id":  80689,
+        "rawName":  "Hamza Koutoune",
+        "knownAs":  "",
+        "firstName":  "Hamza",
+        "lastName":  "Koutoune",
+        "club":  "OGC Nice",
+        "country":  "Morocco",
+        "ovr":  61
+    },
+    {
+        "id":  80690,
+        "rawName":  "Mathys De Carvalho",
+        "knownAs":  "Mathys De Carvalho",
+        "firstName":  "Mathys",
+        "lastName":  "De Carvalho Soares",
+        "club":  "OL",
+        "country":  "Portugal",
+        "ovr":  68
+    },
+    {
+        "id":  80691,
+        "rawName":  "Enzo Faty",
+        "knownAs":  "",
+        "firstName":  "Enzo",
+        "lastName":  "Faty",
+        "club":  "Toulouse FC",
+        "country":  "France",
+        "ovr":  62
+    },
+    {
+        "id":  80694,
+        "rawName":  "Thibaud Garondo",
+        "knownAs":  "",
+        "firstName":  "Thibaud",
+        "lastName":  "Garondo",
+        "club":  "Toulouse FC",
+        "country":  "France",
+        "ovr":  60
+    },
+    {
+        "id":  80695,
+        "rawName":  "Seny Koumbassa",
+        "knownAs":  "",
+        "firstName":  "Seny",
+        "lastName":  "Koumbassa",
+        "club":  "Toulouse FC",
+        "country":  "France",
+        "ovr":  70
+    },
+    {
+        "id":  80696,
+        "rawName":  "Alexis Vossah",
+        "knownAs":  "",
+        "firstName":  "Alexis",
+        "lastName":  "Vossah",
+        "club":  "Toulouse FC",
+        "country":  "France",
+        "ovr":  71
+    },
+    {
+        "id":  80771,
+        "rawName":  "Julián Vignolo",
+        "knownAs":  "",
+        "firstName":  "Julián",
+        "lastName":  "Vignolo",
+        "club":  "Toulouse FC",
+        "country":  "Argentina",
+        "ovr":  66
+    },
+    {
+        "id":  80772,
+        "rawName":  "Darris Zema",
+        "knownAs":  "",
+        "firstName":  "Darris",
+        "lastName":  "Zema",
+        "club":  "Toulouse FC",
+        "country":  "Algeria",
+        "ovr":  62
+    },
+    {
+        "id":  80773,
+        "rawName":  "Naïme Saïd Mchindra",
+        "knownAs":  "",
+        "firstName":  "Naïme",
+        "lastName":  "Saïd Mchindra",
+        "club":  "Toulouse FC",
+        "country":  "Comoros",
+        "ovr":  59
+    },
+    {
+        "id":  80774,
+        "rawName":  "Gaëtan Bakhouche",
+        "knownAs":  "",
+        "firstName":  "Gaëtan",
+        "lastName":  "Bakhouche",
+        "club":  "Toulouse FC",
+        "country":  "France",
+        "ovr":  59
+    },
+    {
+        "id":  80775,
+        "rawName":  "Frédéric Efuele Ngoyala",
+        "knownAs":  "",
+        "firstName":  "Frédéric",
+        "lastName":  "Efuele Ngoyala",
+        "club":  "Toulouse FC",
+        "country":  "Congo DR",
+        "ovr":  61
+    },
+    {
+        "id":  80846,
+        "rawName":  "Amadou Diakité",
+        "knownAs":  "",
+        "firstName":  "Amadou",
+        "lastName":  "Diakité",
+        "club":  "ESTAC Troyes",
+        "country":  "France",
+        "ovr":  57
+    },
+    {
+        "id":  81340,
+        "rawName":  "Elijah Odede",
+        "knownAs":  "",
+        "firstName":  "Elijah",
+        "lastName":  "Odede",
+        "club":  "ESTAC Troyes",
+        "country":  "Nigeria",
+        "ovr":  61
+    },
+    {
+        "id":  81522,
+        "rawName":  "Alvin Petit Dol",
+        "knownAs":  "",
+        "firstName":  "Alvin",
+        "lastName":  "Petit Dol",
+        "club":  "AJ Auxerre",
+        "country":  "France",
+        "ovr":  59
+    },
+    {
+        "id":  81595,
+        "rawName":  "Enzo Koffi",
+        "knownAs":  "",
+        "firstName":  "Enzo",
+        "lastName":  "Koffi",
+        "club":  "Havre AC",
+        "country":  "France",
+        "ovr":  65
+    },
+    {
+        "id":  81663,
+        "rawName":  "Pape Cabral",
+        "knownAs":  "",
+        "firstName":  "Pape",
+        "lastName":  "Cabral",
+        "club":  "AS Monaco",
+        "country":  "France",
+        "ovr":  63
+    },
+    {
+        "id":  81849,
+        "rawName":  "Harouna Djibirin",
+        "knownAs":  "",
+        "firstName":  "Harouna",
+        "lastName":  "Djibirin",
+        "club":  "Angers SCO",
+        "country":  "Cameroon",
+        "ovr":  68
+    },
+    {
+        "id":  82080,
+        "rawName":  "Yvan Zaddy",
+        "knownAs":  "",
+        "firstName":  "Yvan",
+        "lastName":  "Zaddy",
+        "club":  "AJ Auxerre",
+        "country":  "Côte d\u0027Ivoire",
+        "ovr":  60
+    },
+    {
+        "id":  82083,
+        "rawName":  "Tadjidine Mmadi",
+        "knownAs":  "",
+        "firstName":  "Tadjidine",
+        "lastName":  "Mmadi",
+        "club":  "OM",
+        "country":  "France",
+        "ovr":  64
+    },
+    {
+        "id":  82109,
+        "rawName":  "Brad-Hamilton Mantsounga",
+        "knownAs":  "",
+        "firstName":  "Brad-Hamilton",
+        "lastName":  "Mantsounga",
+        "club":  "OGC Nice",
+        "country":  "Congo",
+        "ovr":  63
+    },
+    {
+        "id":  82157,
+        "rawName":  "Noah Donkor",
+        "knownAs":  "",
+        "firstName":  "Noah",
+        "lastName":  "Donkor",
+        "club":  "ESTAC Troyes",
+        "country":  "France",
+        "ovr":  58
+    },
+    {
+        "id":  82335,
+        "rawName":  "Adil Hamdani",
+        "knownAs":  "",
+        "firstName":  "Adil",
+        "lastName":  "Hamdani",
+        "club":  "OL",
+        "country":  "France",
+        "ovr":  64
+    },
+    {
+        "id":  82670,
+        "rawName":  "Mamoudou Cissokho",
+        "knownAs":  "",
+        "firstName":  "Mamoudou",
+        "lastName":  "Cissokho",
+        "club":  "AJ Auxerre",
+        "country":  "France",
+        "ovr":  59
+    },
+    {
+        "id":  82740,
+        "rawName":  "Zoumana Diallo",
+        "knownAs":  "",
+        "firstName":  "Zoumana",
+        "lastName":  "Diallo",
+        "club":  "OGC Nice",
+        "country":  "France",
+        "ovr":  64
+    },
+    {
+        "id":  82978,
+        "rawName":  "Ilane Touré",
+        "knownAs":  "",
+        "firstName":  "Ilane",
+        "lastName":  "Touré",
+        "club":  "AS Monaco",
+        "country":  "France",
+        "ovr":  62
+    },
+    {
+        "id":  82993,
+        "rawName":  "Daniel Semedo",
+        "knownAs":  "Daniel Semedo",
+        "firstName":  "Daniel Xavier",
+        "lastName":  "Semedo",
+        "club":  "FC Lorient",
+        "country":  "Portugal",
+        "ovr":  61
+    },
+    {
+        "id":  83214,
+        "rawName":  "Rémi Himbert",
+        "knownAs":  "",
+        "firstName":  "Rémi",
+        "lastName":  "Himbert",
+        "club":  "OL",
+        "country":  "France",
+        "ovr":  70
+    },
+    {
+        "id":  83396,
+        "rawName":  "Kaïl Boudache",
+        "knownAs":  "",
+        "firstName":  "Kaïl",
+        "lastName":  "Boudache",
+        "club":  "OL",
+        "country":  "Algeria",
+        "ovr":  71
+    },
+    {
+        "id":  83565,
+        "rawName":  "Tyrese Noubissie",
+        "knownAs":  "",
+        "firstName":  "Tyrese",
+        "lastName":  "Noubissie",
+        "club":  "Strasbourg",
+        "country":  "France",
+        "ovr":  61
+    },
+    {
+        "id":  83817,
+        "rawName":  "Adil Bourabaa",
+        "knownAs":  "",
+        "firstName":  "Adil",
+        "lastName":  "Bourabaa",
+        "club":  "Le Mans FC",
+        "country":  "France",
+        "ovr":  66
+    },
+    {
+        "id":  84244,
+        "rawName":  "Jean-Baptiste Bosey",
+        "knownAs":  "",
+        "firstName":  "Jean-Baptiste",
+        "lastName":  "Bosey",
+        "club":  "Strasbourg",
+        "country":  "France",
+        "ovr":  60
+    },
+    {
+        "id":  84357,
+        "rawName":  "Steeve Kango",
+        "knownAs":  "",
+        "firstName":  "Steeve",
+        "lastName":  "Kango",
+        "club":  "OL",
+        "country":  "France",
+        "ovr":  66
+    },
+    {
+        "id":  84466,
+        "rawName":  "Adam El Ouali",
+        "knownAs":  "",
+        "firstName":  "Adam",
+        "lastName":  "El Ouali",
+        "club":  "Toulouse FC",
+        "country":  "France",
+        "ovr":  60
+    },
+    {
+        "id":  85229,
+        "rawName":  "Bané Diatta",
+        "knownAs":  "",
+        "firstName":  "Bané",
+        "lastName":  "Diatta",
+        "club":  "Angers SCO",
+        "country":  "France",
+        "ovr":  60
+    },
+    {
+        "id":  85290,
+        "rawName":  "Nouhoum Kamissoko",
+        "knownAs":  "",
+        "firstName":  "Nouhoum",
+        "lastName":  "Kamissoko",
+        "club":  "OM",
+        "country":  "Mali",
+        "ovr":  64
+    },
+    {
+        "id":  85291,
+        "rawName":  "Idrissa Sabaly",
+        "knownAs":  "",
+        "firstName":  "Idrissa",
+        "lastName":  "Sabaly",
+        "club":  "Strasbourg",
+        "country":  "France",
+        "ovr":  62
+    },
+    {
+        "id":  85530,
+        "rawName":  "Yaya Diémé",
+        "knownAs":  "",
+        "firstName":  "Yaya",
+        "lastName":  "Diémé",
+        "club":  "Strasbourg",
+        "country":  "Senegal",
+        "ovr":  64
+    },
+    {
+        "id":  85652,
+        "rawName":  "Dimitri Lucea",
+        "knownAs":  "",
+        "firstName":  "Dimitri",
+        "lastName":  "Lucea",
+        "club":  "Paris SG",
+        "country":  "France",
+        "ovr":  64
+    },
+    {
+        "id":  85892,
+        "rawName":  "Lamfia Dioubaté",
+        "knownAs":  "",
+        "firstName":  "Lamfia",
+        "lastName":  "Dioubaté",
+        "club":  "AJ Auxerre",
+        "country":  "France",
+        "ovr":  61
+    },
+    {
+        "id":  85976,
+        "rawName":  "Ismaïl Diallo",
+        "knownAs":  "",
+        "firstName":  "Ismaïl",
+        "lastName":  "Diallo",
+        "club":  "Toulouse FC",
+        "country":  "France",
+        "ovr":  67
+    },
+    {
+        "id":  86231,
+        "rawName":  "Christ Tapé",
+        "knownAs":  "",
+        "firstName":  "Christ",
+        "lastName":  "Tapé",
+        "club":  "Toulouse FC",
+        "country":  "Côte d\u0027Ivoire",
+        "ovr":  65
+    },
+    {
+        "id":  86857,
+        "rawName":  "Alessandro Longoni",
+        "knownAs":  "",
+        "firstName":  "Alessandro",
+        "lastName":  "Longoni",
+        "club":  "Paris SG",
+        "country":  "Italy",
+        "ovr":  65
+    },
+    {
+        "id":  87144,
+        "rawName":  "Emmanuel Mbemba",
+        "knownAs":  "",
+        "firstName":  "Emmanuel",
+        "lastName":  "Mbemba",
+        "club":  "Paris FC",
+        "country":  "France",
+        "ovr":  65
+    },
+    {
+        "id":  87154,
+        "rawName":  "Sota Nakamura",
+        "knownAs":  "",
+        "firstName":  "Sota",
+        "lastName":  "Nakamura",
+        "club":  "Havre AC",
+        "country":  "Japan",
+        "ovr":  67
+    },
+    {
+        "id":  87422,
+        "rawName":  "Martin Ponsot",
+        "knownAs":  "",
+        "firstName":  "Martin",
+        "lastName":  "Ponsot",
+        "club":  "OGC Nice",
+        "country":  "France",
+        "ovr":  62
+    },
+    {
+        "id":  87433,
+        "rawName":  "Xavier Junior Mandza",
+        "knownAs":  "",
+        "firstName":  "Xavier Junior",
+        "lastName":  "Mandza",
+        "club":  "OGC Nice",
+        "country":  "France",
+        "ovr":  60
+    },
+    {
+        "id":  87575,
+        "rawName":  "Christ Batola",
+        "knownAs":  "",
+        "firstName":  "Christ",
+        "lastName":  "Batola",
+        "club":  "ESTAC Troyes",
+        "country":  "France",
+        "ovr":  60
+    },
+    {
+        "id":  87666,
+        "rawName":  "Wassim Dardake",
+        "knownAs":  "",
+        "firstName":  "Wassim",
+        "lastName":  "Dardake",
+        "club":  "Toulouse FC",
+        "country":  "Morocco",
+        "ovr":  61
+    },
+    {
+        "id":  88820,
+        "rawName":  "Jacobo Ortega",
+        "knownAs":  "Jacobo Ortega",
+        "firstName":  "Jacobo",
+        "lastName":  "Ortega Conde",
+        "club":  "Strasbourg",
+        "country":  "Spain",
+        "ovr":  64
+    },
+    {
+        "id":  176994,
+        "rawName":  "Régis Gurtner",
+        "knownAs":  "",
+        "firstName":  "Régis",
+        "lastName":  "Gurtner",
+        "club":  "RC Lens",
+        "country":  "France",
+        "ovr":  69
+    },
+    {
+        "id":  177413,
+        "rawName":  "Axel Witsel",
+        "knownAs":  "",
+        "firstName":  "Axel",
+        "lastName":  "Witsel",
+        "club":  "OGC Nice",
+        "country":  "Belgium",
+        "ovr":  76
+    },
+    {
+        "id":  178509,
+        "rawName":  "Olivier Giroud",
+        "knownAs":  "",
+        "firstName":  "Olivier",
+        "lastName":  "Giroud",
+        "club":  "LOSC Lille",
+        "country":  "France",
+        "ovr":  77
+    },
+    {
+        "id":  188538,
+        "rawName":  "Vincent Sasso",
+        "knownAs":  "",
+        "firstName":  "Vincent",
+        "lastName":  "Sasso",
+        "club":  "Havre AC",
+        "country":  "France",
+        "ovr":  73
+    },
+    {
+        "id":  188943,
+        "rawName":  "Kevin Trapp",
+        "knownAs":  "",
+        "firstName":  "Kevin",
+        "lastName":  "Trapp",
+        "club":  "Paris FC",
+        "country":  "Germany",
+        "ovr":  78
+    },
+    {
+        "id":  190674,
+        "rawName":  "Benjamin André",
+        "knownAs":  "",
+        "firstName":  "Benjamin",
+        "lastName":  "André",
+        "club":  "LOSC Lille",
+        "country":  "France",
+        "ovr":  80
+    },
+    {
+        "id":  190941,
+        "rawName":  "Lukáš Hrádecký",
+        "knownAs":  "",
+        "firstName":  "Lukáš",
+        "lastName":  "Hrádecký",
+        "club":  "AS Monaco",
+        "country":  "Finland",
+        "ovr":  79
+    },
+    {
+        "id":  197641,
+        "rawName":  "Benjamin Leroy",
+        "knownAs":  "",
+        "firstName":  "Benjamin",
+        "lastName":  "Leroy",
+        "club":  "FC Lorient",
+        "country":  "France",
+        "ovr":  67
+    },
+    {
+        "id":  199482,
+        "rawName":  "Anthony Lopes",
+        "knownAs":  "",
+        "firstName":  "Anthony",
+        "lastName":  "Lopes",
+        "club":  "Angers SCO",
+        "country":  "Portugal",
+        "ovr":  75
+    },
+    {
+        "id":  199721,
+        "rawName":  "Mathieu Gorgelin",
+        "knownAs":  "",
+        "firstName":  "Mathieu",
+        "lastName":  "Gorgelin",
+        "club":  "RC Lens",
+        "country":  "France",
+        "ovr":  70
+    },
+    {
+        "id":  200458,
+        "rawName":  "Lucas Digne",
+        "knownAs":  "",
+        "firstName":  "Lucas",
+        "lastName":  "Digne",
+        "club":  "Paris SG",
+        "country":  "France",
+        "ovr":  80
+    },
+    {
+        "id":  201042,
+        "rawName":  "Djibril Sidibé",
+        "knownAs":  "",
+        "firstName":  "Djibril",
+        "lastName":  "Sidibé",
+        "club":  "Le Mans FC",
+        "country":  "France",
+        "ovr":  76
+    },
+    {
+        "id":  201138,
+        "rawName":  "Zacharie Boucher",
+        "knownAs":  "",
+        "firstName":  "Zacharie",
+        "lastName":  "Boucher",
+        "club":  "ESTAC Troyes",
+        "country":  "France",
+        "ovr":  65
+    },
+    {
+        "id":  201455,
+        "rawName":  "Geoffrey Kondogbia",
+        "knownAs":  "",
+        "firstName":  "Geoffrey",
+        "lastName":  "Kondogbia",
+        "club":  "OM",
+        "country":  "Central African Republic",
+        "ovr":  76
+    },
+    {
+        "id":  202335,
+        "rawName":  "Eric Dier",
+        "knownAs":  "",
+        "firstName":  "Eric",
+        "lastName":  "Dier",
+        "club":  "AS Monaco",
+        "country":  "England",
+        "ovr":  77
+    },
+    {
+        "id":  203486,
+        "rawName":  "Thorgan Hazard",
+        "knownAs":  "",
+        "firstName":  "Thorgan",
+        "lastName":  "Hazard",
+        "club":  "RC Lens",
+        "country":  "Belgium",
+        "ovr":  75
+    },
+    {
+        "id":  204105,
+        "rawName":  "Kenny Lala",
+        "knownAs":  "",
+        "firstName":  "Kenny",
+        "lastName":  "Lala",
+        "club":  "Stade Brestois 29",
+        "country":  "France",
+        "ovr":  75
+    },
+    {
+        "id":  204883,
+        "rawName":  "Brice Samba",
+        "knownAs":  "",
+        "firstName":  "Brice",
+        "lastName":  "Samba",
+        "club":  "Stade Rennais FC",
+        "country":  "France",
+        "ovr":  81
+    },
+    {
+        "id":  204970,
+        "rawName":  "Florian Thauvin",
+        "knownAs":  "",
+        "firstName":  "Florian",
+        "lastName":  "Thauvin",
+        "club":  "RC Lens",
+        "country":  "France",
+        "ovr":  82
+    },
+    {
+        "id":  206003,
+        "rawName":  "Yvon Mvogo",
+        "knownAs":  "",
+        "firstName":  "Yvon",
+        "lastName":  "Mvogo",
+        "club":  "FC Lorient",
+        "country":  "Switzerland",
+        "ovr":  77
+    },
+    {
+        "id":  206218,
+        "rawName":  "Paul Nardi",
+        "knownAs":  "",
+        "firstName":  "Paul",
+        "lastName":  "Nardi",
+        "club":  "AJ Auxerre",
+        "country":  "France",
+        "ovr":  69
+    },
+    {
+        "id":  207865,
+        "rawName":  "Marquinhos",
+        "knownAs":  "Marquinhos",
+        "firstName":  "Marcos",
+        "lastName":  "Aoás Corrêa",
+        "club":  "Paris SG",
+        "country":  "Brazil",
+        "ovr":  87
+    },
+    {
+        "id":  208364,
+        "rawName":  "Clinton Mata",
+        "knownAs":  "Clinton Mata",
+        "firstName":  "Clinton Mukoni",
+        "lastName":  "Mata Pedro Lourenço",
+        "club":  "OL",
+        "country":  "Angola",
+        "ovr":  77
+    },
+    {
+        "id":  208787,
+        "rawName":  "Adrien Thomasson",
+        "knownAs":  "",
+        "firstName":  "Adrien",
+        "lastName":  "Thomasson",
+        "club":  "Stade Rennais FC",
+        "country":  "France",
+        "ovr":  81
+    },
+    {
+        "id":  209430,
+        "rawName":  "Renaud Ripart",
+        "knownAs":  "",
+        "firstName":  "Renaud",
+        "lastName":  "Ripart",
+        "club":  "ESTAC Troyes",
+        "country":  "France",
+        "ovr":  69
+    },
+    {
+        "id":  210736,
+        "rawName":  "Emerson Palmieri",
+        "knownAs":  "Emerson Palmieri",
+        "firstName":  "Emerson",
+        "lastName":  "Palmieri dos Santos",
+        "club":  "OM",
+        "country":  "Italy",
+        "ovr":  77
+    },
+    {
+        "id":  210896,
+        "rawName":  "Morgan Sanson",
+        "knownAs":  "",
+        "firstName":  "Morgan",
+        "lastName":  "Sanson",
+        "club":  "OGC Nice",
+        "country":  "France",
+        "ovr":  75
+    },
+    {
+        "id":  211256,
+        "rawName":  "Nicolás Tagliafico",
+        "knownAs":  "",
+        "firstName":  "Nicolás",
+        "lastName":  "Tagliafico",
+        "club":  "OL",
+        "country":  "Argentina",
+        "ovr":  78
+    },
+    {
+        "id":  211784,
+        "rawName":  "Neal Maupay",
+        "knownAs":  "",
+        "firstName":  "Neal",
+        "lastName":  "Maupay",
+        "club":  "OM",
+        "country":  "France",
+        "ovr":  74
+    },
+    {
+        "id":  212138,
+        "rawName":  "Przemysław Frankowski",
+        "knownAs":  "",
+        "firstName":  "Przemysław",
+        "lastName":  "Frankowski",
+        "club":  "Stade Rennais FC",
+        "country":  "Poland",
+        "ovr":  76
+    },
+    {
+        "id":  213296,
+        "rawName":  "Nabil Bentaleb",
+        "knownAs":  "",
+        "firstName":  "Nabil",
+        "lastName":  "Bentaleb",
+        "club":  "LOSC Lille",
+        "country":  "Algeria",
+        "ovr":  77
+    },
+    {
+        "id":  213367,
+        "rawName":  "Laurent Abergel",
+        "knownAs":  "",
+        "firstName":  "Laurent",
+        "lastName":  "Abergel",
+        "club":  "OGC Nice",
+        "country":  "France",
+        "ovr":  76
+    },
+    {
+        "id":  213648,
+        "rawName":  "Pierre-Emile Højbjerg",
+        "knownAs":  "",
+        "firstName":  "Pierre-Emile",
+        "lastName":  "Højbjerg",
+        "club":  "OM",
+        "country":  "Denmark",
+        "ovr":  80
+    },
+    {
+        "id":  215410,
+        "rawName":  "Brendan Chardonnet",
+        "knownAs":  "",
+        "firstName":  "Brendan",
+        "lastName":  "Chardonnet",
+        "club":  "Stade Brestois 29",
+        "country":  "France",
+        "ovr":  76
+    },
+    {
+        "id":  215708,
+        "rawName":  "Adrien Monfray",
+        "knownAs":  "",
+        "firstName":  "Adrien",
+        "lastName":  "Monfray",
+        "club":  "ESTAC Troyes",
+        "country":  "France",
+        "ovr":  72
+    },
+    {
+        "id":  216320,
+        "rawName":  "Seko Fofana",
+        "knownAs":  "",
+        "firstName":  "Seko",
+        "lastName":  "Fofana",
+        "club":  "Stade Rennais FC",
+        "country":  "Côte d\u0027Ivoire",
+        "ovr":  76
+    },
+    {
+        "id":  216820,
+        "rawName":  "Moses Simon",
+        "knownAs":  "",
+        "firstName":  "Moses",
+        "lastName":  "Simon",
+        "club":  "Paris FC",
+        "country":  "Nigeria",
+        "ovr":  76
+    },
+    {
+        "id":  218066,
+        "rawName":  "Ally Samatta",
+        "knownAs":  "",
+        "firstName":  "Ally",
+        "lastName":  "Samatta",
+        "club":  "Havre AC",
+        "country":  "Tanzania",
+        "ovr":  71
+    },
+    {
+        "id":  219683,
+        "rawName":  "Corentin Tolisso",
+        "knownAs":  "",
+        "firstName":  "Corentin",
+        "lastName":  "Tolisso",
+        "club":  "OL",
+        "country":  "France",
+        "ovr":  82
+    },
+    {
+        "id":  219733,
+        "rawName":  "Ludovic Ajorque",
+        "knownAs":  "",
+        "firstName":  "Ludovic",
+        "lastName":  "Ajorque",
+        "club":  "Stade Brestois 29",
+        "country":  "France",
+        "ovr":  77
+    },
+    {
+        "id":  219789,
+        "rawName":  "Hamari Traoré",
+        "knownAs":  "",
+        "firstName":  "Hamari",
+        "lastName":  "Traoré",
+        "club":  "Paris FC",
+        "country":  "Mali",
+        "ovr":  75
+    },
+    {
+        "id":  220814,
+        "rawName":  "Lucas Hernández",
+        "knownAs":  "",
+        "firstName":  "Lucas",
+        "lastName":  "Hernández",
+        "club":  "Paris SG",
+        "country":  "France",
+        "ovr":  81
+    },
+    {
+        "id":  220820,
+        "rawName":  "Mory Diaw",
+        "knownAs":  "",
+        "firstName":  "Mory",
+        "lastName":  "Diaw",
+        "club":  "Havre AC",
+        "country":  "Senegal",
+        "ovr":  74
+    },
+    {
+        "id":  221284,
+        "rawName":  "Jonathan Gradit",
+        "knownAs":  "",
+        "firstName":  "Jonathan",
+        "lastName":  "Gradit",
+        "club":  "RC Lens",
+        "country":  "France",
+        "ovr":  77
+    },
+    {
+        "id":  222286,
+        "rawName":  "Gautier Lloris",
+        "knownAs":  "",
+        "firstName":  "Gautier",
+        "lastName":  "Lloris",
+        "club":  "Stade Brestois 29",
+        "country":  "France",
+        "ovr":  75
+    },
+    {
+        "id":  223143,
+        "rawName":  "Ulisses Garcia",
+        "knownAs":  "",
+        "firstName":  "Ulisses",
+        "lastName":  "Garcia",
+        "club":  "OM",
+        "country":  "Switzerland",
+        "ovr":  73
+    },
+    {
+        "id":  223150,
+        "rawName":  "Lionel Mpasi",
+        "knownAs":  "",
+        "firstName":  "Lionel",
+        "lastName":  "Mpasi",
+        "club":  "Havre AC",
+        "country":  "Congo DR",
+        "ovr":  73
+    },
+    {
+        "id":  223597,
+        "rawName":  "Ruben Aguilar",
+        "knownAs":  "",
+        "firstName":  "Ruben",
+        "lastName":  "Aguilar",
+        "club":  "RC Lens",
+        "country":  "France",
+        "ovr":  77
+    },
+    {
+        "id":  223874,
+        "rawName":  "Valentin Rongier",
+        "knownAs":  "",
+        "firstName":  "Valentin",
+        "lastName":  "Rongier",
+        "club":  "Stade Rennais FC",
+        "country":  "France",
+        "ovr":  80
+    },
+    {
+        "id":  224030,
+        "rawName":  "Maxime Lopez",
+        "knownAs":  "",
+        "firstName":  "Maxime",
+        "lastName":  "Lopez",
+        "club":  "Paris FC",
+        "country":  "France",
+        "ovr":  75
+    },
+    {
+        "id":  224068,
+        "rawName":  "Hillel Konaté",
+        "knownAs":  "",
+        "firstName":  "Hillel",
+        "lastName":  "Konaté",
+        "club":  "ESTAC Troyes",
+        "country":  "Burkina Faso",
+        "ovr":  69
+    },
+    {
+        "id":  224442,
+        "rawName":  "Bingourou Kamara",
+        "knownAs":  "",
+        "firstName":  "Bingourou",
+        "lastName":  "Kamara",
+        "club":  "FC Lorient",
+        "country":  "Senegal",
+        "ovr":  69
+    },
+    {
+        "id":  224444,
+        "rawName":  "Haris Belkebla",
+        "knownAs":  "",
+        "firstName":  "Haris",
+        "lastName":  "Belkebla",
+        "club":  "Angers SCO",
+        "country":  "Algeria",
+        "ovr":  75
+    },
+    {
+        "id":  225263,
+        "rawName":  "Duje Ćaleta-Car",
+        "knownAs":  "",
+        "firstName":  "Duje",
+        "lastName":  "Ćaleta-Car",
+        "club":  "OL",
+        "country":  "Croatia",
+        "ovr":  74
+    },
+    {
+        "id":  225663,
+        "rawName":  "Alexandr Golovin",
+        "knownAs":  "",
+        "firstName":  "Alexandr",
+        "lastName":  "Golovin",
+        "club":  "AS Monaco",
+        "country":  "Russia",
+        "ovr":  78
+    },
+    {
+        "id":  225782,
+        "rawName":  "Ainsley Maitland-Niles",
+        "knownAs":  "",
+        "firstName":  "Ainsley",
+        "lastName":  "Maitland-Niles",
+        "club":  "OL",
+        "country":  "England",
+        "ovr":  77
+    },
+    {
+        "id":  225859,
+        "rawName":  "Moussa Niakhaté",
+        "knownAs":  "",
+        "firstName":  "Moussa",
+        "lastName":  "Niakhaté",
+        "club":  "OL",
+        "country":  "Senegal",
+        "ovr":  81
+    },
+    {
+        "id":  226229,
+        "rawName":  "Thilo Kehrer",
+        "knownAs":  "",
+        "firstName":  "Thilo",
+        "lastName":  "Kehrer",
+        "club":  "AS Monaco",
+        "country":  "Germany",
+        "ovr":  77
+    },
+    {
+        "id":  226271,
+        "rawName":  "Fabián Ruiz",
+        "knownAs":  "Fabián Ruiz",
+        "firstName":  "Fabián",
+        "lastName":  "Ruiz Peña",
+        "club":  "Paris SG",
+        "country":  "Spain",
+        "ovr":  86
+    },
+    {
+        "id":  226627,
+        "rawName":  "Takumi Minamino",
+        "knownAs":  "",
+        "firstName":  "Takumi",
+        "lastName":  "Minamino",
+        "club":  "AS Monaco",
+        "country":  "Japan",
+        "ovr":  77
+    },
+    {
+        "id":  227232,
+        "rawName":  "Florian Sotoca",
+        "knownAs":  "",
+        "firstName":  "Florian",
+        "lastName":  "Sotoca",
+        "club":  "RC Lens",
+        "country":  "France",
+        "ovr":  74
+    },
+    {
+        "id":  227234,
+        "rawName":  "Lucas Tousart",
+        "knownAs":  "",
+        "firstName":  "Lucas",
+        "lastName":  "Tousart",
+        "club":  "Stade Brestois 29",
+        "country":  "France",
+        "ovr":  73
+    },
+    {
+        "id":  227794,
+        "rawName":  "Calvin Verdonk",
+        "knownAs":  "",
+        "firstName":  "Calvin",
+        "lastName":  "Verdonk",
+        "club":  "LOSC Lille",
+        "country":  "Indonesia",
+        "ovr":  73
+    },
+    {
+        "id":  228255,
+        "rawName":  "Nicolas Lemaître",
+        "knownAs":  "",
+        "firstName":  "Nicolas",
+        "lastName":  "Lemaître",
+        "club":  "Stade Rennais FC",
+        "country":  "France",
+        "ovr":  70
+    },
+    {
+        "id":  228591,
+        "rawName":  "Carlens Arcus",
+        "knownAs":  "",
+        "firstName":  "Carlens",
+        "lastName":  "Arcus",
+        "club":  "Angers SCO",
+        "country":  "Haiti",
+        "ovr":  74
+    },
+    {
+        "id":  228681,
+        "rawName":  "Francisco Sierralta",
+        "knownAs":  "",
+        "firstName":  "Francisco",
+        "lastName":  "Sierralta",
+        "club":  "AJ Auxerre",
+        "country":  "Chile",
+        "ovr":  70
+    },
+    {
+        "id":  228774,
+        "rawName":  "Vincent Marchetti",
+        "knownAs":  "",
+        "firstName":  "Vincent",
+        "lastName":  "Marchetti",
+        "club":  "Paris FC",
+        "country":  "France",
+        "ovr":  70
+    },
+    {
+        "id":  229158,
+        "rawName":  "Branco van den Boomen",
+        "knownAs":  "",
+        "firstName":  "Branco",
+        "lastName":  "van den Boomen",
+        "club":  "Angers SCO",
+        "country":  "Holland",
+        "ovr":  73
+    },
+    {
+        "id":  229194,
+        "rawName":  "Alec Georgen",
+        "knownAs":  "",
+        "firstName":  "Alec",
+        "lastName":  "Georgen",
+        "club":  "FC Lorient",
+        "country":  "France",
+        "ovr":  71
+    },
+    {
+        "id":  229236,
+        "rawName":  "Matthieu Udol",
+        "knownAs":  "",
+        "firstName":  "Matthieu",
+        "lastName":  "Udol",
+        "club":  "RC Lens",
+        "country":  "France",
+        "ovr":  81
+    },
+    {
+        "id":  229261,
+        "rawName":  "Denis Zakaria",
+        "knownAs":  "",
+        "firstName":  "Denis",
+        "lastName":  "Zakaria",
+        "club":  "AS Monaco",
+        "country":  "Switzerland",
+        "ovr":  81
+    },
+    {
+        "id":  229646,
+        "rawName":  "Samuel Yohou",
+        "knownAs":  "",
+        "firstName":  "Samuel",
+        "lastName":  "Yohou",
+        "club":  "Le Mans FC",
+        "country":  "Côte d\u0027Ivoire",
+        "ovr":  70
+    },
+    {
+        "id":  229984,
+        "rawName":  "Ben Chilwell",
+        "knownAs":  "",
+        "firstName":  "Ben",
+        "lastName":  "Chilwell",
+        "club":  "Strasbourg",
+        "country":  "England",
+        "ovr":  77
+    },
+    {
+        "id":  230020,
+        "rawName":  "Pierre Lees-Melou",
+        "knownAs":  "",
+        "firstName":  "Pierre",
+        "lastName":  "Lees-Melou",
+        "club":  "Paris FC",
+        "country":  "France",
+        "ovr":  77
+    },
+    {
+        "id":  230144,
+        "rawName":  "Assane Dioussé",
+        "knownAs":  "",
+        "firstName":  "Assane",
+        "lastName":  "Dioussé",
+        "club":  "AJ Auxerre",
+        "country":  "Senegal",
+        "ovr":  69
+    },
+    {
+        "id":  230686,
+        "rawName":  "Jean-Victor Makengo",
+        "knownAs":  "",
+        "firstName":  "Jean-Victor",
+        "lastName":  "Makengo",
+        "club":  "FC Lorient",
+        "country":  "France",
+        "ovr":  74
+    },
+    {
+        "id":  230767,
+        "rawName":  "Renato Sanches",
+        "knownAs":  "Renato Sanches",
+        "firstName":  "Renato Júnior",
+        "lastName":  "Luz Sanches",
+        "club":  "Paris SG",
+        "country":  "Portugal",
+        "ovr":  75
+    },
+    {
+        "id":  231102,
+        "rawName":  "Ludovic Blas",
+        "knownAs":  "",
+        "firstName":  "Ludovic",
+        "lastName":  "Blas",
+        "club":  "Stade Rennais FC",
+        "country":  "France",
+        "ovr":  76
+    },
+    {
+        "id":  231318,
+        "rawName":  "Romain Perraud",
+        "knownAs":  "",
+        "firstName":  "Romain",
+        "lastName":  "Perraud",
+        "club":  "LOSC Lille",
+        "country":  "France",
+        "ovr":  78
+    },
+    {
+        "id":  231443,
+        "rawName":  "Ousmane Dembélé",
+        "knownAs":  "",
+        "firstName":  "Ousmane",
+        "lastName":  "Dembélé",
+        "club":  "Paris SG",
+        "country":  "France",
+        "ovr":  90
+    },
+    {
+        "id":  231612,
+        "rawName":  "Romain Del Castillo",
+        "knownAs":  "",
+        "firstName":  "Romain",
+        "lastName":  "Del Castillo",
+        "club":  "Stade Brestois 29",
+        "country":  "France",
+        "ovr":  76
+    },
+    {
+        "id":  232097,
+        "rawName":  "Amine Harit",
+        "knownAs":  "",
+        "firstName":  "Amine",
+        "lastName":  "Harit",
+        "club":  "OM",
+        "country":  "Morocco",
+        "ovr":  74
+    },
+    {
+        "id":  232118,
+        "rawName":  "Antoine Rabillard",
+        "knownAs":  "",
+        "firstName":  "Antoine",
+        "lastName":  "Rabillard",
+        "club":  "Le Mans FC",
+        "country":  "France",
+        "ovr":  71
+    },
+    {
+        "id":  232360,
+        "rawName":  "Gaëtan Perrin",
+        "knownAs":  "",
+        "firstName":  "Gaëtan",
+        "lastName":  "Perrin",
+        "club":  "LOSC Lille",
+        "country":  "France",
+        "ovr":  75
+    },
+    {
+        "id":  232417,
+        "rawName":  "Nicolas Kocik",
+        "knownAs":  "",
+        "firstName":  "Nicolas",
+        "lastName":  "Kocik",
+        "club":  "Le Mans FC",
+        "country":  "France",
+        "ovr":  69
+    },
+    {
+        "id":  233866,
+        "rawName":  "Odsonne Édouard",
+        "knownAs":  "",
+        "firstName":  "Odsonne",
+        "lastName":  "Édouard",
+        "club":  "RC Lens",
+        "country":  "France",
+        "ovr":  78
+    },
+    {
+        "id":  234239,
+        "rawName":  "Gauthier Hein",
+        "knownAs":  "",
+        "firstName":  "Gauthier",
+        "lastName":  "Hein",
+        "club":  "OGC Nice",
+        "country":  "France",
+        "ovr":  76
+    },
+    {
+        "id":  234371,
+        "rawName":  "Rémy Descamps",
+        "knownAs":  "",
+        "firstName":  "Rémy",
+        "lastName":  "Descamps",
+        "club":  "OL",
+        "country":  "France",
+        "ovr":  75
+    },
+    {
+        "id":  234515,
+        "rawName":  "Jordan Lefort",
+        "knownAs":  "",
+        "firstName":  "Jordan",
+        "lastName":  "Lefort",
+        "club":  "Angers SCO",
+        "country":  "Mauritania",
+        "ovr":  76
+    },
+    {
+        "id":  234612,
+        "rawName":  "Jonathan Ikoné",
+        "knownAs":  "",
+        "firstName":  "Jonathan",
+        "lastName":  "Ikoné",
+        "club":  "Paris FC",
+        "country":  "France",
+        "ovr":  75
+    },
+    {
+        "id":  235022,
+        "rawName":  "Niklas Schmidt",
+        "knownAs":  "",
+        "firstName":  "Niklas",
+        "lastName":  "Schmidt",
+        "club":  "Toulouse FC",
+        "country":  "Germany",
+        "ovr":  71
+    },
+    {
+        "id":  235161,
+        "rawName":  "Josh Maja",
+        "knownAs":  "",
+        "firstName":  "Josh",
+        "lastName":  "Maja",
+        "club":  "Havre AC",
+        "country":  "Nigeria",
+        "ovr":  70
+    },
+    {
+        "id":  235212,
+        "rawName":  "Achraf Hakimi",
+        "knownAs":  "",
+        "firstName":  "Achraf",
+        "lastName":  "Hakimi",
+        "club":  "Paris SG",
+        "country":  "Morocco",
+        "ovr":  88
+    },
+    {
+        "id":  235244,
+        "rawName":  "Rasmus Nicolaisen",
+        "knownAs":  "",
+        "firstName":  "Rasmus",
+        "lastName":  "Nicolaisen",
+        "club":  "Toulouse FC",
+        "country":  "Denmark",
+        "ovr":  76
+    },
+    {
+        "id":  235633,
+        "rawName":  "Yehvann Diouf",
+        "knownAs":  "",
+        "firstName":  "Yehvann",
+        "lastName":  "Diouf",
+        "club":  "OGC Nice",
+        "country":  "Senegal",
+        "ovr":  76
+    },
+    {
+        "id":  235973,
+        "rawName":  "Sebastian Szymański",
+        "knownAs":  "",
+        "firstName":  "Sebastian",
+        "lastName":  "Szymański",
+        "club":  "Stade Rennais FC",
+        "country":  "Poland",
+        "ovr":  77
+    },
+    {
+        "id":  236518,
+        "rawName":  "Arnaud Nordin",
+        "knownAs":  "",
+        "firstName":  "Arnaud",
+        "lastName":  "Nordin",
+        "club":  "Stade Rennais FC",
+        "country":  "France",
+        "ovr":  73
+    },
+    {
+        "id":  237133,
+        "rawName":  "Romain Cagnon",
+        "knownAs":  "",
+        "firstName":  "Romain",
+        "lastName":  "Cagnon",
+        "club":  "Stade Brestois 29",
+        "country":  "France",
+        "ovr":  60
+    },
+    {
+        "id":  237331,
+        "rawName":  "Thibault De Smet",
+        "knownAs":  "",
+        "firstName":  "Thibault",
+        "lastName":  "De Smet",
+        "club":  "Paris FC",
+        "country":  "Belgium",
+        "ovr":  71
+    },
+    {
+        "id":  237525,
+        "rawName":  "Arnaud Bodart",
+        "knownAs":  "",
+        "firstName":  "Arnaud",
+        "lastName":  "Bodart",
+        "club":  "LOSC Lille",
+        "country":  "Belgium",
+        "ovr":  72
+    },
+    {
+        "id":  237936,
+        "rawName":  "Aron Dønnum",
+        "knownAs":  "",
+        "firstName":  "Aron",
+        "lastName":  "Dønnum",
+        "club":  "Toulouse FC",
+        "country":  "Norway",
+        "ovr":  76
+    },
+    {
+        "id":  237960,
+        "rawName":  "Mama Baldé",
+        "knownAs":  "Mama Baldé",
+        "firstName":  "Mama Samba",
+        "lastName":  "Baldé",
+        "club":  "Stade Brestois 29",
+        "country":  "Guinea-Bissau",
+        "ovr":  73
+    },
+    {
+        "id":  238463,
+        "rawName":  "Amadou Haidara",
+        "knownAs":  "",
+        "firstName":  "Amadou",
+        "lastName":  "Haidara",
+        "club":  "RC Lens",
+        "country":  "Mali",
+        "ovr":  75
+    },
+    {
+        "id":  239093,
+        "rawName":  "Jonathan Clauss",
+        "knownAs":  "",
+        "firstName":  "Jonathan",
+        "lastName":  "Clauss",
+        "club":  "OGC Nice",
+        "country":  "France",
+        "ovr":  77
+    },
+    {
+        "id":  239254,
+        "rawName":  "Berke Özer",
+        "knownAs":  "",
+        "firstName":  "Berke",
+        "lastName":  "Özer",
+        "club":  "LOSC Lille",
+        "country":  "Turkey",
+        "ovr":  79
+    },
+    {
+        "id":  239364,
+        "rawName":  "Philipp Köhn",
+        "knownAs":  "",
+        "firstName":  "Philipp",
+        "lastName":  "Köhn",
+        "club":  "AS Monaco",
+        "country":  "Switzerland",
+        "ovr":  77
+    },
+    {
+        "id":  239559,
+        "rawName":  "Jeffrey de Lange",
+        "knownAs":  "",
+        "firstName":  "Jeffrey",
+        "lastName":  "de Lange",
+        "club":  "OM",
+        "country":  "Holland",
+        "ovr":  74
+    },
+    {
+        "id":  239631,
+        "rawName":  "Danny Namaso",
+        "knownAs":  "",
+        "firstName":  "Danny",
+        "lastName":  "Namaso",
+        "club":  "AJ Auxerre",
+        "country":  "Cameroon",
+        "ovr":  73
+    },
+    {
+        "id":  239744,
+        "rawName":  "Michaël Cuisance",
+        "knownAs":  "",
+        "firstName":  "Michaël",
+        "lastName":  "Cuisance",
+        "club":  "RC Lens",
+        "country":  "France",
+        "ovr":  72
+    },
+    {
+        "id":  240225,
+        "rawName":  "Matvey Safonov",
+        "knownAs":  "",
+        "firstName":  "Matvey",
+        "lastName":  "Safonov",
+        "club":  "Paris SG",
+        "country":  "Russia",
+        "ovr":  83
+    },
+    {
+        "id":  240507,
+        "rawName":  "Angel Gomes",
+        "knownAs":  "",
+        "firstName":  "Angel",
+        "lastName":  "Gomes",
+        "club":  "OM",
+        "country":  "England",
+        "ovr":  75
+    },
+    {
+        "id":  240753,
+        "rawName":  "Amine Gouiri",
+        "knownAs":  "",
+        "firstName":  "Amine",
+        "lastName":  "Gouiri",
+        "club":  "OM",
+        "country":  "Algeria",
+        "ovr":  80
+    },
+    {
+        "id":  241461,
+        "rawName":  "Ferran Torres",
+        "knownAs":  "Ferran Torres",
+        "firstName":  "Ferran",
+        "lastName":  "Torres García",
+        "club":  "Paris SG",
+        "country":  "Spain",
+        "ovr":  84
+    },
+    {
+        "id":  241496,
+        "rawName":  "Timothy Weah",
+        "knownAs":  "",
+        "firstName":  "Timothy",
+        "lastName":  "Weah",
+        "club":  "OM",
+        "country":  "United States",
+        "ovr":  78
+    },
+    {
+        "id":  241818,
+        "rawName":  "Lucas Buades",
+        "knownAs":  "",
+        "firstName":  "Lucas",
+        "lastName":  "Buades",
+        "club":  "Le Mans FC",
+        "country":  "France",
+        "ovr":  71
+    },
+    {
+        "id":  241821,
+        "rawName":  "Mohamed Bayo",
+        "knownAs":  "",
+        "firstName":  "Mohamed",
+        "lastName":  "Bayo",
+        "club":  "LOSC Lille",
+        "country":  "Guinea",
+        "ovr":  74
+    },
+    {
+        "id":  242195,
+        "rawName":  "Mark McKenzie",
+        "knownAs":  "",
+        "firstName":  "Mark",
+        "lastName":  "McKenzie",
+        "club":  "Toulouse FC",
+        "country":  "United States",
+        "ovr":  75
+    },
+    {
+        "id":  242534,
+        "rawName":  "Cristian Cásseres Jr",
+        "knownAs":  "",
+        "firstName":  "Cristian",
+        "lastName":  "Cásseres Jr",
+        "club":  "Toulouse FC",
+        "country":  "Venezuela",
+        "ovr":  76
+    },
+    {
+        "id":  242577,
+        "rawName":  "Romain Faivre",
+        "knownAs":  "",
+        "firstName":  "Romain",
+        "lastName":  "Faivre",
+        "club":  "AJ Auxerre",
+        "country":  "France",
+        "ovr":  75
+    },
+    {
+        "id":  242835,
+        "rawName":  "Leonardo Balerdi",
+        "knownAs":  "",
+        "firstName":  "Leonardo",
+        "lastName":  "Balerdi",
+        "club":  "OM",
+        "country":  "Argentina",
+        "ovr":  79
+    },
+    {
+        "id":  242907,
+        "rawName":  "Bryan Reynolds",
+        "knownAs":  "",
+        "firstName":  "Bryan",
+        "lastName":  "Reynolds",
+        "club":  "Stade Rennais FC",
+        "country":  "United States",
+        "ovr":  74
+    },
+    {
+        "id":  243009,
+        "rawName":  "Derek Cornelius",
+        "knownAs":  "",
+        "firstName":  "Derek",
+        "lastName":  "Cornelius",
+        "club":  "OM",
+        "country":  "Canada",
+        "ovr":  74
+    },
+    {
+        "id":  243580,
+        "rawName":  "Loïs Openda",
+        "knownAs":  "",
+        "firstName":  "Loïs",
+        "lastName":  "Openda",
+        "club":  "OL",
+        "country":  "Belgium",
+        "ovr":  80
+    },
+    {
+        "id":  243631,
+        "rawName":  "Mahdi Camara",
+        "knownAs":  "",
+        "firstName":  "Mahdi",
+        "lastName":  "Camara",
+        "club":  "Stade Rennais FC",
+        "country":  "France",
+        "ovr":  77
+    },
+    {
+        "id":  244480,
+        "rawName":  "Hugo Magnetti",
+        "knownAs":  "",
+        "firstName":  "Hugo",
+        "lastName":  "Magnetti",
+        "club":  "Stade Brestois 29",
+        "country":  "France",
+        "ovr":  76
+    },
+    {
+        "id":  244749,
+        "rawName":  "Nayef Aguerd",
+        "knownAs":  "",
+        "firstName":  "Nayef",
+        "lastName":  "Aguerd",
+        "club":  "OM",
+        "country":  "Morocco",
+        "ovr":  80
+    },
+    {
+        "id":  244892,
+        "rawName":  "Sofiane Diop",
+        "knownAs":  "",
+        "firstName":  "Sofiane",
+        "lastName":  "Diop",
+        "club":  "OGC Nice",
+        "country":  "Morocco",
+        "ovr":  76
+    },
+    {
+        "id":  244915,
+        "rawName":  "Mohammed Salisu",
+        "knownAs":  "",
+        "firstName":  "Mohammed",
+        "lastName":  "Salisu",
+        "club":  "AS Monaco",
+        "country":  "Ghana",
+        "ovr":  76
+    },
+    {
+        "id":  245211,
+        "rawName":  "Jordan Teze",
+        "knownAs":  "",
+        "firstName":  "Jordan",
+        "lastName":  "Teze",
+        "club":  "AS Monaco",
+        "country":  "Holland",
+        "ovr":  78
+    },
+    {
+        "id":  245410,
+        "rawName":  "Montassar Talbi",
+        "knownAs":  "",
+        "firstName":  "Montassar",
+        "lastName":  "Talbi",
+        "club":  "FC Lorient",
+        "country":  "Tunisia",
+        "ovr":  75
+    },
+    {
+        "id":  245541,
+        "rawName":  "Giovanni Reyna",
+        "knownAs":  "",
+        "firstName":  "Giovanni",
+        "lastName":  "Reyna",
+        "club":  "Strasbourg",
+        "country":  "United States",
+        "ovr":  73
+    },
+    {
+        "id":  245563,
+        "rawName":  "Theo Bair",
+        "knownAs":  "",
+        "firstName":  "Theo",
+        "lastName":  "Bair",
+        "club":  "AJ Auxerre",
+        "country":  "Canada",
+        "ovr":  69
+    },
+    {
+        "id":  245854,
+        "rawName":  "Théo Vermot",
+        "knownAs":  "",
+        "firstName":  "Théo",
+        "lastName":  "Vermot",
+        "club":  "OM",
+        "country":  "France",
+        "ovr":  60
+    },
+    {
+        "id":  246297,
+        "rawName":  "Himad Abdelli",
+        "knownAs":  "",
+        "firstName":  "Himad",
+        "lastName":  "Abdelli",
+        "club":  "OM",
+        "country":  "Algeria",
+        "ovr":  75
+    },
+    {
+        "id":  246402,
+        "rawName":  "Mads Bidstrup",
+        "knownAs":  "",
+        "firstName":  "Mads",
+        "lastName":  "Bidstrup",
+        "club":  "OL",
+        "country":  "Denmark",
+        "ovr":  73
+    },
+    {
+        "id":  246548,
+        "rawName":  "Osame Sahraoui",
+        "knownAs":  "",
+        "firstName":  "Osame",
+        "lastName":  "Sahraoui",
+        "club":  "LOSC Lille",
+        "country":  "Morocco",
+        "ovr":  75
+    },
+    {
+        "id":  246688,
+        "rawName":  "Saud Abdulhamid",
+        "knownAs":  "",
+        "firstName":  "Saud",
+        "lastName":  "Abdulhamid",
+        "club":  "RC Lens",
+        "country":  "Saudi Arabia",
+        "ovr":  77
+    },
+    {
+        "id":  246947,
+        "rawName":  "Paul Akouokou",
+        "knownAs":  "",
+        "firstName":  "Paul",
+        "lastName":  "Akouokou",
+        "club":  "OL",
+        "country":  "Côte d\u0027Ivoire",
+        "ovr":  69
+    },
+    {
+        "id":  247050,
+        "rawName":  "Pavel Šulc",
+        "knownAs":  "",
+        "firstName":  "Pavel",
+        "lastName":  "Šulc",
+        "club":  "OL",
+        "country":  "Czech Republic",
+        "ovr":  79
+    },
+    {
+        "id":  247248,
+        "rawName":  "Moustapha Mbow",
+        "knownAs":  "",
+        "firstName":  "Moustapha",
+        "lastName":  "Mbow",
+        "club":  "Paris FC",
+        "country":  "Senegal",
+        "ovr":  75
+    },
+    {
+        "id":  247264,
+        "rawName":  "Ayumu Seko",
+        "knownAs":  "",
+        "firstName":  "Ayumu",
+        "lastName":  "Seko",
+        "club":  "Havre AC",
+        "country":  "Japan",
+        "ovr":  74
+    },
+    {
+        "id":  247463,
+        "rawName":  "Folarin Balogun",
+        "knownAs":  "",
+        "firstName":  "Folarin",
+        "lastName":  "Balogun",
+        "club":  "AS Monaco",
+        "country":  "United States",
+        "ovr":  80
+    },
+    {
+        "id":  247519,
+        "rawName":  "Félix Mambimbi",
+        "knownAs":  "",
+        "firstName":  "Félix",
+        "lastName":  "Mambimbi",
+        "club":  "Havre AC",
+        "country":  "Switzerland",
+        "ovr":  67
+    },
+    {
+        "id":  247611,
+        "rawName":  "Egil Selvik",
+        "knownAs":  "",
+        "firstName":  "Egil",
+        "lastName":  "Selvik",
+        "club":  "Stade Brestois 29",
+        "country":  "Norway",
+        "ovr":  70
+    },
+    {
+        "id":  247635,
+        "rawName":  "Khvicha Kvaratskhelia",
+        "knownAs":  "",
+        "firstName":  "Khvicha",
+        "lastName":  "Kvaratskhelia",
+        "club":  "Paris SG",
+        "country":  "Georgia",
+        "ovr":  89
+    },
+    {
+        "id":  247758,
+        "rawName":  "Iron Gomis",
+        "knownAs":  "",
+        "firstName":  "Iron",
+        "lastName":  "Gomis",
+        "club":  "ESTAC Troyes",
+        "country":  "France",
+        "ovr":  68
+    },
+    {
+        "id":  248357,
+        "rawName":  "Alexandre Lauray",
+        "knownAs":  "",
+        "firstName":  "Alexandre",
+        "lastName":  "Lauray",
+        "club":  "Le Mans FC",
+        "country":  "France",
+        "ovr":  67
+    },
+    {
+        "id":  248408,
+        "rawName":  "Paolo Gozzi",
+        "knownAs":  "",
+        "firstName":  "Paolo",
+        "lastName":  "Gozzi",
+        "club":  "ESTAC Troyes",
+        "country":  "Italy",
+        "ovr":  65
+    },
+    {
+        "id":  248477,
+        "rawName":  "Samir Chergui",
+        "knownAs":  "",
+        "firstName":  "Samir",
+        "lastName":  "Chergui",
+        "club":  "Paris FC",
+        "country":  "Algeria",
+        "ovr":  71
+    },
+    {
+        "id":  248584,
+        "rawName":  "Alexandre Phliponeau",
+        "knownAs":  "",
+        "firstName":  "Alexandre",
+        "lastName":  "Phliponeau",
+        "club":  "ESTAC Troyes",
+        "country":  "France",
+        "ovr":  64
+    },
+    {
+        "id":  250724,
+        "rawName":  "Nathan Ngoumou",
+        "knownAs":  "",
+        "firstName":  "Nathan",
+        "lastName":  "Ngoumou",
+        "club":  "OGC Nice",
+        "country":  "Cameroon",
+        "ovr":  72
+    },
+    {
+        "id":  250822,
+        "rawName":  "Bandiougou Fadiga",
+        "knownAs":  "",
+        "firstName":  "Bandiougou",
+        "lastName":  "Fadiga",
+        "club":  "FC Lorient",
+        "country":  "France",
+        "ovr":  64
+    },
+    {
+        "id":  251170,
+        "rawName":  "Lassine Sinayoko",
+        "knownAs":  "",
+        "firstName":  "Lassine",
+        "lastName":  "Sinayoko",
+        "club":  "Paris FC",
+        "country":  "Mali",
+        "ovr":  77
+    },
+    {
+        "id":  251191,
+        "rawName":  "Jim Allevinah",
+        "knownAs":  "",
+        "firstName":  "Jim",
+        "lastName":  "Allevinah",
+        "club":  "Angers SCO",
+        "country":  "Gabon",
+        "ovr":  69
+    },
+    {
+        "id":  251380,
+        "rawName":  "Lilian Brassier",
+        "knownAs":  "",
+        "firstName":  "Lilian",
+        "lastName":  "Brassier",
+        "club":  "Stade Rennais FC",
+        "country":  "France",
+        "ovr":  76
+    },
+    {
+        "id":  251633,
+        "rawName":  "Michał Skóraś",
+        "knownAs":  "",
+        "firstName":  "Michał",
+        "lastName":  "Skóraś",
+        "club":  "RC Lens",
+        "country":  "Poland",
+        "ovr":  71
+    },
+    {
+        "id":  251752,
+        "rawName":  "Lucas Chevalier",
+        "knownAs":  "",
+        "firstName":  "Lucas",
+        "lastName":  "Chevalier",
+        "club":  "Paris SG",
+        "country":  "France",
+        "ovr":  80
+    },
+    {
+        "id":  251806,
+        "rawName":  "Quinten Timber",
+        "knownAs":  "",
+        "firstName":  "Quinten",
+        "lastName":  "Timber",
+        "club":  "OM",
+        "country":  "Holland",
+        "ovr":  79
+    },
+    {
+        "id":  251845,
+        "rawName":  "Abu Francis",
+        "knownAs":  "",
+        "firstName":  "Abu",
+        "lastName":  "Francis",
+        "club":  "Toulouse FC",
+        "country":  "Ghana",
+        "ovr":  69
+    },
+    {
+        "id":  251926,
+        "rawName":  "Rassoul Ndiaye",
+        "knownAs":  "",
+        "firstName":  "Rassoul",
+        "lastName":  "Ndiaye",
+        "club":  "Havre AC",
+        "country":  "Senegal",
+        "ovr":  74
+    },
+    {
+        "id":  252059,
+        "rawName":  "Salis Abdul Samed",
+        "knownAs":  "",
+        "firstName":  "Salis",
+        "lastName":  "Abdul Samed",
+        "club":  "OGC Nice",
+        "country":  "Ghana",
+        "ovr":  72
+    },
+    {
+        "id":  252145,
+        "rawName":  "Nuno Mendes",
+        "knownAs":  "Nuno Mendes",
+        "firstName":  "Nuno Alexandre",
+        "lastName":  "Tavares Mendes",
+        "club":  "Paris SG",
+        "country":  "Portugal",
+        "ovr":  89
+    },
+    {
+        "id":  252302,
+        "rawName":  "Yasser Larouci",
+        "knownAs":  "",
+        "firstName":  "Yasser",
+        "lastName":  "Larouci",
+        "club":  "Le Mans FC",
+        "country":  "Algeria",
+        "ovr":  68
+    },
+    {
+        "id":  252512,
+        "rawName":  "Anthony Rouault",
+        "knownAs":  "",
+        "firstName":  "Anthony",
+        "lastName":  "Rouault",
+        "club":  "Stade Rennais FC",
+        "country":  "France",
+        "ovr":  76
+    },
+    {
+        "id":  252541,
+        "rawName":  "Joris Chotard",
+        "knownAs":  "",
+        "firstName":  "Joris",
+        "lastName":  "Chotard",
+        "club":  "Stade Brestois 29",
+        "country":  "France",
+        "ovr":  73
+    },
+    {
+        "id":  252711,
+        "rawName":  "Ali Abdi",
+        "knownAs":  "",
+        "firstName":  "Ali",
+        "lastName":  "Abdi",
+        "club":  "OGC Nice",
+        "country":  "Tunisia",
+        "ovr":  75
+    },
+    {
+        "id":  252937,
+        "rawName":  "Yann Gboho",
+        "knownAs":  "",
+        "firstName":  "Yann",
+        "lastName":  "Gboho",
+        "club":  "Toulouse FC",
+        "country":  "France",
+        "ovr":  77
+    },
+    {
+        "id":  252960,
+        "rawName":  "Isak Jansson",
+        "knownAs":  "",
+        "firstName":  "Isak",
+        "lastName":  "Jansson",
+        "club":  "OGC Nice",
+        "country":  "Sweden",
+        "ovr":  71
+    },
+    {
+        "id":  252961,
+        "rawName":  "Tanguy Nianzou",
+        "knownAs":  "",
+        "firstName":  "Tanguy",
+        "lastName":  "Nianzou",
+        "club":  "LOSC Lille",
+        "country":  "France",
+        "ovr":  71
+    },
+    {
+        "id":  253004,
+        "rawName":  "Ansu Fati",
+        "knownAs":  "Ansu Fati",
+        "firstName":  "Anssumane",
+        "lastName":  "Fati",
+        "club":  "AS Monaco",
+        "country":  "Spain",
+        "ovr":  77
+    },
+    {
+        "id":  253074,
+        "rawName":  "Godson Kyeremeh",
+        "knownAs":  "",
+        "firstName":  "Godson",
+        "lastName":  "Kyeremeh",
+        "club":  "Havre AC",
+        "country":  "France",
+        "ovr":  68
+    },
+    {
+        "id":  253121,
+        "rawName":  "Issa Soumaré",
+        "knownAs":  "",
+        "firstName":  "Issa",
+        "lastName":  "Soumaré",
+        "club":  "Stade Rennais FC",
+        "country":  "Senegal",
+        "ovr":  75
+    },
+    {
+        "id":  253157,
+        "rawName":  "Hicham Boudaoui",
+        "knownAs":  "",
+        "firstName":  "Hicham",
+        "lastName":  "Boudaoui",
+        "club":  "OGC Nice",
+        "country":  "Algeria",
+        "ovr":  75
+    },
+    {
+        "id":  253167,
+        "rawName":  "Félix Correia",
+        "knownAs":  "Félix Correia",
+        "firstName":  "Félix Alexandre",
+        "lastName":  "A. Sanches Correia",
+        "club":  "LOSC Lille",
+        "country":  "Portugal",
+        "ovr":  75
+    },
+    {
+        "id":  253181,
+        "rawName":  "Aiyegun Tosin",
+        "knownAs":  "",
+        "firstName":  "Aiyegun",
+        "lastName":  "Tosin",
+        "club":  "FC Lorient",
+        "country":  "Benin",
+        "ovr":  72
+    },
+    {
+        "id":  254121,
+        "rawName":  "Charlie Cresswell",
+        "knownAs":  "",
+        "firstName":  "Charlie",
+        "lastName":  "Cresswell",
+        "club":  "Stade Rennais FC",
+        "country":  "England",
+        "ovr":  78
+    },
+    {
+        "id":  254548,
+        "rawName":  "Melvin Bard",
+        "knownAs":  "",
+        "firstName":  "Melvin",
+        "lastName":  "Bard",
+        "club":  "OGC Nice",
+        "country":  "France",
+        "ovr":  76
+    },
+    {
+        "id":  254662,
+        "rawName":  "Ewan Hatfout",
+        "knownAs":  "",
+        "firstName":  "Ewan",
+        "lastName":  "Hatfout",
+        "club":  "Le Mans FC",
+        "country":  "France",
+        "ovr":  63
+    },
+    {
+        "id":  255216,
+        "rawName":  "Eros Maddy",
+        "knownAs":  "",
+        "firstName":  "Eros",
+        "lastName":  "Maddy",
+        "club":  "AJ Auxerre",
+        "country":  "Holland",
+        "ovr":  62
+    },
+    {
+        "id":  255253,
+        "rawName":  "Vitinha",
+        "knownAs":  "Vitinha",
+        "firstName":  "Vítor",
+        "lastName":  "Machado Ferreira",
+        "club":  "Paris SG",
+        "country":  "Portugal",
+        "ovr":  90
+    },
+    {
+        "id":  255266,
+        "rawName":  "Obed Nkambadio",
+        "knownAs":  "",
+        "firstName":  "Obed",
+        "lastName":  "Nkambadio",
+        "club":  "Paris FC",
+        "country":  "France",
+        "ovr":  74
+    },
+    {
+        "id":  255533,
+        "rawName":  "Youssouf Ndayishimiye",
+        "knownAs":  "",
+        "firstName":  "Youssouf",
+        "lastName":  "Ndayishimiye",
+        "club":  "OGC Nice",
+        "country":  "Burundi",
+        "ovr":  75
+    },
+    {
+        "id":  255838,
+        "rawName":  "Maik Nawrocki",
+        "knownAs":  "",
+        "firstName":  "Maik",
+        "lastName":  "Nawrocki",
+        "club":  "RC Lens",
+        "country":  "Poland",
+        "ovr":  70
+    },
+    {
+        "id":  256104,
+        "rawName":  "Tanner Tessmann",
+        "knownAs":  "",
+        "firstName":  "Tanner",
+        "lastName":  "Tessmann",
+        "club":  "OL",
+        "country":  "United States",
+        "ovr":  75
+    },
+    {
+        "id":  256196,
+        "rawName":  "Willian Pacho",
+        "knownAs":  "",
+        "firstName":  "Willian",
+        "lastName":  "Pacho",
+        "club":  "Paris SG",
+        "country":  "Ecuador",
+        "ovr":  89
+    },
+    {
+        "id":  256420,
+        "rawName":  "Malick Fofana",
+        "knownAs":  "",
+        "firstName":  "Malick",
+        "lastName":  "Fofana",
+        "club":  "OL",
+        "country":  "Belgium",
+        "ovr":  77
+    },
+    {
+        "id":  256476,
+        "rawName":  "Mohamed-Ali Cho",
+        "knownAs":  "",
+        "firstName":  "Mohamed-Ali",
+        "lastName":  "Cho",
+        "club":  "OGC Nice",
+        "country":  "France",
+        "ovr":  74
+    },
+    {
+        "id":  256669,
+        "rawName":  "Faris Pemi Moumbagna",
+        "knownAs":  "",
+        "firstName":  "Faris Pemi",
+        "lastName":  "Moumbagna",
+        "club":  "OM",
+        "country":  "Cameroon",
+        "ovr":  71
+    },
+    {
+        "id":  256731,
+        "rawName":  "Jean-Philippe Krasso",
+        "knownAs":  "",
+        "firstName":  "Jean-Philippe",
+        "lastName":  "Krasso",
+        "club":  "Paris FC",
+        "country":  "Côte d\u0027Ivoire",
+        "ovr":  73
+    },
+    {
+        "id":  256782,
+        "rawName":  "Sebastian Nanasi",
+        "knownAs":  "",
+        "firstName":  "Sebastian",
+        "lastName":  "Nanasi",
+        "club":  "Strasbourg",
+        "country":  "Sweden",
+        "ovr":  75
+    },
+    {
+        "id":  256788,
+        "rawName":  "Ismaël Boura",
+        "knownAs":  "",
+        "firstName":  "Ismaël",
+        "lastName":  "Boura",
+        "club":  "ESTAC Troyes",
+        "country":  "Comoros",
+        "ovr":  71
+    },
+    {
+        "id":  257090,
+        "rawName":  "Ismaël Doukouré",
+        "knownAs":  "",
+        "firstName":  "Ismaël",
+        "lastName":  "Doukouré",
+        "club":  "Strasbourg",
+        "country":  "France",
+        "ovr":  77
+    },
+    {
+        "id":  257118,
+        "rawName":  "Ilan Kebbal",
+        "knownAs":  "",
+        "firstName":  "Ilan",
+        "lastName":  "Kebbal",
+        "club":  "Paris FC",
+        "country":  "Algeria",
+        "ovr":  77
+    },
+    {
+        "id":  257204,
+        "rawName":  "Sinaly Diomandé",
+        "knownAs":  "",
+        "firstName":  "Sinaly",
+        "lastName":  "Diomandé",
+        "club":  "AJ Auxerre",
+        "country":  "Côte d\u0027Ivoire",
+        "ovr":  74
+    },
+    {
+        "id":  257235,
+        "rawName":  "Teddy Boulhendi",
+        "knownAs":  "",
+        "firstName":  "Teddy",
+        "lastName":  "Boulhendi",
+        "club":  "OGC Nice",
+        "country":  "Algeria",
+        "ovr":  64
+    },
+    {
+        "id":  257270,
+        "rawName":  "Timothée Pembélé",
+        "knownAs":  "",
+        "firstName":  "Timothée",
+        "lastName":  "Pembélé",
+        "club":  "Havre AC",
+        "country":  "France",
+        "ovr":  70
+    },
+    {
+        "id":  257395,
+        "rawName":  "Melvin Zinga",
+        "knownAs":  "",
+        "firstName":  "Melvin",
+        "lastName":  "Zinga",
+        "club":  "Angers SCO",
+        "country":  "France",
+        "ovr":  66
+    },
+    {
+        "id":  257397,
+        "rawName":  "Milan Robin",
+        "knownAs":  "",
+        "firstName":  "Milan",
+        "lastName":  "Robin",
+        "club":  "Le Mans FC",
+        "country":  "France",
+        "ovr":  66
+    },
+    {
+        "id":  257406,
+        "rawName":  "Fodé Doucouré",
+        "knownAs":  "",
+        "firstName":  "Fodé",
+        "lastName":  "Doucouré",
+        "club":  "Havre AC",
+        "country":  "Mali",
+        "ovr":  71
+    },
+    {
+        "id":  257612,
+        "rawName":  "Sékou Mara",
+        "knownAs":  "",
+        "firstName":  "Sékou",
+        "lastName":  "Mara",
+        "club":  "Strasbourg",
+        "country":  "France",
+        "ovr":  71
+    },
+    {
+        "id":  257946,
+        "rawName":  "Alidu Seidu",
+        "knownAs":  "",
+        "firstName":  "Alidu",
+        "lastName":  "Seidu",
+        "club":  "Stade Rennais FC",
+        "country":  "Ghana",
+        "ovr":  74
+    },
+    {
+        "id":  257975,
+        "rawName":  "Billal Brahimi",
+        "knownAs":  "",
+        "firstName":  "Billal",
+        "lastName":  "Brahimi",
+        "club":  "Le Mans FC",
+        "country":  "Algeria",
+        "ovr":  72
+    },
+    {
+        "id":  258378,
+        "rawName":  "Mika Godts",
+        "knownAs":  "",
+        "firstName":  "Mika",
+        "lastName":  "Godts",
+        "club":  "Paris SG",
+        "country":  "Belgium",
+        "ovr":  78
+    },
+    {
+        "id":  258439,
+        "rawName":  "Ousmane Camara",
+        "knownAs":  "",
+        "firstName":  "Ousmane",
+        "lastName":  "Camara",
+        "club":  "Angers SCO",
+        "country":  "Mali",
+        "ovr":  75
+    },
+    {
+        "id":  258485,
+        "rawName":  "Filip Jörgensen",
+        "knownAs":  "",
+        "firstName":  "Filip",
+        "lastName":  "Jörgensen",
+        "club":  "Strasbourg",
+        "country":  "Denmark",
+        "ovr":  77
+    },
+    {
+        "id":  258781,
+        "rawName":  "Illia Zabarnyi",
+        "knownAs":  "",
+        "firstName":  "Illia",
+        "lastName":  "Zabarnyi",
+        "club":  "Paris SG",
+        "country":  "Ukraine",
+        "ovr":  80
+    },
+    {
+        "id":  258972,
+        "rawName":  "Isaak Touré",
+        "knownAs":  "",
+        "firstName":  "Isaak",
+        "lastName":  "Touré",
+        "club":  "FC Lorient",
+        "country":  "France",
+        "ovr":  70
+    },
+    {
+        "id":  259027,
+        "rawName":  "Jhoanner Chávez",
+        "knownAs":  "",
+        "firstName":  "Jhoanner",
+        "lastName":  "Chávez",
+        "club":  "RC Lens",
+        "country":  "Ecuador",
+        "ovr":  70
+    },
+    {
+        "id":  259054,
+        "rawName":  "Tiago Morais",
+        "knownAs":  "Tiago Morais",
+        "firstName":  "Tiago",
+        "lastName":  "Fontoura F. Morais",
+        "club":  "LOSC Lille",
+        "country":  "Portugal",
+        "ovr":  69
+    },
+    {
+        "id":  259191,
+        "rawName":  "Mousa Al Tamari",
+        "knownAs":  "",
+        "firstName":  "Mousa",
+        "lastName":  "Al Tamari",
+        "club":  "Stade Rennais FC",
+        "country":  "Jordan",
+        "ovr":  77
+    },
+    {
+        "id":  259205,
+        "rawName":  "Naouirou Ahamada",
+        "knownAs":  "",
+        "firstName":  "Naouirou",
+        "lastName":  "Ahamada",
+        "club":  "AJ Auxerre",
+        "country":  "France",
+        "ovr":  70
+    },
+    {
+        "id":  259215,
+        "rawName":  "Formose Mendy",
+        "knownAs":  "",
+        "firstName":  "Formose",
+        "lastName":  "Mendy",
+        "club":  "FC Lorient",
+        "country":  "Senegal",
+        "ovr":  68
+    },
+    {
+        "id":  259816,
+        "rawName":  "Abdallah Sima",
+        "knownAs":  "",
+        "firstName":  "Abdallah",
+        "lastName":  "Sima",
+        "club":  "RC Lens",
+        "country":  "Senegal",
+        "ovr":  73
+    },
+    {
+        "id":  260100,
+        "rawName":  "Fredrik Oppegård",
+        "knownAs":  "",
+        "firstName":  "Fredrik",
+        "lastName":  "Oppegård",
+        "club":  "AJ Auxerre",
+        "country":  "Norway",
+        "ovr":  71
+    },
+    {
+        "id":  260235,
+        "rawName":  "Mamady Diambou",
+        "knownAs":  "",
+        "firstName":  "Mamady",
+        "lastName":  "Diambou",
+        "club":  "Stade Brestois 29",
+        "country":  "Mali",
+        "ovr":  65
+    },
+    {
+        "id":  260590,
+        "rawName":  "Usman Simbakoli",
+        "knownAs":  "",
+        "firstName":  "Usman",
+        "lastName":  "Simbakoli",
+        "club":  "Angers SCO",
+        "country":  "Central African Republic",
+        "ovr":  66
+    },
+    {
+        "id":  260943,
+        "rawName":  "Josué Casimir",
+        "knownAs":  "",
+        "firstName":  "Josué",
+        "lastName":  "Casimir",
+        "club":  "AJ Auxerre",
+        "country":  "Haiti",
+        "ovr":  71
+    },
+    {
+        "id":  261360,
+        "rawName":  "Noah Mbamba",
+        "knownAs":  "",
+        "firstName":  "Noah",
+        "lastName":  "Mbamba",
+        "club":  "FC Lorient",
+        "country":  "Belgium",
+        "ovr":  67
+    },
+    {
+        "id":  261495,
+        "rawName":  "Soumaïla Coulibaly",
+        "knownAs":  "",
+        "firstName":  "Soumaïla",
+        "lastName":  "Coulibaly",
+        "club":  "Strasbourg",
+        "country":  "France",
+        "ovr":  72
+    },
+    {
+        "id":  261531,
+        "rawName":  "Nazinho",
+        "knownAs":  "Nazinho",
+        "firstName":  "Flávio",
+        "lastName":  "B. J. Nazinho",
+        "club":  "AS Monaco",
+        "country":  "Portugal",
+        "ovr":  72
+    },
+    {
+        "id":  261616,
+        "rawName":  "Quentin Merlin",
+        "knownAs":  "",
+        "firstName":  "Quentin",
+        "lastName":  "Merlin",
+        "club":  "Stade Rennais FC",
+        "country":  "France",
+        "ovr":  77
+    },
+    {
+        "id":  261647,
+        "rawName":  "Andrew Omobamidele",
+        "knownAs":  "",
+        "firstName":  "Andrew",
+        "lastName":  "Omobamidele",
+        "club":  "Strasbourg",
+        "country":  "Republic of Ireland",
+        "ovr":  74
+    },
+    {
+        "id":  262071,
+        "rawName":  "Nathan Ngoy",
+        "knownAs":  "",
+        "firstName":  "Nathan",
+        "lastName":  "Ngoy",
+        "club":  "LOSC Lille",
+        "country":  "Belgium",
+        "ovr":  77
+    },
+    {
+        "id":  262088,
+        "rawName":  "Hákon Arnar Haraldsson",
+        "knownAs":  "",
+        "firstName":  "Hákon Arnar",
+        "lastName":  "Haraldsson",
+        "club":  "LOSC Lille",
+        "country":  "Iceland",
+        "ovr":  78
+    },
+    {
+        "id":  262102,
+        "rawName":  "Ruben Kluivert",
+        "knownAs":  "",
+        "firstName":  "Ruben",
+        "lastName":  "Kluivert",
+        "club":  "OL",
+        "country":  "Holland",
+        "ovr":  75
+    },
+    {
+        "id":  262105,
+        "rawName":  "Julien Duranville",
+        "knownAs":  "",
+        "firstName":  "Julien",
+        "lastName":  "Duranville",
+        "club":  "OL",
+        "country":  "Belgium",
+        "ovr":  72
+    },
+    {
+        "id":  262236,
+        "rawName":  "Amir Richardson",
+        "knownAs":  "",
+        "firstName":  "Amir",
+        "lastName":  "Richardson",
+        "club":  "Havre AC",
+        "country":  "Morocco",
+        "ovr":  71
+    },
+    {
+        "id":  262404,
+        "rawName":  "Felix Bacher",
+        "knownAs":  "",
+        "firstName":  "Felix",
+        "lastName":  "Bacher",
+        "club":  "OL",
+        "country":  "Austria",
+        "ovr":  72
+    },
+    {
+        "id":  263028,
+        "rawName":  "Bryan Okoh",
+        "knownAs":  "",
+        "firstName":  "Bryan",
+        "lastName":  "Okoh",
+        "club":  "AJ Auxerre",
+        "country":  "Switzerland",
+        "ovr":  73
+    },
+    {
+        "id":  263031,
+        "rawName":  "Sékou Fofana",
+        "knownAs":  "",
+        "firstName":  "Sékou",
+        "lastName":  "Fofana",
+        "club":  "AJ Auxerre",
+        "country":  "Côte d\u0027Ivoire",
+        "ovr":  67
+    },
+    {
+        "id":  263112,
+        "rawName":  "Marvin Senaya",
+        "knownAs":  "",
+        "firstName":  "Marvin",
+        "lastName":  "Senaya",
+        "club":  "AJ Auxerre",
+        "country":  "Ghana",
+        "ovr":  72
+    },
+    {
+        "id":  263139,
+        "rawName":  "Dominik Greif",
+        "knownAs":  "",
+        "firstName":  "Dominik",
+        "lastName":  "Greif",
+        "club":  "OL",
+        "country":  "Slovakia",
+        "ovr":  81
+    },
+    {
+        "id":  263421,
+        "rawName":  "Lasso Coulibaly",
+        "knownAs":  "",
+        "firstName":  "Lasso",
+        "lastName":  "Coulibaly",
+        "club":  "AJ Auxerre",
+        "country":  "Côte d\u0027Ivoire",
+        "ovr":  68
+    },
+    {
+        "id":  263781,
+        "rawName":  "Vanderson",
+        "knownAs":  "Vanderson",
+        "firstName":  "Vanderson",
+        "lastName":  "de Oliveira Campos",
+        "club":  "AS Monaco",
+        "country":  "Brazil",
+        "ovr":  77
+    },
+    {
+        "id":  263815,
+        "rawName":  "Abner Vinícius",
+        "knownAs":  "Abner Vinícius",
+        "firstName":  "Abner Vinícius",
+        "lastName":  "da Silva Santos",
+        "club":  "OL",
+        "country":  "Brazil",
+        "ovr":  76
+    },
+    {
+        "id":  263908,
+        "rawName":  "Bradley Locko",
+        "knownAs":  "",
+        "firstName":  "Bradley",
+        "lastName":  "Locko",
+        "club":  "Stade Brestois 29",
+        "country":  "France",
+        "ovr":  75
+    },
+    {
+        "id":  264079,
+        "rawName":  "Kandet Diawara",
+        "knownAs":  "",
+        "firstName":  "Kandet",
+        "lastName":  "Diawara",
+        "club":  "ESTAC Troyes",
+        "country":  "Guinea",
+        "ovr":  68
+    },
+    {
+        "id":  264103,
+        "rawName":  "Torrente",
+        "knownAs":  "Torrente",
+        "firstName":  "Raúl",
+        "lastName":  "Torrente Navarro",
+        "club":  "Le Mans FC",
+        "country":  "Spain",
+        "ovr":  72
+    },
+    {
+        "id":  264245,
+        "rawName":  "Kaito Mizuta",
+        "knownAs":  "",
+        "firstName":  "Kaito",
+        "lastName":  "Mizuta",
+        "club":  "Havre AC",
+        "country":  "Japan",
+        "ovr":  68
+    },
+    {
+        "id":  264401,
+        "rawName":  "Bamo Meïté",
+        "knownAs":  "",
+        "firstName":  "Bamo",
+        "lastName":  "Meïté",
+        "club":  "OM",
+        "country":  "Côte d\u0027Ivoire",
+        "ovr":  75
+    },
+    {
+        "id":  264422,
+        "rawName":  "Matthis Abline",
+        "knownAs":  "",
+        "firstName":  "Matthis",
+        "lastName":  "Abline",
+        "club":  "AS Monaco",
+        "country":  "France",
+        "ovr":  76
+    },
+    {
+        "id":  264512,
+        "rawName":  "Axel Camblan",
+        "knownAs":  "",
+        "firstName":  "Axel",
+        "lastName":  "Camblan",
+        "club":  "Stade Brestois 29",
+        "country":  "France",
+        "ovr":  64
+    },
+    {
+        "id":  264652,
+        "rawName":  "Bradley Barcola",
+        "knownAs":  "",
+        "firstName":  "Bradley",
+        "lastName":  "Barcola",
+        "club":  "Paris SG",
+        "country":  "France",
+        "ovr":  85
+    },
+    {
+        "id":  264862,
+        "rawName":  "Maghnes Akliouche",
+        "knownAs":  "",
+        "firstName":  "Maghnes",
+        "lastName":  "Akliouche",
+        "club":  "Paris SG",
+        "country":  "France",
+        "ovr":  81
+    },
+    {
+        "id":  265195,
+        "rawName":  "Elias Jelert Kristensen",
+        "knownAs":  "",
+        "firstName":  "Elias",
+        "lastName":  "Jelert Kristensen",
+        "club":  "Havre AC",
+        "country":  "Denmark",
+        "ovr":  72
+    },
+    {
+        "id":  265459,
+        "rawName":  "Tyler Morton",
+        "knownAs":  "",
+        "firstName":  "Tyler",
+        "lastName":  "Morton",
+        "club":  "OL",
+        "country":  "England",
+        "ovr":  79
+    },
+    {
+        "id":  265526,
+        "rawName":  "Guillaume Restes",
+        "knownAs":  "",
+        "firstName":  "Guillaume",
+        "lastName":  "Restes",
+        "club":  "Toulouse FC",
+        "country":  "France",
+        "ovr":  78
+    },
+    {
+        "id":  265544,
+        "rawName":  "Théo Le Bris",
+        "knownAs":  "",
+        "firstName":  "Théo",
+        "lastName":  "Le Bris",
+        "club":  "FC Lorient",
+        "country":  "France",
+        "ovr":  74
+    },
+    {
+        "id":  265651,
+        "rawName":  "Lucas Calodat",
+        "knownAs":  "",
+        "firstName":  "Lucas",
+        "lastName":  "Calodat",
+        "club":  "Le Mans FC",
+        "country":  "France",
+        "ovr":  69
+    },
+    {
+        "id":  266041,
+        "rawName":  "Luca Koleosho",
+        "knownAs":  "",
+        "firstName":  "Luca",
+        "lastName":  "Koleosho",
+        "club":  "Paris FC",
+        "country":  "Italy",
+        "ovr":  72
+    },
+    {
+        "id":  266049,
+        "rawName":  "Amar Fatah",
+        "knownAs":  "",
+        "firstName":  "Amar",
+        "lastName":  "Fatah",
+        "club":  "ESTAC Troyes",
+        "country":  "Sweden",
+        "ovr":  67
+    },
+    {
+        "id":  266099,
+        "rawName":  "Pablo Pagis",
+        "knownAs":  "",
+        "firstName":  "Pablo",
+        "lastName":  "Pagis",
+        "club":  "Paris FC",
+        "country":  "France",
+        "ovr":  76
+    },
+    {
+        "id":  266205,
+        "rawName":  "Yoan Koré",
+        "knownAs":  "",
+        "firstName":  "Yoan",
+        "lastName":  "Koré",
+        "club":  "Paris FC",
+        "country":  "France",
+        "ovr":  65
+    },
+    {
+        "id":  266586,
+        "rawName":  "Louis Mafouta",
+        "knownAs":  "",
+        "firstName":  "Louis",
+        "lastName":  "Mafouta",
+        "club":  "Le Mans FC",
+        "country":  "Central African Republic",
+        "ovr":  71
+    },
+    {
+        "id":  267599,
+        "rawName":  "Patrick Beach",
+        "knownAs":  "",
+        "firstName":  "Patrick",
+        "lastName":  "Beach",
+        "club":  "ESTAC Troyes",
+        "country":  "Australia",
+        "ovr":  71
+    },
+    {
+        "id":  267702,
+        "rawName":  "Kamory Doumbia",
+        "knownAs":  "",
+        "firstName":  "Kamory",
+        "lastName":  "Doumbia",
+        "club":  "Stade Brestois 29",
+        "country":  "Mali",
+        "ovr":  75
+    },
+    {
+        "id":  268131,
+        "rawName":  "CJ Egan-Riley",
+        "knownAs":  "",
+        "firstName":  "CJ",
+        "lastName":  "Egan-Riley",
+        "club":  "OM",
+        "country":  "England",
+        "ovr":  75
+    },
+    {
+        "id":  268440,
+        "rawName":  "Lamine Sy",
+        "knownAs":  "",
+        "firstName":  "Lamine",
+        "lastName":  "Sy",
+        "club":  "AJ Auxerre",
+        "country":  "France",
+        "ovr":  73
+    },
+    {
+        "id":  268763,
+        "rawName":  "Ernest Nuamah",
+        "knownAs":  "",
+        "firstName":  "Ernest",
+        "lastName":  "Nuamah",
+        "club":  "OL",
+        "country":  "Ghana",
+        "ovr":  74
+    },
+    {
+        "id":  269003,
+        "rawName":  "Abakar Sylla",
+        "knownAs":  "",
+        "firstName":  "Abakar",
+        "lastName":  "Sylla",
+        "club":  "Strasbourg",
+        "country":  "Côte d\u0027Ivoire",
+        "ovr":  70
+    },
+    {
+        "id":  269164,
+        "rawName":  "Mohamed Abdelmonem",
+        "knownAs":  "",
+        "firstName":  "Mohamed",
+        "lastName":  "Abdelmonem",
+        "club":  "OGC Nice",
+        "country":  "Egypt",
+        "ovr":  72
+    },
+    {
+        "id":  269181,
+        "rawName":  "Diego Coppola",
+        "knownAs":  "",
+        "firstName":  "Diego",
+        "lastName":  "Coppola",
+        "club":  "Paris FC",
+        "country":  "Italy",
+        "ovr":  75
+    },
+    {
+        "id":  269184,
+        "rawName":  "Junior Mwanga",
+        "knownAs":  "",
+        "firstName":  "Junior",
+        "lastName":  "Mwanga",
+        "club":  "Havre AC",
+        "country":  "France",
+        "ovr":  72
+    },
+    {
+        "id":  269262,
+        "rawName":  "Maxi Oyedele",
+        "knownAs":  "",
+        "firstName":  "Maxi",
+        "lastName":  "Oyedele",
+        "club":  "Strasbourg",
+        "country":  "Poland",
+        "ovr":  71
+    },
+    {
+        "id":  269493,
+        "rawName":  "Alexsandro",
+        "knownAs":  "Alexsandro",
+        "firstName":  "Alexsandro",
+        "lastName":  "de Souza Ribeiro",
+        "club":  "LOSC Lille",
+        "country":  "Brazil",
+        "ovr":  78
+    },
+    {
+        "id":  269719,
+        "rawName":  "Santiago Hidalgo",
+        "knownAs":  "",
+        "firstName":  "Santiago",
+        "lastName":  "Hidalgo",
+        "club":  "Toulouse FC",
+        "country":  "Argentina",
+        "ovr":  73
+    },
+    {
+        "id":  269725,
+        "rawName":  "Louis Mouton",
+        "knownAs":  "",
+        "firstName":  "Louis",
+        "lastName":  "Mouton",
+        "club":  "Angers SCO",
+        "country":  "France",
+        "ovr":  73
+    },
+    {
+        "id":  269729,
+        "rawName":  "Yassin Belkhdim",
+        "knownAs":  "",
+        "firstName":  "Yassin",
+        "lastName":  "Belkhdim",
+        "club":  "Angers SCO",
+        "country":  "Morocco",
+        "ovr":  73
+    },
+    {
+        "id":  269923,
+        "rawName":  "Jacen Russell-Rowe",
+        "knownAs":  "",
+        "firstName":  "Jacen",
+        "lastName":  "Russell-Rowe",
+        "club":  "Toulouse FC",
+        "country":  "Canada",
+        "ovr":  68
+    },
+    {
+        "id":  270050,
+        "rawName":  "Mika Biereth",
+        "knownAs":  "",
+        "firstName":  "Mika",
+        "lastName":  "Biereth",
+        "club":  "AS Monaco",
+        "country":  "Denmark",
+        "ovr":  76
+    },
+    {
+        "id":  270559,
+        "rawName":  "Tiago Santos",
+        "knownAs":  "Tiago Santos",
+        "firstName":  "Tiago",
+        "lastName":  "Carvalho Santos",
+        "club":  "LOSC Lille",
+        "country":  "Portugal",
+        "ovr":  75
+    },
+    {
+        "id":  270673,
+        "rawName":  "Warren Zaïre-Emery",
+        "knownAs":  "",
+        "firstName":  "Warren",
+        "lastName":  "Zaïre-Emery",
+        "club":  "Paris SG",
+        "country":  "France",
+        "ovr":  83
+    },
+    {
+        "id":  270997,
+        "rawName":  "Samson Baidoo",
+        "knownAs":  "",
+        "firstName":  "Samson",
+        "lastName":  "Baidoo",
+        "club":  "RC Lens",
+        "country":  "Austria",
+        "ovr":  78
+    },
+    {
+        "id":  271061,
+        "rawName":  "Jacques Ekomié",
+        "knownAs":  "",
+        "firstName":  "Jacques",
+        "lastName":  "Ekomié",
+        "club":  "Angers SCO",
+        "country":  "Gabon",
+        "ovr":  73
+    },
+    {
+        "id":  271075,
+        "rawName":  "Nathaniel Adjei",
+        "knownAs":  "",
+        "firstName":  "Nathaniel",
+        "lastName":  "Adjei",
+        "club":  "FC Lorient",
+        "country":  "Ghana",
+        "ovr":  70
+    },
+    {
+        "id":  271248,
+        "rawName":  "Eliezer Mayenda",
+        "knownAs":  "",
+        "firstName":  "Eliezer",
+        "lastName":  "Mayenda",
+        "club":  "Stade Rennais FC",
+        "country":  "Spain",
+        "ovr":  72
+    },
+    {
+        "id":  271252,
+        "rawName":  "Simon Ebonog",
+        "knownAs":  "",
+        "firstName":  "Simon",
+        "lastName":  "Ebonog",
+        "club":  "Havre AC",
+        "country":  "France",
+        "ovr":  71
+    },
+    {
+        "id":  271400,
+        "rawName":  "Igor Paixão",
+        "knownAs":  "Igor Paixão",
+        "firstName":  "Igor Guilherme",
+        "lastName":  "Barbosa da Paixão",
+        "club":  "OM",
+        "country":  "Brazil",
+        "ovr":  79
+    },
+    {
+        "id":  271421,
+        "rawName":  "Désiré Doué",
+        "knownAs":  "",
+        "firstName":  "Désiré",
+        "lastName":  "Doué",
+        "club":  "Paris SG",
+        "country":  "France",
+        "ovr":  86
+    },
+    {
+        "id":  271507,
+        "rawName":  "Dembo Sylla",
+        "knownAs":  "",
+        "firstName":  "Dembo",
+        "lastName":  "Sylla",
+        "club":  "FC Lorient",
+        "country":  "Guinea",
+        "ovr":  67
+    },
+    {
+        "id":  271661,
+        "rawName":  "Yann Lienard",
+        "knownAs":  "",
+        "firstName":  "Yann",
+        "lastName":  "Lienard",
+        "club":  "AS Monaco",
+        "country":  "France",
+        "ovr":  65
+    },
+    {
+        "id":  271689,
+        "rawName":  "Pathé Mboup",
+        "knownAs":  "",
+        "firstName":  "Pathé",
+        "lastName":  "Mboup",
+        "club":  "Stade Brestois 29",
+        "country":  "Senegal",
+        "ovr":  70
+    },
+    {
+        "id":  271691,
+        "rawName":  "Junior Diaz",
+        "knownAs":  "",
+        "firstName":  "Junior",
+        "lastName":  "Diaz",
+        "club":  "ESTAC Troyes",
+        "country":  "Côte d\u0027Ivoire",
+        "ovr":  74
+    },
+    {
+        "id":  271721,
+        "rawName":  "Pape Demba Diop",
+        "knownAs":  "",
+        "firstName":  "Pape Demba",
+        "lastName":  "Diop",
+        "club":  "Strasbourg",
+        "country":  "Senegal",
+        "ovr":  72
+    },
+    {
+        "id":  271918,
+        "rawName":  "Robin Risser",
+        "knownAs":  "",
+        "firstName":  "Robin",
+        "lastName":  "Risser",
+        "club":  "RC Lens",
+        "country":  "France",
+        "ovr":  81
+    },
+    {
+        "id":  271940,
+        "rawName":  "Martial Godo",
+        "knownAs":  "",
+        "firstName":  "Martial",
+        "lastName":  "Godo",
+        "club":  "Strasbourg",
+        "country":  "Côte d\u0027Ivoire",
+        "ovr":  76
+    },
+    {
+        "id":  272515,
+        "rawName":  "Antoine Mendy",
+        "knownAs":  "",
+        "firstName":  "Antoine",
+        "lastName":  "Mendy",
+        "club":  "OGC Nice",
+        "country":  "Senegal",
+        "ovr":  73
+    },
+    {
+        "id":  272599,
+        "rawName":  "Tuomas Ollila",
+        "knownAs":  "",
+        "firstName":  "Tuomas",
+        "lastName":  "Ollila",
+        "club":  "Paris FC",
+        "country":  "Finland",
+        "ovr":  68
+    },
+    {
+        "id":  272668,
+        "rawName":  "Amine El Ouazzani",
+        "knownAs":  "",
+        "firstName":  "Amine",
+        "lastName":  "El Ouazzani",
+        "club":  "Angers SCO",
+        "country":  "Morocco",
+        "ovr":  72
+    },
+    {
+        "id":  272785,
+        "rawName":  "Christian Mawissa",
+        "knownAs":  "",
+        "firstName":  "Christian",
+        "lastName":  "Mawissa",
+        "club":  "AS Monaco",
+        "country":  "France",
+        "ovr":  75
+    },
+    {
+        "id":  272834,
+        "rawName":  "João Neves",
+        "knownAs":  "João Neves",
+        "firstName":  "João Pedro",
+        "lastName":  "Gonçalves Neves",
+        "club":  "Paris SG",
+        "country":  "Portugal",
+        "ovr":  88
+    },
+    {
+        "id":  272835,
+        "rawName":  "Hugo Picard",
+        "knownAs":  "",
+        "firstName":  "Hugo",
+        "lastName":  "Picard",
+        "club":  "ESTAC Troyes",
+        "country":  "France",
+        "ovr":  69
+    },
+    {
+        "id":  272894,
+        "rawName":  "Kévin Danois",
+        "knownAs":  "",
+        "firstName":  "Kévin",
+        "lastName":  "Danois",
+        "club":  "AJ Auxerre",
+        "country":  "France",
+        "ovr":  76
+    },
+    {
+        "id":  273028,
+        "rawName":  "Mateo Del Blanco",
+        "knownAs":  "",
+        "firstName":  "Mateo",
+        "lastName":  "Del Blanco",
+        "club":  "Strasbourg",
+        "country":  "Argentina",
+        "ovr":  74
+    },
+    {
+        "id":  273666,
+        "rawName":  "Amine Sbaï",
+        "knownAs":  "",
+        "firstName":  "Amine",
+        "lastName":  "Sbaï",
+        "club":  "Angers SCO",
+        "country":  "Morocco",
+        "ovr":  73
+    },
+    {
+        "id":  273748,
+        "rawName":  "Joaquín Panichelli",
+        "knownAs":  "",
+        "firstName":  "Joaquín",
+        "lastName":  "Panichelli",
+        "club":  "Strasbourg",
+        "country":  "Argentina",
+        "ovr":  79
+    },
+    {
+        "id":  273835,
+        "rawName":  "Lilian Raolisoa",
+        "knownAs":  "",
+        "firstName":  "Lilian",
+        "lastName":  "Raolisoa",
+        "club":  "Angers SCO",
+        "country":  "France",
+        "ovr":  74
+    },
+    {
+        "id":  273948,
+        "rawName":  "Kojo Peprah Oppong",
+        "knownAs":  "",
+        "firstName":  "Kojo Peprah",
+        "lastName":  "Oppong",
+        "club":  "OGC Nice",
+        "country":  "Ghana",
+        "ovr":  74
+    },
+    {
+        "id":  274126,
+        "rawName":  "Paris Brunner",
+        "knownAs":  "",
+        "firstName":  "Paris",
+        "lastName":  "Brunner",
+        "club":  "AS Monaco",
+        "country":  "Germany",
+        "ovr":  66
+    },
+    {
+        "id":  274447,
+        "rawName":  "Ngal\u0027ayel Mukau",
+        "knownAs":  "",
+        "firstName":  "Ngal\u0027ayel",
+        "lastName":  "Mukau",
+        "club":  "LOSC Lille",
+        "country":  "Congo DR",
+        "ovr":  73
+    },
+    {
+        "id":  274536,
+        "rawName":  "Moïse Bombito",
+        "knownAs":  "",
+        "firstName":  "Moïse",
+        "lastName":  "Bombito",
+        "club":  "OGC Nice",
+        "country":  "Canada",
+        "ovr":  74
+    },
+    {
+        "id":  274692,
+        "rawName":  "Rémy Labeau Lascary",
+        "knownAs":  "",
+        "firstName":  "Rémy",
+        "lastName":  "Labeau Lascary",
+        "club":  "AJ Auxerre",
+        "country":  "France",
+        "ovr":  73
+    },
+    {
+        "id":  275019,
+        "rawName":  "Edan Diop",
+        "knownAs":  "",
+        "firstName":  "Edan",
+        "lastName":  "Diop",
+        "club":  "AS Monaco",
+        "country":  "France",
+        "ovr":  68
+    },
+    {
+        "id":  275070,
+        "rawName":  "Otávio",
+        "knownAs":  "Otávio",
+        "firstName":  "Otávio",
+        "lastName":  "Ataíde da Silva",
+        "club":  "Paris FC",
+        "country":  "Brazil",
+        "ovr":  73
+    },
+    {
+        "id":  275138,
+        "rawName":  "Lamine Camara",
+        "knownAs":  "",
+        "firstName":  "Lamine",
+        "lastName":  "Camara",
+        "club":  "AS Monaco",
+        "country":  "Senegal",
+        "ovr":  80
+    },
+    {
+        "id":  275208,
+        "rawName":  "Guéla Doué",
+        "knownAs":  "",
+        "firstName":  "Guéla",
+        "lastName":  "Doué",
+        "club":  "Strasbourg",
+        "country":  "Côte d\u0027Ivoire",
+        "ovr":  78
+    },
+    {
+        "id":  275337,
+        "rawName":  "Christ Makosso",
+        "knownAs":  "",
+        "firstName":  "Christ",
+        "lastName":  "Makosso",
+        "club":  "AJ Auxerre",
+        "country":  "Congo",
+        "ovr":  67
+    },
+    {
+        "id":  275878,
+        "rawName":  "Emmanuel Biumla",
+        "knownAs":  "",
+        "firstName":  "Emmanuel",
+        "lastName":  "Biumla",
+        "club":  "Angers SCO",
+        "country":  "France",
+        "ovr":  70
+    },
+    {
+        "id":  276007,
+        "rawName":  "Panos Katseris",
+        "knownAs":  "",
+        "firstName":  "Panos",
+        "lastName":  "Katseris",
+        "club":  "FC Lorient",
+        "country":  "Greece",
+        "ovr":  70
+    },
+    {
+        "id":  276048,
+        "rawName":  "Matias Fernandez-Pardo",
+        "knownAs":  "",
+        "firstName":  "Matias",
+        "lastName":  "Fernandez-Pardo",
+        "club":  "LOSC Lille",
+        "country":  "Belgium",
+        "ovr":  78
+    },
+    {
+        "id":  276188,
+        "rawName":  "Mohamed Ouédraogo",
+        "knownAs":  "",
+        "firstName":  "Mohamed",
+        "lastName":  "Ouédraogo",
+        "club":  "OL",
+        "country":  "Burkina Faso",
+        "ovr":  69
+    },
+    {
+        "id":  276315,
+        "rawName":  "Arthur Piedfort",
+        "knownAs":  "",
+        "firstName":  "Arthur",
+        "lastName":  "Piedfort",
+        "club":  "AJ Auxerre",
+        "country":  "Belgium",
+        "ovr":  70
+    },
+    {
+        "id":  276377,
+        "rawName":  "Lucas Høgsberg",
+        "knownAs":  "",
+        "firstName":  "Lucas",
+        "lastName":  "Høgsberg",
+        "club":  "Strasbourg",
+        "country":  "Denmark",
+        "ovr":  74
+    },
+    {
+        "id":  276398,
+        "rawName":  "Adama Camara",
+        "knownAs":  "",
+        "firstName":  "Adama",
+        "lastName":  "Camara",
+        "club":  "Paris FC",
+        "country":  "France",
+        "ovr":  73
+    },
+    {
+        "id":  276594,
+        "rawName":  "Noah Cadiou",
+        "knownAs":  "",
+        "firstName":  "Noah",
+        "lastName":  "Cadiou",
+        "club":  "FC Lorient",
+        "country":  "France",
+        "ovr":  74
+    },
+    {
+        "id":  276761,
+        "rawName":  "Mamadou Diop",
+        "knownAs":  "",
+        "firstName":  "Mamadou",
+        "lastName":  "Diop",
+        "club":  "AJ Auxerre",
+        "country":  "Mauritania",
+        "ovr":  70
+    },
+    {
+        "id":  276787,
+        "rawName":  "Ayanda Sishuba",
+        "knownAs":  "",
+        "firstName":  "Ayanda",
+        "lastName":  "Sishuba",
+        "club":  "Stade Rennais FC",
+        "country":  "Belgium",
+        "ovr":  63
+    },
+    {
+        "id":  277216,
+        "rawName":  "Mohamed Bamba",
+        "knownAs":  "",
+        "firstName":  "Mohamed",
+        "lastName":  "Bamba",
+        "club":  "FC Lorient",
+        "country":  "Côte d\u0027Ivoire",
+        "ovr":  70
+    },
+    {
+        "id":  277354,
+        "rawName":  "Lucas Maronnier",
+        "knownAs":  "",
+        "firstName":  "Lucas",
+        "lastName":  "Maronnier",
+        "club":  "ESTAC Troyes",
+        "country":  "France",
+        "ovr":  66
+    },
+    {
+        "id":  277356,
+        "rawName":  "Mouhamed Diop",
+        "knownAs":  "",
+        "firstName":  "Mouhamed",
+        "lastName":  "Diop",
+        "club":  "ESTAC Troyes",
+        "country":  "Senegal",
+        "ovr":  70
+    },
+    {
+        "id":  277503,
+        "rawName":  "Clément Akpa",
+        "knownAs":  "",
+        "firstName":  "Clément",
+        "lastName":  "Akpa",
+        "club":  "AJ Auxerre",
+        "country":  "Côte d\u0027Ivoire",
+        "ovr":  73
+    },
+    {
+        "id":  277561,
+        "rawName":  "Samuel Amo-Ameyaw",
+        "knownAs":  "",
+        "firstName":  "Samuel",
+        "lastName":  "Amo-Ameyaw",
+        "club":  "Strasbourg",
+        "country":  "England",
+        "ovr":  72
+    },
+    {
+        "id":  278017,
+        "rawName":  "Omari Kellyman",
+        "knownAs":  "",
+        "firstName":  "Omari",
+        "lastName":  "Kellyman",
+        "club":  "Strasbourg",
+        "country":  "England",
+        "ovr":  67
+    },
+    {
+        "id":  278065,
+        "rawName":  "Sadibou Sané",
+        "knownAs":  "",
+        "firstName":  "Sadibou",
+        "lastName":  "Sané",
+        "club":  "AS Monaco",
+        "country":  "Senegal",
+        "ovr":  70
+    },
+    {
+        "id":  278093,
+        "rawName":  "Mokrane Bentoumi",
+        "knownAs":  "",
+        "firstName":  "Mokrane",
+        "lastName":  "Bentoumi",
+        "club":  "Havre AC",
+        "country":  "France",
+        "ovr":  64
+    },
+    {
+        "id":  278094,
+        "rawName":  "Justin Bengui",
+        "knownAs":  "",
+        "firstName":  "Justin",
+        "lastName":  "Bengui",
+        "club":  "OL",
+        "country":  "France",
+        "ovr":  61
+    },
+    {
+        "id":  278095,
+        "rawName":  "Jelle Van Neck",
+        "knownAs":  "",
+        "firstName":  "Jelle",
+        "lastName":  "Van Neck",
+        "club":  "OM",
+        "country":  "Belgium",
+        "ovr":  63
+    },
+    {
+        "id":  278112,
+        "rawName":  "Miłosz Piekutowski",
+        "knownAs":  "",
+        "firstName":  "Miłosz",
+        "lastName":  "Piekutowski",
+        "club":  "Strasbourg",
+        "country":  "Poland",
+        "ovr":  65
+    },
+    {
+        "id":  278172,
+        "rawName":  "Ethan Mbappé",
+        "knownAs":  "",
+        "firstName":  "Ethan",
+        "lastName":  "Mbappé",
+        "club":  "LOSC Lille",
+        "country":  "France",
+        "ovr":  74
+    },
+    {
+        "id":  278205,
+        "rawName":  "Ylies Aradj",
+        "knownAs":  "",
+        "firstName":  "Ylies",
+        "lastName":  "Aradj",
+        "club":  "Toulouse FC",
+        "country":  "France",
+        "ovr":  61
+    },
+    {
+        "id":  278207,
+        "rawName":  "Noah Edjouma",
+        "knownAs":  "",
+        "firstName":  "Noah",
+        "lastName":  "Edjouma",
+        "club":  "LOSC Lille",
+        "country":  "France",
+        "ovr":  69
+    },
+    {
+        "id":  278282,
+        "rawName":  "Yvann Titi",
+        "knownAs":  "",
+        "firstName":  "Yvann",
+        "lastName":  "Titi",
+        "club":  "ESTAC Troyes",
+        "country":  "France",
+        "ovr":  69
+    },
+    {
+        "id":  278283,
+        "rawName":  "Omar Sissoko",
+        "knownAs":  "",
+        "firstName":  "Omar",
+        "lastName":  "Sissoko",
+        "club":  "Paris FC",
+        "country":  "France",
+        "ovr":  61
+    },
+    {
+        "id":  278789,
+        "rawName":  "Mahamadou Diawara",
+        "knownAs":  "",
+        "firstName":  "Mahamadou",
+        "lastName":  "Diawara",
+        "club":  "OL",
+        "country":  "France",
+        "ovr":  67
+    },
+    {
+        "id":  278901,
+        "rawName":  "Ayyoub Bouaddi",
+        "knownAs":  "",
+        "firstName":  "Ayyoub",
+        "lastName":  "Bouaddi",
+        "club":  "LOSC Lille",
+        "country":  "Morocco",
+        "ovr":  80
+    },
+    {
+        "id":  278926,
+        "rawName":  "Joseph Nonge",
+        "knownAs":  "",
+        "firstName":  "Joseph",
+        "lastName":  "Nonge",
+        "club":  "Stade Brestois 29",
+        "country":  "Belgium",
+        "ovr":  65
+    },
+    {
+        "id":  279557,
+        "rawName":  "Mahamadou Nagida",
+        "knownAs":  "",
+        "firstName":  "Mahamadou",
+        "lastName":  "Nagida",
+        "club":  "Stade Rennais FC",
+        "country":  "Cameroon",
+        "ovr":  70
+    },
+    {
+        "id":  279573,
+        "rawName":  "Luck Zogbé",
+        "knownAs":  "",
+        "firstName":  "Luck",
+        "lastName":  "Zogbé",
+        "club":  "Stade Brestois 29",
+        "country":  "Côte d\u0027Ivoire",
+        "ovr":  68
+    },
+    {
+        "id":  279632,
+        "rawName":  "Ismaïl Bouneb",
+        "knownAs":  "",
+        "firstName":  "Ismaïl",
+        "lastName":  "Bouneb",
+        "club":  "Havre AC",
+        "country":  "France",
+        "ovr":  64
+    },
+    {
+        "id":  279700,
+        "rawName":  "Mamadou Coulibaly",
+        "knownAs":  "",
+        "firstName":  "Mamadou",
+        "lastName":  "Coulibaly",
+        "club":  "AS Monaco",
+        "country":  "France",
+        "ovr":  73
+    },
+    {
+        "id":  279701,
+        "rawName":  "Daouda Traoré",
+        "knownAs":  "",
+        "firstName":  "Daouda",
+        "lastName":  "Traoré",
+        "club":  "Le Mans FC",
+        "country":  "France",
+        "ovr":  59
+    },
+    {
+        "id":  279702,
+        "rawName":  "Samir El Mourabet",
+        "knownAs":  "",
+        "firstName":  "Samir",
+        "lastName":  "El Mourabet",
+        "club":  "Strasbourg",
+        "country":  "Morocco",
+        "ovr":  75
+    },
+    {
+        "id":  279709,
+        "rawName":  "Lucas Beraldo",
+        "knownAs":  "Lucas Beraldo",
+        "firstName":  "Lucas",
+        "lastName":  "Lopes Beraldo",
+        "club":  "Paris SG",
+        "country":  "Brazil",
+        "ovr":  79
+    },
+    {
+        "id":  279782,
+        "rawName":  "Zachary Athekame",
+        "knownAs":  "",
+        "firstName":  "Zachary",
+        "lastName":  "Athekame",
+        "club":  "OL",
+        "country":  "Switzerland",
+        "ovr":  68
+    }
+]

@@ -1,4 +1,4 @@
-// script.js
+﻿// script.js
 // 주요 데이터 구조 및 초기화
 
 // gameData 객체에 부상 정보 추가 (기존 gameData 선언 부분 수정)
@@ -38,7 +38,7 @@ let gameData = {
     isHomeGame: true, // 현재 경기가 홈 경기인지 여부
     startYear: 2025, // 시작 연도 (시즌 표기용)
     seasonCount: 1, // 시즌 카운트
-    settings: { autoSave: false, bgm: true, bgmVolume: 50, sfxVolume: 50, immersionMode: true, customCursor: false }, // 게임 설정 (오디오, SFX, 몰입 모드, 커스텀 커서)
+    settings: { autoSave: false, bgm: true, bgmVolume: 50, sfxVolume: 50, immersionMode: true, customCursor: false, useIdFacepack: true }, // 게임 설정 (오디오, SFX, 몰입 모드, 커스텀 커서, ID 페이스팩)
     matchDrama: { enabled: true, intensity: 'high' }, // 골 직전 몰입 연출 (CM 스타일)
     playerRoles: {}, // [추가] 선수별 역할 데이터 초기화
     temporaryStats: {}, // [신규] 일시적 스탯 버프/디버프 저장소
@@ -2145,13 +2145,9 @@ function displayTeamPlayers() {
         posBadge.textContent = player.position;
 
         const img = document.createElement('img');
-        img.src = `assets/players/${player.name}.webp`;
         img.className = 'player-card-image fc26-cutout-img';
         img.loading = 'lazy';
-        img.onerror = () => {
-            img.onerror = null;
-            img.src = 'assets/players/default.webp';
-        };
+        setPlayerPhoto(img, player);
 
         cutoutWrap.append(ovrBadge, posBadge, img);
 
@@ -4298,13 +4294,9 @@ function displayYouthPlayers() {
         posBadge.textContent = player.position;
 
         const img = document.createElement('img');
-        img.src = `assets/players/${player.name}.webp`;
         img.className = 'player-card-image fc26-cutout-img';
         img.loading = 'lazy';
-        img.onerror = () => {
-            img.onerror = null;
-            img.src = 'assets/players/default.webp';
-        };
+        setPlayerPhoto(img, player);
 
         cutoutWrap.append(ovrBadge, posBadge, img);
 
@@ -4985,6 +4977,11 @@ function renderGeneralSettings() {
 
     const isCustomCursorOn = gameData.settings && gameData.settings.customCursor !== undefined ? gameData.settings.customCursor : false;
 
+    const isFacepackOn = gameData.settings && gameData.settings.useIdFacepack !== undefined ? gameData.settings.useIdFacepack : true;
+    const facepackToggle = document.getElementById('facepackToggle');
+    const facepackStatusText = document.getElementById('facepackStatusText');
+    if (facepackToggle) facepackToggle.checked = isFacepackOn;
+    if (facepackStatusText) facepackStatusText.textContent = `선수 ID 페이스팩 ${isFacepackOn ? 'ON' : 'OFF'} (p[ID].png/webp)`;
     const cursorToggle = document.getElementById('cursorToggle');
     const cursorStatusText = document.getElementById('cursorStatusText');
     const replayTutorialBtn = document.getElementById('replayTutorialBtn');
@@ -5004,6 +5001,16 @@ function renderGeneralSettings() {
                 } else {
                     alert('튜토리얼을 실행할 수 없습니다.');
                 }
+            });
+        }
+
+        if (facepackToggle) {
+            facepackToggle.addEventListener('change', (e) => {
+                const isOn = e.target.checked;
+                if (!gameData.settings) gameData.settings = {};
+                gameData.settings.useIdFacepack = isOn;
+                if (facepackStatusText) facepackStatusText.textContent = `선수 ID 페이스팩 ${isOn ? 'ON' : 'OFF'} (p[ID].png/webp)`;
+                if (window.AutoSaveSystem) setTimeout(() => window.AutoSaveSystem.triggerSave(), 500);
             });
         }
 

@@ -1,0 +1,4032 @@
+[
+    {
+        "id":  70170,
+        "rawName":  "João Pedro",
+        "knownAs":  "João Pedro",
+        "firstName":  "João Pedro",
+        "lastName":  "Reginaldo",
+        "club":  "Gwangju FC",
+        "country":  "Brazil",
+        "ovr":  63
+    },
+    {
+        "id":  70419,
+        "rawName":  "Italo",
+        "knownAs":  "Italo",
+        "firstName":  "Italo Moreira",
+        "lastName":  "Barcelos",
+        "club":  "Jeju United",
+        "country":  "Brazil",
+        "ovr":  67
+    },
+    {
+        "id":  70631,
+        "rawName":  "Yoon Jae Seok",
+        "knownAs":  "Yoon Jae Seok",
+        "firstName":  "Jae Seok",
+        "lastName":  "Yoon",
+        "club":  "Gimcheon Sangmu",
+        "country":  "Korea Republic",
+        "ovr":  61
+    },
+    {
+        "id":  70634,
+        "rawName":  "Jung Jae Sang",
+        "knownAs":  "Jung Jae Sang",
+        "firstName":  "Jae Sang",
+        "lastName":  "Jung",
+        "club":  "Ulsan HD FC",
+        "country":  "Korea Republic",
+        "ovr":  58
+    },
+    {
+        "id":  70647,
+        "rawName":  "Baek Min Gyu",
+        "knownAs":  "Baek Min Gyu",
+        "firstName":  "Min Gyu",
+        "lastName":  "Baek",
+        "club":  "Incheon United",
+        "country":  "Korea Republic",
+        "ovr":  49
+    },
+    {
+        "id":  70648,
+        "rawName":  "Choi Seung Gu",
+        "knownAs":  "Choi Seung Gu",
+        "firstName":  "Seung Gu",
+        "lastName":  "Choi",
+        "club":  "Incheon United",
+        "country":  "Korea Republic",
+        "ovr":  55
+    },
+    {
+        "id":  70759,
+        "rawName":  "Hwang Seo Ung",
+        "knownAs":  "Hwang Seo Ung",
+        "firstName":  "Seo Ung",
+        "lastName":  "Hwang",
+        "club":  "Pohang Steelers",
+        "country":  "Korea Republic",
+        "ovr":  61
+    },
+    {
+        "id":  70763,
+        "rawName":  "Kim Dong Jin",
+        "knownAs":  "Kim Dong Jin",
+        "firstName":  "Dong Jin",
+        "lastName":  "Kim",
+        "club":  "Pohang Steelers",
+        "country":  "Korea Republic",
+        "ovr":  63
+    },
+    {
+        "id":  71103,
+        "rawName":  "Shin Min Ha",
+        "knownAs":  "Shin Min Ha",
+        "firstName":  "Min Ha",
+        "lastName":  "Shin",
+        "club":  "Gangwon FC",
+        "country":  "Korea Republic",
+        "ovr":  64
+    },
+    {
+        "id":  71105,
+        "rawName":  "Kim Yu Seong",
+        "knownAs":  "Kim Yu Seong",
+        "firstName":  "Yu Seong",
+        "lastName":  "Kim",
+        "club":  "Gangwon FC",
+        "country":  "Korea Republic",
+        "ovr":  51
+    },
+    {
+        "id":  71207,
+        "rawName":  "Kim Min Su",
+        "knownAs":  "Kim Min Su",
+        "firstName":  "Min Su",
+        "lastName":  "Kim",
+        "club":  "Daejeon Hana",
+        "country":  "Korea Republic",
+        "ovr":  51
+    },
+    {
+        "id":  71222,
+        "rawName":  "Kim Dong Hyeon",
+        "knownAs":  "Kim Dong Hyeon",
+        "firstName":  "Dong Hyeon",
+        "lastName":  "Kim",
+        "club":  "Bucheon FC 1995",
+        "country":  "Korea Republic",
+        "ovr":  56
+    },
+    {
+        "id":  71325,
+        "rawName":  "Jin Si Woo",
+        "knownAs":  "Jin Si Woo",
+        "firstName":  "Si Woo",
+        "lastName":  "Jin",
+        "club":  "Pohang Steelers",
+        "country":  "Korea Republic",
+        "ovr":  57
+    },
+    {
+        "id":  71328,
+        "rawName":  "Park Ju Yeong",
+        "knownAs":  "Park Ju Yeong",
+        "firstName":  "Ju Yeong",
+        "lastName":  "Park",
+        "club":  "Jeonbuk Hyundai",
+        "country":  "Korea Republic",
+        "ovr":  57
+    },
+    {
+        "id":  71329,
+        "rawName":  "Kim Chang Hun",
+        "knownAs":  "Kim Chang Hun",
+        "firstName":  "Chang Hun",
+        "lastName":  "Kim",
+        "club":  "Jeonbuk Hyundai",
+        "country":  "Korea Republic",
+        "ovr":  47
+    },
+    {
+        "id":  71358,
+        "rawName":  "Ahn Hyeok Ju",
+        "knownAs":  "Ahn Hyeok Ju",
+        "firstName":  "Hyeok Ju",
+        "lastName":  "Ahn",
+        "club":  "Gwangju FC",
+        "country":  "Korea Republic",
+        "ovr":  61
+    },
+    {
+        "id":  71359,
+        "rawName":  "Moon Min Seo",
+        "knownAs":  "Moon Min Seo",
+        "firstName":  "Min Seo",
+        "lastName":  "Moon",
+        "club":  "Gwangju FC",
+        "country":  "Korea Republic",
+        "ovr":  65
+    },
+    {
+        "id":  71370,
+        "rawName":  "Chung Ma Ho",
+        "knownAs":  "Chung Ma Ho",
+        "firstName":  "Ma Ho",
+        "lastName":  "Chung",
+        "club":  "Gimcheon Sangmu",
+        "country":  "Korea Republic",
+        "ovr":  61
+    },
+    {
+        "id":  71392,
+        "rawName":  "Kim Jae Min",
+        "knownAs":  "Kim Jae Min",
+        "firstName":  "Jae Min",
+        "lastName":  "Kim",
+        "club":  "Jeju United",
+        "country":  "Korea Republic",
+        "ovr":  49
+    },
+    {
+        "id":  71412,
+        "rawName":  "Choi Seok Hyun",
+        "knownAs":  "Choi Seok Hyun",
+        "firstName":  "Seok Hyun",
+        "lastName":  "Choi",
+        "club":  "Ulsan HD FC",
+        "country":  "Korea Republic",
+        "ovr":  64
+    },
+    {
+        "id":  71413,
+        "rawName":  "Kim Young Hwan",
+        "knownAs":  "Kim Young Hwan",
+        "firstName":  "Young Hwan",
+        "lastName":  "Kim",
+        "club":  "Incheon United",
+        "country":  "Korea Republic",
+        "ovr":  55
+    },
+    {
+        "id":  71454,
+        "rawName":  "Ri Yong Jik",
+        "knownAs":  "Ri Yong Jik",
+        "firstName":  "Yong Jik",
+        "lastName":  "Ri",
+        "club":  "Gwangju FC",
+        "country":  "Korea DPR",
+        "ovr":  62
+    },
+    {
+        "id":  71455,
+        "rawName":  "Chae Hyun Woo",
+        "knownAs":  "Chae Hyun Woo",
+        "firstName":  "Hyun Woo",
+        "lastName":  "Chae",
+        "club":  "FC Anyang",
+        "country":  "Korea Republic",
+        "ovr":  62
+    },
+    {
+        "id":  71459,
+        "rawName":  "Jo In Jung",
+        "knownAs":  "Jo In Jung",
+        "firstName":  "In Jung",
+        "lastName":  "Jo",
+        "club":  "Jeju United",
+        "country":  "Korea Republic",
+        "ovr":  54
+    },
+    {
+        "id":  71465,
+        "rawName":  "Lee Ye Chan",
+        "knownAs":  "Lee Ye Chan",
+        "firstName":  "Ye Chan",
+        "lastName":  "Lee",
+        "club":  "Bucheon FC 1995",
+        "country":  "Korea Republic",
+        "ovr":  55
+    },
+    {
+        "id":  71638,
+        "rawName":  "Kim Woon",
+        "knownAs":  "Kim Woon",
+        "firstName":  "Woon",
+        "lastName":  "Kim",
+        "club":  "FC Anyang",
+        "country":  "Korea Republic",
+        "ovr":  62
+    },
+    {
+        "id":  71639,
+        "rawName":  "Han Ka Ram",
+        "knownAs":  "Han Ka Ram",
+        "firstName":  "Ka Ram",
+        "lastName":  "Han",
+        "club":  "FC Anyang",
+        "country":  "Korea Republic",
+        "ovr":  60
+    },
+    {
+        "id":  71689,
+        "rawName":  "Park Jeong Hoon",
+        "knownAs":  "Park Jeong Hoon",
+        "firstName":  "Jeong Hoon",
+        "lastName":  "Park",
+        "club":  "FC Anyang",
+        "country":  "Korea Republic",
+        "ovr":  55
+    },
+    {
+        "id":  73438,
+        "rawName":  "Jin Jun Seo",
+        "knownAs":  "Jin Jun Seo",
+        "firstName":  "Jun Seo",
+        "lastName":  "Jin",
+        "club":  "Gangwon FC",
+        "country":  "Korea Republic",
+        "ovr":  49
+    },
+    {
+        "id":  73466,
+        "rawName":  "Yazan Al Arab",
+        "knownAs":  "",
+        "firstName":  "Yazan",
+        "lastName":  "Al Arab",
+        "club":  "FC Seoul",
+        "country":  "Jordan",
+        "ovr":  74
+    },
+    {
+        "id":  74008,
+        "rawName":  "Park Woo Jin",
+        "knownAs":  "Park Woo Jin",
+        "firstName":  "Woo Jin",
+        "lastName":  "Park",
+        "club":  "Ulsan HD FC",
+        "country":  "Korea Republic",
+        "ovr":  48
+    },
+    {
+        "id":  74599,
+        "rawName":  "Kim Yun Ho",
+        "knownAs":  "Kim Yun Ho",
+        "firstName":  "Yun Ho",
+        "lastName":  "Kim",
+        "club":  "Gwangju FC",
+        "country":  "Korea Republic",
+        "ovr":  53
+    },
+    {
+        "id":  76160,
+        "rawName":  "Jung Seung Bin",
+        "knownAs":  "Jung Seung Bin",
+        "firstName":  "Seung Bin",
+        "lastName":  "Jung",
+        "club":  "Gangwon FC",
+        "country":  "Korea Republic",
+        "ovr":  50
+    },
+    {
+        "id":  76235,
+        "rawName":  "Kim Tae Hwan",
+        "knownAs":  "Kim Tae Hwan",
+        "firstName":  "Tae Hwan",
+        "lastName":  "Kim",
+        "club":  "Gangwon FC",
+        "country":  "Korea Republic",
+        "ovr":  48
+    },
+    {
+        "id":  76236,
+        "rawName":  "Lee Ji Ho",
+        "knownAs":  "Lee Ji Ho",
+        "firstName":  "Ji Ho",
+        "lastName":  "Lee",
+        "club":  "Gangwon FC",
+        "country":  "Korea Republic",
+        "ovr":  58
+    },
+    {
+        "id":  76313,
+        "rawName":  "Pedrinho",
+        "knownAs":  "Pedrinho",
+        "firstName":  "Pedro",
+        "lastName":  "Ferreira",
+        "club":  "Ulsan HD FC",
+        "country":  "Brazil",
+        "ovr":  59
+    },
+    {
+        "id":  76379,
+        "rawName":  "Jang Jung Woo",
+        "knownAs":  "Jang Jung Woo",
+        "firstName":  "Jung Woo",
+        "lastName":  "Jang",
+        "club":  "FC Anyang",
+        "country":  "Korea Republic",
+        "ovr":  48
+    },
+    {
+        "id":  76380,
+        "rawName":  "Kim Ji Hoon",
+        "knownAs":  "Kim Ji Hoon",
+        "firstName":  "Ji Hoon",
+        "lastName":  "Kim",
+        "club":  "FC Anyang",
+        "country":  "Korea Republic",
+        "ovr":  52
+    },
+    {
+        "id":  76386,
+        "rawName":  "Hong Sung Min",
+        "knownAs":  "Hong Sung Min",
+        "firstName":  "Sung Min",
+        "lastName":  "Hong",
+        "club":  "Pohang Steelers",
+        "country":  "Korea Republic",
+        "ovr":  53
+    },
+    {
+        "id":  76387,
+        "rawName":  "Baek Seung Won",
+        "knownAs":  "Baek Seung Won",
+        "firstName":  "Seung Won",
+        "lastName":  "Baek",
+        "club":  "Pohang Steelers",
+        "country":  "Korea Republic",
+        "ovr":  48
+    },
+    {
+        "id":  76389,
+        "rawName":  "Cho Sang Hyeok",
+        "knownAs":  "Cho Sang Hyeok",
+        "firstName":  "Sang Hyeok",
+        "lastName":  "Cho",
+        "club":  "Pohang Steelers",
+        "country":  "Korea Republic",
+        "ovr":  58
+    },
+    {
+        "id":  76391,
+        "rawName":  "Kang Min Jun",
+        "knownAs":  "Kang Min Jun",
+        "firstName":  "Min Jun",
+        "lastName":  "Kang",
+        "club":  "Pohang Steelers",
+        "country":  "Korea Republic",
+        "ovr":  60
+    },
+    {
+        "id":  76394,
+        "rawName":  "Lee Chang Woo",
+        "knownAs":  "Lee Chang Woo",
+        "firstName":  "Chang Woo",
+        "lastName":  "Lee",
+        "club":  "Pohang Steelers",
+        "country":  "Korea Republic",
+        "ovr":  54
+    },
+    {
+        "id":  76816,
+        "rawName":  "Kwon Neung",
+        "knownAs":  "Kwon Neung",
+        "firstName":  "Neung",
+        "lastName":  "Kwon",
+        "club":  "Pohang Steelers",
+        "country":  "Korea Republic",
+        "ovr":  50
+    },
+    {
+        "id":  76851,
+        "rawName":  "Jang Min Gyu",
+        "knownAs":  "Jang Min Gyu",
+        "firstName":  "Min Gyu",
+        "lastName":  "Jang",
+        "club":  "Jeju United",
+        "country":  "Korea Republic",
+        "ovr":  66
+    },
+    {
+        "id":  76886,
+        "rawName":  "Bato",
+        "knownAs":  "Bato",
+        "firstName":  "Gbato Seloh",
+        "lastName":  "Samuel",
+        "club":  "FC Seoul",
+        "country":  "Côte d\u0027Ivoire",
+        "ovr":  50
+    },
+    {
+        "id":  76892,
+        "rawName":  "Yun Ki Wook",
+        "knownAs":  "Yun Ki Wook",
+        "firstName":  "Ki Wook",
+        "lastName":  "Yun",
+        "club":  "FC Seoul",
+        "country":  "Korea Republic",
+        "ovr":  51
+    },
+    {
+        "id":  76919,
+        "rawName":  "Bae Jin Woo",
+        "knownAs":  "Bae Jin Woo",
+        "firstName":  "Jin Woo",
+        "lastName":  "Bae",
+        "club":  "Gwangju FC",
+        "country":  "Korea Republic",
+        "ovr":  54
+    },
+    {
+        "id":  77190,
+        "rawName":  "Baek In Woo",
+        "knownAs":  "Baek In Woo",
+        "firstName":  "In Woo",
+        "lastName":  "Baek",
+        "club":  "Ulsan HD FC",
+        "country":  "Korea Republic",
+        "ovr":  52
+    },
+    {
+        "id":  77192,
+        "rawName":  "Kim Dong Hwa",
+        "knownAs":  "Kim Dong Hwa",
+        "firstName":  "Dong Hwa",
+        "lastName":  "Kim",
+        "club":  "Gwangju FC",
+        "country":  "Korea Republic",
+        "ovr":  52
+    },
+    {
+        "id":  77193,
+        "rawName":  "Kang Hui su",
+        "knownAs":  "Kang Hui su",
+        "firstName":  "Hui su",
+        "lastName":  "Kang",
+        "club":  "Gwangju FC",
+        "country":  "Korea Republic",
+        "ovr":  55
+    },
+    {
+        "id":  77194,
+        "rawName":  "Park Su Bin",
+        "knownAs":  "Park Su Bin",
+        "firstName":  "Su Bin",
+        "lastName":  "Park",
+        "club":  "Jeju United",
+        "country":  "Korea Republic",
+        "ovr":  64
+    },
+    {
+        "id":  77195,
+        "rawName":  "Choi Byung Wook",
+        "knownAs":  "Choi Byung Wook",
+        "firstName":  "Byung Wook",
+        "lastName":  "Choi",
+        "club":  "Jeju United",
+        "country":  "Korea Republic",
+        "ovr":  57
+    },
+    {
+        "id":  77197,
+        "rawName":  "Kim Jun Ha",
+        "knownAs":  "Kim Jun Ha",
+        "firstName":  "Jun Ha",
+        "lastName":  "Kim",
+        "club":  "Gimcheon Sangmu",
+        "country":  "Korea Republic",
+        "ovr":  63
+    },
+    {
+        "id":  77198,
+        "rawName":  "Joo Seung Min",
+        "knownAs":  "Joo Seung Min",
+        "firstName":  "Seung Min",
+        "lastName":  "Joo",
+        "club":  "Jeju United",
+        "country":  "Korea Republic",
+        "ovr":  49
+    },
+    {
+        "id":  77215,
+        "rawName":  "Hong Yong Jun",
+        "knownAs":  "Hong Yong Jun",
+        "firstName":  "Yong Jun",
+        "lastName":  "Hong",
+        "club":  "Gwangju FC",
+        "country":  "Korea Republic",
+        "ovr":  52
+    },
+    {
+        "id":  77218,
+        "rawName":  "Ryu Seong Min",
+        "knownAs":  "Ryu Seong Min",
+        "firstName":  "Seong Min",
+        "lastName":  "Ryu",
+        "club":  "Ulsan HD FC",
+        "country":  "Korea Republic",
+        "ovr":  50
+    },
+    {
+        "id":  77220,
+        "rawName":  "Jung Seong Bin",
+        "knownAs":  "Jung Seong Bin",
+        "firstName":  "Seong Bin",
+        "lastName":  "Jung",
+        "club":  "Ulsan HD FC",
+        "country":  "Korea Republic",
+        "ovr":  49
+    },
+    {
+        "id":  77227,
+        "rawName":  "Choi Jin Woong",
+        "knownAs":  "Choi Jin Woong",
+        "firstName":  "Jin Woong",
+        "lastName":  "Choi",
+        "club":  "Jeonbuk Hyundai",
+        "country":  "Korea Republic",
+        "ovr":  54
+    },
+    {
+        "id":  77239,
+        "rawName":  "Lee Sang Myung",
+        "knownAs":  "Lee Sang Myung",
+        "firstName":  "Sang Myung",
+        "lastName":  "Lee",
+        "club":  "Jeonbuk Hyundai",
+        "country":  "Korea Republic",
+        "ovr":  60
+    },
+    {
+        "id":  77255,
+        "rawName":  "Seo Jeong Hyeok",
+        "knownAs":  "Seo Jeong Hyeok",
+        "firstName":  "Jeong Hyeok",
+        "lastName":  "Seo",
+        "club":  "Jeonbuk Hyundai",
+        "country":  "Korea Republic",
+        "ovr":  50
+    },
+    {
+        "id":  77286,
+        "rawName":  "Park Gyeong Seop",
+        "knownAs":  "Park Gyeong Seop",
+        "firstName":  "Gyeong Seop",
+        "lastName":  "Park",
+        "club":  "Incheon United",
+        "country":  "Korea Republic",
+        "ovr":  63
+    },
+    {
+        "id":  77287,
+        "rawName":  "Lee Sang Hyeon",
+        "knownAs":  "Lee Sang Hyeon",
+        "firstName":  "Sang Hyeon",
+        "lastName":  "Lee",
+        "club":  "Bucheon FC 1995",
+        "country":  "Korea Republic",
+        "ovr":  49
+    },
+    {
+        "id":  77320,
+        "rawName":  "Thiaguinho",
+        "knownAs":  "Thiaguinho",
+        "firstName":  "Thiago",
+        "lastName":  "Nascimento",
+        "club":  "Bucheon FC 1995",
+        "country":  "Brazil",
+        "ovr":  67
+    },
+    {
+        "id":  77322,
+        "rawName":  "Sung Shin",
+        "knownAs":  "Sung Shin",
+        "firstName":  "Shin",
+        "lastName":  "Sung",
+        "club":  "Bucheon FC 1995",
+        "country":  "Korea Republic",
+        "ovr":  49
+    },
+    {
+        "id":  77473,
+        "rawName":  "Kim Jung Hoon",
+        "knownAs":  "Kim Jung Hoon",
+        "firstName":  "Jung Hoon",
+        "lastName":  "Kim",
+        "club":  "Gangwon FC",
+        "country":  "Korea Republic",
+        "ovr":  48
+    },
+    {
+        "id":  77840,
+        "rawName":  "Erick Farias",
+        "knownAs":  "Erick Farias",
+        "firstName":  "Erick Samuel",
+        "lastName":  "Corrêa Farias",
+        "club":  "Ulsan HD FC",
+        "country":  "Brazil",
+        "ovr":  64
+    },
+    {
+        "id":  77885,
+        "rawName":  "Lee Han Gyeol",
+        "knownAs":  "Lee Han Gyeol",
+        "firstName":  "Han Gyeol",
+        "lastName":  "Lee",
+        "club":  "Jeonbuk Hyundai",
+        "country":  "Korea Republic",
+        "ovr":  51
+    },
+    {
+        "id":  77888,
+        "rawName":  "Jeon Ji Wan",
+        "knownAs":  "Jeon Ji Wan",
+        "firstName":  "Ji Wan",
+        "lastName":  "Jeon",
+        "club":  "Jeonbuk Hyundai",
+        "country":  "Korea Republic",
+        "ovr":  50
+    },
+    {
+        "id":  77897,
+        "rawName":  "Kim Soo Hyung",
+        "knownAs":  "Kim Soo Hyung",
+        "firstName":  "Soo Hyung",
+        "lastName":  "Kim",
+        "club":  "Jeonbuk Hyundai",
+        "country":  "Korea Republic",
+        "ovr":  48
+    },
+    {
+        "id":  78194,
+        "rawName":  "Han Seok Jin",
+        "knownAs":  "Han Seok Jin",
+        "firstName":  "Seok Jin",
+        "lastName":  "Han",
+        "club":  "Jeonbuk Hyundai",
+        "country":  "Korea Republic",
+        "ovr":  53
+    },
+    {
+        "id":  78655,
+        "rawName":  "Jakob Tranziska",
+        "knownAs":  "",
+        "firstName":  "Jakob",
+        "lastName":  "Tranziska",
+        "club":  "Pohang Steelers",
+        "country":  "Germany",
+        "ovr":  65
+    },
+    {
+        "id":  80158,
+        "rawName":  "Kim Jee Won",
+        "knownAs":  "Kim Jee Won",
+        "firstName":  "Jee Won",
+        "lastName":  "Kim",
+        "club":  "FC Seoul",
+        "country":  "Korea Republic",
+        "ovr":  50
+    },
+    {
+        "id":  80188,
+        "rawName":  "Hong Jin Hyuk",
+        "knownAs":  "Hong Jin Hyuk",
+        "firstName":  "Jin Hyuk",
+        "lastName":  "Hong",
+        "club":  "Gangwon FC",
+        "country":  "Korea Republic",
+        "ovr":  49
+    },
+    {
+        "id":  80191,
+        "rawName":  "Lee Soo Ah",
+        "knownAs":  "Lee Soo Ah",
+        "firstName":  "Soo Ah",
+        "lastName":  "Lee",
+        "club":  "Pohang Steelers",
+        "country":  "Korea Republic",
+        "ovr":  52
+    },
+    {
+        "id":  83059,
+        "rawName":  "Ko Pil Gwan",
+        "knownAs":  "Ko Pil Gwan",
+        "firstName":  "Pil Gwan",
+        "lastName":  "Ko",
+        "club":  "FC Seoul",
+        "country":  "Korea Republic",
+        "ovr":  47
+    },
+    {
+        "id":  83061,
+        "rawName":  "Son Jeong Beom",
+        "knownAs":  "Son Jeong Beom",
+        "firstName":  "Jeong Beom",
+        "lastName":  "Son",
+        "club":  "FC Seoul",
+        "country":  "Korea Republic",
+        "ovr":  61
+    },
+    {
+        "id":  83203,
+        "rawName":  "Emerson Negueba",
+        "knownAs":  "Emerson Negueba",
+        "firstName":  "Emerson",
+        "lastName":  "Ramon",
+        "club":  "Jeju United",
+        "country":  "Brazil",
+        "ovr":  68
+    },
+    {
+        "id":  83267,
+        "rawName":  "Gytis Paulauskaas",
+        "knownAs":  "",
+        "firstName":  "Gytis",
+        "lastName":  "Paulauskaas",
+        "club":  "Jeonbuk Hyundai",
+        "country":  "Lithuania",
+        "ovr":  65
+    },
+    {
+        "id":  83384,
+        "rawName":  "Kim Ho Jin",
+        "knownAs":  "Kim Ho Jin",
+        "firstName":  "Ho Jin",
+        "lastName":  "Kim",
+        "club":  "Pohang Steelers",
+        "country":  "Korea Republic",
+        "ovr":  59
+    },
+    {
+        "id":  83387,
+        "rawName":  "Yun Dae Geun",
+        "knownAs":  "Yun Dae Geun",
+        "firstName":  "Dae Geun",
+        "lastName":  "Yun",
+        "club":  "Pohang Steelers",
+        "country":  "Korea Republic",
+        "ovr":  48
+    },
+    {
+        "id":  83471,
+        "rawName":  "Cho Young Jun",
+        "knownAs":  "Cho Young Jun",
+        "firstName":  "Young Jun",
+        "lastName":  "Cho",
+        "club":  "Pohang Steelers",
+        "country":  "Korea Republic",
+        "ovr":  50
+    },
+    {
+        "id":  83538,
+        "rawName":  "Kim Bum Jun",
+        "knownAs":  "Kim Bum Jun",
+        "firstName":  "Kim",
+        "lastName":  "Bum Jun",
+        "club":  "Pohang Steelers",
+        "country":  "Korea Republic",
+        "ovr":  47
+    },
+    {
+        "id":  83627,
+        "rawName":  "Abdallah Khalaihal",
+        "knownAs":  "",
+        "firstName":  "Abdallah",
+        "lastName":  "Khalaihal",
+        "club":  "Gangwon FC",
+        "country":  "Israel",
+        "ovr":  68
+    },
+    {
+        "id":  83628,
+        "rawName":  "Kento Nishiya",
+        "knownAs":  "",
+        "firstName":  "Kento",
+        "lastName":  "Nishiya",
+        "club":  "Pohang Steelers",
+        "country":  "Japan",
+        "ovr":  63
+    },
+    {
+        "id":  83685,
+        "rawName":  "Eo Dam",
+        "knownAs":  "Eo Dam",
+        "firstName":  "Dam",
+        "lastName":  "Eo",
+        "club":  "Bucheon FC 1995",
+        "country":  "Korea Republic",
+        "ovr":  50
+    },
+    {
+        "id":  83686,
+        "rawName":  "Kim Seung Bin",
+        "knownAs":  "Kim Seung Bin",
+        "firstName":  "Seung Bin",
+        "lastName":  "Kim",
+        "club":  "Bucheon FC 1995",
+        "country":  "Korea Republic",
+        "ovr":  48
+    },
+    {
+        "id":  83758,
+        "rawName":  "Choi Ju Ho",
+        "knownAs":  "Choi Ju Ho",
+        "firstName":  "Ju Ho",
+        "lastName":  "Choi",
+        "club":  "Ulsan HD FC",
+        "country":  "Korea Republic",
+        "ovr":  48
+    },
+    {
+        "id":  83759,
+        "rawName":  "Jo Min Seo",
+        "knownAs":  "Jo Min Seo",
+        "firstName":  "Min Seo",
+        "lastName":  "Jo",
+        "club":  "Ulsan HD FC",
+        "country":  "Korea Republic",
+        "ovr":  50
+    },
+    {
+        "id":  83761,
+        "rawName":  "Kwon Gi Min",
+        "knownAs":  "Kwon Gi Min",
+        "firstName":  "Gi Min",
+        "lastName":  "Kwon",
+        "club":  "Jeju United",
+        "country":  "Korea Republic",
+        "ovr":  56
+    },
+    {
+        "id":  83765,
+        "rawName":  "Park Min Jae",
+        "knownAs":  "Park Min Jae",
+        "firstName":  "Min Jae",
+        "lastName":  "Park",
+        "club":  "Jeju United",
+        "country":  "Korea Republic",
+        "ovr":  50
+    },
+    {
+        "id":  83766,
+        "rawName":  "Yoo Seung Jae",
+        "knownAs":  "Yoo Seung Jae",
+        "firstName":  "Yoo",
+        "lastName":  "Seung Jae",
+        "club":  "Jeju United",
+        "country":  "Korea Republic",
+        "ovr":  48
+    },
+    {
+        "id":  83830,
+        "rawName":  "Hrovje Babec",
+        "knownAs":  "",
+        "firstName":  "Hrovje",
+        "lastName":  "Babec",
+        "club":  "FC Seoul",
+        "country":  "Croatia",
+        "ovr":  72
+    },
+    {
+        "id":  83866,
+        "rawName":  "Kang Ji Wan",
+        "knownAs":  "Kang Ji Wan",
+        "firstName":  "Ji Wan",
+        "lastName":  "Kang",
+        "club":  "FC Anyang",
+        "country":  "Korea Republic",
+        "ovr":  48
+    },
+    {
+        "id":  83869,
+        "rawName":  "Herculano",
+        "knownAs":  "Herculano",
+        "firstName":  "Breno Herculano",
+        "lastName":  "Almeida",
+        "club":  "FC Anyang",
+        "country":  "Brazil",
+        "ovr":  60
+    },
+    {
+        "id":  83870,
+        "rawName":  "Kim Jae Hyeon",
+        "knownAs":  "Kim Jae Hyeon",
+        "firstName":  "Jae Hyeon",
+        "lastName":  "Kim",
+        "club":  "FC Anyang",
+        "country":  "Korea Republic",
+        "ovr":  50
+    },
+    {
+        "id":  83871,
+        "rawName":  "Kim kang",
+        "knownAs":  "Kim kang",
+        "firstName":  "Kang",
+        "lastName":  "Kim",
+        "club":  "FC Anyang",
+        "country":  "Korea Republic",
+        "ovr":  53
+    },
+    {
+        "id":  83872,
+        "rawName":  "Oh Hyung Jun",
+        "knownAs":  "Oh Hyung Jun",
+        "firstName":  "Hyung Jun",
+        "lastName":  "Oh",
+        "club":  "FC Anyang",
+        "country":  "Korea Republic",
+        "ovr":  47
+    },
+    {
+        "id":  83874,
+        "rawName":  "Lee Hyo Bin",
+        "knownAs":  "Lee Hyo Bin",
+        "firstName":  "Hyo Bin",
+        "lastName":  "Lee",
+        "club":  "Gangwon FC",
+        "country":  "Korea Republic",
+        "ovr":  50
+    },
+    {
+        "id":  83875,
+        "rawName":  "Jo Won Woo",
+        "knownAs":  "Jo Won Woo",
+        "firstName":  "Won Woo",
+        "lastName":  "Jo",
+        "club":  "Gangwon FC",
+        "country":  "Korea Republic",
+        "ovr":  50
+    },
+    {
+        "id":  83876,
+        "rawName":  "Yeo Jun Yeop",
+        "knownAs":  "Yeo Jun Yeop",
+        "firstName":  "Jun Yeop",
+        "lastName":  "Yeo",
+        "club":  "Gangwon FC",
+        "country":  "Korea Republic",
+        "ovr":  48
+    },
+    {
+        "id":  83877,
+        "rawName":  "Lee Jeong Hyun",
+        "knownAs":  "Lee Jeong Hyun",
+        "firstName":  "Jeong Hyun",
+        "lastName":  "Lee",
+        "club":  "Gangwon FC",
+        "country":  "Korea Republic",
+        "ovr":  47
+    },
+    {
+        "id":  83878,
+        "rawName":  "Kim Eo Jin",
+        "knownAs":  "Kim Eo Jin",
+        "firstName":  "Eo Jin",
+        "lastName":  "Kim",
+        "club":  "Gangwon FC",
+        "country":  "Korea Republic",
+        "ovr":  47
+    },
+    {
+        "id":  83879,
+        "rawName":  "Lee Yong Jae",
+        "knownAs":  "Lee Yong Jae",
+        "firstName":  "Yong Jae",
+        "lastName":  "Lee",
+        "club":  "Gangwon FC",
+        "country":  "Korea Republic",
+        "ovr":  49
+    },
+    {
+        "id":  83880,
+        "rawName":  "Choi Ji nam",
+        "knownAs":  "Choi Ji nam",
+        "firstName":  "Ji nam",
+        "lastName":  "Choi",
+        "club":  "Gangwon FC",
+        "country":  "Korea Republic",
+        "ovr":  48
+    },
+    {
+        "id":  83960,
+        "rawName":  "Kim Yong Hyeok",
+        "knownAs":  "Kim Yong Hyeok",
+        "firstName":  "Yong Hyeok",
+        "lastName":  "Kim",
+        "club":  "Gwangju FC",
+        "country":  "Korea Republic",
+        "ovr":  58
+    },
+    {
+        "id":  83961,
+        "rawName":  "Kong Bae Hyeon",
+        "knownAs":  "Kong Bae Hyeon",
+        "firstName":  "Bae Hyeon",
+        "lastName":  "Kong",
+        "club":  "Gwangju FC",
+        "country":  "Korea Republic",
+        "ovr":  57
+    },
+    {
+        "id":  83962,
+        "rawName":  "Jeong Kyu Min",
+        "knownAs":  "Jeong Kyu Min",
+        "firstName":  "Kyu Min",
+        "lastName":  "Jeong",
+        "club":  "Gwangju FC",
+        "country":  "Korea Republic",
+        "ovr":  49
+    },
+    {
+        "id":  83963,
+        "rawName":  "Oh Ha Jong",
+        "knownAs":  "Oh Ha Jong",
+        "firstName":  "Ha Jong",
+        "lastName":  "Oh",
+        "club":  "Gwangju FC",
+        "country":  "Korea Republic",
+        "ovr":  49
+    },
+    {
+        "id":  83964,
+        "rawName":  "Lee Yoon Sung",
+        "knownAs":  "Lee Yoon Sung",
+        "firstName":  "Yoon Sung",
+        "lastName":  "Lee",
+        "club":  "Gwangju FC",
+        "country":  "Korea Republic",
+        "ovr":  51
+    },
+    {
+        "id":  83965,
+        "rawName":  "Lee Jun Seop",
+        "knownAs":  "Lee Jun Seop",
+        "firstName":  "Jun Seop",
+        "lastName":  "Lee",
+        "club":  "Incheon United",
+        "country":  "Korea Republic",
+        "ovr":  50
+    },
+    {
+        "id":  83966,
+        "rawName":  "Wang Min Jun",
+        "knownAs":  "Wang Min Jun",
+        "firstName":  "Min Jun",
+        "lastName":  "Wang",
+        "club":  "Incheon United",
+        "country":  "Korea Republic",
+        "ovr":  50
+    },
+    {
+        "id":  83967,
+        "rawName":  "Oh Jun Yeop",
+        "knownAs":  "Oh Jun Yeop",
+        "firstName":  "Jun Yeop",
+        "lastName":  "Oh",
+        "club":  "Incheon United",
+        "country":  "Korea Republic",
+        "ovr":  48
+    },
+    {
+        "id":  84142,
+        "rawName":  "Kang Dong Hwi",
+        "knownAs":  "Kang Dong Hwi",
+        "firstName":  "Dong Hwi",
+        "lastName":  "Kang",
+        "club":  "Jeju United",
+        "country":  "Korea Republic",
+        "ovr":  48
+    },
+    {
+        "id":  84163,
+        "rawName":  "Airton Moisés",
+        "knownAs":  "Airton Moisés",
+        "firstName":  "Airton Moisés",
+        "lastName":  "Santos Sousa",
+        "club":  "FC Anyang",
+        "country":  "Brazil",
+        "ovr":  70
+    },
+    {
+        "id":  84236,
+        "rawName":  "Kim Ju Hyeong",
+        "knownAs":  "Kim Ju Hyeong",
+        "firstName":  "Ju Hyeong",
+        "lastName":  "Kim",
+        "club":  "Jeonbuk Hyundai",
+        "country":  "Korea Republic",
+        "ovr":  48
+    },
+    {
+        "id":  84241,
+        "rawName":  "Chung Dae Young",
+        "knownAs":  "Chung Dae Young",
+        "firstName":  "Dae Young",
+        "lastName":  "Chung",
+        "club":  "Jeonbuk Hyundai",
+        "country":  "Korea Republic",
+        "ovr":  52
+    },
+    {
+        "id":  85139,
+        "rawName":  "Park Sung Hyun",
+        "knownAs":  "Park Sung Hyun",
+        "firstName":  "Sung Hyun",
+        "lastName":  "Park",
+        "club":  "Gwangju FC",
+        "country":  "Korea Republic",
+        "ovr":  52
+    },
+    {
+        "id":  85140,
+        "rawName":  "Park Byeong Chan",
+        "knownAs":  "Park Byeong Chan",
+        "firstName":  "Byeong Chan",
+        "lastName":  "Park",
+        "club":  "Daejeon Hana",
+        "country":  "Korea Republic",
+        "ovr":  47
+    },
+    {
+        "id":  85143,
+        "rawName":  "Gu Hun Min",
+        "knownAs":  "Gu Hun Min",
+        "firstName":  "Hun Min",
+        "lastName":  "Gu",
+        "club":  "Daejeon Hana",
+        "country":  "Korea Republic",
+        "ovr":  48
+    },
+    {
+        "id":  85149,
+        "rawName":  "Kim Do Yeon",
+        "knownAs":  "Kim Do Yeon",
+        "firstName":  "Do Yeon",
+        "lastName":  "Kim",
+        "club":  "Daejeon Hana",
+        "country":  "Korea Republic",
+        "ovr":  49
+    },
+    {
+        "id":  85153,
+        "rawName":  "Kim Ji Ho",
+        "knownAs":  "Kim Ji Ho",
+        "firstName":  "Ji Ho",
+        "lastName":  "Kim",
+        "club":  "Daejeon Hana",
+        "country":  "Korea Republic",
+        "ovr":  47
+    },
+    {
+        "id":  85168,
+        "rawName":  "Kim Ye Geon",
+        "knownAs":  "Kim Ye Geon",
+        "firstName":  "Ye Geon",
+        "lastName":  "Kim",
+        "club":  "Jeonbuk Hyundai",
+        "country":  "Korea Republic",
+        "ovr":  59
+    },
+    {
+        "id":  85227,
+        "rawName":  "Ko Eun Seok",
+        "knownAs":  "Ko Eun Seok",
+        "firstName":  "Eun Seok",
+        "lastName":  "Ko",
+        "club":  "Gangwon FC",
+        "country":  "Korea Republic",
+        "ovr":  48
+    },
+    {
+        "id":  155355,
+        "rawName":  "Lee Chung Yong",
+        "knownAs":  "Lee Chung Yong",
+        "firstName":  "Chung Yong",
+        "lastName":  "Lee",
+        "club":  "Incheon United",
+        "country":  "Korea Republic",
+        "ovr":  67
+    },
+    {
+        "id":  180283,
+        "rawName":  "Ki Sung Yueng",
+        "knownAs":  "Ki Sung Yueng",
+        "firstName":  "Sung Yueng",
+        "lastName":  "Ki",
+        "club":  "Pohang Steelers",
+        "country":  "Korea Republic",
+        "ovr":  69
+    },
+    {
+        "id":  184901,
+        "rawName":  "Shin Kwang Hoon",
+        "knownAs":  "Shin Kwang Hoon",
+        "firstName":  "Kwang Hoon",
+        "lastName":  "Shin",
+        "club":  "Pohang Steelers",
+        "country":  "Korea Republic",
+        "ovr":  65
+    },
+    {
+        "id":  191915,
+        "rawName":  "Lim Jong Eun",
+        "knownAs":  "Lim Jong Eun",
+        "firstName":  "Jong Eun",
+        "lastName":  "Lim",
+        "club":  "Daejeon Hana",
+        "country":  "Korea Republic",
+        "ovr":  62
+    },
+    {
+        "id":  191979,
+        "rawName":  "Jeong Jun Yeon",
+        "knownAs":  "Jeong Jun Yeon",
+        "firstName":  "Jun Yeon",
+        "lastName":  "Jeong",
+        "club":  "FC Anyang",
+        "country":  "Korea Republic",
+        "ovr":  58
+    },
+    {
+        "id":  199183,
+        "rawName":  "Kim Bo Kyung",
+        "knownAs":  "Kim Bo Kyung",
+        "firstName":  "Bo Kyung",
+        "lastName":  "Kim",
+        "club":  "FC Anyang",
+        "country":  "Korea Republic",
+        "ovr":  59
+    },
+    {
+        "id":  199231,
+        "rawName":  "Kim Tae Hwan",
+        "knownAs":  "Kim Tae Hwan",
+        "firstName":  "Tae Hwan",
+        "lastName":  "Kim",
+        "club":  "Jeonbuk Hyundai",
+        "country":  "Korea Republic",
+        "ovr":  67
+    },
+    {
+        "id":  199236,
+        "rawName":  "Hong Chul",
+        "knownAs":  "Hong Chul",
+        "firstName":  "Chul",
+        "lastName":  "Hong",
+        "club":  "Gangwon FC",
+        "country":  "Korea Republic",
+        "ovr":  61
+    },
+    {
+        "id":  199259,
+        "rawName":  "Kim Da Sol",
+        "knownAs":  "Kim Da Sol",
+        "firstName":  "Da Sol",
+        "lastName":  "Kim",
+        "club":  "FC Anyang",
+        "country":  "Korea Republic",
+        "ovr":  63
+    },
+    {
+        "id":  200601,
+        "rawName":  "Yoon Bit Garam",
+        "knownAs":  "Yoon Bit Garam",
+        "firstName":  "Bit Garam",
+        "lastName":  "Yoon",
+        "club":  "Bucheon FC 1995",
+        "country":  "Korea Republic",
+        "ovr":  67
+    },
+    {
+        "id":  201528,
+        "rawName":  "Kim Young Gwon",
+        "knownAs":  "Kim Young Gwon",
+        "firstName":  "Young Gwon",
+        "lastName":  "Kim",
+        "club":  "Ulsan HD FC",
+        "country":  "Korea Republic",
+        "ovr":  68
+    },
+    {
+        "id":  202978,
+        "rawName":  "Min Sang Gi",
+        "knownAs":  "Min Sang Gi",
+        "firstName":  "Sang Gi",
+        "lastName":  "Min",
+        "club":  "Gwangju FC",
+        "country":  "Korea Republic",
+        "ovr":  59
+    },
+    {
+        "id":  202980,
+        "rawName":  "Han Ji Ho",
+        "knownAs":  "Han Ji Ho",
+        "firstName":  "Ji Ho",
+        "lastName":  "Han",
+        "club":  "Bucheon FC 1995",
+        "country":  "Korea Republic",
+        "ovr":  59
+    },
+    {
+        "id":  205278,
+        "rawName":  "Rim Chang Woo",
+        "knownAs":  "Rim Chang Woo",
+        "firstName":  "Chang Woo",
+        "lastName":  "Rim",
+        "club":  "Jeju United",
+        "country":  "Korea Republic",
+        "ovr":  62
+    },
+    {
+        "id":  208063,
+        "rawName":  "Ju Se Jong",
+        "knownAs":  "Ju Se Jong",
+        "firstName":  "Se Jong",
+        "lastName":  "Ju",
+        "club":  "Gwangju FC",
+        "country":  "Korea Republic",
+        "ovr":  66
+    },
+    {
+        "id":  208073,
+        "rawName":  "Ahn Young Kyu",
+        "knownAs":  "Ahn Young Kyu",
+        "firstName":  "Young Kyu",
+        "lastName":  "Ahn",
+        "club":  "Gwangju FC",
+        "country":  "Korea Republic",
+        "ovr":  63
+    },
+    {
+        "id":  208636,
+        "rawName":  "Lee Myung Joo",
+        "knownAs":  "Lee Myung Joo",
+        "firstName":  "Myung Joo",
+        "lastName":  "Lee",
+        "club":  "Incheon United",
+        "country":  "Korea Republic",
+        "ovr":  68
+    },
+    {
+        "id":  209449,
+        "rawName":  "Gerso",
+        "knownAs":  "Gerso",
+        "firstName":  "Gerso",
+        "lastName":  "Fernandes",
+        "club":  "Incheon United",
+        "country":  "Portugal",
+        "ovr":  70
+    },
+    {
+        "id":  210941,
+        "rawName":  "Lee Chang Geun",
+        "knownAs":  "Lee Chang Geun",
+        "firstName":  "Chang Geun",
+        "lastName":  "Lee",
+        "club":  "Daejeon Hana",
+        "country":  "Korea Republic",
+        "ovr":  74
+    },
+    {
+        "id":  211635,
+        "rawName":  "Chung Woon",
+        "knownAs":  "Chung Woon",
+        "firstName":  "Woon",
+        "lastName":  "Chung",
+        "club":  "Jeju United",
+        "country":  "Korea Republic",
+        "ovr":  60
+    },
+    {
+        "id":  212231,
+        "rawName":  "Tobias Figueiredo",
+        "knownAs":  "Tobias Figueiredo",
+        "firstName":  "Tobias",
+        "lastName":  "Pereira Figueiredo",
+        "club":  "Jeju United",
+        "country":  "Portugal",
+        "ovr":  64
+    },
+    {
+        "id":  212347,
+        "rawName":  "Kim Young Chan",
+        "knownAs":  "Kim Young Chan",
+        "firstName":  "Young Chan",
+        "lastName":  "Kim",
+        "club":  "FC Anyang",
+        "country":  "Korea Republic",
+        "ovr":  65
+    },
+    {
+        "id":  212432,
+        "rawName":  "Jo Hyeon Woo",
+        "knownAs":  "Jo Hyeon Woo",
+        "firstName":  "Hyeon Woo",
+        "lastName":  "Jo",
+        "club":  "Ulsan HD FC",
+        "country":  "Korea Republic",
+        "ovr":  72
+    },
+    {
+        "id":  212485,
+        "rawName":  "Danny Bakker",
+        "knownAs":  "",
+        "firstName":  "Danny",
+        "lastName":  "Bakker",
+        "club":  "FC Anyang",
+        "country":  "Holland",
+        "ovr":  70
+    },
+    {
+        "id":  212776,
+        "rawName":  "Lee Chang Yong",
+        "knownAs":  "Lee Chang Yong",
+        "firstName":  "Chang Yong",
+        "lastName":  "Lee",
+        "club":  "FC Anyang",
+        "country":  "Korea Republic",
+        "ovr":  66
+    },
+    {
+        "id":  212778,
+        "rawName":  "Kwon Kyung Won",
+        "knownAs":  "Kwon Kyung Won",
+        "firstName":  "Kyung Won",
+        "lastName":  "Kwon",
+        "club":  "FC Anyang",
+        "country":  "Korea Republic",
+        "ovr":  69
+    },
+    {
+        "id":  212839,
+        "rawName":  "Park Chung Hyo",
+        "knownAs":  "Park Chung Hyo",
+        "firstName":  "Chung Hyo",
+        "lastName":  "Park",
+        "club":  "Gangwon FC",
+        "country":  "Korea Republic",
+        "ovr":  69
+    },
+    {
+        "id":  212912,
+        "rawName":  "Park Ji Soo",
+        "knownAs":  "Park Ji Soo",
+        "firstName":  "Ji Soo",
+        "lastName":  "Park",
+        "club":  "Jeonbuk Hyundai",
+        "country":  "Korea Republic",
+        "ovr":  68
+    },
+    {
+        "id":  212915,
+        "rawName":  "Yoon Pyung Gook",
+        "knownAs":  "Yoon Pyung Gook",
+        "firstName":  "Pyung Gook",
+        "lastName":  "Yoon",
+        "club":  "Pohang Steelers",
+        "country":  "Korea Republic",
+        "ovr":  60
+    },
+    {
+        "id":  213181,
+        "rawName":  "Cho Sung Joon",
+        "knownAs":  "Cho Sung Joon",
+        "firstName":  "Seong Jun",
+        "lastName":  "Cho",
+        "club":  "Bucheon FC 1995",
+        "country":  "Korea Republic",
+        "ovr":  58
+    },
+    {
+        "id":  213189,
+        "rawName":  "Joo Min Kyu",
+        "knownAs":  "Joo Min Kyu",
+        "firstName":  "Min Kyu",
+        "lastName":  "Joo",
+        "club":  "Daejeon Hana",
+        "country":  "Korea Republic",
+        "ovr":  69
+    },
+    {
+        "id":  213317,
+        "rawName":  "Kim Jin Su",
+        "knownAs":  "Kim Jin Su",
+        "firstName":  "Jin Su",
+        "lastName":  "Kim",
+        "club":  "FC Seoul",
+        "country":  "Korea Republic",
+        "ovr":  71
+    },
+    {
+        "id":  213471,
+        "rawName":  "Darijan Bojanić",
+        "knownAs":  "",
+        "firstName":  "Darijan",
+        "lastName":  "Bojanić",
+        "club":  "Ulsan HD FC",
+        "country":  "Sweden",
+        "ovr":  73
+    },
+    {
+        "id":  213553,
+        "rawName":  "Morgan Ferrier",
+        "knownAs":  "",
+        "firstName":  "Morgan",
+        "lastName":  "Ferrier",
+        "club":  "Incheon United",
+        "country":  "Guyana",
+        "ovr":  66
+    },
+    {
+        "id":  220616,
+        "rawName":  "Miłosz Trojak",
+        "knownAs":  "",
+        "firstName":  "Miłosz",
+        "lastName":  "Trojak",
+        "club":  "Ulsan HD FC",
+        "country":  "Poland",
+        "ovr":  66
+    },
+    {
+        "id":  220922,
+        "rawName":  "Hólmbert Aron Friðjónsson",
+        "knownAs":  "",
+        "firstName":  "Hólmbert Aron",
+        "lastName":  "Friðjónsson",
+        "club":  "Gwangju FC",
+        "country":  "Iceland",
+        "ovr":  63
+    },
+    {
+        "id":  221467,
+        "rawName":  "Lee Chang Min",
+        "knownAs":  "Lee Chang Min",
+        "firstName":  "Chang Min",
+        "lastName":  "Lee",
+        "club":  "Jeju United",
+        "country":  "Korea Republic",
+        "ovr":  67
+    },
+    {
+        "id":  221567,
+        "rawName":  "Sim Sang Min",
+        "knownAs":  "Sim Sang Min",
+        "firstName":  "Sang Min",
+        "lastName":  "Sim",
+        "club":  "Ulsan HD FC",
+        "country":  "Korea Republic",
+        "ovr":  62
+    },
+    {
+        "id":  221759,
+        "rawName":  "Kim Gyeong Min",
+        "knownAs":  "Kim Gyeong Min",
+        "firstName":  "Gyeong Min",
+        "lastName":  "Kim",
+        "club":  "Gwangju FC",
+        "country":  "Korea Republic",
+        "ovr":  67
+    },
+    {
+        "id":  221767,
+        "rawName":  "Choi Kyoung Rok",
+        "knownAs":  "Choi Kyoung Rok",
+        "firstName":  "Kyoung Rok",
+        "lastName":  "Choi",
+        "club":  "Gwangju FC",
+        "country":  "Korea Republic",
+        "ovr":  64
+    },
+    {
+        "id":  221793,
+        "rawName":  "Patrick Twumasi",
+        "knownAs":  "",
+        "firstName":  "Patrick",
+        "lastName":  "Twumasi",
+        "club":  "Jeonbuk Hyundai",
+        "country":  "Ghana",
+        "ovr":  61
+    },
+    {
+        "id":  221831,
+        "rawName":  "Shin Chang Moo",
+        "knownAs":  "Shin Chang Moo",
+        "firstName":  "Chang Moo",
+        "lastName":  "Shin",
+        "club":  "Gwangju FC",
+        "country":  "Korea Republic",
+        "ovr":  64
+    },
+    {
+        "id":  221859,
+        "rawName":  "Lee Ju Yong",
+        "knownAs":  "Lee Ju Yong",
+        "firstName":  "Ju Yong",
+        "lastName":  "Lee",
+        "club":  "Incheon United",
+        "country":  "Korea Republic",
+        "ovr":  68
+    },
+    {
+        "id":  221912,
+        "rawName":  "Kang Hyeon Mu",
+        "knownAs":  "Kang Hyeon Mu",
+        "firstName":  "Hyeon Mu",
+        "lastName":  "Kang",
+        "club":  "FC Seoul",
+        "country":  "Korea Republic",
+        "ovr":  62
+    },
+    {
+        "id":  222052,
+        "rawName":  "Lee Myung Jae",
+        "knownAs":  "Lee Myung Jae",
+        "firstName":  "Myung Jae",
+        "lastName":  "Lee",
+        "club":  "Daejeon Hana",
+        "country":  "Korea Republic",
+        "ovr":  67
+    },
+    {
+        "id":  222582,
+        "rawName":  "Kim Young Bin",
+        "knownAs":  "Kim Young Bin",
+        "firstName":  "Young Bin",
+        "lastName":  "Kim",
+        "club":  "Jeonbuk Hyundai",
+        "country":  "Korea Republic",
+        "ovr":  70
+    },
+    {
+        "id":  222592,
+        "rawName":  "Kim Dong Jin",
+        "knownAs":  "Kim Dong Jin",
+        "firstName":  "Dong Jin",
+        "lastName":  "Kim",
+        "club":  "FC Anyang",
+        "country":  "Korea Republic",
+        "ovr":  65
+    },
+    {
+        "id":  222600,
+        "rawName":  "Lee Tae Hui",
+        "knownAs":  "Lee Tae Hui",
+        "firstName":  "Tae Hui",
+        "lastName":  "Lee",
+        "club":  "Incheon United",
+        "country":  "Korea Republic",
+        "ovr":  62
+    },
+    {
+        "id":  222702,
+        "rawName":  "Baek Dong Gyu",
+        "knownAs":  "Baek Dong Gyu",
+        "firstName":  "Dong Gyu",
+        "lastName":  "Baek",
+        "club":  "Bucheon FC 1995",
+        "country":  "Korea Republic",
+        "ovr":  64
+    },
+    {
+        "id":  222734,
+        "rawName":  "Kang Sang Woo",
+        "knownAs":  "Kang Sang Woo",
+        "firstName":  "Sang Woo",
+        "lastName":  "Kang",
+        "club":  "Ulsan HD FC",
+        "country":  "Korea Republic",
+        "ovr":  65
+    },
+    {
+        "id":  223336,
+        "rawName":  "Leandrinho",
+        "knownAs":  "Leandrinho",
+        "firstName":  "Leandro",
+        "lastName":  "Joaquim Ribeiro",
+        "club":  "Incheon United",
+        "country":  "Brazil",
+        "ovr":  64
+    },
+    {
+        "id":  223994,
+        "rawName":  "Stefan Mugoša",
+        "knownAs":  "",
+        "firstName":  "Stefan",
+        "lastName":  "Mugoša",
+        "club":  "Incheon United",
+        "country":  "Montenegro",
+        "ovr":  74
+    },
+    {
+        "id":  226652,
+        "rawName":  "Park Yong Woo",
+        "knownAs":  "Park Yong Woo",
+        "firstName":  "Yong Woo",
+        "lastName":  "Park",
+        "club":  "Ulsan HD FC",
+        "country":  "Korea Republic",
+        "ovr":  65
+    },
+    {
+        "id":  227632,
+        "rawName":  "Jeon Min Gwang",
+        "knownAs":  "Jeon Min Gwang",
+        "firstName":  "Min Gwang",
+        "lastName":  "Jeon",
+        "club":  "Pohang Steelers",
+        "country":  "Korea Republic",
+        "ovr":  70
+    },
+    {
+        "id":  227659,
+        "rawName":  "Kim Jin Gyu",
+        "knownAs":  "Kim Jin Gyu",
+        "firstName":  "Jin Gyu",
+        "lastName":  "Kim",
+        "club":  "Jeonbuk Hyundai",
+        "country":  "Korea Republic",
+        "ovr":  73
+    },
+    {
+        "id":  227787,
+        "rawName":  "Kim Jong Woo",
+        "knownAs":  "Kim Jong Woo",
+        "firstName":  "Jong Woo",
+        "lastName":  "Kim",
+        "club":  "Bucheon FC 1995",
+        "country":  "Korea Republic",
+        "ovr":  63
+    },
+    {
+        "id":  227790,
+        "rawName":  "Jeong Seung Hyun",
+        "knownAs":  "Jeong Seung Hyun",
+        "firstName":  "Seung Hyun",
+        "lastName":  "Jeong",
+        "club":  "Ulsan HD FC",
+        "country":  "Korea Republic",
+        "ovr":  68
+    },
+    {
+        "id":  227791,
+        "rawName":  "Lee Tae Hee",
+        "knownAs":  "Lee Tae Hee",
+        "firstName":  "Tae Hee",
+        "lastName":  "Lee",
+        "club":  "FC Anyang",
+        "country":  "Korea Republic",
+        "ovr":  67
+    },
+    {
+        "id":  228007,
+        "rawName":  "Lee Yeong Jae",
+        "knownAs":  "Lee Yeong Jae",
+        "firstName":  "Yeong Jae",
+        "lastName":  "Lee",
+        "club":  "Jeonbuk Hyundai",
+        "country":  "Korea Republic",
+        "ovr":  65
+    },
+    {
+        "id":  228009,
+        "rawName":  "Lee Gyu Seong",
+        "knownAs":  "Lee Gyu Seong",
+        "firstName":  "Gyu Seong",
+        "lastName":  "Lee",
+        "club":  "Ulsan HD FC",
+        "country":  "Korea Republic",
+        "ovr":  68
+    },
+    {
+        "id":  228176,
+        "rawName":  "Joo Hyeon Woo",
+        "knownAs":  "Joo Hyeon Woo",
+        "firstName":  "Hyeon Woo",
+        "lastName":  "Joo",
+        "club":  "FC Anyang",
+        "country":  "Korea Republic",
+        "ovr":  58
+    },
+    {
+        "id":  228487,
+        "rawName":  "Kim Yi Seok",
+        "knownAs":  "Kim Yi Seok",
+        "firstName":  "Yi Seok",
+        "lastName":  "Kim",
+        "club":  "Gimcheon Sangmu",
+        "country":  "Korea Republic",
+        "ovr":  60
+    },
+    {
+        "id":  228526,
+        "rawName":  "Hwang ByeongGeun",
+        "knownAs":  "Hwang ByeongGeun",
+        "firstName":  "Byeong Geun",
+        "lastName":  "Hwang",
+        "club":  "Ulsan HD FC",
+        "country":  "Korea Republic",
+        "ovr":  56
+    },
+    {
+        "id":  228534,
+        "rawName":  "Yu Kang Hyun",
+        "knownAs":  "Yu Kang Hyun",
+        "firstName":  "Kang Hyun",
+        "lastName":  "Yu",
+        "club":  "Daejeon Hana",
+        "country":  "Korea Republic",
+        "ovr":  64
+    },
+    {
+        "id":  228782,
+        "rawName":  "João Gamboa",
+        "knownAs":  "João Gamboa",
+        "firstName":  "João Pedro",
+        "lastName":  "da Costa Gamboa",
+        "club":  "Jeonbuk Hyundai",
+        "country":  "Portugal",
+        "ovr":  63
+    },
+    {
+        "id":  229343,
+        "rawName":  "Wanderson",
+        "knownAs":  "Wanderson",
+        "firstName":  "Wanderson",
+        "lastName":  "Carvalho Oliveira",
+        "club":  "Pohang Steelers",
+        "country":  "Brazil",
+        "ovr":  68
+    },
+    {
+        "id":  229361,
+        "rawName":  "Undabarrena",
+        "knownAs":  "Undabarrena",
+        "firstName":  "Iker",
+        "lastName":  "Undabarrena",
+        "club":  "Incheon United",
+        "country":  "Spain",
+        "ovr":  65
+    },
+    {
+        "id":  229694,
+        "rawName":  "Moon Seon Min",
+        "knownAs":  "Moon Seon Min",
+        "firstName":  "Seon Min",
+        "lastName":  "Moon",
+        "club":  "FC Seoul",
+        "country":  "Korea Republic",
+        "ovr":  64
+    },
+    {
+        "id":  230972,
+        "rawName":  "Adriel Ba Loua",
+        "knownAs":  "",
+        "firstName":  "Adriel",
+        "lastName":  "Ba Loua",
+        "club":  "Gwangju FC",
+        "country":  "Côte d\u0027Ivoire",
+        "ovr":  65
+    },
+    {
+        "id":  231868,
+        "rawName":  "Leonardo Ruiz",
+        "knownAs":  "",
+        "firstName":  "Leonardo",
+        "lastName":  "Ruiz",
+        "club":  "FC Seoul",
+        "country":  "Colombia",
+        "ovr":  70
+    },
+    {
+        "id":  231910,
+        "rawName":  "Kim Gun Hee",
+        "knownAs":  "Kim Gun Hee",
+        "firstName":  "Gun Hee",
+        "lastName":  "Kim",
+        "club":  "Gangwon FC",
+        "country":  "Korea Republic",
+        "ovr":  61
+    },
+    {
+        "id":  232000,
+        "rawName":  "Lee Seung Woo",
+        "knownAs":  "Lee Seung Woo",
+        "firstName":  "Seung Woo",
+        "lastName":  "Lee",
+        "club":  "Jeonbuk Hyundai",
+        "country":  "Korea Republic",
+        "ovr":  70
+    },
+    {
+        "id":  232065,
+        "rawName":  "Kim Dong Joon",
+        "knownAs":  "Kim Dong Joon",
+        "firstName":  "Dong Joon",
+        "lastName":  "Kim",
+        "club":  "Jeju United",
+        "country":  "Korea Republic",
+        "ovr":  68
+    },
+    {
+        "id":  232232,
+        "rawName":  "Kim Jung Hyun",
+        "knownAs":  "Kim Jung Hyun",
+        "firstName":  "Jung Hyun",
+        "lastName":  "Kim",
+        "club":  "FC Anyang",
+        "country":  "Korea Republic",
+        "ovr":  68
+    },
+    {
+        "id":  232626,
+        "rawName":  "Oh Jae Suk",
+        "knownAs":  "Oh Jae Suk",
+        "firstName":  "Jae Suk",
+        "lastName":  "Oh",
+        "club":  "Daejeon Hana",
+        "country":  "Korea Republic",
+        "ovr":  55
+    },
+    {
+        "id":  232857,
+        "rawName":  "Yu In Soo",
+        "knownAs":  "Yu In Soo",
+        "firstName":  "In Soo",
+        "lastName":  "Yu",
+        "club":  "Jeju United",
+        "country":  "Korea Republic",
+        "ovr":  67
+    },
+    {
+        "id":  232865,
+        "rawName":  "Ahn Tae Hyun",
+        "knownAs":  "Ahn Tae Hyun",
+        "firstName":  "Tae Hyun",
+        "lastName":  "Ahn",
+        "club":  "Bucheon FC 1995",
+        "country":  "Korea Republic",
+        "ovr":  67
+    },
+    {
+        "id":  232997,
+        "rawName":  "Lee Han Do",
+        "knownAs":  "Lee Han Do",
+        "firstName":  "Han Do",
+        "lastName":  "Lee",
+        "club":  "FC Seoul",
+        "country":  "Korea Republic",
+        "ovr":  62
+    },
+    {
+        "id":  233011,
+        "rawName":  "Jeong Chi In",
+        "knownAs":  "Jeong Chi In",
+        "firstName":  "Chi In",
+        "lastName":  "Jeong",
+        "club":  "Incheon United",
+        "country":  "Korea Republic",
+        "ovr":  64
+    },
+    {
+        "id":  233018,
+        "rawName":  "Kim Dae Won",
+        "knownAs":  "Kim Dae Won",
+        "firstName":  "Dae Won",
+        "lastName":  "Kim",
+        "club":  "Gangwon FC",
+        "country":  "Korea Republic",
+        "ovr":  73
+    },
+    {
+        "id":  233160,
+        "rawName":  "Jung Won Jin",
+        "knownAs":  "Jung Won Jin",
+        "firstName":  "Won Jin",
+        "lastName":  "Jung",
+        "club":  "Incheon United",
+        "country":  "Korea Republic",
+        "ovr":  58
+    },
+    {
+        "id":  233162,
+        "rawName":  "Kim Jong Seok",
+        "knownAs":  "Kim Jong Seok",
+        "firstName":  "Jong Seok",
+        "lastName":  "Kim",
+        "club":  "Gwangju FC",
+        "country":  "Korea Republic",
+        "ovr":  63
+    },
+    {
+        "id":  233280,
+        "rawName":  "Lee Min Gi",
+        "knownAs":  "Lee Min Gi",
+        "firstName":  "Min Gi",
+        "lastName":  "Lee",
+        "club":  "Gwangju FC",
+        "country":  "Korea Republic",
+        "ovr":  62
+    },
+    {
+        "id":  233286,
+        "rawName":  "Hwang In Jae",
+        "knownAs":  "Hwang In Jae",
+        "firstName":  "In Jae",
+        "lastName":  "Hwang",
+        "club":  "Pohang Steelers",
+        "country":  "Korea Republic",
+        "ovr":  70
+    },
+    {
+        "id":  233568,
+        "rawName":  "Lee Sang Heon",
+        "knownAs":  "Lee Sang Heon",
+        "firstName":  "Sang Heon",
+        "lastName":  "Lee",
+        "club":  "Gimcheon Sangmu",
+        "country":  "Korea Republic",
+        "ovr":  67
+    },
+    {
+        "id":  233711,
+        "rawName":  "Thomas Oude Kotte",
+        "knownAs":  "",
+        "firstName":  "Thomas",
+        "lastName":  "Oude Kotte",
+        "club":  "Ulsan HD FC",
+        "country":  "Holland",
+        "ovr":  72
+    },
+    {
+        "id":  233770,
+        "rawName":  "Kang Yoon Seong",
+        "knownAs":  "Kang Yoon Seong",
+        "firstName":  "Yoon Seong",
+        "lastName":  "Kang",
+        "club":  "Daejeon Hana",
+        "country":  "Korea Republic",
+        "ovr":  64
+    },
+    {
+        "id":  234186,
+        "rawName":  "Yeon Je Woon",
+        "knownAs":  "Yeon Je Woon",
+        "firstName":  "Je Woon",
+        "lastName":  "Yeon",
+        "club":  "Jeonbuk Hyundai",
+        "country":  "Korea Republic",
+        "ovr":  61
+    },
+    {
+        "id":  234222,
+        "rawName":  "Cho Young Wook",
+        "knownAs":  "Cho Young Wook",
+        "firstName":  "Young Wook",
+        "lastName":  "Cho",
+        "club":  "FC Seoul",
+        "country":  "Korea Republic",
+        "ovr":  64
+    },
+    {
+        "id":  234264,
+        "rawName":  "Jeong Seung Won",
+        "knownAs":  "Jeong Seung Won",
+        "firstName":  "Seung Won",
+        "lastName":  "Jeong",
+        "club":  "FC Seoul",
+        "country":  "Korea Republic",
+        "ovr":  69
+    },
+    {
+        "id":  234276,
+        "rawName":  "Jeong Jae Hee",
+        "knownAs":  "Jeong Jae Hee",
+        "firstName":  "Jae Hee",
+        "lastName":  "Jeong",
+        "club":  "Daejeon Hana",
+        "country":  "Korea Republic",
+        "ovr":  66
+    },
+    {
+        "id":  234328,
+        "rawName":  "Kim Hyeong Geun",
+        "knownAs":  "Kim Hyeong Geun",
+        "firstName":  "Hyeong Geun",
+        "lastName":  "Kim",
+        "club":  "Bucheon FC 1995",
+        "country":  "Korea Republic",
+        "ovr":  68
+    },
+    {
+        "id":  234748,
+        "rawName":  "Gu Sung Yun",
+        "knownAs":  "Gu Sung Yun",
+        "firstName":  "Sung Yun",
+        "lastName":  "Gu",
+        "club":  "FC Seoul",
+        "country":  "Korea Republic",
+        "ovr":  68
+    },
+    {
+        "id":  235465,
+        "rawName":  "Seo Young Jae",
+        "knownAs":  "Seo Young Jae",
+        "firstName":  "Young Jae",
+        "lastName":  "Seo",
+        "club":  "Daejeon Hana",
+        "country":  "Korea Republic",
+        "ovr":  62
+    },
+    {
+        "id":  236586,
+        "rawName":  "Kim Jin Ya",
+        "knownAs":  "Kim Jin Ya",
+        "firstName":  "Jin Ya",
+        "lastName":  "Kim",
+        "club":  "Daejeon Hana",
+        "country":  "Korea Republic",
+        "ovr":  57
+    },
+    {
+        "id":  236757,
+        "rawName":  "Patryk Klimala",
+        "knownAs":  "",
+        "firstName":  "Patryk",
+        "lastName":  "Klimala",
+        "club":  "FC Seoul",
+        "country":  "Poland",
+        "ovr":  70
+    },
+    {
+        "id":  237089,
+        "rawName":  "Park Won Jae",
+        "knownAs":  "Park Won Jae",
+        "firstName":  "Won Jae",
+        "lastName":  "Park",
+        "club":  "Gwangju FC",
+        "country":  "Korea Republic",
+        "ovr":  60
+    },
+    {
+        "id":  237091,
+        "rawName":  "Kim Hyeon Ug",
+        "knownAs":  "Kim Hyeon Ug",
+        "firstName":  "Hyeon Ug",
+        "lastName":  "Kim",
+        "club":  "Daejeon Hana",
+        "country":  "Korea Republic",
+        "ovr":  68
+    },
+    {
+        "id":  237097,
+        "rawName":  "Moon Jung In",
+        "knownAs":  "Moon Jung In",
+        "firstName":  "Jung In",
+        "lastName":  "Moon",
+        "club":  "Ulsan HD FC",
+        "country":  "Korea Republic",
+        "ovr":  59
+    },
+    {
+        "id":  237101,
+        "rawName":  "Lee Seung Mo",
+        "knownAs":  "Lee Seung Mo",
+        "firstName":  "Seung Mo",
+        "lastName":  "Lee",
+        "club":  "FC Seoul",
+        "country":  "Korea Republic",
+        "ovr":  67
+    },
+    {
+        "id":  237102,
+        "rawName":  "Lee Sang Ki",
+        "knownAs":  "Lee Sang Ki",
+        "firstName":  "Sang Ki",
+        "lastName":  "Lee",
+        "club":  "Incheon United",
+        "country":  "Korea Republic",
+        "ovr":  60
+    },
+    {
+        "id":  237778,
+        "rawName":  "Ahn Joon Soo",
+        "knownAs":  "Ahn Joon Soo",
+        "firstName":  "Joon Soo",
+        "lastName":  "Ahn",
+        "club":  "Gimcheon Sangmu",
+        "country":  "Korea Republic",
+        "ovr":  66
+    },
+    {
+        "id":  237965,
+        "rawName":  "Yoon Jong Gyu",
+        "knownAs":  "Yoon Jong Gyu",
+        "firstName":  "Jong Gyu",
+        "lastName":  "Yoon",
+        "club":  "Ulsan HD FC",
+        "country":  "Korea Republic",
+        "ovr":  62
+    },
+    {
+        "id":  237999,
+        "rawName":  "Yeo Bong Hun",
+        "knownAs":  "Yeo Bong Hun",
+        "firstName":  "Bong Hun",
+        "lastName":  "Yeo",
+        "club":  "Bucheon FC 1995",
+        "country":  "Korea Republic",
+        "ovr":  53
+    },
+    {
+        "id":  238089,
+        "rawName":  "Lee You Hyeon",
+        "knownAs":  "Lee You Hyeon",
+        "firstName":  "You Hyeon",
+        "lastName":  "Lee",
+        "club":  "Gangwon FC",
+        "country":  "Korea Republic",
+        "ovr":  68
+    },
+    {
+        "id":  238098,
+        "rawName":  "Lee Soon Min",
+        "knownAs":  "Lee Soon Min",
+        "firstName":  "Soon Min",
+        "lastName":  "Lee",
+        "club":  "Daejeon Hana",
+        "country":  "Korea Republic",
+        "ovr":  66
+    },
+    {
+        "id":  238173,
+        "rawName":  "Mo Jae Hyeon",
+        "knownAs":  "Mo Jae Hyeon",
+        "firstName":  "Jae Hyeon",
+        "lastName":  "Mo",
+        "club":  "Gangwon FC",
+        "country":  "Korea Republic",
+        "ovr":  69
+    },
+    {
+        "id":  238224,
+        "rawName":  "Marcão",
+        "knownAs":  "Marcão",
+        "firstName":  "Marcos Vinicius",
+        "lastName":  "Amaral Alves",
+        "club":  "Ulsan HD FC",
+        "country":  "Brazil",
+        "ovr":  70
+    },
+    {
+        "id":  238242,
+        "rawName":  "Mun Ji Hwan",
+        "knownAs":  "Mun Ji Hwan",
+        "firstName":  "Ji Hwan",
+        "lastName":  "Mun",
+        "club":  "Incheon United",
+        "country":  "Korea Republic",
+        "ovr":  59
+    },
+    {
+        "id":  238250,
+        "rawName":  "Kim Yeon Soo",
+        "knownAs":  "Kim Yeon Soo",
+        "firstName":  "Yeon Soo",
+        "lastName":  "Kim",
+        "club":  "Incheon United",
+        "country":  "Korea Republic",
+        "ovr":  59
+    },
+    {
+        "id":  238354,
+        "rawName":  "Ha Chang Rae",
+        "knownAs":  "Ha Chang Rae",
+        "firstName":  "Chang Rae",
+        "lastName":  "Ha",
+        "club":  "Daejeon Hana",
+        "country":  "Korea Republic",
+        "ovr":  65
+    },
+    {
+        "id":  238570,
+        "rawName":  "Song Bum Keun",
+        "knownAs":  "Song Bum Keun",
+        "firstName":  "Bum Keun",
+        "lastName":  "Song",
+        "club":  "Jeonbuk Hyundai",
+        "country":  "Korea Republic",
+        "ovr":  74
+    },
+    {
+        "id":  238574,
+        "rawName":  "Lee Sang Min",
+        "knownAs":  "Lee Sang Min",
+        "firstName":  "Sang Min",
+        "lastName":  "Lee",
+        "club":  "FC Seoul",
+        "country":  "Korea Republic",
+        "ovr":  58
+    },
+    {
+        "id":  238577,
+        "rawName":  "Kang Ji Hoon",
+        "knownAs":  "Kang Ji Hoon",
+        "firstName":  "Ji Hoon",
+        "lastName":  "Kang",
+        "club":  "FC Anyang",
+        "country":  "Korea Republic",
+        "ovr":  63
+    },
+    {
+        "id":  238578,
+        "rawName":  "Lee Jin Hyun",
+        "knownAs":  "Lee Jin Hyun",
+        "firstName":  "Jin Hyun",
+        "lastName":  "Lee",
+        "club":  "Ulsan HD FC",
+        "country":  "Korea Republic",
+        "ovr":  65
+    },
+    {
+        "id":  238579,
+        "rawName":  "Ha Seung Un",
+        "knownAs":  "Ha Seung Un",
+        "firstName":  "Seung Un",
+        "lastName":  "Ha",
+        "club":  "Gwangju FC",
+        "country":  "Korea Republic",
+        "ovr":  62
+    },
+    {
+        "id":  238885,
+        "rawName":  "Matheus Aiás",
+        "knownAs":  "Matheus Aiás",
+        "firstName":  "Matheus Aiás",
+        "lastName":  "Barrozo Rodrigues",
+        "club":  "Jeju United",
+        "country":  "Brazil",
+        "ovr":  67
+    },
+    {
+        "id":  239596,
+        "rawName":  "Julien Célestine",
+        "knownAs":  "",
+        "firstName":  "Julien",
+        "lastName":  "Célestine",
+        "club":  "Jeju United",
+        "country":  "France",
+        "ovr":  70
+    },
+    {
+        "id":  239962,
+        "rawName":  "Ivan Jukić",
+        "knownAs":  "",
+        "firstName":  "Ivan",
+        "lastName":  "Jukić",
+        "club":  "FC Anyang",
+        "country":  "Bosnia and Herzegovina",
+        "ovr":  61
+    },
+    {
+        "id":  240280,
+        "rawName":  "Matheus Oliveira",
+        "knownAs":  "Matheus Oliveira",
+        "firstName":  "Matheus",
+        "lastName":  "Oliveira Santos",
+        "club":  "FC Anyang",
+        "country":  "Brazil",
+        "ovr":  73
+    },
+    {
+        "id":  242082,
+        "rawName":  "Kim Jae Woo",
+        "knownAs":  "Kim Jae Woo",
+        "firstName":  "Jae Woo",
+        "lastName":  "Kim",
+        "club":  "Jeju United",
+        "country":  "Korea Republic",
+        "ovr":  65
+    },
+    {
+        "id":  242182,
+        "rawName":  "Kim Hyun Woo",
+        "knownAs":  "Kim Hyun Woo",
+        "firstName":  "Hyun Woo",
+        "lastName":  "Kim",
+        "club":  "Gimcheon Sangmu",
+        "country":  "Korea Republic",
+        "ovr":  63
+    },
+    {
+        "id":  242821,
+        "rawName":  "Kim Seung Sub",
+        "knownAs":  "Kim Seung Sub",
+        "firstName":  "Seung Sub",
+        "lastName":  "Kim",
+        "club":  "Jeonbuk Hyundai",
+        "country":  "Korea Republic",
+        "ovr":  67
+    },
+    {
+        "id":  242826,
+        "rawName":  "Lee Jae Ik",
+        "knownAs":  "Lee Jae Ik",
+        "firstName":  "Jae Ik",
+        "lastName":  "Lee",
+        "club":  "Ulsan HD FC",
+        "country":  "Korea Republic",
+        "ovr":  63
+    },
+    {
+        "id":  242924,
+        "rawName":  "Ko Jae Hyeon",
+        "knownAs":  "Ko Jae Hyeon",
+        "firstName":  "Jae Hyeon",
+        "lastName":  "Ko",
+        "club":  "Gimcheon Sangmu",
+        "country":  "Korea Republic",
+        "ovr":  65
+    },
+    {
+        "id":  243061,
+        "rawName":  "Lee Dong Jun",
+        "knownAs":  "Lee Dong Jun",
+        "firstName":  "Dong Jun",
+        "lastName":  "Lee",
+        "club":  "Jeonbuk Hyundai",
+        "country":  "Korea Republic",
+        "ovr":  69
+    },
+    {
+        "id":  243064,
+        "rawName":  "Park Tae Joon",
+        "knownAs":  "Park Tae Joon",
+        "firstName":  "Tae Joon",
+        "lastName":  "Park",
+        "club":  "Gimcheon Sangmu",
+        "country":  "Korea Republic",
+        "ovr":  69
+    },
+    {
+        "id":  243173,
+        "rawName":  "Kim Jun Bum",
+        "knownAs":  "Kim Jun Bum",
+        "firstName":  "Jun Bum",
+        "lastName":  "Kim",
+        "club":  "Daejeon Hana",
+        "country":  "Korea Republic",
+        "ovr":  62
+    },
+    {
+        "id":  243175,
+        "rawName":  "Lee Hyun Sik",
+        "knownAs":  "Lee Hyun Sik",
+        "firstName":  "Hyun Sik",
+        "lastName":  "Lee",
+        "club":  "Daejeon Hana",
+        "country":  "Korea Republic",
+        "ovr":  61
+    },
+    {
+        "id":  243358,
+        "rawName":  "Park Chang Jun",
+        "knownAs":  "Park Chang Jun",
+        "firstName":  "Chang Jun",
+        "lastName":  "Park",
+        "club":  "Jeju United",
+        "country":  "Korea Republic",
+        "ovr":  64
+    },
+    {
+        "id":  243672,
+        "rawName":  "Kim Tae Hyun",
+        "knownAs":  "Kim Tae Hyun",
+        "firstName":  "Tae Hyun",
+        "lastName":  "Kim",
+        "club":  "Jeonbuk Hyundai",
+        "country":  "Korea Republic",
+        "ovr":  67
+    },
+    {
+        "id":  243754,
+        "rawName":  "Kim Ye Sung",
+        "knownAs":  "Kim Ye Sung",
+        "firstName":  "Ye Sung",
+        "lastName":  "Kim",
+        "club":  "Pohang Steelers",
+        "country":  "Korea Republic",
+        "ovr":  62
+    },
+    {
+        "id":  243824,
+        "rawName":  "Park Soo Il",
+        "knownAs":  "Park Soo Il",
+        "firstName":  "Soo Il",
+        "lastName":  "Park",
+        "club":  "FC Seoul",
+        "country":  "Korea Republic",
+        "ovr":  65
+    },
+    {
+        "id":  244800,
+        "rawName":  "Kim Moon Hwan",
+        "knownAs":  "Kim Moon Hwan",
+        "firstName":  "Moon Hwan",
+        "lastName":  "Kim",
+        "club":  "Daejeon Hana",
+        "country":  "Korea Republic",
+        "ovr":  70
+    },
+    {
+        "id":  245054,
+        "rawName":  "Lee Dong Gyeong",
+        "knownAs":  "Lee Dong Gyeong",
+        "firstName":  "Dong Gyeong",
+        "lastName":  "Lee",
+        "club":  "Ulsan HD FC",
+        "country":  "Korea Republic",
+        "ovr":  75
+    },
+    {
+        "id":  245159,
+        "rawName":  "Juan Ibiza",
+        "knownAs":  "Juan Ibiza",
+        "firstName":  "Juan",
+        "lastName":  "Fernández Blanco",
+        "club":  "Incheon United",
+        "country":  "Spain",
+        "ovr":  69
+    },
+    {
+        "id":  245981,
+        "rawName":  "Kim Dong Hyun",
+        "knownAs":  "Kim Dong Hyun",
+        "firstName":  "Dong Hyun",
+        "lastName":  "Kim",
+        "club":  "Gangwon FC",
+        "country":  "Korea Republic",
+        "ovr":  65
+    },
+    {
+        "id":  245982,
+        "rawName":  "Choi Byeong Chan",
+        "knownAs":  "Choi Byeong Chan",
+        "firstName":  "Byeong Chan",
+        "lastName":  "Choi",
+        "club":  "Gangwon FC",
+        "country":  "Korea Republic",
+        "ovr":  60
+    },
+    {
+        "id":  246930,
+        "rawName":  "Cheon Seong Hoon",
+        "knownAs":  "Cheon Seong Hoon",
+        "firstName":  "Seong Hoon",
+        "lastName":  "Cheon",
+        "club":  "FC Seoul",
+        "country":  "Korea Republic",
+        "ovr":  56
+    },
+    {
+        "id":  246937,
+        "rawName":  "Um Won Sang",
+        "knownAs":  "Um Won Sang",
+        "firstName":  "Won Sang",
+        "lastName":  "Um",
+        "club":  "Daejeon Hana",
+        "country":  "Korea Republic",
+        "ovr":  65
+    },
+    {
+        "id":  247354,
+        "rawName":  "Benji Michel",
+        "knownAs":  "",
+        "firstName":  "Benji",
+        "lastName":  "Michel",
+        "club":  "Ulsan HD FC",
+        "country":  "United States",
+        "ovr":  63
+    },
+    {
+        "id":  247471,
+        "rawName":  "Masatoshi Ishida",
+        "knownAs":  "",
+        "firstName":  "Masatoshi",
+        "lastName":  "Ishida",
+        "club":  "Daejeon Hana",
+        "country":  "Japan",
+        "ovr":  65
+    },
+    {
+        "id":  247667,
+        "rawName":  "Kim Tae Hwan",
+        "knownAs":  "Kim Tae Hwan",
+        "firstName":  "Tae Hwan",
+        "lastName":  "Kim",
+        "club":  "Gimcheon Sangmu",
+        "country":  "Korea Republic",
+        "ovr":  62
+    },
+    {
+        "id":  247714,
+        "rawName":  "Lim Seung Kyum",
+        "knownAs":  "Lim Seung Kyum",
+        "firstName":  "Seung Kyum",
+        "lastName":  "Lim",
+        "club":  "Gwangju FC",
+        "country":  "Korea Republic",
+        "ovr":  55
+    },
+    {
+        "id":  247748,
+        "rawName":  "Lee Hee Kyun",
+        "knownAs":  "Lee Hee Kyun",
+        "firstName":  "Hee Kyun",
+        "lastName":  "Lee",
+        "club":  "Ulsan HD FC",
+        "country":  "Korea Republic",
+        "ovr":  65
+    },
+    {
+        "id":  248131,
+        "rawName":  "Park Jung In",
+        "knownAs":  "Park Jung In",
+        "firstName":  "Jung In",
+        "lastName":  "Park",
+        "club":  "Bucheon FC 1995",
+        "country":  "Korea Republic",
+        "ovr":  58
+    },
+    {
+        "id":  248188,
+        "rawName":  "Song Min Kyu",
+        "knownAs":  "Song Min Kyu",
+        "firstName":  "Min Kyu",
+        "lastName":  "Song",
+        "club":  "FC Seoul",
+        "country":  "Korea Republic",
+        "ovr":  72
+    },
+    {
+        "id":  248238,
+        "rawName":  "Shin Jae Won",
+        "knownAs":  "Shin Jae Won",
+        "firstName":  "Jae Won",
+        "lastName":  "Shin",
+        "club":  "Bucheon FC 1995",
+        "country":  "Korea Republic",
+        "ovr":  62
+    },
+    {
+        "id":  248487,
+        "rawName":  "Lee Soo Bin",
+        "knownAs":  "Lee Soo Bin",
+        "firstName":  "Soo Bin",
+        "lastName":  "Lee",
+        "club":  "Gimcheon Sangmu",
+        "country":  "Korea Republic",
+        "ovr":  63
+    },
+    {
+        "id":  250896,
+        "rawName":  "Kim Min Duk",
+        "knownAs":  "Kim Min Duk",
+        "firstName":  "Min Duk",
+        "lastName":  "Kim",
+        "club":  "Daejeon Hana",
+        "country":  "Korea Republic",
+        "ovr":  65
+    },
+    {
+        "id":  251160,
+        "rawName":  "Jeong Ho Jin",
+        "knownAs":  "Jeong Ho Jin",
+        "firstName":  "Ho Jin",
+        "lastName":  "Jeong",
+        "club":  "Bucheon FC 1995",
+        "country":  "Korea Republic",
+        "ovr":  63
+    },
+    {
+        "id":  251161,
+        "rawName":  "Choi Jun",
+        "knownAs":  "Choi Jun",
+        "firstName":  "Jun",
+        "lastName":  "Choi",
+        "club":  "FC Seoul",
+        "country":  "Korea Republic",
+        "ovr":  72
+    },
+    {
+        "id":  251580,
+        "rawName":  "Seo Jin Su",
+        "knownAs":  "Seo Jin Su",
+        "firstName":  "Jin Su",
+        "lastName":  "Seo",
+        "club":  "Daejeon Hana",
+        "country":  "Korea Republic",
+        "ovr":  66
+    },
+    {
+        "id":  252150,
+        "rawName":  "Patrick William",
+        "knownAs":  "Patrick William",
+        "firstName":  "Patrick William",
+        "lastName":  "Sá De Oliveira",
+        "club":  "Bucheon FC 1995",
+        "country":  "Brazil",
+        "ovr":  69
+    },
+    {
+        "id":  252320,
+        "rawName":  "Park Kyu Hyun",
+        "knownAs":  "Park Kyu Hyun",
+        "firstName":  "Kyu hyun",
+        "lastName":  "Park",
+        "club":  "Daejeon Hana",
+        "country":  "Korea Republic",
+        "ovr":  65
+    },
+    {
+        "id":  252349,
+        "rawName":  "Won Ki Jong",
+        "knownAs":  "Won Ki Jong",
+        "firstName":  "Ki Jong",
+        "lastName":  "Won",
+        "club":  "Pohang Steelers",
+        "country":  "Korea Republic",
+        "ovr":  60
+    },
+    {
+        "id":  252428,
+        "rawName":  "Kim Tae Hun",
+        "knownAs":  "Kim Tae Hun",
+        "firstName":  "Tae Hun",
+        "lastName":  "Kim",
+        "club":  "FC Anyang",
+        "country":  "Korea Republic",
+        "ovr":  54
+    },
+    {
+        "id":  252432,
+        "rawName":  "Maeng Seong Ung",
+        "knownAs":  "Maeng Seong Ung",
+        "firstName":  "Seong Ung",
+        "lastName":  "Maeng",
+        "club":  "Jeonbuk Hyundai",
+        "country":  "Korea Republic",
+        "ovr":  63
+    },
+    {
+        "id":  252644,
+        "rawName":  "Oh Hoo Sung",
+        "knownAs":  "Oh Hoo Sung",
+        "firstName":  "Hoo Sung",
+        "lastName":  "Oh",
+        "club":  "Incheon United",
+        "country":  "Korea Republic",
+        "ovr":  64
+    },
+    {
+        "id":  252658,
+        "rawName":  "Baek Jong Beom",
+        "knownAs":  "Baek Jong Beom",
+        "firstName":  "Jong Beom",
+        "lastName":  "Baek",
+        "club":  "Gimcheon Sangmu",
+        "country":  "Korea Republic",
+        "ovr":  64
+    },
+    {
+        "id":  252659,
+        "rawName":  "Kim Dong Heon",
+        "knownAs":  "Kim Dong Heon",
+        "firstName":  "Dong Heon",
+        "lastName":  "Kim",
+        "club":  "Incheon United",
+        "country":  "Korea Republic",
+        "ovr":  67
+    },
+    {
+        "id":  252662,
+        "rawName":  "Kim Jeong hoon",
+        "knownAs":  "Kim Jeong hoon",
+        "firstName":  "Jeong Hoon",
+        "lastName":  "Kim",
+        "club":  "FC Anyang",
+        "country":  "Korea Republic",
+        "ovr":  66
+    },
+    {
+        "id":  252709,
+        "rawName":  "Kim Sang Jun",
+        "knownAs":  "Kim Sang Jun",
+        "firstName":  "Sang Jun",
+        "lastName":  "Kim",
+        "club":  "Bucheon FC 1995",
+        "country":  "Korea Republic",
+        "ovr":  65
+    },
+    {
+        "id":  252810,
+        "rawName":  "Lim Dug Keun",
+        "knownAs":  "Lim Dug Keun",
+        "firstName":  "Dug Keun",
+        "lastName":  "Lim",
+        "club":  "Gimcheon Sangmu",
+        "country":  "Korea Republic",
+        "ovr":  62
+    },
+    {
+        "id":  252813,
+        "rawName":  "Lee Dong Ryul",
+        "knownAs":  "Lee Dong Ryul",
+        "firstName":  "Dong Ryul",
+        "lastName":  "Lee",
+        "club":  "Incheon United",
+        "country":  "Korea Republic",
+        "ovr":  63
+    },
+    {
+        "id":  252966,
+        "rawName":  "Hwang Jae Hwan",
+        "knownAs":  "Hwang Jae Hwan",
+        "firstName":  "Jae Hwan",
+        "lastName":  "Hwang",
+        "club":  "Pohang Steelers",
+        "country":  "Korea Republic",
+        "ovr":  58
+    },
+    {
+        "id":  253198,
+        "rawName":  "Park Ho Young",
+        "knownAs":  "Park Ho Young",
+        "firstName":  "Ho Young",
+        "lastName":  "Park",
+        "club":  "Gangwon FC",
+        "country":  "Korea Republic",
+        "ovr":  56
+    },
+    {
+        "id":  254225,
+        "rawName":  "Anderson Oliveira",
+        "knownAs":  "Anderson Oliveira",
+        "firstName":  "Anderson",
+        "lastName":  "Oliveira da Silva",
+        "club":  "FC Seoul",
+        "country":  "Brazil",
+        "ovr":  72
+    },
+    {
+        "id":  255021,
+        "rawName":  "Jesse Sekidika",
+        "knownAs":  "",
+        "firstName":  "Jesse",
+        "lastName":  "Sekidika",
+        "club":  "Gangwon FC",
+        "country":  "Nigeria",
+        "ovr":  67
+    },
+    {
+        "id":  255035,
+        "rawName":  "Cho Hyun Taek",
+        "knownAs":  "Cho Hyun Taek",
+        "firstName":  "Hyun Taek",
+        "lastName":  "Cho",
+        "club":  "Ulsan HD FC",
+        "country":  "Korea Republic",
+        "ovr":  71
+    },
+    {
+        "id":  255160,
+        "rawName":  "Kim Min Jun",
+        "knownAs":  "Kim Min Jun",
+        "firstName":  "Min Jun",
+        "lastName":  "Kim",
+        "club":  "Bucheon FC 1995",
+        "country":  "Korea Republic",
+        "ovr":  62
+    },
+    {
+        "id":  255239,
+        "rawName":  "Lee Joo Hyun",
+        "knownAs":  "Lee Joo Hyun",
+        "firstName":  "Joo Hyun",
+        "lastName":  "Lee",
+        "club":  "Jeonbuk Hyundai",
+        "country":  "Korea Republic",
+        "ovr":  60
+    },
+    {
+        "id":  255245,
+        "rawName":  "Choi Geon Ju",
+        "knownAs":  "Choi Geon Ju",
+        "firstName":  "Geon Ju",
+        "lastName":  "Choi",
+        "club":  "FC Anyang",
+        "country":  "Korea Republic",
+        "ovr":  64
+    },
+    {
+        "id":  255329,
+        "rawName":  "Kim In Kyun",
+        "knownAs":  "Kim In Kyun",
+        "firstName":  "In Kyun",
+        "lastName":  "Kim",
+        "club":  "Gimcheon Sangmu",
+        "country":  "Korea Republic",
+        "ovr":  63
+    },
+    {
+        "id":  255500,
+        "rawName":  "Seo Min Woo",
+        "knownAs":  "Seo Min Woo",
+        "firstName":  "Min Woo",
+        "lastName":  "Seo",
+        "club":  "Gangwon FC",
+        "country":  "Korea Republic",
+        "ovr":  70
+    },
+    {
+        "id":  255502,
+        "rawName":  "Hong Won jin",
+        "knownAs":  "Hong Won jin",
+        "firstName":  "Won Jin",
+        "lastName":  "Hong",
+        "club":  "Gimcheon Sangmu",
+        "country":  "Korea Republic",
+        "ovr":  64
+    },
+    {
+        "id":  255518,
+        "rawName":  "Kim Min Gyu",
+        "knownAs":  "Kim Min Gyu",
+        "firstName":  "Min Gyu",
+        "lastName":  "Kim",
+        "club":  "Gimcheon Sangmu",
+        "country":  "Korea Republic",
+        "ovr":  59
+    },
+    {
+        "id":  255519,
+        "rawName":  "Lee Geon Hee",
+        "knownAs":  "Lee Geon Hee",
+        "firstName":  "Geon Hee",
+        "lastName":  "Lee",
+        "club":  "Gimcheon Sangmu",
+        "country":  "Korea Republic",
+        "ovr":  65
+    },
+    {
+        "id":  255520,
+        "rawName":  "Jo Sung Wook",
+        "knownAs":  "Jo Sung Wook",
+        "firstName":  "Sung Wook",
+        "lastName":  "Jo",
+        "club":  "Pohang Steelers",
+        "country":  "Korea Republic",
+        "ovr":  56
+    },
+    {
+        "id":  255553,
+        "rawName":  "Kwon Seong Yoon",
+        "knownAs":  "Kwon Seong Yoon",
+        "firstName":  "Seong Yoon",
+        "lastName":  "Kwon",
+        "club":  "Gwangju FC",
+        "country":  "Korea Republic",
+        "ovr":  59
+    },
+    {
+        "id":  255554,
+        "rawName":  "Jung Han Min",
+        "knownAs":  "Jung Han Min",
+        "firstName":  "Han Min",
+        "lastName":  "Jung",
+        "club":  "Pohang Steelers",
+        "country":  "Korea Republic",
+        "ovr":  57
+    },
+    {
+        "id":  255686,
+        "rawName":  "Diogo Oliveira",
+        "knownAs":  "Diogo Oliveira",
+        "firstName":  "Diogo",
+        "lastName":  "de Oliveira Barbosa",
+        "club":  "Daejeon Hana",
+        "country":  "Brazil",
+        "ovr":  66
+    },
+    {
+        "id":  255868,
+        "rawName":  "Heo Yul",
+        "knownAs":  "Heo Yul",
+        "firstName":  "Yul",
+        "lastName":  "Heo",
+        "club":  "Gimcheon Sangmu",
+        "country":  "Korea Republic",
+        "ovr":  61
+    },
+    {
+        "id":  255917,
+        "rawName":  "Goh Young Jun",
+        "knownAs":  "Goh Young Jun",
+        "firstName":  "Young Jun",
+        "lastName":  "Goh",
+        "club":  "Gangwon FC",
+        "country":  "Korea Republic",
+        "ovr":  65
+    },
+    {
+        "id":  256252,
+        "rawName":  "Park Chan Yong",
+        "knownAs":  "Park Chan Yong",
+        "firstName":  "Chan Yong",
+        "lastName":  "Park",
+        "club":  "Pohang Steelers",
+        "country":  "Korea Republic",
+        "ovr":  69
+    },
+    {
+        "id":  256370,
+        "rawName":  "Gustav Ludwigson",
+        "knownAs":  "",
+        "firstName":  "Gustav",
+        "lastName":  "Ludwigson",
+        "club":  "Daejeon Hana",
+        "country":  "Sweden",
+        "ovr":  69
+    },
+    {
+        "id":  256387,
+        "rawName":  "Heo Ja Woong",
+        "knownAs":  "Heo Ja Woong",
+        "firstName":  "Ja Woong",
+        "lastName":  "Heo",
+        "club":  "Jeju United",
+        "country":  "Korea Republic",
+        "ovr":  57
+    },
+    {
+        "id":  256685,
+        "rawName":  "Hong Si Hoo",
+        "knownAs":  "Hong Si Hoo",
+        "firstName":  "Si Hoo",
+        "lastName":  "Hong",
+        "club":  "Gimcheon Sangmu",
+        "country":  "Korea Republic",
+        "ovr":  59
+    },
+    {
+        "id":  256791,
+        "rawName":  "Lee Jin Yong",
+        "knownAs":  "Lee Jin Yong",
+        "firstName":  "Jin Yong",
+        "lastName":  "Lee",
+        "club":  "FC Anyang",
+        "country":  "Korea Republic",
+        "ovr":  62
+    },
+    {
+        "id":  257961,
+        "rawName":  "Teun van Grunsven",
+        "knownAs":  "",
+        "firstName":  "Teun",
+        "lastName":  "van Grunsven",
+        "club":  "Gwangju FC",
+        "country":  "Holland",
+        "ovr":  59
+    },
+    {
+        "id":  258358,
+        "rawName":  "João Victor",
+        "knownAs":  "João Victor",
+        "firstName":  "João Victor",
+        "lastName":  "Lima Ferreira",
+        "club":  "Daejeon Hana",
+        "country":  "Brazil",
+        "ovr":  66
+    },
+    {
+        "id":  259255,
+        "rawName":  "Lee Kyung Tae",
+        "knownAs":  "Lee Kyung Tae",
+        "firstName":  "Kyung Tae",
+        "lastName":  "Lee",
+        "club":  "Daejeon Hana",
+        "country":  "Korea Republic",
+        "ovr":  57
+    },
+    {
+        "id":  259325,
+        "rawName":  "Galego",
+        "knownAs":  "Galego",
+        "firstName":  "Jefferson F.",
+        "lastName":  "Isídio",
+        "club":  "Bucheon FC 1995",
+        "country":  "Brazil",
+        "ovr":  71
+    },
+    {
+        "id":  259843,
+        "rawName":  "Byeon Jun Soo",
+        "knownAs":  "Byeon Jun Soo",
+        "firstName":  "Jun Soo",
+        "lastName":  "Byeon",
+        "club":  "Gimcheon Sangmu",
+        "country":  "Korea Republic",
+        "ovr":  68
+    },
+    {
+        "id":  260166,
+        "rawName":  "Oh Jae Hyuk",
+        "knownAs":  "Oh Jae Hyuk",
+        "firstName":  "Jae Hyuk",
+        "lastName":  "Oh",
+        "club":  "Gimcheon Sangmu",
+        "country":  "Korea Republic",
+        "ovr":  64
+    },
+    {
+        "id":  260225,
+        "rawName":  "Lee Ui Hyeong",
+        "knownAs":  "Lee Ui Hyeong",
+        "firstName":  "Ui Hyeong",
+        "lastName":  "Lee",
+        "club":  "Bucheon FC 1995",
+        "country":  "Korea Republic",
+        "ovr":  61
+    },
+    {
+        "id":  260396,
+        "rawName":  "Park Sang Hyuk",
+        "knownAs":  "Park Sang Hyuk",
+        "firstName":  "Sang Hyuk",
+        "lastName":  "Park",
+        "club":  "Gangwon FC",
+        "country":  "Korea Republic",
+        "ovr":  65
+    },
+    {
+        "id":  260474,
+        "rawName":  "Kim Bong Soo",
+        "knownAs":  "Kim Bong Soo",
+        "firstName":  "Bong Soo",
+        "lastName":  "Kim",
+        "club":  "Daejeon Hana",
+        "country":  "Korea Republic",
+        "ovr":  72
+    },
+    {
+        "id":  260475,
+        "rawName":  "Byun Gyeong Jun",
+        "knownAs":  "Byun Gyeong Jun",
+        "firstName":  "Gyeong Jun",
+        "lastName":  "Byun",
+        "club":  "Gimcheon Sangmu",
+        "country":  "Korea Republic",
+        "ovr":  62
+    },
+    {
+        "id":  260476,
+        "rawName":  "Hong Sung Wook",
+        "knownAs":  "Hong Sung Wook",
+        "firstName":  "Sung Wook",
+        "lastName":  "Hong",
+        "club":  "Bucheon FC 1995",
+        "country":  "Korea Republic",
+        "ovr":  66
+    },
+    {
+        "id":  260497,
+        "rawName":  "Lee Kang Hyeon",
+        "knownAs":  "Lee Kang Hyeon",
+        "firstName":  "Kang Hyeon",
+        "lastName":  "Lee",
+        "club":  "Gimcheon Sangmu",
+        "country":  "Korea Republic",
+        "ovr":  63
+    },
+    {
+        "id":  260634,
+        "rawName":  "Heo Kang Joon",
+        "knownAs":  "Heo Kang Joon",
+        "firstName":  "Kang Joon",
+        "lastName":  "Heo",
+        "club":  "Jeju United",
+        "country":  "Korea Republic",
+        "ovr":  53
+    },
+    {
+        "id":  261054,
+        "rawName":  "Kang Yoon Gu",
+        "knownAs":  "Kang Yoon Gu",
+        "firstName":  "Yoon Gu",
+        "lastName":  "Kang",
+        "club":  "Gangwon FC",
+        "country":  "Korea Republic",
+        "ovr":  60
+    },
+    {
+        "id":  261055,
+        "rawName":  "Park Jin Seong",
+        "knownAs":  "Park Jin Seong",
+        "firstName":  "Jin Seong",
+        "lastName":  "Park",
+        "club":  "Gimcheon Sangmu",
+        "country":  "Korea Republic",
+        "ovr":  59
+    },
+    {
+        "id":  261075,
+        "rawName":  "Kang Jae Woo",
+        "knownAs":  "Kang Jae Woo",
+        "firstName":  "Jae Woo",
+        "lastName":  "Kang",
+        "club":  "Bucheon FC 1995",
+        "country":  "Korea Republic",
+        "ovr":  53
+    },
+    {
+        "id":  261078,
+        "rawName":  "Eo Jeong Won",
+        "knownAs":  "Eo Jeong Won",
+        "firstName":  "Jeong Won",
+        "lastName":  "Eo",
+        "club":  "Pohang Steelers",
+        "country":  "Korea Republic",
+        "ovr":  69
+    },
+    {
+        "id":  261104,
+        "rawName":  "Shin Sang Eun",
+        "knownAs":  "Shin Sang Eun",
+        "firstName":  "Sang Eun",
+        "lastName":  "Shin",
+        "club":  "Jeju United",
+        "country":  "Korea Republic",
+        "ovr":  60
+    },
+    {
+        "id":  261105,
+        "rawName":  "Jeon Byung Kwan",
+        "knownAs":  "Jeon Byung Kwan",
+        "firstName":  "Byung Kwan",
+        "lastName":  "Jeon",
+        "club":  "Gimcheon Sangmu",
+        "country":  "Korea Republic",
+        "ovr":  65
+    },
+    {
+        "id":  261106,
+        "rawName":  "Lee Jun Seo",
+        "knownAs":  "Lee Jun Seo",
+        "firstName":  "Jun Seo",
+        "lastName":  "Lee",
+        "club":  "Daejeon Hana",
+        "country":  "Korea Republic",
+        "ovr":  55
+    },
+    {
+        "id":  261116,
+        "rawName":  "Roh Kyung Ho",
+        "knownAs":  "Roh Kyung Ho",
+        "firstName":  "Kyung Ho",
+        "lastName":  "Roh",
+        "club":  "Gimcheon Sangmu",
+        "country":  "Korea Republic",
+        "ovr":  58
+    },
+    {
+        "id":  261122,
+        "rawName":  "Kim Ryun Seong",
+        "knownAs":  "Kim Ryun Seong",
+        "firstName":  "Ryun Seong",
+        "lastName":  "Kim",
+        "club":  "Jeju United",
+        "country":  "Korea Republic",
+        "ovr":  68
+    },
+    {
+        "id":  261126,
+        "rawName":  "An Jae Jun",
+        "knownAs":  "An Jae Jun",
+        "firstName":  "Jae Jun",
+        "lastName":  "An",
+        "club":  "Pohang Steelers",
+        "country":  "Korea Republic",
+        "ovr":  60
+    },
+    {
+        "id":  261128,
+        "rawName":  "Lee Gi Hyuk",
+        "knownAs":  "Lee Gi Hyuk",
+        "firstName":  "Gi Hyuk",
+        "lastName":  "Lee",
+        "club":  "Gangwon FC",
+        "country":  "Korea Republic",
+        "ovr":  73
+    },
+    {
+        "id":  261880,
+        "rawName":  "Juninho Rocha",
+        "knownAs":  "Juninho Rocha",
+        "firstName":  "Paulo Afonso",
+        "lastName":  "da Rocha Júnior",
+        "club":  "Pohang Steelers",
+        "country":  "Brazil",
+        "ovr":  66
+    },
+    {
+        "id":  262447,
+        "rawName":  "Andrea Compagno",
+        "knownAs":  "",
+        "firstName":  "Andrea",
+        "lastName":  "Compagno",
+        "club":  "Jeonbuk Hyundai",
+        "country":  "Italy",
+        "ovr":  69
+    },
+    {
+        "id":  262904,
+        "rawName":  "John Iredale",
+        "knownAs":  "",
+        "firstName":  "John",
+        "lastName":  "Iredale",
+        "club":  "Gwangju FC",
+        "country":  "Australia",
+        "ovr":  64
+    },
+    {
+        "id":  263029,
+        "rawName":  "Ros",
+        "knownAs":  "Ros",
+        "firstName":  "Juan Antonio",
+        "lastName":  "Ros Martínez",
+        "club":  "FC Seoul",
+        "country":  "Spain",
+        "ovr":  70
+    },
+    {
+        "id":  263034,
+        "rawName":  "Anton Krivotsyuk",
+        "knownAs":  "",
+        "firstName":  "Anton",
+        "lastName":  "Krivotsyuk",
+        "club":  "Daejeon Hana",
+        "country":  "Azerbaijan",
+        "ovr":  66
+    },
+    {
+        "id":  263787,
+        "rawName":  "Bobsin",
+        "knownAs":  "Bobsin",
+        "firstName":  "Victor",
+        "lastName":  "Bobsin Pereira",
+        "club":  "Daejeon Hana",
+        "country":  "Brazil",
+        "ovr":  66
+    },
+    {
+        "id":  264226,
+        "rawName":  "Kim Myung Soon",
+        "knownAs":  "Kim Myung Soon",
+        "firstName":  "Myung Soon",
+        "lastName":  "Kim",
+        "club":  "Incheon United",
+        "country":  "Korea Republic",
+        "ovr":  65
+    },
+    {
+        "id":  264637,
+        "rawName":  "Branislav Knežević",
+        "knownAs":  "",
+        "firstName":  "Branislav",
+        "lastName":  "Knežević",
+        "club":  "FC Anyang",
+        "country":  "Serbia",
+        "ovr":  57
+    },
+    {
+        "id":  266190,
+        "rawName":  "Lee Chan Ouk",
+        "knownAs":  "Lee Chan Ouk",
+        "firstName":  "Chan Ouk",
+        "lastName":  "Lee",
+        "club":  "Gimcheon Sangmu",
+        "country":  "Korea Republic",
+        "ovr":  55
+    },
+    {
+        "id":  266196,
+        "rawName":  "Park Seong Hun",
+        "knownAs":  "Park Seong Hun",
+        "firstName":  "Seong Hun",
+        "lastName":  "Park",
+        "club":  "FC Seoul",
+        "country":  "Korea Republic",
+        "ovr":  61
+    },
+    {
+        "id":  266197,
+        "rawName":  "Kim Shin Jin",
+        "knownAs":  "Kim Shin Jin",
+        "firstName":  "Shin Jin",
+        "lastName":  "Kim",
+        "club":  "Jeju United",
+        "country":  "Korea Republic",
+        "ovr":  59
+    },
+    {
+        "id":  266198,
+        "rawName":  "Park Jang Han Gyeol",
+        "knownAs":  "Park Jang Han Gyeol",
+        "firstName":  "Jang Han Gyeol",
+        "lastName":  "Park",
+        "club":  "FC Seoul",
+        "country":  "Korea Republic",
+        "ovr":  50
+    },
+    {
+        "id":  266252,
+        "rawName":  "Kang Min Geu",
+        "knownAs":  "Kang Min Geu",
+        "firstName":  "Min Geu",
+        "lastName":  "Kang",
+        "club":  "Gimcheon Sangmu",
+        "country":  "Korea Republic",
+        "ovr":  61
+    },
+    {
+        "id":  266269,
+        "rawName":  "Eom Seung Min",
+        "knownAs":  "Eom Seung Min",
+        "firstName":  "Seung Min",
+        "lastName":  "Eom",
+        "club":  "Jeonbuk Hyundai",
+        "country":  "Korea Republic",
+        "ovr":  52
+    },
+    {
+        "id":  266363,
+        "rawName":  "Yeo Seung Won",
+        "knownAs":  "Yeo Seung Won",
+        "firstName":  "Seung Won",
+        "lastName":  "Yeo",
+        "club":  "Incheon United",
+        "country":  "Korea Republic",
+        "ovr":  61
+    },
+    {
+        "id":  266495,
+        "rawName":  "Kim Seong Min",
+        "knownAs":  "Kim Seong Min",
+        "firstName":  "Seong Min",
+        "lastName":  "Kim",
+        "club":  "Incheon United",
+        "country":  "Korea Republic",
+        "ovr":  56
+    },
+    {
+        "id":  266496,
+        "rawName":  "Min Gyeong Hyeon",
+        "knownAs":  "Min Gyeong Hyeon",
+        "firstName":  "Gyeong Hyeon",
+        "lastName":  "Min",
+        "club":  "Gimcheon Sangmu",
+        "country":  "Korea Republic",
+        "ovr":  59
+    },
+    {
+        "id":  266497,
+        "rawName":  "Park Ji Won",
+        "knownAs":  "Park Ji Won",
+        "firstName":  "Ji Won",
+        "lastName":  "Park",
+        "club":  "Gimcheon Sangmu",
+        "country":  "Korea Republic",
+        "ovr":  64
+    },
+    {
+        "id":  266541,
+        "rawName":  "Yu Je Ho",
+        "knownAs":  "Yu Je Ho",
+        "firstName":  "Je Ho",
+        "lastName":  "Yu",
+        "club":  "Gwangju FC",
+        "country":  "Korea Republic",
+        "ovr":  61
+    },
+    {
+        "id":  266704,
+        "rawName":  "Yu Seung Hyun",
+        "knownAs":  "Yu Seung Hyun",
+        "firstName":  "Seung Hyun",
+        "lastName":  "Yu",
+        "club":  "Bucheon FC 1995",
+        "country":  "Korea Republic",
+        "ovr":  52
+    },
+    {
+        "id":  267401,
+        "rawName":  "Cho Wi Je",
+        "knownAs":  "Cho Wi Je",
+        "firstName":  "Wi Je",
+        "lastName":  "Cho",
+        "club":  "Jeonbuk Hyundai",
+        "country":  "Korea Republic",
+        "ovr":  71
+    },
+    {
+        "id":  267433,
+        "rawName":  "Moon Hyun Ho",
+        "knownAs":  "Moon Hyun Ho",
+        "firstName":  "Hyun Ho",
+        "lastName":  "Moon",
+        "club":  "Gimcheon Sangmu",
+        "country":  "Korea Republic",
+        "ovr":  56
+    },
+    {
+        "id":  267825,
+        "rawName":  "Tiago Orobó",
+        "knownAs":  "Tiago Orobó",
+        "firstName":  "Orobó",
+        "lastName":  "Tiago",
+        "club":  "Jeonbuk Hyundai",
+        "country":  "Brazil",
+        "ovr":  68
+    },
+    {
+        "id":  267842,
+        "rawName":  "Kim Gyu Min",
+        "knownAs":  "Kim Gyu Min",
+        "firstName":  "Gyu Min",
+        "lastName":  "Kim",
+        "club":  "Bucheon FC 1995",
+        "country":  "Korea Republic",
+        "ovr":  56
+    },
+    {
+        "id":  267946,
+        "rawName":  "Lim Jun Sub",
+        "knownAs":  "Lim Jun Sub",
+        "firstName":  "Jun Sub",
+        "lastName":  "Lim",
+        "club":  "FC Seoul",
+        "country":  "Korea Republic",
+        "ovr":  48
+    },
+    {
+        "id":  268342,
+        "rawName":  "Park Cheol Woo",
+        "knownAs":  "Park Cheol Woo",
+        "firstName":  "Cheol Woo",
+        "lastName":  "Park",
+        "club":  "Gimcheon Sangmu",
+        "country":  "Korea Republic",
+        "ovr":  69
+    },
+    {
+        "id":  268895,
+        "rawName":  "Kang Sang Yoon",
+        "knownAs":  "Kang Sang Yoon",
+        "firstName":  "Sang Yoon",
+        "lastName":  "Kang",
+        "club":  "Jeonbuk Hyundai",
+        "country":  "Korea Republic",
+        "ovr":  71
+    },
+    {
+        "id":  269093,
+        "rawName":  "Kim Jin Ho",
+        "knownAs":  "Kim Jin Ho",
+        "firstName":  "Jin Ho",
+        "lastName":  "Kim",
+        "club":  "Gimcheon Sangmu",
+        "country":  "Korea Republic",
+        "ovr":  64
+    },
+    {
+        "id":  269790,
+        "rawName":  "Kim Jong Min",
+        "knownAs":  "Kim Jong Min",
+        "firstName":  "Jong Min",
+        "lastName":  "Kim",
+        "club":  "Bucheon FC 1995",
+        "country":  "Korea Republic",
+        "ovr":  53
+    },
+    {
+        "id":  270203,
+        "rawName":  "Yago Cariello",
+        "knownAs":  "Yago Cariello",
+        "firstName":  "Yago",
+        "lastName":  "Cariello Ribeiro",
+        "club":  "Ulsan HD FC",
+        "country":  "Brazil",
+        "ovr":  69
+    },
+    {
+        "id":  272710,
+        "rawName":  "Karim Mammar",
+        "knownAs":  "",
+        "firstName":  "Karim",
+        "lastName":  "Mammar",
+        "club":  "Gangwon FC",
+        "country":  "Sweden",
+        "ovr":  62
+    },
+    {
+        "id":  272772,
+        "rawName":  "Kim Geon Hui",
+        "knownAs":  "Kim Geon Hui",
+        "firstName":  "Geon Hui",
+        "lastName":  "Kim",
+        "club":  "Incheon United",
+        "country":  "Korea Republic",
+        "ovr":  64
+    },
+    {
+        "id":  272847,
+        "rawName":  "Kim Yong Hak",
+        "knownAs":  "Kim Yong Hak",
+        "firstName":  "Yong Hak",
+        "lastName":  "Kim",
+        "club":  "Pohang Steelers",
+        "country":  "Korea Republic",
+        "ovr":  62
+    },
+    {
+        "id":  272988,
+        "rawName":  "Kazuki Takahashi",
+        "knownAs":  "",
+        "firstName":  "Kazuki",
+        "lastName":  "Takahashi",
+        "club":  "Bucheon FC 1995",
+        "country":  "Japan",
+        "ovr":  65
+    },
+    {
+        "id":  272992,
+        "rawName":  "Bruno Mota",
+        "knownAs":  "Bruno Mota",
+        "firstName":  "Bruno",
+        "lastName":  "Rodrigues Mota",
+        "club":  "Jeonbuk Hyundai",
+        "country":  "Brazil",
+        "ovr":  69
+    },
+    {
+        "id":  273460,
+        "rawName":  "Rodrigo Bassani",
+        "knownAs":  "Rodrigo Bassani",
+        "firstName":  "Rodrigo",
+        "lastName":  "Bassani da Cruz",
+        "club":  "Bucheon FC 1995",
+        "country":  "Brazil",
+        "ovr":  67
+    },
+    {
+        "id":  273633,
+        "rawName":  "Lee Jung Taek",
+        "knownAs":  "Lee Jung Taek",
+        "firstName":  "Jung Taek",
+        "lastName":  "Lee",
+        "club":  "Gimcheon Sangmu",
+        "country":  "Korea Republic",
+        "ovr":  65
+    },
+    {
+        "id":  273787,
+        "rawName":  "Hwang Do Yun",
+        "knownAs":  "Hwang Do Yun",
+        "firstName":  "Do Yun",
+        "lastName":  "Hwang",
+        "club":  "FC Seoul",
+        "country":  "Korea Republic",
+        "ovr":  64
+    },
+    {
+        "id":  273792,
+        "rawName":  "Ahn Jae Min",
+        "knownAs":  "Ahn Jae Min",
+        "firstName":  "Jae Min",
+        "lastName":  "Ahn",
+        "club":  "FC Seoul",
+        "country":  "Korea Republic",
+        "ovr":  53
+    },
+    {
+        "id":  273797,
+        "rawName":  "Park Seung Ho",
+        "knownAs":  "Park Seung Ho",
+        "firstName":  "Seung Ho",
+        "lastName":  "Park",
+        "club":  "Incheon United",
+        "country":  "Korea Republic",
+        "ovr":  64
+    },
+    {
+        "id":  273800,
+        "rawName":  "Choi Woo Jin",
+        "knownAs":  "Choi Woo Jin",
+        "firstName":  "Woo Jin",
+        "lastName":  "Choi",
+        "club":  "Jeonbuk Hyundai",
+        "country":  "Korea Republic",
+        "ovr":  64
+    },
+    {
+        "id":  273815,
+        "rawName":  "Moon Seong Woo",
+        "knownAs":  "Moon Seong Woo",
+        "firstName":  "Seong Woo",
+        "lastName":  "Moon",
+        "club":  "FC Anyang",
+        "country":  "Korea Republic",
+        "ovr":  57
+    },
+    {
+        "id":  273816,
+        "rawName":  "Kim Sung Dong",
+        "knownAs":  "Kim Sung Dong",
+        "firstName":  "Sung Dong",
+        "lastName":  "Kim",
+        "club":  "FC Anyang",
+        "country":  "Korea Republic",
+        "ovr":  52
+    },
+    {
+        "id":  274022,
+        "rawName":  "Kim Ju Chan",
+        "knownAs":  "Kim Ju Chan",
+        "firstName":  "Ju Chan",
+        "lastName":  "Kim",
+        "club":  "Gimcheon Sangmu",
+        "country":  "Korea Republic",
+        "ovr":  64
+    },
+    {
+        "id":  274023,
+        "rawName":  "Jang Seok Hwan",
+        "knownAs":  "Jang Seok Hwan",
+        "firstName":  "Seok Hwan",
+        "lastName":  "Jang",
+        "club":  "Gwangju FC",
+        "country":  "Korea Republic",
+        "ovr":  58
+    },
+    {
+        "id":  274035,
+        "rawName":  "Lee Seung Won",
+        "knownAs":  "Lee Seung Won",
+        "firstName":  "Seung Won",
+        "lastName":  "Lee",
+        "club":  "Gangwon FC",
+        "country":  "Korea Republic",
+        "ovr":  64
+    },
+    {
+        "id":  274041,
+        "rawName":  "Kim Do Hyun",
+        "knownAs":  "Kim Do Hyun",
+        "firstName":  "Do Hyun",
+        "lastName":  "Kim",
+        "club":  "Gangwon FC",
+        "country":  "Korea Republic",
+        "ovr":  58
+    },
+    {
+        "id":  274115,
+        "rawName":  "Cho Min Kyu",
+        "knownAs":  "Cho Min Kyu",
+        "firstName":  "Min Kyu",
+        "lastName":  "Cho",
+        "club":  "Gangwon FC",
+        "country":  "Korea Republic",
+        "ovr":  51
+    },
+    {
+        "id":  274234,
+        "rawName":  "Lee Jae Won",
+        "knownAs":  "Lee Jae Won",
+        "firstName":  "Jae Won",
+        "lastName":  "Lee",
+        "club":  "Bucheon FC 1995",
+        "country":  "Korea Republic",
+        "ovr":  58
+    },
+    {
+        "id":  274239,
+        "rawName":  "Moon Geon Ho",
+        "knownAs":  "Moon Geon Ho",
+        "firstName":  "Geon Ho",
+        "lastName":  "Moon",
+        "club":  "Daejeon Hana",
+        "country":  "Korea Republic",
+        "ovr":  58
+    },
+    {
+        "id":  274282,
+        "rawName":  "Jung Jae Min",
+        "knownAs":  "Jung Jae Min",
+        "firstName":  "Jae Min",
+        "lastName":  "Jung",
+        "club":  "Gimcheon Sangmu",
+        "country":  "Korea Republic",
+        "ovr":  55
+    },
+    {
+        "id":  274409,
+        "rawName":  "Park Se Jin",
+        "knownAs":  "Park Se Jin",
+        "firstName":  "Se Jin",
+        "lastName":  "Park",
+        "club":  "Gimcheon Sangmu",
+        "country":  "Korea Republic",
+        "ovr":  64
+    },
+    {
+        "id":  274415,
+        "rawName":  "Jang Si Young",
+        "knownAs":  "Jang Si Young",
+        "firstName":  "Si Young",
+        "lastName":  "Jang",
+        "club":  "Ulsan HD FC",
+        "country":  "Korea Republic",
+        "ovr":  58
+    },
+    {
+        "id":  274437,
+        "rawName":  "Jorge Teixeira",
+        "knownAs":  "Jorge Teixeira",
+        "firstName":  "Jorge Luiz",
+        "lastName":  "Barbosa Teixeira",
+        "club":  "Pohang Steelers",
+        "country":  "Brazil",
+        "ovr":  65
+    },
+    {
+        "id":  274672,
+        "rawName":  "Seo Myeong Kwan",
+        "knownAs":  "Seo Myeong Kwan",
+        "firstName":  "Myeong Kwan",
+        "lastName":  "Seo",
+        "club":  "Ulsan HD FC",
+        "country":  "Korea Republic",
+        "ovr":  66
+    },
+    {
+        "id":  274673,
+        "rawName":  "Kim Hyeon Yeob",
+        "knownAs":  "Kim Hyeon Yeob",
+        "firstName":  "Hyeon Yeob",
+        "lastName":  "Kim",
+        "club":  "Bucheon FC 1995",
+        "country":  "Korea Republic",
+        "ovr":  56
+    },
+    {
+        "id":  274676,
+        "rawName":  "Kim Seung Ho",
+        "knownAs":  "Kim Seung Ho",
+        "firstName":  "Seung Ho",
+        "lastName":  "Kim",
+        "club":  "Pohang Steelers",
+        "country":  "Korea Republic",
+        "ovr":  62
+    },
+    {
+        "id":  274694,
+        "rawName":  "Cho Sung Gwon",
+        "knownAs":  "Cho Sung Gwon",
+        "firstName":  "Sung Gwon",
+        "lastName":  "Cho",
+        "club":  "Daejeon Hana",
+        "country":  "Korea Republic",
+        "ovr":  68
+    },
+    {
+        "id":  274839,
+        "rawName":  "Jung Ji Hoon",
+        "knownAs":  "Jung Ji Hoon",
+        "firstName":  "Ji Hoon",
+        "lastName":  "Jung",
+        "club":  "Gwangju FC",
+        "country":  "Korea Republic",
+        "ovr":  62
+    },
+    {
+        "id":  275017,
+        "rawName":  "Lee Min Hyeok",
+        "knownAs":  "Lee Min Hyeok",
+        "firstName":  "Min Hyeok",
+        "lastName":  "Lee",
+        "club":  "Ulsan HD FC",
+        "country":  "Korea Republic",
+        "ovr":  58
+    },
+    {
+        "id":  275076,
+        "rawName":  "Kang Joon Hyuck",
+        "knownAs":  "Kang Joon Hyuck",
+        "firstName":  "Joon Hyuck",
+        "lastName":  "Kang",
+        "club":  "Gangwon FC",
+        "country":  "Korea Republic",
+        "ovr":  67
+    },
+    {
+        "id":  276140,
+        "rawName":  "Marko Tući",
+        "knownAs":  "",
+        "firstName":  "Marko",
+        "lastName":  "Tući",
+        "club":  "Gangwon FC",
+        "country":  "Montenegro",
+        "ovr":  71
+    },
+    {
+        "id":  276516,
+        "rawName":  "Vitor Gabriel",
+        "knownAs":  "Vitor Gabriel",
+        "firstName":  "Vitor Gabriel",
+        "lastName":  "C. Rego Ferriera",
+        "club":  "Bucheon FC 1995",
+        "country":  "Brazil",
+        "ovr":  64
+    },
+    {
+        "id":  276616,
+        "rawName":  "Hong Yun Sang",
+        "knownAs":  "Hong Yun Sang",
+        "firstName":  "Yun Sang",
+        "lastName":  "Hong",
+        "club":  "Gimcheon Sangmu",
+        "country":  "Korea Republic",
+        "ovr":  65
+    },
+    {
+        "id":  277378,
+        "rawName":  "Kim Ha Jun",
+        "knownAs":  "Kim Ha Jun",
+        "firstName":  "Ha Jun",
+        "lastName":  "Kim",
+        "club":  "Jeonbuk Hyundai",
+        "country":  "Korea Republic",
+        "ovr":  62
+    },
+    {
+        "id":  278310,
+        "rawName":  "Seo Jae Min",
+        "knownAs":  "Seo Jae Min",
+        "firstName":  "Jae Min",
+        "lastName":  "Seo",
+        "club":  "Incheon United",
+        "country":  "Korea Republic",
+        "ovr":  70
+    }
+]

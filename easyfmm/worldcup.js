@@ -1,4 +1,4 @@
-// c:\Users\jinuj\vsc\easyfmm\worldcup.js
+﻿// c:\Users\jinuj\vsc\easyfmm\worldcup.js
 
 const WorldCupManager = {
     wcPlayers: {}, // 월드컵 참가 선수 데이터
@@ -670,14 +670,10 @@ const WorldCupManager = {
             topBadgeCluster.append(ovrBadge, posBadge);
 
             const playerImage = document.createElement('img');
-            playerImage.src = `assets/players/${player.name}.webp`;
             playerImage.alt = player.name;
             playerImage.className = 'player-card-image fc26-cutout-img';
             playerImage.loading = 'lazy';
-            playerImage.onerror = function() {
-                this.onerror = null;
-                this.src = 'assets/players/default.webp';
-            };
+            setPlayerPhoto(playerImage, player);
 
             cutoutWrap.append(topBadgeCluster, playerImage);
 

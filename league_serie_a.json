@@ -1,0 +1,5782 @@
+[
+    {
+        "id":  70049,
+        "rawName":  "Kingstone Mutandwa",
+        "knownAs":  "",
+        "firstName":  "Kingstone",
+        "lastName":  "Mutandwa",
+        "club":  "Cagliari",
+        "country":  "Zambia",
+        "ovr":  68
+    },
+    {
+        "id":  70163,
+        "rawName":  "Luis Hasa",
+        "knownAs":  "",
+        "firstName":  "Luis",
+        "lastName":  "Hasa",
+        "club":  "Frosinone",
+        "country":  "Albania",
+        "ovr":  69
+    },
+    {
+        "id":  70252,
+        "rawName":  "Saba Goglichidze",
+        "knownAs":  "",
+        "firstName":  "Saba",
+        "lastName":  "Goglichidze",
+        "club":  "Udinese",
+        "country":  "Georgia",
+        "ovr":  68
+    },
+    {
+        "id":  70471,
+        "rawName":  "Ebenezer Akinsanmiro",
+        "knownAs":  "",
+        "firstName":  "Ebenezer",
+        "lastName":  "Akinsanmiro",
+        "club":  "Monza",
+        "country":  "Nigeria",
+        "ovr":  67
+    },
+    {
+        "id":  70479,
+        "rawName":  "Côme Bianay Balcot",
+        "knownAs":  "",
+        "firstName":  "Côme",
+        "lastName":  "Bianay Balcot",
+        "club":  "Torino",
+        "country":  "France",
+        "ovr":  61
+    },
+    {
+        "id":  70480,
+        "rawName":  "Alieu Njie",
+        "knownAs":  "",
+        "firstName":  "Alieu",
+        "lastName":  "Njie",
+        "club":  "Torino",
+        "country":  "Sweden",
+        "ovr":  65
+    },
+    {
+        "id":  70481,
+        "rawName":  "Aaron Ciammaglichella",
+        "knownAs":  "",
+        "firstName":  "Aaron",
+        "lastName":  "Ciammaglichella",
+        "club":  "Torino",
+        "country":  "Italy",
+        "ovr":  62
+    },
+    {
+        "id":  70524,
+        "rawName":  "Franz Stolz",
+        "knownAs":  "",
+        "firstName":  "Franz",
+        "lastName":  "Stolz",
+        "club":  "Genoa",
+        "country":  "Austria",
+        "ovr":  67
+    },
+    {
+        "id":  70555,
+        "rawName":  "Tiago Gabriel",
+        "knownAs":  "Tiago Gabriel",
+        "firstName":  "Tiago Gabriel",
+        "lastName":  "Coelho Oliveira",
+        "club":  "Lecce",
+        "country":  "Portugal",
+        "ovr":  69
+    },
+    {
+        "id":  70650,
+        "rawName":  "Tommaso Fumagalli",
+        "knownAs":  "",
+        "firstName":  "Tommaso",
+        "lastName":  "Fumagalli",
+        "club":  "Como",
+        "country":  "Italy",
+        "ovr":  68
+    },
+    {
+        "id":  70963,
+        "rawName":  "Kornel Lisman",
+        "knownAs":  "",
+        "firstName":  "Kornel",
+        "lastName":  "Lisman",
+        "club":  "Venezia",
+        "country":  "Poland",
+        "ovr":  63
+    },
+    {
+        "id":  70966,
+        "rawName":  "Jacobo Ramón",
+        "knownAs":  "Jacobo Ramón",
+        "firstName":  "Jacobo",
+        "lastName":  "Ramón Naveros",
+        "club":  "Como",
+        "country":  "Spain",
+        "ovr":  76
+    },
+    {
+        "id":  71397,
+        "rawName":  "Davide Renzetti",
+        "knownAs":  "",
+        "firstName":  "Davide",
+        "lastName":  "Renzetti",
+        "club":  "Latium",
+        "country":  "Italy",
+        "ovr":  62
+    },
+    {
+        "id":  71730,
+        "rawName":  "Agustín Albarracín",
+        "knownAs":  "",
+        "firstName":  "Agustín",
+        "lastName":  "Albarracín",
+        "club":  "Cagliari",
+        "country":  "Uruguay",
+        "ovr":  68
+    },
+    {
+        "id":  71805,
+        "rawName":  "Leonardo Colombo",
+        "knownAs":  "",
+        "firstName":  "Leonardo",
+        "lastName":  "Colombo",
+        "club":  "Monza",
+        "country":  "Italy",
+        "ovr":  65
+    },
+    {
+        "id":  72098,
+        "rawName":  "Darryl Bakola",
+        "knownAs":  "",
+        "firstName":  "Darryl",
+        "lastName":  "Bakola",
+        "club":  "Sassuolo",
+        "country":  "France",
+        "ovr":  66
+    },
+    {
+        "id":  72179,
+        "rawName":  "Lorenzo Torriani",
+        "knownAs":  "",
+        "firstName":  "Lorenzo",
+        "lastName":  "Torriani",
+        "club":  "Milano FC",
+        "country":  "Italy",
+        "ovr":  62
+    },
+    {
+        "id":  72180,
+        "rawName":  "Niccolò Fortini",
+        "knownAs":  "",
+        "firstName":  "Niccolò",
+        "lastName":  "Fortini",
+        "club":  "Torino",
+        "country":  "Italy",
+        "ovr":  67
+    },
+    {
+        "id":  72324,
+        "rawName":  "Matteo Palma",
+        "knownAs":  "",
+        "firstName":  "Matteo",
+        "lastName":  "Palma",
+        "club":  "Udinese",
+        "country":  "Germany",
+        "ovr":  67
+    },
+    {
+        "id":  72337,
+        "rawName":  "Gustavo Varela",
+        "knownAs":  "Gustavo Varela",
+        "firstName":  "Gustavo Miguel",
+        "lastName":  "Pereira S. Varela",
+        "club":  "Monza",
+        "country":  "Portugal",
+        "ovr":  68
+    },
+    {
+        "id":  72997,
+        "rawName":  "Rodrigo Mora",
+        "knownAs":  "Rodrigo Mora",
+        "firstName":  "Rodrigo",
+        "lastName":  "Mora de Carvalho",
+        "club":  "AS Roma",
+        "country":  "Portugal",
+        "ovr":  77
+    },
+    {
+        "id":  73095,
+        "rawName":  "Riyad Idrissi",
+        "knownAs":  "",
+        "firstName":  "Riyad",
+        "lastName":  "Idrissi",
+        "club":  "Cagliari",
+        "country":  "Italy",
+        "ovr":  70
+    },
+    {
+        "id":  73296,
+        "rawName":  "Nosa Edward Obaretin",
+        "knownAs":  "",
+        "firstName":  "Nosa Edward",
+        "lastName":  "Obaretin",
+        "club":  "SSC Napoli",
+        "country":  "Italy",
+        "ovr":  68
+    },
+    {
+        "id":  73333,
+        "rawName":  "Lorenzo Sgarbi",
+        "knownAs":  "",
+        "firstName":  "Lorenzo",
+        "lastName":  "Sgarbi",
+        "club":  "SSC Napoli",
+        "country":  "Italy",
+        "ovr":  65
+    },
+    {
+        "id":  73423,
+        "rawName":  "Gabriele Artistico",
+        "knownAs":  "",
+        "firstName":  "Gabriele",
+        "lastName":  "Artistico",
+        "club":  "Latium",
+        "country":  "Italy",
+        "ovr":  68
+    },
+    {
+        "id":  73502,
+        "rawName":  "Rahim Alhassane",
+        "knownAs":  "",
+        "firstName":  "Rahim",
+        "lastName":  "Alhassane",
+        "club":  "Bologna",
+        "country":  "Niger",
+        "ovr":  71
+    },
+    {
+        "id":  73838,
+        "rawName":  "Alen Sherri",
+        "knownAs":  "",
+        "firstName":  "Alen",
+        "lastName":  "Sherri",
+        "club":  "Cagliari",
+        "country":  "Albania",
+        "ovr":  66
+    },
+    {
+        "id":  74071,
+        "rawName":  "Romano Floriani Mussolini",
+        "knownAs":  "",
+        "firstName":  "Romano",
+        "lastName":  "Floriani Mussolini",
+        "club":  "Latium",
+        "country":  "Italy",
+        "ovr":  68
+    },
+    {
+        "id":  74094,
+        "rawName":  "Mattia Liberali",
+        "knownAs":  "",
+        "firstName":  "Mattia",
+        "lastName":  "Liberali",
+        "club":  "Como",
+        "country":  "Italy",
+        "ovr":  68
+    },
+    {
+        "id":  74304,
+        "rawName":  "Jérémy Oyono",
+        "knownAs":  "",
+        "firstName":  "Jérémy",
+        "lastName":  "Oyono",
+        "club":  "Frosinone",
+        "country":  "Gabon",
+        "ovr":  65
+    },
+    {
+        "id":  74483,
+        "rawName":  "Honest Ahanor",
+        "knownAs":  "",
+        "firstName":  "Honest",
+        "lastName":  "Ahanor",
+        "club":  "Bergamo Calcio",
+        "country":  "Italy",
+        "ovr":  74
+    },
+    {
+        "id":  74485,
+        "rawName":  "Jeff Ekhator",
+        "knownAs":  "",
+        "firstName":  "Jeff",
+        "lastName":  "Ekhator",
+        "club":  "Juventus",
+        "country":  "Italy",
+        "ovr":  68
+    },
+    {
+        "id":  74502,
+        "rawName":  "Owen Kouassi",
+        "knownAs":  "",
+        "firstName":  "Owen",
+        "lastName":  "Kouassi",
+        "club":  "Lecce",
+        "country":  "Côte d\u0027Ivoire",
+        "ovr":  68
+    },
+    {
+        "id":  74504,
+        "rawName":  "Flavio Russo",
+        "knownAs":  "",
+        "firstName":  "Flavio",
+        "lastName":  "Russo",
+        "club":  "Sassuolo",
+        "country":  "Italy",
+        "ovr":  63
+    },
+    {
+        "id":  74510,
+        "rawName":  "Sankhoun Diawara",
+        "knownAs":  "",
+        "firstName":  "Sankhoun",
+        "lastName":  "Diawara",
+        "club":  "Milano FC",
+        "country":  "France",
+        "ovr":  69
+    },
+    {
+        "id":  74520,
+        "rawName":  "Gabriele Calvani",
+        "knownAs":  "",
+        "firstName":  "Gabriele",
+        "lastName":  "Calvani",
+        "club":  "Frosinone",
+        "country":  "Italy",
+        "ovr":  69
+    },
+    {
+        "id":  74533,
+        "rawName":  "Matteo Cichella",
+        "knownAs":  "",
+        "firstName":  "Matteo",
+        "lastName":  "Cichella",
+        "club":  "Frosinone",
+        "country":  "Italy",
+        "ovr":  68
+    },
+    {
+        "id":  74536,
+        "rawName":  "Gabriele Bracaglia",
+        "knownAs":  "",
+        "firstName":  "Gabriele",
+        "lastName":  "Bracaglia",
+        "club":  "Frosinone",
+        "country":  "Italy",
+        "ovr":  70
+    },
+    {
+        "id":  74574,
+        "rawName":  "Lorenzo Bernasconi",
+        "knownAs":  "",
+        "firstName":  "Lorenzo",
+        "lastName":  "Bernasconi",
+        "club":  "Bergamo Calcio",
+        "country":  "Italy",
+        "ovr":  71
+    },
+    {
+        "id":  74735,
+        "rawName":  "Christ Ravynel Inao Oulaï",
+        "knownAs":  "",
+        "firstName":  "Christ Ravynel",
+        "lastName":  "Inao Oulaï",
+        "club":  "Fiorentina",
+        "country":  "Côte d\u0027Ivoire",
+        "ovr":  72
+    },
+    {
+        "id":  74813,
+        "rawName":  "Mikel Amondarain",
+        "knownAs":  "",
+        "firstName":  "Mikel",
+        "lastName":  "Amondarain",
+        "club":  "Bologna",
+        "country":  "Argentina",
+        "ovr":  73
+    },
+    {
+        "id":  74926,
+        "rawName":  "Eddy Kouadio",
+        "knownAs":  "",
+        "firstName":  "Eddy",
+        "lastName":  "Kouadio",
+        "club":  "Monza",
+        "country":  "Italy",
+        "ovr":  62
+    },
+    {
+        "id":  74931,
+        "rawName":  "Marco Dalla Vecchia",
+        "knownAs":  "",
+        "firstName":  "Marco",
+        "lastName":  "Dalla Vecchia",
+        "club":  "Torino",
+        "country":  "Italy",
+        "ovr":  65
+    },
+    {
+        "id":  75055,
+        "rawName":  "Jesús Rodríguez",
+        "knownAs":  "Jesús Rodríguez",
+        "firstName":  "Jesús",
+        "lastName":  "Rodríguez Caraballo",
+        "club":  "Como",
+        "country":  "Spain",
+        "ovr":  76
+    },
+    {
+        "id":  75085,
+        "rawName":  "Vasilije Adžić",
+        "knownAs":  "",
+        "firstName":  "Vasilije",
+        "lastName":  "Adžić",
+        "club":  "Sassuolo",
+        "country":  "Montenegro",
+        "ovr":  69
+    },
+    {
+        "id":  75126,
+        "rawName":  "Adrian Lahdo",
+        "knownAs":  "",
+        "firstName":  "Adrian",
+        "lastName":  "Lahdo",
+        "club":  "Como",
+        "country":  "Sweden",
+        "ovr":  60
+    },
+    {
+        "id":  75256,
+        "rawName":  "Kevin Martins",
+        "knownAs":  "",
+        "firstName":  "Kevin",
+        "lastName":  "Martins",
+        "club":  "Monza",
+        "country":  "Italy",
+        "ovr":  62
+    },
+    {
+        "id":  75449,
+        "rawName":  "Kevin Barcella",
+        "knownAs":  "",
+        "firstName":  "Kevin",
+        "lastName":  "Barcella",
+        "club":  "Frosinone",
+        "country":  "Italy",
+        "ovr":  61
+    },
+    {
+        "id":  75533,
+        "rawName":  "Kerim Alajbegović",
+        "knownAs":  "",
+        "firstName":  "Kerim",
+        "lastName":  "Alajbegović",
+        "club":  "Juventus",
+        "country":  "Bosnia and Herzegovina",
+        "ovr":  71
+    },
+    {
+        "id":  75645,
+        "rawName":  "Filipe Bordon",
+        "knownAs":  "",
+        "firstName":  "Filipe",
+        "lastName":  "Bordon",
+        "club":  "Latium",
+        "country":  "Brazil",
+        "ovr":  66
+    },
+    {
+        "id":  75647,
+        "rawName":  "Sascha Britschgi",
+        "knownAs":  "",
+        "firstName":  "Sascha",
+        "lastName":  "Britschgi",
+        "club":  "Parma",
+        "country":  "Switzerland",
+        "ovr":  65
+    },
+    {
+        "id":  75741,
+        "rawName":  "Massimo Pessina",
+        "knownAs":  "",
+        "firstName":  "Massimo",
+        "lastName":  "Pessina",
+        "club":  "Bologna",
+        "country":  "Italy",
+        "ovr":  62
+    },
+    {
+        "id":  75745,
+        "rawName":  "Filippo Grosso",
+        "knownAs":  "",
+        "firstName":  "Filippo",
+        "lastName":  "Grosso",
+        "club":  "Frosinone",
+        "country":  "Italy",
+        "ovr":  59
+    },
+    {
+        "id":  76172,
+        "rawName":  "Lorenzo Venturino",
+        "knownAs":  "",
+        "firstName":  "Lorenzo",
+        "lastName":  "Venturino",
+        "club":  "Genoa",
+        "country":  "Italy",
+        "ovr":  65
+    },
+    {
+        "id":  76410,
+        "rawName":  "Robinio Vaz",
+        "knownAs":  "",
+        "firstName":  "Robinio",
+        "lastName":  "Vaz",
+        "club":  "AS Roma",
+        "country":  "France",
+        "ovr":  71
+    },
+    {
+        "id":  76411,
+        "rawName":  "Idrissa Gueye",
+        "knownAs":  "",
+        "firstName":  "Idrissa",
+        "lastName":  "Gueye",
+        "club":  "Udinese",
+        "country":  "Senegal",
+        "ovr":  68
+    },
+    {
+        "id":  76429,
+        "rawName":  "Luka Topalovič",
+        "knownAs":  "",
+        "firstName":  "Luka",
+        "lastName":  "Topalovič",
+        "club":  "Lombardia FC",
+        "country":  "Slovenia",
+        "ovr":  65
+    },
+    {
+        "id":  76431,
+        "rawName":  "Alessandro Romano",
+        "knownAs":  "",
+        "firstName":  "Alessandro",
+        "lastName":  "Romano",
+        "club":  "Cagliari",
+        "country":  "Switzerland",
+        "ovr":  65
+    },
+    {
+        "id":  77163,
+        "rawName":  "Ivan Smolčić",
+        "knownAs":  "",
+        "firstName":  "Ivan",
+        "lastName":  "Smolčić",
+        "club":  "Como",
+        "country":  "Croatia",
+        "ovr":  75
+    },
+    {
+        "id":  77851,
+        "rawName":  "Víctor Valdepeñas",
+        "knownAs":  "Víctor Valdepeñas",
+        "firstName":  "Víctor",
+        "lastName":  "Valdepeñas Talavera",
+        "club":  "Fiorentina",
+        "country":  "Spain",
+        "ovr":  66
+    },
+    {
+        "id":  78037,
+        "rawName":  "Juan Rodríguez",
+        "knownAs":  "",
+        "firstName":  "Juan",
+        "lastName":  "Rodríguez",
+        "club":  "Cagliari",
+        "country":  "Uruguay",
+        "ovr":  72
+    },
+    {
+        "id":  78184,
+        "rawName":  "Jay Robinson",
+        "knownAs":  "",
+        "firstName":  "Jay",
+        "lastName":  "Robinson",
+        "club":  "Monza",
+        "country":  "England",
+        "ovr":  65
+    },
+    {
+        "id":  78263,
+        "rawName":  "Alessio Cacciamani",
+        "knownAs":  "",
+        "firstName":  "Alessio",
+        "lastName":  "Cacciamani",
+        "club":  "Torino",
+        "country":  "Italy",
+        "ovr":  66
+    },
+    {
+        "id":  78316,
+        "rawName":  "Franz-Ethan Meichtry",
+        "knownAs":  "",
+        "firstName":  "Franz-Ethan",
+        "lastName":  "Meichtry",
+        "club":  "Genoa",
+        "country":  "Switzerland",
+        "ovr":  68
+    },
+    {
+        "id":  79093,
+        "rawName":  "Matteo Dagasso",
+        "knownAs":  "",
+        "firstName":  "Matteo",
+        "lastName":  "Dagasso",
+        "club":  "Venezia",
+        "country":  "Italy",
+        "ovr":  69
+    },
+    {
+        "id":  79095,
+        "rawName":  "Antonio Arena",
+        "knownAs":  "",
+        "firstName":  "Antonio",
+        "lastName":  "Arena",
+        "club":  "AS Roma",
+        "country":  "Italy",
+        "ovr":  63
+    },
+    {
+        "id":  79270,
+        "rawName":  "Alisson Santos",
+        "knownAs":  "Alisson Santos",
+        "firstName":  "Alisson",
+        "lastName":  "de Almeida Santos",
+        "club":  "SSC Napoli",
+        "country":  "Brazil",
+        "ovr":  74
+    },
+    {
+        "id":  79913,
+        "rawName":  "Amorim",
+        "knownAs":  "Amorim",
+        "firstName":  "Alexsandro",
+        "lastName":  "Amorim",
+        "club":  "Genoa",
+        "country":  "Brazil",
+        "ovr":  67
+    },
+    {
+        "id":  80075,
+        "rawName":  "Mattia Mannini",
+        "knownAs":  "",
+        "firstName":  "Mattia",
+        "lastName":  "Mannini",
+        "club":  "AS Roma",
+        "country":  "Italy",
+        "ovr":  65
+    },
+    {
+        "id":  80170,
+        "rawName":  "Wesley",
+        "knownAs":  "Wesley",
+        "firstName":  "Wesley Vinícius",
+        "lastName":  "França Lima",
+        "club":  "AS Roma",
+        "country":  "Brazil",
+        "ovr":  80
+    },
+    {
+        "id":  80283,
+        "rawName":  "Giovane",
+        "knownAs":  "Giovane",
+        "firstName":  "Giovane",
+        "lastName":  "Santana",
+        "club":  "SSC Napoli",
+        "country":  "Brazil",
+        "ovr":  71
+    },
+    {
+        "id":  80380,
+        "rawName":  "Branimir Mlačić",
+        "knownAs":  "",
+        "firstName":  "Branimir",
+        "lastName":  "Mlačić",
+        "club":  "Udinese",
+        "country":  "Croatia",
+        "ovr":  65
+    },
+    {
+        "id":  80407,
+        "rawName":  "Joseph Liteta",
+        "knownAs":  "",
+        "firstName":  "Joseph",
+        "lastName":  "Liteta",
+        "club":  "Cagliari",
+        "country":  "Zambia",
+        "ovr":  66
+    },
+    {
+        "id":  80505,
+        "rawName":  "Eman Košpo",
+        "knownAs":  "",
+        "firstName":  "Eman",
+        "lastName":  "Košpo",
+        "club":  "Fiorentina",
+        "country":  "Bosnia and Herzegovina",
+        "ovr":  61
+    },
+    {
+        "id":  80597,
+        "rawName":  "Christian Comotto",
+        "knownAs":  "",
+        "firstName":  "Christian",
+        "lastName":  "Comotto",
+        "club":  "Milano FC",
+        "country":  "Italy",
+        "ovr":  65
+    },
+    {
+        "id":  80604,
+        "rawName":  "Niko Kovač",
+        "knownAs":  "",
+        "firstName":  "Niko",
+        "lastName":  "Kovač",
+        "club":  "Lecce",
+        "country":  "Bosnia and Herzegovina",
+        "ovr":  62
+    },
+    {
+        "id":  80606,
+        "rawName":  "Olaf Gorter",
+        "knownAs":  "",
+        "firstName":  "Olaf",
+        "lastName":  "Gorter",
+        "club":  "Lecce",
+        "country":  "Holland",
+        "ovr":  62
+    },
+    {
+        "id":  80811,
+        "rawName":  "Gioele Zacchi",
+        "knownAs":  "",
+        "firstName":  "Gioele",
+        "lastName":  "Zacchi",
+        "club":  "Sassuolo",
+        "country":  "Italy",
+        "ovr":  62
+    },
+    {
+        "id":  80893,
+        "rawName":  "Adam Bakoune",
+        "knownAs":  "",
+        "firstName":  "Adam",
+        "lastName":  "Bakoune",
+        "club":  "Monza",
+        "country":  "Italy",
+        "ovr":  65
+    },
+    {
+        "id":  81467,
+        "rawName":  "Ernestas Lysionok",
+        "knownAs":  "",
+        "firstName":  "Ernestas",
+        "lastName":  "Lysionok",
+        "club":  "Genoa",
+        "country":  "Lithuania",
+        "ovr":  59
+    },
+    {
+        "id":  81491,
+        "rawName":  "Ale Gomes",
+        "knownAs":  "Ale Gomes",
+        "firstName":  "Alejandro",
+        "lastName":  "Gomes Furtado",
+        "club":  "Venezia",
+        "country":  "Spain",
+        "ovr":  65
+    },
+    {
+        "id":  81974,
+        "rawName":  "Lapo Siviero",
+        "knownAs":  "",
+        "firstName":  "Lapo",
+        "lastName":  "Siviero",
+        "club":  "Torino",
+        "country":  "Italy",
+        "ovr":  56
+    },
+    {
+        "id":  82808,
+        "rawName":  "Yael Trepy",
+        "knownAs":  "",
+        "firstName":  "Yael",
+        "lastName":  "Trepy",
+        "club":  "Cagliari",
+        "country":  "France",
+        "ovr":  63
+    },
+    {
+        "id":  83661,
+        "rawName":  "Alvin Obinna Okoro",
+        "knownAs":  "",
+        "firstName":  "Alvin Obinna",
+        "lastName":  "Okoro",
+        "club":  "Venezia",
+        "country":  "Italy",
+        "ovr":  65
+    },
+    {
+        "id":  83827,
+        "rawName":  "Paul Mendy",
+        "knownAs":  "",
+        "firstName":  "Paul",
+        "lastName":  "Mendy",
+        "club":  "Cagliari",
+        "country":  "Senegal",
+        "ovr":  65
+    },
+    {
+        "id":  83887,
+        "rawName":  "Samuel Wiafe",
+        "knownAs":  "",
+        "firstName":  "Samuel",
+        "lastName":  "Wiafe",
+        "club":  "Genoa",
+        "country":  "Italy",
+        "ovr":  62
+    },
+    {
+        "id":  84630,
+        "rawName":  "Kaiki",
+        "knownAs":  "Kaiki",
+        "firstName":  "Kaiki Bruno",
+        "lastName":  "da Silva",
+        "club":  "Como",
+        "country":  "Brazil",
+        "ovr":  75
+    },
+    {
+        "id":  87430,
+        "rawName":  "David Puczka",
+        "knownAs":  "",
+        "firstName":  "David",
+        "lastName":  "Puczka",
+        "club":  "Genoa",
+        "country":  "Austria",
+        "ovr":  68
+    },
+    {
+        "id":  87431,
+        "rawName":  "Alessio Pozzi",
+        "knownAs":  "",
+        "firstName":  "Alessio",
+        "lastName":  "Pozzi",
+        "club":  "Venezia",
+        "country":  "Italy",
+        "ovr":  60
+    },
+    {
+        "id":  87432,
+        "rawName":  "Viery",
+        "knownAs":  "Viery",
+        "firstName":  "Viery",
+        "lastName":  "Fernandes",
+        "club":  "Fiorentina",
+        "country":  "Brazil",
+        "ovr":  70
+    },
+    {
+        "id":  162297,
+        "rawName":  "Daniele Padelli",
+        "knownAs":  "",
+        "firstName":  "Daniele",
+        "lastName":  "Padelli",
+        "club":  "Udinese",
+        "country":  "Italy",
+        "ovr":  65
+    },
+    {
+        "id":  170320,
+        "rawName":  "Lorenzo De Silvestri",
+        "knownAs":  "",
+        "firstName":  "Lorenzo",
+        "lastName":  "De Silvestri",
+        "club":  "Bologna",
+        "country":  "Italy",
+        "ovr":  69
+    },
+    {
+        "id":  177003,
+        "rawName":  "Luka Modrić",
+        "knownAs":  "",
+        "firstName":  "Luka",
+        "lastName":  "Modrić",
+        "club":  "Milano FC",
+        "country":  "Croatia",
+        "ovr":  85
+    },
+    {
+        "id":  186611,
+        "rawName":  "Mauro Vigorito",
+        "knownAs":  "",
+        "firstName":  "Mauro",
+        "lastName":  "Vigorito",
+        "club":  "Como",
+        "country":  "Italy",
+        "ovr":  64
+    },
+    {
+        "id":  189342,
+        "rawName":  "Carlo Pinsoglio",
+        "knownAs":  "",
+        "firstName":  "Carlo",
+        "lastName":  "Pinsoglio",
+        "club":  "Juventus",
+        "country":  "Italy",
+        "ovr":  68
+    },
+    {
+        "id":  189908,
+        "rawName":  "Łukasz Skorupski",
+        "knownAs":  "",
+        "firstName":  "Łukasz",
+        "lastName":  "Skorupski",
+        "club":  "Bologna",
+        "country":  "Poland",
+        "ovr":  78
+    },
+    {
+        "id":  190324,
+        "rawName":  "Christian Kabasele",
+        "knownAs":  "",
+        "firstName":  "Christian",
+        "lastName":  "Kabasele",
+        "club":  "Udinese",
+        "country":  "Belgium",
+        "ovr":  73
+    },
+    {
+        "id":  191202,
+        "rawName":  "Nemanja Matić",
+        "knownAs":  "",
+        "firstName":  "Nemanja",
+        "lastName":  "Matić",
+        "club":  "Sassuolo",
+        "country":  "Serbia",
+        "ovr":  77
+    },
+    {
+        "id":  192883,
+        "rawName":  "Henrikh Mkhitaryan",
+        "knownAs":  "",
+        "firstName":  "Henrikh",
+        "lastName":  "Mkhitaryan",
+        "club":  "Lombardia FC",
+        "country":  "Armenia",
+        "ovr":  81
+    },
+    {
+        "id":  192985,
+        "rawName":  "Kevin De Bruyne",
+        "knownAs":  "",
+        "firstName":  "Kevin",
+        "lastName":  "De Bruyne",
+        "club":  "SSC Napoli",
+        "country":  "Belgium",
+        "ovr":  85
+    },
+    {
+        "id":  193080,
+        "rawName":  "De Gea",
+        "knownAs":  "De Gea",
+        "firstName":  "David",
+        "lastName":  "De Gea Quintana",
+        "club":  "Fiorentina",
+        "country":  "Spain",
+        "ovr":  83
+    },
+    {
+        "id":  194894,
+        "rawName":  "Francesco Rossi",
+        "knownAs":  "",
+        "firstName":  "Francesco",
+        "lastName":  "Rossi",
+        "club":  "Bergamo Calcio",
+        "country":  "Italy",
+        "ovr":  62
+    },
+    {
+        "id":  198009,
+        "rawName":  "Mattia Perin",
+        "knownAs":  "",
+        "firstName":  "Mattia",
+        "lastName":  "Perin",
+        "club":  "Juventus",
+        "country":  "Italy",
+        "ovr":  76
+    },
+    {
+        "id":  201153,
+        "rawName":  "Morata",
+        "knownAs":  "Morata",
+        "firstName":  "Álvaro Borja",
+        "lastName":  "Morata Martín",
+        "club":  "Como",
+        "country":  "Spain",
+        "ovr":  78
+    },
+    {
+        "id":  201389,
+        "rawName":  "Cristiano Biraghi",
+        "knownAs":  "",
+        "firstName":  "Cristiano",
+        "lastName":  "Biraghi",
+        "club":  "Torino",
+        "country":  "Italy",
+        "ovr":  75
+    },
+    {
+        "id":  202884,
+        "rawName":  "Leonardo Spinazzola",
+        "knownAs":  "",
+        "firstName":  "Leonardo",
+        "lastName":  "Spinazzola",
+        "club":  "SSC Napoli",
+        "country":  "Italy",
+        "ovr":  80
+    },
+    {
+        "id":  203574,
+        "rawName":  "John Stones",
+        "knownAs":  "",
+        "firstName":  "John",
+        "lastName":  "Stones",
+        "club":  "Lombardia FC",
+        "country":  "England",
+        "ovr":  82
+    },
+    {
+        "id":  205175,
+        "rawName":  "Arkadiusz Milik",
+        "knownAs":  "",
+        "firstName":  "Arkadiusz",
+        "lastName":  "Milik",
+        "club":  "Juventus",
+        "country":  "Poland",
+        "ovr":  76
+    },
+    {
+        "id":  205812,
+        "rawName":  "Pietro Terracciano",
+        "knownAs":  "",
+        "firstName":  "Pietro",
+        "lastName":  "Terracciano",
+        "club":  "Milano FC",
+        "country":  "Italy",
+        "ovr":  76
+    },
+    {
+        "id":  206098,
+        "rawName":  "Patric",
+        "knownAs":  "Patric",
+        "firstName":  "Patricio",
+        "lastName":  "Gabarrón Gil",
+        "club":  "Latium",
+        "country":  "Spain",
+        "ovr":  74
+    },
+    {
+        "id":  206159,
+        "rawName":  "Stefano Sabelli",
+        "knownAs":  "",
+        "firstName":  "Stefano",
+        "lastName":  "Sabelli",
+        "club":  "Genoa",
+        "country":  "Italy",
+        "ovr":  71
+    },
+    {
+        "id":  207993,
+        "rawName":  "Sead Kolašinac",
+        "knownAs":  "",
+        "firstName":  "Sead",
+        "lastName":  "Kolašinac",
+        "club":  "Bergamo Calcio",
+        "country":  "Bosnia and Herzegovina",
+        "ovr":  78
+    },
+    {
+        "id":  208128,
+        "rawName":  "Hakan Çalhanoğlu",
+        "knownAs":  "",
+        "firstName":  "Hakan",
+        "lastName":  "Çalhanoğlu",
+        "club":  "Lombardia FC",
+        "country":  "Turkey",
+        "ovr":  85
+    },
+    {
+        "id":  208268,
+        "rawName":  "Bryan Cristante",
+        "knownAs":  "",
+        "firstName":  "Bryan",
+        "lastName":  "Cristante",
+        "club":  "AS Roma",
+        "country":  "Italy",
+        "ovr":  81
+    },
+    {
+        "id":  208461,
+        "rawName":  "Marten de Roon",
+        "knownAs":  "",
+        "firstName":  "Marten",
+        "lastName":  "de Roon",
+        "club":  "Bergamo Calcio",
+        "country":  "Holland",
+        "ovr":  80
+    },
+    {
+        "id":  208535,
+        "rawName":  "Alfred Duncan",
+        "knownAs":  "",
+        "firstName":  "Alfred",
+        "lastName":  "Duncan",
+        "club":  "Venezia",
+        "country":  "Ghana",
+        "ovr":  72
+    },
+    {
+        "id":  210008,
+        "rawName":  "Adrien Rabiot",
+        "knownAs":  "",
+        "firstName":  "Adrien",
+        "lastName":  "Rabiot",
+        "club":  "Milano FC",
+        "country":  "France",
+        "ovr":  85
+    },
+    {
+        "id":  210384,
+        "rawName":  "Ridgeciano Haps",
+        "knownAs":  "",
+        "firstName":  "Ridgeciano",
+        "lastName":  "Haps",
+        "club":  "Venezia",
+        "country":  "Suriname",
+        "ovr":  69
+    },
+    {
+        "id":  210406,
+        "rawName":  "Piotr Zieliński",
+        "knownAs":  "",
+        "firstName":  "Piotr",
+        "lastName":  "Zieliński",
+        "club":  "Lombardia FC",
+        "country":  "Poland",
+        "ovr":  82
+    },
+    {
+        "id":  210413,
+        "rawName":  "Alessio Romagnoli",
+        "knownAs":  "",
+        "firstName":  "Alessio",
+        "lastName":  "Romagnoli",
+        "club":  "Latium",
+        "country":  "Italy",
+        "ovr":  81
+    },
+    {
+        "id":  210676,
+        "rawName":  "Wladimiro Falcone",
+        "knownAs":  "",
+        "firstName":  "Wladimiro",
+        "lastName":  "Falcone",
+        "club":  "Lecce",
+        "country":  "Italy",
+        "ovr":  84
+    },
+    {
+        "id":  210719,
+        "rawName":  "Marc-Oliver Kempf",
+        "knownAs":  "",
+        "firstName":  "Marc-Oliver",
+        "lastName":  "Kempf",
+        "club":  "Como",
+        "country":  "Germany",
+        "ovr":  76
+    },
+    {
+        "id":  210935,
+        "rawName":  "Domenico Berardi",
+        "knownAs":  "",
+        "firstName":  "Domenico",
+        "lastName":  "Berardi",
+        "club":  "Sassuolo",
+        "country":  "Italy",
+        "ovr":  82
+    },
+    {
+        "id":  211110,
+        "rawName":  "Paulo Dybala",
+        "knownAs":  "",
+        "firstName":  "Paulo",
+        "lastName":  "Dybala",
+        "club":  "AS Roma",
+        "country":  "Argentina",
+        "ovr":  85
+    },
+    {
+        "id":  211320,
+        "rawName":  "Daniele Rugani",
+        "knownAs":  "",
+        "firstName":  "Daniele",
+        "lastName":  "Rugani",
+        "club":  "Juventus",
+        "country":  "Italy",
+        "ovr":  74
+    },
+    {
+        "id":  211361,
+        "rawName":  "Danilo Cataldi",
+        "knownAs":  "",
+        "firstName":  "Danilo",
+        "lastName":  "Cataldi",
+        "club":  "Latium",
+        "country":  "Italy",
+        "ovr":  78
+    },
+    {
+        "id":  211515,
+        "rawName":  "Pierluigi Gollini",
+        "knownAs":  "",
+        "firstName":  "Pierluigi",
+        "lastName":  "Gollini",
+        "club":  "AS Roma",
+        "country":  "Italy",
+        "ovr":  74
+    },
+    {
+        "id":  211856,
+        "rawName":  "Kevin Akpoguma",
+        "knownAs":  "",
+        "firstName":  "Kevin",
+        "lastName":  "Akpoguma",
+        "club":  "Frosinone",
+        "country":  "Nigeria",
+        "ovr":  73
+    },
+    {
+        "id":  212404,
+        "rawName":  "Federico Bernardeschi",
+        "knownAs":  "",
+        "firstName":  "Federico",
+        "lastName":  "Bernardeschi",
+        "club":  "Bologna",
+        "country":  "Italy",
+        "ovr":  75
+    },
+    {
+        "id":  213666,
+        "rawName":  "Ruben Loftus-Cheek",
+        "knownAs":  "",
+        "firstName":  "Ruben",
+        "lastName":  "Loftus-Cheek",
+        "club":  "Milano FC",
+        "country":  "England",
+        "ovr":  79
+    },
+    {
+        "id":  214658,
+        "rawName":  "Jesper Karlström",
+        "knownAs":  "",
+        "firstName":  "Jesper",
+        "lastName":  "Karlström",
+        "club":  "Udinese",
+        "country":  "Sweden",
+        "ovr":  75
+    },
+    {
+        "id":  215333,
+        "rawName":  "Duván Zapata",
+        "knownAs":  "",
+        "firstName":  "Duván",
+        "lastName":  "Zapata",
+        "club":  "Torino",
+        "country":  "Colombia",
+        "ovr":  79
+    },
+    {
+        "id":  215363,
+        "rawName":  "Lorenzo Montipò",
+        "knownAs":  "",
+        "firstName":  "Lorenzo",
+        "lastName":  "Montipò",
+        "club":  "Venezia",
+        "country":  "Italy",
+        "ovr":  76
+    },
+    {
+        "id":  215698,
+        "rawName":  "Mike Maignan",
+        "knownAs":  "",
+        "firstName":  "Mike",
+        "lastName":  "Maignan",
+        "club":  "Milano FC",
+        "country":  "France",
+        "ovr":  87
+    },
+    {
+        "id":  215785,
+        "rawName":  "Keita Baldé",
+        "knownAs":  "",
+        "firstName":  "Keita",
+        "lastName":  "Baldé",
+        "club":  "Monza",
+        "country":  "Senegal",
+        "ovr":  71
+    },
+    {
+        "id":  216065,
+        "rawName":  "Marco Sportiello",
+        "knownAs":  "",
+        "firstName":  "Marco",
+        "lastName":  "Sportiello",
+        "club":  "Bergamo Calcio",
+        "country":  "Italy",
+        "ovr":  76
+    },
+    {
+        "id":  216150,
+        "rawName":  "Davide Zappacosta",
+        "knownAs":  "",
+        "firstName":  "Davide",
+        "lastName":  "Zappacosta",
+        "club":  "Bergamo Calcio",
+        "country":  "Italy",
+        "ovr":  79
+    },
+    {
+        "id":  216409,
+        "rawName":  "Matteo Politano",
+        "knownAs":  "",
+        "firstName":  "Matteo",
+        "lastName":  "Politano",
+        "club":  "SSC Napoli",
+        "country":  "Italy",
+        "ovr":  80
+    },
+    {
+        "id":  216435,
+        "rawName":  "Stanislav Lobotka",
+        "knownAs":  "",
+        "firstName":  "Stanislav",
+        "lastName":  "Lobotka",
+        "club":  "SSC Napoli",
+        "country":  "Slovakia",
+        "ovr":  83
+    },
+    {
+        "id":  216816,
+        "rawName":  "Giovanni Simeone",
+        "knownAs":  "",
+        "firstName":  "Giovanni",
+        "lastName":  "Simeone",
+        "club":  "Torino",
+        "country":  "Argentina",
+        "ovr":  77
+    },
+    {
+        "id":  217870,
+        "rawName":  "Giovanni Di Lorenzo",
+        "knownAs":  "",
+        "firstName":  "Giovanni",
+        "lastName":  "Di Lorenzo",
+        "club":  "SSC Napoli",
+        "country":  "Italy",
+        "ovr":  82
+    },
+    {
+        "id":  219581,
+        "rawName":  "Samuel Gigot",
+        "knownAs":  "",
+        "firstName":  "Samuel",
+        "lastName":  "Gigot",
+        "club":  "Latium",
+        "country":  "France",
+        "ovr":  75
+    },
+    {
+        "id":  219584,
+        "rawName":  "Luca Lezzerini",
+        "knownAs":  "",
+        "firstName":  "Luca",
+        "lastName":  "Lezzerini",
+        "club":  "Fiorentina",
+        "country":  "Italy",
+        "ovr":  69
+    },
+    {
+        "id":  219715,
+        "rawName":  "Raffaele Di Gennaro",
+        "knownAs":  "",
+        "firstName":  "Raffaele",
+        "lastName":  "Di Gennaro",
+        "club":  "Lombardia FC",
+        "country":  "Italy",
+        "ovr":  68
+    },
+    {
+        "id":  219812,
+        "rawName":  "Patrick Ciurria",
+        "knownAs":  "",
+        "firstName":  "Patrick",
+        "lastName":  "Ciurria",
+        "club":  "Monza",
+        "country":  "Italy",
+        "ovr":  72
+    },
+    {
+        "id":  220421,
+        "rawName":  "Hassane Kamara",
+        "knownAs":  "",
+        "firstName":  "Hassane",
+        "lastName":  "Kamara",
+        "club":  "Udinese",
+        "country":  "Côte d\u0027Ivoire",
+        "ovr":  72
+    },
+    {
+        "id":  220502,
+        "rawName":  "Mattia Zaccagni",
+        "knownAs":  "",
+        "firstName":  "Mattia",
+        "lastName":  "Zaccagni",
+        "club":  "Latium",
+        "country":  "Italy",
+        "ovr":  82
+    },
+    {
+        "id":  220523,
+        "rawName":  "Yerry Mina",
+        "knownAs":  "",
+        "firstName":  "Yerry",
+        "lastName":  "Mina",
+        "club":  "Cagliari",
+        "country":  "Colombia",
+        "ovr":  76
+    },
+    {
+        "id":  220532,
+        "rawName":  "Nikita Contini",
+        "knownAs":  "",
+        "firstName":  "Nikita",
+        "lastName":  "Contini",
+        "club":  "SSC Napoli",
+        "country":  "Italy",
+        "ovr":  67
+    },
+    {
+        "id":  221331,
+        "rawName":  "Luca Mazzitelli",
+        "knownAs":  "",
+        "firstName":  "Luca",
+        "lastName":  "Mazzitelli",
+        "club":  "Como",
+        "country":  "Italy",
+        "ovr":  72
+    },
+    {
+        "id":  222077,
+        "rawName":  "Manuel Locatelli",
+        "knownAs":  "",
+        "firstName":  "Manuel",
+        "lastName":  "Locatelli",
+        "club":  "Juventus",
+        "country":  "Italy",
+        "ovr":  84
+    },
+    {
+        "id":  222400,
+        "rawName":  "Harry Winks",
+        "knownAs":  "",
+        "firstName":  "Harry",
+        "lastName":  "Winks",
+        "club":  "Cagliari",
+        "country":  "England",
+        "ovr":  71
+    },
+    {
+        "id":  223273,
+        "rawName":  "Mario Pašalić",
+        "knownAs":  "",
+        "firstName":  "Mario",
+        "lastName":  "Pašalić",
+        "club":  "Bergamo Calcio",
+        "country":  "Croatia",
+        "ovr":  79
+    },
+    {
+        "id":  223524,
+        "rawName":  "Edoardo Goldaniga",
+        "knownAs":  "",
+        "firstName":  "Edoardo",
+        "lastName":  "Goldaniga",
+        "club":  "Como",
+        "country":  "Italy",
+        "ovr":  72
+    },
+    {
+        "id":  223866,
+        "rawName":  "Sandi Lovrič",
+        "knownAs":  "",
+        "firstName":  "Sandi",
+        "lastName":  "Lovrič",
+        "club":  "Udinese",
+        "country":  "Slovenia",
+        "ovr":  73
+    },
+    {
+        "id":  224031,
+        "rawName":  "Adam Marušić",
+        "knownAs":  "",
+        "firstName":  "Adam",
+        "lastName":  "Marušić",
+        "club":  "Latium",
+        "country":  "Montenegro",
+        "ovr":  78
+    },
+    {
+        "id":  224232,
+        "rawName":  "Nicolò Barella",
+        "knownAs":  "",
+        "firstName":  "Nicolò",
+        "lastName":  "Barella",
+        "club":  "Lombardia FC",
+        "country":  "Italy",
+        "ovr":  87
+    },
+    {
+        "id":  224422,
+        "rawName":  "Jérémie Boga",
+        "knownAs":  "",
+        "firstName":  "Jérémie",
+        "lastName":  "Boga",
+        "club":  "Juventus",
+        "country":  "Côte d\u0027Ivoire",
+        "ovr":  78
+    },
+    {
+        "id":  224490,
+        "rawName":  "Zeki Çelik",
+        "knownAs":  "",
+        "firstName":  "Zeki",
+        "lastName":  "Çelik",
+        "club":  "Juventus",
+        "country":  "Turkey",
+        "ovr":  79
+    },
+    {
+        "id":  224836,
+        "rawName":  "Vanja Milinković-Savić",
+        "knownAs":  "",
+        "firstName":  "Vanja",
+        "lastName":  "Milinković-Savić",
+        "club":  "SSC Napoli",
+        "country":  "Serbia",
+        "ovr":  80
+    },
+    {
+        "id":  224987,
+        "rawName":  "Ivan Provedel",
+        "knownAs":  "",
+        "firstName":  "Ivan",
+        "lastName":  "Provedel",
+        "club":  "Lombardia FC",
+        "country":  "Italy",
+        "ovr":  83
+    },
+    {
+        "id":  225037,
+        "rawName":  "Matteo Pisseri",
+        "knownAs":  "",
+        "firstName":  "Matteo",
+        "lastName":  "Pisseri",
+        "club":  "Frosinone",
+        "country":  "Italy",
+        "ovr":  65
+    },
+    {
+        "id":  225116,
+        "rawName":  "Alex Meret",
+        "knownAs":  "",
+        "firstName":  "Alex",
+        "lastName":  "Meret",
+        "club":  "SSC Napoli",
+        "country":  "Italy",
+        "ovr":  81
+    },
+    {
+        "id":  225149,
+        "rawName":  "Jean Butez",
+        "knownAs":  "",
+        "firstName":  "Jean",
+        "lastName":  "Butez",
+        "club":  "Como",
+        "country":  "France",
+        "ovr":  78
+    },
+    {
+        "id":  225432,
+        "rawName":  "Daniele Sommariva",
+        "knownAs":  "",
+        "firstName":  "Daniele",
+        "lastName":  "Sommariva",
+        "club":  "Genoa",
+        "country":  "Italy",
+        "ovr":  62
+    },
+    {
+        "id":  225439,
+        "rawName":  "Rolando Mandragora",
+        "knownAs":  "",
+        "firstName":  "Rolando",
+        "lastName":  "Mandragora",
+        "club":  "Fiorentina",
+        "country":  "Italy",
+        "ovr":  77
+    },
+    {
+        "id":  226093,
+        "rawName":  "Ché Adams",
+        "knownAs":  "",
+        "firstName":  "Ché",
+        "lastName":  "Adams",
+        "club":  "Torino",
+        "country":  "Scotland",
+        "ovr":  77
+    },
+    {
+        "id":  226268,
+        "rawName":  "Federico Dimarco",
+        "knownAs":  "",
+        "firstName":  "Federico",
+        "lastName":  "Dimarco",
+        "club":  "Lombardia FC",
+        "country":  "Italy",
+        "ovr":  86
+    },
+    {
+        "id":  226710,
+        "rawName":  "Gianluca Scamacca",
+        "knownAs":  "",
+        "firstName":  "Gianluca",
+        "lastName":  "Scamacca",
+        "club":  "Bergamo Calcio",
+        "country":  "Italy",
+        "ovr":  78
+    },
+    {
+        "id":  226851,
+        "rawName":  "Benjamin Pavard",
+        "knownAs":  "",
+        "firstName":  "Benjamin",
+        "lastName":  "Pavard",
+        "club":  "Lombardia FC",
+        "country":  "France",
+        "ovr":  80
+    },
+    {
+        "id":  227236,
+        "rawName":  "André-Franck Zambo Anguissa",
+        "knownAs":  "",
+        "firstName":  "André-Franck",
+        "lastName":  "Zambo Anguissa",
+        "club":  "SSC Napoli",
+        "country":  "Cameroon",
+        "ovr":  82
+    },
+    {
+        "id":  227796,
+        "rawName":  "Christian Pulisic",
+        "knownAs":  "",
+        "firstName":  "Christian",
+        "lastName":  "Pulisic",
+        "club":  "Milano FC",
+        "country":  "United States",
+        "ovr":  83
+    },
+    {
+        "id":  228093,
+        "rawName":  "Marcus Thuram",
+        "knownAs":  "",
+        "firstName":  "Marcus",
+        "lastName":  "Thuram",
+        "club":  "Lombardia FC",
+        "country":  "France",
+        "ovr":  85
+    },
+    {
+        "id":  228251,
+        "rawName":  "Lorenzo Pellegrini",
+        "knownAs":  "",
+        "firstName":  "Lorenzo",
+        "lastName":  "Pellegrini",
+        "club":  "AS Roma",
+        "country":  "Italy",
+        "ovr":  78
+    },
+    {
+        "id":  228302,
+        "rawName":  "Pedraza",
+        "knownAs":  "Pedraza",
+        "firstName":  "Alfonso",
+        "lastName":  "Pedraza Sag",
+        "club":  "Latium",
+        "country":  "Spain",
+        "ovr":  76
+    },
+    {
+        "id":  228336,
+        "rawName":  "Florian Grillitsch",
+        "knownAs":  "",
+        "firstName":  "Florian",
+        "lastName":  "Grillitsch",
+        "club":  "Frosinone",
+        "country":  "Austria",
+        "ovr":  77
+    },
+    {
+        "id":  228349,
+        "rawName":  "Mërgim Vojvoda",
+        "knownAs":  "",
+        "firstName":  "Mërgim",
+        "lastName":  "Vojvoda",
+        "club":  "Udinese",
+        "country":  "Kosovo",
+        "ovr":  76
+    },
+    {
+        "id":  228413,
+        "rawName":  "Emil Audero",
+        "knownAs":  "",
+        "firstName":  "Emil",
+        "lastName":  "Audero",
+        "club":  "Como",
+        "country":  "Indonesia",
+        "ovr":  79
+    },
+    {
+        "id":  229237,
+        "rawName":  "Manuel Akanji",
+        "knownAs":  "",
+        "firstName":  "Manuel",
+        "lastName":  "Akanji",
+        "club":  "Lombardia FC",
+        "country":  "Switzerland",
+        "ovr":  83
+    },
+    {
+        "id":  229582,
+        "rawName":  "Gianluca Mancini",
+        "knownAs":  "",
+        "firstName":  "Gianluca",
+        "lastName":  "Mancini",
+        "club":  "AS Roma",
+        "country":  "Italy",
+        "ovr":  84
+    },
+    {
+        "id":  229668,
+        "rawName":  "Mario Hermoso",
+        "knownAs":  "Mario Hermoso",
+        "firstName":  "Mario",
+        "lastName":  "Hermoso Canseco",
+        "club":  "AS Roma",
+        "country":  "Spain",
+        "ovr":  81
+    },
+    {
+        "id":  229743,
+        "rawName":  "Alessandro Deiola",
+        "knownAs":  "",
+        "firstName":  "Alessandro",
+        "lastName":  "Deiola",
+        "club":  "Cagliari",
+        "country":  "Italy",
+        "ovr":  70
+    },
+    {
+        "id":  229752,
+        "rawName":  "Djibril Sow",
+        "knownAs":  "",
+        "firstName":  "Djibril",
+        "lastName":  "Sow",
+        "club":  "Genoa",
+        "country":  "Switzerland",
+        "ovr":  76
+    },
+    {
+        "id":  229973,
+        "rawName":  "Jakub Piotrowski",
+        "knownAs":  "",
+        "firstName":  "Jakub",
+        "lastName":  "Piotrowski",
+        "club":  "Udinese",
+        "country":  "Poland",
+        "ovr":  72
+    },
+    {
+        "id":  230107,
+        "rawName":  "Lassana Coulibaly",
+        "knownAs":  "",
+        "firstName":  "Lassana",
+        "lastName":  "Coulibaly",
+        "club":  "Lecce",
+        "country":  "Mali",
+        "ovr":  74
+    },
+    {
+        "id":  230636,
+        "rawName":  "Matteo Grandi",
+        "knownAs":  "",
+        "firstName":  "Matteo",
+        "lastName":  "Grandi",
+        "club":  "Venezia",
+        "country":  "Italy",
+        "ovr":  60
+    },
+    {
+        "id":  230872,
+        "rawName":  "Mile Svilar",
+        "knownAs":  "",
+        "firstName":  "Mile",
+        "lastName":  "Svilar",
+        "club":  "AS Roma",
+        "country":  "Serbia",
+        "ovr":  85
+    },
+    {
+        "id":  230918,
+        "rawName":  "Trevoh Chalobah",
+        "knownAs":  "",
+        "firstName":  "Trevoh",
+        "lastName":  "Chalobah",
+        "club":  "Como",
+        "country":  "England",
+        "ovr":  80
+    },
+    {
+        "id":  231073,
+        "rawName":  "Boris Radunović",
+        "knownAs":  "",
+        "firstName":  "Boris",
+        "lastName":  "Radunović",
+        "club":  "Cagliari",
+        "country":  "Serbia",
+        "ovr":  69
+    },
+    {
+        "id":  231207,
+        "rawName":  "Jhon Lucumí",
+        "knownAs":  "",
+        "firstName":  "Jhon",
+        "lastName":  "Lucumí",
+        "club":  "Juventus",
+        "country":  "Colombia",
+        "ovr":  76
+    },
+    {
+        "id":  231447,
+        "rawName":  "Donyell Malen",
+        "knownAs":  "",
+        "firstName":  "Donyell",
+        "lastName":  "Malen",
+        "club":  "AS Roma",
+        "country":  "Holland",
+        "ovr":  83
+    },
+    {
+        "id":  231478,
+        "rawName":  "Lautaro Martínez",
+        "knownAs":  "",
+        "firstName":  "Lautaro",
+        "lastName":  "Martínez",
+        "club":  "Lombardia FC",
+        "country":  "Argentina",
+        "ovr":  87
+    },
+    {
+        "id":  231512,
+        "rawName":  "Lloyd Kelly",
+        "knownAs":  "",
+        "firstName":  "Lloyd",
+        "lastName":  "Kelly",
+        "club":  "Juventus",
+        "country":  "England",
+        "ovr":  77
+    },
+    {
+        "id":  231743,
+        "rawName":  "Keinan Davis",
+        "knownAs":  "",
+        "firstName":  "Keinan",
+        "lastName":  "Davis",
+        "club":  "Udinese",
+        "country":  "England",
+        "ovr":  76
+    },
+    {
+        "id":  231836,
+        "rawName":  "Jesper Karlsson",
+        "knownAs":  "",
+        "firstName":  "Jesper",
+        "lastName":  "Karlsson",
+        "club":  "Bologna",
+        "country":  "Sweden",
+        "ovr":  74
+    },
+    {
+        "id":  232229,
+        "rawName":  "Justin Bijlow",
+        "knownAs":  "",
+        "firstName":  "Justin",
+        "lastName":  "Bijlow",
+        "club":  "Genoa",
+        "country":  "Holland",
+        "ovr":  75
+    },
+    {
+        "id":  232411,
+        "rawName":  "Christopher Nkunku",
+        "knownAs":  "",
+        "firstName":  "Christopher",
+        "lastName":  "Nkunku",
+        "club":  "Milano FC",
+        "country":  "France",
+        "ovr":  80
+    },
+    {
+        "id":  232658,
+        "rawName":  "Danilho Doekhi",
+        "knownAs":  "",
+        "firstName":  "Danilho",
+        "lastName":  "Doekhi",
+        "club":  "Latium",
+        "country":  "Holland",
+        "ovr":  79
+    },
+    {
+        "id":  232756,
+        "rawName":  "Fikayo Tomori",
+        "knownAs":  "",
+        "firstName":  "Fikayo",
+        "lastName":  "Tomori",
+        "club":  "Milano FC",
+        "country":  "England",
+        "ovr":  80
+    },
+    {
+        "id":  233084,
+        "rawName":  "Nahuel Molina",
+        "knownAs":  "",
+        "firstName":  "Nahuel",
+        "lastName":  "Molina",
+        "club":  "AS Roma",
+        "country":  "Argentina",
+        "ovr":  77
+    },
+    {
+        "id":  233164,
+        "rawName":  "Arijanet Murić",
+        "knownAs":  "",
+        "firstName":  "Arijanet",
+        "lastName":  "Murić",
+        "club":  "Sassuolo",
+        "country":  "Kosovo",
+        "ovr":  74
+    },
+    {
+        "id":  233189,
+        "rawName":  "Devis Vásquez",
+        "knownAs":  "",
+        "firstName":  "Devis",
+        "lastName":  "Vásquez",
+        "club":  "AS Roma",
+        "country":  "Colombia",
+        "ovr":  72
+    },
+    {
+        "id":  233396,
+        "rawName":  "Idrissa Touré",
+        "knownAs":  "",
+        "firstName":  "Idrissa",
+        "lastName":  "Touré",
+        "club":  "Monza",
+        "country":  "Germany",
+        "ovr":  71
+    },
+    {
+        "id":  233556,
+        "rawName":  "Riccardo Orsolini",
+        "knownAs":  "",
+        "firstName":  "Riccardo",
+        "lastName":  "Orsolini",
+        "club":  "Bologna",
+        "country":  "Italy",
+        "ovr":  82
+    },
+    {
+        "id":  233885,
+        "rawName":  "Eray Cömert",
+        "knownAs":  "",
+        "firstName":  "Eray",
+        "lastName":  "Cömert",
+        "club":  "Torino",
+        "country":  "Switzerland",
+        "ovr":  73
+    },
+    {
+        "id":  234112,
+        "rawName":  "Dodô",
+        "knownAs":  "Dodô",
+        "firstName":  "Domilson",
+        "lastName":  "Cordeiro dos Santos",
+        "club":  "Fiorentina",
+        "country":  "Brazil",
+        "ovr":  78
+    },
+    {
+        "id":  234147,
+        "rawName":  "Dany Mota",
+        "knownAs":  "Dany Mota",
+        "firstName":  "Dany",
+        "lastName":  "Mota Carvalho",
+        "club":  "Monza",
+        "country":  "Portugal",
+        "ovr":  74
+    },
+    {
+        "id":  234671,
+        "rawName":  "Jens Odgaard",
+        "knownAs":  "",
+        "firstName":  "Jens",
+        "lastName":  "Odgaard",
+        "club":  "Bologna",
+        "country":  "Denmark",
+        "ovr":  76
+    },
+    {
+        "id":  234894,
+        "rawName":  "Emil Bohinen",
+        "knownAs":  "",
+        "firstName":  "Emil",
+        "lastName":  "Bohinen",
+        "club":  "Venezia",
+        "country":  "Norway",
+        "ovr":  68
+    },
+    {
+        "id":  235374,
+        "rawName":  "Manuel Lazzari",
+        "knownAs":  "",
+        "firstName":  "Manuel",
+        "lastName":  "Lazzari",
+        "club":  "Latium",
+        "country":  "Italy",
+        "ovr":  75
+    },
+    {
+        "id":  235740,
+        "rawName":  "Alberto Paleari",
+        "knownAs":  "",
+        "firstName":  "Alberto",
+        "lastName":  "Paleari",
+        "club":  "Torino",
+        "country":  "Italy",
+        "ovr":  74
+    },
+    {
+        "id":  235800,
+        "rawName":  "Marin Šverko",
+        "knownAs":  "",
+        "firstName":  "Marin",
+        "lastName":  "Šverko",
+        "club":  "Venezia",
+        "country":  "Croatia",
+        "ovr":  70
+    },
+    {
+        "id":  235840,
+        "rawName":  "Michele Di Gregorio",
+        "knownAs":  "",
+        "firstName":  "Michele",
+        "lastName":  "Di Gregorio",
+        "club":  "Juventus",
+        "country":  "Italy",
+        "ovr":  80
+    },
+    {
+        "id":  235842,
+        "rawName":  "Andrea Pinamonti",
+        "knownAs":  "",
+        "firstName":  "Andrea",
+        "lastName":  "Pinamonti",
+        "club":  "Sassuolo",
+        "country":  "Italy",
+        "ovr":  75
+    },
+    {
+        "id":  236295,
+        "rawName":  "Aarón Martín",
+        "knownAs":  "Aarón Martín",
+        "firstName":  "Aarón",
+        "lastName":  "Martín Caricol",
+        "club":  "Genoa",
+        "country":  "Spain",
+        "ovr":  74
+    },
+    {
+        "id":  236403,
+        "rawName":  "Evan Ndicka",
+        "knownAs":  "",
+        "firstName":  "Evan",
+        "lastName":  "Ndicka",
+        "club":  "AS Roma",
+        "country":  "Côte d\u0027Ivoire",
+        "ovr":  83
+    },
+    {
+        "id":  236413,
+        "rawName":  "Sandro Kulenović",
+        "knownAs":  "",
+        "firstName":  "Sandro",
+        "lastName":  "Kulenović",
+        "club":  "Torino",
+        "country":  "Croatia",
+        "ovr":  70
+    },
+    {
+        "id":  236499,
+        "rawName":  "Douglas Luiz",
+        "knownAs":  "Douglas Luiz",
+        "firstName":  "Douglas Luiz",
+        "lastName":  "Soares de Paulo",
+        "club":  "Juventus",
+        "country":  "Brazil",
+        "ovr":  78
+    },
+    {
+        "id":  236610,
+        "rawName":  "Moise Kean",
+        "knownAs":  "",
+        "firstName":  "Moise",
+        "lastName":  "Kean",
+        "club":  "Fiorentina",
+        "country":  "Italy",
+        "ovr":  82
+    },
+    {
+        "id":  236632,
+        "rawName":  "David Neres",
+        "knownAs":  "David Neres",
+        "firstName":  "David",
+        "lastName":  "Neres Campos",
+        "club":  "SSC Napoli",
+        "country":  "Brazil",
+        "ovr":  81
+    },
+    {
+        "id":  236706,
+        "rawName":  "Pontus Almqvist",
+        "knownAs":  "",
+        "firstName":  "Pontus",
+        "lastName":  "Almqvist",
+        "club":  "Parma",
+        "country":  "Sweden",
+        "ovr":  71
+    },
+    {
+        "id":  236758,
+        "rawName":  "Oliver Christensen",
+        "knownAs":  "",
+        "firstName":  "Oliver",
+        "lastName":  "Christensen",
+        "club":  "Fiorentina",
+        "country":  "Denmark",
+        "ovr":  71
+    },
+    {
+        "id":  236760,
+        "rawName":  "Kike Pérez",
+        "knownAs":  "Kike Pérez",
+        "firstName":  "Enrique",
+        "lastName":  "Pérez Muñoz",
+        "club":  "Venezia",
+        "country":  "Spain",
+        "ovr":  75
+    },
+    {
+        "id":  236791,
+        "rawName":  "Antonín Barák",
+        "knownAs":  "",
+        "firstName":  "Antonín",
+        "lastName":  "Barák",
+        "club":  "Fiorentina",
+        "country":  "Czech Republic",
+        "ovr":  72
+    },
+    {
+        "id":  236838,
+        "rawName":  "Youssef Maleh",
+        "knownAs":  "",
+        "firstName":  "Youssef",
+        "lastName":  "Maleh",
+        "club":  "Lecce",
+        "country":  "Morocco",
+        "ovr":  71
+    },
+    {
+        "id":  237003,
+        "rawName":  "Samuele Birindelli",
+        "knownAs":  "",
+        "firstName":  "Samuele",
+        "lastName":  "Birindelli",
+        "club":  "Monza",
+        "country":  "Italy",
+        "ovr":  75
+    },
+    {
+        "id":  237127,
+        "rawName":  "Demba Thiam",
+        "knownAs":  "",
+        "firstName":  "Demba",
+        "lastName":  "Thiam",
+        "club":  "Monza",
+        "country":  "Senegal",
+        "ovr":  72
+    },
+    {
+        "id":  237238,
+        "rawName":  "Scott McTominay",
+        "knownAs":  "",
+        "firstName":  "Scott",
+        "lastName":  "McTominay",
+        "club":  "SSC Napoli",
+        "country":  "Scotland",
+        "ovr":  86
+    },
+    {
+        "id":  237383,
+        "rawName":  "Alessandro Bastoni",
+        "knownAs":  "",
+        "firstName":  "Alessandro",
+        "lastName":  "Bastoni",
+        "club":  "Lombardia FC",
+        "country":  "Italy",
+        "ovr":  86
+    },
+    {
+        "id":  237586,
+        "rawName":  "Alberto Dossena",
+        "knownAs":  "",
+        "firstName":  "Alberto",
+        "lastName":  "Dossena",
+        "club":  "Como",
+        "country":  "Italy",
+        "ovr":  73
+    },
+    {
+        "id":  237612,
+        "rawName":  "Filippo Delli Carri",
+        "knownAs":  "",
+        "firstName":  "Filippo",
+        "lastName":  "Delli Carri",
+        "club":  "Monza",
+        "country":  "Italy",
+        "ovr":  70
+    },
+    {
+        "id":  237669,
+        "rawName":  "Alessio Zerbin",
+        "knownAs":  "",
+        "firstName":  "Alessio",
+        "lastName":  "Zerbin",
+        "club":  "Frosinone",
+        "country":  "Italy",
+        "ovr":  72
+    },
+    {
+        "id":  237679,
+        "rawName":  "Randal Kolo Muani",
+        "knownAs":  "",
+        "firstName":  "Randal",
+        "lastName":  "Kolo Muani",
+        "club":  "Juventus",
+        "country":  "France",
+        "ovr":  77
+    },
+    {
+        "id":  237715,
+        "rawName":  "Patrick Cutrone",
+        "knownAs":  "",
+        "firstName":  "Patrick",
+        "lastName":  "Cutrone",
+        "club":  "Monza",
+        "country":  "Italy",
+        "ovr":  74
+    },
+    {
+        "id":  237942,
+        "rawName":  "Pervis Estupiñán",
+        "knownAs":  "",
+        "firstName":  "Pervis",
+        "lastName":  "Estupiñán",
+        "club":  "Milano FC",
+        "country":  "Ecuador",
+        "ovr":  78
+    },
+    {
+        "id":  238004,
+        "rawName":  "Albert Guðmundsson",
+        "knownAs":  "",
+        "firstName":  "Albert",
+        "lastName":  "Guðmundsson",
+        "club":  "Fiorentina",
+        "country":  "Iceland",
+        "ovr":  77
+    },
+    {
+        "id":  238067,
+        "rawName":  "Nicolò Zaniolo",
+        "knownAs":  "",
+        "firstName":  "Nicolò",
+        "lastName":  "Zaniolo",
+        "club":  "Udinese",
+        "country":  "Italy",
+        "ovr":  76
+    },
+    {
+        "id":  238370,
+        "rawName":  "Marin Pongračić",
+        "knownAs":  "",
+        "firstName":  "Marin",
+        "lastName":  "Pongračić",
+        "club":  "Fiorentina",
+        "country":  "Croatia",
+        "ovr":  73
+    },
+    {
+        "id":  238516,
+        "rawName":  "Leo Østigård",
+        "knownAs":  "",
+        "firstName":  "Leo",
+        "lastName":  "Østigård",
+        "club":  "Genoa",
+        "country":  "Norway",
+        "ovr":  76
+    },
+    {
+        "id":  238744,
+        "rawName":  "Weston McKennie",
+        "knownAs":  "",
+        "firstName":  "Weston",
+        "lastName":  "McKennie",
+        "club":  "Juventus",
+        "country":  "United States",
+        "ovr":  80
+    },
+    {
+        "id":  238873,
+        "rawName":  "Pietro Pellegri",
+        "knownAs":  "",
+        "firstName":  "Pietro",
+        "lastName":  "Pellegri",
+        "club":  "Torino",
+        "country":  "Italy",
+        "ovr":  68
+    },
+    {
+        "id":  239368,
+        "rawName":  "Mitchel Bakker",
+        "knownAs":  "",
+        "firstName":  "Mitchel",
+        "lastName":  "Bakker",
+        "club":  "Bergamo Calcio",
+        "country":  "Holland",
+        "ovr":  73
+    },
+    {
+        "id":  239380,
+        "rawName":  "Noa Lang",
+        "knownAs":  "",
+        "firstName":  "Noa",
+        "lastName":  "Lang",
+        "club":  "SSC Napoli",
+        "country":  "Holland",
+        "ovr":  79
+    },
+    {
+        "id":  239418,
+        "rawName":  "Lion Lauberbach",
+        "knownAs":  "",
+        "firstName":  "Lion",
+        "lastName":  "Lauberbach",
+        "club":  "Venezia",
+        "country":  "Germany",
+        "ovr":  70
+    },
+    {
+        "id":  239573,
+        "rawName":  "Marco Bleve",
+        "knownAs":  "",
+        "firstName":  "Marco",
+        "lastName":  "Bleve",
+        "club":  "Lecce",
+        "country":  "Italy",
+        "ovr":  69
+    },
+    {
+        "id":  239580,
+        "rawName":  "Bremer",
+        "knownAs":  "Bremer",
+        "firstName":  "Gleison Bremer",
+        "lastName":  "Silva Nascimento",
+        "club":  "Juventus",
+        "country":  "Brazil",
+        "ovr":  86
+    },
+    {
+        "id":  239613,
+        "rawName":  "Matteo Pessina",
+        "knownAs":  "",
+        "firstName":  "Matteo",
+        "lastName":  "Pessina",
+        "club":  "Monza",
+        "country":  "Italy",
+        "ovr":  76
+    },
+    {
+        "id":  239679,
+        "rawName":  "Pasquale Mazzocchi",
+        "knownAs":  "",
+        "firstName":  "Pasquale",
+        "lastName":  "Mazzocchi",
+        "club":  "SSC Napoli",
+        "country":  "Italy",
+        "ovr":  71
+    },
+    {
+        "id":  239701,
+        "rawName":  "Romano Schmid",
+        "knownAs":  "",
+        "firstName":  "Romano",
+        "lastName":  "Schmid",
+        "club":  "Frosinone",
+        "country":  "Austria",
+        "ovr":  78
+    },
+    {
+        "id":  239763,
+        "rawName":  "Edon Zhegrova",
+        "knownAs":  "",
+        "firstName":  "Edon",
+        "lastName":  "Zhegrova",
+        "club":  "Juventus",
+        "country":  "Kosovo",
+        "ovr":  78
+    },
+    {
+        "id":  239770,
+        "rawName":  "Nicolò Casale",
+        "knownAs":  "",
+        "firstName":  "Nicolò",
+        "lastName":  "Casale",
+        "club":  "Bologna",
+        "country":  "Italy",
+        "ovr":  74
+    },
+    {
+        "id":  239807,
+        "rawName":  "Davide Frattesi",
+        "knownAs":  "",
+        "firstName":  "Davide",
+        "lastName":  "Frattesi",
+        "club":  "Latium",
+        "country":  "Italy",
+        "ovr":  80
+    },
+    {
+        "id":  239977,
+        "rawName":  "Nicolas Kühn",
+        "knownAs":  "",
+        "firstName":  "Nicolas",
+        "lastName":  "Kühn",
+        "club":  "Como",
+        "country":  "Germany",
+        "ovr":  76
+    },
+    {
+        "id":  240020,
+        "rawName":  "Ricardo Mangas",
+        "knownAs":  "Ricardo Mangas",
+        "firstName":  "Ricardo Luís",
+        "lastName":  "Chaby Mangas",
+        "club":  "Monza",
+        "country":  "Portugal",
+        "ovr":  73
+    },
+    {
+        "id":  240091,
+        "rawName":  "Guglielmo Vicario",
+        "knownAs":  "",
+        "firstName":  "Guglielmo",
+        "lastName":  "Vicario",
+        "club":  "Juventus",
+        "country":  "Italy",
+        "ovr":  80
+    },
+    {
+        "id":  240277,
+        "rawName":  "Matteo Gabbia",
+        "knownAs":  "",
+        "firstName":  "Matteo",
+        "lastName":  "Gabbia",
+        "club":  "Milano FC",
+        "country":  "Italy",
+        "ovr":  80
+    },
+    {
+        "id":  240452,
+        "rawName":  "M\u0027Bala Nzola",
+        "knownAs":  "",
+        "firstName":  "M\u0027Bala",
+        "lastName":  "Nzola",
+        "club":  "Fiorentina",
+        "country":  "Angola",
+        "ovr":  73
+    },
+    {
+        "id":  240679,
+        "rawName":  "Teun Koopmeiners",
+        "knownAs":  "",
+        "firstName":  "Teun",
+        "lastName":  "Koopmeiners",
+        "club":  "Juventus",
+        "country":  "Holland",
+        "ovr":  78
+    },
+    {
+        "id":  240690,
+        "rawName":  "Nico González",
+        "knownAs":  "",
+        "firstName":  "Nico",
+        "lastName":  "González",
+        "club":  "Juventus",
+        "country":  "Argentina",
+        "ovr":  79
+    },
+    {
+        "id":  240716,
+        "rawName":  "Mathías Olivera",
+        "knownAs":  "",
+        "firstName":  "Mathías",
+        "lastName":  "Olivera",
+        "club":  "SSC Napoli",
+        "country":  "Uruguay",
+        "ovr":  77
+    },
+    {
+        "id":  240777,
+        "rawName":  "Luca Ranieri",
+        "knownAs":  "",
+        "firstName":  "Luca",
+        "lastName":  "Ranieri",
+        "club":  "Fiorentina",
+        "country":  "Italy",
+        "ovr":  75
+    },
+    {
+        "id":  240787,
+        "rawName":  "Hamed Junior Traoré",
+        "knownAs":  "",
+        "firstName":  "Hamed Junior",
+        "lastName":  "Traoré",
+        "club":  "Genoa",
+        "country":  "Côte d\u0027Ivoire",
+        "ovr":  75
+    },
+    {
+        "id":  240915,
+        "rawName":  "Juan Miranda",
+        "knownAs":  "Juan Miranda",
+        "firstName":  "Juan",
+        "lastName":  "Miranda González",
+        "club":  "Bologna",
+        "country":  "Spain",
+        "ovr":  76
+    },
+    {
+        "id":  240938,
+        "rawName":  "Junior Messias",
+        "knownAs":  "Junior Messias",
+        "firstName":  "Junior",
+        "lastName":  "Messias",
+        "club":  "Genoa",
+        "country":  "Brazil",
+        "ovr":  72
+    },
+    {
+        "id":  241007,
+        "rawName":  "Enzo Ebosse",
+        "knownAs":  "",
+        "firstName":  "Enzo",
+        "lastName":  "Ebosse",
+        "club":  "Udinese",
+        "country":  "Cameroon",
+        "ovr":  69
+    },
+    {
+        "id":  241095,
+        "rawName":  "Nikola Vlašić",
+        "knownAs":  "",
+        "firstName":  "Nikola",
+        "lastName":  "Vlašić",
+        "club":  "Torino",
+        "country":  "Croatia",
+        "ovr":  80
+    },
+    {
+        "id":  241168,
+        "rawName":  "Giorgi Chakvetadze",
+        "knownAs":  "",
+        "firstName":  "Giorgi",
+        "lastName":  "Chakvetadze",
+        "club":  "Udinese",
+        "country":  "Georgia",
+        "ovr":  72
+    },
+    {
+        "id":  241266,
+        "rawName":  "Willem Geubbels",
+        "knownAs":  "",
+        "firstName":  "Willem",
+        "lastName":  "Geubbels",
+        "club":  "Lecce",
+        "country":  "France",
+        "ovr":  72
+    },
+    {
+        "id":  241390,
+        "rawName":  "Eljif Elmas",
+        "knownAs":  "",
+        "firstName":  "Eljif",
+        "lastName":  "Elmas",
+        "club":  "Bergamo Calcio",
+        "country":  "North Macedonia",
+        "ovr":  76
+    },
+    {
+        "id":  241628,
+        "rawName":  "Nicholas Pierini",
+        "knownAs":  "",
+        "firstName":  "Nicholas",
+        "lastName":  "Pierini",
+        "club":  "Sassuolo",
+        "country":  "Italy",
+        "ovr":  71
+    },
+    {
+        "id":  241721,
+        "rawName":  "Rafael Leão",
+        "knownAs":  "Rafael Leão",
+        "firstName":  "Rafael",
+        "lastName":  "da Conceição Leão",
+        "club":  "Milano FC",
+        "country":  "Portugal",
+        "ovr":  83
+    },
+    {
+        "id":  241736,
+        "rawName":  "Yann Aurel Bisseck",
+        "knownAs":  "",
+        "firstName":  "Yann Aurel",
+        "lastName":  "Bisseck",
+        "club":  "Lombardia FC",
+        "country":  "Germany",
+        "ovr":  78
+    },
+    {
+        "id":  242201,
+        "rawName":  "Luis Milla",
+        "knownAs":  "Luis Milla",
+        "firstName":  "Luis",
+        "lastName":  "Milla Manzanares",
+        "club":  "Como",
+        "country":  "Spain",
+        "ovr":  81
+    },
+    {
+        "id":  242238,
+        "rawName":  "Oumar Solet",
+        "knownAs":  "",
+        "firstName":  "Oumar",
+        "lastName":  "Solet",
+        "club":  "Udinese",
+        "country":  "France",
+        "ovr":  78
+    },
+    {
+        "id":  242280,
+        "rawName":  "Lewis Ferguson",
+        "knownAs":  "",
+        "firstName":  "Lewis",
+        "lastName":  "Ferguson",
+        "club":  "Bologna",
+        "country":  "Scotland",
+        "ovr":  77
+    },
+    {
+        "id":  242332,
+        "rawName":  "Gianluca Busio",
+        "knownAs":  "",
+        "firstName":  "Gianluca",
+        "lastName":  "Busio",
+        "club":  "Venezia",
+        "country":  "United States",
+        "ovr":  75
+    },
+    {
+        "id":  242434,
+        "rawName":  "Curtis Jones",
+        "knownAs":  "",
+        "firstName":  "Curtis",
+        "lastName":  "Jones",
+        "club":  "Lombardia FC",
+        "country":  "England",
+        "ovr":  80
+    },
+    {
+        "id":  242458,
+        "rawName":  "Artem Dovbyk",
+        "knownAs":  "",
+        "firstName":  "Artem",
+        "lastName":  "Dovbyk",
+        "club":  "Bologna",
+        "country":  "Ukraine",
+        "ovr":  79
+    },
+    {
+        "id":  242578,
+        "rawName":  "Benoît Badiashile",
+        "knownAs":  "",
+        "firstName":  "Benoît",
+        "lastName":  "Badiashile",
+        "club":  "SSC Napoli",
+        "country":  "France",
+        "ovr":  76
+    },
+    {
+        "id":  242633,
+        "rawName":  "Morten Frendrup",
+        "knownAs":  "",
+        "firstName":  "Morten",
+        "lastName":  "Frendrup",
+        "club":  "Genoa",
+        "country":  "Denmark",
+        "ovr":  76
+    },
+    {
+        "id":  242664,
+        "rawName":  "Alexis Saelemaekers",
+        "knownAs":  "",
+        "firstName":  "Alexis",
+        "lastName":  "Saelemaekers",
+        "club":  "Milano FC",
+        "country":  "Belgium",
+        "ovr":  80
+    },
+    {
+        "id":  242725,
+        "rawName":  "Kristian Thorstvedt",
+        "knownAs":  "",
+        "firstName":  "Kristian",
+        "lastName":  "Thorstvedt",
+        "club":  "Sassuolo",
+        "country":  "Norway",
+        "ovr":  76
+    },
+    {
+        "id":  242755,
+        "rawName":  "John Yeboah",
+        "knownAs":  "",
+        "firstName":  "John",
+        "lastName":  "Yeboah",
+        "club":  "Venezia",
+        "country":  "Ecuador",
+        "ovr":  73
+    },
+    {
+        "id":  243237,
+        "rawName":  "Luca Pellegrini",
+        "knownAs":  "",
+        "firstName":  "Luca",
+        "lastName":  "Pellegrini",
+        "club":  "Latium",
+        "country":  "Italy",
+        "ovr":  74
+    },
+    {
+        "id":  243241,
+        "rawName":  "Alessandro Buongiorno",
+        "knownAs":  "",
+        "firstName":  "Alessandro",
+        "lastName":  "Buongiorno",
+        "club":  "SSC Napoli",
+        "country":  "Italy",
+        "ovr":  81
+    },
+    {
+        "id":  243249,
+        "rawName":  "Jurgen Ekkelenkamp",
+        "knownAs":  "",
+        "firstName":  "Jurgen",
+        "lastName":  "Ekkelenkamp",
+        "club":  "Udinese",
+        "country":  "Holland",
+        "ovr":  75
+    },
+    {
+        "id":  243311,
+        "rawName":  "Josep Martínez",
+        "knownAs":  "Josep Martínez",
+        "firstName":  "Josep",
+        "lastName":  "Martínez Riera",
+        "club":  "Lombardia FC",
+        "country":  "Spain",
+        "ovr":  76
+    },
+    {
+        "id":  243481,
+        "rawName":  "Marcus Pedersen",
+        "knownAs":  "",
+        "firstName":  "Marcus",
+        "lastName":  "Pedersen",
+        "club":  "Torino",
+        "country":  "Norway",
+        "ovr":  73
+    },
+    {
+        "id":  243497,
+        "rawName":  "Sebastian Walukiewicz",
+        "knownAs":  "",
+        "firstName":  "Sebastian",
+        "lastName":  "Walukiewicz",
+        "club":  "Sassuolo",
+        "country":  "Poland",
+        "ovr":  74
+    },
+    {
+        "id":  243527,
+        "rawName":  "Fabrizio Caligara",
+        "knownAs":  "",
+        "firstName":  "Fabrizio",
+        "lastName":  "Caligara",
+        "club":  "Sassuolo",
+        "country":  "Italy",
+        "ovr":  67
+    },
+    {
+        "id":  243593,
+        "rawName":  "Armand Laurienté",
+        "knownAs":  "",
+        "firstName":  "Armand",
+        "lastName":  "Laurienté",
+        "club":  "Sassuolo",
+        "country":  "France",
+        "ovr":  80
+    },
+    {
+        "id":  243630,
+        "rawName":  "Jonathan David",
+        "knownAs":  "",
+        "firstName":  "Jonathan",
+        "lastName":  "David",
+        "club":  "Juventus",
+        "country":  "Canada",
+        "ovr":  80
+    },
+    {
+        "id":  243702,
+        "rawName":  "Djed Spence",
+        "knownAs":  "",
+        "firstName":  "Djed",
+        "lastName":  "Spence",
+        "club":  "Lombardia FC",
+        "country":  "England",
+        "ovr":  80
+    },
+    {
+        "id":  244263,
+        "rawName":  "Amir Rrahmani",
+        "knownAs":  "",
+        "firstName":  "Amir",
+        "lastName":  "Rrahmani",
+        "club":  "SSC Napoli",
+        "country":  "Kosovo",
+        "ovr":  83
+    },
+    {
+        "id":  244270,
+        "rawName":  "Nikola Moro",
+        "knownAs":  "",
+        "firstName":  "Nikola",
+        "lastName":  "Moro",
+        "club":  "Bologna",
+        "country":  "Croatia",
+        "ovr":  75
+    },
+    {
+        "id":  244349,
+        "rawName":  "Johan Vásquez",
+        "knownAs":  "",
+        "firstName":  "Johan",
+        "lastName":  "Vásquez",
+        "club":  "Genoa",
+        "country":  "Mexico",
+        "ovr":  75
+    },
+    {
+        "id":  244472,
+        "rawName":  "Jens-Lys Cajuste",
+        "knownAs":  "",
+        "firstName":  "Jens-Lys",
+        "lastName":  "Cajuste",
+        "club":  "SSC Napoli",
+        "country":  "Sweden",
+        "ovr":  73
+    },
+    {
+        "id":  244634,
+        "rawName":  "Simon Sohm",
+        "knownAs":  "",
+        "firstName":  "Simon",
+        "lastName":  "Sohm",
+        "club":  "Venezia",
+        "country":  "Switzerland",
+        "ovr":  74
+    },
+    {
+        "id":  244717,
+        "rawName":  "Antonino Gallo",
+        "knownAs":  "",
+        "firstName":  "Antonino",
+        "lastName":  "Gallo",
+        "club":  "Lecce",
+        "country":  "Italy",
+        "ovr":  75
+    },
+    {
+        "id":  245152,
+        "rawName":  "Santiago Giménez",
+        "knownAs":  "",
+        "firstName":  "Santiago",
+        "lastName":  "Giménez",
+        "club":  "Milano FC",
+        "country":  "Mexico",
+        "ovr":  78
+    },
+    {
+        "id":  245275,
+        "rawName":  "Toma Bašić",
+        "knownAs":  "",
+        "firstName":  "Toma",
+        "lastName":  "Bašić",
+        "club":  "Venezia",
+        "country":  "Croatia",
+        "ovr":  75
+    },
+    {
+        "id":  245630,
+        "rawName":  "Youssouf Fofana",
+        "knownAs":  "",
+        "firstName":  "Youssouf",
+        "lastName":  "Fofana",
+        "club":  "Milano FC",
+        "country":  "France",
+        "ovr":  80
+    },
+    {
+        "id":  245741,
+        "rawName":  "Jesper Lindstrøm",
+        "knownAs":  "",
+        "firstName":  "Jesper",
+        "lastName":  "Lindstrøm",
+        "club":  "SSC Napoli",
+        "country":  "Denmark",
+        "ovr":  73
+    },
+    {
+        "id":  245992,
+        "rawName":  "Billy Gilmour",
+        "knownAs":  "",
+        "firstName":  "Billy",
+        "lastName":  "Gilmour",
+        "club":  "SSC Napoli",
+        "country":  "Scotland",
+        "ovr":  75
+    },
+    {
+        "id":  246164,
+        "rawName":  "Lautaro Valenti",
+        "knownAs":  "",
+        "firstName":  "Lautaro",
+        "lastName":  "Valenti",
+        "club":  "Parma",
+        "country":  "Argentina",
+        "ovr":  69
+    },
+    {
+        "id":  246172,
+        "rawName":  "Samuel Chukwueze",
+        "knownAs":  "",
+        "firstName":  "Samuel",
+        "lastName":  "Chukwueze",
+        "club":  "Milano FC",
+        "country":  "Nigeria",
+        "ovr":  78
+    },
+    {
+        "id":  246242,
+        "rawName":  "Boulaye Dia",
+        "knownAs":  "",
+        "firstName":  "Boulaye",
+        "lastName":  "Dia",
+        "club":  "Latium",
+        "country":  "Senegal",
+        "ovr":  78
+    },
+    {
+        "id":  246431,
+        "rawName":  "Riccardo Sottil",
+        "knownAs":  "",
+        "firstName":  "Riccardo",
+        "lastName":  "Sottil",
+        "club":  "Fiorentina",
+        "country":  "Italy",
+        "ovr":  74
+    },
+    {
+        "id":  246457,
+        "rawName":  "Cyril Ngonge",
+        "knownAs":  "",
+        "firstName":  "Cyril",
+        "lastName":  "Ngonge",
+        "club":  "SSC Napoli",
+        "country":  "Belgium",
+        "ovr":  72
+    },
+    {
+        "id":  246646,
+        "rawName":  "Maxence Caqueret",
+        "knownAs":  "",
+        "firstName":  "Maxence",
+        "lastName":  "Caqueret",
+        "club":  "Como",
+        "country":  "France",
+        "ovr":  78
+    },
+    {
+        "id":  246656,
+        "rawName":  "Emil Holm",
+        "knownAs":  "",
+        "firstName":  "Emil",
+        "lastName":  "Holm",
+        "club":  "Bologna",
+        "country":  "Sweden",
+        "ovr":  75
+    },
+    {
+        "id":  246832,
+        "rawName":  "Vakoun Issouf Bayo",
+        "knownAs":  "",
+        "firstName":  "Vakoun Issouf",
+        "lastName":  "Bayo",
+        "club":  "Udinese",
+        "country":  "Côte d\u0027Ivoire",
+        "ovr":  68
+    },
+    {
+        "id":  246875,
+        "rawName":  "Odilon Kossounou",
+        "knownAs":  "",
+        "firstName":  "Odilon",
+        "lastName":  "Kossounou",
+        "club":  "Bergamo Calcio",
+        "country":  "Côte d\u0027Ivoire",
+        "ovr":  79
+    },
+    {
+        "id":  246877,
+        "rawName":  "Gianluca Gaetano",
+        "knownAs":  "",
+        "firstName":  "Gianluca",
+        "lastName":  "Gaetano",
+        "club":  "Bergamo Calcio",
+        "country":  "Italy",
+        "ovr":  74
+    },
+    {
+        "id":  247229,
+        "rawName":  "Raoul Bellanova",
+        "knownAs":  "",
+        "firstName":  "Raoul",
+        "lastName":  "Bellanova",
+        "club":  "Bergamo Calcio",
+        "country":  "Italy",
+        "ovr":  78
+    },
+    {
+        "id":  247246,
+        "rawName":  "Khéphren Thuram",
+        "knownAs":  "",
+        "firstName":  "Khéphren",
+        "lastName":  "Thuram",
+        "club":  "Juventus",
+        "country":  "France",
+        "ovr":  81
+    },
+    {
+        "id":  247497,
+        "rawName":  "Armel Bella-Kotchap",
+        "knownAs":  "",
+        "firstName":  "Armel",
+        "lastName":  "Bella-Kotchap",
+        "club":  "Venezia",
+        "country":  "Germany",
+        "ovr":  72
+    },
+    {
+        "id":  247528,
+        "rawName":  "Corrie Ndaba",
+        "knownAs":  "",
+        "firstName":  "Corrie",
+        "lastName":  "Ndaba",
+        "club":  "Lecce",
+        "country":  "Republic of Ireland",
+        "ovr":  66
+    },
+    {
+        "id":  247668,
+        "rawName":  "Konan N\u0027Dri",
+        "knownAs":  "",
+        "firstName":  "Konan",
+        "lastName":  "N\u0027Dri",
+        "club":  "Lecce",
+        "country":  "Côte d\u0027Ivoire",
+        "ovr":  68
+    },
+    {
+        "id":  247832,
+        "rawName":  "Thierry Correia",
+        "knownAs":  "Thierry Correia",
+        "firstName":  "Thierry",
+        "lastName":  "Rendall Correia",
+        "club":  "Venezia",
+        "country":  "Portugal",
+        "ovr":  74
+    },
+    {
+        "id":  247888,
+        "rawName":  "Sebastiano Esposito",
+        "knownAs":  "",
+        "firstName":  "Sebastiano",
+        "lastName":  "Esposito",
+        "club":  "Cagliari",
+        "country":  "Italy",
+        "ovr":  76
+    },
+    {
+        "id":  248199,
+        "rawName":  "Valentin Antov",
+        "knownAs":  "",
+        "firstName":  "Valentin",
+        "lastName":  "Antov",
+        "club":  "Monza",
+        "country":  "Bulgaria",
+        "ovr":  67
+    },
+    {
+        "id":  248342,
+        "rawName":  "Torbjørn Heggem",
+        "knownAs":  "",
+        "firstName":  "Torbjørn",
+        "lastName":  "Heggem",
+        "club":  "Bologna",
+        "country":  "Norway",
+        "ovr":  75
+    },
+    {
+        "id":  248385,
+        "rawName":  "Roberto Piccoli",
+        "knownAs":  "",
+        "firstName":  "Roberto",
+        "lastName":  "Piccoli",
+        "club":  "Bologna",
+        "country":  "Italy",
+        "ovr":  75
+    },
+    {
+        "id":  248474,
+        "rawName":  "Tino Anjorin",
+        "knownAs":  "",
+        "firstName":  "Tino",
+        "lastName":  "Anjorin",
+        "club":  "Torino",
+        "country":  "England",
+        "ovr":  68
+    },
+    {
+        "id":  248564,
+        "rawName":  "Zakaria Aboukhlal",
+        "knownAs":  "",
+        "firstName":  "Zakaria",
+        "lastName":  "Aboukhlal",
+        "club":  "Torino",
+        "country":  "Morocco",
+        "ovr":  74
+    },
+    {
+        "id":  248729,
+        "rawName":  "Gustav Isaksen",
+        "knownAs":  "",
+        "firstName":  "Gustav",
+        "lastName":  "Isaksen",
+        "club":  "Latium",
+        "country":  "Denmark",
+        "ovr":  76
+    },
+    {
+        "id":  248857,
+        "rawName":  "Mattia Felici",
+        "knownAs":  "",
+        "firstName":  "Mattia",
+        "lastName":  "Felici",
+        "club":  "Cagliari",
+        "country":  "Italy",
+        "ovr":  72
+    },
+    {
+        "id":  250723,
+        "rawName":  "Kouadio Manu Koné",
+        "knownAs":  "",
+        "firstName":  "Kouadio Manu",
+        "lastName":  "Koné",
+        "club":  "AS Roma",
+        "country":  "France",
+        "ovr":  81
+    },
+    {
+        "id":  251464,
+        "rawName":  "Ignace Van der Brempt",
+        "knownAs":  "",
+        "firstName":  "Ignace",
+        "lastName":  "Van der Brempt",
+        "club":  "Como",
+        "country":  "Belgium",
+        "ovr":  72
+    },
+    {
+        "id":  251470,
+        "rawName":  "Charles De Ketelaere",
+        "knownAs":  "",
+        "firstName":  "Charles",
+        "lastName":  "De Ketelaere",
+        "club":  "Bergamo Calcio",
+        "country":  "Belgium",
+        "ovr":  81
+    },
+    {
+        "id":  251530,
+        "rawName":  "Nuno Tavares",
+        "knownAs":  "Nuno Tavares",
+        "firstName":  "Nuno Albertino",
+        "lastName":  "Varela Tavares",
+        "club":  "Latium",
+        "country":  "Portugal",
+        "ovr":  76
+    },
+    {
+        "id":  251769,
+        "rawName":  "Giacomo Calò",
+        "knownAs":  "",
+        "firstName":  "Giacomo",
+        "lastName":  "Calò",
+        "club":  "Frosinone",
+        "country":  "Italy",
+        "ovr":  73
+    },
+    {
+        "id":  251870,
+        "rawName":  "Juan David Cabal",
+        "knownAs":  "",
+        "firstName":  "Juan David",
+        "lastName":  "Cabal",
+        "club":  "Juventus",
+        "country":  "Colombia",
+        "ovr":  74
+    },
+    {
+        "id":  251988,
+        "rawName":  "Andrea Colpani",
+        "knownAs":  "",
+        "firstName":  "Andrea",
+        "lastName":  "Colpani",
+        "club":  "Monza",
+        "country":  "Italy",
+        "ovr":  76
+    },
+    {
+        "id":  252060,
+        "rawName":  "Tommaso Pobega",
+        "knownAs":  "",
+        "firstName":  "Tommaso",
+        "lastName":  "Pobega",
+        "club":  "Bologna",
+        "country":  "Italy",
+        "ovr":  74
+    },
+    {
+        "id":  252154,
+        "rawName":  "Marco Carnesecchi",
+        "knownAs":  "",
+        "firstName":  "Marco",
+        "lastName":  "Carnesecchi",
+        "club":  "Bergamo Calcio",
+        "country":  "Italy",
+        "ovr":  86
+    },
+    {
+        "id":  252386,
+        "rawName":  "Kevin Carlos",
+        "knownAs":  "Kevin Carlos",
+        "firstName":  "Kevin Carlos",
+        "lastName":  "Omoruyi Benjamin",
+        "club":  "Cagliari",
+        "country":  "Spain",
+        "ovr":  70
+    },
+    {
+        "id":  252440,
+        "rawName":  "Nadir Zortea",
+        "knownAs":  "",
+        "firstName":  "Nadir",
+        "lastName":  "Zortea",
+        "club":  "Bologna",
+        "country":  "Italy",
+        "ovr":  73
+    },
+    {
+        "id":  252442,
+        "rawName":  "Enrico Delprato",
+        "knownAs":  "",
+        "firstName":  "Enrico",
+        "lastName":  "Delprato",
+        "club":  "Parma",
+        "country":  "Italy",
+        "ovr":  75
+    },
+    {
+        "id":  252573,
+        "rawName":  "Aleksa Terzić",
+        "knownAs":  "",
+        "firstName":  "Aleksa",
+        "lastName":  "Terzić",
+        "club":  "Frosinone",
+        "country":  "Serbia",
+        "ovr":  68
+    },
+    {
+        "id":  252794,
+        "rawName":  "Adrián Bernabé",
+        "knownAs":  "Adrián Bernabé",
+        "firstName":  "Adrián",
+        "lastName":  "Bernabé García",
+        "club":  "Parma",
+        "country":  "Spain",
+        "ovr":  76
+    },
+    {
+        "id":  252942,
+        "rawName":  "Gennaro Borrelli",
+        "knownAs":  "",
+        "firstName":  "Gennaro",
+        "lastName":  "Borrelli",
+        "club":  "Cagliari",
+        "country":  "Italy",
+        "ovr":  69
+    },
+    {
+        "id":  252964,
+        "rawName":  "Gabriele Zappa",
+        "knownAs":  "",
+        "firstName":  "Gabriele",
+        "lastName":  "Zappa",
+        "club":  "Cagliari",
+        "country":  "Italy",
+        "ovr":  73
+    },
+    {
+        "id":  253002,
+        "rawName":  "Giacomo Raspadori",
+        "knownAs":  "",
+        "firstName":  "Giacomo",
+        "lastName":  "Raspadori",
+        "club":  "Bergamo Calcio",
+        "country":  "Italy",
+        "ovr":  78
+    },
+    {
+        "id":  253003,
+        "rawName":  "Alessandro Russo",
+        "knownAs":  "",
+        "firstName":  "Alessandro",
+        "lastName":  "Russo",
+        "club":  "Sassuolo",
+        "country":  "Italy",
+        "ovr":  64
+    },
+    {
+        "id":  253120,
+        "rawName":  "Ben Lhassine Kone",
+        "knownAs":  "",
+        "firstName":  "Ben Lhassine",
+        "lastName":  "Kone",
+        "club":  "Frosinone",
+        "country":  "Côte d\u0027Ivoire",
+        "ovr":  67
+    },
+    {
+        "id":  253139,
+        "rawName":  "Santiago Pierotti",
+        "knownAs":  "",
+        "firstName":  "Santiago",
+        "lastName":  "Pierotti",
+        "club":  "Lecce",
+        "country":  "Argentina",
+        "ovr":  71
+    },
+    {
+        "id":  253162,
+        "rawName":  "Hans Nicolussi Caviglia",
+        "knownAs":  "",
+        "firstName":  "Hans",
+        "lastName":  "Nicolussi Caviglia",
+        "club":  "Parma",
+        "country":  "Italy",
+        "ovr":  75
+    },
+    {
+        "id":  253177,
+        "rawName":  "Yunus Musah",
+        "knownAs":  "",
+        "firstName":  "Yunus",
+        "lastName":  "Musah",
+        "club":  "Milano FC",
+        "country":  "United States",
+        "ovr":  73
+    },
+    {
+        "id":  253473,
+        "rawName":  "Samuele Ricci",
+        "knownAs":  "",
+        "firstName":  "Samuele",
+        "lastName":  "Ricci",
+        "club":  "Milano FC",
+        "country":  "Italy",
+        "ovr":  78
+    },
+    {
+        "id":  254502,
+        "rawName":  "Stefano Turati",
+        "knownAs":  "",
+        "firstName":  "Stefano",
+        "lastName":  "Turati",
+        "club":  "Sassuolo",
+        "country":  "Italy",
+        "ovr":  74
+    },
+    {
+        "id":  254579,
+        "rawName":  "Lucas Da Cunha",
+        "knownAs":  "",
+        "firstName":  "Lucas",
+        "lastName":  "Da Cunha",
+        "club":  "Como",
+        "country":  "France",
+        "ovr":  78
+    },
+    {
+        "id":  254840,
+        "rawName":  "Strahinja Pavlović",
+        "knownAs":  "",
+        "firstName":  "Strahinja",
+        "lastName":  "Pavlović",
+        "club":  "Milano FC",
+        "country":  "Serbia",
+        "ovr":  78
+    },
+    {
+        "id":  254928,
+        "rawName":  "Bartol Franjić",
+        "knownAs":  "",
+        "firstName":  "Bartol",
+        "lastName":  "Franjić",
+        "club":  "Venezia",
+        "country":  "Croatia",
+        "ovr":  69
+    },
+    {
+        "id":  254982,
+        "rawName":  "Michel Ndary Adopo",
+        "knownAs":  "",
+        "firstName":  "Michel Ndary",
+        "lastName":  "Adopo",
+        "club":  "Cagliari",
+        "country":  "France",
+        "ovr":  73
+    },
+    {
+        "id":  255001,
+        "rawName":  "Nicolò Rovella",
+        "knownAs":  "",
+        "firstName":  "Nicolò",
+        "lastName":  "Rovella",
+        "club":  "Latium",
+        "country":  "Italy",
+        "ovr":  78
+    },
+    {
+        "id":  255009,
+        "rawName":  "Kenneth Taylor",
+        "knownAs":  "",
+        "firstName":  "Kenneth",
+        "lastName":  "Taylor",
+        "club":  "Latium",
+        "country":  "Holland",
+        "ovr":  78
+    },
+    {
+        "id":  255303,
+        "rawName":  "Elia Caprile",
+        "knownAs":  "",
+        "firstName":  "Elia",
+        "lastName":  "Caprile",
+        "club":  "Cagliari",
+        "country":  "Italy",
+        "ovr":  80
+    },
+    {
+        "id":  255529,
+        "rawName":  "El Bilal Touré",
+        "knownAs":  "",
+        "firstName":  "El Bilal",
+        "lastName":  "Touré",
+        "club":  "Parma",
+        "country":  "Mali",
+        "ovr":  72
+    },
+    {
+        "id":  255561,
+        "rawName":  "Josh Doig",
+        "knownAs":  "",
+        "firstName":  "Josh",
+        "lastName":  "Doig",
+        "club":  "Sassuolo",
+        "country":  "Scotland",
+        "ovr":  73
+    },
+    {
+        "id":  255611,
+        "rawName":  "Daniel Maldini",
+        "knownAs":  "",
+        "firstName":  "Daniel",
+        "lastName":  "Maldini",
+        "club":  "Cagliari",
+        "country":  "Italy",
+        "ovr":  74
+    },
+    {
+        "id":  255654,
+        "rawName":  "Pierre Kalulu",
+        "knownAs":  "",
+        "firstName":  "Pierre",
+        "lastName":  "Kalulu",
+        "club":  "Juventus",
+        "country":  "France",
+        "ovr":  81
+    },
+    {
+        "id":  255900,
+        "rawName":  "Noel Törnqvist",
+        "knownAs":  "",
+        "firstName":  "Noel",
+        "lastName":  "Törnqvist",
+        "club":  "Como",
+        "country":  "Sweden",
+        "ovr":  73
+    },
+    {
+        "id":  256035,
+        "rawName":  "Kamaldeen Sulemana",
+        "knownAs":  "",
+        "firstName":  "Kamaldeen",
+        "lastName":  "Sulemana",
+        "club":  "Bergamo Calcio",
+        "country":  "Ghana",
+        "ovr":  74
+    },
+    {
+        "id":  256115,
+        "rawName":  "Lazar Samardžić",
+        "knownAs":  "",
+        "firstName":  "Lazar",
+        "lastName":  "Samardžić",
+        "club":  "Bergamo Calcio",
+        "country":  "Serbia",
+        "ovr":  78
+    },
+    {
+        "id":  256325,
+        "rawName":  "Josip Šutalo",
+        "knownAs":  "",
+        "firstName":  "Josip",
+        "lastName":  "Šutalo",
+        "club":  "Latium",
+        "country":  "Croatia",
+        "ovr":  76
+    },
+    {
+        "id":  256508,
+        "rawName":  "David Romero",
+        "knownAs":  "",
+        "firstName":  "David",
+        "lastName":  "Romero",
+        "club":  "Parma",
+        "country":  "Argentina",
+        "ovr":  72
+    },
+    {
+        "id":  256632,
+        "rawName":  "Luis Henrique",
+        "knownAs":  "Luis Henrique",
+        "firstName":  "Luis Henrique",
+        "lastName":  "Tomaz de Lima",
+        "club":  "Lombardia FC",
+        "country":  "Brazil",
+        "ovr":  77
+    },
+    {
+        "id":  256856,
+        "rawName":  "Fali Candé",
+        "knownAs":  "",
+        "firstName":  "Fali",
+        "lastName":  "Candé",
+        "club":  "Sassuolo",
+        "country":  "Guinea-Bissau",
+        "ovr":  71
+    },
+    {
+        "id":  256899,
+        "rawName":  "Lorenzo Colombo",
+        "knownAs":  "",
+        "firstName":  "Lorenzo",
+        "lastName":  "Colombo",
+        "club":  "Genoa",
+        "country":  "Italy",
+        "ovr":  74
+    },
+    {
+        "id":  256903,
+        "rawName":  "Gonçalo Ramos",
+        "knownAs":  "Gonçalo Ramos",
+        "firstName":  "Gonçalo Matias",
+        "lastName":  "Ramos",
+        "club":  "Milano FC",
+        "country":  "Portugal",
+        "ovr":  80
+    },
+    {
+        "id":  257000,
+        "rawName":  "Andrea Carboni",
+        "knownAs":  "",
+        "firstName":  "Andrea",
+        "lastName":  "Carboni",
+        "club":  "Monza",
+        "country":  "Italy",
+        "ovr":  71
+    },
+    {
+        "id":  257080,
+        "rawName":  "Marlon Suliman Mustapha",
+        "knownAs":  "",
+        "firstName":  "Marlon Suliman",
+        "lastName":  "Mustapha",
+        "club":  "Como",
+        "country":  "Austria",
+        "ovr":  63
+    },
+    {
+        "id":  257104,
+        "rawName":  "Kieron Bowie",
+        "knownAs":  "",
+        "firstName":  "Kieron",
+        "lastName":  "Bowie",
+        "club":  "Sassuolo",
+        "country":  "Scotland",
+        "ovr":  67
+    },
+    {
+        "id":  257164,
+        "rawName":  "Andrea Ghion",
+        "knownAs":  "",
+        "firstName":  "Andrea",
+        "lastName":  "Ghion",
+        "club":  "Sassuolo",
+        "country":  "Italy",
+        "ovr":  70
+    },
+    {
+        "id":  257186,
+        "rawName":  "Ardon Jashari",
+        "knownAs":  "",
+        "firstName":  "Ardon",
+        "lastName":  "Jashari",
+        "club":  "Milano FC",
+        "country":  "Switzerland",
+        "ovr":  76
+    },
+    {
+        "id":  257288,
+        "rawName":  "Maduka Okoye",
+        "knownAs":  "",
+        "firstName":  "Maduka",
+        "lastName":  "Okoye",
+        "club":  "Udinese",
+        "country":  "Nigeria",
+        "ovr":  76
+    },
+    {
+        "id":  257290,
+        "rawName":  "João Mário",
+        "knownAs":  "João Mário",
+        "firstName":  "João Mário",
+        "lastName":  "Neto Lopes",
+        "club":  "Fiorentina",
+        "country":  "Portugal",
+        "ovr":  76
+    },
+    {
+        "id":  257324,
+        "rawName":  "Laurs Skjellerup",
+        "knownAs":  "",
+        "firstName":  "Laurs",
+        "lastName":  "Skjellerup",
+        "club":  "Sassuolo",
+        "country":  "Denmark",
+        "ovr":  66
+    },
+    {
+        "id":  257353,
+        "rawName":  "Warren Bondo",
+        "knownAs":  "",
+        "firstName":  "Warren",
+        "lastName":  "Bondo",
+        "club":  "Milano FC",
+        "country":  "France",
+        "ovr":  70
+    },
+    {
+        "id":  257785,
+        "rawName":  "Marco Brescianini",
+        "knownAs":  "",
+        "firstName":  "Marco",
+        "lastName":  "Brescianini",
+        "club":  "Fiorentina",
+        "country":  "Italy",
+        "ovr":  72
+    },
+    {
+        "id":  257972,
+        "rawName":  "Oliver Sørensen",
+        "knownAs":  "",
+        "firstName":  "Oliver",
+        "lastName":  "Sørensen",
+        "club":  "Parma",
+        "country":  "Denmark",
+        "ovr":  72
+    },
+    {
+        "id":  258147,
+        "rawName":  "Mario Mitaj",
+        "knownAs":  "",
+        "firstName":  "Mario",
+        "lastName":  "Mitaj",
+        "club":  "Genoa",
+        "country":  "Albania",
+        "ovr":  69
+    },
+    {
+        "id":  258505,
+        "rawName":  "Matthias Braunöder",
+        "knownAs":  "",
+        "firstName":  "Matthias",
+        "lastName":  "Braunöder",
+        "club":  "Como",
+        "country":  "Austria",
+        "ovr":  68
+    },
+    {
+        "id":  258507,
+        "rawName":  "Rafael Obrador",
+        "knownAs":  "Rafael Obrador",
+        "firstName":  "Rafael",
+        "lastName":  "Obrador Burguera",
+        "club":  "Sassuolo",
+        "country":  "Spain",
+        "ovr":  69
+    },
+    {
+        "id":  258615,
+        "rawName":  "Oier Zarraga",
+        "knownAs":  "Oier Zarraga",
+        "firstName":  "Oier",
+        "lastName":  "Zarraga Egaña",
+        "club":  "Udinese",
+        "country":  "Spain",
+        "ovr":  71
+    },
+    {
+        "id":  258648,
+        "rawName":  "Carlos Augusto",
+        "knownAs":  "Carlos Augusto",
+        "firstName":  "Carlos Augusto",
+        "lastName":  "Zopolato Neves",
+        "club":  "Lombardia FC",
+        "country":  "Brazil",
+        "ovr":  80
+    },
+    {
+        "id":  258683,
+        "rawName":  "Ivan Ilić",
+        "knownAs":  "",
+        "firstName":  "Ivan",
+        "lastName":  "Ilić",
+        "club":  "Torino",
+        "country":  "Serbia",
+        "ovr":  75
+    },
+    {
+        "id":  258708,
+        "rawName":  "Botond Balogh",
+        "knownAs":  "",
+        "firstName":  "Botond",
+        "lastName":  "Balogh",
+        "club":  "Parma",
+        "country":  "Hungary",
+        "ovr":  70
+    },
+    {
+        "id":  258714,
+        "rawName":  "Emanuele Valeri",
+        "knownAs":  "",
+        "firstName":  "Emanuele",
+        "lastName":  "Valeri",
+        "club":  "Parma",
+        "country":  "Italy",
+        "ovr":  75
+    },
+    {
+        "id":  258782,
+        "rawName":  "Ardian Ismajli",
+        "knownAs":  "",
+        "firstName":  "Ardian",
+        "lastName":  "Ismajli",
+        "club":  "Torino",
+        "country":  "Albania",
+        "ovr":  75
+    },
+    {
+        "id":  258826,
+        "rawName":  "Devyne Rensch",
+        "knownAs":  "",
+        "firstName":  "Devyne",
+        "lastName":  "Rensch",
+        "club":  "AS Roma",
+        "country":  "Holland",
+        "ovr":  75
+    },
+    {
+        "id":  258890,
+        "rawName":  "Fisayo Dele-Bashiru",
+        "knownAs":  "",
+        "firstName":  "Fisayo",
+        "lastName":  "Dele-Bashiru",
+        "club":  "Latium",
+        "country":  "Nigeria",
+        "ovr":  74
+    },
+    {
+        "id":  258966,
+        "rawName":  "Andrea Cambiaso",
+        "knownAs":  "",
+        "firstName":  "Andrea",
+        "lastName":  "Cambiaso",
+        "club":  "Juventus",
+        "country":  "Italy",
+        "ovr":  80
+    },
+    {
+        "id":  258976,
+        "rawName":  "Fabiano Parisi",
+        "knownAs":  "",
+        "firstName":  "Fabiano",
+        "lastName":  "Parisi",
+        "club":  "Fiorentina",
+        "country":  "Italy",
+        "ovr":  75
+    },
+    {
+        "id":  259075,
+        "rawName":  "Yan Couto",
+        "knownAs":  "Yan Couto",
+        "firstName":  "Yan",
+        "lastName":  "Bueno Couto",
+        "club":  "Como",
+        "country":  "Brazil",
+        "ovr":  77
+    },
+    {
+        "id":  259107,
+        "rawName":  "Andrea Adorante",
+        "knownAs":  "",
+        "firstName":  "Andrea",
+        "lastName":  "Adorante",
+        "club":  "Venezia",
+        "country":  "Italy",
+        "ovr":  73
+    },
+    {
+        "id":  259150,
+        "rawName":  "Abdoulaye Ndiaye",
+        "knownAs":  "",
+        "firstName":  "Abdoulaye",
+        "lastName":  "Ndiaye",
+        "club":  "Parma",
+        "country":  "Senegal",
+        "ovr":  74
+    },
+    {
+        "id":  259299,
+        "rawName":  "Jamil Siebert",
+        "knownAs":  "",
+        "firstName":  "Jamil",
+        "lastName":  "Siebert",
+        "club":  "Lecce",
+        "country":  "Germany",
+        "ovr":  70
+    },
+    {
+        "id":  259399,
+        "rawName":  "Rasmus Højlund",
+        "knownAs":  "",
+        "firstName":  "Rasmus",
+        "lastName":  "Højlund",
+        "club":  "SSC Napoli",
+        "country":  "Denmark",
+        "ovr":  78
+    },
+    {
+        "id":  259423,
+        "rawName":  "Iván Azón",
+        "knownAs":  "Iván Azón",
+        "firstName":  "Iván",
+        "lastName":  "Azón Monzón",
+        "club":  "Como",
+        "country":  "Spain",
+        "ovr":  70
+    },
+    {
+        "id":  259565,
+        "rawName":  "Yoan Bonny",
+        "knownAs":  "",
+        "firstName":  "Yoan",
+        "lastName":  "Bonny",
+        "club":  "Lombardia FC",
+        "country":  "Côte d\u0027Ivoire",
+        "ovr":  78
+    },
+    {
+        "id":  259748,
+        "rawName":  "Martin Vitík",
+        "knownAs":  "",
+        "firstName":  "Martin",
+        "lastName":  "Vitík",
+        "club":  "Bologna",
+        "country":  "Czech Republic",
+        "ovr":  75
+    },
+    {
+        "id":  260105,
+        "rawName":  "Radu Drăgușin",
+        "knownAs":  "",
+        "firstName":  "Radu",
+        "lastName":  "Drăgușin",
+        "club":  "Fiorentina",
+        "country":  "Romania",
+        "ovr":  74
+    },
+    {
+        "id":  260653,
+        "rawName":  "Brooke Norton-Cuffy",
+        "knownAs":  "",
+        "firstName":  "Brooke",
+        "lastName":  "Norton-Cuffy",
+        "club":  "Genoa",
+        "country":  "England",
+        "ovr":  75
+    },
+    {
+        "id":  260697,
+        "rawName":  "Isak Hien",
+        "knownAs":  "",
+        "firstName":  "Isak",
+        "lastName":  "Hien",
+        "club":  "Bergamo Calcio",
+        "country":  "Sweden",
+        "ovr":  79
+    },
+    {
+        "id":  260823,
+        "rawName":  "Nicolò Fagioli",
+        "knownAs":  "",
+        "firstName":  "Nicolò",
+        "lastName":  "Fagioli",
+        "club":  "Fiorentina",
+        "country":  "Italy",
+        "ovr":  76
+    },
+    {
+        "id":  261050,
+        "rawName":  "Francisco Conceição",
+        "knownAs":  "Francisco Conceição",
+        "firstName":  "Francisco",
+        "lastName":  "Conceição",
+        "club":  "Juventus",
+        "country":  "Portugal",
+        "ovr":  80
+    },
+    {
+        "id":  261478,
+        "rawName":  "Tasos Douvikas",
+        "knownAs":  "",
+        "firstName":  "Tasos",
+        "lastName":  "Douvikas",
+        "club":  "Como",
+        "country":  "Greece",
+        "ovr":  78
+    },
+    {
+        "id":  261539,
+        "rawName":  "Mandela Keita",
+        "knownAs":  "",
+        "firstName":  "Mandela",
+        "lastName":  "Keita",
+        "club":  "Parma",
+        "country":  "Belgium",
+        "ovr":  75
+    },
+    {
+        "id":  261573,
+        "rawName":  "Thomas Kristensen",
+        "knownAs":  "",
+        "firstName":  "Thomas",
+        "lastName":  "Kristensen",
+        "club":  "Bergamo Calcio",
+        "country":  "Denmark",
+        "ovr":  74
+    },
+    {
+        "id":  262113,
+        "rawName":  "Nicola Zalewski",
+        "knownAs":  "",
+        "firstName":  "Nicola",
+        "lastName":  "Zalewski",
+        "club":  "Bergamo Calcio",
+        "country":  "Poland",
+        "ovr":  78
+    },
+    {
+        "id":  262218,
+        "rawName":  "Kian Fitz-Jim",
+        "knownAs":  "",
+        "firstName":  "Kian",
+        "lastName":  "Fitz-Jim",
+        "club":  "Torino",
+        "country":  "Holland",
+        "ovr":  71
+    },
+    {
+        "id":  262394,
+        "rawName":  "Sam Beukema",
+        "knownAs":  "",
+        "firstName":  "Sam",
+        "lastName":  "Beukema",
+        "club":  "SSC Napoli",
+        "country":  "Holland",
+        "ovr":  78
+    },
+    {
+        "id":  262396,
+        "rawName":  "Jay Idzes",
+        "knownAs":  "",
+        "firstName":  "Jay",
+        "lastName":  "Idzes",
+        "club":  "Sassuolo",
+        "country":  "Indonesia",
+        "ovr":  75
+    },
+    {
+        "id":  262474,
+        "rawName":  "Cas Odenthal",
+        "knownAs":  "",
+        "firstName":  "Cas",
+        "lastName":  "Odenthal",
+        "club":  "Sassuolo",
+        "country":  "Holland",
+        "ovr":  70
+    },
+    {
+        "id":  262745,
+        "rawName":  "Neil El Aynaoui",
+        "knownAs":  "",
+        "firstName":  "Neil",
+        "lastName":  "El Aynaoui",
+        "club":  "AS Roma",
+        "country":  "Morocco",
+        "ovr":  77
+    },
+    {
+        "id":  262842,
+        "rawName":  "Martin Baturina",
+        "knownAs":  "",
+        "firstName":  "Martin",
+        "lastName":  "Baturina",
+        "club":  "Como",
+        "country":  "Croatia",
+        "ovr":  79
+    },
+    {
+        "id":  263229,
+        "rawName":  "Mateo Pellegrino",
+        "knownAs":  "",
+        "firstName":  "Mateo",
+        "lastName":  "Pellegrino",
+        "club":  "Fiorentina",
+        "country":  "Argentina",
+        "ovr":  71
+    },
+    {
+        "id":  263469,
+        "rawName":  "Mohamed Kaba",
+        "knownAs":  "",
+        "firstName":  "Mohamed",
+        "lastName":  "Kaba",
+        "club":  "Lecce",
+        "country":  "France",
+        "ovr":  69
+    },
+    {
+        "id":  263657,
+        "rawName":  "Þórir Jóhann Helgason",
+        "knownAs":  "",
+        "firstName":  "Þórir Jóhann",
+        "lastName":  "Helgason",
+        "club":  "Venezia",
+        "country":  "Iceland",
+        "ovr":  68
+    },
+    {
+        "id":  263829,
+        "rawName":  "Vitinha",
+        "knownAs":  "Vitinha",
+        "firstName":  "Vítor Manuel",
+        "lastName":  "Carvalho Oliveira",
+        "club":  "Genoa",
+        "country":  "Portugal",
+        "ovr":  75
+    },
+    {
+        "id":  263882,
+        "rawName":  "Alieu Fadera",
+        "knownAs":  "",
+        "firstName":  "Alieu",
+        "lastName":  "Fadera",
+        "club":  "Cagliari",
+        "country":  "Gambia",
+        "ovr":  71
+    },
+    {
+        "id":  263929,
+        "rawName":  "Matteo Cancellieri",
+        "knownAs":  "",
+        "firstName":  "Matteo",
+        "lastName":  "Cancellieri",
+        "club":  "Latium",
+        "country":  "Italy",
+        "ovr":  74
+    },
+    {
+        "id":  263949,
+        "rawName":  "Sadik Fofana",
+        "knownAs":  "",
+        "firstName":  "Sadik",
+        "lastName":  "Fofana",
+        "club":  "Lecce",
+        "country":  "Togo",
+        "ovr":  65
+    },
+    {
+        "id":  264207,
+        "rawName":  "Ismaël Koné",
+        "knownAs":  "",
+        "firstName":  "Ismaël",
+        "lastName":  "Koné",
+        "club":  "Sassuolo",
+        "country":  "Canada",
+        "ovr":  75
+    },
+    {
+        "id":  264257,
+        "rawName":  "Tijjani Noslin",
+        "knownAs":  "",
+        "firstName":  "Tijjani",
+        "lastName":  "Noslin",
+        "club":  "Latium",
+        "country":  "Holland",
+        "ovr":  74
+    },
+    {
+        "id":  264372,
+        "rawName":  "Nicolas Galazzi",
+        "knownAs":  "",
+        "firstName":  "Nicolas",
+        "lastName":  "Galazzi",
+        "club":  "Monza",
+        "country":  "Italy",
+        "ovr":  67
+    },
+    {
+        "id":  264436,
+        "rawName":  "Mikael Egill Ellertsson",
+        "knownAs":  "",
+        "firstName":  "Mikael Egill",
+        "lastName":  "Ellertsson",
+        "club":  "Genoa",
+        "country":  "Iceland",
+        "ovr":  71
+    },
+    {
+        "id":  264509,
+        "rawName":  "James Abankwah",
+        "knownAs":  "",
+        "firstName":  "James",
+        "lastName":  "Abankwah",
+        "club":  "Udinese",
+        "country":  "Republic of Ireland",
+        "ovr":  69
+    },
+    {
+        "id":  264657,
+        "rawName":  "Redouane Halhal",
+        "knownAs":  "",
+        "firstName":  "Redouane",
+        "lastName":  "Halhal",
+        "club":  "Venezia",
+        "country":  "Morocco",
+        "ovr":  66
+    },
+    {
+        "id":  264683,
+        "rawName":  "Riccardo Ciervo",
+        "knownAs":  "",
+        "firstName":  "Riccardo",
+        "lastName":  "Ciervo",
+        "club":  "Sassuolo",
+        "country":  "Italy",
+        "ovr":  70
+    },
+    {
+        "id":  264699,
+        "rawName":  "Kristjan Asllani",
+        "knownAs":  "",
+        "firstName":  "Kristjan",
+        "lastName":  "Asllani",
+        "club":  "Lombardia FC",
+        "country":  "Albania",
+        "ovr":  73
+    },
+    {
+        "id":  265188,
+        "rawName":  "Giorgio Scalvini",
+        "knownAs":  "",
+        "firstName":  "Giorgio",
+        "lastName":  "Scalvini",
+        "club":  "Bergamo Calcio",
+        "country":  "Italy",
+        "ovr":  79
+    },
+    {
+        "id":  265650,
+        "rawName":  "Saúl Coco",
+        "knownAs":  "Saúl Coco",
+        "firstName":  "Saúl Basilio",
+        "lastName":  "Coco Bassey Oubiña",
+        "club":  "Torino",
+        "country":  "Equatorial Guinea",
+        "ovr":  76
+    },
+    {
+        "id":  265695,
+        "rawName":  "Matías Soulé",
+        "knownAs":  "",
+        "firstName":  "Matías",
+        "lastName":  "Soulé",
+        "club":  "AS Roma",
+        "country":  "Argentina",
+        "ovr":  80
+    },
+    {
+        "id":  265761,
+        "rawName":  "Cristian Volpato",
+        "knownAs":  "",
+        "firstName":  "Cristian",
+        "lastName":  "Volpato",
+        "club":  "Sassuolo",
+        "country":  "Australia",
+        "ovr":  72
+    },
+    {
+        "id":  265762,
+        "rawName":  "Filippo Missori",
+        "knownAs":  "",
+        "firstName":  "Filippo",
+        "lastName":  "Missori",
+        "club":  "Sassuolo",
+        "country":  "Italy",
+        "ovr":  67
+    },
+    {
+        "id":  265774,
+        "rawName":  "Koni De Winter",
+        "knownAs":  "",
+        "firstName":  "Koni",
+        "lastName":  "De Winter",
+        "club":  "Milano FC",
+        "country":  "Belgium",
+        "ovr":  75
+    },
+    {
+        "id":  266123,
+        "rawName":  "Oliver Provstgaard",
+        "knownAs":  "",
+        "firstName":  "Oliver",
+        "lastName":  "Provstgaard",
+        "club":  "Latium",
+        "country":  "Denmark",
+        "ovr":  70
+    },
+    {
+        "id":  266256,
+        "rawName":  "Akor Jerome Adams",
+        "knownAs":  "",
+        "firstName":  "Akor Jerome",
+        "lastName":  "Adams",
+        "club":  "Venezia",
+        "country":  "Nigeria",
+        "ovr":  75
+    },
+    {
+        "id":  266257,
+        "rawName":  "Emirhan İlkhan",
+        "knownAs":  "",
+        "firstName":  "Emirhan",
+        "lastName":  "İlkhan",
+        "club":  "Torino",
+        "country":  "Turkey",
+        "ovr":  70
+    },
+    {
+        "id":  266304,
+        "rawName":  "Giorgio Cittadini",
+        "knownAs":  "",
+        "firstName":  "Giorgio",
+        "lastName":  "Cittadini",
+        "club":  "Frosinone",
+        "country":  "Italy",
+        "ovr":  69
+    },
+    {
+        "id":  266500,
+        "rawName":  "Jonathan Rowe",
+        "knownAs":  "",
+        "firstName":  "Jonathan",
+        "lastName":  "Rowe",
+        "club":  "Bologna",
+        "country":  "England",
+        "ovr":  76
+    },
+    {
+        "id":  266596,
+        "rawName":  "Jacopo Fazzini",
+        "knownAs":  "",
+        "firstName":  "Jacopo",
+        "lastName":  "Fazzini",
+        "club":  "Cagliari",
+        "country":  "Italy",
+        "ovr":  72
+    },
+    {
+        "id":  266636,
+        "rawName":  "Adam Obert",
+        "knownAs":  "",
+        "firstName":  "Adam",
+        "lastName":  "Obert",
+        "club":  "Cagliari",
+        "country":  "Slovakia",
+        "ovr":  75
+    },
+    {
+        "id":  266848,
+        "rawName":  "Oumar Ngom",
+        "knownAs":  "",
+        "firstName":  "Oumar",
+        "lastName":  "Ngom",
+        "club":  "Lecce",
+        "country":  "Mauritania",
+        "ovr":  66
+    },
+    {
+        "id":  266866,
+        "rawName":  "Éderson",
+        "knownAs":  "Éderson",
+        "firstName":  "Éderson José",
+        "lastName":  "dos Santos",
+        "club":  "Bergamo Calcio",
+        "country":  "Brazil",
+        "ovr":  82
+    },
+    {
+        "id":  266872,
+        "rawName":  "Federico Gatti",
+        "knownAs":  "",
+        "firstName":  "Federico",
+        "lastName":  "Gatti",
+        "club":  "Juventus",
+        "country":  "Italy",
+        "ovr":  79
+    },
+    {
+        "id":  267861,
+        "rawName":  "Santiago Castro",
+        "knownAs":  "",
+        "firstName":  "Santiago",
+        "lastName":  "Castro",
+        "club":  "AS Roma",
+        "country":  "Argentina",
+        "ovr":  77
+    },
+    {
+        "id":  267991,
+        "rawName":  "Máximo Perrone",
+        "knownAs":  "",
+        "firstName":  "Máximo",
+        "lastName":  "Perrone",
+        "club":  "Como",
+        "country":  "Argentina",
+        "ovr":  78
+    },
+    {
+        "id":  268437,
+        "rawName":  "Omari Forson",
+        "knownAs":  "",
+        "firstName":  "Omari",
+        "lastName":  "Forson",
+        "club":  "Monza",
+        "country":  "England",
+        "ovr":  65
+    },
+    {
+        "id":  268462,
+        "rawName":  "Daniel Boloca",
+        "knownAs":  "",
+        "firstName":  "Daniel",
+        "lastName":  "Boloca",
+        "club":  "Sassuolo",
+        "country":  "Romania",
+        "ovr":  72
+    },
+    {
+        "id":  268466,
+        "rawName":  "Sergio Kalaj",
+        "knownAs":  "",
+        "firstName":  "Sergio",
+        "lastName":  "Kalaj",
+        "club":  "Frosinone",
+        "country":  "Albania",
+        "ovr":  62
+    },
+    {
+        "id":  268474,
+        "rawName":  "Lorenzo Lucca",
+        "knownAs":  "",
+        "firstName":  "Lorenzo",
+        "lastName":  "Lucca",
+        "club":  "SSC Napoli",
+        "country":  "Italy",
+        "ovr":  75
+    },
+    {
+        "id":  268511,
+        "rawName":  "Walid Cheddira",
+        "knownAs":  "",
+        "firstName":  "Walid",
+        "lastName":  "Cheddira",
+        "club":  "SSC Napoli",
+        "country":  "Morocco",
+        "ovr":  72
+    },
+    {
+        "id":  268534,
+        "rawName":  "Andy Diouf",
+        "knownAs":  "",
+        "firstName":  "Andy",
+        "lastName":  "Diouf",
+        "club":  "Lombardia FC",
+        "country":  "France",
+        "ovr":  76
+    },
+    {
+        "id":  268656,
+        "rawName":  "Alessandro Zanoli",
+        "knownAs":  "",
+        "firstName":  "Alessandro",
+        "lastName":  "Zanoli",
+        "club":  "Udinese",
+        "country":  "Italy",
+        "ovr":  72
+    },
+    {
+        "id":  268674,
+        "rawName":  "Alessandro Gabrielloni",
+        "knownAs":  "",
+        "firstName":  "Alessandro",
+        "lastName":  "Gabrielloni",
+        "club":  "Como",
+        "country":  "Italy",
+        "ovr":  68
+    },
+    {
+        "id":  268683,
+        "rawName":  "Michael Folorunsho",
+        "knownAs":  "",
+        "firstName":  "Michael",
+        "lastName":  "Folorunsho",
+        "club":  "SSC Napoli",
+        "country":  "Italy",
+        "ovr":  74
+    },
+    {
+        "id":  268703,
+        "rawName":  "Nicolò Cambiaghi",
+        "knownAs":  "",
+        "firstName":  "Nicolò",
+        "lastName":  "Cambiaghi",
+        "club":  "Bologna",
+        "country":  "Italy",
+        "ovr":  76
+    },
+    {
+        "id":  268728,
+        "rawName":  "Anass Salah-Eddine",
+        "knownAs":  "",
+        "firstName":  "Anass",
+        "lastName":  "Salah-Eddine",
+        "club":  "AS Roma",
+        "country":  "Morocco",
+        "ovr":  75
+    },
+    {
+        "id":  268751,
+        "rawName":  "Ilias Koutsoupias",
+        "knownAs":  "",
+        "firstName":  "Ilias",
+        "lastName":  "Koutsoupias",
+        "club":  "Frosinone",
+        "country":  "Greece",
+        "ovr":  70
+    },
+    {
+        "id":  268802,
+        "rawName":  "Fabio Miretti",
+        "knownAs":  "",
+        "firstName":  "Fabio",
+        "lastName":  "Miretti",
+        "club":  "Juventus",
+        "country":  "Italy",
+        "ovr":  75
+    },
+    {
+        "id":  268804,
+        "rawName":  "Mario Gila",
+        "knownAs":  "Mario Gila",
+        "firstName":  "Mario",
+        "lastName":  "Gila Fuentes",
+        "club":  "Milano FC",
+        "country":  "Spain",
+        "ovr":  81
+    },
+    {
+        "id":  268875,
+        "rawName":  "Semuel Pizzignacco",
+        "knownAs":  "",
+        "firstName":  "Semuel",
+        "lastName":  "Pizzignacco",
+        "club":  "Monza",
+        "country":  "Italy",
+        "ovr":  67
+    },
+    {
+        "id":  269182,
+        "rawName":  "Antonio Raimondo",
+        "knownAs":  "",
+        "firstName":  "Antonio",
+        "lastName":  "Raimondo",
+        "club":  "Frosinone",
+        "country":  "Italy",
+        "ovr":  70
+    },
+    {
+        "id":  269183,
+        "rawName":  "Wisdom Amey",
+        "knownAs":  "",
+        "firstName":  "Wisdom",
+        "lastName":  "Amey",
+        "club":  "Frosinone",
+        "country":  "Italy",
+        "ovr":  61
+    },
+    {
+        "id":  269271,
+        "rawName":  "Filip Stanković",
+        "knownAs":  "",
+        "firstName":  "Filip",
+        "lastName":  "Stanković",
+        "club":  "Venezia",
+        "country":  "Serbia",
+        "ovr":  74
+    },
+    {
+        "id":  269276,
+        "rawName":  "Gaetano Oristanio",
+        "knownAs":  "",
+        "firstName":  "Gaetano",
+        "lastName":  "Oristanio",
+        "club":  "Torino",
+        "country":  "Italy",
+        "ovr":  73
+    },
+    {
+        "id":  269312,
+        "rawName":  "Tommaso Baldanzi",
+        "knownAs":  "",
+        "firstName":  "Tommaso",
+        "lastName":  "Baldanzi",
+        "club":  "Genoa",
+        "country":  "Italy",
+        "ovr":  75
+    },
+    {
+        "id":  269558,
+        "rawName":  "Benjamín Domínguez",
+        "knownAs":  "",
+        "firstName":  "Benjamín",
+        "lastName":  "Domínguez",
+        "club":  "Sassuolo",
+        "country":  "Argentina",
+        "ovr":  72
+    },
+    {
+        "id":  269745,
+        "rawName":  "Oussama El Azzouzi",
+        "knownAs":  "",
+        "firstName":  "Oussama",
+        "lastName":  "El Azzouzi",
+        "club":  "Bologna",
+        "country":  "Morocco",
+        "ovr":  70
+    },
+    {
+        "id":  270039,
+        "rawName":  "Diego Moreira",
+        "knownAs":  "Diego Moreira",
+        "firstName":  "Diego Manuel",
+        "lastName":  "J. da Silva Moreira",
+        "club":  "Milano FC",
+        "country":  "Belgium",
+        "ovr":  79
+    },
+    {
+        "id":  270064,
+        "rawName":  "Ilario Monterisi",
+        "knownAs":  "",
+        "firstName":  "Ilario",
+        "lastName":  "Monterisi",
+        "club":  "Frosinone",
+        "country":  "Italy",
+        "ovr":  70
+    },
+    {
+        "id":  270077,
+        "rawName":  "Konstantinos Koulierakis",
+        "knownAs":  "",
+        "firstName":  "Konstantinos",
+        "lastName":  "Koulierakis",
+        "club":  "AS Roma",
+        "country":  "Greece",
+        "ovr":  76
+    },
+    {
+        "id":  270131,
+        "rawName":  "Niccolò Corrado",
+        "knownAs":  "",
+        "firstName":  "Niccolò",
+        "lastName":  "Corrado",
+        "club":  "Frosinone",
+        "country":  "Italy",
+        "ovr":  68
+    },
+    {
+        "id":  270141,
+        "rawName":  "Franco Israel",
+        "knownAs":  "",
+        "firstName":  "Franco",
+        "lastName":  "Israel",
+        "club":  "Torino",
+        "country":  "Uruguay",
+        "ovr":  74
+    },
+    {
+        "id":  270217,
+        "rawName":  "Alessio Furlanetto",
+        "knownAs":  "",
+        "firstName":  "Alessio",
+        "lastName":  "Furlanetto",
+        "club":  "Latium",
+        "country":  "Italy",
+        "ovr":  61
+    },
+    {
+        "id":  270341,
+        "rawName":  "Yanis Massolin",
+        "knownAs":  "",
+        "firstName":  "Yanis",
+        "lastName":  "Massolin",
+        "club":  "Lombardia FC",
+        "country":  "France",
+        "ovr":  68
+    },
+    {
+        "id":  270485,
+        "rawName":  "Franco Carboni",
+        "knownAs":  "",
+        "firstName":  "Franco",
+        "lastName":  "Carboni",
+        "club":  "Parma",
+        "country":  "Argentina",
+        "ovr":  63
+    },
+    {
+        "id":  270502,
+        "rawName":  "Anthony Oyono",
+        "knownAs":  "",
+        "firstName":  "Anthony",
+        "lastName":  "Oyono",
+        "club":  "Frosinone",
+        "country":  "Gabon",
+        "ovr":  70
+    },
+    {
+        "id":  270657,
+        "rawName":  "Edoardo Iannoni",
+        "knownAs":  "",
+        "firstName":  "Edoardo",
+        "lastName":  "Iannoni",
+        "club":  "Sassuolo",
+        "country":  "Italy",
+        "ovr":  67
+    },
+    {
+        "id":  270888,
+        "rawName":  "Gaby Jean",
+        "knownAs":  "",
+        "firstName":  "Gaby",
+        "lastName":  "Jean",
+        "club":  "Lecce",
+        "country":  "France",
+        "ovr":  69
+    },
+    {
+        "id":  271006,
+        "rawName":  "Yeferson Paz",
+        "knownAs":  "",
+        "firstName":  "Yeferson",
+        "lastName":  "Paz",
+        "club":  "Sassuolo",
+        "country":  "Colombia",
+        "ovr":  67
+    },
+    {
+        "id":  271013,
+        "rawName":  "Patrick Amoako Nuamah",
+        "knownAs":  "",
+        "firstName":  "Patrick Amoako",
+        "lastName":  "Nuamah",
+        "club":  "Sassuolo",
+        "country":  "Italy",
+        "ovr":  65
+    },
+    {
+        "id":  271019,
+        "rawName":  "Giovanni Fabbian",
+        "knownAs":  "",
+        "firstName":  "Giovanni",
+        "lastName":  "Fabbian",
+        "club":  "Fiorentina",
+        "country":  "Italy",
+        "ovr":  73
+    },
+    {
+        "id":  271197,
+        "rawName":  "Lameck Banda",
+        "knownAs":  "",
+        "firstName":  "Lameck",
+        "lastName":  "Banda",
+        "club":  "Lecce",
+        "country":  "Zambia",
+        "ovr":  70
+    },
+    {
+        "id":  271198,
+        "rawName":  "Medon Berisha",
+        "knownAs":  "",
+        "firstName":  "Medon",
+        "lastName":  "Berisha",
+        "club":  "Lecce",
+        "country":  "Albania",
+        "ovr":  69
+    },
+    {
+        "id":  271202,
+        "rawName":  "Nicolò Cavuoti",
+        "knownAs":  "",
+        "firstName":  "Nicolò",
+        "lastName":  "Cavuoti",
+        "club":  "Cagliari",
+        "country":  "Italy",
+        "ovr":  65
+    },
+    {
+        "id":  271385,
+        "rawName":  "Edoardo Corvi",
+        "knownAs":  "",
+        "firstName":  "Edoardo",
+        "lastName":  "Corvi",
+        "club":  "Parma",
+        "country":  "Italy",
+        "ovr":  69
+    },
+    {
+        "id":  271475,
+        "rawName":  "Nicolò Bertola",
+        "knownAs":  "",
+        "firstName":  "Nicolò",
+        "lastName":  "Bertola",
+        "club":  "Udinese",
+        "country":  "Italy",
+        "ovr":  72
+    },
+    {
+        "id":  271539,
+        "rawName":  "Danilo Veiga",
+        "knownAs":  "Danilo Veiga",
+        "firstName":  "Danilo Filipe",
+        "lastName":  "Melo Veiga",
+        "club":  "Lecce",
+        "country":  "Portugal",
+        "ovr":  69
+    },
+    {
+        "id":  271577,
+        "rawName":  "Ibrahim Sulemana",
+        "knownAs":  "",
+        "firstName":  "Ibrahim",
+        "lastName":  "Sulemana",
+        "club":  "Bergamo Calcio",
+        "country":  "Ghana",
+        "ovr":  73
+    },
+    {
+        "id":  271579,
+        "rawName":  "Filippo Terracciano",
+        "knownAs":  "",
+        "firstName":  "Filippo",
+        "lastName":  "Terracciano",
+        "club":  "Milano FC",
+        "country":  "Italy",
+        "ovr":  71
+    },
+    {
+        "id":  271856,
+        "rawName":  "Antoine Hainaut",
+        "knownAs":  "",
+        "firstName":  "Antoine",
+        "lastName":  "Hainaut",
+        "club":  "Venezia",
+        "country":  "France",
+        "ovr":  71
+    },
+    {
+        "id":  271882,
+        "rawName":  "Sebastian Otoa",
+        "knownAs":  "",
+        "firstName":  "Sebastian",
+        "lastName":  "Otoa",
+        "club":  "Genoa",
+        "country":  "Denmark",
+        "ovr":  68
+    },
+    {
+        "id":  272687,
+        "rawName":  "Benjamin Cremaschi",
+        "knownAs":  "",
+        "firstName":  "Benjamin",
+        "lastName":  "Cremaschi",
+        "club":  "Parma",
+        "country":  "United States",
+        "ovr":  68
+    },
+    {
+        "id":  272725,
+        "rawName":  "Matteo Prati",
+        "knownAs":  "",
+        "firstName":  "Matteo",
+        "lastName":  "Prati",
+        "club":  "Cagliari",
+        "country":  "Italy",
+        "ovr":  72
+    },
+    {
+        "id":  272783,
+        "rawName":  "Arthur Atta",
+        "knownAs":  "",
+        "firstName":  "Arthur",
+        "lastName":  "Atta",
+        "club":  "Fiorentina",
+        "country":  "France",
+        "ovr":  76
+    },
+    {
+        "id":  273875,
+        "rawName":  "Álex Valle",
+        "knownAs":  "Álex Valle",
+        "firstName":  "Álex",
+        "lastName":  "Valle Gómez",
+        "club":  "Como",
+        "country":  "Spain",
+        "ovr":  75
+    },
+    {
+        "id":  273883,
+        "rawName":  "Cesare Casadei",
+        "knownAs":  "",
+        "firstName":  "Cesare",
+        "lastName":  "Casadei",
+        "club":  "Torino",
+        "country":  "Italy",
+        "ovr":  75
+    },
+    {
+        "id":  273884,
+        "rawName":  "Christian Ordoñez",
+        "knownAs":  "",
+        "firstName":  "Christian",
+        "lastName":  "Ordoñez",
+        "club":  "Parma",
+        "country":  "Argentina",
+        "ovr":  70
+    },
+    {
+        "id":  273915,
+        "rawName":  "Nikola Štulić",
+        "knownAs":  "",
+        "firstName":  "Nikola",
+        "lastName":  "Štulić",
+        "club":  "Lecce",
+        "country":  "Serbia",
+        "ovr":  70
+    },
+    {
+        "id":  273917,
+        "rawName":  "Giuseppe Aurelio",
+        "knownAs":  "",
+        "firstName":  "Giuseppe",
+        "lastName":  "Aurelio",
+        "club":  "Cagliari",
+        "country":  "Italy",
+        "ovr":  69
+    },
+    {
+        "id":  273932,
+        "rawName":  "Gvidas Gineitis",
+        "knownAs":  "",
+        "firstName":  "Gvidas",
+        "lastName":  "Gineitis",
+        "club":  "Torino",
+        "country":  "Lithuania",
+        "ovr":  72
+    },
+    {
+        "id":  273936,
+        "rawName":  "Ali Bina Dembélé",
+        "knownAs":  "",
+        "firstName":  "Ali Bina",
+        "lastName":  "Dembélé",
+        "club":  "Torino",
+        "country":  "France",
+        "ovr":  65
+    },
+    {
+        "id":  274082,
+        "rawName":  "Alan Matturro",
+        "knownAs":  "",
+        "firstName":  "Alan",
+        "lastName":  "Matturro",
+        "club":  "Genoa",
+        "country":  "Uruguay",
+        "ovr":  70
+    },
+    {
+        "id":  274096,
+        "rawName":  "Calixte Ligue",
+        "knownAs":  "",
+        "firstName":  "Calixte",
+        "lastName":  "Ligue",
+        "club":  "Venezia",
+        "country":  "Switzerland",
+        "ovr":  64
+    },
+    {
+        "id":  274197,
+        "rawName":  "Francesco Gelli",
+        "knownAs":  "",
+        "firstName":  "Francesco",
+        "lastName":  "Gelli",
+        "club":  "Frosinone",
+        "country":  "Italy",
+        "ovr":  68
+    },
+    {
+        "id":  274270,
+        "rawName":  "Rui Modesto",
+        "knownAs":  "Rui Modesto",
+        "firstName":  "Rui Manuel",
+        "lastName":  "Muati Modesto",
+        "club":  "Udinese",
+        "country":  "Angola",
+        "ovr":  70
+    },
+    {
+        "id":  274444,
+        "rawName":  "Adrian Przyborek",
+        "knownAs":  "",
+        "firstName":  "Adrian",
+        "lastName":  "Przyborek",
+        "club":  "Latium",
+        "country":  "Poland",
+        "ovr":  66
+    },
+    {
+        "id":  274702,
+        "rawName":  "Luca Lipani",
+        "knownAs":  "",
+        "firstName":  "Luca",
+        "lastName":  "Lipani",
+        "club":  "Sassuolo",
+        "country":  "Italy",
+        "ovr":  69
+    },
+    {
+        "id":  274928,
+        "rawName":  "Sebastian Esposito",
+        "knownAs":  "",
+        "firstName":  "Sebastian",
+        "lastName":  "Esposito",
+        "club":  "Lecce",
+        "country":  "Australia",
+        "ovr":  62
+    },
+    {
+        "id":  275067,
+        "rawName":  "Lamine Fanne",
+        "knownAs":  "Lamine Fanne",
+        "firstName":  "Mouhamed Lamine",
+        "lastName":  "Fanne Dabo",
+        "club":  "Venezia",
+        "country":  "Spain",
+        "ovr":  67
+    },
+    {
+        "id":  275087,
+        "rawName":  "Richie Sagrado",
+        "knownAs":  "",
+        "firstName":  "Richie",
+        "lastName":  "Sagrado",
+        "club":  "Venezia",
+        "country":  "Belgium",
+        "ovr":  69
+    },
+    {
+        "id":  275130,
+        "rawName":  "Nesta Elphege",
+        "knownAs":  "",
+        "firstName":  "Nesta",
+        "lastName":  "Elphege",
+        "club":  "Parma",
+        "country":  "France",
+        "ovr":  65
+    },
+    {
+        "id":  275163,
+        "rawName":  "Reda Belahyane",
+        "knownAs":  "",
+        "firstName":  "Reda",
+        "lastName":  "Belahyane",
+        "club":  "Latium",
+        "country":  "Morocco",
+        "ovr":  67
+    },
+    {
+        "id":  275207,
+        "rawName":  "Fedde Leysen",
+        "knownAs":  "",
+        "firstName":  "Fedde",
+        "lastName":  "Leysen",
+        "club":  "Sassuolo",
+        "country":  "Belgium",
+        "ovr":  73
+    },
+    {
+        "id":  275291,
+        "rawName":  "Niccolò Pisilli",
+        "knownAs":  "",
+        "firstName":  "Niccolò",
+        "lastName":  "Pisilli",
+        "club":  "AS Roma",
+        "country":  "Italy",
+        "ovr":  74
+    },
+    {
+        "id":  275324,
+        "rawName":  "Assane Diao",
+        "knownAs":  "",
+        "firstName":  "Assane",
+        "lastName":  "Diao",
+        "club":  "Como",
+        "country":  "Senegal",
+        "ovr":  76
+    },
+    {
+        "id":  275401,
+        "rawName":  "Matija Frigan",
+        "knownAs":  "",
+        "firstName":  "Matija",
+        "lastName":  "Frigan",
+        "club":  "Parma",
+        "country":  "Croatia",
+        "ovr":  73
+    },
+    {
+        "id":  275522,
+        "rawName":  "Lennon Miller",
+        "knownAs":  "",
+        "firstName":  "Lennon",
+        "lastName":  "Miller",
+        "club":  "Udinese",
+        "country":  "Scotland",
+        "ovr":  70
+    },
+    {
+        "id":  275647,
+        "rawName":  "Juan David Arizala",
+        "knownAs":  "",
+        "firstName":  "Juan David",
+        "lastName":  "Arizala",
+        "club":  "Udinese",
+        "country":  "Colombia",
+        "ovr":  63
+    },
+    {
+        "id":  275783,
+        "rawName":  "Kialonda Gaspar",
+        "knownAs":  "",
+        "firstName":  "Kialonda",
+        "lastName":  "Gaspar",
+        "club":  "Lecce",
+        "country":  "Angola",
+        "ovr":  72
+    },
+    {
+        "id":  275978,
+        "rawName":  "Petar Ratkov",
+        "knownAs":  "",
+        "firstName":  "Petar",
+        "lastName":  "Ratkov",
+        "club":  "Latium",
+        "country":  "Serbia",
+        "ovr":  68
+    },
+    {
+        "id":  276178,
+        "rawName":  "Elias Havel",
+        "knownAs":  "",
+        "firstName":  "Elias",
+        "lastName":  "Havel",
+        "club":  "Genoa",
+        "country":  "Austria",
+        "ovr":  69
+    },
+    {
+        "id":  276252,
+        "rawName":  "Marko Farji",
+        "knownAs":  "",
+        "firstName":  "Marko",
+        "lastName":  "Farji",
+        "club":  "Venezia",
+        "country":  "Iraq",
+        "ovr":  66
+    },
+    {
+        "id":  276278,
+        "rawName":  "Petar Sučić",
+        "knownAs":  "",
+        "firstName":  "Petar",
+        "lastName":  "Sučić",
+        "club":  "Lombardia FC",
+        "country":  "Croatia",
+        "ovr":  78
+    },
+    {
+        "id":  276422,
+        "rawName":  "Giorgi Kvernadze",
+        "knownAs":  "",
+        "firstName":  "Giorgi",
+        "lastName":  "Kvernadze",
+        "club":  "Frosinone",
+        "country":  "Georgia",
+        "ovr":  69
+    },
+    {
+        "id":  276477,
+        "rawName":  "Alessandro Marcandalli",
+        "knownAs":  "",
+        "firstName":  "Alessandro",
+        "lastName":  "Marcandalli",
+        "club":  "Genoa",
+        "country":  "Italy",
+        "ovr":  72
+    },
+    {
+        "id":  276485,
+        "rawName":  "Patrizio Masini",
+        "knownAs":  "",
+        "firstName":  "Patrizio",
+        "lastName":  "Masini",
+        "club":  "Frosinone",
+        "country":  "Italy",
+        "ovr":  68
+    },
+    {
+        "id":  276632,
+        "rawName":  "Anouar El Azzouzi",
+        "knownAs":  "",
+        "firstName":  "Anouar",
+        "lastName":  "El Azzouzi",
+        "club":  "Frosinone",
+        "country":  "Morocco",
+        "ovr":  69
+    },
+    {
+        "id":  276680,
+        "rawName":  "Jan Ziółkowski",
+        "knownAs":  "",
+        "firstName":  "Jan",
+        "lastName":  "Ziółkowski",
+        "club":  "AS Roma",
+        "country":  "Poland",
+        "ovr":  70
+    },
+    {
+        "id":  276682,
+        "rawName":  "Cher Ndour",
+        "knownAs":  "",
+        "firstName":  "Cher",
+        "lastName":  "Ndour",
+        "club":  "Fiorentina",
+        "country":  "Italy",
+        "ovr":  72
+    },
+    {
+        "id":  276705,
+        "rawName":  "Edoardo Pieragnolo",
+        "knownAs":  "",
+        "firstName":  "Edoardo",
+        "lastName":  "Pieragnolo",
+        "club":  "Sassuolo",
+        "country":  "Italy",
+        "ovr":  67
+    },
+    {
+        "id":  276706,
+        "rawName":  "Antonio Vergara",
+        "knownAs":  "",
+        "firstName":  "Antonio",
+        "lastName":  "Vergara",
+        "club":  "SSC Napoli",
+        "country":  "Italy",
+        "ovr":  69
+    },
+    {
+        "id":  276725,
+        "rawName":  "Lorenzo Palmisani",
+        "knownAs":  "",
+        "firstName":  "Lorenzo",
+        "lastName":  "Palmisani",
+        "club":  "Frosinone",
+        "country":  "Italy",
+        "ovr":  69
+    },
+    {
+        "id":  276743,
+        "rawName":  "Rachid Kouda",
+        "knownAs":  "",
+        "firstName":  "Rachid",
+        "lastName":  "Kouda",
+        "club":  "Parma",
+        "country":  "Italy",
+        "ovr":  65
+    },
+    {
+        "id":  276820,
+        "rawName":  "Matías Moreno",
+        "knownAs":  "",
+        "firstName":  "Matías",
+        "lastName":  "Moreno",
+        "club":  "Venezia",
+        "country":  "Argentina",
+        "ovr":  73
+    },
+    {
+        "id":  276839,
+        "rawName":  "Sebastiano Desplanches",
+        "knownAs":  "",
+        "firstName":  "Sebastiano",
+        "lastName":  "Desplanches",
+        "club":  "Frosinone",
+        "country":  "Italy",
+        "ovr":  72
+    },
+    {
+        "id":  277214,
+        "rawName":  "Joël Marcel Schingtienne",
+        "knownAs":  "",
+        "firstName":  "Joël Marcel",
+        "lastName":  "Schingtienne",
+        "club":  "Venezia",
+        "country":  "Belgium",
+        "ovr":  70
+    },
+    {
+        "id":  277244,
+        "rawName":  "Rafa Marín",
+        "knownAs":  "Rafa Marín",
+        "firstName":  "Rafael",
+        "lastName":  "Marín Zamora",
+        "club":  "SSC Napoli",
+        "country":  "Spain",
+        "ovr":  76
+    },
+    {
+        "id":  277327,
+        "rawName":  "Francesco Pio Esposito",
+        "knownAs":  "",
+        "firstName":  "Francesco Pio",
+        "lastName":  "Esposito",
+        "club":  "Lombardia FC",
+        "country":  "Italy",
+        "ovr":  77
+    },
+    {
+        "id":  277565,
+        "rawName":  "Albion Rrahmani",
+        "knownAs":  "",
+        "firstName":  "Albion",
+        "lastName":  "Rrahmani",
+        "club":  "Venezia",
+        "country":  "Kosovo",
+        "ovr":  77
+    },
+    {
+        "id":  277695,
+        "rawName":  "Daniele Ghilardi",
+        "knownAs":  "",
+        "firstName":  "Daniele",
+        "lastName":  "Ghilardi",
+        "club":  "AS Roma",
+        "country":  "Italy",
+        "ovr":  74
+    },
+    {
+        "id":  277708,
+        "rawName":  "Unai Gómez",
+        "knownAs":  "Unai Gómez",
+        "firstName":  "Unai",
+        "lastName":  "Gómez Etxebarria",
+        "club":  "Udinese",
+        "country":  "Spain",
+        "ovr":  72
+    },
+    {
+        "id":  277769,
+        "rawName":  "Federico Zuccon",
+        "knownAs":  "",
+        "firstName":  "Federico",
+        "lastName":  "Zuccon",
+        "club":  "Bergamo Calcio",
+        "country":  "Italy",
+        "ovr":  66
+    },
+    {
+        "id":  277802,
+        "rawName":  "Edoardo Motta",
+        "knownAs":  "",
+        "firstName":  "Edoardo",
+        "lastName":  "Motta",
+        "club":  "Latium",
+        "country":  "Italy",
+        "ovr":  69
+    },
+    {
+        "id":  277839,
+        "rawName":  "Nikola Krstović",
+        "knownAs":  "",
+        "firstName":  "Nikola",
+        "lastName":  "Krstović",
+        "club":  "Bergamo Calcio",
+        "country":  "Montenegro",
+        "ovr":  76
+    },
+    {
+        "id":  277840,
+        "rawName":  "Omri Gandelman",
+        "knownAs":  "",
+        "firstName":  "Omri",
+        "lastName":  "Gandelman",
+        "club":  "Lecce",
+        "country":  "Israel",
+        "ovr":  71
+    },
+    {
+        "id":  277846,
+        "rawName":  "Nico Paz",
+        "knownAs":  "Nico Paz",
+        "firstName":  "Nicolás",
+        "lastName":  "Paz Martínez",
+        "club":  "Como",
+        "country":  "Argentina",
+        "ovr":  84
+    },
+    {
+        "id":  277870,
+        "rawName":  "Costantino Favasuli",
+        "knownAs":  "",
+        "firstName":  "Costantino",
+        "lastName":  "Favasuli",
+        "club":  "SSC Napoli",
+        "country":  "Italy",
+        "ovr":  69
+    },
+    {
+        "id":  277872,
+        "rawName":  "Raphael Kofler",
+        "knownAs":  "",
+        "firstName":  "Raphael",
+        "lastName":  "Kofler",
+        "club":  "Cagliari",
+        "country":  "Italy",
+        "ovr":  69
+    },
+    {
+        "id":  277934,
+        "rawName":  "Kevin Miranda",
+        "knownAs":  "",
+        "firstName":  "Kevin",
+        "lastName":  "Miranda",
+        "club":  "Sassuolo",
+        "country":  "Italy",
+        "ovr":  63
+    },
+    {
+        "id":  277944,
+        "rawName":  "Omar Fayed",
+        "knownAs":  "",
+        "firstName":  "Omar",
+        "lastName":  "Fayed",
+        "club":  "Frosinone",
+        "country":  "Egypt",
+        "ovr":  65
+    },
+    {
+        "id":  277954,
+        "rawName":  "Kenan Yıldız",
+        "knownAs":  "",
+        "firstName":  "Kenan",
+        "lastName":  "Yıldız",
+        "club":  "Juventus",
+        "country":  "Turkey",
+        "ovr":  84
+    },
+    {
+        "id":  278032,
+        "rawName":  "Christos Mandas",
+        "knownAs":  "",
+        "firstName":  "Christos",
+        "lastName":  "Mandas",
+        "club":  "Latium",
+        "country":  "Greece",
+        "ovr":  74
+    },
+    {
+        "id":  278237,
+        "rawName":  "Davide Bartesaghi",
+        "knownAs":  "",
+        "firstName":  "Davide",
+        "lastName":  "Bartesaghi",
+        "club":  "Milano FC",
+        "country":  "Italy",
+        "ovr":  74
+    },
+    {
+        "id":  278305,
+        "rawName":  "Lorenzo Lucchesi",
+        "knownAs":  "",
+        "firstName":  "Lorenzo",
+        "lastName":  "Lucchesi",
+        "club":  "Monza",
+        "country":  "Italy",
+        "ovr":  68
+    },
+    {
+        "id":  278318,
+        "rawName":  "Aleksandar Stanković",
+        "knownAs":  "",
+        "firstName":  "Aleksandar",
+        "lastName":  "Stanković",
+        "club":  "Lombardia FC",
+        "country":  "Serbia",
+        "ovr":  76
+    },
+    {
+        "id":  278319,
+        "rawName":  "Luca Marianucci",
+        "knownAs":  "",
+        "firstName":  "Luca",
+        "lastName":  "Marianucci",
+        "club":  "SSC Napoli",
+        "country":  "Italy",
+        "ovr":  68
+    },
+    {
+        "id":  278326,
+        "rawName":  "Alphadjo Cissè",
+        "knownAs":  "",
+        "firstName":  "Alphadjo",
+        "lastName":  "Cissè",
+        "club":  "Milano FC",
+        "country":  "Italy",
+        "ovr":  66
+    },
+    {
+        "id":  278335,
+        "rawName":  "Giovanni Daffara",
+        "knownAs":  "",
+        "firstName":  "Giovanni",
+        "lastName":  "Daffara",
+        "club":  "Parma",
+        "country":  "Italy",
+        "ovr":  67
+    },
+    {
+        "id":  278340,
+        "rawName":  "Pietro Comuzzo",
+        "knownAs":  "",
+        "firstName":  "Pietro",
+        "lastName":  "Comuzzo",
+        "club":  "Torino",
+        "country":  "Italy",
+        "ovr":  75
+    },
+    {
+        "id":  278350,
+        "rawName":  "Seydou Fini",
+        "knownAs":  "",
+        "firstName":  "Seydou",
+        "lastName":  "Fini",
+        "club":  "Frosinone",
+        "country":  "Italy",
+        "ovr":  65
+    },
+    {
+        "id":  278351,
+        "rawName":  "Kevin Zeroli",
+        "knownAs":  "",
+        "firstName":  "Kevin",
+        "lastName":  "Zeroli",
+        "club":  "Milano FC",
+        "country":  "Italy",
+        "ovr":  66
+    },
+    {
+        "id":  278436,
+        "rawName":  "Mariano Troilo",
+        "knownAs":  "",
+        "firstName":  "Mariano",
+        "lastName":  "Troilo",
+        "club":  "Parma",
+        "country":  "Argentina",
+        "ovr":  70
+    },
+    {
+        "id":  278668,
+        "rawName":  "Zé Pedro",
+        "knownAs":  "Zé Pedro",
+        "firstName":  "José Pedro",
+        "lastName":  "da Silva Figueiredo",
+        "club":  "Cagliari",
+        "country":  "Portugal",
+        "ovr":  73
+    },
+    {
+        "id":  278724,
+        "rawName":  "Eivind Helland",
+        "knownAs":  "",
+        "firstName":  "Eivind",
+        "lastName":  "Helland",
+        "club":  "Bologna",
+        "country":  "Norway",
+        "ovr":  68
+    },
+    {
+        "id":  278928,
+        "rawName":  "Álex Jiménez",
+        "knownAs":  "Álex Jiménez",
+        "firstName":  "Alejandro",
+        "lastName":  "Jiménez Sánchez",
+        "club":  "Fiorentina",
+        "country":  "Spain",
+        "ovr":  79
+    },
+    {
+        "id":  278976,
+        "rawName":  "Peter Amoran",
+        "knownAs":  "",
+        "firstName":  "Peter",
+        "lastName":  "Amoran",
+        "club":  "Parma",
+        "country":  "Sweden",
+        "ovr":  63
+    },
+    {
+        "id":  279173,
+        "rawName":  "Franco Mastantuono",
+        "knownAs":  "",
+        "firstName":  "Franco",
+        "lastName":  "Mastantuono",
+        "club":  "Fiorentina",
+        "country":  "Argentina",
+        "ovr":  77
+    },
+    {
+        "id":  279202,
+        "rawName":  "Francesco Camarda",
+        "knownAs":  "",
+        "firstName":  "Francesco",
+        "lastName":  "Camarda",
+        "club":  "Milano FC",
+        "country":  "Italy",
+        "ovr":  66
+    },
+    {
+        "id":  279239,
+        "rawName":  "Jayden Addai",
+        "knownAs":  "",
+        "firstName":  "Jayden",
+        "lastName":  "Addai",
+        "club":  "Como",
+        "country":  "Holland",
+        "ovr":  71
+    },
+    {
+        "id":  279877,
+        "rawName":  "Farès Ghedjemis",
+        "knownAs":  "",
+        "firstName":  "Farès",
+        "lastName":  "Ghedjemis",
+        "club":  "Frosinone",
+        "country":  "Algeria",
+        "ovr":  72
+    },
+    {
+        "id":  279891,
+        "rawName":  "Diego Mascardi",
+        "knownAs":  "",
+        "firstName":  "Diego",
+        "lastName":  "Mascardi",
+        "club":  "Torino",
+        "country":  "Italy",
+        "ovr":  65
+    }
+]

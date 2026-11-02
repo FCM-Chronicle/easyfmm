@@ -1,0 +1,5112 @@
+[
+    {
+        "id":  70007,
+        "rawName":  "Silas Andersen",
+        "knownAs":  "",
+        "firstName":  "Silas",
+        "lastName":  "Andersen",
+        "club":  "Sporting CP",
+        "country":  "Denmark",
+        "ovr":  74
+    },
+    {
+        "id":  70065,
+        "rawName":  "Motez Nourani",
+        "knownAs":  "",
+        "firstName":  "Motez",
+        "lastName":  "Nourani",
+        "club":  "Nacional",
+        "country":  "Tunisia",
+        "ovr":  60
+    },
+    {
+        "id":  70125,
+        "rawName":  "Yaya Bojang",
+        "knownAs":  "",
+        "firstName":  "Yaya",
+        "lastName":  "Bojang",
+        "club":  "FC Alverca",
+        "country":  "Gambia",
+        "ovr":  63
+    },
+    {
+        "id":  70283,
+        "rawName":  "Diogo Prioste",
+        "knownAs":  "Diogo Prioste",
+        "firstName":  "Diogo",
+        "lastName":  "Ferreira Prioste",
+        "club":  "Gil Vicente",
+        "country":  "Portugal",
+        "ovr":  66
+    },
+    {
+        "id":  70284,
+        "rawName":  "Daniel Azevedo",
+        "knownAs":  "Daniel Azevedo",
+        "firstName":  "Daniel",
+        "lastName":  "Grilo Azevedo",
+        "club":  "Casa Pia AC",
+        "country":  "Portugal",
+        "ovr":  62
+    },
+    {
+        "id":  70671,
+        "rawName":  "Chissumba",
+        "knownAs":  "Chissumba",
+        "firstName":  "Francisco Edgar",
+        "lastName":  "Chissumba Rodrigues",
+        "club":  "FC Alverca",
+        "country":  "Portugal",
+        "ovr":  70
+    },
+    {
+        "id":  70700,
+        "rawName":  "Francisco Petrasso",
+        "knownAs":  "",
+        "firstName":  "Francisco",
+        "lastName":  "Petrasso",
+        "club":  "Rio Ave FC",
+        "country":  "Argentina",
+        "ovr":  67
+    },
+    {
+        "id":  70806,
+        "rawName":  "Uladzislau Marozau",
+        "knownAs":  "",
+        "firstName":  "Uladzislau",
+        "lastName":  "Marozau",
+        "club":  "Arouca",
+        "country":  "Belarus",
+        "ovr":  64
+    },
+    {
+        "id":  70908,
+        "rawName":  "André Lacximicant",
+        "knownAs":  "André Lacximicant",
+        "firstName":  "André Filipe",
+        "lastName":  "Lacximicant",
+        "club":  "Estoril Praia",
+        "country":  "Portugal",
+        "ovr":  68
+    },
+    {
+        "id":  70971,
+        "rawName":  "Sorriso",
+        "knownAs":  "Sorriso",
+        "firstName":  "Marcos Vinicios",
+        "lastName":  "Lopes Moura",
+        "club":  "FC Famalicão",
+        "country":  "Brazil",
+        "ovr":  75
+    },
+    {
+        "id":  71176,
+        "rawName":  "Rafael Nel",
+        "knownAs":  "Rafael Nel",
+        "firstName":  "Rafael",
+        "lastName":  "Ferreira Nel",
+        "club":  "Sporting CP",
+        "country":  "Portugal",
+        "ovr":  68
+    },
+    {
+        "id":  71232,
+        "rawName":  "Jalen Blesa",
+        "knownAs":  "Jalen Blesa",
+        "firstName":  "Jalen",
+        "lastName":  "Blesa",
+        "club":  "Rio Ave FC",
+        "country":  "Spain",
+        "ovr":  69
+    },
+    {
+        "id":  71291,
+        "rawName":  "Fabrício Garcia",
+        "knownAs":  "Fabrício Garcia",
+        "firstName":  "Fabrício",
+        "lastName":  "Garcia Andrade",
+        "club":  "Estoril Praia",
+        "country":  "Cape Verde Islands",
+        "ovr":  67
+    },
+    {
+        "id":  71515,
+        "rawName":  "Bernardo",
+        "knownAs":  "Bernardo",
+        "firstName":  "Bernardo",
+        "lastName":  "Fontes",
+        "club":  "SC Braga",
+        "country":  "Brazil",
+        "ovr":  71
+    },
+    {
+        "id":  71781,
+        "rawName":  "Ibrahima Ba",
+        "knownAs":  "",
+        "firstName":  "Ibrahima",
+        "lastName":  "Ba",
+        "club":  "Sporting CP",
+        "country":  "Senegal",
+        "ovr":  72
+    },
+    {
+        "id":  71965,
+        "rawName":  "Michael Dacosta",
+        "knownAs":  "Michael Dacosta",
+        "firstName":  "Michael",
+        "lastName":  "Dacosta González",
+        "club":  "Moreirense FC",
+        "country":  "Spain",
+        "ovr":  60
+    },
+    {
+        "id":  71981,
+        "rawName":  "Diogo Spencer",
+        "knownAs":  "Diogo Spencer",
+        "firstName":  "Diogo Filipe",
+        "lastName":  "Spencer Marques",
+        "club":  "FC Alverca",
+        "country":  "Portugal",
+        "ovr":  65
+    },
+    {
+        "id":  72093,
+        "rawName":  "Martim Fernandes",
+        "knownAs":  "Martim Fernandes",
+        "firstName":  "Martim",
+        "lastName":  "Moreira Fernandes",
+        "club":  "FC Porto",
+        "country":  "Portugal",
+        "ovr":  76
+    },
+    {
+        "id":  72267,
+        "rawName":  "João Rego",
+        "knownAs":  "João Rego",
+        "firstName":  "João Pedro",
+        "lastName":  "Seno Luís Rego",
+        "club":  "Casa Pia AC",
+        "country":  "Portugal",
+        "ovr":  68
+    },
+    {
+        "id":  72301,
+        "rawName":  "Max Scholze",
+        "knownAs":  "",
+        "firstName":  "Max",
+        "lastName":  "Scholze",
+        "club":  "Estrela Amadora",
+        "country":  "Germany",
+        "ovr":  64
+    },
+    {
+        "id":  72306,
+        "rawName":  "Patrick Ouotro",
+        "knownAs":  "",
+        "firstName":  "Patrick",
+        "lastName":  "Ouotro",
+        "club":  "Vitória SC",
+        "country":  "Côte d\u0027Ivoire",
+        "ovr":  61
+    },
+    {
+        "id":  72607,
+        "rawName":  "Anthony Correia",
+        "knownAs":  "Anthony Correia",
+        "firstName":  "Anthony Paulo",
+        "lastName":  "Rodrigues Correia",
+        "club":  "Académico de Viseu FC",
+        "country":  "France",
+        "ovr":  66
+    },
+    {
+        "id":  72677,
+        "rawName":  "Tom Moustier",
+        "knownAs":  "",
+        "firstName":  "Tom",
+        "lastName":  "Moustier",
+        "club":  "Estrela Amadora",
+        "country":  "France",
+        "ovr":  66
+    },
+    {
+        "id":  72690,
+        "rawName":  "Martim Watts",
+        "knownAs":  "Martim Watts",
+        "firstName":  "Martim Gustavo",
+        "lastName":  "S. Watts Rodrigues",
+        "club":  "Nacional",
+        "country":  "Portugal",
+        "ovr":  60
+    },
+    {
+        "id":  72691,
+        "rawName":  "Francisco Gonçalves",
+        "knownAs":  "Francisco Gonçalves",
+        "firstName":  "Francisco A.",
+        "lastName":  "Baptista Gonçalves",
+        "club":  "Nacional",
+        "country":  "Portugal",
+        "ovr":  64
+    },
+    {
+        "id":  72754,
+        "rawName":  "Luis Guilherme",
+        "knownAs":  "Luis Guilherme",
+        "firstName":  "Luis Guilherme",
+        "lastName":  "Lira dos Santos",
+        "club":  "Sporting CP",
+        "country":  "Brazil",
+        "ovr":  72
+    },
+    {
+        "id":  72808,
+        "rawName":  "Paulo Moreira",
+        "knownAs":  "Paulo Moreira",
+        "firstName":  "Paulo Daniel",
+        "lastName":  "Valente Moreira",
+        "club":  "FC Famalicão",
+        "country":  "Portugal",
+        "ovr":  68
+    },
+    {
+        "id":  72863,
+        "rawName":  "Andreas Ntoi",
+        "knownAs":  "",
+        "firstName":  "Andreas",
+        "lastName":  "Ntoi",
+        "club":  "Rio Ave FC",
+        "country":  "Greece",
+        "ovr":  69
+    },
+    {
+        "id":  73044,
+        "rawName":  "Ulisses Wilson",
+        "knownAs":  "Ulisses Wilson",
+        "firstName":  "Ulisses Wilson",
+        "lastName":  "Jeronymo Rocha",
+        "club":  "Nacional",
+        "country":  "Brazil",
+        "ovr":  67
+    },
+    {
+        "id":  73128,
+        "rawName":  "Zé Vítor",
+        "knownAs":  "Zé Vítor",
+        "firstName":  "José Vítor",
+        "lastName":  "Lima Cardoso",
+        "club":  "Nacional",
+        "country":  "Brazil",
+        "ovr":  72
+    },
+    {
+        "id":  73163,
+        "rawName":  "João Goulart",
+        "knownAs":  "João Goulart",
+        "firstName":  "João Pedro",
+        "lastName":  "Goulart da Silva",
+        "club":  "Casa Pia AC",
+        "country":  "Portugal",
+        "ovr":  69
+    },
+    {
+        "id":  73166,
+        "rawName":  "Maurice Boakye",
+        "knownAs":  "",
+        "firstName":  "Maurice",
+        "lastName":  "Boakye",
+        "club":  "Marítimo da Madeira",
+        "country":  "Germany",
+        "ovr":  63
+    },
+    {
+        "id":  73195,
+        "rawName":  "Guilherme Liberato",
+        "knownAs":  "Guilherme Liberato",
+        "firstName":  "Guilherme",
+        "lastName":  "L. T. de Aquino",
+        "club":  "Moreirense FC",
+        "country":  "Brazil",
+        "ovr":  65
+    },
+    {
+        "id":  73319,
+        "rawName":  "Kevin Chamorro",
+        "knownAs":  "",
+        "firstName":  "Kevin",
+        "lastName":  "Chamorro",
+        "club":  "Rio Ave FC",
+        "country":  "Costa Rica",
+        "ovr":  66
+    },
+    {
+        "id":  73349,
+        "rawName":  "Sidney Lima",
+        "knownAs":  "Sidney Lima",
+        "firstName":  "Sidney",
+        "lastName":  "Pena de Lima",
+        "club":  "Santa Clara",
+        "country":  "Brazil",
+        "ovr":  71
+    },
+    {
+        "id":  73379,
+        "rawName":  "Issa Doumbia",
+        "knownAs":  "",
+        "firstName":  "Issa",
+        "lastName":  "Doumbia",
+        "club":  "Sporting CP",
+        "country":  "Italy",
+        "ovr":  73
+    },
+    {
+        "id":  73453,
+        "rawName":  "Gustavo Garcia",
+        "knownAs":  "Gustavo Garcia",
+        "firstName":  "Gustavo",
+        "lastName":  "Garcia dos Santos",
+        "club":  "FC Famalicão",
+        "country":  "Brazil",
+        "ovr":  70
+    },
+    {
+        "id":  73506,
+        "rawName":  "Simo Bouzaidi",
+        "knownAs":  "Simo Bouzaidi",
+        "firstName":  "Mohamed",
+        "lastName":  "Bouzaidi Diouri",
+        "club":  "Marítimo da Madeira",
+        "country":  "Spain",
+        "ovr":  68
+    },
+    {
+        "id":  73596,
+        "rawName":  "João Tomé",
+        "knownAs":  "João Tomé",
+        "firstName":  "João Tomé",
+        "lastName":  "Esteves Baptista",
+        "club":  "Rio Ave FC",
+        "country":  "Portugal",
+        "ovr":  67
+    },
+    {
+        "id":  73616,
+        "rawName":  "Mofe Jemide",
+        "knownAs":  "",
+        "firstName":  "Mofe",
+        "lastName":  "Jemide",
+        "club":  "FC Alverca",
+        "country":  "England",
+        "ovr":  63
+    },
+    {
+        "id":  73629,
+        "rawName":  "João Costa",
+        "knownAs":  "João Costa",
+        "firstName":  "João Pedro",
+        "lastName":  "Augusto M. Costa",
+        "club":  "Santa Clara",
+        "country":  "Portugal",
+        "ovr":  66
+    },
+    {
+        "id":  73762,
+        "rawName":  "Marco Cruz",
+        "knownAs":  "Marco Cruz",
+        "firstName":  "Marco",
+        "lastName":  "Sousa Cruz",
+        "club":  "Vitória SC",
+        "country":  "Portugal",
+        "ovr":  63
+    },
+    {
+        "id":  73882,
+        "rawName":  "Pedro Carvalho",
+        "knownAs":  "Pedro Carvalho",
+        "firstName":  "Pedro Maria",
+        "lastName":  "Costa Carvalho",
+        "club":  "Estoril Praia",
+        "country":  "Portugal",
+        "ovr":  65
+    },
+    {
+        "id":  74039,
+        "rawName":  "Neneca",
+        "knownAs":  "Neneca",
+        "firstName":  "Hélio Miguel",
+        "lastName":  "Júnior",
+        "club":  "Santa Clara",
+        "country":  "Brazil",
+        "ovr":  62
+    },
+    {
+        "id":  74067,
+        "rawName":  "Matheus Dias",
+        "knownAs":  "Matheus Dias",
+        "firstName":  "Matheus",
+        "lastName":  "dos Santos Dias",
+        "club":  "Nacional",
+        "country":  "Brazil",
+        "ovr":  68
+    },
+    {
+        "id":  74093,
+        "rawName":  "Pedro Santos",
+        "knownAs":  "Pedro Santos",
+        "firstName":  "Pedro Miguel",
+        "lastName":  "Costa Santos",
+        "club":  "FC Famalicão",
+        "country":  "Portugal",
+        "ovr":  68
+    },
+    {
+        "id":  74314,
+        "rawName":  "Chiheb Labidi",
+        "knownAs":  "",
+        "firstName":  "Chiheb",
+        "lastName":  "Labidi",
+        "club":  "Nacional",
+        "country":  "Tunisia",
+        "ovr":  67
+    },
+    {
+        "id":  74456,
+        "rawName":  "Ismael Sierra",
+        "knownAs":  "Ismael Sierra",
+        "firstName":  "Ismael",
+        "lastName":  "Sierra Arnal",
+        "club":  "Estoril Praia",
+        "country":  "Spain",
+        "ovr":  63
+    },
+    {
+        "id":  74515,
+        "rawName":  "Daniel de la Cruz",
+        "knownAs":  "",
+        "firstName":  "Daniel",
+        "lastName":  "de la Cruz",
+        "club":  "Nacional",
+        "country":  "Ecuador",
+        "ovr":  67
+    },
+    {
+        "id":  74567,
+        "rawName":  "Isaac James",
+        "knownAs":  "",
+        "firstName":  "Isaac",
+        "lastName":  "James",
+        "club":  "FC Alverca",
+        "country":  "Nigeria",
+        "ovr":  62
+    },
+    {
+        "id":  74578,
+        "rawName":  "Gabriel Cabral",
+        "knownAs":  "Gabriel Cabral",
+        "firstName":  "Gabriel",
+        "lastName":  "Cabral da Cruz",
+        "club":  "FC Famalicão",
+        "country":  "Brazil",
+        "ovr":  62
+    },
+    {
+        "id":  74649,
+        "rawName":  "Gustavo Silva",
+        "knownAs":  "Gustavo Silva",
+        "firstName":  "Gustavo",
+        "lastName":  "da Silva Cunha",
+        "club":  "Vitória SC",
+        "country":  "Brazil",
+        "ovr":  71
+    },
+    {
+        "id":  74651,
+        "rawName":  "Daniel Borges",
+        "knownAs":  "Daniel Borges",
+        "firstName":  "Daniel",
+        "lastName":  "Borges da Silva",
+        "club":  "Santa Clara",
+        "country":  "Brazil",
+        "ovr":  63
+    },
+    {
+        "id":  74880,
+        "rawName":  "João Vasconcelos",
+        "knownAs":  "João Vasconcelos",
+        "firstName":  "João",
+        "lastName":  "Vasconcelos F. G.",
+        "club":  "Santa Clara",
+        "country":  "Portugal",
+        "ovr":  62
+    },
+    {
+        "id":  74885,
+        "rawName":  "Mohamed Bamba",
+        "knownAs":  "",
+        "firstName":  "Mohamed",
+        "lastName":  "Bamba",
+        "club":  "Gil Vicente",
+        "country":  "Côte d\u0027Ivoire",
+        "ovr":  64
+    },
+    {
+        "id":  75150,
+        "rawName":  "João Simões",
+        "knownAs":  "João Simões",
+        "firstName":  "João Pedro",
+        "lastName":  "Simões",
+        "club":  "Sporting CP",
+        "country":  "Portugal",
+        "ovr":  70
+    },
+    {
+        "id":  75162,
+        "rawName":  "Jónatas Noro",
+        "knownAs":  "Jónatas Noro",
+        "firstName":  "Jónatas Xavier",
+        "lastName":  "Noro",
+        "club":  "SC Braga",
+        "country":  "Portugal",
+        "ovr":  64
+    },
+    {
+        "id":  75211,
+        "rawName":  "Mateo Flores",
+        "knownAs":  "Mateo Flores",
+        "firstName":  "Mateo",
+        "lastName":  "Flores Lozano",
+        "club":  "Arouca",
+        "country":  "Spain",
+        "ovr":  66
+    },
+    {
+        "id":  75332,
+        "rawName":  "Luís Gomes",
+        "knownAs":  "Luís Gomes",
+        "firstName":  "Luís Maria",
+        "lastName":  "Gomes",
+        "club":  "Estoril Praia",
+        "country":  "Portugal",
+        "ovr":  61
+    },
+    {
+        "id":  75751,
+        "rawName":  "Gonzalo Pastor",
+        "knownAs":  "Gonzalo Pastor",
+        "firstName":  "Gonzalo",
+        "lastName":  "Pastor Sánchez",
+        "club":  "FC Famalicão",
+        "country":  "Spain",
+        "ovr":  63
+    },
+    {
+        "id":  75754,
+        "rawName":  "Oskar Pietuszewski",
+        "knownAs":  "",
+        "firstName":  "Oskar",
+        "lastName":  "Pietuszewski",
+        "club":  "FC Porto",
+        "country":  "Poland",
+        "ovr":  74
+    },
+    {
+        "id":  76123,
+        "rawName":  "Eduardo Felicíssimo",
+        "knownAs":  "Eduardo Felicíssimo",
+        "firstName":  "Eduardo Manuel",
+        "lastName":  "Felicíssimo",
+        "club":  "Sporting CP",
+        "country":  "Portugal",
+        "ovr":  64
+    },
+    {
+        "id":  76225,
+        "rawName":  "Georgiy Tunguliadi",
+        "knownAs":  "",
+        "firstName":  "Georgiy",
+        "lastName":  "Tunguliadi",
+        "club":  "Estrela Amadora",
+        "country":  "Russia",
+        "ovr":  59
+    },
+    {
+        "id":  76240,
+        "rawName":  "Diego Rodrigues",
+        "knownAs":  "Diego Rodrigues",
+        "firstName":  "Diego Henrique",
+        "lastName":  "Oliveira Rodrigues",
+        "club":  "SC Braga",
+        "country":  "Portugal",
+        "ovr":  68
+    },
+    {
+        "id":  76286,
+        "rawName":  "Climent",
+        "knownAs":  "Climent",
+        "firstName":  "Mario",
+        "lastName":  "Climent Plá",
+        "club":  "Arouca",
+        "country":  "Spain",
+        "ovr":  68
+    },
+    {
+        "id":  76298,
+        "rawName":  "Leandro Santos",
+        "knownAs":  "Leandro Santos",
+        "firstName":  "Leandro H.",
+        "lastName":  "Sousa Santos",
+        "club":  "Moreirense FC",
+        "country":  "Portugal",
+        "ovr":  68
+    },
+    {
+        "id":  76710,
+        "rawName":  "Vando Félix",
+        "knownAs":  "Vando Félix",
+        "firstName":  "Vando",
+        "lastName":  "Baifas Félix",
+        "club":  "Vitória SC",
+        "country":  "Guinea-Bissau",
+        "ovr":  66
+    },
+    {
+        "id":  76786,
+        "rawName":  "Alioune Ndoye",
+        "knownAs":  "",
+        "firstName":  "Alioune",
+        "lastName":  "Ndoye",
+        "club":  "Vitória SC",
+        "country":  "Senegal",
+        "ovr":  66
+    },
+    {
+        "id":  76845,
+        "rawName":  "Jakub Vinarčík",
+        "knownAs":  "",
+        "firstName":  "Jakub",
+        "lastName":  "Vinarčík",
+        "club":  "Arouca",
+        "country":  "Slovakia",
+        "ovr":  60
+    },
+    {
+        "id":  76910,
+        "rawName":  "João Afonso",
+        "knownAs":  "João Afonso",
+        "firstName":  "João",
+        "lastName":  "de Oliveira Afonso",
+        "club":  "FC Porto",
+        "country":  "Portugal",
+        "ovr":  66
+    },
+    {
+        "id":  76992,
+        "rawName":  "Pedro Bondo",
+        "knownAs":  "Pedro Bondo",
+        "firstName":  "Pedro",
+        "lastName":  "Bondo Francisco",
+        "club":  "FC Famalicão",
+        "country":  "Angola",
+        "ovr":  68
+    },
+    {
+        "id":  77033,
+        "rawName":  "William Gomes",
+        "knownAs":  "William Gomes",
+        "firstName":  "William",
+        "lastName":  "Gomes C. Santos",
+        "club":  "FC Porto",
+        "country":  "Brazil",
+        "ovr":  77
+    },
+    {
+        "id":  77115,
+        "rawName":  "Paolo Calione",
+        "knownAs":  "",
+        "firstName":  "Paolo",
+        "lastName":  "Calione",
+        "club":  "Nacional",
+        "country":  "Uruguay",
+        "ovr":  64
+    },
+    {
+        "id":  77186,
+        "rawName":  "Korede Osundina",
+        "knownAs":  "",
+        "firstName":  "Korede",
+        "lastName":  "Osundina",
+        "club":  "Casa Pia AC",
+        "country":  "United States",
+        "ovr":  64
+    },
+    {
+        "id":  77337,
+        "rawName":  "Khaly",
+        "knownAs":  "Khaly",
+        "firstName":  "Domingos José",
+        "lastName":  "Gabriel Bandeira",
+        "club":  "Casa Pia AC",
+        "country":  "Angola",
+        "ovr":  63
+    },
+    {
+        "id":  77733,
+        "rawName":  "José Silva",
+        "knownAs":  "José Silva",
+        "firstName":  "José Augusto",
+        "lastName":  "Silva",
+        "club":  "Gil Vicente",
+        "country":  "Portugal",
+        "ovr":  65
+    },
+    {
+        "id":  77740,
+        "rawName":  "Tiago Parente",
+        "knownAs":  "Tiago Parente",
+        "firstName":  "Tiago",
+        "lastName":  "Parreira Parente",
+        "club":  "Estoril Praia",
+        "country":  "Portugal",
+        "ovr":  63
+    },
+    {
+        "id":  78060,
+        "rawName":  "Jimi Gower",
+        "knownAs":  "",
+        "firstName":  "Jimi",
+        "lastName":  "Gower",
+        "club":  "Moreirense FC",
+        "country":  "England",
+        "ovr":  66
+    },
+    {
+        "id":  78161,
+        "rawName":  "Tiago Brito",
+        "knownAs":  "Tiago Brito",
+        "firstName":  "Tiago",
+        "lastName":  "Araújo Brito",
+        "club":  "Estoril Praia",
+        "country":  "Portugal",
+        "ovr":  63
+    },
+    {
+        "id":  78453,
+        "rawName":  "Afonso Assis",
+        "knownAs":  "Afonso Assis",
+        "firstName":  "Afonso",
+        "lastName":  "Assis Cunha Almeida",
+        "club":  "Moreirense FC",
+        "country":  "Portugal",
+        "ovr":  65
+    },
+    {
+        "id":  78642,
+        "rawName":  "Ibrahim Alani",
+        "knownAs":  "",
+        "firstName":  "Ibrahim",
+        "lastName":  "Alani",
+        "club":  "Marítimo da Madeira",
+        "country":  "Nigeria",
+        "ovr":  64
+    },
+    {
+        "id":  78746,
+        "rawName":  "Djé Tavares",
+        "knownAs":  "Djé Tavares",
+        "firstName":  "José Luís",
+        "lastName":  "Rocha Tavares",
+        "club":  "Santa Clara",
+        "country":  "Cape Verde Islands",
+        "ovr":  65
+    },
+    {
+        "id":  78986,
+        "rawName":  "André Ceitil",
+        "knownAs":  "André Ceitil",
+        "firstName":  "André Filipe",
+        "lastName":  "Castanheira Ceitil",
+        "club":  "Académico de Viseu FC",
+        "country":  "Portugal",
+        "ovr":  68
+    },
+    {
+        "id":  79207,
+        "rawName":  "Alexandre Parsemain",
+        "knownAs":  "",
+        "firstName":  "Alexandre",
+        "lastName":  "Parsemain",
+        "club":  "Moreirense FC",
+        "country":  "France",
+        "ovr":  65
+    },
+    {
+        "id":  79302,
+        "rawName":  "David Moreira",
+        "knownAs":  "David Moreira",
+        "firstName":  "David Miguel",
+        "lastName":  "Madeira Moreira",
+        "club":  "Gil Vicente",
+        "country":  "Cape Verde Islands",
+        "ovr":  63
+    },
+    {
+        "id":  79305,
+        "rawName":  "Atanas Chernev",
+        "knownAs":  "",
+        "firstName":  "Atanas",
+        "lastName":  "Chernev",
+        "club":  "Estrela Amadora",
+        "country":  "Bulgaria",
+        "ovr":  64
+    },
+    {
+        "id":  79308,
+        "rawName":  "Thiago Balieiro",
+        "knownAs":  "Thiago Balieiro",
+        "firstName":  "Thiago",
+        "lastName":  "Balieiro",
+        "club":  "Vitória SC",
+        "country":  "Brazil",
+        "ovr":  60
+    },
+    {
+        "id":  79309,
+        "rawName":  "Juan Castillo",
+        "knownAs":  "",
+        "firstName":  "Juan",
+        "lastName":  "Castillo",
+        "club":  "Vitória SC",
+        "country":  "Colombia",
+        "ovr":  68
+    },
+    {
+        "id":  79312,
+        "rawName":  "David Grilo",
+        "knownAs":  "David Grilo",
+        "firstName":  "David",
+        "lastName":  "Allen Grilo",
+        "club":  "Estrela Amadora",
+        "country":  "Portugal",
+        "ovr":  64
+    },
+    {
+        "id":  79323,
+        "rawName":  "Deivison",
+        "knownAs":  "Deivison",
+        "firstName":  "Deivison",
+        "lastName":  "Souza Brito",
+        "club":  "Nacional",
+        "country":  "Brazil",
+        "ovr":  60
+    },
+    {
+        "id":  79443,
+        "rawName":  "Kevyn Vinícius",
+        "knownAs":  "Kevyn Vinícius",
+        "firstName":  "Kevyn Vinícius",
+        "lastName":  "Medeiros de Freitas",
+        "club":  "Nacional",
+        "country":  "Brazil",
+        "ovr":  62
+    },
+    {
+        "id":  79448,
+        "rawName":  "Mateja Stjepanović",
+        "knownAs":  "",
+        "firstName":  "Mateja",
+        "lastName":  "Stjepanović",
+        "club":  "Moreirense FC",
+        "country":  "Serbia",
+        "ovr":  67
+    },
+    {
+        "id":  79479,
+        "rawName":  "Pablo Ruan",
+        "knownAs":  "Pablo Ruan",
+        "firstName":  "Pablo Ruan",
+        "lastName":  "Messias Cardozo",
+        "club":  "Nacional",
+        "country":  "Brazil",
+        "ovr":  65
+    },
+    {
+        "id":  79505,
+        "rawName":  "Bernardo Schappo",
+        "knownAs":  "Bernardo Schappo",
+        "firstName":  "Bernardo",
+        "lastName":  "Schappo",
+        "club":  "Estrela Amadora",
+        "country":  "Brazil",
+        "ovr":  72
+    },
+    {
+        "id":  79536,
+        "rawName":  "Peixinho",
+        "knownAs":  "Peixinho",
+        "firstName":  "André Tiago",
+        "lastName":  "Ramos das Neves",
+        "club":  "Estoril Praia",
+        "country":  "Portugal",
+        "ovr":  64
+    },
+    {
+        "id":  79608,
+        "rawName":  "João Veloso",
+        "knownAs":  "João Veloso",
+        "firstName":  "João Miguel",
+        "lastName":  "Fins Veloso",
+        "club":  "Moreirense FC",
+        "country":  "Portugal",
+        "ovr":  65
+    },
+    {
+        "id":  79686,
+        "rawName":  "Diogo Ferreira",
+        "knownAs":  "Diogo Ferreira",
+        "firstName":  "Diogo José de",
+        "lastName":  "N. e Jesus Ferreira",
+        "club":  "SL Benfica",
+        "country":  "Portugal",
+        "ovr":  64
+    },
+    {
+        "id":  79687,
+        "rawName":  "Joshua Wynder",
+        "knownAs":  "",
+        "firstName":  "Joshua",
+        "lastName":  "Wynder",
+        "club":  "SL Benfica",
+        "country":  "United States",
+        "ovr":  66
+    },
+    {
+        "id":  79704,
+        "rawName":  "Robinho",
+        "knownAs":  "Robinho",
+        "firstName":  "Robson Lucas",
+        "lastName":  "Oliveira Botelho",
+        "club":  "Estrela Amadora",
+        "country":  "Brazil",
+        "ovr":  68
+    },
+    {
+        "id":  79771,
+        "rawName":  "Rayan Lucas",
+        "knownAs":  "Rayan Lucas",
+        "firstName":  "Rayan Lucas",
+        "lastName":  "Marques de Souza",
+        "club":  "FC Alverca",
+        "country":  "Brazil",
+        "ovr":  66
+    },
+    {
+        "id":  79824,
+        "rawName":  "Ivan Mandić",
+        "knownAs":  "",
+        "firstName":  "Ivan",
+        "lastName":  "Mandić",
+        "club":  "Casa Pia AC",
+        "country":  "Croatia",
+        "ovr":  68
+    },
+    {
+        "id":  79908,
+        "rawName":  "Davy Gui",
+        "knownAs":  "",
+        "firstName":  "Davy",
+        "lastName":  "Gui",
+        "club":  "FC Alverca",
+        "country":  "Côte d\u0027Ivoire",
+        "ovr":  61
+    },
+    {
+        "id":  79909,
+        "rawName":  "Cédric Nuozzi",
+        "knownAs":  "",
+        "firstName":  "Cédric",
+        "lastName":  "Nuozzi",
+        "club":  "FC Alverca",
+        "country":  "Belgium",
+        "ovr":  64
+    },
+    {
+        "id":  79912,
+        "rawName":  "Ikker Julian",
+        "knownAs":  "Ikker Julian",
+        "firstName":  "Ikker Julian",
+        "lastName":  "C. C. dos Santos",
+        "club":  "FC Alverca",
+        "country":  "Belgium",
+        "ovr":  58
+    },
+    {
+        "id":  80022,
+        "rawName":  "Abderrahmane Soumare",
+        "knownAs":  "",
+        "firstName":  "Abderrahmane",
+        "lastName":  "Soumare",
+        "club":  "FC Alverca",
+        "country":  "Mauritania",
+        "ovr":  58
+    },
+    {
+        "id":  80023,
+        "rawName":  "Agustín Moreira",
+        "knownAs":  "",
+        "firstName":  "Agustín",
+        "lastName":  "Moreira",
+        "club":  "Gil Vicente",
+        "country":  "Uruguay",
+        "ovr":  64
+    },
+    {
+        "id":  80025,
+        "rawName":  "Oumar Camara",
+        "knownAs":  "",
+        "firstName":  "Oumar",
+        "lastName":  "Camara",
+        "club":  "Vitória SC",
+        "country":  "France",
+        "ovr":  70
+    },
+    {
+        "id":  80026,
+        "rawName":  "Matija Mitrović",
+        "knownAs":  "",
+        "firstName":  "Matija",
+        "lastName":  "Mitrović",
+        "club":  "Vitória SC",
+        "country":  "Serbia",
+        "ovr":  69
+    },
+    {
+        "id":  80154,
+        "rawName":  "Umar Abubakar",
+        "knownAs":  "",
+        "firstName":  "Umar",
+        "lastName":  "Abubakar",
+        "club":  "FC Famalicão",
+        "country":  "Nigeria",
+        "ovr":  66
+    },
+    {
+        "id":  80155,
+        "rawName":  "Renan Santana",
+        "knownAs":  "Renan Santana",
+        "firstName":  "Renan",
+        "lastName":  "Santana",
+        "club":  "FC Famalicão",
+        "country":  "Brazil",
+        "ovr":  63
+    },
+    {
+        "id":  80193,
+        "rawName":  "Park Si Hoo",
+        "knownAs":  "Park Si Hoo",
+        "firstName":  "Si Hoo",
+        "lastName":  "Park",
+        "club":  "Arouca",
+        "country":  "Korea Republic",
+        "ovr":  56
+    },
+    {
+        "id":  80312,
+        "rawName":  "Diogo Brasido",
+        "knownAs":  "Diogo Brasido",
+        "firstName":  "Diogo Alexandre",
+        "lastName":  "Brasido T. F. Silva",
+        "club":  "Estoril Praia",
+        "country":  "Portugal",
+        "ovr":  65
+    },
+    {
+        "id":  80521,
+        "rawName":  "Kevin Prieto",
+        "knownAs":  "",
+        "firstName":  "Kevin",
+        "lastName":  "Prieto",
+        "club":  "Casa Pia AC",
+        "country":  "Uruguay",
+        "ovr":  63
+    },
+    {
+        "id":  80593,
+        "rawName":  "Georgios Liavas",
+        "knownAs":  "",
+        "firstName":  "Georgios",
+        "lastName":  "Liavas",
+        "club":  "Rio Ave FC",
+        "country":  "Greece",
+        "ovr":  67
+    },
+    {
+        "id":  80598,
+        "rawName":  "Julián Martinez",
+        "knownAs":  "",
+        "firstName":  "Julián",
+        "lastName":  "Martinez",
+        "club":  "FC Alverca",
+        "country":  "Honduras",
+        "ovr":  65
+    },
+    {
+        "id":  80625,
+        "rawName":  "Toni Tamarit",
+        "knownAs":  "Toni Tamarit",
+        "firstName":  "Toni",
+        "lastName":  "Tamarit Tamarit",
+        "club":  "FC Alverca",
+        "country":  "Spain",
+        "ovr":  63
+    },
+    {
+        "id":  80741,
+        "rawName":  "Gonçalo Maia",
+        "knownAs":  "Gonçalo Maia",
+        "firstName":  "Gonçalo",
+        "lastName":  "Maia Pereira",
+        "club":  "Gil Vicente",
+        "country":  "Portugal",
+        "ovr":  58
+    },
+    {
+        "id":  80743,
+        "rawName":  "Agustín dos Santos",
+        "knownAs":  "",
+        "firstName":  "Agustín",
+        "lastName":  "dos Santos",
+        "club":  "Nacional",
+        "country":  "Uruguay",
+        "ovr":  64
+    },
+    {
+        "id":  80777,
+        "rawName":  "Matheus Mendes",
+        "knownAs":  "Matheus Mendes",
+        "firstName":  "Matheus",
+        "lastName":  "M. W. de Oliveira",
+        "club":  "FC Alverca",
+        "country":  "Brazil",
+        "ovr":  68
+    },
+    {
+        "id":  80885,
+        "rawName":  "Daniel Júnior",
+        "knownAs":  "Daniel Júnior",
+        "firstName":  "Daniel",
+        "lastName":  "Melo Araujo Júnior",
+        "club":  "Nacional",
+        "country":  "Brazil",
+        "ovr":  65
+    },
+    {
+        "id":  80886,
+        "rawName":  "Rafael Lobato",
+        "knownAs":  "Rafael Lobato",
+        "firstName":  "Rafael",
+        "lastName":  "Genuino Lobato",
+        "club":  "Rio Ave FC",
+        "country":  "Brazil",
+        "ovr":  64
+    },
+    {
+        "id":  81283,
+        "rawName":  "Miguel Nogueira",
+        "knownAs":  "Miguel Nogueira",
+        "firstName":  "João Miguel",
+        "lastName":  "da Costa Nogueira",
+        "club":  "Vitória SC",
+        "country":  "Portugal",
+        "ovr":  61
+    },
+    {
+        "id":  81324,
+        "rawName":  "Gustavo Mancha",
+        "knownAs":  "Gustavo Mancha",
+        "firstName":  "Gustavo",
+        "lastName":  "Gustavo Teixeira",
+        "club":  "Rio Ave FC",
+        "country":  "Brazil",
+        "ovr":  67
+    },
+    {
+        "id":  81327,
+        "rawName":  "Figueiredo",
+        "knownAs":  "Figueiredo",
+        "firstName":  "Lucas",
+        "lastName":  "Figueiredo",
+        "club":  "FC Alverca",
+        "country":  "Brazil",
+        "ovr":  71
+    },
+    {
+        "id":  81348,
+        "rawName":  "Lamine Bèye",
+        "knownAs":  "",
+        "firstName":  "Lamine",
+        "lastName":  "Bèye",
+        "club":  "FC Famalicão",
+        "country":  "Senegal",
+        "ovr":  60
+    },
+    {
+        "id":  81515,
+        "rawName":  "André Miranda",
+        "knownAs":  "André Miranda",
+        "firstName":  "André Alexandre",
+        "lastName":  "Mendes Miranda",
+        "club":  "FC Porto",
+        "country":  "Portugal",
+        "ovr":  60
+    },
+    {
+        "id":  81519,
+        "rawName":  "Rica Rocha",
+        "knownAs":  "Rica Rocha",
+        "firstName":  "Ricardo Joaquim",
+        "lastName":  "Ferreira Rocha",
+        "club":  "Vitória SC",
+        "country":  "Portugal",
+        "ovr":  58
+    },
+    {
+        "id":  81597,
+        "rawName":  "Alisson",
+        "knownAs":  "Alisson",
+        "firstName":  "Alisson",
+        "lastName":  "Souza de Jesus",
+        "club":  "Estrela Amadora",
+        "country":  "Brazil",
+        "ovr":  58
+    },
+    {
+        "id":  81659,
+        "rawName":  "Mathis Jangéal",
+        "knownAs":  "",
+        "firstName":  "Mathis",
+        "lastName":  "Jangéal",
+        "club":  "FC Famalicão",
+        "country":  "France",
+        "ovr":  64
+    },
+    {
+        "id":  81674,
+        "rawName":  "Gonçalo Moreira",
+        "knownAs":  "Gonçalo Moreira",
+        "firstName":  "Gonçalo",
+        "lastName":  "Carvalho Moreira",
+        "club":  "SL Benfica",
+        "country":  "Portugal",
+        "ovr":  66
+    },
+    {
+        "id":  81901,
+        "rawName":  "Léo Linck",
+        "knownAs":  "Léo Linck",
+        "firstName":  "Leonardo Matias",
+        "lastName":  "Baiersdorf Linck",
+        "club":  "Estrela Amadora",
+        "country":  "Brazil",
+        "ovr":  70
+    },
+    {
+        "id":  82439,
+        "rawName":  "Tommy Marqués",
+        "knownAs":  "Tommy Marqués",
+        "firstName":  "Tomás Noël",
+        "lastName":  "Marqués Morera",
+        "club":  "SC Braga",
+        "country":  "Spain",
+        "ovr":  63
+    },
+    {
+        "id":  82744,
+        "rawName":  "José Neto",
+        "knownAs":  "José Neto",
+        "firstName":  "José Pedro",
+        "lastName":  "Formoso Neto",
+        "club":  "SL Benfica",
+        "country":  "Portugal",
+        "ovr":  61
+    },
+    {
+        "id":  82746,
+        "rawName":  "Salvador Blopa",
+        "knownAs":  "Salvador Blopa",
+        "firstName":  "Salvador",
+        "lastName":  "Uco Blopa",
+        "club":  "Sporting CP",
+        "country":  "Portugal",
+        "ovr":  67
+    },
+    {
+        "id":  82907,
+        "rawName":  "Mestanza",
+        "knownAs":  "Mestanza",
+        "firstName":  "Alejandro",
+        "lastName":  "García Mestanza",
+        "club":  "Académico de Viseu FC",
+        "country":  "Spain",
+        "ovr":  62
+    },
+    {
+        "id":  82948,
+        "rawName":  "Flávio Gonçalves",
+        "knownAs":  "Flávio Gonçalves",
+        "firstName":  "Flávio",
+        "lastName":  "Ferreira Gonçalves",
+        "club":  "Sporting CP",
+        "country":  "Portugal",
+        "ovr":  66
+    },
+    {
+        "id":  83216,
+        "rawName":  "Vasco Moreira",
+        "knownAs":  "Vasco Moreira",
+        "firstName":  "Vasco",
+        "lastName":  "da Silva Moreira",
+        "club":  "FC Alverca",
+        "country":  "Portugal",
+        "ovr":  63
+    },
+    {
+        "id":  83220,
+        "rawName":  "Diogo Bezerra",
+        "knownAs":  "Diogo Bezerra",
+        "firstName":  "Diogo",
+        "lastName":  "Bezerra de Oliveira",
+        "club":  "Rio Ave FC",
+        "country":  "Brazil",
+        "ovr":  66
+    },
+    {
+        "id":  83222,
+        "rawName":  "Welinton Torrão",
+        "knownAs":  "Welinton Torrão",
+        "firstName":  "Welinton",
+        "lastName":  "Macedo dos Santos",
+        "club":  "Santa Clara",
+        "country":  "Brazil",
+        "ovr":  67
+    },
+    {
+        "id":  83245,
+        "rawName":  "Tomás Viera",
+        "knownAs":  "",
+        "firstName":  "Tomás",
+        "lastName":  "Viera",
+        "club":  "Nacional",
+        "country":  "Uruguay",
+        "ovr":  64
+    },
+    {
+        "id":  83246,
+        "rawName":  "Rodrigo Martínez",
+        "knownAs":  "",
+        "firstName":  "Rodrigo",
+        "lastName":  "Martínez",
+        "club":  "Nacional",
+        "country":  "Uruguay",
+        "ovr":  62
+    },
+    {
+        "id":  83401,
+        "rawName":  "Daniel Banjaqui",
+        "knownAs":  "Daniel Banjaqui",
+        "firstName":  "Daniel Armando",
+        "lastName":  "Banjaqui",
+        "club":  "SL Benfica",
+        "country":  "Portugal",
+        "ovr":  63
+    },
+    {
+        "id":  83402,
+        "rawName":  "Anísio",
+        "knownAs":  "Anísio",
+        "firstName":  "Anísio Cláudio",
+        "lastName":  "Cabral",
+        "club":  "SL Benfica",
+        "country":  "Portugal",
+        "ovr":  63
+    },
+    {
+        "id":  83404,
+        "rawName":  "Eddy Gueladan Doué",
+        "knownAs":  "",
+        "firstName":  "Eddy",
+        "lastName":  "Gueladan Doué",
+        "club":  "Estrela Amadora",
+        "country":  "Côte d\u0027Ivoire",
+        "ovr":  63
+    },
+    {
+        "id":  83698,
+        "rawName":  "Ryan Guilherme",
+        "knownAs":  "Ryan Guilherme",
+        "firstName":  "Ryan Guilherme",
+        "lastName":  "da Silva Pae",
+        "club":  "Rio Ave FC",
+        "country":  "Brazil",
+        "ovr":  66
+    },
+    {
+        "id":  83709,
+        "rawName":  "Vojin Serafimović",
+        "knownAs":  "",
+        "firstName":  "Vojin",
+        "lastName":  "Serafimović",
+        "club":  "FC Famalicão",
+        "country":  "Serbia",
+        "ovr":  61
+    },
+    {
+        "id":  83778,
+        "rawName":  "Pedro Rosas",
+        "knownAs":  "Pedro Rosas",
+        "firstName":  "Pedro",
+        "lastName":  "Silva Rosas",
+        "club":  "Casa Pia AC",
+        "country":  "Portugal",
+        "ovr":  62
+    },
+    {
+        "id":  83780,
+        "rawName":  "Guilherme Romão",
+        "knownAs":  "Guilherme Romão",
+        "firstName":  "Guilherme",
+        "lastName":  "Kennedy Romão",
+        "club":  "Santa Clara",
+        "country":  "Brazil",
+        "ovr":  66
+    },
+    {
+        "id":  83781,
+        "rawName":  "Zeega",
+        "knownAs":  "Zeega",
+        "firstName":  "Martim",
+        "lastName":  "Costa Guedes",
+        "club":  "Vitória SC",
+        "country":  "Portugal",
+        "ovr":  60
+    },
+    {
+        "id":  83994,
+        "rawName":  "Rudi Almeida",
+        "knownAs":  "Rudi Almeida",
+        "firstName":  "Rudi Daniel",
+        "lastName":  "Silva Almeida",
+        "club":  "FC Famalicão",
+        "country":  "Portugal",
+        "ovr":  63
+    },
+    {
+        "id":  83995,
+        "rawName":  "Fernando",
+        "knownAs":  "Fernando",
+        "firstName":  "Luis Fernando",
+        "lastName":  "Santos Oliveira",
+        "club":  "Santa Clara",
+        "country":  "Brazil",
+        "ovr":  63
+    },
+    {
+        "id":  84397,
+        "rawName":  "Luciano González",
+        "knownAs":  "",
+        "firstName":  "Luciano",
+        "lastName":  "González",
+        "club":  "Nacional",
+        "country":  "Uruguay",
+        "ovr":  60
+    },
+    {
+        "id":  84573,
+        "rawName":  "Francisco Dias",
+        "knownAs":  "Francisco Dias",
+        "firstName":  "Francisco",
+        "lastName":  "Lagos Dias",
+        "club":  "Vitória SC",
+        "country":  "Spain",
+        "ovr":  61
+    },
+    {
+        "id":  85110,
+        "rawName":  "Abdu Dafé",
+        "knownAs":  "Abdu Dafé",
+        "firstName":  "Abdu",
+        "lastName":  "Dafé",
+        "club":  "Casa Pia AC",
+        "country":  "Guinea-Bissau",
+        "ovr":  57
+    },
+    {
+        "id":  85111,
+        "rawName":  "Gil Martins",
+        "knownAs":  "Gil Martins",
+        "firstName":  "Gil",
+        "lastName":  "Pinto Martins",
+        "club":  "Gil Vicente",
+        "country":  "Portugal",
+        "ovr":  61
+    },
+    {
+        "id":  85177,
+        "rawName":  "Pavel Núñez",
+        "knownAs":  "",
+        "firstName":  "Pavel",
+        "lastName":  "Núñez",
+        "club":  "Nacional",
+        "country":  "Uruguay",
+        "ovr":  62
+    },
+    {
+        "id":  85179,
+        "rawName":  "Juan Felipe Bianchi",
+        "knownAs":  "",
+        "firstName":  "Juan Felipe",
+        "lastName":  "Bianchi",
+        "club":  "Nacional",
+        "country":  "Uruguay",
+        "ovr":  58
+    },
+    {
+        "id":  85243,
+        "rawName":  "Luisinho",
+        "knownAs":  "Luisinho",
+        "firstName":  "Luís",
+        "lastName":  "Teixeira Pinto",
+        "club":  "SC Braga",
+        "country":  "Portugal",
+        "ovr":  64
+    },
+    {
+        "id":  85333,
+        "rawName":  "Jesse Derry",
+        "knownAs":  "",
+        "firstName":  "Jesse",
+        "lastName":  "Derry",
+        "club":  "Sporting CP",
+        "country":  "England",
+        "ovr":  68
+    },
+    {
+        "id":  85515,
+        "rawName":  "António Gil",
+        "knownAs":  "António Gil",
+        "firstName":  "António Gil",
+        "lastName":  "Valério Branco",
+        "club":  "SC Braga",
+        "country":  "Portugal",
+        "ovr":  63
+    },
+    {
+        "id":  85660,
+        "rawName":  "Tiago Silva",
+        "knownAs":  "Tiago Silva",
+        "firstName":  "Tiago",
+        "lastName":  "Gonçalves da Silva",
+        "club":  "FC Porto",
+        "country":  "Portugal",
+        "ovr":  63
+    },
+    {
+        "id":  85894,
+        "rawName":  "Bernardo Lima",
+        "knownAs":  "Bernardo Lima",
+        "firstName":  "Bernardo",
+        "lastName":  "Pinto Lima",
+        "club":  "FC Porto",
+        "country":  "Portugal",
+        "ovr":  63
+    },
+    {
+        "id":  85963,
+        "rawName":  "Rúben Pereira",
+        "knownAs":  "Rúben Pereira",
+        "firstName":  "Rúben",
+        "lastName":  "Filipe G. Pereira",
+        "club":  "Académico de Viseu FC",
+        "country":  "Portugal",
+        "ovr":  60
+    },
+    {
+        "id":  86040,
+        "rawName":  "Milioransa",
+        "knownAs":  "Milioransa",
+        "firstName":  "Igor",
+        "lastName":  "Milioransa",
+        "club":  "Académico de Viseu FC",
+        "country":  "Brazil",
+        "ovr":  59
+    },
+    {
+        "id":  86043,
+        "rawName":  "Simão Silva",
+        "knownAs":  "Simão Silva",
+        "firstName":  "Bruno",
+        "lastName":  "Simão Macedo Silva",
+        "club":  "Académico de Viseu FC",
+        "country":  "Portugal",
+        "ovr":  60
+    },
+    {
+        "id":  86044,
+        "rawName":  "Gohi Lorougnon",
+        "knownAs":  "",
+        "firstName":  "Gohi",
+        "lastName":  "Lorougnon",
+        "club":  "Académico de Viseu FC",
+        "country":  "Côte d\u0027Ivoire",
+        "ovr":  60
+    },
+    {
+        "id":  86065,
+        "rawName":  "Juan Ignacio García",
+        "knownAs":  "",
+        "firstName":  "Juan Ignacio",
+        "lastName":  "García",
+        "club":  "Nacional",
+        "country":  "Uruguay",
+        "ovr":  61
+    },
+    {
+        "id":  86351,
+        "rawName":  "Gustavo Costa",
+        "knownAs":  "Gustavo Costa",
+        "firstName":  "Gustavo",
+        "lastName":  "Abreu Costa",
+        "club":  "Académico de Viseu FC",
+        "country":  "Portugal",
+        "ovr":  62
+    },
+    {
+        "id":  86352,
+        "rawName":  "Pedro Barcelos",
+        "knownAs":  "Pedro Barcelos",
+        "firstName":  "Pedro Henrique",
+        "lastName":  "Barcelos Silva",
+        "club":  "Académico de Viseu FC",
+        "country":  "Brazil",
+        "ovr":  61
+    },
+    {
+        "id":  86373,
+        "rawName":  "Tomás Silva",
+        "knownAs":  "Tomás Silva",
+        "firstName":  "Tomás",
+        "lastName":  "Tavares da Silva",
+        "club":  "Académico de Viseu FC",
+        "country":  "Portugal",
+        "ovr":  59
+    },
+    {
+        "id":  86374,
+        "rawName":  "Matheus Sampaio",
+        "knownAs":  "Matheus Sampaio",
+        "firstName":  "Matheus",
+        "lastName":  "Henrique S. Sampaio",
+        "club":  "Académico de Viseu FC",
+        "country":  "Brazil",
+        "ovr":  61
+    },
+    {
+        "id":  86520,
+        "rawName":  "Gabriel Índio",
+        "knownAs":  "Gabriel Índio",
+        "firstName":  "Gabriel",
+        "lastName":  "dos Santos Queiroz",
+        "club":  "SL Benfica",
+        "country":  "Brazil",
+        "ovr":  63
+    },
+    {
+        "id":  86827,
+        "rawName":  "Mateus Iseppe",
+        "knownAs":  "Mateus Iseppe",
+        "firstName":  "Mateus José",
+        "lastName":  "Iseppe",
+        "club":  "Nacional",
+        "country":  "Brazil",
+        "ovr":  61
+    },
+    {
+        "id":  86830,
+        "rawName":  "Kamika",
+        "knownAs":  "Kamika",
+        "firstName":  "António João",
+        "lastName":  "Gonçalves Infante",
+        "club":  "Santa Clara",
+        "country":  "Portugal",
+        "ovr":  61
+    },
+    {
+        "id":  86836,
+        "rawName":  "Fredy",
+        "knownAs":  "Fredy",
+        "firstName":  "Frederico",
+        "lastName":  "Medeiros Silva",
+        "club":  "Santa Clara",
+        "country":  "Portugal",
+        "ovr":  59
+    },
+    {
+        "id":  87016,
+        "rawName":  "Kimiss Zavala",
+        "knownAs":  "Kimiss Zavala",
+        "firstName":  "Kimiss",
+        "lastName":  "Rebelina Zavala",
+        "club":  "Marítimo da Madeira",
+        "country":  "Mozambique",
+        "ovr":  60
+    },
+    {
+        "id":  87034,
+        "rawName":  "Gonçalo Tabuaço",
+        "knownAs":  "Gonçalo Tabuaço",
+        "firstName":  "José Gonçalo",
+        "lastName":  "Macedo Tabuaço",
+        "club":  "Marítimo da Madeira",
+        "country":  "Portugal",
+        "ovr":  64
+    },
+    {
+        "id":  87044,
+        "rawName":  "Samuel Alves",
+        "knownAs":  "Samuel Alves",
+        "firstName":  "Samuel",
+        "lastName":  "Alves",
+        "club":  "Rio Ave FC",
+        "country":  "Brazil",
+        "ovr":  61
+    },
+    {
+        "id":  87048,
+        "rawName":  "Benjamín Núñez",
+        "knownAs":  "",
+        "firstName":  "Benjamín",
+        "lastName":  "Núñez",
+        "club":  "Nacional",
+        "country":  "Uruguay",
+        "ovr":  63
+    },
+    {
+        "id":  87071,
+        "rawName":  "Vitinho",
+        "knownAs":  "Vitinho",
+        "firstName":  "Vitor Hugo",
+        "lastName":  "Amorim de Assis",
+        "club":  "Santa Clara",
+        "country":  "Brazil",
+        "ovr":  63
+    },
+    {
+        "id":  87128,
+        "rawName":  "João Guilherme",
+        "knownAs":  "João Guilherme",
+        "firstName":  "João Guilherme",
+        "lastName":  "de Souza Crispim",
+        "club":  "Académico de Viseu FC",
+        "country":  "Brazil",
+        "ovr":  63
+    },
+    {
+        "id":  87129,
+        "rawName":  "Gabi Pereira",
+        "knownAs":  "Gabi Pereira",
+        "firstName":  "Márcio Gabriel",
+        "lastName":  "Ferreira Pereira",
+        "club":  "Casa Pia AC",
+        "country":  "Portugal",
+        "ovr":  60
+    },
+    {
+        "id":  87131,
+        "rawName":  "Walace França",
+        "knownAs":  "Walace França",
+        "firstName":  "Walace",
+        "lastName":  "dos Santos França",
+        "club":  "Gil Vicente",
+        "country":  "Brazil",
+        "ovr":  62
+    },
+    {
+        "id":  87135,
+        "rawName":  "Andreas Sejr Lausen",
+        "knownAs":  "",
+        "firstName":  "Andreas",
+        "lastName":  "Sejr Lausen",
+        "club":  "Gil Vicente",
+        "country":  "Denmark",
+        "ovr":  61
+    },
+    {
+        "id":  87137,
+        "rawName":  "Emanuel Moreira",
+        "knownAs":  "Emanuel Moreira",
+        "firstName":  "Emanuel",
+        "lastName":  "Moreira Fernandes",
+        "club":  "Santa Clara",
+        "country":  "Portugal",
+        "ovr":  64
+    },
+    {
+        "id":  87139,
+        "rawName":  "Miguel Patrício",
+        "knownAs":  "Miguel Patrício",
+        "firstName":  "Miguel",
+        "lastName":  "Almeida Patrício",
+        "club":  "Rio Ave FC",
+        "country":  "Portugal",
+        "ovr":  62
+    },
+    {
+        "id":  87181,
+        "rawName":  "Afonso Duarte",
+        "knownAs":  "Afonso Duarte",
+        "firstName":  "Afonso",
+        "lastName":  "Ferreira Duarte",
+        "club":  "Santa Clara",
+        "country":  "Portugal",
+        "ovr":  59
+    },
+    {
+        "id":  87185,
+        "rawName":  "Samy Merheg",
+        "knownAs":  "",
+        "firstName":  "Samy",
+        "lastName":  "Merheg",
+        "club":  "FC Alverca",
+        "country":  "Colombia",
+        "ovr":  60
+    },
+    {
+        "id":  87419,
+        "rawName":  "Bénito Souza",
+        "knownAs":  "",
+        "firstName":  "Bénito",
+        "lastName":  "Souza",
+        "club":  "Estrela Amadora",
+        "country":  "France",
+        "ovr":  63
+    },
+    {
+        "id":  87421,
+        "rawName":  "Roland Galčík",
+        "knownAs":  "",
+        "firstName":  "Roland",
+        "lastName":  "Galčík",
+        "club":  "Rio Ave FC",
+        "country":  "Slovakia",
+        "ovr":  65
+    },
+    {
+        "id":  87512,
+        "rawName":  "Miguel Figueiredo",
+        "knownAs":  "Miguel Figueiredo",
+        "firstName":  "Miguel",
+        "lastName":  "Monteiro Figueiredo",
+        "club":  "SL Benfica",
+        "country":  "Portugal",
+        "ovr":  62
+    },
+    {
+        "id":  87568,
+        "rawName":  "Ewerton",
+        "knownAs":  "Ewerton",
+        "firstName":  "Ewerton",
+        "lastName":  "Ferreira da Silva",
+        "club":  "Académico de Viseu FC",
+        "country":  "Brazil",
+        "ovr":  63
+    },
+    {
+        "id":  87569,
+        "rawName":  "Yeimar Jesús M. Mosquera",
+        "knownAs":  "",
+        "firstName":  "Yeimar",
+        "lastName":  "Jesús M. Mosquera",
+        "club":  "Vitória SC",
+        "country":  "Colombia",
+        "ovr":  60
+    },
+    {
+        "id":  88142,
+        "rawName":  "Israel Ayuma",
+        "knownAs":  "",
+        "firstName":  "Israel",
+        "lastName":  "Ayuma",
+        "club":  "Marítimo da Madeira",
+        "country":  "Nigeria",
+        "ovr":  61
+    },
+    {
+        "id":  88328,
+        "rawName":  "Tamás Szücs",
+        "knownAs":  "",
+        "firstName":  "Tamás",
+        "lastName":  "Szücs",
+        "club":  "FC Famalicão",
+        "country":  "Hungary",
+        "ovr":  65
+    },
+    {
+        "id":  88330,
+        "rawName":  "Ian Luccas",
+        "knownAs":  "Ian Luccas",
+        "firstName":  "Ian Luccas",
+        "lastName":  "Baroni Boetto",
+        "club":  "FC Alverca",
+        "country":  "Brazil",
+        "ovr":  62
+    },
+    {
+        "id":  88339,
+        "rawName":  "Santiago Serra",
+        "knownAs":  "Santiago Serra",
+        "firstName":  "Santiago",
+        "lastName":  "Ferreira e Serra",
+        "club":  "Estrela Amadora",
+        "country":  "Portugal",
+        "ovr":  62
+    },
+    {
+        "id":  88389,
+        "rawName":  "Santi Verdi",
+        "knownAs":  "Santi Verdi",
+        "firstName":  "Santiago",
+        "lastName":  "Verdi",
+        "club":  "Vitória SC",
+        "country":  "Portugal",
+        "ovr":  60
+    },
+    {
+        "id":  88403,
+        "rawName":  "Emerson Vanga",
+        "knownAs":  "",
+        "firstName":  "Emerson",
+        "lastName":  "Vanga",
+        "club":  "Estrela Amadora",
+        "country":  "France",
+        "ovr":  60
+    },
+    {
+        "id":  88477,
+        "rawName":  "Hiago Santos",
+        "knownAs":  "Hiago Santos",
+        "firstName":  "Hiago",
+        "lastName":  "Souza Lima Santos",
+        "club":  "Santa Clara",
+        "country":  "Brazil",
+        "ovr":  60
+    },
+    {
+        "id":  162347,
+        "rawName":  "João Moutinho",
+        "knownAs":  "João Moutinho",
+        "firstName":  "João Filipe",
+        "lastName":  "Moutinho",
+        "club":  "SC Braga",
+        "country":  "Portugal",
+        "ovr":  77
+    },
+    {
+        "id":  195668,
+        "rawName":  "Joel Robles",
+        "knownAs":  "Joel Robles",
+        "firstName":  "Joel",
+        "lastName":  "Robles Blázquez",
+        "club":  "Estoril Praia",
+        "country":  "Spain",
+        "ovr":  72
+    },
+    {
+        "id":  197655,
+        "rawName":  "Sebastián Coates",
+        "knownAs":  "",
+        "firstName":  "Sebastián",
+        "lastName":  "Coates",
+        "club":  "Nacional",
+        "country":  "Uruguay",
+        "ovr":  78
+    },
+    {
+        "id":  198513,
+        "rawName":  "Cláudio Ramos",
+        "knownAs":  "Cláudio Ramos",
+        "firstName":  "Cláudio Pires",
+        "lastName":  "de Morais Ramos",
+        "club":  "FC Porto",
+        "country":  "Portugal",
+        "ovr":  73
+    },
+    {
+        "id":  199577,
+        "rawName":  "Sergi Gómez",
+        "knownAs":  "Sergi Gómez",
+        "firstName":  "Sergi",
+        "lastName":  "Gómez Solà",
+        "club":  "FC Alverca",
+        "country":  "Spain",
+        "ovr":  71
+    },
+    {
+        "id":  202089,
+        "rawName":  "Luis Mejía",
+        "knownAs":  "",
+        "firstName":  "Luis",
+        "lastName":  "Mejía",
+        "club":  "Nacional",
+        "country":  "Panama",
+        "ovr":  71
+    },
+    {
+        "id":  203864,
+        "rawName":  "Bruno Zuculini",
+        "knownAs":  "",
+        "firstName":  "Bruno",
+        "lastName":  "Zuculini",
+        "club":  "Nacional",
+        "country":  "Argentina",
+        "ovr":  72
+    },
+    {
+        "id":  204121,
+        "rawName":  "Jakub Brabec",
+        "knownAs":  "",
+        "firstName":  "Jakub",
+        "lastName":  "Brabec",
+        "club":  "Rio Ave FC",
+        "country":  "Czech Republic",
+        "ovr":  72
+    },
+    {
+        "id":  209816,
+        "rawName":  "Buatu",
+        "knownAs":  "Buatu",
+        "firstName":  "Jonathan",
+        "lastName":  "Buatu Mananga",
+        "club":  "Gil Vicente",
+        "country":  "Angola",
+        "ovr":  69
+    },
+    {
+        "id":  210385,
+        "rawName":  "Rui Silva",
+        "knownAs":  "Rui Silva",
+        "firstName":  "Rui Tiago",
+        "lastName":  "Dantas da Silva",
+        "club":  "Sporting CP",
+        "country":  "Portugal",
+        "ovr":  81
+    },
+    {
+        "id":  211368,
+        "rawName":  "Bruma",
+        "knownAs":  "Bruma",
+        "firstName":  "Armindo",
+        "lastName":  "Tué Na Bangna",
+        "club":  "SL Benfica",
+        "country":  "Portugal",
+        "ovr":  75
+    },
+    {
+        "id":  211561,
+        "rawName":  "Cassiano",
+        "knownAs":  "Cassiano",
+        "firstName":  "Cassiano",
+        "lastName":  "Dias Moreira",
+        "club":  "Casa Pia AC",
+        "country":  "Brazil",
+        "ovr":  71
+    },
+    {
+        "id":  212213,
+        "rawName":  "Ricardo Esgaio",
+        "knownAs":  "Ricardo Esgaio",
+        "firstName":  "Ricardo",
+        "lastName":  "Sousa Esgaio",
+        "club":  "Gil Vicente",
+        "country":  "Portugal",
+        "ovr":  68
+    },
+    {
+        "id":  212367,
+        "rawName":  "Igor Julião",
+        "knownAs":  "Igor Julião",
+        "firstName":  "Igor",
+        "lastName":  "de Carvalho Julião",
+        "club":  "Marítimo da Madeira",
+        "country":  "Brazil",
+        "ovr":  67
+    },
+    {
+        "id":  213064,
+        "rawName":  "Francisco Calvo",
+        "knownAs":  "",
+        "firstName":  "Francisco",
+        "lastName":  "Calvo",
+        "club":  "Nacional",
+        "country":  "Costa Rica",
+        "ovr":  68
+    },
+    {
+        "id":  213516,
+        "rawName":  "Ricardo Horta",
+        "knownAs":  "Ricardo Horta",
+        "firstName":  "Ricardo Jorge",
+        "lastName":  "da Luz Horta",
+        "club":  "SC Braga",
+        "country":  "Portugal",
+        "ovr":  82
+    },
+    {
+        "id":  214606,
+        "rawName":  "Sebastián Pérez",
+        "knownAs":  "",
+        "firstName":  "Sebastián",
+        "lastName":  "Pérez",
+        "club":  "Casa Pia AC",
+        "country":  "Colombia",
+        "ovr":  70
+    },
+    {
+        "id":  214942,
+        "rawName":  "Héctor",
+        "knownAs":  "Héctor",
+        "firstName":  "Héctor José",
+        "lastName":  "Hernández Marrero",
+        "club":  "Gil Vicente",
+        "country":  "Spain",
+        "ovr":  72
+    },
+    {
+        "id":  216452,
+        "rawName":  "Gonçalo Paciência",
+        "knownAs":  "Gonçalo Paciência",
+        "firstName":  "Gonçalo",
+        "lastName":  "Mendes Paciência",
+        "club":  "Santa Clara",
+        "country":  "Portugal",
+        "ovr":  72
+    },
+    {
+        "id":  216547,
+        "rawName":  "Rafa",
+        "knownAs":  "Rafa",
+        "firstName":  "Rafael A.",
+        "lastName":  "Ferreira Silva",
+        "club":  "SL Benfica",
+        "country":  "Portugal",
+        "ovr":  80
+    },
+    {
+        "id":  217805,
+        "rawName":  "Alexis Martín Arias",
+        "knownAs":  "",
+        "firstName":  "Alexis",
+        "lastName":  "Martín Arias",
+        "club":  "Nacional",
+        "country":  "Argentina",
+        "ovr":  71
+    },
+    {
+        "id":  218936,
+        "rawName":  "Rafa Soares",
+        "knownAs":  "Rafa Soares",
+        "firstName":  "Luís Rafael",
+        "lastName":  "Soares Alves",
+        "club":  "Estrela Amadora",
+        "country":  "Portugal",
+        "ovr":  70
+    },
+    {
+        "id":  219468,
+        "rawName":  "Luís Silva",
+        "knownAs":  "Luís Silva",
+        "firstName":  "Luís Manuel",
+        "lastName":  "Costa Silva",
+        "club":  "Académico de Viseu FC",
+        "country":  "Portugal",
+        "ovr":  70
+    },
+    {
+        "id":  220440,
+        "rawName":  "Clément Lenglet",
+        "knownAs":  "",
+        "firstName":  "Clément",
+        "lastName":  "Lenglet",
+        "club":  "SL Benfica",
+        "country":  "France",
+        "ovr":  77
+    },
+    {
+        "id":  220570,
+        "rawName":  "Jan Bednarek",
+        "knownAs":  "",
+        "firstName":  "Jan",
+        "lastName":  "Bednarek",
+        "club":  "FC Porto",
+        "country":  "Poland",
+        "ovr":  82
+    },
+    {
+        "id":  221750,
+        "rawName":  "André Geraldes",
+        "knownAs":  "André Geraldes",
+        "firstName":  "André Geraldes",
+        "lastName":  "de Barros",
+        "club":  "Casa Pia AC",
+        "country":  "Portugal",
+        "ovr":  66
+    },
+    {
+        "id":  222461,
+        "rawName":  "Rochinha",
+        "knownAs":  "Rochinha",
+        "firstName":  "Diogo Filipe",
+        "lastName":  "Rocha Costa",
+        "club":  "Casa Pia AC",
+        "country":  "Portugal",
+        "ovr":  69
+    },
+    {
+        "id":  223302,
+        "rawName":  "Samu",
+        "knownAs":  "Samu",
+        "firstName":  "Fábio Samuel",
+        "lastName":  "Amorim Silva",
+        "club":  "Vitória SC",
+        "country":  "Portugal",
+        "ovr":  74
+    },
+    {
+        "id":  224309,
+        "rawName":  "Joan Jordán",
+        "knownAs":  "Joan Jordán",
+        "firstName":  "Joan",
+        "lastName":  "Jordán Moreno",
+        "club":  "Estrela Amadora",
+        "country":  "Spain",
+        "ovr":  74
+    },
+    {
+        "id":  225696,
+        "rawName":  "Murilo",
+        "knownAs":  "Murilo",
+        "firstName":  "Murilo",
+        "lastName":  "de Souza Costa",
+        "club":  "Gil Vicente",
+        "country":  "Brazil",
+        "ovr":  74
+    },
+    {
+        "id":  227819,
+        "rawName":  "Samuel Portugal",
+        "knownAs":  "Samuel Portugal",
+        "firstName":  "Samuel",
+        "lastName":  "Portugal Lima",
+        "club":  "Gil Vicente",
+        "country":  "Brazil",
+        "ovr":  69
+    },
+    {
+        "id":  227890,
+        "rawName":  "Nuno Santos",
+        "knownAs":  "Nuno Santos",
+        "firstName":  "Nuno Miguel",
+        "lastName":  "Gomes dos Santos",
+        "club":  "Sporting CP",
+        "country":  "Portugal",
+        "ovr":  75
+    },
+    {
+        "id":  228010,
+        "rawName":  "Hwang In Beom",
+        "knownAs":  "Hwang In Beom",
+        "firstName":  "In Beom",
+        "lastName":  "Hwang",
+        "club":  "FC Porto",
+        "country":  "Korea Republic",
+        "ovr":  76
+    },
+    {
+        "id":  228589,
+        "rawName":  "Raphael Guzzo",
+        "knownAs":  "Raphael Guzzo",
+        "firstName":  "Raphael",
+        "lastName":  "Gregório Guzzo",
+        "club":  "Marítimo da Madeira",
+        "country":  "Portugal",
+        "ovr":  68
+    },
+    {
+        "id":  228941,
+        "rawName":  "André Silva",
+        "knownAs":  "André Silva",
+        "firstName":  "André Miguel",
+        "lastName":  "Valente da Silva",
+        "club":  "FC Porto",
+        "country":  "Portugal",
+        "ovr":  77
+    },
+    {
+        "id":  229188,
+        "rawName":  "Vangelis Pavlidis",
+        "knownAs":  "",
+        "firstName":  "Vangelis",
+        "lastName":  "Pavlidis",
+        "club":  "SL Benfica",
+        "country":  "Greece",
+        "ovr":  82
+    },
+    {
+        "id":  229255,
+        "rawName":  "Charles",
+        "knownAs":  "Charles",
+        "firstName":  "Charles Marcelo",
+        "lastName":  "da Silva",
+        "club":  "Vitória SC",
+        "country":  "Brazil",
+        "ovr":  68
+    },
+    {
+        "id":  229453,
+        "rawName":  "Gil Dias",
+        "knownAs":  "Gil Dias",
+        "firstName":  "Gil",
+        "lastName":  "Bastião Dias",
+        "club":  "FC Famalicão",
+        "country":  "Portugal",
+        "ovr":  74
+    },
+    {
+        "id":  229498,
+        "rawName":  "Paulo Henrique",
+        "knownAs":  "Paulo Henrique",
+        "firstName":  "Paulo Henrique",
+        "lastName":  "Rodrigues Cabral",
+        "club":  "Marítimo da Madeira",
+        "country":  "Portugal",
+        "ovr":  67
+    },
+    {
+        "id":  230117,
+        "rawName":  "Jhonatan",
+        "knownAs":  "Jhonatan",
+        "firstName":  "Jhonatan",
+        "lastName":  "Luiz da Siqueira",
+        "club":  "FC Alverca",
+        "country":  "Brazil",
+        "ovr":  72
+    },
+    {
+        "id":  230690,
+        "rawName":  "Maxime Dominguez",
+        "knownAs":  "",
+        "firstName":  "Maxime",
+        "lastName":  "Dominguez",
+        "club":  "Marítimo da Madeira",
+        "country":  "Switzerland",
+        "ovr":  67
+    },
+    {
+        "id":  231391,
+        "rawName":  "João Carvalho",
+        "knownAs":  "João Carvalho",
+        "firstName":  "João António",
+        "lastName":  "Antunes Carvalho",
+        "club":  "Estoril Praia",
+        "country":  "Portugal",
+        "ovr":  75
+    },
+    {
+        "id":  231416,
+        "rawName":  "Dodi Lukébakio",
+        "knownAs":  "",
+        "firstName":  "Dodi",
+        "lastName":  "Lukébakio",
+        "club":  "SL Benfica",
+        "country":  "Belgium",
+        "ovr":  80
+    },
+    {
+        "id":  231474,
+        "rawName":  "João Costa",
+        "knownAs":  "João Costa",
+        "firstName":  "João Paulo",
+        "lastName":  "Santos da Costa",
+        "club":  "FC Porto",
+        "country":  "Portugal",
+        "ovr":  69
+    },
+    {
+        "id":  231753,
+        "rawName":  "Jérémy Livolant",
+        "knownAs":  "",
+        "firstName":  "Jérémy",
+        "lastName":  "Livolant",
+        "club":  "Casa Pia AC",
+        "country":  "France",
+        "ovr":  73
+    },
+    {
+        "id":  231913,
+        "rawName":  "Fredrik Aursnes",
+        "knownAs":  "",
+        "firstName":  "Fredrik",
+        "lastName":  "Aursnes",
+        "club":  "SL Benfica",
+        "country":  "Norway",
+        "ovr":  81
+    },
+    {
+        "id":  233116,
+        "rawName":  "Cihan Kahraman",
+        "knownAs":  "",
+        "firstName":  "Cihan",
+        "lastName":  "Kahraman",
+        "club":  "Académico de Viseu FC",
+        "country":  "Turkey",
+        "ovr":  67
+    },
+    {
+        "id":  233373,
+        "rawName":  "Stéphane Diarra",
+        "knownAs":  "",
+        "firstName":  "Stéphane",
+        "lastName":  "Diarra",
+        "club":  "FC Alverca",
+        "country":  "Côte d\u0027Ivoire",
+        "ovr":  67
+    },
+    {
+        "id":  234577,
+        "rawName":  "Diogo Costa",
+        "knownAs":  "Diogo Costa",
+        "firstName":  "Diogo",
+        "lastName":  "Meireles Costa",
+        "club":  "FC Porto",
+        "country":  "Portugal",
+        "ovr":  86
+    },
+    {
+        "id":  235134,
+        "rawName":  "Pablo Rosario",
+        "knownAs":  "",
+        "firstName":  "Pablo",
+        "lastName":  "Rosario",
+        "club":  "FC Porto",
+        "country":  "Dominican Republic",
+        "ovr":  78
+    },
+    {
+        "id":  235574,
+        "rawName":  "Lucas França",
+        "knownAs":  "Lucas França",
+        "firstName":  "Lucas",
+        "lastName":  "Oliveira de França",
+        "club":  "Santa Clara",
+        "country":  "Brazil",
+        "ovr":  71
+    },
+    {
+        "id":  235854,
+        "rawName":  "Léo Santos",
+        "knownAs":  "Léo Santos",
+        "firstName":  "Leonardo",
+        "lastName":  "Rodrigues Santos",
+        "club":  "Nacional",
+        "country":  "Brazil",
+        "ovr":  68
+    },
+    {
+        "id":  235955,
+        "rawName":  "Rafik Guitane",
+        "knownAs":  "",
+        "firstName":  "Rafik",
+        "lastName":  "Guitane",
+        "club":  "Estoril Praia",
+        "country":  "Algeria",
+        "ovr":  74
+    },
+    {
+        "id":  236046,
+        "rawName":  "Ivan Zlobin",
+        "knownAs":  "",
+        "firstName":  "Ivan",
+        "lastName":  "Zlobin",
+        "club":  "FC Famalicão",
+        "country":  "Russia",
+        "ovr":  70
+    },
+    {
+        "id":  236639,
+        "rawName":  "Xeka",
+        "knownAs":  "Xeka",
+        "firstName":  "Miguel Ângelo",
+        "lastName":  "da Silva Rocha",
+        "club":  "Estoril Praia",
+        "country":  "Portugal",
+        "ovr":  72
+    },
+    {
+        "id":  237704,
+        "rawName":  "João Virgínia",
+        "knownAs":  "João Virgínia",
+        "firstName":  "João Manuel",
+        "lastName":  "Neves Virgínia",
+        "club":  "Sporting CP",
+        "country":  "Portugal",
+        "ovr":  72
+    },
+    {
+        "id":  237871,
+        "rawName":  "Jordan Holsgrove",
+        "knownAs":  "",
+        "firstName":  "Jordan",
+        "lastName":  "Holsgrove",
+        "club":  "Estoril Praia",
+        "country":  "Scotland",
+        "ovr":  75
+    },
+    {
+        "id":  238896,
+        "rawName":  "Pepê",
+        "knownAs":  "Pepê",
+        "firstName":  "Eduardo Gabriel",
+        "lastName":  "Aquino Cossa",
+        "club":  "FC Porto",
+        "country":  "Brazil",
+        "ovr":  77
+    },
+    {
+        "id":  239207,
+        "rawName":  "Maximiliano Gómez",
+        "knownAs":  "",
+        "firstName":  "Maximiliano",
+        "lastName":  "Gómez",
+        "club":  "Nacional",
+        "country":  "Uruguay",
+        "ovr":  75
+    },
+    {
+        "id":  239816,
+        "rawName":  "Nico Mantl",
+        "knownAs":  "",
+        "firstName":  "Nico",
+        "lastName":  "Mantl",
+        "club":  "Arouca",
+        "country":  "Germany",
+        "ovr":  71
+    },
+    {
+        "id":  240244,
+        "rawName":  "Pedro Pacheco",
+        "knownAs":  "Pedro Pacheco",
+        "firstName":  "Pedro Jorge",
+        "lastName":  "Pacheco Seabra",
+        "club":  "Santa Clara",
+        "country":  "Portugal",
+        "ovr":  66
+    },
+    {
+        "id":  240453,
+        "rawName":  "Sikou Niakaté",
+        "knownAs":  "",
+        "firstName":  "Sikou",
+        "lastName":  "Niakaté",
+        "club":  "SC Braga",
+        "country":  "Mali",
+        "ovr":  74
+    },
+    {
+        "id":  240685,
+        "rawName":  "Tom van de Looi",
+        "knownAs":  "",
+        "firstName":  "Tom",
+        "lastName":  "van de Looi",
+        "club":  "FC Famalicão",
+        "country":  "Holland",
+        "ovr":  71
+    },
+    {
+        "id":  240791,
+        "rawName":  "Marcos Lavín",
+        "knownAs":  "Marcos Lavín",
+        "firstName":  "Marcos",
+        "lastName":  "Lavín Rodríguez",
+        "club":  "Académico de Viseu FC",
+        "country":  "Spain",
+        "ovr":  63
+    },
+    {
+        "id":  240834,
+        "rawName":  "Lazar Carević",
+        "knownAs":  "",
+        "firstName":  "Lazar",
+        "lastName":  "Carević",
+        "club":  "FC Famalicão",
+        "country":  "Montenegro",
+        "ovr":  76
+    },
+    {
+        "id":  240950,
+        "rawName":  "Pedro Gonçalves",
+        "knownAs":  "Pedro Gonçalves",
+        "firstName":  "Pedro António",
+        "lastName":  "Pereira Gonçalves",
+        "club":  "Sporting CP",
+        "country":  "Portugal",
+        "ovr":  82
+    },
+    {
+        "id":  241522,
+        "rawName":  "Jonas Wind",
+        "knownAs":  "",
+        "firstName":  "Jonas",
+        "lastName":  "Wind",
+        "club":  "SC Braga",
+        "country":  "Denmark",
+        "ovr":  75
+    },
+    {
+        "id":  241568,
+        "rawName":  "Cristian Ferreira",
+        "knownAs":  "",
+        "firstName":  "Cristian",
+        "lastName":  "Ferreira",
+        "club":  "Académico de Viseu FC",
+        "country":  "Argentina",
+        "ovr":  67
+    },
+    {
+        "id":  241976,
+        "rawName":  "Tiago Sá",
+        "knownAs":  "Tiago Sá",
+        "firstName":  "Tiago",
+        "lastName":  "Magalhães de Sá",
+        "club":  "SC Braga",
+        "country":  "Portugal",
+        "ovr":  66
+    },
+    {
+        "id":  242236,
+        "rawName":  "Ferro",
+        "knownAs":  "Ferro",
+        "firstName":  "Francisco",
+        "lastName":  "Reis Ferreira",
+        "club":  "Estoril Praia",
+        "country":  "Portugal",
+        "ovr":  70
+    },
+    {
+        "id":  242335,
+        "rawName":  "Camilo Cándido",
+        "knownAs":  "",
+        "firstName":  "Camilo",
+        "lastName":  "Cándido",
+        "club":  "Nacional",
+        "country":  "Uruguay",
+        "ovr":  72
+    },
+    {
+        "id":  242380,
+        "rawName":  "Stephen Eustáquio",
+        "knownAs":  "Stephen Eustáquio",
+        "firstName":  "Stephen",
+        "lastName":  "Antunes Eustáquio",
+        "club":  "FC Porto",
+        "country":  "Canada",
+        "ovr":  74
+    },
+    {
+        "id":  242406,
+        "rawName":  "André Clóvis",
+        "knownAs":  "André Clóvis",
+        "firstName":  "André Clóvis",
+        "lastName":  "Silva Filho",
+        "club":  "Académico de Viseu FC",
+        "country":  "Brazil",
+        "ovr":  72
+    },
+    {
+        "id":  243169,
+        "rawName":  "Yanis Begraoui",
+        "knownAs":  "",
+        "firstName":  "Yanis",
+        "lastName":  "Begraoui",
+        "club":  "Estoril Praia",
+        "country":  "Morocco",
+        "ovr":  75
+    },
+    {
+        "id":  243401,
+        "rawName":  "André Vidigal",
+        "knownAs":  "André Vidigal",
+        "firstName":  "André Filipe",
+        "lastName":  "Cunha Vidigal",
+        "club":  "FC Alverca",
+        "country":  "Angola",
+        "ovr":  66
+    },
+    {
+        "id":  243587,
+        "rawName":  "Fran Vieites",
+        "knownAs":  "Fran Vieites",
+        "firstName":  "Francisco",
+        "lastName":  "Barbosa Vieites",
+        "club":  "Marítimo da Madeira",
+        "country":  "Spain",
+        "ovr":  68
+    },
+    {
+        "id":  244020,
+        "rawName":  "André Ferreira",
+        "knownAs":  "André Ferreira",
+        "firstName":  "André Filipe",
+        "lastName":  "M. Ribeiro Ferreira",
+        "club":  "Moreirense FC",
+        "country":  "Portugal",
+        "ovr":  72
+    },
+    {
+        "id":  244206,
+        "rawName":  "Nehuén Pérez",
+        "knownAs":  "",
+        "firstName":  "Nehuén",
+        "lastName":  "Pérez",
+        "club":  "FC Porto",
+        "country":  "Argentina",
+        "ovr":  76
+    },
+    {
+        "id":  244287,
+        "rawName":  "Marios Vrousai",
+        "knownAs":  "",
+        "firstName":  "Marios",
+        "lastName":  "Vrousai",
+        "club":  "Rio Ave FC",
+        "country":  "Greece",
+        "ovr":  72
+    },
+    {
+        "id":  244601,
+        "rawName":  "Sydney van Hooijdonk",
+        "knownAs":  "",
+        "firstName":  "Sydney",
+        "lastName":  "van Hooijdonk",
+        "club":  "Estrela Amadora",
+        "country":  "Holland",
+        "ovr":  67
+    },
+    {
+        "id":  244963,
+        "rawName":  "Ivanildo Fernandes",
+        "knownAs":  "Ivanildo Fernandes",
+        "firstName":  "Ivanildo Jorge",
+        "lastName":  "Mendes Fernandes",
+        "club":  "Nacional",
+        "country":  "Cape Verde Islands",
+        "ovr":  64
+    },
+    {
+        "id":  245158,
+        "rawName":  "Luis Javier Suárez",
+        "knownAs":  "",
+        "firstName":  "Luis Javier",
+        "lastName":  "Suárez",
+        "club":  "Sporting CP",
+        "country":  "Colombia",
+        "ovr":  82
+    },
+    {
+        "id":  245235,
+        "rawName":  "Alexander Bah",
+        "knownAs":  "",
+        "firstName":  "Alexander",
+        "lastName":  "Bah",
+        "club":  "SL Benfica",
+        "country":  "Denmark",
+        "ovr":  78
+    },
+    {
+        "id":  245238,
+        "rawName":  "Javi Sánchez",
+        "knownAs":  "Javi Sánchez",
+        "firstName":  "Javier",
+        "lastName":  "Sánchez de Felipe",
+        "club":  "Arouca",
+        "country":  "Spain",
+        "ovr":  73
+    },
+    {
+        "id":  245253,
+        "rawName":  "Leandro Barreiro",
+        "knownAs":  "",
+        "firstName":  "Leandro",
+        "lastName":  "Barreiro",
+        "club":  "SL Benfica",
+        "country":  "Luxembourg",
+        "ovr":  77
+    },
+    {
+        "id":  245278,
+        "rawName":  "Tomás Tavares",
+        "knownAs":  "Tomás Tavares",
+        "firstName":  "Tomás",
+        "lastName":  "Franco Tavares",
+        "club":  "Marítimo da Madeira",
+        "country":  "Portugal",
+        "ovr":  65
+    },
+    {
+        "id":  245319,
+        "rawName":  "Liziero",
+        "knownAs":  "Liziero",
+        "firstName":  "Igor Matheus",
+        "lastName":  "Liziero Pereira",
+        "club":  "Nacional",
+        "country":  "Brazil",
+        "ovr":  70
+    },
+    {
+        "id":  245597,
+        "rawName":  "Víctor Gómez",
+        "knownAs":  "Víctor Gómez",
+        "firstName":  "Víctor",
+        "lastName":  "Gómez Perea",
+        "club":  "SC Braga",
+        "country":  "Spain",
+        "ovr":  78
+    },
+    {
+        "id":  246112,
+        "rawName":  "Naïs Djouahra",
+        "knownAs":  "",
+        "firstName":  "Naïs",
+        "lastName":  "Djouahra",
+        "club":  "Arouca",
+        "country":  "France",
+        "ovr":  71
+    },
+    {
+        "id":  246871,
+        "rawName":  "Enzo Barrenechea",
+        "knownAs":  "",
+        "firstName":  "Enzo",
+        "lastName":  "Barrenechea",
+        "club":  "SL Benfica",
+        "country":  "Argentina",
+        "ovr":  77
+    },
+    {
+        "id":  246974,
+        "rawName":  "Diogo Calila",
+        "knownAs":  "Diogo Calila",
+        "firstName":  "Diogo",
+        "lastName":  "dos Santos Cabral",
+        "club":  "Santa Clara",
+        "country":  "Mozambique",
+        "ovr":  68
+    },
+    {
+        "id":  247040,
+        "rawName":  "Orest Lebedenko",
+        "knownAs":  "",
+        "firstName":  "Orest",
+        "lastName":  "Lebedenko",
+        "club":  "Arouca",
+        "country":  "Ukraine",
+        "ovr":  69
+    },
+    {
+        "id":  247138,
+        "rawName":  "Fran Navarro",
+        "knownAs":  "Fran Navarro",
+        "firstName":  "Francisco José",
+        "lastName":  "Navarro Aliaga",
+        "club":  "SC Braga",
+        "country":  "Spain",
+        "ovr":  73
+    },
+    {
+        "id":  247172,
+        "rawName":  "Jhon Durán",
+        "knownAs":  "",
+        "firstName":  "Jhon",
+        "lastName":  "Durán",
+        "club":  "SL Benfica",
+        "country":  "Colombia",
+        "ovr":  78
+    },
+    {
+        "id":  247180,
+        "rawName":  "Abdu Conté",
+        "knownAs":  "Abdu Conté",
+        "firstName":  "Abdu",
+        "lastName":  "Cadri Conté",
+        "club":  "Casa Pia AC",
+        "country":  "Portugal",
+        "ovr":  64
+    },
+    {
+        "id":  247258,
+        "rawName":  "Lawrence Ofori",
+        "knownAs":  "",
+        "firstName":  "Lawrence",
+        "lastName":  "Ofori",
+        "club":  "Casa Pia AC",
+        "country":  "Ghana",
+        "ovr":  71
+    },
+    {
+        "id":  247843,
+        "rawName":  "Robinho",
+        "knownAs":  "Robinho",
+        "firstName":  "Ricardo",
+        "lastName":  "Ribeiro Vieira",
+        "club":  "Académico de Viseu FC",
+        "country":  "Portugal",
+        "ovr":  63
+    },
+    {
+        "id":  247866,
+        "rawName":  "Cezary Miszta",
+        "knownAs":  "",
+        "firstName":  "Cezary",
+        "lastName":  "Miszta",
+        "club":  "Rio Ave FC",
+        "country":  "Poland",
+        "ovr":  74
+    },
+    {
+        "id":  247955,
+        "rawName":  "Ianis Stoica",
+        "knownAs":  "",
+        "firstName":  "Ianis",
+        "lastName":  "Stoica",
+        "club":  "Estrela Amadora",
+        "country":  "Romania",
+        "ovr":  70
+    },
+    {
+        "id":  250753,
+        "rawName":  "Anatoliy Trubin",
+        "knownAs":  "",
+        "firstName":  "Anatoliy",
+        "lastName":  "Trubin",
+        "club":  "SL Benfica",
+        "country":  "Ukraine",
+        "ovr":  80
+    },
+    {
+        "id":  251075,
+        "rawName":  "Enrique Peña Zauner",
+        "knownAs":  "",
+        "firstName":  "Enrique",
+        "lastName":  "Peña Zauner",
+        "club":  "Marítimo da Madeira",
+        "country":  "Venezuela",
+        "ovr":  65
+    },
+    {
+        "id":  251377,
+        "rawName":  "Rodrigo Zalazar",
+        "knownAs":  "",
+        "firstName":  "Rodrigo",
+        "lastName":  "Zalazar",
+        "club":  "Sporting CP",
+        "country":  "Uruguay",
+        "ovr":  82
+    },
+    {
+        "id":  251528,
+        "rawName":  "Zaidu Sanusi",
+        "knownAs":  "",
+        "firstName":  "Zaidu",
+        "lastName":  "Sanusi",
+        "club":  "FC Porto",
+        "country":  "Nigeria",
+        "ovr":  74
+    },
+    {
+        "id":  251597,
+        "rawName":  "Dominik Steczyk",
+        "knownAs":  "",
+        "firstName":  "Dominik",
+        "lastName":  "Steczyk",
+        "club":  "Académico de Viseu FC",
+        "country":  "Poland",
+        "ovr":  63
+    },
+    {
+        "id":  251615,
+        "rawName":  "Francisco Moura",
+        "knownAs":  "Francisco Moura",
+        "firstName":  "Francisco",
+        "lastName":  "Sampaio Moura",
+        "club":  "FC Porto",
+        "country":  "Portugal",
+        "ovr":  76
+    },
+    {
+        "id":  251681,
+        "rawName":  "Maracás",
+        "knownAs":  "Maracás",
+        "firstName":  "Jobson",
+        "lastName":  "de Brito Gonzaga",
+        "club":  "Moreirense FC",
+        "country":  "Brazil",
+        "ovr":  72
+    },
+    {
+        "id":  251891,
+        "rawName":  "Lucas Soares",
+        "knownAs":  "Lucas Soares",
+        "firstName":  "Lucas",
+        "lastName":  "Soares de Almeida",
+        "club":  "Santa Clara",
+        "country":  "Brazil",
+        "ovr":  69
+    },
+    {
+        "id":  251994,
+        "rawName":  "Tiago Esgaio",
+        "knownAs":  "Tiago Esgaio",
+        "firstName":  "Tiago Alexandre",
+        "lastName":  "de Sousa Esgaio",
+        "club":  "Arouca",
+        "country":  "Portugal",
+        "ovr":  72
+    },
+    {
+        "id":  251995,
+        "rawName":  "João Gonçalves",
+        "knownAs":  "João Gonçalves",
+        "firstName":  "João Pedro",
+        "lastName":  "Oliveira Gonçalves",
+        "club":  "Nacional",
+        "country":  "Portugal",
+        "ovr":  69
+    },
+    {
+        "id":  252074,
+        "rawName":  "Agustín Rogel",
+        "knownAs":  "",
+        "firstName":  "Agustín",
+        "lastName":  "Rogel",
+        "club":  "Nacional",
+        "country":  "Uruguay",
+        "ovr":  68
+    },
+    {
+        "id":  252137,
+        "rawName":  "Marco Essimi",
+        "knownAs":  "",
+        "firstName":  "Marco",
+        "lastName":  "Essimi",
+        "club":  "FC Alverca",
+        "country":  "Cameroon",
+        "ovr":  66
+    },
+    {
+        "id":  252139,
+        "rawName":  "Filipe Soares",
+        "knownAs":  "Filipe Soares",
+        "firstName":  "Filipe Miguel",
+        "lastName":  "Barros Soares",
+        "club":  "Nacional",
+        "country":  "Portugal",
+        "ovr":  66
+    },
+    {
+        "id":  252143,
+        "rawName":  "Daniel Bragança",
+        "knownAs":  "Daniel Bragança",
+        "firstName":  "Daniel",
+        "lastName":  "Santos Bragança",
+        "club":  "Sporting CP",
+        "country":  "Portugal",
+        "ovr":  77
+    },
+    {
+        "id":  252144,
+        "rawName":  "Eduardo Quaresma",
+        "knownAs":  "Eduardo Quaresma",
+        "firstName":  "Eduardo Filipe",
+        "lastName":  "Quaresma",
+        "club":  "Sporting CP",
+        "country":  "Portugal",
+        "ovr":  78
+    },
+    {
+        "id":  252311,
+        "rawName":  "Romain Correia",
+        "knownAs":  "Romain Correia",
+        "firstName":  "Romain",
+        "lastName":  "Rodrigues Correia",
+        "club":  "Marítimo da Madeira",
+        "country":  "Portugal",
+        "ovr":  67
+    },
+    {
+        "id":  252470,
+        "rawName":  "Matchoi Djaló",
+        "knownAs":  "Matchoi Djaló",
+        "firstName":  "Matchoi",
+        "lastName":  "Bobó Djaló",
+        "club":  "Nacional",
+        "country":  "Portugal",
+        "ovr":  66
+    },
+    {
+        "id":  252495,
+        "rawName":  "Jakub Kamiński",
+        "knownAs":  "",
+        "firstName":  "Jakub",
+        "lastName":  "Kamiński",
+        "club":  "SL Benfica",
+        "country":  "Poland",
+        "ovr":  77
+    },
+    {
+        "id":  252864,
+        "rawName":  "Bermejo",
+        "knownAs":  "Bermejo",
+        "firstName":  "Sergio",
+        "lastName":  "Bermejo Lillo",
+        "club":  "Gil Vicente",
+        "country":  "Spain",
+        "ovr":  68
+    },
+    {
+        "id":  252929,
+        "rawName":  "Borja Sainz",
+        "knownAs":  "Borja Sainz",
+        "firstName":  "Borja",
+        "lastName":  "Sainz Eguskiza",
+        "club":  "FC Porto",
+        "country":  "Spain",
+        "ovr":  76
+    },
+    {
+        "id":  253146,
+        "rawName":  "Kaique Rocha",
+        "knownAs":  "Kaique Rocha",
+        "firstName":  "Kaique",
+        "lastName":  "Rocha Lima",
+        "club":  "Casa Pia AC",
+        "country":  "Brazil",
+        "ovr":  69
+    },
+    {
+        "id":  253193,
+        "rawName":  "Jefferson Encada",
+        "knownAs":  "Jefferson Encada",
+        "firstName":  "Jefferson",
+        "lastName":  "Silva Encada",
+        "club":  "Estrela Amadora",
+        "country":  "Guinea-Bissau",
+        "ovr":  67
+    },
+    {
+        "id":  253350,
+        "rawName":  "Leonardo Realpe",
+        "knownAs":  "",
+        "firstName":  "Leonardo",
+        "lastName":  "Realpe",
+        "club":  "FC Famalicão",
+        "country":  "Ecuador",
+        "ovr":  69
+    },
+    {
+        "id":  254230,
+        "rawName":  "Sabit Abdulai",
+        "knownAs":  "",
+        "firstName":  "Sabit",
+        "lastName":  "Abdulai",
+        "club":  "FC Alverca",
+        "country":  "Ghana",
+        "ovr":  63
+    },
+    {
+        "id":  254244,
+        "rawName":  "Nabil Touaizi",
+        "knownAs":  "Nabil Touaizi",
+        "firstName":  "Nabil",
+        "lastName":  "Zoubdi Touaizi",
+        "club":  "FC Alverca",
+        "country":  "Morocco",
+        "ovr":  67
+    },
+    {
+        "id":  254262,
+        "rawName":  "Zeno Debast",
+        "knownAs":  "",
+        "firstName":  "Zeno",
+        "lastName":  "Debast",
+        "club":  "Sporting CP",
+        "country":  "Belgium",
+        "ovr":  78
+    },
+    {
+        "id":  254276,
+        "rawName":  "Ennio van der Gouw",
+        "knownAs":  "",
+        "firstName":  "Ennio",
+        "lastName":  "van der Gouw",
+        "club":  "Rio Ave FC",
+        "country":  "Holland",
+        "ovr":  68
+    },
+    {
+        "id":  254327,
+        "rawName":  "Nathanael Ogbeta",
+        "knownAs":  "",
+        "firstName":  "Nathanael",
+        "lastName":  "Ogbeta",
+        "club":  "Marítimo da Madeira",
+        "country":  "England",
+        "ovr":  64
+    },
+    {
+        "id":  254514,
+        "rawName":  "Kevin Höög Jansson",
+        "knownAs":  "",
+        "firstName":  "Kevin",
+        "lastName":  "Höög Jansson",
+        "club":  "Estrela Amadora",
+        "country":  "Sweden",
+        "ovr":  65
+    },
+    {
+        "id":  254556,
+        "rawName":  "Kélian Nsona",
+        "knownAs":  "",
+        "firstName":  "Kélian",
+        "lastName":  "Nsona",
+        "club":  "Casa Pia AC",
+        "country":  "France",
+        "ovr":  66
+    },
+    {
+        "id":  254628,
+        "rawName":  "Nicolás Rodríguez",
+        "knownAs":  "",
+        "firstName":  "Nicolás",
+        "lastName":  "Rodríguez",
+        "club":  "Nacional",
+        "country":  "Uruguay",
+        "ovr":  68
+    },
+    {
+        "id":  254817,
+        "rawName":  "Maximiliano Araújo",
+        "knownAs":  "",
+        "firstName":  "Maximiliano",
+        "lastName":  "Araújo",
+        "club":  "Sporting CP",
+        "country":  "Uruguay",
+        "ovr":  81
+    },
+    {
+        "id":  254831,
+        "rawName":  "Bryan Limbombe",
+        "knownAs":  "",
+        "firstName":  "Bryan",
+        "lastName":  "Limbombe",
+        "club":  "Marítimo da Madeira",
+        "country":  "Belgium",
+        "ovr":  64
+    },
+    {
+        "id":  255140,
+        "rawName":  "Pablo Gozálbez",
+        "knownAs":  "Pablo Gozálbez",
+        "firstName":  "Pablo",
+        "lastName":  "Gozálbez Gilabert",
+        "club":  "Arouca",
+        "country":  "Spain",
+        "ovr":  68
+    },
+    {
+        "id":  255257,
+        "rawName":  "Joelson Fernandes",
+        "knownAs":  "Joelson Fernandes",
+        "firstName":  "Joelson Augusto",
+        "lastName":  "Mendes Mango",
+        "club":  "Gil Vicente",
+        "country":  "Portugal",
+        "ovr":  67
+    },
+    {
+        "id":  255461,
+        "rawName":  "Barbero",
+        "knownAs":  "Barbero",
+        "firstName":  "Iván",
+        "lastName":  "Martínez Gonzálvez",
+        "club":  "Arouca",
+        "country":  "Spain",
+        "ovr":  69
+    },
+    {
+        "id":  255471,
+        "rawName":  "Vítor Carvalho",
+        "knownAs":  "Vítor Carvalho",
+        "firstName":  "Vítor",
+        "lastName":  "Carvalho Vieira",
+        "club":  "SC Braga",
+        "country":  "Brazil",
+        "ovr":  75
+    },
+    {
+        "id":  255634,
+        "rawName":  "Georgios Vagiannidis",
+        "knownAs":  "",
+        "firstName":  "Georgios",
+        "lastName":  "Vagiannidis",
+        "club":  "Sporting CP",
+        "country":  "Greece",
+        "ovr":  75
+    },
+    {
+        "id":  255781,
+        "rawName":  "Ricard",
+        "knownAs":  "Ricard",
+        "firstName":  "Ricard",
+        "lastName":  "Sánchez Sendra",
+        "club":  "Estoril Praia",
+        "country":  "Spain",
+        "ovr":  71
+    },
+    {
+        "id":  255876,
+        "rawName":  "Alfonso Trezza",
+        "knownAs":  "",
+        "firstName":  "Alfonso",
+        "lastName":  "Trezza",
+        "club":  "Arouca",
+        "country":  "Uruguay",
+        "ovr":  73
+    },
+    {
+        "id":  256526,
+        "rawName":  "Facundo Agustín Cáseres",
+        "knownAs":  "",
+        "firstName":  "Facundo Agustín",
+        "lastName":  "Cáseres",
+        "club":  "Gil Vicente",
+        "country":  "Argentina",
+        "ovr":  70
+    },
+    {
+        "id":  256738,
+        "rawName":  "Alassana Jatta",
+        "knownAs":  "",
+        "firstName":  "Alassana",
+        "lastName":  "Jatta",
+        "club":  "Casa Pia AC",
+        "country":  "Gambia",
+        "ovr":  65
+    },
+    {
+        "id":  256945,
+        "rawName":  "Mortimer",
+        "knownAs":  "Mortimer",
+        "firstName":  "Nils",
+        "lastName":  "Mortimer Moreno",
+        "club":  "Académico de Viseu FC",
+        "country":  "Spain",
+        "ovr":  64
+    },
+    {
+        "id":  257179,
+        "rawName":  "Gonçalo Inácio",
+        "knownAs":  "Gonçalo Inácio",
+        "firstName":  "Gonçalo",
+        "lastName":  "Bernardo Inácio",
+        "club":  "Sporting CP",
+        "country":  "Portugal",
+        "ovr":  80
+    },
+    {
+        "id":  257194,
+        "rawName":  "Telmo Arcanjo",
+        "knownAs":  "Telmo Arcanjo",
+        "firstName":  "Telmo",
+        "lastName":  "Arcanjo",
+        "club":  "Vitória SC",
+        "country":  "Cape Verde Islands",
+        "ovr":  72
+    },
+    {
+        "id":  257969,
+        "rawName":  "Weverson",
+        "knownAs":  "Weverson",
+        "firstName":  "Weverson",
+        "lastName":  "Moreira da Costa",
+        "club":  "Gil Vicente",
+        "country":  "Brazil",
+        "ovr":  70
+    },
+    {
+        "id":  258015,
+        "rawName":  "Fotis Ioannidis",
+        "knownAs":  "",
+        "firstName":  "Fotis",
+        "lastName":  "Ioannidis",
+        "club":  "Sporting CP",
+        "country":  "Greece",
+        "ovr":  76
+    },
+    {
+        "id":  258085,
+        "rawName":  "Dudu",
+        "knownAs":  "Dudu",
+        "firstName":  "Eduardo",
+        "lastName":  "Dos Santos Haesler",
+        "club":  "Estrela Amadora",
+        "country":  "Germany",
+        "ovr":  66
+    },
+    {
+        "id":  258271,
+        "rawName":  "Miguel Baeza",
+        "knownAs":  "Miguel Baeza",
+        "firstName":  "Miguel",
+        "lastName":  "Baeza Pérez",
+        "club":  "Nacional",
+        "country":  "Spain",
+        "ovr":  67
+    },
+    {
+        "id":  258315,
+        "rawName":  "Bright Arrey-Mbi",
+        "knownAs":  "",
+        "firstName":  "Bright",
+        "lastName":  "Arrey-Mbi",
+        "club":  "SC Braga",
+        "country":  "Germany",
+        "ovr":  74
+    },
+    {
+        "id":  258365,
+        "rawName":  "Pedro Ferreira",
+        "knownAs":  "Pedro Ferreira",
+        "firstName":  "Pedro Miguel",
+        "lastName":  "Dinis Ferreira",
+        "club":  "Santa Clara",
+        "country":  "Portugal",
+        "ovr":  68
+    },
+    {
+        "id":  258522,
+        "rawName":  "Nelson Abbey",
+        "knownAs":  "",
+        "firstName":  "Nelson",
+        "lastName":  "Abbey",
+        "club":  "Rio Ave FC",
+        "country":  "England",
+        "ovr":  66
+    },
+    {
+        "id":  258687,
+        "rawName":  "Boris Popović",
+        "knownAs":  "",
+        "firstName":  "Boris",
+        "lastName":  "Popović",
+        "club":  "Arouca",
+        "country":  "Serbia",
+        "ovr":  66
+    },
+    {
+        "id":  258728,
+        "rawName":  "José Fontán",
+        "knownAs":  "José Fontán",
+        "firstName":  "José Manuel",
+        "lastName":  "Fontán Mondragón",
+        "club":  "Arouca",
+        "country":  "Spain",
+        "ovr":  70
+    },
+    {
+        "id":  258729,
+        "rawName":  "Gabri Veiga",
+        "knownAs":  "Gabri Veiga",
+        "firstName":  "Gabriel",
+        "lastName":  "Veiga Novas",
+        "club":  "FC Porto",
+        "country":  "Spain",
+        "ovr":  80
+    },
+    {
+        "id":  258834,
+        "rawName":  "Georgios Koutsias",
+        "knownAs":  "",
+        "firstName":  "Georgios",
+        "lastName":  "Koutsias",
+        "club":  "FC Famalicão",
+        "country":  "Greece",
+        "ovr":  67
+    },
+    {
+        "id":  258925,
+        "rawName":  "Clau Mendes",
+        "knownAs":  "Clau Mendes",
+        "firstName":  "Claudio",
+        "lastName":  "Mendes Vicente",
+        "club":  "Casa Pia AC",
+        "country":  "Guinea-Bissau",
+        "ovr":  64
+    },
+    {
+        "id":  259067,
+        "rawName":  "André Paulo",
+        "knownAs":  "André Paulo",
+        "firstName":  "André Filipe",
+        "lastName":  "Eusébio Paulo",
+        "club":  "FC Alverca",
+        "country":  "Portugal",
+        "ovr":  63
+    },
+    {
+        "id":  259070,
+        "rawName":  "Pau Víctor",
+        "knownAs":  "Pau Víctor",
+        "firstName":  "Pau",
+        "lastName":  "Víctor Delgado",
+        "club":  "SC Braga",
+        "country":  "Spain",
+        "ovr":  75
+    },
+    {
+        "id":  259155,
+        "rawName":  "Vladan Danilović",
+        "knownAs":  "",
+        "firstName":  "Vladan",
+        "lastName":  "Danilović",
+        "club":  "Marítimo da Madeira",
+        "country":  "Bosnia and Herzegovina",
+        "ovr":  67
+    },
+    {
+        "id":  259530,
+        "rawName":  "Alfonso Pastor",
+        "knownAs":  "Alfonso Pastor",
+        "firstName":  "Alfonso",
+        "lastName":  "Pastor Vacas",
+        "club":  "Marítimo da Madeira",
+        "country":  "Spain",
+        "ovr":  64
+    },
+    {
+        "id":  259581,
+        "rawName":  "Sergio Barcia",
+        "knownAs":  "Sergio Barcia",
+        "firstName":  "Sergio",
+        "lastName":  "Barcia Laranxeira",
+        "club":  "SC Braga",
+        "country":  "Spain",
+        "ovr":  73
+    },
+    {
+        "id":  259872,
+        "rawName":  "Ignacio De Arruabarrena",
+        "knownAs":  "",
+        "firstName":  "Ignacio",
+        "lastName":  "De Arruabarrena",
+        "club":  "Arouca",
+        "country":  "Uruguay",
+        "ovr":  74
+    },
+    {
+        "id":  259913,
+        "rawName":  "Georgiy Sudakov",
+        "knownAs":  "",
+        "firstName":  "Georgiy",
+        "lastName":  "Sudakov",
+        "club":  "SL Benfica",
+        "country":  "Ukraine",
+        "ovr":  78
+    },
+    {
+        "id":  260208,
+        "rawName":  "Lucas Rodríguez",
+        "knownAs":  "",
+        "firstName":  "Lucas",
+        "lastName":  "Rodríguez",
+        "club":  "Nacional",
+        "country":  "Uruguay",
+        "ovr":  69
+    },
+    {
+        "id":  260322,
+        "rawName":  "Lucão",
+        "knownAs":  "Lucão",
+        "firstName":  "Lucas Alexandre",
+        "lastName":  "Galdino de Azevedo",
+        "club":  "Gil Vicente",
+        "country":  "Brazil",
+        "ovr":  61
+    },
+    {
+        "id":  260599,
+        "rawName":  "Alan Varela",
+        "knownAs":  "",
+        "firstName":  "Alan",
+        "lastName":  "Varela",
+        "club":  "FC Porto",
+        "country":  "Argentina",
+        "ovr":  80
+    },
+    {
+        "id":  260670,
+        "rawName":  "Raúl Blanco",
+        "knownAs":  "Raúl Blanco",
+        "firstName":  "Raúl",
+        "lastName":  "Blanco Juncal",
+        "club":  "Casa Pia AC",
+        "country":  "Spain",
+        "ovr":  67
+    },
+    {
+        "id":  260939,
+        "rawName":  "Wesley Gasolina",
+        "knownAs":  "Wesley Gasolina",
+        "firstName":  "Wesley David",
+        "lastName":  "de Oliveira Andrade",
+        "club":  "Nacional",
+        "country":  "Brazil",
+        "ovr":  63
+    },
+    {
+        "id":  260952,
+        "rawName":  "Andreas Schjelderup",
+        "knownAs":  "",
+        "firstName":  "Andreas",
+        "lastName":  "Schjelderup",
+        "club":  "SL Benfica",
+        "country":  "Norway",
+        "ovr":  80
+    },
+    {
+        "id":  261133,
+        "rawName":  "Nile John",
+        "knownAs":  "",
+        "firstName":  "Nile",
+        "lastName":  "John",
+        "club":  "Moreirense FC",
+        "country":  "England",
+        "ovr":  60
+    },
+    {
+        "id":  261145,
+        "rawName":  "Dario Špikić",
+        "knownAs":  "",
+        "firstName":  "Dario",
+        "lastName":  "Špikić",
+        "club":  "Rio Ave FC",
+        "country":  "Croatia",
+        "ovr":  70
+    },
+    {
+        "id":  261989,
+        "rawName":  "Emiliano Ancheta",
+        "knownAs":  "",
+        "firstName":  "Emiliano",
+        "lastName":  "Ancheta",
+        "club":  "Nacional",
+        "country":  "Uruguay",
+        "ovr":  69
+    },
+    {
+        "id":  261992,
+        "rawName":  "Williams Kokolo",
+        "knownAs":  "",
+        "firstName":  "Williams",
+        "lastName":  "Kokolo",
+        "club":  "Nacional",
+        "country":  "France",
+        "ovr":  66
+    },
+    {
+        "id":  262416,
+        "rawName":  "Chiquinho",
+        "knownAs":  "Chiquinho",
+        "firstName":  "Francisco Jorge",
+        "lastName":  "Tavares Oliveira",
+        "club":  "FC Alverca",
+        "country":  "Portugal",
+        "ovr":  73
+    },
+    {
+        "id":  262430,
+        "rawName":  "Kiko Bondoso",
+        "knownAs":  "Kiko Bondoso",
+        "firstName":  "Francisco",
+        "lastName":  "Ribeiro Tomé",
+        "club":  "Moreirense FC",
+        "country":  "Portugal",
+        "ovr":  71
+    },
+    {
+        "id":  262573,
+        "rawName":  "Stavros Gavriel",
+        "knownAs":  "",
+        "firstName":  "Stavros",
+        "lastName":  "Gavriel",
+        "club":  "Nacional",
+        "country":  "Cyprus",
+        "ovr":  68
+    },
+    {
+        "id":  262744,
+        "rawName":  "Mohamed Bouldini",
+        "knownAs":  "",
+        "firstName":  "Mohamed",
+        "lastName":  "Bouldini",
+        "club":  "Académico de Viseu FC",
+        "country":  "Morocco",
+        "ovr":  64
+    },
+    {
+        "id":  262881,
+        "rawName":  "Richard Ríos",
+        "knownAs":  "",
+        "firstName":  "Richard",
+        "lastName":  "Ríos",
+        "club":  "SL Benfica",
+        "country":  "Colombia",
+        "ovr":  78
+    },
+    {
+        "id":  262938,
+        "rawName":  "Stélios Andreou",
+        "knownAs":  "",
+        "firstName":  "Stélios",
+        "lastName":  "Andreou",
+        "club":  "Estoril Praia",
+        "country":  "Cyprus",
+        "ovr":  67
+    },
+    {
+        "id":  262954,
+        "rawName":  "Fabio Blanco",
+        "knownAs":  "Fabio Blanco",
+        "firstName":  "Fabio",
+        "lastName":  "Blanco Gómez",
+        "club":  "Vitória SC",
+        "country":  "Spain",
+        "ovr":  64
+    },
+    {
+        "id":  262974,
+        "rawName":  "Soufiane Messeguem",
+        "knownAs":  "",
+        "firstName":  "Soufiane",
+        "lastName":  "Messeguem",
+        "club":  "Académico de Viseu FC",
+        "country":  "Germany",
+        "ovr":  67
+    },
+    {
+        "id":  263018,
+        "rawName":  "David Sousa",
+        "knownAs":  "David Sousa",
+        "firstName":  "David",
+        "lastName":  "Sousa Albino",
+        "club":  "Casa Pia AC",
+        "country":  "Brazil",
+        "ovr":  67
+    },
+    {
+        "id":  263114,
+        "rawName":  "Marvin Elimbi",
+        "knownAs":  "",
+        "firstName":  "Marvin",
+        "lastName":  "Elimbi",
+        "club":  "Gil Vicente",
+        "country":  "France",
+        "ovr":  66
+    },
+    {
+        "id":  263234,
+        "rawName":  "Pedro Teixeira",
+        "knownAs":  "Pedro Teixeira",
+        "firstName":  "João Pedro",
+        "lastName":  "Teixeira Silva",
+        "club":  "Marítimo da Madeira",
+        "country":  "Portugal",
+        "ovr":  61
+    },
+    {
+        "id":  263555,
+        "rawName":  "Nikolaos Michelis",
+        "knownAs":  "",
+        "firstName":  "Nikolaos",
+        "lastName":  "Michelis",
+        "club":  "Académico de Viseu FC",
+        "country":  "Greece",
+        "ovr":  63
+    },
+    {
+        "id":  263653,
+        "rawName":  "Miguel Maga",
+        "knownAs":  "Miguel Maga",
+        "firstName":  "Miguel Ângelo",
+        "lastName":  "Ferreira Magalhães",
+        "club":  "Vitória SC",
+        "country":  "Portugal",
+        "ovr":  70
+    },
+    {
+        "id":  263734,
+        "rawName":  "Diogo Monteiro",
+        "knownAs":  "Diogo Monteiro",
+        "firstName":  "Diogo",
+        "lastName":  "Pinheiro Monteiro",
+        "club":  "Arouca",
+        "country":  "Portugal",
+        "ovr":  64
+    },
+    {
+        "id":  263813,
+        "rawName":  "Luan Patrick",
+        "knownAs":  "Luan Patrick",
+        "firstName":  "Luan",
+        "lastName":  "Patrick Wiedthauper",
+        "club":  "Estrela Amadora",
+        "country":  "Brazil",
+        "ovr":  70
+    },
+    {
+        "id":  263837,
+        "rawName":  "Miguel Puche",
+        "knownAs":  "Miguel Puche",
+        "firstName":  "Miguel",
+        "lastName":  "Puche García",
+        "club":  "Arouca",
+        "country":  "Spain",
+        "ovr":  67
+    },
+    {
+        "id":  264121,
+        "rawName":  "Antef Tsoungui",
+        "knownAs":  "",
+        "firstName":  "Antef",
+        "lastName":  "Tsoungui",
+        "club":  "Estoril Praia",
+        "country":  "Belgium",
+        "ovr":  69
+    },
+    {
+        "id":  264188,
+        "rawName":  "Taichi Fukui",
+        "knownAs":  "",
+        "firstName":  "Taichi",
+        "lastName":  "Fukui",
+        "club":  "Arouca",
+        "country":  "Japan",
+        "ovr":  72
+    },
+    {
+        "id":  264191,
+        "rawName":  "Gustaf Lagerbielke",
+        "knownAs":  "",
+        "firstName":  "Gustaf",
+        "lastName":  "Lagerbielke",
+        "club":  "SC Braga",
+        "country":  "Sweden",
+        "ovr":  75
+    },
+    {
+        "id":  264308,
+        "rawName":  "Rodrigo Andrade",
+        "knownAs":  "Rodrigo Andrade",
+        "firstName":  "Rodrigo Marcos",
+        "lastName":  "Rodrigues Andrade",
+        "club":  "Marítimo da Madeira",
+        "country":  "Portugal",
+        "ovr":  64
+    },
+    {
+        "id":  264347,
+        "rawName":  "Medrano",
+        "knownAs":  "Medrano",
+        "firstName":  "Fernando",
+        "lastName":  "Medrano Gastañaga",
+        "club":  "Estoril Praia",
+        "country":  "Spain",
+        "ovr":  65
+    },
+    {
+        "id":  264353,
+        "rawName":  "Baltasar Barcia",
+        "knownAs":  "",
+        "firstName":  "Baltasar",
+        "lastName":  "Barcia",
+        "club":  "Nacional",
+        "country":  "Uruguay",
+        "ovr":  69
+    },
+    {
+        "id":  264418,
+        "rawName":  "Jean Baptiste Gorby",
+        "knownAs":  "",
+        "firstName":  "Jean Baptiste",
+        "lastName":  "Gorby",
+        "club":  "SC Braga",
+        "country":  "France",
+        "ovr":  74
+    },
+    {
+        "id":  264438,
+        "rawName":  "Gabri Martínez",
+        "knownAs":  "Gabri Martínez",
+        "firstName":  "Gabriel",
+        "lastName":  "Martínez Aguilera",
+        "club":  "SC Braga",
+        "country":  "Spain",
+        "ovr":  74
+    },
+    {
+        "id":  264450,
+        "rawName":  "Abraham Marcus",
+        "knownAs":  "",
+        "firstName":  "Abraham",
+        "lastName":  "Marcus",
+        "club":  "Estrela Amadora",
+        "country":  "Nigeria",
+        "ovr":  70
+    },
+    {
+        "id":  264488,
+        "rawName":  "José Gomes",
+        "knownAs":  "José Gomes",
+        "firstName":  "José Manuel",
+        "lastName":  "Mendes Gomes",
+        "club":  "Nacional",
+        "country":  "Portugal",
+        "ovr":  68
+    },
+    {
+        "id":  264543,
+        "rawName":  "Samuel Bamba",
+        "knownAs":  "",
+        "firstName":  "Samuel",
+        "lastName":  "Bamba",
+        "club":  "Marítimo da Madeira",
+        "country":  "Germany",
+        "ovr":  64
+    },
+    {
+        "id":  264825,
+        "rawName":  "Iyad Mohamed",
+        "knownAs":  "",
+        "firstName":  "Iyad",
+        "lastName":  "Mohamed",
+        "club":  "Casa Pia AC",
+        "country":  "Comoros",
+        "ovr":  65
+    },
+    {
+        "id":  265693,
+        "rawName":  "Jakub Kiwior",
+        "knownAs":  "",
+        "firstName":  "Jakub",
+        "lastName":  "Kiwior",
+        "club":  "FC Porto",
+        "country":  "Poland",
+        "ovr":  82
+    },
+    {
+        "id":  265748,
+        "rawName":  "Butzke",
+        "knownAs":  "Butzke",
+        "firstName":  "Adrián",
+        "lastName":  "Butzke Benavides",
+        "club":  "Marítimo da Madeira",
+        "country":  "Spain",
+        "ovr":  66
+    },
+    {
+        "id":  265766,
+        "rawName":  "Luciano Boggio",
+        "knownAs":  "",
+        "firstName":  "Luciano",
+        "lastName":  "Boggio",
+        "club":  "Nacional",
+        "country":  "Uruguay",
+        "ovr":  73
+    },
+    {
+        "id":  266096,
+        "rawName":  "Tomás Araújo",
+        "knownAs":  "Tomás Araújo",
+        "firstName":  "Tomás",
+        "lastName":  "Lemos Araújo",
+        "club":  "SL Benfica",
+        "country":  "Portugal",
+        "ovr":  78
+    },
+    {
+        "id":  266097,
+        "rawName":  "Geny Catamo",
+        "knownAs":  "Geny Catamo",
+        "firstName":  "Geny",
+        "lastName":  "Cipriano Catamo",
+        "club":  "Sporting CP",
+        "country":  "Mozambique",
+        "ovr":  79
+    },
+    {
+        "id":  266245,
+        "rawName":  "Nestory Irankunda",
+        "knownAs":  "",
+        "firstName":  "Nestory",
+        "lastName":  "Irankunda",
+        "club":  "Sporting CP",
+        "country":  "Australia",
+        "ovr":  70
+    },
+    {
+        "id":  266253,
+        "rawName":  "Fresneda",
+        "knownAs":  "Fresneda",
+        "firstName":  "Iván",
+        "lastName":  "Fresneda Corraliza",
+        "club":  "Sporting CP",
+        "country":  "Spain",
+        "ovr":  76
+    },
+    {
+        "id":  266461,
+        "rawName":  "João Mendes",
+        "knownAs":  "João Mendes",
+        "firstName":  "João Miguel",
+        "lastName":  "Teixeira Mendes",
+        "club":  "Vitória SC",
+        "country":  "Portugal",
+        "ovr":  71
+    },
+    {
+        "id":  266660,
+        "rawName":  "Óscar Rivas",
+        "knownAs":  "Óscar Rivas",
+        "firstName":  "Óscar",
+        "lastName":  "Rivas Viondi",
+        "club":  "Vitória SC",
+        "country":  "Spain",
+        "ovr":  68
+    },
+    {
+        "id":  266687,
+        "rawName":  "Tiago Ribeiro",
+        "knownAs":  "Tiago Ribeiro",
+        "firstName":  "Tiago Miguel",
+        "lastName":  "Hora Ribeiro",
+        "club":  "Santa Clara",
+        "country":  "Portugal",
+        "ovr":  64
+    },
+    {
+        "id":  266850,
+        "rawName":  "Juan Cruz De Los Santos",
+        "knownAs":  "",
+        "firstName":  "Juan Cruz",
+        "lastName":  "De Los Santos",
+        "club":  "Nacional",
+        "country":  "Uruguay",
+        "ovr":  68
+    },
+    {
+        "id":  266905,
+        "rawName":  "Henrique Araújo",
+        "knownAs":  "Henrique Araújo",
+        "firstName":  "Henrique",
+        "lastName":  "Pereira Araújo",
+        "club":  "Casa Pia AC",
+        "country":  "Portugal",
+        "ovr":  68
+    },
+    {
+        "id":  267406,
+        "rawName":  "Maximiliano Silvera",
+        "knownAs":  "",
+        "firstName":  "Maximiliano",
+        "lastName":  "Silvera",
+        "club":  "Nacional",
+        "country":  "Uruguay",
+        "ovr":  71
+    },
+    {
+        "id":  268468,
+        "rawName":  "Adrian Barišić",
+        "knownAs":  "",
+        "firstName":  "Adrian",
+        "lastName":  "Barišić",
+        "club":  "SC Braga",
+        "country":  "Bosnia and Herzegovina",
+        "ovr":  71
+    },
+    {
+        "id":  268484,
+        "rawName":  "Brian Mansilla",
+        "knownAs":  "",
+        "firstName":  "Brian",
+        "lastName":  "Mansilla",
+        "club":  "Arouca",
+        "country":  "Uruguay",
+        "ovr":  67
+    },
+    {
+        "id":  268719,
+        "rawName":  "Brandon Aguilera",
+        "knownAs":  "",
+        "firstName":  "Brandon",
+        "lastName":  "Aguilera",
+        "club":  "Rio Ave FC",
+        "country":  "Costa Rica",
+        "ovr":  70
+    },
+    {
+        "id":  268912,
+        "rawName":  "Martin Turk",
+        "knownAs":  "",
+        "firstName":  "Martin",
+        "lastName":  "Turk",
+        "club":  "Estoril Praia",
+        "country":  "Slovenia",
+        "ovr":  66
+    },
+    {
+        "id":  268913,
+        "rawName":  "Alessandro Circati",
+        "knownAs":  "",
+        "firstName":  "Alessandro",
+        "lastName":  "Circati",
+        "club":  "SL Benfica",
+        "country":  "Australia",
+        "ovr":  74
+    },
+    {
+        "id":  269199,
+        "rawName":  "Leandro Antonetti",
+        "knownAs":  "",
+        "firstName":  "Leandro",
+        "lastName":  "Antonetti",
+        "club":  "Estrela Amadora",
+        "country":  "Puerto Rico",
+        "ovr":  60
+    },
+    {
+        "id":  269292,
+        "rawName":  "Gianluca Prestianni",
+        "knownAs":  "",
+        "firstName":  "Gianluca",
+        "lastName":  "Prestianni",
+        "club":  "SL Benfica",
+        "country":  "Argentina",
+        "ovr":  75
+    },
+    {
+        "id":  269420,
+        "rawName":  "Leonardo Lelo",
+        "knownAs":  "Leonardo Lelo",
+        "firstName":  "Leonardo Filipe",
+        "lastName":  "Cruz Lelo",
+        "club":  "SC Braga",
+        "country":  "Portugal",
+        "ovr":  76
+    },
+    {
+        "id":  269497,
+        "rawName":  "Lovro Zvonarek",
+        "knownAs":  "",
+        "firstName":  "Lovro",
+        "lastName":  "Zvonarek",
+        "club":  "Estrela Amadora",
+        "country":  "Croatia",
+        "ovr":  65
+    },
+    {
+        "id":  269793,
+        "rawName":  "Leny Meyer",
+        "knownAs":  "",
+        "firstName":  "Leny",
+        "lastName":  "Meyer",
+        "club":  "FC Famalicão",
+        "country":  "Switzerland",
+        "ovr":  65
+    },
+    {
+        "id":  269874,
+        "rawName":  "Gonçalo Costa",
+        "knownAs":  "Gonçalo Costa",
+        "firstName":  "Gonçalo",
+        "lastName":  "Faria Costa",
+        "club":  "Estoril Praia",
+        "country":  "Portugal",
+        "ovr":  67
+    },
+    {
+        "id":  269922,
+        "rawName":  "Denis Huseinbašić",
+        "knownAs":  "",
+        "firstName":  "Denis",
+        "lastName":  "Huseinbašić",
+        "club":  "SC Braga",
+        "country":  "Bosnia and Herzegovina",
+        "ovr":  70
+    },
+    {
+        "id":  270054,
+        "rawName":  "Patrick Gilmar Sequeira",
+        "knownAs":  "",
+        "firstName":  "Patrick Gilmar",
+        "lastName":  "Sequeira",
+        "club":  "Casa Pia AC",
+        "country":  "Costa Rica",
+        "ovr":  73
+    },
+    {
+        "id":  270059,
+        "rawName":  "Tomás Domingos",
+        "knownAs":  "Tomás Domingos",
+        "firstName":  "Tomás",
+        "lastName":  "Carvalho Domingos",
+        "club":  "Académico de Viseu FC",
+        "country":  "Portugal",
+        "ovr":  62
+    },
+    {
+        "id":  270060,
+        "rawName":  "Samuel Soares",
+        "knownAs":  "Samuel Soares",
+        "firstName":  "Samuel",
+        "lastName":  "Jumpe Soares",
+        "club":  "SL Benfica",
+        "country":  "Portugal",
+        "ovr":  70
+    },
+    {
+        "id":  270355,
+        "rawName":  "Lohann Doucet",
+        "knownAs":  "",
+        "firstName":  "Lohann",
+        "lastName":  "Doucet",
+        "club":  "Vitória SC",
+        "country":  "Burkina Faso",
+        "ovr":  68
+    },
+    {
+        "id":  270557,
+        "rawName":  "João Oliveira",
+        "knownAs":  "João Oliveira",
+        "firstName":  "João Pedro",
+        "lastName":  "Oliveira",
+        "club":  "Vitória SC",
+        "country":  "Portugal",
+        "ovr":  62
+    },
+    {
+        "id":  270674,
+        "rawName":  "Alberto Costa",
+        "knownAs":  "Alberto Costa",
+        "firstName":  "Alberto",
+        "lastName":  "Oliveira Baio",
+        "club":  "FC Porto",
+        "country":  "Portugal",
+        "ovr":  78
+    },
+    {
+        "id":  270698,
+        "rawName":  "Yellu Santiago",
+        "knownAs":  "Yellu Santiago",
+        "firstName":  "Jesús",
+        "lastName":  "Santiago Pérez",
+        "club":  "Marítimo da Madeira",
+        "country":  "Spain",
+        "ovr":  68
+    },
+    {
+        "id":  270729,
+        "rawName":  "Rodri Alonso",
+        "knownAs":  "Rodri Alonso",
+        "firstName":  "Rodrigo",
+        "lastName":  "Alonso Martín",
+        "club":  "Moreirense FC",
+        "country":  "Spain",
+        "ovr":  69
+    },
+    {
+        "id":  270732,
+        "rawName":  "Espigares",
+        "knownAs":  "Espigares",
+        "firstName":  "Antonio",
+        "lastName":  "Espigares Morillas",
+        "club":  "Gil Vicente",
+        "country":  "Spain",
+        "ovr":  66
+    },
+    {
+        "id":  270812,
+        "rawName":  "Jandro Orellana",
+        "knownAs":  "Jandro Orellana",
+        "firstName":  "Alejandro",
+        "lastName":  "Orellana Gómez",
+        "club":  "Estoril Praia",
+        "country":  "Spain",
+        "ovr":  67
+    },
+    {
+        "id":  270865,
+        "rawName":  "Diego Calai",
+        "knownAs":  "Diego Calai",
+        "firstName":  "Diego",
+        "lastName":  "Calai Silva",
+        "club":  "Sporting CP",
+        "country":  "Brazil",
+        "ovr":  68
+    },
+    {
+        "id":  270870,
+        "rawName":  "Miguel Nóbrega",
+        "knownAs":  "Miguel Nóbrega",
+        "firstName":  "Miguel",
+        "lastName":  "Raimundo Nóbrega",
+        "club":  "Vitória SC",
+        "country":  "Portugal",
+        "ovr":  66
+    },
+    {
+        "id":  270921,
+        "rawName":  "André Picornell",
+        "knownAs":  "",
+        "firstName":  "André",
+        "lastName":  "Picornell",
+        "club":  "Gil Vicente",
+        "country":  "Sweden",
+        "ovr":  59
+    },
+    {
+        "id":  271132,
+        "rawName":  "Gabriel Silva",
+        "knownAs":  "Gabriel Silva",
+        "firstName":  "Gabriel",
+        "lastName":  "Silva Vieira",
+        "club":  "SC Braga",
+        "country":  "Brazil",
+        "ovr":  74
+    },
+    {
+        "id":  271236,
+        "rawName":  "Noah Raveyre",
+        "knownAs":  "",
+        "firstName":  "Noah",
+        "lastName":  "Raveyre",
+        "club":  "FC Alverca",
+        "country":  "France",
+        "ovr":  66
+    },
+    {
+        "id":  271289,
+        "rawName":  "Joel Silva",
+        "knownAs":  "Joel Silva",
+        "firstName":  "Joel Filipe",
+        "lastName":  "Organista da Silva",
+        "club":  "Nacional",
+        "country":  "Portugal",
+        "ovr":  68
+    },
+    {
+        "id":  271300,
+        "rawName":  "Dominik Prpić",
+        "knownAs":  "",
+        "firstName":  "Dominik",
+        "lastName":  "Prpić",
+        "club":  "FC Porto",
+        "country":  "Croatia",
+        "ovr":  73
+    },
+    {
+        "id":  271317,
+        "rawName":  "Rafael Fernandes",
+        "knownAs":  "Rafael Fernandes",
+        "firstName":  "Rafael Tavares",
+        "lastName":  "Gomes Fernandes",
+        "club":  "Marítimo da Madeira",
+        "country":  "Portugal",
+        "ovr":  63
+    },
+    {
+        "id":  271357,
+        "rawName":  "Rildo",
+        "knownAs":  "Rildo",
+        "firstName":  "Rildo",
+        "lastName":  "G. de Amorim Filho",
+        "club":  "Santa Clara",
+        "country":  "Brazil",
+        "ovr":  68
+    },
+    {
+        "id":  271411,
+        "rawName":  "Oliwier Zych",
+        "knownAs":  "",
+        "firstName":  "Oliwier",
+        "lastName":  "Zych",
+        "club":  "Vitória SC",
+        "country":  "Poland",
+        "ovr":  70
+    },
+    {
+        "id":  271451,
+        "rawName":  "Dinis Pinto",
+        "knownAs":  "Dinis Pinto",
+        "firstName":  "Dinis",
+        "lastName":  "L. Casals Pinto",
+        "club":  "Moreirense FC",
+        "country":  "Portugal",
+        "ovr":  73
+    },
+    {
+        "id":  271495,
+        "rawName":  "Mario Dorgeles",
+        "knownAs":  "",
+        "firstName":  "Mario",
+        "lastName":  "Dorgeles",
+        "club":  "SC Braga",
+        "country":  "Côte d\u0027Ivoire",
+        "ovr":  70
+    },
+    {
+        "id":  271562,
+        "rawName":  "Matheus Nunes",
+        "knownAs":  "Matheus Nunes",
+        "firstName":  "Matheus Nunes",
+        "lastName":  "Fagundes de Araújo",
+        "club":  "Santa Clara",
+        "country":  "Brazil",
+        "ovr":  69
+    },
+    {
+        "id":  271576,
+        "rawName":  "Zé Carlos",
+        "knownAs":  "Zé Carlos",
+        "firstName":  "José Carlos",
+        "lastName":  "Natário Ferreira",
+        "club":  "Gil Vicente",
+        "country":  "Portugal",
+        "ovr":  67
+    },
+    {
+        "id":  272422,
+        "rawName":  "Martín Fernández Benítez",
+        "knownAs":  "",
+        "firstName":  "Martín",
+        "lastName":  "Fernández Benítez",
+        "club":  "Gil Vicente",
+        "country":  "Uruguay",
+        "ovr":  68
+    },
+    {
+        "id":  272656,
+        "rawName":  "Victor Gonçalves Andersson",
+        "knownAs":  "",
+        "firstName":  "Victor",
+        "lastName":  "Gonçalves Andersson",
+        "club":  "Vitória SC",
+        "country":  "Sweden",
+        "ovr":  62
+    },
+    {
+        "id":  273659,
+        "rawName":  "Santiago Silva",
+        "knownAs":  "",
+        "firstName":  "Santiago",
+        "lastName":  "Silva",
+        "club":  "Nacional",
+        "country":  "Uruguay",
+        "ovr":  67
+    },
+    {
+        "id":  273663,
+        "rawName":  "Pedro Santos",
+        "knownAs":  "Pedro Santos",
+        "firstName":  "Pedro",
+        "lastName":  "Carvalho Santos",
+        "club":  "Arouca",
+        "country":  "Portugal",
+        "ovr":  68
+    },
+    {
+        "id":  273750,
+        "rawName":  "Gonçalo Nogueira",
+        "knownAs":  "Gonçalo Nogueira",
+        "firstName":  "Gonçalo",
+        "lastName":  "Nogueira",
+        "club":  "Vitória SC",
+        "country":  "Portugal",
+        "ovr":  66
+    },
+    {
+        "id":  273840,
+        "rawName":  "Beni",
+        "knownAs":  "Beni",
+        "firstName":  "Benedito",
+        "lastName":  "Mukendi",
+        "club":  "Vitória SC",
+        "country":  "Angola",
+        "ovr":  72
+    },
+    {
+        "id":  273918,
+        "rawName":  "Vivaldo Semedo",
+        "knownAs":  "Vivaldo Semedo",
+        "firstName":  "Vivaldo Leandro",
+        "lastName":  "Semedo Moura Sousa",
+        "club":  "FC Alverca",
+        "country":  "Portugal",
+        "ovr":  66
+    },
+    {
+        "id":  273998,
+        "rawName":  "André Gomes",
+        "knownAs":  "André Gomes",
+        "firstName":  "André",
+        "lastName":  "Nogueira Gomes",
+        "club":  "Casa Pia AC",
+        "country":  "Portugal",
+        "ovr":  69
+    },
+    {
+        "id":  274078,
+        "rawName":  "Vasco Sousa",
+        "knownAs":  "Vasco Sousa",
+        "firstName":  "Vasco José",
+        "lastName":  "Cardoso Sousa",
+        "club":  "FC Porto",
+        "country":  "Portugal",
+        "ovr":  69
+    },
+    {
+        "id":  274099,
+        "rawName":  "Paulinho",
+        "knownAs":  "Paulinho",
+        "firstName":  "Paulo Rafael",
+        "lastName":  "Pereira Araújo",
+        "club":  "Académico de Viseu FC",
+        "country":  "Portugal",
+        "ovr":  62
+    },
+    {
+        "id":  274105,
+        "rawName":  "Manu Silva",
+        "knownAs":  "Manu Silva",
+        "firstName":  "Manuel Jorge",
+        "lastName":  "Silva",
+        "club":  "SL Benfica",
+        "country":  "Portugal",
+        "ovr":  72
+    },
+    {
+        "id":  274389,
+        "rawName":  "Khayon Edwards",
+        "knownAs":  "",
+        "firstName":  "Khayon",
+        "lastName":  "Edwards",
+        "club":  "Estoril Praia",
+        "country":  "Jamaica",
+        "ovr":  62
+    },
+    {
+        "id":  275360,
+        "rawName":  "Vinícius Lopes",
+        "knownAs":  "Vinícius Lopes",
+        "firstName":  "Vinícius",
+        "lastName":  "Lopes da Silva",
+        "club":  "Santa Clara",
+        "country":  "Brazil",
+        "ovr":  73
+    },
+    {
+        "id":  275516,
+        "rawName":  "Tony Strata",
+        "knownAs":  "",
+        "firstName":  "Tony",
+        "lastName":  "Strata",
+        "club":  "Vitória SC",
+        "country":  "Romania",
+        "ovr":  64
+    },
+    {
+        "id":  275641,
+        "rawName":  "Fally Mayulu",
+        "knownAs":  "",
+        "firstName":  "Fally",
+        "lastName":  "Mayulu",
+        "club":  "Arouca",
+        "country":  "France",
+        "ovr":  66
+    },
+    {
+        "id":  275644,
+        "rawName":  "Gábor Szalai",
+        "knownAs":  "",
+        "firstName":  "Gábor",
+        "lastName":  "Szalai",
+        "club":  "Marítimo da Madeira",
+        "country":  "Hungary",
+        "ovr":  69
+    },
+    {
+        "id":  276159,
+        "rawName":  "Tamás Nikitscher",
+        "knownAs":  "",
+        "firstName":  "Tamás",
+        "lastName":  "Nikitscher",
+        "club":  "Rio Ave FC",
+        "country":  "Hungary",
+        "ovr":  69
+    },
+    {
+        "id":  276173,
+        "rawName":  "Finn van Breemen",
+        "knownAs":  "",
+        "firstName":  "Finn",
+        "lastName":  "van Breemen",
+        "club":  "FC Famalicão",
+        "country":  "Holland",
+        "ovr":  70
+    },
+    {
+        "id":  276304,
+        "rawName":  "Jovan Milošević",
+        "knownAs":  "",
+        "firstName":  "Jovan",
+        "lastName":  "Milošević",
+        "club":  "SC Braga",
+        "country":  "Serbia",
+        "ovr":  72
+    },
+    {
+        "id":  276442,
+        "rawName":  "Gilberto",
+        "knownAs":  "Gilberto",
+        "firstName":  "Gilberto Dambi",
+        "lastName":  "Batista",
+        "club":  "Moreirense FC",
+        "country":  "Guinea-Bissau",
+        "ovr":  70
+    },
+    {
+        "id":  276471,
+        "rawName":  "Altimira",
+        "knownAs":  "Altimira",
+        "firstName":  "Sergio",
+        "lastName":  "Altimira Clavell",
+        "club":  "Sporting CP",
+        "country":  "Spain",
+        "ovr":  77
+    },
+    {
+        "id":  276600,
+        "rawName":  "Lee Hyun Ju",
+        "knownAs":  "Lee Hyun Ju",
+        "firstName":  "Hyun Ju",
+        "lastName":  "Lee",
+        "club":  "Arouca",
+        "country":  "Korea Republic",
+        "ovr":  71
+    },
+    {
+        "id":  276916,
+        "rawName":  "Diogo Dias",
+        "knownAs":  "Diogo Dias",
+        "firstName":  "Diogo Alexandre",
+        "lastName":  "Aranha Dias",
+        "club":  "Estoril Praia",
+        "country":  "Portugal",
+        "ovr":  59
+    },
+    {
+        "id":  276998,
+        "rawName":  "Diogo Nascimento",
+        "knownAs":  "Diogo Nascimento",
+        "firstName":  "Diogo André",
+        "lastName":  "Santos Nascimento",
+        "club":  "Rio Ave FC",
+        "country":  "Portugal",
+        "ovr":  68
+    },
+    {
+        "id":  277047,
+        "rawName":  "Carlos Eduardo",
+        "knownAs":  "Carlos Eduardo",
+        "firstName":  "Carlos Eduardo",
+        "lastName":  "Borges Parente",
+        "club":  "Gil Vicente",
+        "country":  "Brazil",
+        "ovr":  64
+    },
+    {
+        "id":  277070,
+        "rawName":  "Tidjany Touré",
+        "knownAs":  "",
+        "firstName":  "Tidjany",
+        "lastName":  "Touré",
+        "club":  "Gil Vicente",
+        "country":  "France",
+        "ovr":  68
+    },
+    {
+        "id":  277252,
+        "rawName":  "Samuel Dahl",
+        "knownAs":  "",
+        "firstName":  "Samuel",
+        "lastName":  "Dahl",
+        "club":  "SL Benfica",
+        "country":  "Sweden",
+        "ovr":  75
+    },
+    {
+        "id":  277322,
+        "rawName":  "Rodrigo Pinheiro",
+        "knownAs":  "Rodrigo Pinheiro",
+        "firstName":  "Rodrigo",
+        "lastName":  "Pinheiro Ferreira",
+        "club":  "FC Famalicão",
+        "country":  "Portugal",
+        "ovr":  73
+    },
+    {
+        "id":  277466,
+        "rawName":  "Tomé Sousa",
+        "knownAs":  "Tomé Sousa",
+        "firstName":  "Tomé",
+        "lastName":  "de Castro Sousa",
+        "club":  "Santa Clara",
+        "country":  "Portugal",
+        "ovr":  63
+    },
+    {
+        "id":  277581,
+        "rawName":  "Samu",
+        "knownAs":  "Samu",
+        "firstName":  "Samuel",
+        "lastName":  "Omorodion Aghehowa",
+        "club":  "FC Porto",
+        "country":  "Spain",
+        "ovr":  80
+    },
+    {
+        "id":  277594,
+        "rawName":  "Óscar Aranda",
+        "knownAs":  "Óscar Aranda",
+        "firstName":  "Óscar",
+        "lastName":  "Aranda Subiela",
+        "club":  "FC Famalicão",
+        "country":  "Spain",
+        "ovr":  74
+    },
+    {
+        "id":  277635,
+        "rawName":  "Markus Jensen",
+        "knownAs":  "",
+        "firstName":  "Markus",
+        "lastName":  "Jensen",
+        "club":  "Nacional",
+        "country":  "Denmark",
+        "ovr":  62
+    },
+    {
+        "id":  277650,
+        "rawName":  "Martín Tejón",
+        "knownAs":  "Martín Tejón",
+        "firstName":  "Martín",
+        "lastName":  "Tejón Fauli",
+        "club":  "Marítimo da Madeira",
+        "country":  "Spain",
+        "ovr":  69
+    },
+    {
+        "id":  277664,
+        "rawName":  "Espen van Ee",
+        "knownAs":  "",
+        "firstName":  "Espen",
+        "lastName":  "van Ee",
+        "club":  "Arouca",
+        "country":  "Holland",
+        "ovr":  70
+    },
+    {
+        "id":  277811,
+        "rawName":  "Mathias de Amorim",
+        "knownAs":  "Mathias de Amorim",
+        "firstName":  "Mathias",
+        "lastName":  "de Amorim",
+        "club":  "FC Famalicão",
+        "country":  "Portugal",
+        "ovr":  73
+    },
+    {
+        "id":  277871,
+        "rawName":  "Demir Ege Tıknaz",
+        "knownAs":  "",
+        "firstName":  "Demir Ege",
+        "lastName":  "Tıknaz",
+        "club":  "SC Braga",
+        "country":  "Turkey",
+        "ovr":  72
+    },
+    {
+        "id":  277878,
+        "rawName":  "Santi García",
+        "knownAs":  "Santi García",
+        "firstName":  "Santiago",
+        "lastName":  "García González",
+        "club":  "Gil Vicente",
+        "country":  "Spain",
+        "ovr":  74
+    },
+    {
+        "id":  277899,
+        "rawName":  "Julien Lomboto",
+        "knownAs":  "",
+        "firstName":  "Julien",
+        "lastName":  "Lomboto",
+        "club":  "Rio Ave FC",
+        "country":  "France",
+        "ovr":  65
+    },
+    {
+        "id":  277971,
+        "rawName":  "Pedro Lima",
+        "knownAs":  "Pedro Lima",
+        "firstName":  "Pedro",
+        "lastName":  "Lima Barros",
+        "club":  "Sporting CP",
+        "country":  "Brazil",
+        "ovr":  69
+    },
+    {
+        "id":  278033,
+        "rawName":  "Stefan Leković",
+        "knownAs":  "",
+        "firstName":  "Stefan",
+        "lastName":  "Leković",
+        "club":  "Estrela Amadora",
+        "country":  "Serbia",
+        "ovr":  67
+    },
+    {
+        "id":  278057,
+        "rawName":  "Bastien Meupiyou",
+        "knownAs":  "",
+        "firstName":  "Bastien",
+        "lastName":  "Meupiyou",
+        "club":  "FC Alverca",
+        "country":  "France",
+        "ovr":  69
+    },
+    {
+        "id":  278126,
+        "rawName":  "Selvi Clua",
+        "knownAs":  "Selvi Clua",
+        "firstName":  "Selvi",
+        "lastName":  "Clua Oya",
+        "club":  "Casa Pia AC",
+        "country":  "Spain",
+        "ovr":  63
+    },
+    {
+        "id":  278262,
+        "rawName":  "Lucas Mincarelli",
+        "knownAs":  "",
+        "firstName":  "Lucas",
+        "lastName":  "Mincarelli",
+        "club":  "Estrela Amadora",
+        "country":  "France",
+        "ovr":  68
+    },
+    {
+        "id":  278434,
+        "rawName":  "Tobías Medina",
+        "knownAs":  "",
+        "firstName":  "Tobías",
+        "lastName":  "Medina",
+        "club":  "Rio Ave FC",
+        "country":  "Argentina",
+        "ovr":  64
+    },
+    {
+        "id":  278587,
+        "rawName":  "Deniz Gül",
+        "knownAs":  "",
+        "firstName":  "Deniz",
+        "lastName":  "Gül",
+        "club":  "FC Porto",
+        "country":  "Turkey",
+        "ovr":  72
+    },
+    {
+        "id":  278796,
+        "rawName":  "Steven Baseya",
+        "knownAs":  "",
+        "firstName":  "Steven",
+        "lastName":  "Baseya",
+        "club":  "FC Alverca",
+        "country":  "France",
+        "ovr":  62
+    },
+    {
+        "id":  278814,
+        "rawName":  "Marcos Peña",
+        "knownAs":  "Marcos Peña",
+        "firstName":  "Marcos",
+        "lastName":  "Peña Ocaña",
+        "club":  "FC Famalicão",
+        "country":  "Spain",
+        "ovr":  64
+    },
+    {
+        "id":  278856,
+        "rawName":  "Allen Obando",
+        "knownAs":  "",
+        "firstName":  "Allen",
+        "lastName":  "Obando",
+        "club":  "Nacional",
+        "country":  "Ecuador",
+        "ovr":  64
+    },
+    {
+        "id":  278990,
+        "rawName":  "Brenner",
+        "knownAs":  "Brenner",
+        "firstName":  "Brenner Lucas",
+        "lastName":  "Gonçalves Santos",
+        "club":  "Santa Clara",
+        "country":  "Brazil",
+        "ovr":  67
+    },
+    {
+        "id":  279015,
+        "rawName":  "Victor Froholdt",
+        "knownAs":  "",
+        "firstName":  "Victor",
+        "lastName":  "Froholdt",
+        "club":  "FC Porto",
+        "country":  "Denmark",
+        "ovr":  82
+    },
+    {
+        "id":  279144,
+        "rawName":  "Jaden Umeh",
+        "knownAs":  "",
+        "firstName":  "Jaden",
+        "lastName":  "Umeh",
+        "club":  "SL Benfica",
+        "country":  "Republic of Ireland",
+        "ovr":  63
+    },
+    {
+        "id":  279210,
+        "rawName":  "Danel Dongmo",
+        "knownAs":  "",
+        "firstName":  "Danel",
+        "lastName":  "Dongmo",
+        "club":  "Nacional",
+        "country":  "Cameroon",
+        "ovr":  64
+    },
+    {
+        "id":  279245,
+        "rawName":  "Tiziano Correa",
+        "knownAs":  "",
+        "firstName":  "Tiziano",
+        "lastName":  "Correa",
+        "club":  "Nacional",
+        "country":  "Uruguay",
+        "ovr":  66
+    },
+    {
+        "id":  279514,
+        "rawName":  "Roméo Beney",
+        "knownAs":  "",
+        "firstName":  "Roméo",
+        "lastName":  "Beney",
+        "club":  "FC Famalicão",
+        "country":  "Switzerland",
+        "ovr":  63
+    },
+    {
+        "id":  279565,
+        "rawName":  "Diogo Pinto",
+        "knownAs":  "Diogo Pinto",
+        "firstName":  "Diogo",
+        "lastName":  "de Carvalho Pinto",
+        "club":  "Estrela Amadora",
+        "country":  "Portugal",
+        "ovr":  67
+    },
+    {
+        "id":  279769,
+        "rawName":  "Diogo Travassos",
+        "knownAs":  "Diogo Travassos",
+        "firstName":  "Diogo",
+        "lastName":  "Martins Travassos",
+        "club":  "SC Braga",
+        "country":  "Portugal",
+        "ovr":  74
+    },
+    {
+        "id":  279880,
+        "rawName":  "Renato Marin",
+        "knownAs":  "Renato Marin",
+        "firstName":  "Renato",
+        "lastName":  "Bellucci Marin",
+        "club":  "Nacional",
+        "country":  "Italy",
+        "ovr":  70
+    },
+    {
+        "id":  279896,
+        "rawName":  "Adrian Bajrami",
+        "knownAs":  "",
+        "firstName":  "Adrian",
+        "lastName":  "Bajrami",
+        "club":  "SC Braga",
+        "country":  "Switzerland",
+        "ovr":  67
+    },
+    {
+        "id":  279909,
+        "rawName":  "Tamble",
+        "knownAs":  "Tamble",
+        "firstName":  "Tamble Ulisses",
+        "lastName":  "Folgado Monteiro",
+        "club":  "Rio Ave FC",
+        "country":  "Guinea-Bissau",
+        "ovr":  65
+    },
+    {
+        "id":  279919,
+        "rawName":  "Dylan Nandín",
+        "knownAs":  "",
+        "firstName":  "Dylan",
+        "lastName":  "Nandín",
+        "club":  "Arouca",
+        "country":  "Uruguay",
+        "ovr":  66
+    },
+    {
+        "id":  279922,
+        "rawName":  "Tomás Verón Lupi",
+        "knownAs":  "",
+        "firstName":  "Tomás",
+        "lastName":  "Verón Lupi",
+        "club":  "Nacional",
+        "country":  "Argentina",
+        "ovr":  68
+    }
+]

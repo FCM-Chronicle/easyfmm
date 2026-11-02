@@ -1,4 +1,4 @@
-// events.js - 라커룸 이벤트, 비서 상담, 주급 요구 등 랜덤 이벤트 및 처리 로직
+﻿// events.js - 라커룸 이벤트, 비서 상담, 주급 요구 등 랜덤 이벤트 및 처리 로직
 
 class EventManager {
     constructor() {
@@ -158,11 +158,7 @@ class EventManager {
 
         if (playerImg) {
             if (eventData.player) {
-                playerImg.src = `assets/players/${eventData.player.name}.webp`;
-                playerImg.onerror = () => {
-                    playerImg.onerror = null;
-                    playerImg.src = 'assets/players/default.webp';
-                };
+                setPlayerPhoto(playerImg, eventData.player);
                 playerImg.style.display = 'block';
             } else {
                 playerImg.style.display = 'none';

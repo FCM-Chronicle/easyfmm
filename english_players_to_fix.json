@@ -1,0 +1,2725 @@
+[
+  {
+    "pid": 70786,
+    "raw": "Josh King",
+    "current": "조시 킨그",
+    "country": "England",
+    "club": "Fulham"
+  },
+  {
+    "pid": 70909,
+    "raw": "Kasey Bos",
+    "current": "카세이 보스",
+    "country": "Australia",
+    "club": "Excelsior"
+  },
+  {
+    "pid": 70994,
+    "raw": "Lewis Koumas",
+    "current": "루이스 코우마스",
+    "country": "Wales",
+    "club": "Liverpool"
+  },
+  {
+    "pid": 71651,
+    "raw": "Josh Acheampong",
+    "current": "조시 아체암퐁",
+    "country": "England",
+    "club": "Chelsea"
+  },
+  {
+    "pid": 71973,
+    "raw": "Ethan Wheatley",
+    "current": "이선 베아틀레이",
+    "country": "England",
+    "club": "Man Utd"
+  },
+  {
+    "pid": 71998,
+    "raw": "Tyrique George",
+    "current": "타이리크 조지",
+    "country": "England",
+    "club": "Everton"
+  },
+  {
+    "pid": 72159,
+    "raw": "Mikey Moore",
+    "current": "마이키 무어",
+    "country": "England",
+    "club": "Spurs"
+  },
+  {
+    "pid": 72281,
+    "raw": "Leo Shahar",
+    "current": "레오 사.아르",
+    "country": "England",
+    "club": "Newcastle Utd"
+  },
+  {
+    "pid": 72284,
+    "raw": "Tyrese Hall",
+    "current": "티레세 홀",
+    "country": "Jamaica",
+    "club": "Spurs"
+  },
+  {
+    "pid": 73057,
+    "raw": "Cole Campbell",
+    "current": "콜 캄프벨",
+    "country": "United States",
+    "club": "SV Elversberg"
+  },
+  {
+    "pid": 73070,
+    "raw": "Promise David",
+    "current": "프로미세 다비드",
+    "country": "Canada",
+    "club": "Brighton"
+  },
+  {
+    "pid": 73098,
+    "raw": "Dylan Leonard",
+    "current": "딜란 레오나르드",
+    "country": "Australia",
+    "club": "FC Schalke 04"
+  },
+  {
+    "pid": 73353,
+    "raw": "Rhys Chadwick",
+    "current": "리스 카드비크",
+    "country": "England",
+    "club": "Leeds United"
+  },
+  {
+    "pid": 73616,
+    "raw": "Mofe Jemide",
+    "current": "모페 예미데",
+    "country": "England",
+    "club": "FC Alverca"
+  },
+  {
+    "pid": 73731,
+    "raw": "Noahkai Banks",
+    "current": "노아카이 뱅크스",
+    "country": "United States",
+    "club": "FC Augsburg"
+  },
+  {
+    "pid": 73895,
+    "raw": "Justin Devenny",
+    "current": "유스틴 데베니",
+    "country": "Northern Ireland",
+    "club": "Crystal Palace"
+  },
+  {
+    "pid": 74145,
+    "raw": "Sam Chambers",
+    "current": "샘 캄베르스",
+    "country": "Scotland",
+    "club": "Leeds United"
+  },
+  {
+    "pid": 74242,
+    "raw": "Zach Abbott",
+    "current": "차크 아보트",
+    "country": "England",
+    "club": "Nott'm Forest"
+  },
+  {
+    "pid": 74413,
+    "raw": "Harrison Armstrong",
+    "current": "해리슨 암스트롱",
+    "country": "England",
+    "club": "Everton"
+  },
+  {
+    "pid": 74555,
+    "raw": "Aarón Ochoa",
+    "current": "아론 오코아",
+    "country": "Republic of Ireland",
+    "club": "Málaga CF"
+  },
+  {
+    "pid": 74862,
+    "raw": "George Abbott",
+    "current": "조지 아보트",
+    "country": "England",
+    "club": "Spurs"
+  },
+  {
+    "pid": 74892,
+    "raw": "Tommy Setford",
+    "current": "토미 세트포르드",
+    "country": "England",
+    "club": "Arsenal"
+  },
+  {
+    "pid": 75087,
+    "raw": "Ayden Heaven",
+    "current": "아이덴 에아벤",
+    "country": "England",
+    "club": "Man Utd"
+  },
+  {
+    "pid": 75145,
+    "raw": "Lucas Herrington",
+    "current": "루카스 에린그톤",
+    "country": "Australia",
+    "club": "Hull City"
+  },
+  {
+    "pid": 75439,
+    "raw": "Jack Fletcher",
+    "current": "잭 플레트케르",
+    "country": "England",
+    "club": "Man Utd"
+  },
+  {
+    "pid": 75577,
+    "raw": "Jahmai Simpson-Pusey",
+    "current": "야마이 심슨푸세이",
+    "country": "England",
+    "club": "1. FC Köln"
+  },
+  {
+    "pid": 75767,
+    "raw": "Ben Broggio",
+    "current": "벤 브로조",
+    "country": "England",
+    "club": "Aston Villa"
+  },
+  {
+    "pid": 75770,
+    "raw": "Callum Olusesi",
+    "current": "칼럼 올루세시",
+    "country": "England",
+    "club": "Spurs"
+  },
+  {
+    "pid": 76254,
+    "raw": "Remy Rees-Dottin",
+    "current": "레미 레스도틴",
+    "country": "England",
+    "club": "AFC Bournemouth"
+  },
+  {
+    "pid": 76255,
+    "raw": "Jamaldeen Jimoh-Aloba",
+    "current": "야말덴 이모알로바",
+    "country": "England",
+    "club": "Aston Villa"
+  },
+  {
+    "pid": 77186,
+    "raw": "Korede Osundina",
+    "current": "코레데 오순디나",
+    "country": "United States",
+    "club": "Casa Pia AC"
+  },
+  {
+    "pid": 77540,
+    "raw": "Shumaira Mheuka",
+    "current": "슈마이라 음헤우카",
+    "country": "England",
+    "club": "Chelsea"
+  },
+  {
+    "pid": 77791,
+    "raw": "Sean Neave",
+    "current": "숀 네아베",
+    "country": "England",
+    "club": "Newcastle Utd"
+  },
+  {
+    "pid": 78060,
+    "raw": "Jimi Gower",
+    "current": "이미 고베르",
+    "country": "England",
+    "club": "Moreirense FC"
+  },
+  {
+    "pid": 78106,
+    "raw": "Jeremy Monga",
+    "current": "제레미 몬가",
+    "country": "England",
+    "club": "Manchester City"
+  },
+  {
+    "pid": 78113,
+    "raw": "Triston Rowe",
+    "current": "트리스톤 로베",
+    "country": "England",
+    "club": "Aston Villa"
+  },
+  {
+    "pid": 78145,
+    "raw": "Alejandro Gomes Rodríguez",
+    "current": "알레한드로 고메스 로드리게스",
+    "country": "England",
+    "club": "OL"
+  },
+  {
+    "pid": 78184,
+    "raw": "Jay Robinson",
+    "current": "야이 로빈손",
+    "country": "England",
+    "club": "Monza"
+  },
+  {
+    "pid": 79687,
+    "raw": "Joshua Wynder",
+    "current": "조슈아 빈데르",
+    "country": "United States",
+    "club": "SL Benfica"
+  },
+  {
+    "pid": 80236,
+    "raw": "Paul Okon-Engstler",
+    "current": "파울 오콘엔그스틀레르",
+    "country": "Australia",
+    "club": "1. FC Köln"
+  },
+  {
+    "pid": 80376,
+    "raw": "Rio Ngumoha",
+    "current": "리오 느구모.아",
+    "country": "England",
+    "club": "Liverpool"
+  },
+  {
+    "pid": 80652,
+    "raw": "Brian Madjo",
+    "current": "브리안 마디오",
+    "country": "England",
+    "club": "Aston Villa"
+  },
+  {
+    "pid": 80816,
+    "raw": "Bradley Burrowes",
+    "current": "브래들리 부로베스",
+    "country": "England",
+    "club": "Aston Villa"
+  },
+  {
+    "pid": 80873,
+    "raw": "Mathis Albert",
+    "current": "마티스 알베르트",
+    "country": "United States",
+    "club": "Borussia Dortmund"
+  },
+  {
+    "pid": 81538,
+    "raw": "Stephen Mfuni",
+    "current": "스테펜 므푸니",
+    "country": "England",
+    "club": "Manchester City"
+  },
+  {
+    "pid": 81899,
+    "raw": "Jun'ai Byfield",
+    "current": "유나이 비피엘드",
+    "country": "England",
+    "club": "Spurs"
+  },
+  {
+    "pid": 82350,
+    "raw": "George Hemmings",
+    "current": "조지 엠민그스",
+    "country": "England",
+    "club": "Aston Villa"
+  },
+  {
+    "pid": 82815,
+    "raw": "Joél Drakes-Thomas",
+    "current": "요엘 드라케스토마스",
+    "country": "England",
+    "club": "Crystal Palace"
+  },
+  {
+    "pid": 82841,
+    "raw": "Reigan Heskey",
+    "current": "레이간 에스케이",
+    "country": "England",
+    "club": "1. FC Köln"
+  },
+  {
+    "pid": 82899,
+    "raw": "Tyler Fletcher",
+    "current": "틸레르 플레트케르",
+    "country": "Scotland",
+    "club": "Man Utd"
+  },
+  {
+    "pid": 82934,
+    "raw": "Aidan Borland",
+    "current": "아이단 보를란드",
+    "country": "Scotland",
+    "club": "Aston Villa"
+  },
+  {
+    "pid": 83028,
+    "raw": "Oliver Irow",
+    "current": "올리버 이로브",
+    "country": "England",
+    "club": "Spurs"
+  },
+  {
+    "pid": 83205,
+    "raw": "Jaden Heskey",
+    "current": "야덴 에스케이",
+    "country": "England",
+    "club": "Manchester City"
+  },
+  {
+    "pid": 85333,
+    "raw": "Jesse Derry",
+    "current": "예세 데리",
+    "country": "England",
+    "club": "Sporting CP"
+  },
+  {
+    "pid": 85700,
+    "raw": "Jayden Lienou",
+    "current": "야이덴 리에노우",
+    "country": "Wales",
+    "club": "Leeds United"
+  },
+  {
+    "pid": 85912,
+    "raw": "Alfie Cresswell",
+    "current": "알피에 크레스벨",
+    "country": "England",
+    "club": "Leeds United"
+  },
+  {
+    "pid": 87033,
+    "raw": "Mekhi Gray",
+    "current": "메키 그레이",
+    "country": "Jamaica",
+    "club": "Union Berlin"
+  },
+  {
+    "pid": 87632,
+    "raw": "Marlon van de Wetering",
+    "current": "마를론 반 데 베테린그",
+    "country": "Jamaica",
+    "club": "Excelsior"
+  },
+  {
+    "pid": 88606,
+    "raw": "Rory Mahady",
+    "current": "로리 마.아디",
+    "country": "Scotland",
+    "club": "Leeds United"
+  },
+  {
+    "pid": 88609,
+    "raw": "Callum Mills",
+    "current": "칼럼 밀스",
+    "country": "England",
+    "club": "Leeds United"
+  },
+  {
+    "pid": 163264,
+    "raw": "Tom Heaton",
+    "current": "톰 에아톤",
+    "country": "England",
+    "club": "Man Utd"
+  },
+  {
+    "pid": 172203,
+    "raw": "Fraser Forster",
+    "current": "프레이저 포스터",
+    "country": "England",
+    "club": "AFC Bournemouth"
+  },
+  {
+    "pid": 173533,
+    "raw": "David Button",
+    "current": "다비드 부톤",
+    "country": "England",
+    "club": "Ipswich"
+  },
+  {
+    "pid": 183711,
+    "raw": "Jordan Henderson",
+    "current": "조던 헨더슨",
+    "country": "England",
+    "club": "Chelsea"
+  },
+  {
+    "pid": 186146,
+    "raw": "Danny Welbeck",
+    "current": "대니 웰백",
+    "country": "England",
+    "club": "Chelsea"
+  },
+  {
+    "pid": 188836,
+    "raw": "Jason Steele",
+    "current": "야손 스텔레",
+    "country": "England",
+    "club": "Brighton"
+  },
+  {
+    "pid": 190885,
+    "raw": "Adam Smith",
+    "current": "아담 스미스",
+    "country": "England",
+    "club": "AFC Bournemouth"
+  },
+  {
+    "pid": 192123,
+    "raw": "Chris Wood",
+    "current": "크리스 우드",
+    "country": "New Zealand",
+    "club": "Nott'm Forest"
+  },
+  {
+    "pid": 193331,
+    "raw": "Karl Darlow",
+    "current": "카를 다를로브",
+    "country": "Wales",
+    "club": "Man Utd"
+  },
+  {
+    "pid": 194150,
+    "raw": "Simon Moore",
+    "current": "시몬 무어",
+    "country": "England",
+    "club": "Sunderland"
+  },
+  {
+    "pid": 195202,
+    "raw": "Tom Cairney",
+    "current": "톰 카이르네이",
+    "country": "Scotland",
+    "club": "Fulham"
+  },
+  {
+    "pid": 196952,
+    "raw": "Jake Bidwell",
+    "current": "야케 비드벨",
+    "country": "England",
+    "club": "Coventry City"
+  },
+  {
+    "pid": 196978,
+    "raw": "Callum Wilson",
+    "current": "칼럼 윌슨",
+    "country": "England",
+    "club": "Brentford"
+  },
+  {
+    "pid": 198032,
+    "raw": "Dan Burn",
+    "current": "댄 번",
+    "country": "England",
+    "club": "Newcastle Utd"
+  },
+  {
+    "pid": 198039,
+    "raw": "Mark Gillespie",
+    "current": "마크 질레스피에",
+    "country": "England",
+    "club": "Newcastle Utd"
+  },
+  {
+    "pid": 198350,
+    "raw": "Daniel Bentley",
+    "current": "다니엘 벤틀레이",
+    "country": "England",
+    "club": "Coventry City"
+  },
+  {
+    "pid": 199005,
+    "raw": "Mathew Ryan",
+    "current": "마테브 라이언",
+    "country": "Australia",
+    "club": "Levante UD"
+  },
+  {
+    "pid": 199189,
+    "raw": "Ross Barkley",
+    "current": "로스 바클리",
+    "country": "England",
+    "club": "Aston Villa"
+  },
+  {
+    "pid": 199915,
+    "raw": "Lewis Dunk",
+    "current": "루이스 둔크",
+    "country": "England",
+    "club": "Brighton"
+  },
+  {
+    "pid": 200746,
+    "raw": "John Lundstram",
+    "current": "존 룬드스트람",
+    "country": "England",
+    "club": "Trabzonspor"
+  },
+  {
+    "pid": 202126,
+    "raw": "Harry Kane",
+    "current": "해리 케인",
+    "country": "England",
+    "club": "FC Bayern München"
+  },
+  {
+    "pid": 202316,
+    "raw": "Timmy Chandler",
+    "current": "티미 칸들레르",
+    "country": "United States",
+    "club": "Frankfurt"
+  },
+  {
+    "pid": 202335,
+    "raw": "Eric Dier",
+    "current": "에리크 디에르",
+    "country": "England",
+    "club": "AS Monaco"
+  },
+  {
+    "pid": 202693,
+    "raw": "Matt Crooks",
+    "current": "맷 크록스",
+    "country": "England",
+    "club": "Hull City"
+  },
+  {
+    "pid": 202695,
+    "raw": "James Tarkowski",
+    "current": "제임스 타르코브스키",
+    "country": "England",
+    "club": "Everton"
+  },
+  {
+    "pid": 203042,
+    "raw": "Jack Butland",
+    "current": "잭 부틀란드",
+    "country": "England",
+    "club": "Hull City"
+  },
+  {
+    "pid": 203215,
+    "raw": "Alex Cairns",
+    "current": "알렉스 카이른스",
+    "country": "England",
+    "club": "Leeds United"
+  },
+  {
+    "pid": 203263,
+    "raw": "Harry Maguire",
+    "current": "해리 매과이어",
+    "country": "England",
+    "club": "Man Utd"
+  },
+  {
+    "pid": 203574,
+    "raw": "John Stones",
+    "current": "존 스톤스",
+    "country": "England",
+    "club": "Lombardia FC"
+  },
+  {
+    "pid": 203824,
+    "raw": "Remi Matthews",
+    "current": "레미 매튜스",
+    "country": "England",
+    "club": "Crystal Palace"
+  },
+  {
+    "pid": 203841,
+    "raw": "Nick Pope",
+    "current": "닉 포프",
+    "country": "England",
+    "club": "Newcastle Utd"
+  },
+  {
+    "pid": 204246,
+    "raw": "Marcus Bettinelli",
+    "current": "마커스 베티넬리",
+    "country": "England",
+    "club": "Manchester City"
+  },
+  {
+    "pid": 204825,
+    "raw": "Ben Wilson",
+    "current": "벤 윌슨",
+    "country": "England",
+    "club": "Coventry City"
+  },
+  {
+    "pid": 204935,
+    "raw": "Jordan Pickford",
+    "current": "조던 픽포드",
+    "country": "England",
+    "club": "Everton"
+  },
+  {
+    "pid": 204936,
+    "raw": "John Egan",
+    "current": "존 에간",
+    "country": "Republic of Ireland",
+    "club": "Hull City"
+  },
+  {
+    "pid": 205923,
+    "raw": "Ben Davies",
+    "current": "벤 데이비스",
+    "country": "Wales",
+    "club": "Spurs"
+  },
+  {
+    "pid": 205988,
+    "raw": "Luke Shaw",
+    "current": "루크 쇼",
+    "country": "England",
+    "club": "Man Utd"
+  },
+  {
+    "pid": 205990,
+    "raw": "Harrison Reed",
+    "current": "해리슨 리드",
+    "country": "England",
+    "club": "Fulham"
+  },
+  {
+    "pid": 206085,
+    "raw": "Jacob Murphy",
+    "current": "제이콥 머피",
+    "country": "England",
+    "club": "Newcastle Utd"
+  },
+  {
+    "pid": 206516,
+    "raw": "Will Hughes",
+    "current": "윌 휴즈",
+    "country": "England",
+    "club": "Crystal Palace"
+  },
+  {
+    "pid": 206517,
+    "raw": "Jack Grealish",
+    "current": "잭 그릴리시",
+    "country": "England",
+    "club": "Manchester City"
+  },
+  {
+    "pid": 206561,
+    "raw": "Christian Walton",
+    "current": "크리스티안 발톤",
+    "country": "England",
+    "club": "Ipswich"
+  },
+  {
+    "pid": 207599,
+    "raw": "Michael Keane",
+    "current": "마이클 케아네",
+    "country": "England",
+    "club": "Everton"
+  },
+  {
+    "pid": 210881,
+    "raw": "John McGinn",
+    "current": "존 맥긴",
+    "country": "Scotland",
+    "club": "Aston Villa"
+  },
+  {
+    "pid": 212118,
+    "raw": "Matt Grimes",
+    "current": "맷 그리메스",
+    "country": "England",
+    "club": "Coventry City"
+  },
+  {
+    "pid": 212419,
+    "raw": "Tyrone Mings",
+    "current": "타이론 밍스",
+    "country": "England",
+    "club": "Aston Villa"
+  },
+  {
+    "pid": 213418,
+    "raw": "Chuba Akpom",
+    "current": "쿠바 악폼",
+    "country": "England",
+    "club": "Ipswich"
+  },
+  {
+    "pid": 213666,
+    "raw": "Ruben Loftus-Cheek",
+    "current": "후벵 로프투스케크",
+    "country": "England",
+    "club": "Milano FC"
+  },
+  {
+    "pid": 213697,
+    "raw": "Paddy McNair",
+    "current": "파디 므크나이르",
+    "country": "Northern Ireland",
+    "club": "Hull City"
+  },
+  {
+    "pid": 213884,
+    "raw": "Ryan Christie",
+    "current": "라이언 크리스티",
+    "country": "Scotland",
+    "club": "AFC Bournemouth"
+  },
+  {
+    "pid": 215700,
+    "raw": "Luke O'Nien",
+    "current": "루크 오니엔",
+    "country": "England",
+    "club": "Sunderland"
+  },
+  {
+    "pid": 216267,
+    "raw": "Andrew Robertson",
+    "current": "앤디 로버트슨",
+    "country": "Scotland",
+    "club": "Spurs"
+  },
+  {
+    "pid": 216464,
+    "raw": "Alan Browne",
+    "current": "알란 브로브네",
+    "country": "Republic of Ireland",
+    "club": "Sunderland"
+  },
+  {
+    "pid": 218659,
+    "raw": "Matt Targett",
+    "current": "맷 타깃",
+    "country": "England",
+    "club": "Hull City"
+  },
+  {
+    "pid": 220031,
+    "raw": "Oli McBurnie",
+    "current": "올리 므크부르니에",
+    "country": "Scotland",
+    "club": "Hull City"
+  },
+  {
+    "pid": 220058,
+    "raw": "Dillon Phillips",
+    "current": "딜론 필립스",
+    "country": "England",
+    "club": "Hull City"
+  },
+  {
+    "pid": 220196,
+    "raw": "David Brooks",
+    "current": "다비드 브룩스",
+    "country": "Wales",
+    "club": "AFC Bournemouth"
+  },
+  {
+    "pid": 220697,
+    "raw": "James Maddison",
+    "current": "제임스 매디슨",
+    "country": "England",
+    "club": "Spurs"
+  },
+  {
+    "pid": 220710,
+    "raw": "Harry Wilson",
+    "current": "해리 윌슨",
+    "country": "Wales",
+    "club": "Leeds United"
+  },
+  {
+    "pid": 220763,
+    "raw": "Ryan Thomas",
+    "current": "라이언 토마스",
+    "country": "New Zealand",
+    "club": "PEC Zwolle"
+  },
+  {
+    "pid": 221479,
+    "raw": "Dominic Calvert-Lewin",
+    "current": "도미닉 칼베르트레빈",
+    "country": "England",
+    "club": "Leeds United"
+  },
+  {
+    "pid": 221697,
+    "raw": "Ollie Watkins",
+    "current": "올리 왓킨스",
+    "country": "England",
+    "club": "Aston Villa"
+  },
+  {
+    "pid": 222104,
+    "raw": "Tosin Adarabioyo",
+    "current": "토신 아다라비오요",
+    "country": "England",
+    "club": "Chelsea"
+  },
+  {
+    "pid": 222400,
+    "raw": "Harry Winks",
+    "current": "해리 빈크스",
+    "country": "England",
+    "club": "Cagliari"
+  },
+  {
+    "pid": 222514,
+    "raw": "Freddie Woodman",
+    "current": "프레디에 보드만",
+    "country": "England",
+    "club": "Liverpool"
+  },
+  {
+    "pid": 223877,
+    "raw": "Darnell Furlong",
+    "current": "다르넬 푸를론그",
+    "country": "England",
+    "club": "Ipswich"
+  },
+  {
+    "pid": 223909,
+    "raw": "Alex Palmer",
+    "current": "알렉스 파머",
+    "country": "England",
+    "club": "Ipswich"
+  },
+  {
+    "pid": 224099,
+    "raw": "Lewie Coyle",
+    "current": "레비에 코일레",
+    "country": "England",
+    "club": "Hull City"
+  },
+  {
+    "pid": 224294,
+    "raw": "Lewis Cook",
+    "current": "루이스 쿡",
+    "country": "England",
+    "club": "AFC Bournemouth"
+  },
+  {
+    "pid": 224494,
+    "raw": "Rico Henry",
+    "current": "리코 앙리",
+    "country": "Jamaica",
+    "club": "Brentford"
+  },
+  {
+    "pid": 225100,
+    "raw": "Joe Gomez",
+    "current": "조 고메스",
+    "country": "England",
+    "club": "Liverpool"
+  },
+  {
+    "pid": 225539,
+    "raw": "Dominic Solanke",
+    "current": "도미닉 솔란케",
+    "country": "England",
+    "club": "Spurs"
+  },
+  {
+    "pid": 225632,
+    "raw": "Oliver Burke",
+    "current": "올리버 부르케",
+    "country": "Scotland",
+    "club": "Union Berlin"
+  },
+  {
+    "pid": 225650,
+    "raw": "Tom King",
+    "current": "톰 킨그",
+    "country": "Wales",
+    "club": "Everton"
+  },
+  {
+    "pid": 225782,
+    "raw": "Ainsley Maitland-Niles",
+    "current": "아인슬레이 마이틀란드닐레스",
+    "country": "England",
+    "club": "OL"
+  },
+  {
+    "pid": 226093,
+    "raw": "Ché Adams",
+    "current": "케 애덤스",
+    "country": "Scotland",
+    "club": "Torino"
+  },
+  {
+    "pid": 226401,
+    "raw": "Kieran Dowell",
+    "current": "키어런 도벨",
+    "country": "England",
+    "club": "Hull City"
+  },
+  {
+    "pid": 227678,
+    "raw": "Ezri Konsa",
+    "current": "에즈리 콘사",
+    "country": "England",
+    "club": "Arsenal"
+  },
+  {
+    "pid": 227796,
+    "raw": "Christian Pulisic",
+    "current": "크리스천 풀리식",
+    "country": "United States",
+    "club": "Milano FC"
+  },
+  {
+    "pid": 229114,
+    "raw": "Liam Bossin",
+    "current": "리암 보신",
+    "country": "Republic of Ireland",
+    "club": "Feyenoord"
+  },
+  {
+    "pid": 229266,
+    "raw": "Joe Rodon",
+    "current": "조 로돈",
+    "country": "Wales",
+    "club": "Leeds United"
+  },
+  {
+    "pid": 229348,
+    "raw": "Antonee Robinson",
+    "current": "안토네 로빈손",
+    "country": "United States",
+    "club": "Fulham"
+  },
+  {
+    "pid": 229906,
+    "raw": "Leon Bailey",
+    "current": "레온 베일리",
+    "country": "Jamaica",
+    "club": "Aston Villa"
+  },
+  {
+    "pid": 229984,
+    "raw": "Ben Chilwell",
+    "current": "벤 킬벨",
+    "country": "England",
+    "club": "Strasbourg"
+  },
+  {
+    "pid": 230839,
+    "raw": "Zak Jules",
+    "current": "차크 율레스",
+    "country": "Scotland",
+    "club": "Eyüpspor"
+  },
+  {
+    "pid": 230918,
+    "raw": "Trevoh Chalobah",
+    "current": "트레보 칼로바",
+    "country": "England",
+    "club": "Como"
+  },
+  {
+    "pid": 231005,
+    "raw": "Chiedozie Ogbene",
+    "current": "키에도치에 오그베네",
+    "country": "Republic of Ireland",
+    "club": "Ipswich"
+  },
+  {
+    "pid": 231281,
+    "raw": "Trent Alexander-Arnold",
+    "current": "트렌트 알렉산더아놀드",
+    "country": "England",
+    "club": "Real Madrid"
+  },
+  {
+    "pid": 231352,
+    "raw": "Tammy Abraham",
+    "current": "태미 에이브러햄",
+    "country": "England",
+    "club": "Aston Villa"
+  },
+  {
+    "pid": 231445,
+    "raw": "Josh Dasilva",
+    "current": "조시 다실바",
+    "country": "England",
+    "club": "Brentford"
+  },
+  {
+    "pid": 231448,
+    "raw": "Reiss Nelson",
+    "current": "레이스 넬손",
+    "country": "England",
+    "club": "Arsenal"
+  },
+  {
+    "pid": 231512,
+    "raw": "Lloyd Kelly",
+    "current": "로이드 켈리",
+    "country": "England",
+    "club": "Juventus"
+  },
+  {
+    "pid": 231554,
+    "raw": "James Justin",
+    "current": "제임스 유스틴",
+    "country": "England",
+    "club": "Leeds United"
+  },
+  {
+    "pid": 231677,
+    "raw": "Marcus Rashford",
+    "current": "마커스 래시포드",
+    "country": "England",
+    "club": "Man Utd"
+  },
+  {
+    "pid": 231743,
+    "raw": "Keinan Davis",
+    "current": "케이난 다비스",
+    "country": "England",
+    "club": "Udinese"
+  },
+  {
+    "pid": 231936,
+    "raw": "Benjamin White",
+    "current": "베냐민 화이트",
+    "country": "England",
+    "club": "Arsenal"
+  },
+  {
+    "pid": 232104,
+    "raw": "Daniel James",
+    "current": "다니엘 제임스",
+    "country": "Wales",
+    "club": "Leeds United"
+  },
+  {
+    "pid": 232284,
+    "raw": "Mark Travers",
+    "current": "마크 트래버스",
+    "country": "Republic of Ireland",
+    "club": "Everton"
+  },
+  {
+    "pid": 232755,
+    "raw": "Jay Dasilva",
+    "current": "야이 다실바",
+    "country": "Wales",
+    "club": "Coventry City"
+  },
+  {
+    "pid": 232756,
+    "raw": "Fikayo Tomori",
+    "current": "피카이오 토모리",
+    "country": "England",
+    "club": "Milano FC"
+  },
+  {
+    "pid": 232999,
+    "raw": "Tyler Adams",
+    "current": "틸레르 애덤스",
+    "country": "United States",
+    "club": "AFC Bournemouth"
+  },
+  {
+    "pid": 233047,
+    "raw": "Joel Latibeaudiere",
+    "current": "요엘 라티베아우디에레",
+    "country": "Jamaica",
+    "club": "Coventry City"
+  },
+  {
+    "pid": 233064,
+    "raw": "Mason Mount",
+    "current": "메이슨 마운트",
+    "country": "England",
+    "club": "Man Utd"
+  },
+  {
+    "pid": 233306,
+    "raw": "Dean Henderson",
+    "current": "딘 헨더슨",
+    "country": "England",
+    "club": "Crystal Palace"
+  },
+  {
+    "pid": 233851,
+    "raw": "Jack Taylor",
+    "current": "잭 테일러",
+    "country": "Republic of Ireland",
+    "club": "Ipswich"
+  },
+  {
+    "pid": 234378,
+    "raw": "Declan Rice",
+    "current": "데클란 라이스",
+    "country": "England",
+    "club": "Arsenal"
+  },
+  {
+    "pid": 234396,
+    "raw": "Alphonso Davies",
+    "current": "알폰소 데이비스",
+    "country": "Canada",
+    "club": "FC Bayern München"
+  },
+  {
+    "pid": 234742,
+    "raw": "Harvey Barnes",
+    "current": "하비 반스",
+    "country": "England",
+    "club": "Newcastle Utd"
+  },
+  {
+    "pid": 235405,
+    "raw": "Dara O'Shea",
+    "current": "다라 오세아",
+    "country": "Republic of Ireland",
+    "club": "Ipswich"
+  },
+  {
+    "pid": 235642,
+    "raw": "Ryan Yates",
+    "current": "라이언 야테스",
+    "country": "England",
+    "club": "Nott'm Forest"
+  },
+  {
+    "pid": 235729,
+    "raw": "David Bates",
+    "current": "다비드 바테스",
+    "country": "Scotland",
+    "club": "Amed Sportif Faaliyetler"
+  },
+  {
+    "pid": 235735,
+    "raw": "Ethan Ampadu",
+    "current": "이선 암파두",
+    "country": "Wales",
+    "club": "Leeds United"
+  },
+  {
+    "pid": 235794,
+    "raw": "Eberechi Eze",
+    "current": "에베레치 에제",
+    "country": "England",
+    "club": "Arsenal"
+  },
+  {
+    "pid": 235883,
+    "raw": "Ryan Sessegnon",
+    "current": "라이언 세세뇬",
+    "country": "England",
+    "club": "Fulham"
+  },
+  {
+    "pid": 236015,
+    "raw": "Morgan Gibbs-White",
+    "current": "모건 지브스화이트",
+    "country": "England",
+    "club": "Nott'm Forest"
+  },
+  {
+    "pid": 236568,
+    "raw": "Brandon Austin",
+    "current": "브란돈 오스틴",
+    "country": "England",
+    "club": "Spurs"
+  },
+  {
+    "pid": 236663,
+    "raw": "Ellery Balcombe",
+    "current": "엘레리 발콤베",
+    "country": "England",
+    "club": "Brentford"
+  },
+  {
+    "pid": 236784,
+    "raw": "Ephron Mason-Clark",
+    "current": "에프론 메이슨클라르크",
+    "country": "Jamaica",
+    "club": "Coventry City"
+  },
+  {
+    "pid": 236988,
+    "raw": "Eddie Nketiah",
+    "current": "에디에 느케티아",
+    "country": "England",
+    "club": "Crystal Palace"
+  },
+  {
+    "pid": 237161,
+    "raw": "Sean Longstaff",
+    "current": "숀 롱스태프",
+    "country": "England",
+    "club": "Leeds United"
+  },
+  {
+    "pid": 237238,
+    "raw": "Scott McTominay",
+    "current": "스콧 맥토미니",
+    "country": "Scotland",
+    "club": "SSC Napoli"
+  },
+  {
+    "pid": 237329,
+    "raw": "Joe Willock",
+    "current": "조 윌록",
+    "country": "England",
+    "club": "Newcastle Utd"
+  },
+  {
+    "pid": 237386,
+    "raw": "Kiernan Dewsbury-Hall",
+    "current": "키어넌 데브스부리홀",
+    "country": "England",
+    "club": "Everton"
+  },
+  {
+    "pid": 237477,
+    "raw": "Marcus Tavernier",
+    "current": "마커스 태버니어",
+    "country": "England",
+    "club": "AFC Bournemouth"
+  },
+  {
+    "pid": 237692,
+    "raw": "Phil Foden",
+    "current": "필 포든",
+    "country": "England",
+    "club": "Manchester City"
+  },
+  {
+    "pid": 237871,
+    "raw": "Jordan Holsgrove",
+    "current": "조던 올스그로베",
+    "country": "Scotland",
+    "club": "Estoril Praia"
+  },
+  {
+    "pid": 238074,
+    "raw": "Reece James",
+    "current": "리스 제임스",
+    "country": "England",
+    "club": "Chelsea"
+  },
+  {
+    "pid": 238216,
+    "raw": "Conor Gallagher",
+    "current": "코너 갤러거",
+    "country": "England",
+    "club": "Spurs"
+  },
+  {
+    "pid": 238717,
+    "raw": "Ethan Pinnock",
+    "current": "이선 핀노크",
+    "country": "Jamaica",
+    "club": "Brentford"
+  },
+  {
+    "pid": 238743,
+    "raw": "Haji Wright",
+    "current": "아이 브리그트",
+    "country": "United States",
+    "club": "Coventry City"
+  },
+  {
+    "pid": 238744,
+    "raw": "Weston McKennie",
+    "current": "베스톤 므켄니에",
+    "country": "United States",
+    "club": "Juventus"
+  },
+  {
+    "pid": 240060,
+    "raw": "Max Aarons",
+    "current": "막스 에런스",
+    "country": "England",
+    "club": "AFC Bournemouth"
+  },
+  {
+    "pid": 240273,
+    "raw": "Emile Smith Rowe",
+    "current": "에밀레 스미스 로베",
+    "country": "England",
+    "club": "Fulham"
+  },
+  {
+    "pid": 240500,
+    "raw": "Luke Woolfenden",
+    "current": "루크 볼펜덴",
+    "country": "England",
+    "club": "Coventry City"
+  },
+  {
+    "pid": 240507,
+    "raw": "Angel Gomes",
+    "current": "안젤 고메스",
+    "country": "England",
+    "club": "OM"
+  },
+  {
+    "pid": 240669,
+    "raw": "Lennard Maloney",
+    "current": "렌나르드 말로네이",
+    "country": "United States",
+    "club": "1. FSV Mainz 05"
+  },
+  {
+    "pid": 240740,
+    "raw": "Callum Hudson-Odoi",
+    "current": "칼럼 허드슨오도이",
+    "country": "England",
+    "club": "Nott'm Forest"
+  },
+  {
+    "pid": 240867,
+    "raw": "Ajibola Alese",
+    "current": "아이볼라 알레세",
+    "country": "England",
+    "club": "Sunderland"
+  },
+  {
+    "pid": 240913,
+    "raw": "Caoimhín Kelleher",
+    "current": "카오이민 켈러허",
+    "country": "Republic of Ireland",
+    "club": "Brentford"
+  },
+  {
+    "pid": 240925,
+    "raw": "Liam Millar",
+    "current": "리암 밀라르",
+    "country": "Canada",
+    "club": "Hull City"
+  },
+  {
+    "pid": 240947,
+    "raw": "Tyrick Mitchell",
+    "current": "티리크 미트켈",
+    "country": "England",
+    "club": "Crystal Palace"
+  },
+  {
+    "pid": 241159,
+    "raw": "Marc Guéhi",
+    "current": "마크 게히",
+    "country": "England",
+    "club": "Manchester City"
+  },
+  {
+    "pid": 241496,
+    "raw": "Timothy Weah",
+    "current": "티모시 웨아",
+    "country": "United States",
+    "club": "OM"
+  },
+  {
+    "pid": 241953,
+    "raw": "Regan Slater",
+    "current": "레간 슬라테르",
+    "country": "England",
+    "club": "Hull City"
+  },
+  {
+    "pid": 241982,
+    "raw": "Elliot Watt",
+    "current": "엘리엇 바트",
+    "country": "Scotland",
+    "club": "Samsunspor"
+  },
+  {
+    "pid": 242195,
+    "raw": "Mark McKenzie",
+    "current": "마크 므켄치에",
+    "country": "United States",
+    "club": "Toulouse FC"
+  },
+  {
+    "pid": 242280,
+    "raw": "Lewis Ferguson",
+    "current": "루이스 퍼거슨",
+    "country": "Scotland",
+    "club": "Bologna"
+  },
+  {
+    "pid": 242332,
+    "raw": "Gianluca Busio",
+    "current": "잔루카 부시오",
+    "country": "United States",
+    "club": "Venezia"
+  },
+  {
+    "pid": 242380,
+    "raw": "Stephen Eustáquio",
+    "current": "스테픈 에우스타키오",
+    "country": "Canada",
+    "club": "FC Porto"
+  },
+  {
+    "pid": 242434,
+    "raw": "Curtis Jones",
+    "current": "커티스 존스",
+    "country": "England",
+    "club": "Lombardia FC"
+  },
+  {
+    "pid": 242907,
+    "raw": "Bryan Reynolds",
+    "current": "브리안 레이놀즈",
+    "country": "United States",
+    "club": "Stade Rennais FC"
+  },
+  {
+    "pid": 242908,
+    "raw": "Jack Clarke",
+    "current": "잭 클라크",
+    "country": "England",
+    "club": "Ipswich"
+  },
+  {
+    "pid": 242964,
+    "raw": "Anthony Gordon",
+    "current": "앤서니 고든",
+    "country": "England",
+    "club": "FC Barcelona"
+  },
+  {
+    "pid": 243009,
+    "raw": "Derek Cornelius",
+    "current": "데릭 코넬리어스",
+    "country": "Canada",
+    "club": "OM"
+  },
+  {
+    "pid": 243048,
+    "raw": "Will Dennis",
+    "current": "윌 데니스",
+    "country": "England",
+    "club": "AFC Bournemouth"
+  },
+  {
+    "pid": 243057,
+    "raw": "Neco Williams",
+    "current": "네코 윌리엄스",
+    "country": "Wales",
+    "club": "Nott'm Forest"
+  },
+  {
+    "pid": 243133,
+    "raw": "Joe Scally",
+    "current": "조 스칼리",
+    "country": "United States",
+    "club": "M'gladbach"
+  },
+  {
+    "pid": 243282,
+    "raw": "Dwight McNeil",
+    "current": "드비그트 므크네일",
+    "country": "England",
+    "club": "Crystal Palace"
+  },
+  {
+    "pid": 243588,
+    "raw": "Tom McGill",
+    "current": "톰 므크질",
+    "country": "Canada",
+    "club": "Brighton"
+  },
+  {
+    "pid": 243606,
+    "raw": "Keane Lewis-Potter",
+    "current": "케아네 루이스포테르",
+    "country": "England",
+    "club": "Brentford"
+  },
+  {
+    "pid": 243608,
+    "raw": "Ryan Giles",
+    "current": "라이언 질레스",
+    "country": "England",
+    "club": "Hull City"
+  },
+  {
+    "pid": 243630,
+    "raw": "Jonathan David",
+    "current": "요나탄 다비드",
+    "country": "Canada",
+    "club": "Juventus"
+  },
+  {
+    "pid": 243657,
+    "raw": "James Garner",
+    "current": "제임스 가르네르",
+    "country": "England",
+    "club": "Everton"
+  },
+  {
+    "pid": 243669,
+    "raw": "Jaidon Anthony",
+    "current": "야이돈 앤서니",
+    "country": "England",
+    "club": "Brentford"
+  },
+  {
+    "pid": 243702,
+    "raw": "Djed Spence",
+    "current": "디에드 스펜체",
+    "country": "England",
+    "club": "Lombardia FC"
+  },
+  {
+    "pid": 243908,
+    "raw": "Daniel Ballard",
+    "current": "다니엘 발라르드",
+    "country": "Northern Ireland",
+    "club": "Sunderland"
+  },
+  {
+    "pid": 244591,
+    "raw": "Jayden Bogle",
+    "current": "야이덴 보글레",
+    "country": "England",
+    "club": "Leeds United"
+  },
+  {
+    "pid": 245541,
+    "raw": "Giovanni Reyna",
+    "current": "조반니 레이나",
+    "country": "United States",
+    "club": "Strasbourg"
+  },
+  {
+    "pid": 245563,
+    "raw": "Theo Bair",
+    "current": "테오 바이르",
+    "country": "Canada",
+    "club": "AJ Auxerre"
+  },
+  {
+    "pid": 245902,
+    "raw": "Troy Parrott",
+    "current": "트로이 파로트",
+    "country": "Republic of Ireland",
+    "club": "Real Betis"
+  },
+  {
+    "pid": 245992,
+    "raw": "Billy Gilmour",
+    "current": "빌리 질모우르",
+    "country": "Scotland",
+    "club": "SSC Napoli"
+  },
+  {
+    "pid": 246053,
+    "raw": "Joe Gelhardt",
+    "current": "조 젤라르드트",
+    "country": "England",
+    "club": "Hull City"
+  },
+  {
+    "pid": 246147,
+    "raw": "Mason Greenwood",
+    "current": "메이슨 그린우드",
+    "country": "England",
+    "club": "Fenerbahçe"
+  },
+  {
+    "pid": 246174,
+    "raw": "Harvey Elliott",
+    "current": "하비 엘리엇",
+    "country": "England",
+    "club": "Liverpool"
+  },
+  {
+    "pid": 246669,
+    "raw": "Bukayo Saka",
+    "current": "부카요 사카",
+    "country": "England",
+    "club": "Arsenal"
+  },
+  {
+    "pid": 246685,
+    "raw": "Leif Davis",
+    "current": "레이프 다비스",
+    "country": "England",
+    "club": "Ipswich"
+  },
+  {
+    "pid": 246800,
+    "raw": "Tajon Buchanan",
+    "current": "타욘 부카난",
+    "country": "Canada",
+    "club": "Villarreal CF"
+  },
+  {
+    "pid": 246873,
+    "raw": "Liam Kitching",
+    "current": "리암 키트킨그",
+    "country": "England",
+    "club": "Coventry City"
+  },
+  {
+    "pid": 246923,
+    "raw": "Jacob Ramsey",
+    "current": "제이콥 람세이",
+    "country": "England",
+    "club": "Newcastle Utd"
+  },
+  {
+    "pid": 247354,
+    "raw": "Benji Michel",
+    "current": "벤지 미셸",
+    "country": "United States",
+    "club": "Ulsan HD FC"
+  },
+  {
+    "pid": 247361,
+    "raw": "Brenden Aaronson",
+    "current": "브렌덴 아론손",
+    "country": "United States",
+    "club": "Leeds United"
+  },
+  {
+    "pid": 247463,
+    "raw": "Folarin Balogun",
+    "current": "폴라린 발로군",
+    "country": "United States",
+    "club": "AS Monaco"
+  },
+  {
+    "pid": 247528,
+    "raw": "Corrie Ndaba",
+    "current": "코리에 느다바",
+    "country": "Republic of Ireland",
+    "club": "Lecce"
+  },
+  {
+    "pid": 247649,
+    "raw": "Jarrad Branthwaite",
+    "current": "야라드 브란트바이테",
+    "country": "England",
+    "club": "Everton"
+  },
+  {
+    "pid": 248158,
+    "raw": "Gabriel Slonina",
+    "current": "가브리엘 슬로니나",
+    "country": "United States",
+    "club": "Chelsea"
+  },
+  {
+    "pid": 248474,
+    "raw": "Tino Anjorin",
+    "current": "티노 아니오린",
+    "country": "England",
+    "club": "Torino"
+  },
+  {
+    "pid": 248484,
+    "raw": "Nathan Collins",
+    "current": "네이선 콜린스",
+    "country": "Republic of Ireland",
+    "club": "Brentford"
+  },
+  {
+    "pid": 248492,
+    "raw": "James Hill",
+    "current": "제임스 힐",
+    "country": "England",
+    "club": "AFC Bournemouth"
+  },
+  {
+    "pid": 248602,
+    "raw": "Jacob Greaves",
+    "current": "제이콥 그레아베스",
+    "country": "England",
+    "club": "Ipswich"
+  },
+  {
+    "pid": 248692,
+    "raw": "Matty Jacob",
+    "current": "매티 제이콥",
+    "country": "England",
+    "club": "Hull City"
+  },
+  {
+    "pid": 248808,
+    "raw": "Aaron Hickey",
+    "current": "에런 이케이",
+    "country": "Scotland",
+    "club": "Brentford"
+  },
+  {
+    "pid": 250954,
+    "raw": "Chris Richards",
+    "current": "크리스 리차즈",
+    "country": "United States",
+    "club": "Crystal Palace"
+  },
+  {
+    "pid": 251198,
+    "raw": "Ellis Simms",
+    "current": "엘리스 심스",
+    "country": "England",
+    "club": "Coventry City"
+  },
+  {
+    "pid": 251223,
+    "raw": "Ricardo Pepi",
+    "current": "리카르도 페피",
+    "country": "United States",
+    "club": "PSV"
+  },
+  {
+    "pid": 251421,
+    "raw": "Brennan Johnson",
+    "current": "브레넌 존슨",
+    "country": "Wales",
+    "club": "Everton"
+  },
+  {
+    "pid": 251555,
+    "raw": "Josh Eccles",
+    "current": "조시 에클레스",
+    "country": "England",
+    "club": "Coventry City"
+  },
+  {
+    "pid": 251690,
+    "raw": "Jack Rudoni",
+    "current": "잭 루도니",
+    "country": "England",
+    "club": "Coventry City"
+  },
+  {
+    "pid": 251804,
+    "raw": "Sergiño Dest",
+    "current": "세르지뇨 데스트",
+    "country": "United States",
+    "club": "PSV"
+  },
+  {
+    "pid": 252371,
+    "raw": "Jude Bellingham",
+    "current": "주드 벨링엄",
+    "country": "England",
+    "club": "Real Madrid"
+  },
+  {
+    "pid": 252897,
+    "raw": "Calvin Ramsay",
+    "current": "칼빈 람사이",
+    "country": "Scotland",
+    "club": "Liverpool"
+  },
+  {
+    "pid": 253054,
+    "raw": "Hayden Hackney",
+    "current": "아이덴 아크네이",
+    "country": "England",
+    "club": "Everton"
+  },
+  {
+    "pid": 253177,
+    "raw": "Yunus Musah",
+    "current": "유누스 무사",
+    "country": "United States",
+    "club": "Milano FC"
+  },
+  {
+    "pid": 253403,
+    "raw": "Raphael",
+    "current": "라파엘",
+    "country": "Australia",
+    "club": "Coventry City"
+  },
+  {
+    "pid": 253510,
+    "raw": "Jake O'Brien",
+    "current": "야케 오브라이언",
+    "country": "Republic of Ireland",
+    "club": "Everton"
+  },
+  {
+    "pid": 254121,
+    "raw": "Charlie Cresswell",
+    "current": "찰리 크레스벨",
+    "country": "England",
+    "club": "Stade Rennais FC"
+  },
+  {
+    "pid": 254243,
+    "raw": "Elliot Anderson",
+    "current": "엘리엇 앤더슨",
+    "country": "England",
+    "club": "Manchester City"
+  },
+  {
+    "pid": 254327,
+    "raw": "Nathanael Ogbeta",
+    "current": "나타나엘 오그베타",
+    "country": "England",
+    "club": "Marítimo da Madeira"
+  },
+  {
+    "pid": 254529,
+    "raw": "Cody Drameh",
+    "current": "코디 드라메",
+    "country": "England",
+    "club": "Hull City"
+  },
+  {
+    "pid": 254796,
+    "raw": "Noni Madueke",
+    "current": "노니 마두에케",
+    "country": "England",
+    "club": "Arsenal"
+  },
+  {
+    "pid": 255272,
+    "raw": "Kevin Paredes",
+    "current": "케빈 파레데스",
+    "country": "United States",
+    "club": "FC Utrecht"
+  },
+  {
+    "pid": 255561,
+    "raw": "Josh Doig",
+    "current": "조시 도이그",
+    "country": "Scotland",
+    "club": "Sassuolo"
+  },
+  {
+    "pid": 256104,
+    "raw": "Tanner Tessmann",
+    "current": "탄네르 테스만",
+    "country": "United States",
+    "club": "OL"
+  },
+  {
+    "pid": 256853,
+    "raw": "Malik Tillman",
+    "current": "말리크 틸만",
+    "country": "United States",
+    "club": "Leverkusen"
+  },
+  {
+    "pid": 256877,
+    "raw": "Jalen Hawkins",
+    "current": "얄렌 호킨스",
+    "country": "United States",
+    "club": "ADO Den Haag"
+  },
+  {
+    "pid": 256887,
+    "raw": "Taylor Booth",
+    "current": "테일러 보트",
+    "country": "United States",
+    "club": "FC Twente"
+  },
+  {
+    "pid": 257063,
+    "raw": "Tyrhys Dolan",
+    "current": "티리스 돌란",
+    "country": "England",
+    "club": "RCD Espanyol"
+  },
+  {
+    "pid": 257104,
+    "raw": "Kieron Bowie",
+    "current": "키에론 보비에",
+    "country": "Scotland",
+    "club": "Sassuolo"
+  },
+  {
+    "pid": 257126,
+    "raw": "Teddy Sharman-Lowe",
+    "current": "테디 샤먼로우",
+    "country": "England",
+    "club": "Chelsea"
+  },
+  {
+    "pid": 257253,
+    "raw": "Bobby Thomas",
+    "current": "보비 토마스",
+    "country": "England",
+    "club": "Coventry City"
+  },
+  {
+    "pid": 257534,
+    "raw": "Cole Palmer",
+    "current": "콜 파머",
+    "country": "England",
+    "club": "Chelsea"
+  },
+  {
+    "pid": 257853,
+    "raw": "Robbie Ure",
+    "current": "로비에 우레",
+    "country": "Scotland",
+    "club": "Sevilla FC"
+  },
+  {
+    "pid": 257896,
+    "raw": "Nathan Patterson",
+    "current": "네이선 패터슨",
+    "country": "Scotland",
+    "club": "Everton"
+  },
+  {
+    "pid": 258522,
+    "raw": "Nelson Abbey",
+    "current": "넬손 아베이",
+    "country": "England",
+    "club": "Rio Ave FC"
+  },
+  {
+    "pid": 259031,
+    "raw": "Liam Delap",
+    "current": "리암 델랍",
+    "country": "England",
+    "club": "Chelsea"
+  },
+  {
+    "pid": 259240,
+    "raw": "Adam Wharton",
+    "current": "아담 바르톤",
+    "country": "England",
+    "club": "Crystal Palace"
+  },
+  {
+    "pid": 259516,
+    "raw": "Johnny Cardoso",
+    "current": "요니 카르도소",
+    "country": "United States",
+    "club": "Atlético de Madrid"
+  },
+  {
+    "pid": 259608,
+    "raw": "Evan Ferguson",
+    "current": "에반 퍼거슨",
+    "country": "Republic of Ireland",
+    "club": "Brighton"
+  },
+  {
+    "pid": 260144,
+    "raw": "Charlie Patiño",
+    "current": "찰리 파티노",
+    "country": "England",
+    "club": "RC Deportivo"
+  },
+  {
+    "pid": 260145,
+    "raw": "Omari Hutchinson",
+    "current": "오마리 우트킨손",
+    "country": "England",
+    "club": "Nott'm Forest"
+  },
+  {
+    "pid": 260247,
+    "raw": "Morgan Rogers",
+    "current": "모건 로저스",
+    "country": "England",
+    "club": "Chelsea"
+  },
+  {
+    "pid": 260521,
+    "raw": "Jordan Bos",
+    "current": "조던 보스",
+    "country": "Australia",
+    "club": "Feyenoord"
+  },
+  {
+    "pid": 260653,
+    "raw": "Brooke Norton-Cuffy",
+    "current": "브로케 노르톤쿠피",
+    "country": "England",
+    "club": "Genoa"
+  },
+  {
+    "pid": 261025,
+    "raw": "Dane Scarlett",
+    "current": "다네 스카를레트",
+    "country": "England",
+    "club": "Spurs"
+  },
+  {
+    "pid": 261133,
+    "raw": "Nile John",
+    "current": "닐레 존",
+    "country": "England",
+    "club": "Moreirense FC"
+  },
+  {
+    "pid": 261299,
+    "raw": "Alex Scott",
+    "current": "알렉스 스콧",
+    "country": "England",
+    "club": "AFC Bournemouth"
+  },
+  {
+    "pid": 261335,
+    "raw": "Kaine Kesler-Hayden",
+    "current": "카이네 케슬레르아이덴",
+    "country": "England",
+    "club": "Coventry City"
+  },
+  {
+    "pid": 261336,
+    "raw": "Jaden Philogene",
+    "current": "야덴 필로제네",
+    "country": "England",
+    "club": "Ipswich"
+  },
+  {
+    "pid": 261647,
+    "raw": "Andrew Omobamidele",
+    "current": "안드레브 오모바미델레",
+    "country": "Republic of Ireland",
+    "club": "Strasbourg"
+  },
+  {
+    "pid": 262118,
+    "raw": "Tino Livramento",
+    "current": "티노 리브라멘토",
+    "country": "England",
+    "club": "Newcastle Utd"
+  },
+  {
+    "pid": 262227,
+    "raw": "Daniel Jebbison",
+    "current": "다니엘 제비슨",
+    "country": "Canada",
+    "club": "AFC Bournemouth"
+  },
+  {
+    "pid": 262859,
+    "raw": "Levi Colwill",
+    "current": "리바이 콜윌",
+    "country": "England",
+    "club": "Chelsea"
+  },
+  {
+    "pid": 262904,
+    "raw": "John Iredale",
+    "current": "존 아이어데일",
+    "country": "Australia",
+    "club": "Gwangju FC"
+  },
+  {
+    "pid": 262968,
+    "raw": "Archie Brown",
+    "current": "아르키에 브로븐",
+    "country": "England",
+    "club": "Fenerbahçe"
+  },
+  {
+    "pid": 263063,
+    "raw": "James Trafford",
+    "current": "제임스 트라포르드",
+    "country": "England",
+    "club": "Leeds United"
+  },
+  {
+    "pid": 263339,
+    "raw": "Carl Rushworth",
+    "current": "카를 루스보르트",
+    "country": "England",
+    "club": "Coventry City"
+  },
+  {
+    "pid": 263571,
+    "raw": "Festy Ebosele",
+    "current": "페스티 에보셀레",
+    "country": "Republic of Ireland",
+    "club": "Erzurumspor Futbol Kulübü"
+  },
+  {
+    "pid": 263914,
+    "raw": "Eíran Cashin",
+    "current": "에이란 카신",
+    "country": "Republic of Ireland",
+    "club": "Brighton"
+  },
+  {
+    "pid": 264124,
+    "raw": "Cameron Peupion",
+    "current": "카메론 페우피온",
+    "country": "Australia",
+    "club": "ADO Den Haag"
+  },
+  {
+    "pid": 264200,
+    "raw": "Cameron Humphreys",
+    "current": "카메론 움프레이스",
+    "country": "England",
+    "club": "Ipswich"
+  },
+  {
+    "pid": 264207,
+    "raw": "Ismaël Koné",
+    "current": "이스마엘 코네",
+    "country": "Canada",
+    "club": "Sassuolo"
+  },
+  {
+    "pid": 264298,
+    "raw": "Conor Bradley",
+    "current": "코너 브래들리",
+    "country": "Northern Ireland",
+    "club": "Liverpool"
+  },
+  {
+    "pid": 264349,
+    "raw": "James McAtee",
+    "current": "제임스 므카테",
+    "country": "England",
+    "club": "Nott'm Forest"
+  },
+  {
+    "pid": 264509,
+    "raw": "James Abankwah",
+    "current": "제임스 아반크바",
+    "country": "Republic of Ireland",
+    "club": "Udinese"
+  },
+  {
+    "pid": 264681,
+    "raw": "Joshua Wilson-Esbrand",
+    "current": "조슈아 윌슨에스브란드",
+    "country": "England",
+    "club": "Manchester City"
+  },
+  {
+    "pid": 265459,
+    "raw": "Tyler Morton",
+    "current": "틸레르 모르톤",
+    "country": "England",
+    "club": "OL"
+  },
+  {
+    "pid": 265761,
+    "raw": "Cristian Volpato",
+    "current": "크리스티안 볼파토",
+    "country": "Australia",
+    "club": "Sassuolo"
+  },
+  {
+    "pid": 265801,
+    "raw": "Kasey McAteer",
+    "current": "카세이 므카테르",
+    "country": "Republic of Ireland",
+    "club": "Ipswich"
+  },
+  {
+    "pid": 266032,
+    "raw": "Jamie Gittens",
+    "current": "제이미 기튼스",
+    "country": "England",
+    "club": "Chelsea"
+  },
+  {
+    "pid": 266127,
+    "raw": "Lewis Hall",
+    "current": "루이스 홀",
+    "country": "England",
+    "club": "Newcastle Utd"
+  },
+  {
+    "pid": 266245,
+    "raw": "Nestory Irankunda",
+    "current": "네스토리 이란쿤다",
+    "country": "Australia",
+    "club": "Sporting CP"
+  },
+  {
+    "pid": 266400,
+    "raw": "Trai Hume",
+    "current": "트라이 우메",
+    "country": "Northern Ireland",
+    "club": "Sunderland"
+  },
+  {
+    "pid": 266500,
+    "raw": "Jonathan Rowe",
+    "current": "요나탄 로베",
+    "country": "England",
+    "club": "Bologna"
+  },
+  {
+    "pid": 266609,
+    "raw": "Tim Iroegbunam",
+    "current": "팀 이로에그부남",
+    "country": "England",
+    "club": "Everton"
+  },
+  {
+    "pid": 266815,
+    "raw": "Ben Gannon-Doak",
+    "current": "벤 도크",
+    "country": "Scotland",
+    "club": "AFC Bournemouth"
+  },
+  {
+    "pid": 267599,
+    "raw": "Patrick Beach",
+    "current": "파트리크 베아크",
+    "country": "Australia",
+    "club": "ESTAC Troyes"
+  },
+  {
+    "pid": 267849,
+    "raw": "Tommi O'Reilly",
+    "current": "톰미 오라일리",
+    "country": "England",
+    "club": "Aston Villa"
+  },
+  {
+    "pid": 267920,
+    "raw": "Alex Freeman",
+    "current": "알렉스 프리먼",
+    "country": "United States",
+    "club": "Villarreal CF"
+  },
+  {
+    "pid": 268131,
+    "raw": "CJ Egan-Riley",
+    "current": "키 에간라일리",
+    "country": "England",
+    "club": "OM"
+  },
+  {
+    "pid": 268415,
+    "raw": "Dermot Mee",
+    "current": "데르모트 메",
+    "country": "Northern Ireland",
+    "club": "Man Utd"
+  },
+  {
+    "pid": 268437,
+    "raw": "Omari Forson",
+    "current": "오마리 포르손",
+    "country": "England",
+    "club": "Monza"
+  },
+  {
+    "pid": 268439,
+    "raw": "Toby Collyer",
+    "current": "토비 콜리에르",
+    "country": "England",
+    "club": "Man Utd"
+  },
+  {
+    "pid": 268443,
+    "raw": "Daniel Gore",
+    "current": "다니엘 고레",
+    "country": "England",
+    "club": "Man Utd"
+  },
+  {
+    "pid": 268550,
+    "raw": "Josh Feeney",
+    "current": "조시 페네이",
+    "country": "England",
+    "club": "Aston Villa"
+  },
+  {
+    "pid": 268903,
+    "raw": "Romaine Mundle",
+    "current": "로마이네 문들레",
+    "country": "England",
+    "club": "Sunderland"
+  },
+  {
+    "pid": 268913,
+    "raw": "Alessandro Circati",
+    "current": "알레산드로 치르카티",
+    "country": "Australia",
+    "club": "SL Benfica"
+  },
+  {
+    "pid": 269136,
+    "raw": "Kobbie Mainoo",
+    "current": "코비 마이누",
+    "country": "England",
+    "club": "Man Utd"
+  },
+  {
+    "pid": 269923,
+    "raw": "Jacen Russell-Rowe",
+    "current": "야첸 러셀로베",
+    "country": "Canada",
+    "club": "Toulouse FC"
+  },
+  {
+    "pid": 270208,
+    "raw": "Archie Gray",
+    "current": "아치 그레이",
+    "country": "England",
+    "club": "Spurs"
+  },
+  {
+    "pid": 270209,
+    "raw": "Darko Gyabi",
+    "current": "다르코 기아비",
+    "country": "England",
+    "club": "Hull City"
+  },
+  {
+    "pid": 270964,
+    "raw": "Jobe Bellingham",
+    "current": "요베 벨링엄",
+    "country": "England",
+    "club": "Borussia Dortmund"
+  },
+  {
+    "pid": 271108,
+    "raw": "Tani Oluwaseyi",
+    "current": "타니 올루바세이이",
+    "country": "Canada",
+    "club": "Villarreal CF"
+  },
+  {
+    "pid": 271191,
+    "raw": "Joe Whitworth",
+    "current": "조 비트보르트",
+    "country": "England",
+    "club": "Crystal Palace"
+  },
+  {
+    "pid": 271574,
+    "raw": "Rico Lewis",
+    "current": "리코 루이스",
+    "country": "England",
+    "club": "Manchester City"
+  },
+  {
+    "pid": 271743,
+    "raw": "Amario Cozier-Duberry",
+    "current": "아마리오 코치에르두베리",
+    "country": "England",
+    "club": "Brighton"
+  },
+  {
+    "pid": 271746,
+    "raw": "Adrian Blake",
+    "current": "아드리안 블라케",
+    "country": "England",
+    "club": "FC Utrecht"
+  },
+  {
+    "pid": 271756,
+    "raw": "Matai Akinmboni",
+    "current": "마타이 아킨본",
+    "country": "United States",
+    "club": "AFC Bournemouth"
+  },
+  {
+    "pid": 271807,
+    "raw": "Ethan Nwaneri",
+    "current": "이선 느바네리",
+    "country": "England",
+    "club": "Arsenal"
+  },
+  {
+    "pid": 271976,
+    "raw": "Luke Chambers",
+    "current": "루크 캄베르스",
+    "country": "England",
+    "club": "Liverpool"
+  },
+  {
+    "pid": 271977,
+    "raw": "Harvey Davies",
+    "current": "하비 데이비스",
+    "country": "England",
+    "club": "Liverpool"
+  },
+  {
+    "pid": 272365,
+    "raw": "Sinclair Armstrong",
+    "current": "신클라이르 암스트롱",
+    "country": "Republic of Ireland",
+    "club": "Göztepe"
+  },
+  {
+    "pid": 272687,
+    "raw": "Benjamin Cremaschi",
+    "current": "베냐민 크레마스키",
+    "country": "United States",
+    "club": "Parma"
+  },
+  {
+    "pid": 272862,
+    "raw": "Mark O'Mahony",
+    "current": "마크 오마.오니",
+    "country": "Republic of Ireland",
+    "club": "Brighton"
+  },
+  {
+    "pid": 272895,
+    "raw": "Charlie Hughes",
+    "current": "찰리 휴즈",
+    "country": "England",
+    "club": "Hull City"
+  },
+  {
+    "pid": 273459,
+    "raw": "Chris Rigg",
+    "current": "크리스 리그",
+    "country": "England",
+    "club": "Sunderland"
+  },
+  {
+    "pid": 273599,
+    "raw": "Harry Amass",
+    "current": "해리 아마스",
+    "country": "England",
+    "club": "Man Utd"
+  },
+  {
+    "pid": 273616,
+    "raw": "Romain Esse",
+    "current": "로마인 에세",
+    "country": "England",
+    "club": "Crystal Palace"
+  },
+  {
+    "pid": 273651,
+    "raw": "Jarell Quansah",
+    "current": "자렐 콴사",
+    "country": "England",
+    "club": "Leverkusen"
+  },
+  {
+    "pid": 273693,
+    "raw": "David Ozoh",
+    "current": "다비드 오초",
+    "country": "England",
+    "club": "Crystal Palace"
+  },
+  {
+    "pid": 274246,
+    "raw": "Lewis Miley",
+    "current": "루이스 마일리",
+    "country": "England",
+    "club": "Newcastle Utd"
+  },
+  {
+    "pid": 274389,
+    "raw": "Khayon Edwards",
+    "current": "카이온 에드워즈",
+    "country": "Jamaica",
+    "club": "Estoril Praia"
+  },
+  {
+    "pid": 274536,
+    "raw": "Moïse Bombito",
+    "current": "모이세 봄비토",
+    "country": "Canada",
+    "club": "OGC Nice"
+  },
+  {
+    "pid": 274928,
+    "raw": "Sebastian Esposito",
+    "current": "세바스티안 에스포시토",
+    "country": "Australia",
+    "club": "Lecce"
+  },
+  {
+    "pid": 275522,
+    "raw": "Lennon Miller",
+    "current": "렌논 밀레르",
+    "country": "Scotland",
+    "club": "Udinese"
+  },
+  {
+    "pid": 276311,
+    "raw": "Santiago Castañeda",
+    "current": "산티아고 카스타네다",
+    "country": "United States",
+    "club": "SC Paderborn 07"
+  },
+  {
+    "pid": 276695,
+    "raw": "Shea Charles",
+    "current": "세아 카를레스",
+    "country": "Northern Ireland",
+    "club": "Fulham"
+  },
+  {
+    "pid": 277283,
+    "raw": "Jack Hinshelwood",
+    "current": "잭 인셀보드",
+    "country": "England",
+    "club": "Brighton"
+  },
+  {
+    "pid": 277293,
+    "raw": "Adedire Mebude",
+    "current": "아데디레 메부데",
+    "country": "Scotland",
+    "club": "Çaykur Rizespor"
+  },
+  {
+    "pid": 277427,
+    "raw": "Nico O'Reilly",
+    "current": "니코 오라일리",
+    "country": "England",
+    "club": "Manchester City"
+  },
+  {
+    "pid": 277512,
+    "raw": "Caylan Vickers",
+    "current": "카일란 비케르스",
+    "country": "England",
+    "club": "Brighton"
+  },
+  {
+    "pid": 277552,
+    "raw": "Tyler Bindon",
+    "current": "틸레르 빈돈",
+    "country": "New Zealand",
+    "club": "Nott'm Forest"
+  },
+  {
+    "pid": 277561,
+    "raw": "Samuel Amo-Ameyaw",
+    "current": "사무엘 아모아메이아브",
+    "country": "England",
+    "club": "Strasbourg"
+  },
+  {
+    "pid": 277657,
+    "raw": "Kai Andrews",
+    "current": "카이 앤드류스",
+    "country": "Wales",
+    "club": "Coventry City"
+  },
+  {
+    "pid": 277822,
+    "raw": "Trivante Stewart",
+    "current": "트리반테 스튜어트",
+    "country": "Jamaica",
+    "club": "Gaziantep"
+  },
+  {
+    "pid": 277922,
+    "raw": "Kamari Doyle",
+    "current": "카마리 도일레",
+    "country": "England",
+    "club": "Brighton"
+  },
+  {
+    "pid": 278017,
+    "raw": "Omari Kellyman",
+    "current": "오마리 켈리만",
+    "country": "England",
+    "club": "Strasbourg"
+  },
+  {
+    "pid": 278124,
+    "raw": "Shea Lacey",
+    "current": "세아 라체이",
+    "country": "England",
+    "club": "Man Utd"
+  },
+  {
+    "pid": 278210,
+    "raw": "Aidan Harris",
+    "current": "아이단 아리스",
+    "country": "England",
+    "club": "Newcastle Utd"
+  },
+  {
+    "pid": 278288,
+    "raw": "Alex Matos",
+    "current": "알렉스 마토스",
+    "country": "England",
+    "club": "Göztepe"
+  },
+  {
+    "pid": 278292,
+    "raw": "James McConnell",
+    "current": "제임스 므콘넬",
+    "country": "England",
+    "club": "Liverpool"
+  },
+  {
+    "pid": 278557,
+    "raw": "Jamie Donley",
+    "current": "야미에 돈레이",
+    "country": "Northern Ireland",
+    "club": "Spurs"
+  },
+  {
+    "pid": 278708,
+    "raw": "Tyrell Sellars-Fleming",
+    "current": "티렐 셀라르스플레민그",
+    "country": "England",
+    "club": "Hull City"
+  },
+  {
+    "pid": 278773,
+    "raw": "Myles Lewis-Skelly",
+    "current": "마일스 루이스스켈리",
+    "country": "England",
+    "club": "Arsenal"
+  },
+  {
+    "pid": 278875,
+    "raw": "Zavier Gozo",
+    "current": "차비에르 고초",
+    "country": "United States",
+    "club": "Crystal Palace"
+  },
+  {
+    "pid": 278957,
+    "raw": "Jayden Meghoma",
+    "current": "야이덴 메고마",
+    "country": "England",
+    "club": "Brentford"
+  },
+  {
+    "pid": 279008,
+    "raw": "Luc De Fougerolles",
+    "current": "루크 데 포우제롤레스",
+    "country": "Canada",
+    "club": "Fulham"
+  },
+  {
+    "pid": 279117,
+    "raw": "Alfie Dorrington",
+    "current": "알피에 도린그톤",
+    "country": "England",
+    "club": "Spurs"
+  },
+  {
+    "pid": 279128,
+    "raw": "Trey Nyoni",
+    "current": "트레이 니오니",
+    "country": "England",
+    "club": "Liverpool"
+  },
+  {
+    "pid": 279144,
+    "raw": "Jaden Umeh",
+    "current": "야덴 우메",
+    "country": "Republic of Ireland",
+    "club": "SL Benfica"
+  },
+  {
+    "pid": 279497,
+    "raw": "Tyler Dibling",
+    "current": "틸레르 디블린그",
+    "country": "England",
+    "club": "Everton"
+  }
+]

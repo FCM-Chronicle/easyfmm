@@ -1,0 +1,4752 @@
+[
+    {
+        "id":  70022,
+        "rawName":  "Rayan Lutin",
+        "knownAs":  "",
+        "firstName":  "Rayan",
+        "lastName":  "Lutin",
+        "club":  "Amed Sportif Faaliyetler",
+        "country":  "Comoros",
+        "ovr":  67
+    },
+    {
+        "id":  70025,
+        "rawName":  "Siaka Bakayoko",
+        "knownAs":  "",
+        "firstName":  "Siaka",
+        "lastName":  "Bakayoko",
+        "club":  "Çaykur Rizespor",
+        "country":  "France",
+        "ovr":  63
+    },
+    {
+        "id":  70241,
+        "rawName":  "Emrecan Bulut",
+        "knownAs":  "",
+        "firstName":  "Emrecan",
+        "lastName":  "Bulut",
+        "club":  "Çaykur Rizespor",
+        "country":  "Turkey",
+        "ovr":  63
+    },
+    {
+        "id":  70253,
+        "rawName":  "Arda Ünyay",
+        "knownAs":  "",
+        "firstName":  "Arda",
+        "lastName":  "Ünyay",
+        "club":  "Galatasaray",
+        "country":  "Turkey",
+        "ovr":  65
+    },
+    {
+        "id":  70289,
+        "rawName":  "Sidny Cabral",
+        "knownAs":  "Sidny Cabral",
+        "firstName":  "Sidny",
+        "lastName":  "Lopes Cabral",
+        "club":  "Trabzonspor",
+        "country":  "Cape Verde Islands",
+        "ovr":  71
+    },
+    {
+        "id":  70462,
+        "rawName":  "Hamza Güreler",
+        "knownAs":  "",
+        "firstName":  "Hamza",
+        "lastName":  "Güreler",
+        "club":  "Başakşehir",
+        "country":  "Turkey",
+        "ovr":  65
+    },
+    {
+        "id":  70937,
+        "rawName":  "Maestro",
+        "knownAs":  "Maestro",
+        "firstName":  "António Simão",
+        "lastName":  "Muanza",
+        "club":  "Alanyaspor",
+        "country":  "Angola",
+        "ovr":  68
+    },
+    {
+        "id":  72049,
+        "rawName":  "Fahri Kerem Ay",
+        "knownAs":  "",
+        "firstName":  "Fahri Kerem",
+        "lastName":  "Ay",
+        "club":  "Beşiktaş",
+        "country":  "Turkey",
+        "ovr":  60
+    },
+    {
+        "id":  72166,
+        "rawName":  "Gonçalo Sousa",
+        "knownAs":  "Gonçalo Sousa",
+        "firstName":  "Gonçalo",
+        "lastName":  "Santos Sousa",
+        "club":  "Kocaelispor",
+        "country":  "Portugal",
+        "ovr":  66
+    },
+    {
+        "id":  72170,
+        "rawName":  "Ilhan Fakili",
+        "knownAs":  "",
+        "firstName":  "Ilhan",
+        "lastName":  "Fakili",
+        "club":  "Beşiktaş",
+        "country":  "Turkey",
+        "ovr":  64
+    },
+    {
+        "id":  72315,
+        "rawName":  "Taylan Bulut",
+        "knownAs":  "",
+        "firstName":  "Taylan",
+        "lastName":  "Bulut",
+        "club":  "Beşiktaş",
+        "country":  "Germany",
+        "ovr":  67
+    },
+    {
+        "id":  72410,
+        "rawName":  "Habil Özbakır",
+        "knownAs":  "",
+        "firstName":  "Habil",
+        "lastName":  "Özbakır",
+        "club":  "Çaykur Rizespor",
+        "country":  "Turkey",
+        "ovr":  53
+    },
+    {
+        "id":  72417,
+        "rawName":  "Bedirhan Çetin",
+        "knownAs":  "",
+        "firstName":  "Bedirhan",
+        "lastName":  "Çetin",
+        "club":  "Samsunspor",
+        "country":  "Turkey",
+        "ovr":  58
+    },
+    {
+        "id":  72731,
+        "rawName":  "Samet Yalçın",
+        "knownAs":  "",
+        "firstName":  "Samet",
+        "lastName":  "Yalçın",
+        "club":  "Kocaelispor",
+        "country":  "Turkey",
+        "ovr":  59
+    },
+    {
+        "id":  72823,
+        "rawName":  "Taşkın İlter",
+        "knownAs":  "",
+        "firstName":  "Taşkın",
+        "lastName":  "İlter",
+        "club":  "Eyüpspor",
+        "country":  "Azerbaijan",
+        "ovr":  63
+    },
+    {
+        "id":  72870,
+        "rawName":  "Nariman Akhundzada",
+        "knownAs":  "",
+        "firstName":  "Nariman",
+        "lastName":  "Akhundzada",
+        "club":  "Erzurumspor Futbol Kulübü",
+        "country":  "Azerbaijan",
+        "ovr":  68
+    },
+    {
+        "id":  72889,
+        "rawName":  "Ogün Bayrak",
+        "knownAs":  "",
+        "firstName":  "Ogün",
+        "lastName":  "Bayrak",
+        "club":  "Göztepe",
+        "country":  "Turkey",
+        "ovr":  66
+    },
+    {
+        "id":  73511,
+        "rawName":  "Anto Sekongo",
+        "knownAs":  "",
+        "firstName":  "Anto",
+        "lastName":  "Sekongo",
+        "club":  "Samsunspor",
+        "country":  "Mali",
+        "ovr":  68
+    },
+    {
+        "id":  73576,
+        "rawName":  "Ege Yıldırım",
+        "knownAs":  "",
+        "firstName":  "Ege",
+        "lastName":  "Yıldırım",
+        "club":  "Göztepe",
+        "country":  "Turkey",
+        "ovr":  56
+    },
+    {
+        "id":  73592,
+        "rawName":  "Mert Bayram",
+        "knownAs":  "",
+        "firstName":  "Mert",
+        "lastName":  "Bayram",
+        "club":  "Alanyaspor",
+        "country":  "Turkey",
+        "ovr":  52
+    },
+    {
+        "id":  73864,
+        "rawName":  "Juan",
+        "knownAs":  "Juan",
+        "firstName":  "Juan",
+        "lastName":  "Santos da Silva",
+        "club":  "Göztepe",
+        "country":  "Brazil",
+        "ovr":  72
+    },
+    {
+        "id":  74049,
+        "rawName":  "Zakaria Ariss",
+        "knownAs":  "",
+        "firstName":  "Zakaria",
+        "lastName":  "Ariss",
+        "club":  "Çaykur Rizespor",
+        "country":  "Morocco",
+        "ovr":  70
+    },
+    {
+        "id":  74220,
+        "rawName":  "Bekir Turaç Böke",
+        "knownAs":  "",
+        "firstName":  "Bekir Turaç",
+        "lastName":  "Böke",
+        "club":  "Göztepe",
+        "country":  "Turkey",
+        "ovr":  61
+    },
+    {
+        "id":  74295,
+        "rawName":  "Arseniy Batagov",
+        "knownAs":  "",
+        "firstName":  "Arseniy",
+        "lastName":  "Batagov",
+        "club":  "Trabzonspor",
+        "country":  "Ukraine",
+        "ovr":  76
+    },
+    {
+        "id":  74981,
+        "rawName":  "Chibuike Nwaiwu",
+        "knownAs":  "",
+        "firstName":  "Chibuike",
+        "lastName":  "Nwaiwu",
+        "club":  "Trabzonspor",
+        "country":  "Nigeria",
+        "ovr":  72
+    },
+    {
+        "id":  75205,
+        "rawName":  "Ayberk Karapo",
+        "knownAs":  "",
+        "firstName":  "Ayberk",
+        "lastName":  "Karapo",
+        "club":  "Kasımpaşa",
+        "country":  "Turkey",
+        "ovr":  60
+    },
+    {
+        "id":  75342,
+        "rawName":  "Ahmet Yıldırım",
+        "knownAs":  "",
+        "firstName":  "Ahmet",
+        "lastName":  "Yıldırım",
+        "club":  "Trabzonspor",
+        "country":  "Turkey",
+        "ovr":  57
+    },
+    {
+        "id":  75470,
+        "rawName":  "Emir Yaşar",
+        "knownAs":  "",
+        "firstName":  "Emir",
+        "lastName":  "Yaşar",
+        "club":  "Beşiktaş",
+        "country":  "Turkey",
+        "ovr":  58
+    },
+    {
+        "id":  75521,
+        "rawName":  "Arda Usluoğlu",
+        "knownAs":  "",
+        "firstName":  "Arda",
+        "lastName":  "Usluoğlu",
+        "club":  "Alanyaspor",
+        "country":  "Turkey",
+        "ovr":  52
+    },
+    {
+        "id":  75811,
+        "rawName":  "Amadou Cissé",
+        "knownAs":  "",
+        "firstName":  "Amadou",
+        "lastName":  "Cissé",
+        "club":  "Amed Sportif Faaliyetler",
+        "country":  "Guinea",
+        "ovr":  63
+    },
+    {
+        "id":  75853,
+        "rawName":  "Arda Yavuz",
+        "knownAs":  "",
+        "firstName":  "Arda",
+        "lastName":  "Yavuz",
+        "club":  "Eyüpspor",
+        "country":  "Turkey",
+        "ovr":  55
+    },
+    {
+        "id":  75883,
+        "rawName":  "Kaan Akyazı",
+        "knownAs":  "",
+        "firstName":  "Kaan",
+        "lastName":  "Akyazı",
+        "club":  "Konyaspor",
+        "country":  "Turkey",
+        "ovr":  60
+    },
+    {
+        "id":  75892,
+        "rawName":  "Berat Luş",
+        "knownAs":  "",
+        "firstName":  "Berat",
+        "lastName":  "Luş",
+        "club":  "Galatasaray",
+        "country":  "Turkey",
+        "ovr":  62
+    },
+    {
+        "id":  75899,
+        "rawName":  "Efe Berat Törüz",
+        "knownAs":  "",
+        "firstName":  "Efe Berat",
+        "lastName":  "Törüz",
+        "club":  "Samsunspor",
+        "country":  "Turkey",
+        "ovr":  54
+    },
+    {
+        "id":  77041,
+        "rawName":  "Ognjen Mimović",
+        "knownAs":  "",
+        "firstName":  "Ognjen",
+        "lastName":  "Mimović",
+        "club":  "Fenerbahçe",
+        "country":  "Serbia",
+        "ovr":  70
+    },
+    {
+        "id":  77201,
+        "rawName":  "Élan Ricardo",
+        "knownAs":  "",
+        "firstName":  "Élan",
+        "lastName":  "Ricardo",
+        "club":  "Beşiktaş",
+        "country":  "Colombia",
+        "ovr":  66
+    },
+    {
+        "id":  78133,
+        "rawName":  "Efe Doğan",
+        "knownAs":  "",
+        "firstName":  "Efe",
+        "lastName":  "Doğan",
+        "club":  "Çaykur Rizespor",
+        "country":  "Turkey",
+        "ovr":  53
+    },
+    {
+        "id":  78160,
+        "rawName":  "Renato Nhaga",
+        "knownAs":  "Renato Nhaga",
+        "firstName":  "Renato",
+        "lastName":  "Sam Na Nhaga",
+        "club":  "Galatasaray",
+        "country":  "Guinea-Bissau",
+        "ovr":  64
+    },
+    {
+        "id":  78613,
+        "rawName":  "Jakob Jessen",
+        "knownAs":  "",
+        "firstName":  "Jakob",
+        "lastName":  "Jessen",
+        "club":  "Kasımpaşa",
+        "country":  "Denmark",
+        "ovr":  64
+    },
+    {
+        "id":  78867,
+        "rawName":  "Ali Osman Kalın",
+        "knownAs":  "",
+        "firstName":  "Ali Osman",
+        "lastName":  "Kalın",
+        "club":  "Gaziantep",
+        "country":  "Turkey",
+        "ovr":  53
+    },
+    {
+        "id":  79130,
+        "rawName":  "Onur Öztonga",
+        "knownAs":  "",
+        "firstName":  "Onur",
+        "lastName":  "Öztonga",
+        "club":  "Kocaelispor",
+        "country":  "Turkey",
+        "ovr":  62
+    },
+    {
+        "id":  79131,
+        "rawName":  "Muharrem Cinan",
+        "knownAs":  "",
+        "firstName":  "Muharrem",
+        "lastName":  "Cinan",
+        "club":  "Kocaelispor",
+        "country":  "Turkey",
+        "ovr":  61
+    },
+    {
+        "id":  80001,
+        "rawName":  "Serhat Öztaşdelen",
+        "knownAs":  "",
+        "firstName":  "Serhat",
+        "lastName":  "Öztaşdelen",
+        "club":  "Kocaelispor",
+        "country":  "Turkey",
+        "ovr":  53
+    },
+    {
+        "id":  80182,
+        "rawName":  "René Mitongo",
+        "knownAs":  "",
+        "firstName":  "René",
+        "lastName":  "Mitongo",
+        "club":  "Trabzonspor",
+        "country":  "Belgium",
+        "ovr":  61
+    },
+    {
+        "id":  80300,
+        "rawName":  "Moussa Kyabou",
+        "knownAs":  "",
+        "firstName":  "Moussa",
+        "lastName":  "Kyabou",
+        "club":  "Gençlerbirliği",
+        "country":  "Mali",
+        "ovr":  62
+    },
+    {
+        "id":  80302,
+        "rawName":  "Ensar Kemaloğlu",
+        "knownAs":  "",
+        "firstName":  "Ensar",
+        "lastName":  "Kemaloğlu",
+        "club":  "Gençlerbirliği",
+        "country":  "Turkey",
+        "ovr":  60
+    },
+    {
+        "id":  80304,
+        "rawName":  "Abbosbek Fayzullaev",
+        "knownAs":  "",
+        "firstName":  "Abbosbek",
+        "lastName":  "Fayzullaev",
+        "club":  "Başakşehir",
+        "country":  "Uzbekistan",
+        "ovr":  70
+    },
+    {
+        "id":  80305,
+        "rawName":  "Enver Kulasin",
+        "knownAs":  "",
+        "firstName":  "Enver",
+        "lastName":  "Kulasin",
+        "club":  "Gaziantep",
+        "country":  "Bosnia and Herzegovina",
+        "ovr":  58
+    },
+    {
+        "id":  80392,
+        "rawName":  "Dilhan Demir",
+        "knownAs":  "",
+        "firstName":  "Dilhan",
+        "lastName":  "Demir",
+        "club":  "Gençlerbirliği",
+        "country":  "Germany",
+        "ovr":  59
+    },
+    {
+        "id":  80459,
+        "rawName":  "Bedirhan Özyurt",
+        "knownAs":  "",
+        "firstName":  "Bedirhan",
+        "lastName":  "Özyurt",
+        "club":  "Alanyaspor",
+        "country":  "Turkey",
+        "ovr":  59
+    },
+    {
+        "id":  80463,
+        "rawName":  "Arda Çağan Çelik",
+        "knownAs":  "",
+        "firstName":  "Arda Çağan",
+        "lastName":  "Çelik",
+        "club":  "Gençlerbirliği",
+        "country":  "Turkey",
+        "ovr":  54
+    },
+    {
+        "id":  80600,
+        "rawName":  "Allan Godoi",
+        "knownAs":  "Allan Godoi",
+        "firstName":  "Allan",
+        "lastName":  "Godoi Santos",
+        "club":  "Göztepe",
+        "country":  "Brazil",
+        "ovr":  67
+    },
+    {
+        "id":  80601,
+        "rawName":  "Rhaldney",
+        "knownAs":  "Rhaldney",
+        "firstName":  "Rhaldney",
+        "lastName":  "Simião Gomes",
+        "club":  "Göztepe",
+        "country":  "Brazil",
+        "ovr":  70
+    },
+    {
+        "id":  80603,
+        "rawName":  "Janderson",
+        "knownAs":  "Janderson",
+        "firstName":  "Janderson",
+        "lastName":  "de Carvalho Costa",
+        "club":  "Göztepe",
+        "country":  "Brazil",
+        "ovr":  69
+    },
+    {
+        "id":  80641,
+        "rawName":  "Ibrahim Sabra",
+        "knownAs":  "",
+        "firstName":  "Ibrahim",
+        "lastName":  "Sabra",
+        "club":  "Göztepe",
+        "country":  "Jordan",
+        "ovr":  64
+    },
+    {
+        "id":  80643,
+        "rawName":  "Ebrima Ceesay",
+        "knownAs":  "",
+        "firstName":  "Ebrima",
+        "lastName":  "Ceesay",
+        "club":  "Samsunspor",
+        "country":  "Gambia",
+        "ovr":  58
+    },
+    {
+        "id":  80728,
+        "rawName":  "İbrahim Kaya",
+        "knownAs":  "",
+        "firstName":  "İbrahim",
+        "lastName":  "Kaya",
+        "club":  "Alanyaspor",
+        "country":  "Turkey",
+        "ovr":  66
+    },
+    {
+        "id":  80731,
+        "rawName":  "Yiğit Efe Demir",
+        "knownAs":  "",
+        "firstName":  "Yiğit Efe",
+        "lastName":  "Demir",
+        "club":  "Fenerbahçe",
+        "country":  "Turkey",
+        "ovr":  65
+    },
+    {
+        "id":  81410,
+        "rawName":  "Adem Arous",
+        "knownAs":  "",
+        "firstName":  "Adem",
+        "lastName":  "Arous",
+        "club":  "Kasımpaşa",
+        "country":  "Tunisia",
+        "ovr":  63
+    },
+    {
+        "id":  81512,
+        "rawName":  "Ruan",
+        "knownAs":  "Ruan",
+        "firstName":  "Ruan",
+        "lastName":  "Pereira Duarte",
+        "club":  "Alanyaspor",
+        "country":  "Brazil",
+        "ovr":  65
+    },
+    {
+        "id":  81518,
+        "rawName":  "Noah Saviolo",
+        "knownAs":  "Noah Saviolo",
+        "firstName":  "Noah",
+        "lastName":  "Saviolo",
+        "club":  "Trabzonspor",
+        "country":  "Portugal",
+        "ovr":  69
+    },
+    {
+        "id":  81567,
+        "rawName":  "Christ Sadia",
+        "knownAs":  "",
+        "firstName":  "Christ",
+        "lastName":  "Sadia",
+        "club":  "Eyüpspor",
+        "country":  "Côte d\u0027Ivoire",
+        "ovr":  58
+    },
+    {
+        "id":  81578,
+        "rawName":  "Tahsin Bülbül",
+        "knownAs":  "",
+        "firstName":  "Tahsin",
+        "lastName":  "Bülbül",
+        "club":  "Samsunspor",
+        "country":  "Turkey",
+        "ovr":  58
+    },
+    {
+        "id":  82804,
+        "rawName":  "Hasan Abdulkareem",
+        "knownAs":  "",
+        "firstName":  "Hasan",
+        "lastName":  "Abdulkareem",
+        "club":  "Çorum Futbol Kulübü",
+        "country":  "Iraq",
+        "ovr":  62
+    },
+    {
+        "id":  82855,
+        "rawName":  "Haydar Karataş",
+        "knownAs":  "",
+        "firstName":  "Haydar",
+        "lastName":  "Karataş",
+        "club":  "Kocaelispor",
+        "country":  "Turkey",
+        "ovr":  57
+    },
+    {
+        "id":  82888,
+        "rawName":  "Ahmet Sami Bircan",
+        "knownAs":  "",
+        "firstName":  "Ahmet Sami",
+        "lastName":  "Bircan",
+        "club":  "Beşiktaş",
+        "country":  "Turkey",
+        "ovr":  60
+    },
+    {
+        "id":  83008,
+        "rawName":  "Saikuba Jarju",
+        "knownAs":  "",
+        "firstName":  "Saikuba",
+        "lastName":  "Jarju",
+        "club":  "Samsunspor",
+        "country":  "Gambia",
+        "ovr":  62
+    },
+    {
+        "id":  83202,
+        "rawName":  "Charles-André Raux-Yao",
+        "knownAs":  "",
+        "firstName":  "Charles-André",
+        "lastName":  "Raux-Yao",
+        "club":  "Eyüpspor",
+        "country":  "France",
+        "ovr":  62
+    },
+    {
+        "id":  83226,
+        "rawName":  "Ali Badra Diabaté",
+        "knownAs":  "",
+        "firstName":  "Ali Badra",
+        "lastName":  "Diabaté",
+        "club":  "Samsunspor",
+        "country":  "Côte d\u0027Ivoire",
+        "ovr":  64
+    },
+    {
+        "id":  83745,
+        "rawName":  "Can Armando Güner",
+        "knownAs":  "",
+        "firstName":  "Can Armando",
+        "lastName":  "Güner",
+        "club":  "Galatasaray",
+        "country":  "Argentina",
+        "ovr":  64
+    },
+    {
+        "id":  84016,
+        "rawName":  "Ousmane Diabate",
+        "knownAs":  "",
+        "firstName":  "Ousmane",
+        "lastName":  "Diabate",
+        "club":  "Gençlerbirliği",
+        "country":  "Guinea",
+        "ovr":  65
+    },
+    {
+        "id":  84017,
+        "rawName":  "Abdou Sy",
+        "knownAs":  "",
+        "firstName":  "Abdou",
+        "lastName":  "Sy",
+        "club":  "Eyüpspor",
+        "country":  "Senegal",
+        "ovr":  57
+    },
+    {
+        "id":  84116,
+        "rawName":  "Burak Gültekin",
+        "knownAs":  "",
+        "firstName":  "Burak",
+        "lastName":  "Gültekin",
+        "club":  "Kasımpaşa",
+        "country":  "Turkey",
+        "ovr":  57
+    },
+    {
+        "id":  84391,
+        "rawName":  "Arda Özyar",
+        "knownAs":  "",
+        "firstName":  "Arda",
+        "lastName":  "Özyar",
+        "club":  "Kocaelispor",
+        "country":  "Turkey",
+        "ovr":  60
+    },
+    {
+        "id":  84481,
+        "rawName":  "Diabel Ndoye",
+        "knownAs":  "",
+        "firstName":  "Diabel",
+        "lastName":  "Ndoye",
+        "club":  "Eyüpspor",
+        "country":  "Senegal",
+        "ovr":  56
+    },
+    {
+        "id":  84606,
+        "rawName":  "Omar Ben Ali",
+        "knownAs":  "",
+        "firstName":  "Omar",
+        "lastName":  "Ben Ali",
+        "club":  "Alanyaspor",
+        "country":  "Tunisia",
+        "ovr":  63
+    },
+    {
+        "id":  85107,
+        "rawName":  "Umut Keseci",
+        "knownAs":  "",
+        "firstName":  "Umut",
+        "lastName":  "Keseci",
+        "club":  "Eyüpspor",
+        "country":  "Turkey",
+        "ovr":  52
+    },
+    {
+        "id":  85581,
+        "rawName":  "Matija Orbanić",
+        "knownAs":  "",
+        "firstName":  "Matija",
+        "lastName":  "Orbanić",
+        "club":  "Erzurumspor Futbol Kulübü",
+        "country":  "Croatia",
+        "ovr":  69
+    },
+    {
+        "id":  85582,
+        "rawName":  "Erkan Anapa",
+        "knownAs":  "",
+        "firstName":  "Erkan",
+        "lastName":  "Anapa",
+        "club":  "Erzurumspor Futbol Kulübü",
+        "country":  "Turkey",
+        "ovr":  56
+    },
+    {
+        "id":  85583,
+        "rawName":  "Yakup Kırtay",
+        "knownAs":  "",
+        "firstName":  "Yakup",
+        "lastName":  "Kırtay",
+        "club":  "Erzurumspor Futbol Kulübü",
+        "country":  "Turkey",
+        "ovr":  68
+    },
+    {
+        "id":  85584,
+        "rawName":  "Ömer Arda Kara",
+        "knownAs":  "",
+        "firstName":  "Ömer Arda",
+        "lastName":  "Kara",
+        "club":  "Erzurumspor Futbol Kulübü",
+        "country":  "Turkey",
+        "ovr":  58
+    },
+    {
+        "id":  85585,
+        "rawName":  "Cengizhan Bayrak",
+        "knownAs":  "",
+        "firstName":  "Cengizhan",
+        "lastName":  "Bayrak",
+        "club":  "Erzurumspor Futbol Kulübü",
+        "country":  "Turkey",
+        "ovr":  57
+    },
+    {
+        "id":  85594,
+        "rawName":  "Mert Önal",
+        "knownAs":  "",
+        "firstName":  "Mert",
+        "lastName":  "Önal",
+        "club":  "Erzurumspor Futbol Kulübü",
+        "country":  "Turkey",
+        "ovr":  54
+    },
+    {
+        "id":  85595,
+        "rawName":  "Mustafa Fettahoğlu",
+        "knownAs":  "",
+        "firstName":  "Mustafa",
+        "lastName":  "Fettahoğlu",
+        "club":  "Erzurumspor Futbol Kulübü",
+        "country":  "Turkey",
+        "ovr":  67
+    },
+    {
+        "id":  85596,
+        "rawName":  "İlkan Sever",
+        "knownAs":  "",
+        "firstName":  "İlkan",
+        "lastName":  "Sever",
+        "club":  "Erzurumspor Futbol Kulübü",
+        "country":  "Turkey",
+        "ovr":  57
+    },
+    {
+        "id":  85967,
+        "rawName":  "Elson Mendes",
+        "knownAs":  "Elson Mendes",
+        "firstName":  "Elson",
+        "lastName":  "Mendes da Silva",
+        "club":  "Kasımpaşa",
+        "country":  "Cape Verde Islands",
+        "ovr":  60
+    },
+    {
+        "id":  86604,
+        "rawName":  "Amara Diouf",
+        "knownAs":  "",
+        "firstName":  "Amara",
+        "lastName":  "Diouf",
+        "club":  "Fenerbahçe",
+        "country":  "Senegal",
+        "ovr":  60
+    },
+    {
+        "id":  86617,
+        "rawName":  "Berk Deniz Çukurcu",
+        "knownAs":  "",
+        "firstName":  "Berk Deniz",
+        "lastName":  "Çukurcu",
+        "club":  "Gençlerbirliği",
+        "country":  "Turkey",
+        "ovr":  51
+    },
+    {
+        "id":  86618,
+        "rawName":  "Berat Can Sebat",
+        "knownAs":  "",
+        "firstName":  "Berat Can",
+        "lastName":  "Sebat",
+        "club":  "Gençlerbirliği",
+        "country":  "Turkey",
+        "ovr":  58
+    },
+    {
+        "id":  86619,
+        "rawName":  "Emirhan Ünal",
+        "knownAs":  "",
+        "firstName":  "Emirhan",
+        "lastName":  "Ünal",
+        "club":  "Gençlerbirliği",
+        "country":  "Germany",
+        "ovr":  57
+    },
+    {
+        "id":  86629,
+        "rawName":  "André Henrique",
+        "knownAs":  "André Henrique",
+        "firstName":  "André Henrique",
+        "lastName":  "da Silva Martins",
+        "club":  "Göztepe",
+        "country":  "Brazil",
+        "ovr":  70
+    },
+    {
+        "id":  86633,
+        "rawName":  "Emirhan Boz",
+        "knownAs":  "",
+        "firstName":  "Emirhan",
+        "lastName":  "Boz",
+        "club":  "Kasımpaşa",
+        "country":  "Turkey",
+        "ovr":  61
+    },
+    {
+        "id":  86648,
+        "rawName":  "Muhammed Hasan Yıldırım",
+        "knownAs":  "",
+        "firstName":  "Muhammed Hasan",
+        "lastName":  "Yıldırım",
+        "club":  "Amed Sportif Faaliyetler",
+        "country":  "Turkey",
+        "ovr":  58
+    },
+    {
+        "id":  86651,
+        "rawName":  "Miraç Acer",
+        "knownAs":  "",
+        "firstName":  "Miraç",
+        "lastName":  "Acer",
+        "club":  "Amed Sportif Faaliyetler",
+        "country":  "Turkey",
+        "ovr":  56
+    },
+    {
+        "id":  86652,
+        "rawName":  "Cıvan Süer",
+        "knownAs":  "",
+        "firstName":  "Cıvan",
+        "lastName":  "Süer",
+        "club":  "Amed Sportif Faaliyetler",
+        "country":  "Turkey",
+        "ovr":  57
+    },
+    {
+        "id":  86953,
+        "rawName":  "David Costa",
+        "knownAs":  "David Costa",
+        "firstName":  "David José",
+        "lastName":  "Costa",
+        "club":  "Eyüpspor",
+        "country":  "Cape Verde Islands",
+        "ovr":  60
+    },
+    {
+        "id":  86966,
+        "rawName":  "Arif Şimşir",
+        "knownAs":  "",
+        "firstName":  "Arif",
+        "lastName":  "Şimşir",
+        "club":  "Çorum Futbol Kulübü",
+        "country":  "Turkey",
+        "ovr":  51
+    },
+    {
+        "id":  87087,
+        "rawName":  "Berk Kızıldemir",
+        "knownAs":  "",
+        "firstName":  "Berk",
+        "lastName":  "Kızıldemir",
+        "club":  "Amed Sportif Faaliyetler",
+        "country":  "Turkey",
+        "ovr":  58
+    },
+    {
+        "id":  87121,
+        "rawName":  "Sercan Deniz",
+        "knownAs":  "",
+        "firstName":  "Sercan",
+        "lastName":  "Deniz",
+        "club":  "Kasımpaşa",
+        "country":  "Turkey",
+        "ovr":  58
+    },
+    {
+        "id":  88391,
+        "rawName":  "Şahin Dik",
+        "knownAs":  "",
+        "firstName":  "Şahin",
+        "lastName":  "Dik",
+        "club":  "Alanyaspor",
+        "country":  "Turkey",
+        "ovr":  56
+    },
+    {
+        "id":  88835,
+        "rawName":  "Mustafa Coşkun Tosun",
+        "knownAs":  "",
+        "firstName":  "Mustafa Coşkun",
+        "lastName":  "Tosun",
+        "club":  "Çaykur Rizespor",
+        "country":  "Turkey",
+        "ovr":  58
+    },
+    {
+        "id":  88836,
+        "rawName":  "Emirhan Yılmaz",
+        "knownAs":  "",
+        "firstName":  "Emirhan",
+        "lastName":  "Yılmaz",
+        "club":  "Çaykur Rizespor",
+        "country":  "Turkey",
+        "ovr":  58
+    },
+    {
+        "id":  88842,
+        "rawName":  "Arouna Soro",
+        "knownAs":  "Arouna Soro",
+        "firstName":  "Arouna",
+        "lastName":  "Soro",
+        "club":  "Alanyaspor",
+        "country":  "Côte d\u0027Ivoire",
+        "ovr":  63
+    },
+    {
+        "id":  88846,
+        "rawName":  "Bedirhan Yıldız",
+        "knownAs":  "",
+        "firstName":  "Bedirhan",
+        "lastName":  "Yıldız",
+        "club":  "Kocaelispor",
+        "country":  "Turkey",
+        "ovr":  62
+    },
+    {
+        "id":  88975,
+        "rawName":  "Musa Eren Karakas",
+        "knownAs":  "",
+        "firstName":  "Musa Eren",
+        "lastName":  "Karakas",
+        "club":  "Eyüpspor",
+        "country":  "Turkey",
+        "ovr":  64
+    },
+    {
+        "id":  89021,
+        "rawName":  "Mikdat Çil",
+        "knownAs":  "",
+        "firstName":  "Mikdat",
+        "lastName":  "Çil",
+        "club":  "Kocaelispor",
+        "country":  "Turkey",
+        "ovr":  58
+    },
+    {
+        "id":  89049,
+        "rawName":  "Bilal Demirag",
+        "knownAs":  "",
+        "firstName":  "Bilal",
+        "lastName":  "Demirag",
+        "club":  "Alanyaspor",
+        "country":  "Turkey",
+        "ovr":  60
+    },
+    {
+        "id":  186942,
+        "rawName":  "İlkay Gündoğan",
+        "knownAs":  "",
+        "firstName":  "İlkay",
+        "lastName":  "Gündoğan",
+        "club":  "Galatasaray",
+        "country":  "Germany",
+        "ovr":  78
+    },
+    {
+        "id":  188524,
+        "rawName":  "Volkan Babacan",
+        "knownAs":  "",
+        "firstName":  "Volkan",
+        "lastName":  "Babacan",
+        "club":  "Başakşehir",
+        "country":  "Turkey",
+        "ovr":  66
+    },
+    {
+        "id":  190113,
+        "rawName":  "Mert Günok",
+        "knownAs":  "",
+        "firstName":  "Mert",
+        "lastName":  "Günok",
+        "club":  "Fenerbahçe",
+        "country":  "Turkey",
+        "ovr":  73
+    },
+    {
+        "id":  192505,
+        "rawName":  "Romelu Lukaku",
+        "knownAs":  "",
+        "firstName":  "Romelu",
+        "lastName":  "Lukaku",
+        "club":  "Fenerbahçe",
+        "country":  "Belgium",
+        "ovr":  82
+    },
+    {
+        "id":  193107,
+        "rawName":  "Paulo Victor",
+        "knownAs":  "Paulo Victor",
+        "firstName":  "Paulo Victor",
+        "lastName":  "Mileo Vidotti",
+        "club":  "Alanyaspor",
+        "country":  "Brazil",
+        "ovr":  69
+    },
+    {
+        "id":  193461,
+        "rawName":  "Fredy",
+        "knownAs":  "Fredy",
+        "firstName":  "Alfredo",
+        "lastName":  "Kulembe Ribeiro",
+        "club":  "Çorum Futbol Kulübü",
+        "country":  "Angola",
+        "ovr":  69
+    },
+    {
+        "id":  194372,
+        "rawName":  "Ertuğrul Taşkıran",
+        "knownAs":  "",
+        "firstName":  "Ertuğrul",
+        "lastName":  "Taşkıran",
+        "club":  "Erzurumspor Futbol Kulübü",
+        "country":  "Turkey",
+        "ovr":  68
+    },
+    {
+        "id":  196318,
+        "rawName":  "Serdar Gürler",
+        "knownAs":  "",
+        "firstName":  "Serdar",
+        "lastName":  "Gürler",
+        "club":  "Çorum Futbol Kulübü",
+        "country":  "Turkey",
+        "ovr":  65
+    },
+    {
+        "id":  199683,
+        "rawName":  "Kamil Çörekçi",
+        "knownAs":  "",
+        "firstName":  "Kamil",
+        "lastName":  "Çörekçi",
+        "club":  "Kasımpaşa",
+        "country":  "Turkey",
+        "ovr":  66
+    },
+    {
+        "id":  199789,
+        "rawName":  "Mustafa Yumlu",
+        "knownAs":  "",
+        "firstName":  "Mustafa",
+        "lastName":  "Yumlu",
+        "club":  "Erzurumspor Futbol Kulübü",
+        "country":  "Turkey",
+        "ovr":  65
+    },
+    {
+        "id":  200746,
+        "rawName":  "John Lundstram",
+        "knownAs":  "",
+        "firstName":  "John",
+        "lastName":  "Lundstram",
+        "club":  "Trabzonspor",
+        "country":  "England",
+        "ovr":  71
+    },
+    {
+        "id":  201955,
+        "rawName":  "Massadio Haïdara",
+        "knownAs":  "",
+        "firstName":  "Massadio",
+        "lastName":  "Haïdara",
+        "club":  "Kocaelispor",
+        "country":  "Mali",
+        "ovr":  72
+    },
+    {
+        "id":  204639,
+        "rawName":  "Stefan Savić",
+        "knownAs":  "",
+        "firstName":  "Stefan",
+        "lastName":  "Savić",
+        "club":  "Trabzonspor",
+        "country":  "Montenegro",
+        "ovr":  76
+    },
+    {
+        "id":  205201,
+        "rawName":  "Okay Yokuşlu",
+        "knownAs":  "",
+        "firstName":  "Okay",
+        "lastName":  "Yokuşlu",
+        "club":  "Trabzonspor",
+        "country":  "Turkey",
+        "ovr":  72
+    },
+    {
+        "id":  205678,
+        "rawName":  "Edin Višća",
+        "knownAs":  "",
+        "firstName":  "Edin",
+        "lastName":  "Višća",
+        "club":  "Başakşehir",
+        "country":  "Bosnia and Herzegovina",
+        "ovr":  73
+    },
+    {
+        "id":  205939,
+        "rawName":  "Onur Bulut",
+        "knownAs":  "",
+        "firstName":  "Onur",
+        "lastName":  "Bulut",
+        "club":  "Başakşehir",
+        "country":  "Turkey",
+        "ovr":  67
+    },
+    {
+        "id":  206104,
+        "rawName":  "Serdar Dursun",
+        "knownAs":  "",
+        "firstName":  "Serdar",
+        "lastName":  "Dursun",
+        "club":  "Gaziantep",
+        "country":  "Turkey",
+        "ovr":  68
+    },
+    {
+        "id":  207421,
+        "rawName":  "Leandro Trossard",
+        "knownAs":  "",
+        "firstName":  "Leandro",
+        "lastName":  "Trossard",
+        "club":  "Beşiktaş",
+        "country":  "Belgium",
+        "ovr":  82
+    },
+    {
+        "id":  207790,
+        "rawName":  "Kaan Ayhan",
+        "knownAs":  "",
+        "firstName":  "Kaan",
+        "lastName":  "Ayhan",
+        "club":  "Galatasaray",
+        "country":  "Turkey",
+        "ovr":  73
+    },
+    {
+        "id":  208920,
+        "rawName":  "Nathan Aké",
+        "knownAs":  "",
+        "firstName":  "Nathan",
+        "lastName":  "Aké",
+        "club":  "Fenerbahçe",
+        "country":  "Holland",
+        "ovr":  80
+    },
+    {
+        "id":  209289,
+        "rawName":  "Kévin Rodrigues",
+        "knownAs":  "Kévin Rodrigues",
+        "firstName":  "Kévin Manuel",
+        "lastName":  "Rodrigues",
+        "club":  "Gençlerbirliği",
+        "country":  "Portugal",
+        "ovr":  72
+    },
+    {
+        "id":  209331,
+        "rawName":  "Mohamed Salah",
+        "knownAs":  "",
+        "firstName":  "Mohamed",
+        "lastName":  "Salah",
+        "club":  "Trabzonspor",
+        "country":  "Egypt",
+        "ovr":  87
+    },
+    {
+        "id":  209499,
+        "rawName":  "Fabinho",
+        "knownAs":  "Fabinho",
+        "firstName":  "Fábio",
+        "lastName":  "Henrique Tavares",
+        "club":  "Trabzonspor",
+        "country":  "Brazil",
+        "ovr":  82
+    },
+    {
+        "id":  210257,
+        "rawName":  "Ederson",
+        "knownAs":  "Ederson",
+        "firstName":  "Ederson",
+        "lastName":  "Santana de Moraes",
+        "club":  "Fenerbahçe",
+        "country":  "Brazil",
+        "ovr":  82
+    },
+    {
+        "id":  210327,
+        "rawName":  "Andreas Gianniotis",
+        "knownAs":  "",
+        "firstName":  "Andreas",
+        "lastName":  "Gianniotis",
+        "club":  "Kasımpaşa",
+        "country":  "Greece",
+        "ovr":  70
+    },
+    {
+        "id":  211061,
+        "rawName":  "Alexandru Maxim",
+        "knownAs":  "",
+        "firstName":  "Alexandru",
+        "lastName":  "Maxim",
+        "club":  "Gaziantep",
+        "country":  "Romania",
+        "ovr":  74
+    },
+    {
+        "id":  211748,
+        "rawName":  "Kerem Demirbay",
+        "knownAs":  "",
+        "firstName":  "Kerem",
+        "lastName":  "Demirbay",
+        "club":  "Kasımpaşa",
+        "country":  "Germany",
+        "ovr":  73
+    },
+    {
+        "id":  211908,
+        "rawName":  "Günay Güvenç",
+        "knownAs":  "",
+        "firstName":  "Günay",
+        "lastName":  "Güvenç",
+        "club":  "Galatasaray",
+        "country":  "Turkey",
+        "ovr":  72
+    },
+    {
+        "id":  212260,
+        "rawName":  "Hwang Ui Jo",
+        "knownAs":  "Hwang Ui Jo",
+        "firstName":  "Ui Jo",
+        "lastName":  "Hwang",
+        "club":  "Alanyaspor",
+        "country":  "Korea Republic",
+        "ovr":  70
+    },
+    {
+        "id":  212382,
+        "rawName":  "Paul Onuachu",
+        "knownAs":  "",
+        "firstName":  "Paul",
+        "lastName":  "Onuachu",
+        "club":  "Trabzonspor",
+        "country":  "Nigeria",
+        "ovr":  77
+    },
+    {
+        "id":  212491,
+        "rawName":  "Arthur Masuaku",
+        "knownAs":  "",
+        "firstName":  "Arthur",
+        "lastName":  "Masuaku",
+        "club":  "Konyaspor",
+        "country":  "Congo DR",
+        "ovr":  75
+    },
+    {
+        "id":  212523,
+        "rawName":  "Anderson Talisca",
+        "knownAs":  "Anderson Talisca",
+        "firstName":  "Anderson",
+        "lastName":  "Souza Conceição",
+        "club":  "Fenerbahçe",
+        "country":  "Brazil",
+        "ovr":  81
+    },
+    {
+        "id":  212546,
+        "rawName":  "Myenty Abena",
+        "knownAs":  "",
+        "firstName":  "Myenty",
+        "lastName":  "Abena",
+        "club":  "Gaziantep",
+        "country":  "Suriname",
+        "ovr":  68
+    },
+    {
+        "id":  212626,
+        "rawName":  "Davie Selke",
+        "knownAs":  "",
+        "firstName":  "Davie",
+        "lastName":  "Selke",
+        "club":  "Başakşehir",
+        "country":  "Germany",
+        "ovr":  72
+    },
+    {
+        "id":  212811,
+        "rawName":  "Mario Lemina",
+        "knownAs":  "",
+        "firstName":  "Mario",
+        "lastName":  "Lemina",
+        "club":  "Galatasaray",
+        "country":  "Gabon",
+        "ovr":  78
+    },
+    {
+        "id":  212814,
+        "rawName":  "João Mário",
+        "knownAs":  "João Mário",
+        "firstName":  "João Mário",
+        "lastName":  "N. Costa Eduardo",
+        "club":  "Beşiktaş",
+        "country":  "Portugal",
+        "ovr":  74
+    },
+    {
+        "id":  214718,
+        "rawName":  "Martín Rodríguez",
+        "knownAs":  "",
+        "firstName":  "Martín",
+        "lastName":  "Rodríguez",
+        "club":  "Erzurumspor Futbol Kulübü",
+        "country":  "Chile",
+        "ovr":  65
+    },
+    {
+        "id":  215323,
+        "rawName":  "Ali Sowe",
+        "knownAs":  "",
+        "firstName":  "Ali",
+        "lastName":  "Sowe",
+        "club":  "Çaykur Rizespor",
+        "country":  "Gambia",
+        "ovr":  70
+    },
+    {
+        "id":  215455,
+        "rawName":  "Bruno Petković",
+        "knownAs":  "",
+        "firstName":  "Bruno",
+        "lastName":  "Petković",
+        "club":  "Kocaelispor",
+        "country":  "Croatia",
+        "ovr":  75
+    },
+    {
+        "id":  215531,
+        "rawName":  "Deniz Türüç",
+        "knownAs":  "",
+        "firstName":  "Deniz",
+        "lastName":  "Türüç",
+        "club":  "Konyaspor",
+        "country":  "Turkey",
+        "ovr":  71
+    },
+    {
+        "id":  215914,
+        "rawName":  "N\u0027Golo Kanté",
+        "knownAs":  "",
+        "firstName":  "N\u0027Golo",
+        "lastName":  "Kanté",
+        "club":  "Fenerbahçe",
+        "country":  "France",
+        "ovr":  83
+    },
+    {
+        "id":  216580,
+        "rawName":  "Cláudio Winck",
+        "knownAs":  "Cláudio Winck",
+        "firstName":  "Cláudio",
+        "lastName":  "Winck Neto",
+        "club":  "Kasımpaşa",
+        "country":  "Brazil",
+        "ovr":  71
+    },
+    {
+        "id":  216814,
+        "rawName":  "Salih Uçan",
+        "knownAs":  "",
+        "firstName":  "Salih",
+        "lastName":  "Uçan",
+        "club":  "Gençlerbirliği",
+        "country":  "Turkey",
+        "ovr":  69
+    },
+    {
+        "id":  216860,
+        "rawName":  "Václav Černý",
+        "knownAs":  "",
+        "firstName":  "Václav",
+        "lastName":  "Černý",
+        "club":  "Beşiktaş",
+        "country":  "Czech Republic",
+        "ovr":  77
+    },
+    {
+        "id":  217007,
+        "rawName":  "Mame Thiam",
+        "knownAs":  "Mame Thiam",
+        "firstName":  "Mame Baba",
+        "lastName":  "Thiam",
+        "club":  "Çorum Futbol Kulübü",
+        "country":  "Senegal",
+        "ovr":  70
+    },
+    {
+        "id":  219339,
+        "rawName":  "Marcos Felipe",
+        "knownAs":  "Marcos Felipe",
+        "firstName":  "Marcos Felipe",
+        "lastName":  "de Freitas Monteiro",
+        "club":  "Çorum Futbol Kulübü",
+        "country":  "Brazil",
+        "ovr":  69
+    },
+    {
+        "id":  219693,
+        "rawName":  "Diego Carlos",
+        "knownAs":  "Diego Carlos",
+        "firstName":  "Diego Carlos",
+        "lastName":  "Santos Silva",
+        "club":  "Fenerbahçe",
+        "country":  "Brazil",
+        "ovr":  78
+    },
+    {
+        "id":  219950,
+        "rawName":  "Noah Sonko Sundberg",
+        "knownAs":  "",
+        "firstName":  "Noah",
+        "lastName":  "Sonko Sundberg",
+        "club":  "Göztepe",
+        "country":  "Gambia",
+        "ovr":  66
+    },
+    {
+        "id":  220131,
+        "rawName":  "Mbaye Diagne",
+        "knownAs":  "",
+        "firstName":  "Mbaye",
+        "lastName":  "Diagne",
+        "club":  "Amed Sportif Faaliyetler",
+        "country":  "Senegal",
+        "ovr":  73
+    },
+    {
+        "id":  220175,
+        "rawName":  "Olivier Kemen",
+        "knownAs":  "",
+        "firstName":  "Olivier",
+        "lastName":  "Kemen",
+        "club":  "Başakşehir",
+        "country":  "Cameroon",
+        "ovr":  71
+    },
+    {
+        "id":  220620,
+        "rawName":  "Florent Hadergjonaj",
+        "knownAs":  "",
+        "firstName":  "Florent",
+        "lastName":  "Hadergjonaj",
+        "club":  "Alanyaspor",
+        "country":  "Kosovo",
+        "ovr":  71
+    },
+    {
+        "id":  220793,
+        "rawName":  "Davinson Sánchez",
+        "knownAs":  "",
+        "firstName":  "Davinson",
+        "lastName":  "Sánchez",
+        "club":  "Galatasaray",
+        "country":  "Colombia",
+        "ovr":  80
+    },
+    {
+        "id":  220834,
+        "rawName":  "Marco Asensio",
+        "knownAs":  "Marco Asensio",
+        "firstName":  "Marco",
+        "lastName":  "Asensio Willemsen",
+        "club":  "Fenerbahçe",
+        "country":  "Spain",
+        "ovr":  82
+    },
+    {
+        "id":  221989,
+        "rawName":  "Fidan Aliti",
+        "knownAs":  "",
+        "firstName":  "Fidan",
+        "lastName":  "Aliti",
+        "club":  "Alanyaspor",
+        "country":  "Kosovo",
+        "ovr":  68
+    },
+    {
+        "id":  222492,
+        "rawName":  "Leroy Sané",
+        "knownAs":  "Leroy Sané",
+        "firstName":  "Leroy Aziz",
+        "lastName":  "Sané",
+        "club":  "Galatasaray",
+        "country":  "Germany",
+        "ovr":  80
+    },
+    {
+        "id":  223017,
+        "rawName":  "Ömer Ali Şahiner",
+        "knownAs":  "",
+        "firstName":  "Ömer Ali",
+        "lastName":  "Şahiner",
+        "club":  "Başakşehir",
+        "country":  "Turkey",
+        "ovr":  68
+    },
+    {
+        "id":  223114,
+        "rawName":  "Eren Tozlu",
+        "knownAs":  "",
+        "firstName":  "Eren",
+        "lastName":  "Tozlu",
+        "club":  "Erzurumspor Futbol Kulübü",
+        "country":  "Turkey",
+        "ovr":  69
+    },
+    {
+        "id":  223154,
+        "rawName":  "Ozan Tufan",
+        "knownAs":  "",
+        "firstName":  "Ozan",
+        "lastName":  "Tufan",
+        "club":  "Trabzonspor",
+        "country":  "Turkey",
+        "ovr":  72
+    },
+    {
+        "id":  223174,
+        "rawName":  "Onurcan Piri",
+        "knownAs":  "",
+        "firstName":  "Onurcan",
+        "lastName":  "Piri",
+        "club":  "Kocaelispor",
+        "country":  "Turkey",
+        "ovr":  62
+    },
+    {
+        "id":  223175,
+        "rawName":  "Okan Kocuk",
+        "knownAs":  "",
+        "firstName":  "Okan",
+        "lastName":  "Kocuk",
+        "club":  "Samsunspor",
+        "country":  "Turkey",
+        "ovr":  72
+    },
+    {
+        "id":  223195,
+        "rawName":  "Orhan Ovacıklı",
+        "knownAs":  "",
+        "firstName":  "Orhan",
+        "lastName":  "Ovacıklı",
+        "club":  "Erzurumspor Futbol Kulübü",
+        "country":  "Turkey",
+        "ovr":  65
+    },
+    {
+        "id":  223710,
+        "rawName":  "Vedat Muriqi",
+        "knownAs":  "",
+        "firstName":  "Vedat",
+        "lastName":  "Muriqi",
+        "club":  "Fenerbahçe",
+        "country":  "Kosovo",
+        "ovr":  81
+    },
+    {
+        "id":  223885,
+        "rawName":  "Alexander Nübel",
+        "knownAs":  "",
+        "firstName":  "Alexander",
+        "lastName":  "Nübel",
+        "club":  "Beşiktaş",
+        "country":  "Germany",
+        "ovr":  80
+    },
+    {
+        "id":  223959,
+        "rawName":  "Lucas Torreira",
+        "knownAs":  "",
+        "firstName":  "Lucas",
+        "lastName":  "Torreira",
+        "club":  "Galatasaray",
+        "country":  "Uruguay",
+        "ovr":  81
+    },
+    {
+        "id":  224158,
+        "rawName":  "Sofyan Amrabat",
+        "knownAs":  "",
+        "firstName":  "Sofyan",
+        "lastName":  "Amrabat",
+        "club":  "Fenerbahçe",
+        "country":  "Morocco",
+        "ovr":  79
+    },
+    {
+        "id":  224488,
+        "rawName":  "Furkan Soyalp",
+        "knownAs":  "",
+        "firstName":  "Furkan",
+        "lastName":  "Soyalp",
+        "club":  "Amed Sportif Faaliyetler",
+        "country":  "Turkey",
+        "ovr":  66
+    },
+    {
+        "id":  224718,
+        "rawName":  "Taylan Antalyalı",
+        "knownAs":  "",
+        "firstName":  "Taylan",
+        "lastName":  "Antalyalı",
+        "club":  "Çaykur Rizespor",
+        "country":  "Turkey",
+        "ovr":  66
+    },
+    {
+        "id":  224724,
+        "rawName":  "Tayfur Bingöl",
+        "knownAs":  "",
+        "firstName":  "Tayfur",
+        "lastName":  "Bingöl",
+        "club":  "Kocaelispor",
+        "country":  "Turkey",
+        "ovr":  66
+    },
+    {
+        "id":  224890,
+        "rawName":  "Miguel Cardoso",
+        "knownAs":  "Miguel Cardoso",
+        "firstName":  "Miguel Filipe",
+        "lastName":  "Nunes Cardoso",
+        "club":  "Erzurumspor Futbol Kulübü",
+        "country":  "Portugal",
+        "ovr":  71
+    },
+    {
+        "id":  225403,
+        "rawName":  "İrfan Can Kahveci",
+        "knownAs":  "",
+        "firstName":  "İrfan Can",
+        "lastName":  "Kahveci",
+        "club":  "Fenerbahçe",
+        "country":  "Turkey",
+        "ovr":  74
+    },
+    {
+        "id":  225653,
+        "rawName":  "Gyrano Kerk",
+        "knownAs":  "",
+        "firstName":  "Gyrano",
+        "lastName":  "Kerk",
+        "club":  "Erzurumspor Futbol Kulübü",
+        "country":  "Suriname",
+        "ovr":  72
+    },
+    {
+        "id":  225853,
+        "rawName":  "Rayan Raveloson",
+        "knownAs":  "",
+        "firstName":  "Rayan",
+        "lastName":  "Raveloson",
+        "club":  "Amed Sportif Faaliyetler",
+        "country":  "Madagascar",
+        "ovr":  71
+    },
+    {
+        "id":  226295,
+        "rawName":  "Bilal Boutobba",
+        "knownAs":  "",
+        "firstName":  "Bilal",
+        "lastName":  "Boutobba",
+        "club":  "Eyüpspor",
+        "country":  "France",
+        "ovr":  69
+    },
+    {
+        "id":  226300,
+        "rawName":  "Uğurcan Çakır",
+        "knownAs":  "",
+        "firstName":  "Uğurcan",
+        "lastName":  "Çakır",
+        "club":  "Galatasaray",
+        "country":  "Turkey",
+        "ovr":  80
+    },
+    {
+        "id":  226517,
+        "rawName":  "Haris Hajradinović",
+        "knownAs":  "",
+        "firstName":  "Haris",
+        "lastName":  "Hajradinović",
+        "club":  "Kasımpaşa",
+        "country":  "Bosnia and Herzegovina",
+        "ovr":  73
+    },
+    {
+        "id":  226568,
+        "rawName":  "Ianis Hagi",
+        "knownAs":  "",
+        "firstName":  "Ianis",
+        "lastName":  "Hagi",
+        "club":  "Alanyaspor",
+        "country":  "Romania",
+        "ovr":  72
+    },
+    {
+        "id":  226677,
+        "rawName":  "Juninho Bacuna",
+        "knownAs":  "",
+        "firstName":  "Juninho",
+        "lastName":  "Bacuna",
+        "club":  "Gaziantep",
+        "country":  "Curaçao",
+        "ovr":  69
+    },
+    {
+        "id":  226753,
+        "rawName":  "André Onana",
+        "knownAs":  "",
+        "firstName":  "André",
+        "lastName":  "Onana",
+        "club":  "Trabzonspor",
+        "country":  "Cameroon",
+        "ovr":  78
+    },
+    {
+        "id":  226790,
+        "rawName":  "Wilfred Ndidi",
+        "knownAs":  "",
+        "firstName":  "Wilfred",
+        "lastName":  "Ndidi",
+        "club":  "Beşiktaş",
+        "country":  "Nigeria",
+        "ovr":  75
+    },
+    {
+        "id":  227928,
+        "rawName":  "Nélson Semedo",
+        "knownAs":  "Nélson Semedo",
+        "firstName":  "Nélson",
+        "lastName":  "Cabral Semedo",
+        "club":  "Fenerbahçe",
+        "country":  "Portugal",
+        "ovr":  77
+    },
+    {
+        "id":  228382,
+        "rawName":  "Dan Agyei",
+        "knownAs":  "",
+        "firstName":  "Dan",
+        "lastName":  "Agyei",
+        "club":  "Kocaelispor",
+        "country":  "Ghana",
+        "ovr":  66
+    },
+    {
+        "id":  228580,
+        "rawName":  "Veysel Sapan",
+        "knownAs":  "",
+        "firstName":  "Veysel",
+        "lastName":  "Sapan",
+        "club":  "Amed Sportif Faaliyetler",
+        "country":  "Turkey",
+        "ovr":  64
+    },
+    {
+        "id":  229167,
+        "rawName":  "Milot Rashica",
+        "knownAs":  "",
+        "firstName":  "Milot",
+        "lastName":  "Rashica",
+        "club":  "Beşiktaş",
+        "country":  "Kosovo",
+        "ovr":  74
+    },
+    {
+        "id":  229173,
+        "rawName":  "Gökhan Gül",
+        "knownAs":  "",
+        "firstName":  "Gökhan",
+        "lastName":  "Gül",
+        "club":  "Amed Sportif Faaliyetler",
+        "country":  "Germany",
+        "ovr":  67
+    },
+    {
+        "id":  229637,
+        "rawName":  "Gökhan Akkan",
+        "knownAs":  "",
+        "firstName":  "Gökhan",
+        "lastName":  "Akkan",
+        "club":  "Gençlerbirliği",
+        "country":  "Turkey",
+        "ovr":  68
+    },
+    {
+        "id":  229703,
+        "rawName":  "Dimitrios Goutas",
+        "knownAs":  "",
+        "firstName":  "Dimitrios",
+        "lastName":  "Goutas",
+        "club":  "Gençlerbirliği",
+        "country":  "Greece",
+        "ovr":  71
+    },
+    {
+        "id":  229905,
+        "rawName":  "Abdülkerim Bardakcı",
+        "knownAs":  "",
+        "firstName":  "Abdülkerim",
+        "lastName":  "Bardakcı",
+        "club":  "Galatasaray",
+        "country":  "Turkey",
+        "ovr":  79
+    },
+    {
+        "id":  230624,
+        "rawName":  "Umut Nayir",
+        "knownAs":  "",
+        "firstName":  "Umut",
+        "lastName":  "Nayir",
+        "club":  "Trabzonspor",
+        "country":  "Turkey",
+        "ovr":  69
+    },
+    {
+        "id":  230824,
+        "rawName":  "Pedro Pereira",
+        "knownAs":  "Pedro Pereira",
+        "firstName":  "Pedro Miguel",
+        "lastName":  "Lopes Pereira",
+        "club":  "Gençlerbirliği",
+        "country":  "Portugal",
+        "ovr":  69
+    },
+    {
+        "id":  230839,
+        "rawName":  "Zak Jules",
+        "knownAs":  "",
+        "firstName":  "Zak",
+        "lastName":  "Jules",
+        "club":  "Eyüpspor",
+        "country":  "Scotland",
+        "ovr":  63
+    },
+    {
+        "id":  230857,
+        "rawName":  "Nuno da Costa",
+        "knownAs":  "Nuno da Costa",
+        "firstName":  "Nuno Miguel",
+        "lastName":  "da Costa Jóia",
+        "club":  "Başakşehir",
+        "country":  "Cape Verde Islands",
+        "ovr":  69
+    },
+    {
+        "id":  231390,
+        "rawName":  "Diogo Gonçalves",
+        "knownAs":  "Diogo Gonçalves",
+        "firstName":  "Diogo António",
+        "lastName":  "Cupido Gonçalves",
+        "club":  "Konyaspor",
+        "country":  "Portugal",
+        "ovr":  72
+    },
+    {
+        "id":  231526,
+        "rawName":  "Yhoan Andzouana",
+        "knownAs":  "",
+        "firstName":  "Yhoan",
+        "lastName":  "Andzouana",
+        "club":  "Konyaspor",
+        "country":  "Congo",
+        "ovr":  66
+    },
+    {
+        "id":  231691,
+        "rawName":  "Alban Lafont",
+        "knownAs":  "",
+        "firstName":  "Alban",
+        "lastName":  "Lafont",
+        "club":  "Amed Sportif Faaliyetler",
+        "country":  "Côte d\u0027Ivoire",
+        "ovr":  74
+    },
+    {
+        "id":  231969,
+        "rawName":  "Ruslan Malinovskyi",
+        "knownAs":  "",
+        "firstName":  "Ruslan",
+        "lastName":  "Malinovskyi",
+        "club":  "Trabzonspor",
+        "country":  "Ukraine",
+        "ovr":  75
+    },
+    {
+        "id":  232119,
+        "rawName":  "Çağlar Söyüncü",
+        "knownAs":  "",
+        "firstName":  "Çağlar",
+        "lastName":  "Söyüncü",
+        "club":  "Fenerbahçe",
+        "country":  "Turkey",
+        "ovr":  74
+    },
+    {
+        "id":  232123,
+        "rawName":  "Luka Gugeshashvili",
+        "knownAs":  "",
+        "firstName":  "Luka",
+        "lastName":  "Gugeshashvili",
+        "club":  "Göztepe",
+        "country":  "Georgia",
+        "ovr":  69
+    },
+    {
+        "id":  232144,
+        "rawName":  "Felix Uduokhai",
+        "knownAs":  "",
+        "firstName":  "Felix",
+        "lastName":  "Uduokhai",
+        "club":  "Beşiktaş",
+        "country":  "Germany",
+        "ovr":  74
+    },
+    {
+        "id":  232293,
+        "rawName":  "Victor Osimhen",
+        "knownAs":  "",
+        "firstName":  "Victor",
+        "lastName":  "Osimhen",
+        "club":  "Galatasaray",
+        "country":  "Nigeria",
+        "ovr":  85
+    },
+    {
+        "id":  232363,
+        "rawName":  "Milan Škriniar",
+        "knownAs":  "",
+        "firstName":  "Milan",
+        "lastName":  "Škriniar",
+        "club":  "Fenerbahçe",
+        "country":  "Slovakia",
+        "ovr":  81
+    },
+    {
+        "id":  232413,
+        "rawName":  "Anfernee Dijksteel",
+        "knownAs":  "",
+        "firstName":  "Anfernee",
+        "lastName":  "Dijksteel",
+        "club":  "Kocaelispor",
+        "country":  "Suriname",
+        "ovr":  70
+    },
+    {
+        "id":  232693,
+        "rawName":  "Chidozie Awaziem",
+        "knownAs":  "",
+        "firstName":  "Chidozie",
+        "lastName":  "Awaziem",
+        "club":  "Konyaspor",
+        "country":  "Nigeria",
+        "ovr":  72
+    },
+    {
+        "id":  233053,
+        "rawName":  "Amir Hadžiahmetović",
+        "knownAs":  "",
+        "firstName":  "Amir",
+        "lastName":  "Hadžiahmetović",
+        "club":  "Beşiktaş",
+        "country":  "Bosnia and Herzegovina",
+        "ovr":  71
+    },
+    {
+        "id":  233465,
+        "rawName":  "Melih Kabasakal",
+        "knownAs":  "",
+        "firstName":  "Melih",
+        "lastName":  "Kabasakal",
+        "club":  "Trabzonspor",
+        "country":  "Turkey",
+        "ovr":  68
+    },
+    {
+        "id":  233897,
+        "rawName":  "Mamadou Fall",
+        "knownAs":  "",
+        "firstName":  "Mamadou",
+        "lastName":  "Fall",
+        "club":  "Kasımpaşa",
+        "country":  "Senegal",
+        "ovr":  69
+    },
+    {
+        "id":  234171,
+        "rawName":  "Roland Sallai",
+        "knownAs":  "",
+        "firstName":  "Roland",
+        "lastName":  "Sallai",
+        "club":  "Galatasaray",
+        "country":  "Hungary",
+        "ovr":  78
+    },
+    {
+        "id":  234254,
+        "rawName":  "Mehmet Yeşil",
+        "knownAs":  "",
+        "firstName":  "Mehmet",
+        "lastName":  "Yeşil",
+        "club":  "Amed Sportif Faaliyetler",
+        "country":  "Turkey",
+        "ovr":  67
+    },
+    {
+        "id":  234341,
+        "rawName":  "İrfan Can Eğribayat",
+        "knownAs":  "",
+        "firstName":  "İrfan Can",
+        "lastName":  "Eğribayat",
+        "club":  "Gençlerbirliği",
+        "country":  "Turkey",
+        "ovr":  71
+    },
+    {
+        "id":  234457,
+        "rawName":  "Oghenekaro Etebo",
+        "knownAs":  "",
+        "firstName":  "Oghenekaro",
+        "lastName":  "Etebo",
+        "club":  "Gençlerbirliği",
+        "country":  "Nigeria",
+        "ovr":  66
+    },
+    {
+        "id":  234735,
+        "rawName":  "Aleksandar Jovanović",
+        "knownAs":  "",
+        "firstName":  "Aleksandar",
+        "lastName":  "Jovanović",
+        "club":  "Kocaelispor",
+        "country":  "Serbia",
+        "ovr":  67
+    },
+    {
+        "id":  234947,
+        "rawName":  "Kahraman Demirtaş",
+        "knownAs":  "",
+        "firstName":  "Kahraman",
+        "lastName":  "Demirtaş",
+        "club":  "Amed Sportif Faaliyetler",
+        "country":  "Turkey",
+        "ovr":  62
+    },
+    {
+        "id":  234983,
+        "rawName":  "Qazim Laçi",
+        "knownAs":  "",
+        "firstName":  "Qazim",
+        "lastName":  "Laçi",
+        "club":  "Çaykur Rizespor",
+        "country":  "Albania",
+        "ovr":  71
+    },
+    {
+        "id":  235088,
+        "rawName":  "Luis Pérez",
+        "knownAs":  "Luis Pérez",
+        "firstName":  "Luis Jesús",
+        "lastName":  "Pérez Maqueda",
+        "club":  "Gaziantep",
+        "country":  "Spain",
+        "ovr":  70
+    },
+    {
+        "id":  235407,
+        "rawName":  "Salih Özcan",
+        "knownAs":  "",
+        "firstName":  "Salih",
+        "lastName":  "Özcan",
+        "club":  "Beşiktaş",
+        "country":  "Turkey",
+        "ovr":  74
+    },
+    {
+        "id":  235460,
+        "rawName":  "Bahadır Güngördü",
+        "knownAs":  "",
+        "firstName":  "Bahadır",
+        "lastName":  "Güngördü",
+        "club":  "Konyaspor",
+        "country":  "Turkey",
+        "ovr":  68
+    },
+    {
+        "id":  235570,
+        "rawName":  "Gaius Makouta",
+        "knownAs":  "",
+        "firstName":  "Gaius",
+        "lastName":  "Makouta",
+        "club":  "Alanyaspor",
+        "country":  "Congo",
+        "ovr":  71
+    },
+    {
+        "id":  235658,
+        "rawName":  "Victor Nelsson",
+        "knownAs":  "Victor Nelsson",
+        "firstName":  "Victor Enok",
+        "lastName":  "Nelsson",
+        "club":  "Galatasaray",
+        "country":  "Denmark",
+        "ovr":  74
+    },
+    {
+        "id":  235717,
+        "rawName":  "Berkay Özcan",
+        "knownAs":  "",
+        "firstName":  "Berkay",
+        "lastName":  "Özcan",
+        "club":  "Başakşehir",
+        "country":  "Turkey",
+        "ovr":  67
+    },
+    {
+        "id":  235729,
+        "rawName":  "David Bates",
+        "knownAs":  "",
+        "firstName":  "David",
+        "lastName":  "Bates",
+        "club":  "Amed Sportif Faaliyetler",
+        "country":  "Scotland",
+        "ovr":  67
+    },
+    {
+        "id":  235889,
+        "rawName":  "Cengiz Ünder",
+        "knownAs":  "",
+        "firstName":  "Cengiz",
+        "lastName":  "Ünder",
+        "club":  "Fenerbahçe",
+        "country":  "Turkey",
+        "ovr":  73
+    },
+    {
+        "id":  235931,
+        "rawName":  "Muhammed Şengezer",
+        "knownAs":  "",
+        "firstName":  "Muhammed",
+        "lastName":  "Şengezer",
+        "club":  "Başakşehir",
+        "country":  "Turkey",
+        "ovr":  72
+    },
+    {
+        "id":  236496,
+        "rawName":  "Mattéo Guendouzi",
+        "knownAs":  "",
+        "firstName":  "Mattéo",
+        "lastName":  "Guendouzi",
+        "club":  "Fenerbahçe",
+        "country":  "France",
+        "ovr":  81
+    },
+    {
+        "id":  236629,
+        "rawName":  "Christopher Opéri",
+        "knownAs":  "",
+        "firstName":  "Christopher",
+        "lastName":  "Opéri",
+        "club":  "Başakşehir",
+        "country":  "Côte d\u0027Ivoire",
+        "ovr":  73
+    },
+    {
+        "id":  236944,
+        "rawName":  "Fousseni Diabaté",
+        "knownAs":  "",
+        "firstName":  "Fousseni",
+        "lastName":  "Diabaté",
+        "club":  "Kasımpaşa",
+        "country":  "Mali",
+        "ovr":  67
+    },
+    {
+        "id":  236996,
+        "rawName":  "Atakan Akkaynak",
+        "knownAs":  "",
+        "firstName":  "Atakan",
+        "lastName":  "Akkaynak",
+        "club":  "Çorum Futbol Kulübü",
+        "country":  "Germany",
+        "ovr":  64
+    },
+    {
+        "id":  237239,
+        "rawName":  "Enis Bardhi",
+        "knownAs":  "",
+        "firstName":  "Enis",
+        "lastName":  "Bardhi",
+        "club":  "Konyaspor",
+        "country":  "North Macedonia",
+        "ovr":  73
+    },
+    {
+        "id":  237499,
+        "rawName":  "Abdelhamid Sabiri",
+        "knownAs":  "",
+        "firstName":  "Abdelhamid",
+        "lastName":  "Sabiri",
+        "club":  "Eyüpspor",
+        "country":  "Morocco",
+        "ovr":  70
+    },
+    {
+        "id":  237841,
+        "rawName":  "Amir Murillo",
+        "knownAs":  "",
+        "firstName":  "Amir",
+        "lastName":  "Murillo",
+        "club":  "Beşiktaş",
+        "country":  "Panama",
+        "ovr":  74
+    },
+    {
+        "id":  238392,
+        "rawName":  "Elisha Owusu",
+        "knownAs":  "",
+        "firstName":  "Elisha",
+        "lastName":  "Owusu",
+        "club":  "Erzurumspor Futbol Kulübü",
+        "country":  "Ghana",
+        "ovr":  74
+    },
+    {
+        "id":  238587,
+        "rawName":  "Ahmed Ildız",
+        "knownAs":  "",
+        "firstName":  "Ahmed",
+        "lastName":  "Ildız",
+        "club":  "Çorum Futbol Kulübü",
+        "country":  "Turkey",
+        "ovr":  65
+    },
+    {
+        "id":  238621,
+        "rawName":  "Rodrigo Becão",
+        "knownAs":  "Rodrigo Becão",
+        "firstName":  "Rodrigo",
+        "lastName":  "Nascimento França",
+        "club":  "Fenerbahçe",
+        "country":  "Brazil",
+        "ovr":  71
+    },
+    {
+        "id":  238660,
+        "rawName":  "Nazim Sangaré",
+        "knownAs":  "",
+        "firstName":  "Nazim",
+        "lastName":  "Sangaré",
+        "club":  "Gaziantep",
+        "country":  "Turkey",
+        "ovr":  66
+    },
+    {
+        "id":  239043,
+        "rawName":  "Umut Bozok",
+        "knownAs":  "",
+        "firstName":  "Umut",
+        "lastName":  "Bozok",
+        "club":  "Başakşehir",
+        "country":  "Turkey",
+        "ovr":  69
+    },
+    {
+        "id":  239045,
+        "rawName":  "Emre Kılınç",
+        "knownAs":  "",
+        "firstName":  "Emre",
+        "lastName":  "Kılınç",
+        "club":  "Samsunspor",
+        "country":  "Turkey",
+        "ovr":  70
+    },
+    {
+        "id":  239333,
+        "rawName":  "Mete Kaan Demir",
+        "knownAs":  "",
+        "firstName":  "Mete Kaan",
+        "lastName":  "Demir",
+        "club":  "Eyüpspor",
+        "country":  "Turkey",
+        "ovr":  63
+    },
+    {
+        "id":  239493,
+        "rawName":  "Makana Baku",
+        "knownAs":  "",
+        "firstName":  "Makana",
+        "lastName":  "Baku",
+        "club":  "Kocaelispor",
+        "country":  "Germany",
+        "ovr":  66
+    },
+    {
+        "id":  239892,
+        "rawName":  "Yunus Akgün",
+        "knownAs":  "",
+        "firstName":  "Yunus",
+        "lastName":  "Akgün",
+        "club":  "Galatasaray",
+        "country":  "Turkey",
+        "ovr":  79
+    },
+    {
+        "id":  239964,
+        "rawName":  "Eldor Shomurodov",
+        "knownAs":  "",
+        "firstName":  "Eldor",
+        "lastName":  "Shomurodov",
+        "club":  "Başakşehir",
+        "country":  "Uzbekistan",
+        "ovr":  76
+    },
+    {
+        "id":  240017,
+        "rawName":  "Andreas Skov Olsen",
+        "knownAs":  "",
+        "firstName":  "Andreas",
+        "lastName":  "Skov Olsen",
+        "club":  "Başakşehir",
+        "country":  "Denmark",
+        "ovr":  73
+    },
+    {
+        "id":  240064,
+        "rawName":  "Ousseynou Ba",
+        "knownAs":  "",
+        "firstName":  "Ousseynou",
+        "lastName":  "Ba",
+        "club":  "Başakşehir",
+        "country":  "Senegal",
+        "ovr":  69
+    },
+    {
+        "id":  240119,
+        "rawName":  "Konrad Michalak",
+        "knownAs":  "",
+        "firstName":  "Konrad",
+        "lastName":  "Michalak",
+        "club":  "Eyüpspor",
+        "country":  "Poland",
+        "ovr":  67
+    },
+    {
+        "id":  240856,
+        "rawName":  "Bilal Bayazıt",
+        "knownAs":  "",
+        "firstName":  "Bilal",
+        "lastName":  "Bayazıt",
+        "club":  "Samsunspor",
+        "country":  "Turkey",
+        "ovr":  69
+    },
+    {
+        "id":  240908,
+        "rawName":  "Fatih Aksoy",
+        "knownAs":  "",
+        "firstName":  "Fatih",
+        "lastName":  "Aksoy",
+        "club":  "Alanyaspor",
+        "country":  "Turkey",
+        "ovr":  67
+    },
+    {
+        "id":  240941,
+        "rawName":  "Lenny Pintor",
+        "knownAs":  "",
+        "firstName":  "Lenny",
+        "lastName":  "Pintor",
+        "club":  "Eyüpspor",
+        "country":  "France",
+        "ovr":  66
+    },
+    {
+        "id":  241094,
+        "rawName":  "Rigoberto Rivas",
+        "knownAs":  "",
+        "firstName":  "Rigoberto",
+        "lastName":  "Rivas",
+        "club":  "Kocaelispor",
+        "country":  "Honduras",
+        "ovr":  65
+    },
+    {
+        "id":  241389,
+        "rawName":  "Yusuf Sarı",
+        "knownAs":  "",
+        "firstName":  "Yusuf",
+        "lastName":  "Sarı",
+        "club":  "Başakşehir",
+        "country":  "Turkey",
+        "ovr":  73
+    },
+    {
+        "id":  241671,
+        "rawName":  "Dominik Livaković",
+        "knownAs":  "",
+        "firstName":  "Dominik",
+        "lastName":  "Livaković",
+        "club":  "Fenerbahçe",
+        "country":  "Croatia",
+        "ovr":  78
+    },
+    {
+        "id":  241688,
+        "rawName":  "Abdurrahim Dursun",
+        "knownAs":  "",
+        "firstName":  "Abdurrahim",
+        "lastName":  "Dursun",
+        "club":  "Gençlerbirliği",
+        "country":  "Turkey",
+        "ovr":  64
+    },
+    {
+        "id":  241708,
+        "rawName":  "Modibo Sagnan",
+        "knownAs":  "",
+        "firstName":  "Modibo",
+        "lastName":  "Sagnan",
+        "club":  "Çaykur Rizespor",
+        "country":  "Mali",
+        "ovr":  70
+    },
+    {
+        "id":  241710,
+        "rawName":  "Jerome Opoku",
+        "knownAs":  "",
+        "firstName":  "Jerome",
+        "lastName":  "Opoku",
+        "club":  "Başakşehir",
+        "country":  "Ghana",
+        "ovr":  72
+    },
+    {
+        "id":  241775,
+        "rawName":  "Jawad El Yamiq",
+        "knownAs":  "",
+        "firstName":  "Jawad",
+        "lastName":  "El Yamiq",
+        "club":  "Eyüpspor",
+        "country":  "Morocco",
+        "ovr":  69
+    },
+    {
+        "id":  241982,
+        "rawName":  "Elliot Watt",
+        "knownAs":  "",
+        "firstName":  "Elliot",
+        "lastName":  "Watt",
+        "club":  "Samsunspor",
+        "country":  "Scotland",
+        "ovr":  72
+    },
+    {
+        "id":  242179,
+        "rawName":  "Yahia Fofana",
+        "knownAs":  "",
+        "firstName":  "Yahia",
+        "lastName":  "Fofana",
+        "club":  "Çaykur Rizespor",
+        "country":  "Côte d\u0027Ivoire",
+        "ovr":  72
+    },
+    {
+        "id":  242919,
+        "rawName":  "Tayyip Talha Sanuç",
+        "knownAs":  "",
+        "firstName":  "Tayyip Talha",
+        "lastName":  "Sanuç",
+        "club":  "Çaykur Rizespor",
+        "country":  "Turkey",
+        "ovr":  67
+    },
+    {
+        "id":  243154,
+        "rawName":  "Adrian Benedyczak",
+        "knownAs":  "",
+        "firstName":  "Adrian",
+        "lastName":  "Benedyczak",
+        "club":  "Kasımpaşa",
+        "country":  "Poland",
+        "ovr":  72
+    },
+    {
+        "id":  243245,
+        "rawName":  "Orkun Kökçü",
+        "knownAs":  "",
+        "firstName":  "Orkun",
+        "lastName":  "Kökçü",
+        "club":  "Beşiktaş",
+        "country":  "Turkey",
+        "ovr":  82
+    },
+    {
+        "id":  243271,
+        "rawName":  "Celil Yüksel",
+        "knownAs":  "",
+        "firstName":  "Celil",
+        "lastName":  "Yüksel",
+        "club":  "Samsunspor",
+        "country":  "Turkey",
+        "ovr":  67
+    },
+    {
+        "id":  243445,
+        "rawName":  "Fatih Kaya",
+        "knownAs":  "",
+        "firstName":  "Fatih",
+        "lastName":  "Kaya",
+        "club":  "Samsunspor",
+        "country":  "Germany",
+        "ovr":  68
+    },
+    {
+        "id":  243526,
+        "rawName":  "Mert Müldür",
+        "knownAs":  "",
+        "firstName":  "Mert",
+        "lastName":  "Müldür",
+        "club":  "Fenerbahçe",
+        "country":  "Turkey",
+        "ovr":  73
+    },
+    {
+        "id":  243591,
+        "rawName":  "Fernando Andrade",
+        "knownAs":  "Fernando Andrade",
+        "firstName":  "Fernando",
+        "lastName":  "Andrade dos Santos",
+        "club":  "Erzurumspor Futbol Kulübü",
+        "country":  "Brazil",
+        "ovr":  64
+    },
+    {
+        "id":  243787,
+        "rawName":  "Ylber Ramadani",
+        "knownAs":  "",
+        "firstName":  "Ylber",
+        "lastName":  "Ramadani",
+        "club":  "Çorum Futbol Kulübü",
+        "country":  "Albania",
+        "ovr":  70
+    },
+    {
+        "id":  243914,
+        "rawName":  "Efkan Bekiroğlu",
+        "knownAs":  "",
+        "firstName":  "Efkan",
+        "lastName":  "Bekiroğlu",
+        "club":  "Göztepe",
+        "country":  "Turkey",
+        "ovr":  71
+    },
+    {
+        "id":  244114,
+        "rawName":  "Batista Mendy",
+        "knownAs":  "",
+        "firstName":  "Batista",
+        "lastName":  "Mendy",
+        "club":  "Trabzonspor",
+        "country":  "France",
+        "ovr":  75
+    },
+    {
+        "id":  244377,
+        "rawName":  "Toni Borevković",
+        "knownAs":  "",
+        "firstName":  "Toni",
+        "lastName":  "Borevković",
+        "club":  "Samsunspor",
+        "country":  "Croatia",
+        "ovr":  70
+    },
+    {
+        "id":  244486,
+        "rawName":  "Mustafa Eskihellaç",
+        "knownAs":  "",
+        "firstName":  "Mustafa",
+        "lastName":  "Eskihellaç",
+        "club":  "Trabzonspor",
+        "country":  "Turkey",
+        "ovr":  72
+    },
+    {
+        "id":  244588,
+        "rawName":  "Brandon Baiye",
+        "knownAs":  "",
+        "firstName":  "Brandon",
+        "lastName":  "Baiye",
+        "club":  "Erzurumspor Futbol Kulübü",
+        "country":  "Belgium",
+        "ovr":  68
+    },
+    {
+        "id":  244685,
+        "rawName":  "Marius Mouandilmadji",
+        "knownAs":  "",
+        "firstName":  "Marius",
+        "lastName":  "Mouandilmadji",
+        "club":  "Samsunspor",
+        "country":  "Chad",
+        "ovr":  71
+    },
+    {
+        "id":  244702,
+        "rawName":  "Sefa Akgün",
+        "knownAs":  "",
+        "firstName":  "Sefa",
+        "lastName":  "Akgün",
+        "club":  "Erzurumspor Futbol Kulübü",
+        "country":  "Turkey",
+        "ovr":  67
+    },
+    {
+        "id":  244709,
+        "rawName":  "Marko Jevtović",
+        "knownAs":  "",
+        "firstName":  "Marko",
+        "lastName":  "Jevtović",
+        "club":  "Konyaspor",
+        "country":  "Serbia",
+        "ovr":  67
+    },
+    {
+        "id":  245355,
+        "rawName":  "Uğurcan Yazğılı",
+        "knownAs":  "",
+        "firstName":  "Uğurcan",
+        "lastName":  "Yazğılı",
+        "club":  "Konyaspor",
+        "country":  "Turkey",
+        "ovr":  66
+    },
+    {
+        "id":  245368,
+        "rawName":  "Güven Yalçın",
+        "knownAs":  "",
+        "firstName":  "Güven",
+        "lastName":  "Yalçın",
+        "club":  "Kasımpaşa",
+        "country":  "Turkey",
+        "ovr":  68
+    },
+    {
+        "id":  245694,
+        "rawName":  "Adama Traoré",
+        "knownAs":  "",
+        "firstName":  "Adama",
+        "lastName":  "Traoré",
+        "club":  "Gençlerbirliği",
+        "country":  "Mali",
+        "ovr":  68
+    },
+    {
+        "id":  245710,
+        "rawName":  "Attila Mocsi",
+        "knownAs":  "",
+        "firstName":  "Attila",
+        "lastName":  "Mocsi",
+        "club":  "Çaykur Rizespor",
+        "country":  "Hungary",
+        "ovr":  67
+    },
+    {
+        "id":  245762,
+        "rawName":  "Ahmed Kutucu",
+        "knownAs":  "",
+        "firstName":  "Ahmed",
+        "lastName":  "Kutucu",
+        "club":  "Çaykur Rizespor",
+        "country":  "Turkey",
+        "ovr":  67
+    },
+    {
+        "id":  245770,
+        "rawName":  "Denis Drăguș",
+        "knownAs":  "",
+        "firstName":  "Denis",
+        "lastName":  "Drăguș",
+        "club":  "Trabzonspor",
+        "country":  "Romania",
+        "ovr":  69
+    },
+    {
+        "id":  245822,
+        "rawName":  "Doğan Alemdar",
+        "knownAs":  "",
+        "firstName":  "Doğan",
+        "lastName":  "Alemdar",
+        "club":  "Beşiktaş",
+        "country":  "Turkey",
+        "ovr":  68
+    },
+    {
+        "id":  246118,
+        "rawName":  "Umut Meraş",
+        "knownAs":  "",
+        "firstName":  "Umut",
+        "lastName":  "Meraş",
+        "club":  "Amed Sportif Faaliyetler",
+        "country":  "Turkey",
+        "ovr":  66
+    },
+    {
+        "id":  246147,
+        "rawName":  "Mason Greenwood",
+        "knownAs":  "",
+        "firstName":  "Mason",
+        "lastName":  "Greenwood",
+        "club":  "Fenerbahçe",
+        "country":  "England",
+        "ovr":  83
+    },
+    {
+        "id":  246430,
+        "rawName":  "Dušan Vlahović",
+        "knownAs":  "",
+        "firstName":  "Dušan",
+        "lastName":  "Vlahović",
+        "club":  "Beşiktaş",
+        "country":  "Serbia",
+        "ovr":  81
+    },
+    {
+        "id":  246562,
+        "rawName":  "Deian Sorescu",
+        "knownAs":  "",
+        "firstName":  "Deian",
+        "lastName":  "Sorescu",
+        "club":  "Gaziantep",
+        "country":  "Romania",
+        "ovr":  69
+    },
+    {
+        "id":  246762,
+        "rawName":  "Sékou Koïta",
+        "knownAs":  "",
+        "firstName":  "Sékou",
+        "lastName":  "Koïta",
+        "club":  "Gençlerbirliği",
+        "country":  "Mali",
+        "ovr":  71
+    },
+    {
+        "id":  247159,
+        "rawName":  "Cemali Sertel",
+        "knownAs":  "",
+        "firstName":  "Cemali",
+        "lastName":  "Sertel",
+        "club":  "Çorum Futbol Kulübü",
+        "country":  "Turkey",
+        "ovr":  66
+    },
+    {
+        "id":  247375,
+        "rawName":  "Dia Saba",
+        "knownAs":  "",
+        "firstName":  "Dia",
+        "lastName":  "Saba",
+        "club":  "Amed Sportif Faaliyetler",
+        "country":  "Israel",
+        "ovr":  70
+    },
+    {
+        "id":  248041,
+        "rawName":  "Florin Ștefan",
+        "knownAs":  "",
+        "firstName":  "Florin",
+        "lastName":  "Ștefan",
+        "club":  "Gaziantep",
+        "country":  "Romania",
+        "ovr":  66
+    },
+    {
+        "id":  248060,
+        "rawName":  "Valentin Mihăilă",
+        "knownAs":  "",
+        "firstName":  "Valentin",
+        "lastName":  "Mihăilă",
+        "club":  "Çaykur Rizespor",
+        "country":  "Romania",
+        "ovr":  68
+    },
+    {
+        "id":  248149,
+        "rawName":  "Michał Karbownik",
+        "knownAs":  "",
+        "firstName":  "Michał",
+        "lastName":  "Karbownik",
+        "club":  "Başakşehir",
+        "country":  "Poland",
+        "ovr":  70
+    },
+    {
+        "id":  248157,
+        "rawName":  "Murat Cem Akpınar",
+        "knownAs":  "",
+        "firstName":  "Murat Cem",
+        "lastName":  "Akpınar",
+        "club":  "Erzurumspor Futbol Kulübü",
+        "country":  "Turkey",
+        "ovr":  63
+    },
+    {
+        "id":  248661,
+        "rawName":  "Cheikh Niasse",
+        "knownAs":  "",
+        "firstName":  "Cheikh",
+        "lastName":  "Niasse",
+        "club":  "Gençlerbirliği",
+        "country":  "Senegal",
+        "ovr":  70
+    },
+    {
+        "id":  248712,
+        "rawName":  "Oh Hyeon Gyu",
+        "knownAs":  "Oh Hyeon Gyu",
+        "firstName":  "Hyeon Gyu",
+        "lastName":  "Oh",
+        "club":  "Beşiktaş",
+        "country":  "Korea Republic",
+        "ovr":  75
+    },
+    {
+        "id":  248854,
+        "rawName":  "Berat Özdemir",
+        "knownAs":  "",
+        "firstName":  "Berat",
+        "lastName":  "Özdemir",
+        "club":  "Çorum Futbol Kulübü",
+        "country":  "Turkey",
+        "ovr":  69
+    },
+    {
+        "id":  250764,
+        "rawName":  "Alexis Antunes",
+        "knownAs":  "",
+        "firstName":  "Alexis",
+        "lastName":  "Antunes",
+        "club":  "Göztepe",
+        "country":  "Switzerland",
+        "ovr":  68
+    },
+    {
+        "id":  250807,
+        "rawName":  "Halil İbrahim Dervişoğlu",
+        "knownAs":  "",
+        "firstName":  "Halil İbrahim",
+        "lastName":  "Dervişoğlu",
+        "club":  "Gaziantep",
+        "country":  "Turkey",
+        "ovr":  65
+    },
+    {
+        "id":  250897,
+        "rawName":  "Mustafa Burak Bozan",
+        "knownAs":  "",
+        "firstName":  "Mustafa Burak",
+        "lastName":  "Bozan",
+        "club":  "Amed Sportif Faaliyetler",
+        "country":  "Turkey",
+        "ovr":  66
+    },
+    {
+        "id":  251134,
+        "rawName":  "Fıratcan Üzüm",
+        "knownAs":  "",
+        "firstName":  "Fıratcan",
+        "lastName":  "Üzüm",
+        "club":  "Gençlerbirliği",
+        "country":  "Turkey",
+        "ovr":  62
+    },
+    {
+        "id":  251136,
+        "rawName":  "Horațiu Moldovan",
+        "knownAs":  "",
+        "firstName":  "Horațiu",
+        "lastName":  "Moldovan",
+        "club":  "Eyüpspor",
+        "country":  "Romania",
+        "ovr":  70
+    },
+    {
+        "id":  251168,
+        "rawName":  "Nihad Mujakić",
+        "knownAs":  "",
+        "firstName":  "Nihad",
+        "lastName":  "Mujakić",
+        "club":  "Erzurumspor Futbol Kulübü",
+        "country":  "Bosnia and Herzegovina",
+        "ovr":  66
+    },
+    {
+        "id":  251260,
+        "rawName":  "Blaž Kramer",
+        "knownAs":  "",
+        "firstName":  "Blaž",
+        "lastName":  "Kramer",
+        "club":  "Konyaspor",
+        "country":  "Slovenia",
+        "ovr":  67
+    },
+    {
+        "id":  251401,
+        "rawName":  "Tanguy Coulibaly",
+        "knownAs":  "",
+        "firstName":  "Tanguy",
+        "lastName":  "Coulibaly",
+        "club":  "Samsunspor",
+        "country":  "France",
+        "ovr":  69
+    },
+    {
+        "id":  251532,
+        "rawName":  "Meschack Elia",
+        "knownAs":  "",
+        "firstName":  "Meschack",
+        "lastName":  "Elia",
+        "club":  "Alanyaspor",
+        "country":  "Congo DR",
+        "ovr":  67
+    },
+    {
+        "id":  251894,
+        "rawName":  "Show",
+        "knownAs":  "Show",
+        "firstName":  "Manuel Luís",
+        "lastName":  "Da Silva Cafumana",
+        "club":  "Kocaelispor",
+        "country":  "Angola",
+        "ovr":  67
+    },
+    {
+        "id":  252164,
+        "rawName":  "Jesús Ramírez",
+        "knownAs":  "",
+        "firstName":  "Jesús",
+        "lastName":  "Ramírez",
+        "club":  "Çorum Futbol Kulübü",
+        "country":  "Venezuela",
+        "ovr":  74
+    },
+    {
+        "id":  252208,
+        "rawName":  "Rıdvan Yılmaz",
+        "knownAs":  "",
+        "firstName":  "Rıdvan",
+        "lastName":  "Yılmaz",
+        "club":  "Beşiktaş",
+        "country":  "Turkey",
+        "ovr":  72
+    },
+    {
+        "id":  252293,
+        "rawName":  "Ismail Jakobs",
+        "knownAs":  "Ismail Jakobs",
+        "firstName":  "Ismail Joshua",
+        "lastName":  "Jakobs",
+        "club":  "Galatasaray",
+        "country":  "Senegal",
+        "ovr":  75
+    },
+    {
+        "id":  252308,
+        "rawName":  "Ali Al Musrati",
+        "knownAs":  "",
+        "firstName":  "Ali",
+        "lastName":  "Al Musrati",
+        "club":  "Beşiktaş",
+        "country":  "Libya",
+        "ovr":  74
+    },
+    {
+        "id":  252339,
+        "rawName":  "Tiago Djaló",
+        "knownAs":  "Tiago Djaló",
+        "firstName":  "Tiago Emanuel",
+        "lastName":  "Embaló Djaló",
+        "club":  "Beşiktaş",
+        "country":  "Portugal",
+        "ovr":  74
+    },
+    {
+        "id":  252508,
+        "rawName":  "Kacper Kozłowski",
+        "knownAs":  "",
+        "firstName":  "Kacper",
+        "lastName":  "Kozłowski",
+        "club":  "Gaziantep",
+        "country":  "Poland",
+        "ovr":  72
+    },
+    {
+        "id":  252544,
+        "rawName":  "Levent Mercan",
+        "knownAs":  "",
+        "firstName":  "Levent",
+        "lastName":  "Mercan",
+        "club":  "Fenerbahçe",
+        "country":  "Turkey",
+        "ovr":  73
+    },
+    {
+        "id":  252753,
+        "rawName":  "Arda Kızıldağ",
+        "knownAs":  "",
+        "firstName":  "Arda",
+        "lastName":  "Kızıldağ",
+        "club":  "Gaziantep",
+        "country":  "Turkey",
+        "ovr":  68
+    },
+    {
+        "id":  252799,
+        "rawName":  "Tarık Çetin",
+        "knownAs":  "",
+        "firstName":  "Tarık",
+        "lastName":  "Çetin",
+        "club":  "Fenerbahçe",
+        "country":  "Turkey",
+        "ovr":  69
+    },
+    {
+        "id":  252802,
+        "rawName":  "Wilfried Singo",
+        "knownAs":  "",
+        "firstName":  "Wilfried",
+        "lastName":  "Singo",
+        "club":  "Galatasaray",
+        "country":  "Côte d\u0027Ivoire",
+        "ovr":  78
+    },
+    {
+        "id":  252870,
+        "rawName":  "Emre Demir",
+        "knownAs":  "",
+        "firstName":  "Emre",
+        "lastName":  "Demir",
+        "club":  "Fenerbahçe",
+        "country":  "Turkey",
+        "ovr":  64
+    },
+    {
+        "id":  252917,
+        "rawName":  "Yalçın Kayan",
+        "knownAs":  "",
+        "firstName":  "Yalçın",
+        "lastName":  "Kayan",
+        "club":  "Samsunspor",
+        "country":  "Turkey",
+        "ovr":  68
+    },
+    {
+        "id":  253491,
+        "rawName":  "Melih Ibrahimoglu",
+        "knownAs":  "",
+        "firstName":  "Melih",
+        "lastName":  "Ibrahimoglu",
+        "club":  "Konyaspor",
+        "country":  "Turkey",
+        "ovr":  65
+    },
+    {
+        "id":  253714,
+        "rawName":  "Samuel Ballet",
+        "knownAs":  "",
+        "firstName":  "Samuel",
+        "lastName":  "Ballet",
+        "club":  "Amed Sportif Faaliyetler",
+        "country":  "Switzerland",
+        "ovr":  65
+    },
+    {
+        "id":  254296,
+        "rawName":  "Kartal Yılmaz",
+        "knownAs":  "",
+        "firstName":  "Kartal",
+        "lastName":  "Yılmaz",
+        "club":  "Beşiktaş",
+        "country":  "Turkey",
+        "ovr":  69
+    },
+    {
+        "id":  254297,
+        "rawName":  "Zafer Görgen",
+        "knownAs":  "",
+        "firstName":  "Zafer",
+        "lastName":  "Görgen",
+        "club":  "Çaykur Rizespor",
+        "country":  "Turkey",
+        "ovr":  68
+    },
+    {
+        "id":  254692,
+        "rawName":  "Ebrima Colley",
+        "knownAs":  "",
+        "firstName":  "Ebrima",
+        "lastName":  "Colley",
+        "club":  "Konyaspor",
+        "country":  "Gambia",
+        "ovr":  66
+    },
+    {
+        "id":  254752,
+        "rawName":  "Sontje Hansen",
+        "knownAs":  "",
+        "firstName":  "Sontje",
+        "lastName":  "Hansen",
+        "club":  "Gaziantep",
+        "country":  "Curaçao",
+        "ovr":  69
+    },
+    {
+        "id":  255045,
+        "rawName":  "Hüseyin Bulut",
+        "knownAs":  "",
+        "firstName":  "Hüseyin",
+        "lastName":  "Bulut",
+        "club":  "Çorum Futbol Kulübü",
+        "country":  "Turkey",
+        "ovr":  56
+    },
+    {
+        "id":  255293,
+        "rawName":  "Umut Güneş",
+        "knownAs":  "",
+        "firstName":  "Umut",
+        "lastName":  "Güneş",
+        "club":  "Başakşehir",
+        "country":  "Turkey",
+        "ovr":  69
+    },
+    {
+        "id":  255466,
+        "rawName":  "Markus Seehusen Karlsbakk",
+        "knownAs":  "",
+        "firstName":  "Markus Seehusen",
+        "lastName":  "Karlsbakk",
+        "club":  "Çorum Futbol Kulübü",
+        "country":  "Norway",
+        "ovr":  67
+    },
+    {
+        "id":  255558,
+        "rawName":  "Emin Bayram",
+        "knownAs":  "",
+        "firstName":  "Emin",
+        "lastName":  "Bayram",
+        "club":  "Başakşehir",
+        "country":  "Turkey",
+        "ovr":  73
+    },
+    {
+        "id":  255776,
+        "rawName":  "Jakub Kałuziński",
+        "knownAs":  "",
+        "firstName":  "Jakub",
+        "lastName":  "Kałuziński",
+        "club":  "Başakşehir",
+        "country":  "Poland",
+        "ovr":  68
+    },
+    {
+        "id":  255928,
+        "rawName":  "Mohammed Diomande",
+        "knownAs":  "",
+        "firstName":  "Mohammed",
+        "lastName":  "Diomande",
+        "club":  "Çorum Futbol Kulübü",
+        "country":  "Côte d\u0027Ivoire",
+        "ovr":  73
+    },
+    {
+        "id":  255934,
+        "rawName":  "Jean Onana",
+        "knownAs":  "",
+        "firstName":  "Jean",
+        "lastName":  "Onana",
+        "club":  "Beşiktaş",
+        "country":  "Cameroon",
+        "ovr":  70
+    },
+    {
+        "id":  256033,
+        "rawName":  "Emirhan Topçu",
+        "knownAs":  "",
+        "firstName":  "Emirhan",
+        "lastName":  "Topçu",
+        "club":  "Beşiktaş",
+        "country":  "Turkey",
+        "ovr":  74
+    },
+    {
+        "id":  256036,
+        "rawName":  "Andri Fannar Baldursson",
+        "knownAs":  "",
+        "firstName":  "Andri Fannar",
+        "lastName":  "Baldursson",
+        "club":  "Kasımpaşa",
+        "country":  "Iceland",
+        "ovr":  65
+    },
+    {
+        "id":  256933,
+        "rawName":  "Aral Şimşir",
+        "knownAs":  "",
+        "firstName":  "Aral",
+        "lastName":  "Şimşir",
+        "club":  "Trabzonspor",
+        "country":  "Turkey",
+        "ovr":  76
+    },
+    {
+        "id":  257084,
+        "rawName":  "Lesley Ugochukwu",
+        "knownAs":  "",
+        "firstName":  "Lesley",
+        "lastName":  "Ugochukwu",
+        "club":  "Galatasaray",
+        "country":  "France",
+        "ovr":  76
+    },
+    {
+        "id":  257242,
+        "rawName":  "Guram Giorbelidze",
+        "knownAs":  "",
+        "firstName":  "Guram",
+        "lastName":  "Giorbelidze",
+        "club":  "Erzurumspor Futbol Kulübü",
+        "country":  "Georgia",
+        "ovr":  65
+    },
+    {
+        "id":  258168,
+        "rawName":  "Jayden Oosterwolde",
+        "knownAs":  "",
+        "firstName":  "Jayden",
+        "lastName":  "Oosterwolde",
+        "club":  "Fenerbahçe",
+        "country":  "Holland",
+        "ovr":  76
+    },
+    {
+        "id":  258238,
+        "rawName":  "Ali Yavuz Kol",
+        "knownAs":  "",
+        "firstName":  "Ali Yavuz",
+        "lastName":  "Kol",
+        "club":  "Kasımpaşa",
+        "country":  "Turkey",
+        "ovr":  63
+    },
+    {
+        "id":  258396,
+        "rawName":  "Cenk Özkacar",
+        "knownAs":  "",
+        "firstName":  "Cenk",
+        "lastName":  "Özkacar",
+        "club":  "Trabzonspor",
+        "country":  "Turkey",
+        "ovr":  72
+    },
+    {
+        "id":  258511,
+        "rawName":  "Emre Bilgin",
+        "knownAs":  "",
+        "firstName":  "Emre",
+        "lastName":  "Bilgin",
+        "club":  "Eyüpspor",
+        "country":  "Turkey",
+        "ovr":  64
+    },
+    {
+        "id":  258575,
+        "rawName":  "Emmanuel Agbadou",
+        "knownAs":  "",
+        "firstName":  "Emmanuel",
+        "lastName":  "Agbadou",
+        "club":  "Beşiktaş",
+        "country":  "Côte d\u0027Ivoire",
+        "ovr":  77
+    },
+    {
+        "id":  258580,
+        "rawName":  "Kerem Aktürkoğlu",
+        "knownAs":  "",
+        "firstName":  "Kerem",
+        "lastName":  "Aktürkoğlu",
+        "club":  "Fenerbahçe",
+        "country":  "Turkey",
+        "ovr":  79
+    },
+    {
+        "id":  258642,
+        "rawName":  "Nuno Lima",
+        "knownAs":  "Nuno Lima",
+        "firstName":  "Nuno Miguel",
+        "lastName":  "Reis Lima",
+        "club":  "Alanyaspor",
+        "country":  "Portugal",
+        "ovr":  68
+    },
+    {
+        "id":  258685,
+        "rawName":  "Jackson Muleka",
+        "knownAs":  "",
+        "firstName":  "Jackson",
+        "lastName":  "Muleka",
+        "club":  "Konyaspor",
+        "country":  "Congo DR",
+        "ovr":  70
+    },
+    {
+        "id":  258698,
+        "rawName":  "Afonso Sousa",
+        "knownAs":  "Afonso Sousa",
+        "firstName":  "Afonso Gamelas",
+        "lastName":  "de Pinho Sousa",
+        "club":  "Samsunspor",
+        "country":  "Portugal",
+        "ovr":  71
+    },
+    {
+        "id":  258777,
+        "rawName":  "Adil Demirbağ",
+        "knownAs":  "",
+        "firstName":  "Adil",
+        "lastName":  "Demirbağ",
+        "club":  "Konyaspor",
+        "country":  "Turkey",
+        "ovr":  71
+    },
+    {
+        "id":  258897,
+        "rawName":  "Samed Onur",
+        "knownAs":  "",
+        "firstName":  "Samed",
+        "lastName":  "Onur",
+        "club":  "Samsunspor",
+        "country":  "Turkey",
+        "ovr":  61
+    },
+    {
+        "id":  258898,
+        "rawName":  "Gökdeniz Bayrakdar",
+        "knownAs":  "",
+        "firstName":  "Gökdeniz",
+        "lastName":  "Bayrakdar",
+        "club":  "Göztepe",
+        "country":  "Turkey",
+        "ovr":  69
+    },
+    {
+        "id":  259022,
+        "rawName":  "Kerim Çalhanoğlu",
+        "knownAs":  "",
+        "firstName":  "Kerim",
+        "lastName":  "Çalhanoğlu",
+        "club":  "Gaziantep",
+        "country":  "Germany",
+        "ovr":  66
+    },
+    {
+        "id":  259621,
+        "rawName":  "Yusuf Barası",
+        "knownAs":  "",
+        "firstName":  "Yusuf",
+        "lastName":  "Barası",
+        "club":  "Eyüpspor",
+        "country":  "Turkey",
+        "ovr":  64
+    },
+    {
+        "id":  259675,
+        "rawName":  "Berkan Kutlu",
+        "knownAs":  "",
+        "firstName":  "Berkan",
+        "lastName":  "Kutlu",
+        "club":  "Kocaelispor",
+        "country":  "Turkey",
+        "ovr":  70
+    },
+    {
+        "id":  259686,
+        "rawName":  "Uğur Kaan Yıldız",
+        "knownAs":  "",
+        "firstName":  "Uğur Kaan",
+        "lastName":  "Yıldız",
+        "club":  "Kocaelispor",
+        "country":  "Turkey",
+        "ovr":  60
+    },
+    {
+        "id":  259754,
+        "rawName":  "Evren Eren Elmalı",
+        "knownAs":  "",
+        "firstName":  "Evren Eren",
+        "lastName":  "Elmalı",
+        "club":  "Galatasaray",
+        "country":  "Turkey",
+        "ovr":  75
+    },
+    {
+        "id":  260236,
+        "rawName":  "Dorgeles Nene",
+        "knownAs":  "",
+        "firstName":  "Dorgeles",
+        "lastName":  "Nene",
+        "club":  "Fenerbahçe",
+        "country":  "Mali",
+        "ovr":  75
+    },
+    {
+        "id":  260409,
+        "rawName":  "Arda Özçimen",
+        "knownAs":  "",
+        "firstName":  "Arda",
+        "lastName":  "Özçimen",
+        "club":  "Göztepe",
+        "country":  "Turkey",
+        "ovr":  63
+    },
+    {
+        "id":  260459,
+        "rawName":  "Metehan Altunbaş",
+        "knownAs":  "",
+        "firstName":  "Metehan",
+        "lastName":  "Altunbaş",
+        "club":  "Kocaelispor",
+        "country":  "Turkey",
+        "ovr":  59
+    },
+    {
+        "id":  260466,
+        "rawName":  "İsmail Yüksek",
+        "knownAs":  "",
+        "firstName":  "İsmail",
+        "lastName":  "Yüksek",
+        "club":  "Fenerbahçe",
+        "country":  "Turkey",
+        "ovr":  77
+    },
+    {
+        "id":  260559,
+        "rawName":  "Mirza Cihan",
+        "knownAs":  "",
+        "firstName":  "Mirza",
+        "lastName":  "Cihan",
+        "club":  "Gaziantep",
+        "country":  "Turkey",
+        "ovr":  59
+    },
+    {
+        "id":  260569,
+        "rawName":  "Ulrich Meleke",
+        "knownAs":  "",
+        "firstName":  "Ulrich",
+        "lastName":  "Meleke",
+        "club":  "Gaziantep",
+        "country":  "Côte d\u0027Ivoire",
+        "ovr":  68
+    },
+    {
+        "id":  260638,
+        "rawName":  "Bartuğ Elmaz",
+        "knownAs":  "",
+        "firstName":  "Bartuğ",
+        "lastName":  "Elmaz",
+        "club":  "Fenerbahçe",
+        "country":  "Turkey",
+        "ovr":  66
+    },
+    {
+        "id":  260778,
+        "rawName":  "Franco Tongya",
+        "knownAs":  "",
+        "firstName":  "Franco",
+        "lastName":  "Tongya",
+        "club":  "Gençlerbirliği",
+        "country":  "Italy",
+        "ovr":  66
+    },
+    {
+        "id":  261195,
+        "rawName":  "Ernest Muçi",
+        "knownAs":  "",
+        "firstName":  "Ernest",
+        "lastName":  "Muçi",
+        "club":  "Trabzonspor",
+        "country":  "Albania",
+        "ovr":  75
+    },
+    {
+        "id":  262137,
+        "rawName":  "Habib Keïta",
+        "knownAs":  "",
+        "firstName":  "Habib",
+        "lastName":  "Keïta",
+        "club":  "Kocaelispor",
+        "country":  "Mali",
+        "ovr":  69
+    },
+    {
+        "id":  262251,
+        "rawName":  "Kacper Tobiasz",
+        "knownAs":  "",
+        "firstName":  "Kacper",
+        "lastName":  "Tobiasz",
+        "club":  "Gaziantep",
+        "country":  "Poland",
+        "ovr":  66
+    },
+    {
+        "id":  262335,
+        "rawName":  "Elayis Tavşan",
+        "knownAs":  "",
+        "firstName":  "Elayis",
+        "lastName":  "Tavşan",
+        "club":  "Samsunspor",
+        "country":  "Holland",
+        "ovr":  68
+    },
+    {
+        "id":  262586,
+        "rawName":  "Ivan Brnić",
+        "knownAs":  "",
+        "firstName":  "Ivan",
+        "lastName":  "Brnić",
+        "club":  "Başakşehir",
+        "country":  "Croatia",
+        "ovr":  69
+    },
+    {
+        "id":  262607,
+        "rawName":  "Kazımcan Karataş",
+        "knownAs":  "",
+        "firstName":  "Kazımcan",
+        "lastName":  "Karataş",
+        "club":  "Galatasaray",
+        "country":  "Turkey",
+        "ovr":  67
+    },
+    {
+        "id":  262709,
+        "rawName":  "Malcom Bokélé",
+        "knownAs":  "",
+        "firstName":  "Malcom",
+        "lastName":  "Bokélé",
+        "club":  "Göztepe",
+        "country":  "Cameroon",
+        "ovr":  70
+    },
+    {
+        "id":  262968,
+        "rawName":  "Archie Brown",
+        "knownAs":  "",
+        "firstName":  "Archie",
+        "lastName":  "Brown",
+        "club":  "Fenerbahçe",
+        "country":  "England",
+        "ovr":  73
+    },
+    {
+        "id":  262988,
+        "rawName":  "Göktan Gürpüz",
+        "knownAs":  "",
+        "firstName":  "Göktan",
+        "lastName":  "Gürpüz",
+        "club":  "Trabzonspor",
+        "country":  "Turkey",
+        "ovr":  66
+    },
+    {
+        "id":  262998,
+        "rawName":  "Calegari",
+        "knownAs":  "Calegari",
+        "firstName":  "Lucas Felipe",
+        "lastName":  "Calegari",
+        "club":  "Eyüpspor",
+        "country":  "Brazil",
+        "ovr":  68
+    },
+    {
+        "id":  263021,
+        "rawName":  "Samet Akaydın",
+        "knownAs":  "",
+        "firstName":  "Samet",
+        "lastName":  "Akaydın",
+        "club":  "Trabzonspor",
+        "country":  "Turkey",
+        "ovr":  72
+    },
+    {
+        "id":  263036,
+        "rawName":  "Igor Drapiński",
+        "knownAs":  "",
+        "firstName":  "Igor",
+        "lastName":  "Drapiński",
+        "club":  "Samsunspor",
+        "country":  "Poland",
+        "ovr":  68
+    },
+    {
+        "id":  263132,
+        "rawName":  "Can Keleş",
+        "knownAs":  "",
+        "firstName":  "Can",
+        "lastName":  "Keleş",
+        "club":  "Beşiktaş",
+        "country":  "Austria",
+        "ovr":  66
+    },
+    {
+        "id":  263205,
+        "rawName":  "Barış Alper Yılmaz",
+        "knownAs":  "",
+        "firstName":  "Barış Alper",
+        "lastName":  "Yılmaz",
+        "club":  "Galatasaray",
+        "country":  "Turkey",
+        "ovr":  80
+    },
+    {
+        "id":  263255,
+        "rawName":  "Godfried Frimpong",
+        "knownAs":  "",
+        "firstName":  "Godfried",
+        "lastName":  "Frimpong",
+        "club":  "Kasımpaşa",
+        "country":  "Holland",
+        "ovr":  68
+    },
+    {
+        "id":  263389,
+        "rawName":  "Metehan Mimaroğlu",
+        "knownAs":  "",
+        "firstName":  "Metehan",
+        "lastName":  "Mimaroğlu",
+        "club":  "Trabzonspor",
+        "country":  "Turkey",
+        "ovr":  67
+    },
+    {
+        "id":  263432,
+        "rawName":  "Mortadha Ben Ouanes",
+        "knownAs":  "",
+        "firstName":  "Mortadha",
+        "lastName":  "Ben Ouanes",
+        "club":  "Kasımpaşa",
+        "country":  "Tunisia",
+        "ovr":  68
+    },
+    {
+        "id":  263477,
+        "rawName":  "Lumbardh Dellova",
+        "knownAs":  "",
+        "firstName":  "Lumbardh",
+        "lastName":  "Dellova",
+        "club":  "Amed Sportif Faaliyetler",
+        "country":  "Kosovo",
+        "ovr":  69
+    },
+    {
+        "id":  263571,
+        "rawName":  "Festy Ebosele",
+        "knownAs":  "",
+        "firstName":  "Festy",
+        "lastName":  "Ebosele",
+        "club":  "Erzurumspor Futbol Kulübü",
+        "country":  "Republic of Ireland",
+        "ovr":  68
+    },
+    {
+        "id":  263583,
+        "rawName":  "Onur Ergün",
+        "knownAs":  "",
+        "firstName":  "Onur",
+        "lastName":  "Ergün",
+        "club":  "Başakşehir",
+        "country":  "Turkey",
+        "ovr":  66
+    },
+    {
+        "id":  263621,
+        "rawName":  "İzzet Çelik",
+        "knownAs":  "",
+        "firstName":  "İzzet",
+        "lastName":  "Çelik",
+        "club":  "Alanyaspor",
+        "country":  "Turkey",
+        "ovr":  59
+    },
+    {
+        "id":  263808,
+        "rawName":  "Gökhan Sazdağı",
+        "knownAs":  "",
+        "firstName":  "Gökhan",
+        "lastName":  "Sazdağı",
+        "club":  "Çorum Futbol Kulübü",
+        "country":  "Turkey",
+        "ovr":  69
+    },
+    {
+        "id":  263854,
+        "rawName":  "Joe Mendes",
+        "knownAs":  "",
+        "firstName":  "Joe",
+        "lastName":  "Mendes",
+        "club":  "Samsunspor",
+        "country":  "Sweden",
+        "ovr":  69
+    },
+    {
+        "id":  264000,
+        "rawName":  "Furkan Bayır",
+        "knownAs":  "",
+        "firstName":  "Furkan",
+        "lastName":  "Bayır",
+        "club":  "Göztepe",
+        "country":  "Turkey",
+        "ovr":  65
+    },
+    {
+        "id":  264001,
+        "rawName":  "Oğuz Aydın",
+        "knownAs":  "",
+        "firstName":  "Oğuz",
+        "lastName":  "Aydın",
+        "club":  "Fenerbahçe",
+        "country":  "Turkey",
+        "ovr":  74
+    },
+    {
+        "id":  264066,
+        "rawName":  "Serdar Saatçı",
+        "knownAs":  "",
+        "firstName":  "Serdar",
+        "lastName":  "Saatçı",
+        "club":  "Çorum Futbol Kulübü",
+        "country":  "Turkey",
+        "ovr":  69
+    },
+    {
+        "id":  264272,
+        "rawName":  "Ogün Özçiçek",
+        "knownAs":  "",
+        "firstName":  "Ogün",
+        "lastName":  "Özçiçek",
+        "club":  "Gaziantep",
+        "country":  "Turkey",
+        "ovr":  66
+    },
+    {
+        "id":  264284,
+        "rawName":  "Rayyan Baniya",
+        "knownAs":  "",
+        "firstName":  "Rayyan",
+        "lastName":  "Baniya",
+        "club":  "Konyaspor",
+        "country":  "Turkey",
+        "ovr":  68
+    },
+    {
+        "id":  264285,
+        "rawName":  "Yusuf Karagöz",
+        "knownAs":  "",
+        "firstName":  "Yusuf",
+        "lastName":  "Karagöz",
+        "club":  "Alanyaspor",
+        "country":  "Turkey",
+        "ovr":  60
+    },
+    {
+        "id":  264286,
+        "rawName":  "Yusuf Özdemir",
+        "knownAs":  "",
+        "firstName":  "Yusuf",
+        "lastName":  "Özdemir",
+        "club":  "Alanyaspor",
+        "country":  "Turkey",
+        "ovr":  66
+    },
+    {
+        "id":  264288,
+        "rawName":  "Alexandre Penetra",
+        "knownAs":  "Alexandre Penetra",
+        "firstName":  "Alexandre",
+        "lastName":  "Penetra Correia",
+        "club":  "Çorum Futbol Kulübü",
+        "country":  "Portugal",
+        "ovr":  73
+    },
+    {
+        "id":  264364,
+        "rawName":  "Drissa Camara",
+        "knownAs":  "",
+        "firstName":  "Drissa",
+        "lastName":  "Camara",
+        "club":  "Gaziantep",
+        "country":  "Côte d\u0027Ivoire",
+        "ovr":  68
+    },
+    {
+        "id":  264485,
+        "rawName":  "Oğulcan Ülgün",
+        "knownAs":  "",
+        "firstName":  "Oğulcan",
+        "lastName":  "Ülgün",
+        "club":  "Gençlerbirliği",
+        "country":  "Turkey",
+        "ovr":  66
+    },
+    {
+        "id":  264785,
+        "rawName":  "Tanguy Zoukrou",
+        "knownAs":  "",
+        "firstName":  "Tanguy",
+        "lastName":  "Zoukrou",
+        "club":  "Kocaelispor",
+        "country":  "France",
+        "ovr":  65
+    },
+    {
+        "id":  265465,
+        "rawName":  "Matej Maglica",
+        "knownAs":  "",
+        "firstName":  "Matej",
+        "lastName":  "Maglica",
+        "club":  "Kocaelispor",
+        "country":  "Croatia",
+        "ovr":  70
+    },
+    {
+        "id":  266474,
+        "rawName":  "Cihan Çanak",
+        "knownAs":  "",
+        "firstName":  "Cihan",
+        "lastName":  "Çanak",
+        "club":  "Trabzonspor",
+        "country":  "Turkey",
+        "ovr":  64
+    },
+    {
+        "id":  266616,
+        "rawName":  "Yira Sor",
+        "knownAs":  "",
+        "firstName":  "Yira",
+        "lastName":  "Sor",
+        "club":  "Amed Sportif Faaliyetler",
+        "country":  "Nigeria",
+        "ovr":  71
+    },
+    {
+        "id":  266688,
+        "rawName":  "Enis Destan",
+        "knownAs":  "",
+        "firstName":  "Enis",
+        "lastName":  "Destan",
+        "club":  "Konyaspor",
+        "country":  "Turkey",
+        "ovr":  69
+    },
+    {
+        "id":  266794,
+        "rawName":  "Taha Altıkardeş",
+        "knownAs":  "",
+        "firstName":  "Taha",
+        "lastName":  "Altıkardeş",
+        "club":  "Göztepe",
+        "country":  "Turkey",
+        "ovr":  67
+    },
+    {
+        "id":  266897,
+        "rawName":  "Junior Olaitan",
+        "knownAs":  "",
+        "firstName":  "Junior",
+        "lastName":  "Olaitan",
+        "club":  "Beşiktaş",
+        "country":  "Benin",
+        "ovr":  71
+    },
+    {
+        "id":  267905,
+        "rawName":  "Bertuğ Yıldırım",
+        "knownAs":  "",
+        "firstName":  "Bertuğ",
+        "lastName":  "Yıldırım",
+        "club":  "Başakşehir",
+        "country":  "Turkey",
+        "ovr":  70
+    },
+    {
+        "id":  268868,
+        "rawName":  "Tiago Gouveia",
+        "knownAs":  "Tiago Gouveia",
+        "firstName":  "Tiago Maria",
+        "lastName":  "Antunes Gouveia",
+        "club":  "Gençlerbirliği",
+        "country":  "Portugal",
+        "ovr":  73
+    },
+    {
+        "id":  268907,
+        "rawName":  "Atakan Müjde",
+        "knownAs":  "",
+        "firstName":  "Atakan",
+        "lastName":  "Müjde",
+        "club":  "Kasımpaşa",
+        "country":  "Turkey",
+        "ovr":  60
+    },
+    {
+        "id":  269237,
+        "rawName":  "Arda Okan Kurtulan",
+        "knownAs":  "",
+        "firstName":  "Arda Okan",
+        "lastName":  "Kurtulan",
+        "club":  "Göztepe",
+        "country":  "Albania",
+        "ovr":  69
+    },
+    {
+        "id":  269402,
+        "rawName":  "Hrvoje Smolčić",
+        "knownAs":  "",
+        "firstName":  "Hrvoje",
+        "lastName":  "Smolčić",
+        "club":  "Çorum Futbol Kulübü",
+        "country":  "Croatia",
+        "ovr":  72
+    },
+    {
+        "id":  269827,
+        "rawName":  "Erhan Erentürk",
+        "knownAs":  "",
+        "firstName":  "Erhan",
+        "lastName":  "Erentürk",
+        "club":  "Çorum Futbol Kulübü",
+        "country":  "Turkey",
+        "ovr":  63
+    },
+    {
+        "id":  269836,
+        "rawName":  "Emrecan Uzunhan",
+        "knownAs":  "",
+        "firstName":  "Emrecan",
+        "lastName":  "Uzunhan",
+        "club":  "Beşiktaş",
+        "country":  "Turkey",
+        "ovr":  62
+    },
+    {
+        "id":  269899,
+        "rawName":  "Novatus Miroshi",
+        "knownAs":  "",
+        "firstName":  "Novatus",
+        "lastName":  "Miroshi",
+        "club":  "Göztepe",
+        "country":  "Tanzania",
+        "ovr":  69
+    },
+    {
+        "id":  270088,
+        "rawName":  "Simone Giordano",
+        "knownAs":  "",
+        "firstName":  "Simone",
+        "lastName":  "Giordano",
+        "club":  "Eyüpspor",
+        "country":  "Italy",
+        "ovr":  69
+    },
+    {
+        "id":  270571,
+        "rawName":  "Gabriel Sara",
+        "knownAs":  "Gabriel Sara",
+        "firstName":  "Gabriel Davi",
+        "lastName":  "Gomes Sara",
+        "club":  "Galatasaray",
+        "country":  "Brazil",
+        "ovr":  80
+    },
+    {
+        "id":  270597,
+        "rawName":  "Antoine Makoumbou",
+        "knownAs":  "",
+        "firstName":  "Antoine",
+        "lastName":  "Makoumbou",
+        "club":  "Samsunspor",
+        "country":  "Congo",
+        "ovr":  72
+    },
+    {
+        "id":  270863,
+        "rawName":  "Andrei Borza",
+        "knownAs":  "",
+        "firstName":  "Andrei",
+        "lastName":  "Borza",
+        "club":  "Çorum Futbol Kulübü",
+        "country":  "Romania",
+        "ovr":  70
+    },
+    {
+        "id":  271002,
+        "rawName":  "Cem Üstündag",
+        "knownAs":  "",
+        "firstName":  "Cem",
+        "lastName":  "Üstündag",
+        "club":  "Amed Sportif Faaliyetler",
+        "country":  "Austria",
+        "ovr":  64
+    },
+    {
+        "id":  271169,
+        "rawName":  "Hamza Yiğit Akman",
+        "knownAs":  "",
+        "firstName":  "Hamza Yiğit",
+        "lastName":  "Akman",
+        "club":  "Eyüpspor",
+        "country":  "Turkey",
+        "ovr":  57
+    },
+    {
+        "id":  271211,
+        "rawName":  "Jankat Yılmaz",
+        "knownAs":  "",
+        "firstName":  "Jankat",
+        "lastName":  "Yılmaz",
+        "club":  "Galatasaray",
+        "country":  "Turkey",
+        "ovr":  66
+    },
+    {
+        "id":  271228,
+        "rawName":  "Talha Ülvan",
+        "knownAs":  "",
+        "firstName":  "Talha",
+        "lastName":  "Ülvan",
+        "club":  "Eyüpspor",
+        "country":  "Turkey",
+        "ovr":  60
+    },
+    {
+        "id":  271362,
+        "rawName":  "Yasin Özcan",
+        "knownAs":  "",
+        "firstName":  "Yasin",
+        "lastName":  "Özcan",
+        "club":  "Beşiktaş",
+        "country":  "Turkey",
+        "ovr":  70
+    },
+    {
+        "id":  271368,
+        "rawName":  "Metehan Baltacı",
+        "knownAs":  "",
+        "firstName":  "Metehan",
+        "lastName":  "Baltacı",
+        "club":  "Gençlerbirliği",
+        "country":  "Turkey",
+        "ovr":  66
+    },
+    {
+        "id":  271452,
+        "rawName":  "Benjamin Bouchouari",
+        "knownAs":  "",
+        "firstName":  "Benjamin",
+        "lastName":  "Bouchouari",
+        "club":  "Trabzonspor",
+        "country":  "Morocco",
+        "ovr":  68
+    },
+    {
+        "id":  271540,
+        "rawName":  "Žan Žužek",
+        "knownAs":  "",
+        "firstName":  "Žan",
+        "lastName":  "Žužek",
+        "club":  "Gençlerbirliği",
+        "country":  "Slovenia",
+        "ovr":  67
+    },
+    {
+        "id":  271676,
+        "rawName":  "Amar Gërxhaliu",
+        "knownAs":  "",
+        "firstName":  "Amar",
+        "lastName":  "Gërxhaliu",
+        "club":  "Erzurumspor Futbol Kulübü",
+        "country":  "Kosovo",
+        "ovr":  66
+    },
+    {
+        "id":  271921,
+        "rawName":  "Gabriele Guarino",
+        "knownAs":  "",
+        "firstName":  "Gabriele",
+        "lastName":  "Guarino",
+        "club":  "Samsunspor",
+        "country":  "Italy",
+        "ovr":  68
+    },
+    {
+        "id":  272365,
+        "rawName":  "Sinclair Armstrong",
+        "knownAs":  "",
+        "firstName":  "Sinclair",
+        "lastName":  "Armstrong",
+        "club":  "Göztepe",
+        "country":  "Republic of Ireland",
+        "ovr":  68
+    },
+    {
+        "id":  272919,
+        "rawName":  "Richie Omorowa",
+        "knownAs":  "",
+        "firstName":  "Richie",
+        "lastName":  "Omorowa",
+        "club":  "Samsunspor",
+        "country":  "Sweden",
+        "ovr":  63
+    },
+    {
+        "id":  273100,
+        "rawName":  "Ermal Krasniqi",
+        "knownAs":  "",
+        "firstName":  "Ermal",
+        "lastName":  "Krasniqi",
+        "club":  "Amed Sportif Faaliyetler",
+        "country":  "Kosovo",
+        "ovr":  68
+    },
+    {
+        "id":  273564,
+        "rawName":  "Gift Orban",
+        "knownAs":  "",
+        "firstName":  "Gift",
+        "lastName":  "Orban",
+        "club":  "Amed Sportif Faaliyetler",
+        "country":  "Nigeria",
+        "ovr":  73
+    },
+    {
+        "id":  273933,
+        "rawName":  "Kassoum Ouattara",
+        "knownAs":  "",
+        "firstName":  "Kassoum",
+        "lastName":  "Ouattara",
+        "club":  "Beşiktaş",
+        "country":  "France",
+        "ovr":  72
+    },
+    {
+        "id":  274219,
+        "rawName":  "Ahmed Abdullahi",
+        "knownAs":  "",
+        "firstName":  "Ahmed",
+        "lastName":  "Abdullahi",
+        "club":  "Eyüpspor",
+        "country":  "Nigeria",
+        "ovr":  58
+    },
+    {
+        "id":  274548,
+        "rawName":  "Baran Ali Gezek",
+        "knownAs":  "",
+        "firstName":  "Baran Ali",
+        "lastName":  "Gezek",
+        "club":  "Alanyaspor",
+        "country":  "Turkey",
+        "ovr":  64
+    },
+    {
+        "id":  274616,
+        "rawName":  "Semih Kılıçsoy",
+        "knownAs":  "",
+        "firstName":  "Semih",
+        "lastName":  "Kılıçsoy",
+        "club":  "Beşiktaş",
+        "country":  "Turkey",
+        "ovr":  73
+    },
+    {
+        "id":  275258,
+        "rawName":  "Arif Boşluk",
+        "knownAs":  "",
+        "firstName":  "Arif",
+        "lastName":  "Boşluk",
+        "club":  "Konyaspor",
+        "country":  "Turkey",
+        "ovr":  62
+    },
+    {
+        "id":  275624,
+        "rawName":  "Deniz Dilmen",
+        "knownAs":  "",
+        "firstName":  "Deniz",
+        "lastName":  "Dilmen",
+        "club":  "Başakşehir",
+        "country":  "Turkey",
+        "ovr":  65
+    },
+    {
+        "id":  275690,
+        "rawName":  "Mithat Pala",
+        "knownAs":  "",
+        "firstName":  "Mithat",
+        "lastName":  "Pala",
+        "club":  "Çaykur Rizespor",
+        "country":  "Turkey",
+        "ovr":  66
+    },
+    {
+        "id":  275691,
+        "rawName":  "Ibrahim Olawoyin",
+        "knownAs":  "",
+        "firstName":  "Ibrahim",
+        "lastName":  "Olawoyin",
+        "club":  "Çaykur Rizespor",
+        "country":  "Nigeria",
+        "ovr":  70
+    },
+    {
+        "id":  275694,
+        "rawName":  "Anıl Yaşar",
+        "knownAs":  "",
+        "firstName":  "Anıl",
+        "lastName":  "Yaşar",
+        "club":  "Eyüpspor",
+        "country":  "Turkey",
+        "ovr":  63
+    },
+    {
+        "id":  276211,
+        "rawName":  "Alexandros Kyziridis",
+        "knownAs":  "",
+        "firstName":  "Alexandros",
+        "lastName":  "Kyziridis",
+        "club":  "Çorum Futbol Kulübü",
+        "country":  "Greece",
+        "ovr":  75
+    },
+    {
+        "id":  276393,
+        "rawName":  "Yunus Emre Çift",
+        "knownAs":  "",
+        "firstName":  "Yunus Emre",
+        "lastName":  "Çift",
+        "club":  "Samsunspor",
+        "country":  "Turkey",
+        "ovr":  65
+    },
+    {
+        "id":  276402,
+        "rawName":  "Ramazan Özkanlı",
+        "knownAs":  "",
+        "firstName":  "Ramazan",
+        "lastName":  "Özkanlı",
+        "club":  "Kasımpaşa",
+        "country":  "Turkey",
+        "ovr":  52
+    },
+    {
+        "id":  276544,
+        "rawName":  "Amin Cherni",
+        "knownAs":  "",
+        "firstName":  "Amin",
+        "lastName":  "Cherni",
+        "club":  "Göztepe",
+        "country":  "Tunisia",
+        "ovr":  68
+    },
+    {
+        "id":  276566,
+        "rawName":  "Marcus Rafferty",
+        "knownAs":  "",
+        "firstName":  "Marcus",
+        "lastName":  "Rafferty",
+        "club":  "Kasımpaşa",
+        "country":  "Sweden",
+        "ovr":  67
+    },
+    {
+        "id":  276909,
+        "rawName":  "Wagner Pina",
+        "knownAs":  "Wagner Pina",
+        "firstName":  "Wagner Fabrício",
+        "lastName":  "Cardoso de Pina",
+        "club":  "Trabzonspor",
+        "country":  "Cape Verde Islands",
+        "ovr":  72
+    },
+    {
+        "id":  276946,
+        "rawName":  "Tim Jabol-Folcarelli",
+        "knownAs":  "",
+        "firstName":  "Tim",
+        "lastName":  "Jabol-Folcarelli",
+        "club":  "Trabzonspor",
+        "country":  "France",
+        "ovr":  72
+    },
+    {
+        "id":  277144,
+        "rawName":  "Ümit Akdağ",
+        "knownAs":  "",
+        "firstName":  "Ümit",
+        "lastName":  "Akdağ",
+        "club":  "Alanyaspor",
+        "country":  "Romania",
+        "ovr":  69
+    },
+    {
+        "id":  277217,
+        "rawName":  "Taha Şahin",
+        "knownAs":  "",
+        "firstName":  "Taha",
+        "lastName":  "Şahin",
+        "club":  "Çaykur Rizespor",
+        "country":  "Turkey",
+        "ovr":  69
+    },
+    {
+        "id":  277284,
+        "rawName":  "Ali Emre Yanar",
+        "knownAs":  "",
+        "firstName":  "Ali Emre",
+        "lastName":  "Yanar",
+        "club":  "Kasımpaşa",
+        "country":  "Turkey",
+        "ovr":  61
+    },
+    {
+        "id":  277293,
+        "rawName":  "Adedire Mebude",
+        "knownAs":  "",
+        "firstName":  "Adedire",
+        "lastName":  "Mebude",
+        "club":  "Çaykur Rizespor",
+        "country":  "Scotland",
+        "ovr":  65
+    },
+    {
+        "id":  277375,
+        "rawName":  "Iván Cédric",
+        "knownAs":  "Iván Cédric",
+        "firstName":  "Iván",
+        "lastName":  "Cédric Bikoue",
+        "club":  "Alanyaspor",
+        "country":  "Cameroon",
+        "ovr":  72
+    },
+    {
+        "id":  277498,
+        "rawName":  "Jaurès Assoumou",
+        "knownAs":  "",
+        "firstName":  "Jaurès",
+        "lastName":  "Assoumou",
+        "club":  "Samsunspor",
+        "country":  "Côte d\u0027Ivoire",
+        "ovr":  65
+    },
+    {
+        "id":  277568,
+        "rawName":  "Khusniddin Alikulov",
+        "knownAs":  "",
+        "firstName":  "Khusniddin",
+        "lastName":  "Alikulov",
+        "club":  "Çaykur Rizespor",
+        "country":  "Uzbekistan",
+        "ovr":  66
+    },
+    {
+        "id":  277627,
+        "rawName":  "Dal Varešanović",
+        "knownAs":  "",
+        "firstName":  "Dal",
+        "lastName":  "Varešanović",
+        "club":  "Çaykur Rizespor",
+        "country":  "Bosnia and Herzegovina",
+        "ovr":  65
+    },
+    {
+        "id":  277648,
+        "rawName":  "Mame Mor Faye",
+        "knownAs":  "",
+        "firstName":  "Mame Mor",
+        "lastName":  "Faye",
+        "club":  "Çaykur Rizespor",
+        "country":  "Senegal",
+        "ovr":  62
+    },
+    {
+        "id":  277671,
+        "rawName":  "Enes Keskin",
+        "knownAs":  "",
+        "firstName":  "Enes",
+        "lastName":  "Keskin",
+        "club":  "Alanyaspor",
+        "country":  "Turkey",
+        "ovr":  57
+    },
+    {
+        "id":  277744,
+        "rawName":  "Taylan Utku Aydın",
+        "knownAs":  "",
+        "firstName":  "Taylan Utku",
+        "lastName":  "Aydın",
+        "club":  "Kasımpaşa",
+        "country":  "Turkey",
+        "ovr":  58
+    },
+    {
+        "id":  277763,
+        "rawName":  "Şamil Öztürk",
+        "knownAs":  "",
+        "firstName":  "Şamil",
+        "lastName":  "Öztürk",
+        "club":  "Göztepe",
+        "country":  "Turkey",
+        "ovr":  51
+    },
+    {
+        "id":  277822,
+        "rawName":  "Trivante Stewart",
+        "knownAs":  "",
+        "firstName":  "Trivante",
+        "lastName":  "Stewart",
+        "club":  "Gaziantep",
+        "country":  "Jamaica",
+        "ovr":  69
+    },
+    {
+        "id":  277880,
+        "rawName":  "Batuhan Çelik",
+        "knownAs":  "",
+        "firstName":  "Batuhan",
+        "lastName":  "Çelik",
+        "club":  "Başakşehir",
+        "country":  "Turkey",
+        "ovr":  60
+    },
+    {
+        "id":  277902,
+        "rawName":  "Logi Tómasson",
+        "knownAs":  "",
+        "firstName":  "Logi",
+        "lastName":  "Tómasson",
+        "club":  "Samsunspor",
+        "country":  "Iceland",
+        "ovr":  70
+    },
+    {
+        "id":  277982,
+        "rawName":  "Chandrel Matondo",
+        "knownAs":  "",
+        "firstName":  "Chandrel",
+        "lastName":  "Matondo",
+        "club":  "Eyüpspor",
+        "country":  "Congo",
+        "ovr":  66
+    },
+    {
+        "id":  278024,
+        "rawName":  "Deniz Ertaş",
+        "knownAs":  "",
+        "firstName":  "Deniz",
+        "lastName":  "Ertaş",
+        "club":  "Konyaspor",
+        "country":  "Turkey",
+        "ovr":  63
+    },
+    {
+        "id":  278056,
+        "rawName":  "Batuhan Yavuz",
+        "knownAs":  "",
+        "firstName":  "Batuhan",
+        "lastName":  "Yavuz",
+        "club":  "Alanyaspor",
+        "country":  "Turkey",
+        "ovr":  57
+    },
+    {
+        "id":  278087,
+        "rawName":  "Matei Ilie",
+        "knownAs":  "",
+        "firstName":  "Matei",
+        "lastName":  "Ilie",
+        "club":  "Kasımpaşa",
+        "country":  "Romania",
+        "ovr":  70
+    },
+    {
+        "id":  278168,
+        "rawName":  "Eyüp Aydın",
+        "knownAs":  "",
+        "firstName":  "Eyüp",
+        "lastName":  "Aydın",
+        "club":  "Galatasaray",
+        "country":  "Turkey",
+        "ovr":  64
+    },
+    {
+        "id":  278288,
+        "rawName":  "Alex Matos",
+        "knownAs":  "",
+        "firstName":  "Alex",
+        "lastName":  "Matos",
+        "club":  "Göztepe",
+        "country":  "England",
+        "ovr":  67
+    },
+    {
+        "id":  278369,
+        "rawName":  "Emir Ortakaya",
+        "knownAs":  "",
+        "firstName":  "Emir",
+        "lastName":  "Ortakaya",
+        "club":  "Kocaelispor",
+        "country":  "Turkey",
+        "ovr":  62
+    },
+    {
+        "id":  278374,
+        "rawName":  "Enes Albak",
+        "knownAs":  "",
+        "firstName":  "Enes",
+        "lastName":  "Albak",
+        "club":  "Samsunspor",
+        "country":  "Turkey",
+        "ovr":  61
+    },
+    {
+        "id":  278376,
+        "rawName":  "Ali Turap Bülbül",
+        "knownAs":  "",
+        "firstName":  "Ali Turap",
+        "lastName":  "Bülbül",
+        "club":  "Amed Sportif Faaliyetler",
+        "country":  "Turkey",
+        "ovr":  62
+    },
+    {
+        "id":  278997,
+        "rawName":  "Yakup Arda Kılıç",
+        "knownAs":  "",
+        "firstName":  "Yakup Arda",
+        "lastName":  "Kılıç",
+        "club":  "Beşiktaş",
+        "country":  "Turkey",
+        "ovr":  57
+    },
+    {
+        "id":  278999,
+        "rawName":  "Mustafa Erhan Hekimoğlu",
+        "knownAs":  "",
+        "firstName":  "Mustafa Erhan",
+        "lastName":  "Hekimoğlu",
+        "club":  "Beşiktaş",
+        "country":  "Turkey",
+        "ovr":  67
+    },
+    {
+        "id":  279001,
+        "rawName":  "Onuralp Çevikkan",
+        "knownAs":  "",
+        "firstName":  "Onuralp",
+        "lastName":  "Çevikkan",
+        "club":  "Trabzonspor",
+        "country":  "Turkey",
+        "ovr":  62
+    },
+    {
+        "id":  279502,
+        "rawName":  "Moussa Diakité",
+        "knownAs":  "",
+        "firstName":  "Moussa",
+        "lastName":  "Diakité",
+        "club":  "Çaykur Rizespor",
+        "country":  "Mali",
+        "ovr":  68
+    },
+    {
+        "id":  279624,
+        "rawName":  "Mahamadou Susoho",
+        "knownAs":  "Mahamadou Susoho",
+        "firstName":  "Mahamadou",
+        "lastName":  "Susoho Sissoho",
+        "club":  "Kocaelispor",
+        "country":  "Spain",
+        "ovr":  63
+    },
+    {
+        "id":  279728,
+        "rawName":  "Mustafa Tan",
+        "knownAs":  "",
+        "firstName":  "Mustafa",
+        "lastName":  "Tan",
+        "club":  "Samsunspor",
+        "country":  "Turkey",
+        "ovr":  57
+    },
+    {
+        "id":  279928,
+        "rawName":  "Thalisson Kelven",
+        "knownAs":  "Thalisson Kelven",
+        "firstName":  "Thalisson",
+        "lastName":  "Kelven da Silva",
+        "club":  "Gençlerbirliği",
+        "country":  "Brazil",
+        "ovr":  67
+    }
+]

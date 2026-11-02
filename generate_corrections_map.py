@@ -1,0 +1,330 @@
+# -*- coding: utf-8 -*-
+# generate_corrections_map.py
+import sys
+import json
+
+sys.stdout.reconfigure(encoding='utf-8')
+
+# Comprehensive exact translations by Player ID
+corrections = {
+    # Brighton players
+    73885: "하랄람포스 코스툴라스",  # Charalampos Kostoulas
+    274699: "스테파노스 치마스",     # Stefanos Tzimas
+    188836: "제이슨 스틸",          # Jason Steele
+    199915: "루이스 덩크",          # Lewis Dunk
+    277283: "잭 힌셜우드",          # Jack Hinshelwood
+    240734: "맷 오라일리",          # Matt O'Riley
+    243588: "톰 맥길",              # Tom McGill
+    277922: "카마리 도일",          # Kamari Doyle
+    277512: "케일런 비커스",        # Caylan Vickers
+    272862: "마크 오마호니",        # Mark O'Mahony
+    271743: "아마리오 코지어두베리", # Amario Cozier-Duberry
+    73070: "프로미스 데이비드",     # Promise David
+    80314: "차독 요한나",           # Zadok Yohanna
+    242964: "조르지뇨 뤼터",        # Georginio Rutter (or 조르지니오 뤼터)
+    253149: "야신 아야리",          # Yasin Ayari
+    228551: "올리비에 보스칼리",    # Olivier Boscagli
+
+    # English / British / American / Commonwealth players
+    248808: "에런 히키",            # Aaron Hickey
+    74555: "아론 오초아",           # Aarón Ochoa
+    190885: "아담 스미스",          # Adam Smith
+    259240: "아담 워튼",            # Adam Wharton
+    277293: "디레 메부데",          # Adedire Mebude
+    271746: "에이드리언 블레이크",  # Adrian Blake
+    82934: "에이든 보얼랜드",       # Aidan Borland
+    278210: "에이든 해리스",        # Aidan Harris
+    225782: "에인슬리 메이틀랜드나일스", # Ainsley Maitland-Niles
+    240867: "아지볼라 알레세",      # Ajibola Alese
+    216464: "앨런 브라운",          # Alan Browne
+    78145: "알레한드로 고메스 로드리게스", # Alejandro Gomes Rodríguez
+    268913: "알레산드로 치르카티",  # Alessandro Circati
+    203215: "알렉스 케언스",        # Alex Cairns
+    267920: "알렉스 프리먼",        # Alex Freeman
+    278288: "알렉스 마토스",        # Alex Matos
+    223909: "알렉스 파머",          # Alex Palmer
+    261299: "알렉스 스콧",          # Alex Scott
+    85912: "알피 크레스웰",         # Alfie Cresswell
+    279117: "알피 도링턴",          # Alfie Dorrington
+    234396: "알폰소 데이비스",      # Alphonso Davies
+    261647: "앤드루 오모바미델레",  # Andrew Omobamidele
+    216267: "앤디 로버트슨",        # Andrew Robertson
+    240507: "앙헬 고메스",          # Angel Gomes
+    229348: "앤터니 로빈슨",        # Antonee Robinson
+    262968: "아치 브라운",          # Archie Brown
+    270208: "아치 그레이",          # Archie Gray
+    75087: "에이든 헤븐",           # Ayden Heaven
+    75767: "벤 브로조",             # Ben Broggio
+    229984: "벤 칠웰",              # Ben Chilwell
+    205923: "벤 데이비스",          # Ben Davies
+    266815: "벤 도크",              # Ben Gannon-Doak
+    204825: "벤 윌슨",              # Ben Wilson
+    272687: "벤자민 크레마스키",    # Benjamin Cremaschi
+    231936: "벤 화이트",            # Benjamin White
+    247354: "벤지 미셸",            # Benji Michel
+    245992: "빌리 길모어",          # Billy Gilmour
+    257253: "바비 토마스",          # Bobby Thomas
+    80816: "브래들리 버로우스",     # Bradley Burrowes
+    236568: "브랜던 오스틴",        # Brandon Austin
+    247361: "브렌던 에런슨",        # Brenden Aaronson
+    251421: "브레넌 존슨",          # Brennan Johnson
+    80652: "브라이언 마조",         # Brian Madjo
+    260653: "브룩 노턴커피",        # Brooke Norton-Cuffy
+    242907: "브라이언 레이놀즈",    # Bryan Reynolds
+    246669: "부카요 사카",          # Bukayo Saka
+    268131: "시제이 이건라일리",    # CJ Egan-Riley
+    240740: "칼럼 허드슨오도이",    # Callum Hudson-Odoi
+    88609: "칼럼 밀스",             # Callum Mills
+    75770: "칼럼 올루세시",         # Callum Olusesi
+    196978: "칼럼 윌슨",            # Callum Wilson
+    252897: "캘빈 램지",            # Calvin Ramsay
+    264200: "캐머런 험프리스",      # Cameron Humphreys
+    264124: "캐머런 퓨피언",        # Cameron Peupion
+    240913: "퀴빈 켈러허",          # Caoimhín Kelleher
+    263339: "칼 러슈워스",          # Carl Rushworth
+    227796: "크리스천 풀리시치",    # Christian Pulisic
+    73057: "콜 캠벨",              # Cole Campbell
+    264298: "코너 브래들리",        # Conor Bradley
+    243908: "대니얼 발라드",        # Daniel Ballard
+    232104: "대니얼 제임스",        # Daniel James
+    262227: "대니얼 제비슨",        # Daniel Jebbison
+    178088: "대니 웰백",            # Danny Welbeck
+    235729: "데이비드 베이츠",      # David Bates
+    220196: "데이비드 브룩스",      # David Brooks
+    173533: "데이비드 버튼",        # David Button
+    273693: "데이비드 오조",        # David Ozoh
+    234378: "데클란 라이스",        # Declan Rice
+    243009: "데릭 코르넬리우스",    # Derek Cornelius
+    268415: "더멋 미",              # Dermot Mee
+    243282: "드와이트 맥닐",        # Dwight McNeil
+    73098: "딜런 레너드",           # Dylan Leonard
+    235794: "에베레치 에제",        # Eberechi Eze
+    236663: "엘러리 발컴",          # Ellery Balcombe
+    240273: "에밀 스미스 로우",     # Emile Smith Rowe
+    71973: "이선 위틀리",           # Ethan Wheatley
+    271807: "이선 느바네리",        # Ethan Nwaneri
+    256630: "에반 퍼거슨",          # Evan Ferguson
+    227678: "에즈리 콘사",          # Ezri Konsa
+    172203: "프레이저 포스터",      # Fraser Forster
+    82350: "조지 헤밍스",           # George Hemmings
+    74862: "조지 애벗",             # George Abbott
+    238743: "하지 라이트",          # Haji Wright
+    74413: "해리슨 암스트롱",      # Harrison Armstrong
+    220710: "해리 윌슨",            # Harry Wilson
+    243606: "킨 루이스포터",        # Keane Lewis-Potter
+    232755: "제이 다실바",          # Jay Dasilva
+    243669: "제이든 앤서니",        # Jaidon Anthony
+    278957: "제이든 메고마",        # Jayden Meghoma
+    244591: "제이든 보글",          # Jayden Bogle
+    85700: "제이든 리에누",         # Jayden Lienou
+    83205: "제이든 헤스키",         # Jaden Heskey
+    196952: "제이크 비드웰",        # Jake Bidwell
+    247649: "재러드 브랜스웨이트",  # Jarrad Branthwaite
+    253510: "제이크 오브라이언",    # Jake O'Brien
+    278557: "제이미 돈리",          # Jamie Donley
+    76255: "자말딘 지모알로바",     # Jamaldeen Jimoh-Aloba
+    248492: "제임스 힐",            # James Hill
+    210881: "존 맥긴",              # John McGinn
+    243630: "조너선 데이비드",      # Jonathan David
+    266500: "조너선 로우",          # Jonathan Rowe
+    269923: "제이슨 러셀로우",      # Jacen Russell-Rowe
+    262904: "존 아이어데일",        # John Iredale
+    237871: "조던 홀스그로브",      # Jordan Holsgrove
+    260521: "조던 보스",            # Jordan Bos
+    71651: "조시 아체암퐁",         # Josh Acheampong
+    70786: "조시 킹",               # Josh King
+    236532: "조시 다실바",          # Josh Dasilva
+    73895: "저스틴 데베니",         # Justin Devenny
+    70909: "케이시 보스",           # Kasey Bos
+    193331: "칼 달로우",            # Karl Darlow
+    70994: "루이스 쿠마스",         # Lewis Koumas
+    224294: "루이스 쿡",            # Lewis Cook
+    240925: "리암 밀러",            # Liam Millar
+    72281: "레오 샤하르",           # Leo Shahar
+    75145: "루카스 헤링턴",         # Lucas Herrington
+    278773: "마일스 루이스스켈리",  # Myles Lewis-Skelly
+    237477: "마커스 태버니어",      # Marcus Tavernier
+    240060: "막스 에런스",          # Max Aarons
+    72159: "마이키 무어",           # Mikey Moore
+    73616: "모페 제미드",           # Mofe Jemide
+    73731: "노아카이 뱅크스",       # Noahkai Banks
+    220031: "올리 맥버니",          # Oli McBurnie
+    213697: "패디 맥네어",          # Paddy McNair
+    80236: "파울 오콘엥스틀러",     # Paul Okon-Engstler
+    254796: "노니 마두에케",        # Noni Madueke
+    231448: "레이스 넬손",          # Reiss Nelson
+    73353: "리스 채드윅",           # Rhys Chadwick
+    80376: "리오 은구모하",         # Rio Ngumoha
+    88606: "로리 마하디",           # Rory Mahady
+    74145: "샘 챔버스",             # Sam Chambers
+    237161: "숀 롱스태프",          # Sean Longstaff
+    77791: "숀 니브",               # Sean Neave
+    276695: "셰이 찰스",            # Shea Charles
+    278124: "셰이 레이시",          # Shea Lacey
+    77540: "슈마이라 음헤우카",     # Shumaira Mheuka
+    194150: "사이먼 무어",          # Simon Moore
+    272365: "싱클레어 암스트롱",    # Sinclair Armstrong
+    242380: "스테픈 에우스타키오",  # Stephen Eustáquio
+    81538: "스티븐 음푸니",         # Stephen Mfuni
+    246800: "테이전 뷰캐넌",        # Tajon Buchanan
+    231352: "태미 에이브러햄",      # Tammy Abraham
+    271108: "타니 올루와세이",      # Tani Oluwaseyi
+    256104: "태너 테스만",          # Tanner Tessmann
+    256887: "테일러 부스",          # Taylor Booth
+    257126: "테디 샤먼로우",        # Teddy Sharman-Lowe
+    245563: "테오 베어",            # Theo Bair
+    266609: "팀 이로그부남",        # Tim Iroegbunam
+    202316: "티미 챈들러",          # Timmy Chandler
+    241496: "티모시 웨아",          # Timothy Weah
+    248474: "티노 안조린",          # Tino Anjorin
+    262118: "티노 리브라멘토",      # Tino Livramento
+    268439: "토비 콜리어",          # Toby Collyer
+    195202: "톰 케어니",            # Tom Cairney
+    163264: "톰 히튼",              # Tom Heaton
+    225650: "톰 킹",                # Tom King
+    267849: "토미 오라일리",        # Tommi O'Reilly
+    74892: "토미 세트포드",         # Tommy Setford
+    222104: "토신 아다라비오요",    # Tosin Adarabioyo
+    266400: "트레이 흄",            # Trai Hume
+    231281: "트렌트 알렉산더아놀드", # Trent Alexander-Arnold
+    230918: "트레보 찰로바",        # Trevoh Chalobah
+    279128: "트레이 니오니",        # Trey Nyoni
+    78113: "트리스턴 로우",         # Triston Rowe
+    277822: "트리반테 스튜어트",    # Trivante Stewart
+    245902: "트로이 패럿",          # Troy Parrott
+    232999: "타일러 애덤스",        # Tyler Adams
+    277552: "타일러 빈던",          # Tyler Bindon
+    279497: "타일러 디블링",        # Tyler Dibling
+    82899: "타일러 플레처",         # Tyler Fletcher
+    265459: "타일러 모턴",          # Tyler Morton
+    278708: "타이렐 셀러스플레밍",  # Tyrell Sellars-Fleming
+    72284: "타이리스 홀",           # Tyrese Hall
+    257063: "타이리스 돌란",        # Tyrhys Dolan
+    240947: "타이릭 미첼",          # Tyrick Mitchell
+    71998: "타이리크 조지",         # Tyrique George
+    212419: "타이론 밍스",          # Tyrone Mings
+    238744: "웨스턴 맥케니",        # Weston McKennie
+    243048: "윌 데니스",            # Will Dennis
+    206516: "윌 휴즈",              # Will Hughes
+    253177: "유누스 무사",          # Yunus Musah
+    74242: "잭 애벗",               # Zach Abbott
+    230839: "잭 줄스",              # Zak Jules
+    278875: "제이비어 고조",        # Zavier Gozo
+    75439: "잭 플레처",             # Jack Fletcher
+    75577: "자마이 심슨퓨시",       # Jahmai Simpson-Pusey
+    76254: "레미 리스도틴",         # Remy Rees-Dottin
+    77186: "코레데 오순디나",       # Korede Osundina
+    78060: "지미 가워",             # Jimi Gower
+    78106: "제레미 몽가",           # Jeremy Monga
+    78184: "제이 로빈슨",           # Jay Robinson
+    79687: "조슈아 윈더",           # Joshua Wynder
+    81899: "주나이 바이필드",       # Jun'ai Byfield
+    82815: "조엘 드레이크스토마스", # Joél Drakes-Thomas
+    82841: "레이건 헤스키",         # Reigan Heskey
+
+    # Greek / Slavic / Romanian / Turkish / Spanish / French / African fixes
+    70497: "콘스탄티노스 카레차스",  # Konstantinos Karetsas
+    70806: "울라지슬라우 마로자우",  # Uladzislau Marozau
+    71781: "이브라히마 바",          # Ibrahima Ba
+    72863: "안드레아스 은토이",      # Andreas Ntoi
+    73238: "제일런 미첼",            # Jeyland Mitchell
+    73502: "라힘 알하사네",          # Rahim Alhassane
+    73625: "기 노엘 조후리",         # Guy Noël Zohouri
+    74091: "고로차",                 # Gorrotxa
+    74295: "아르세니 바타고프",      # Arseniy Batagov
+    74314: "시헤브 라비디",          # Chiheb Labidi
+    74483: "어니스트 아하노르",      # Honest Ahanor
+    74749: "아르템 스테파노프",      # Artem Stepanov
+    74885: "모하메드 밤바",          # Mohamed Bamba
+    74904: "티무르 투티에로프",      # Timur Tutierov
+    76225: "게오르기 툰굴리아디",    # Georgiy Tunguliadi
+    76746: "흐리스티얀 페트로프",    # Hristiyan Petrov
+    78216: "노암 카마라",            # Noham Kamara
+    79305: "아타나스 체르네프",      # Atanas Chernev
+    79461: "스테판 스마르칼레프",    # Stefan Smarkalev
+    80593: "게오르기오스 리아바스",  # Georgios Liavas
+    83550: "이치하라 리온",          # Rion Ichihara
+    85290: "누훔 카미소코",          # Nouhoum Kamissoko
+    86044: "고히 로루뇽",            # Gohi Lorougnon
+    86890: "아담 타하우이",          # Adam Tahaui
+    88085: "아미르 부함디",          # Amir Bouhamdi
+    88194: "사미 부후단",            # Sami Bouhoudane
+    210327: "안드레아스 얀니오티스", # Andreas Gianniotis
+    211990: "오디세아스 블라호디모스",# Odysseas Vlachodimos
+    215871: "알리레자 자한바흐슈",    # Alireza Jahanbakhsh
+    225663: "알렉산드르 골로빈",    # Alexandr Golovin
+    229188: "방겔리스 파블리디스",    # Vangelis Pavlidis
+    229646: "사뮈엘 요후",          # Samuel Yohou
+    229703: "디미트리오스 구타스",    # Dimitrios Goutas
+    231969: "루슬란 말리노우스키",    # Ruslan Malinovskyi
+    232223: "코스타스 치미카스",      # Kostas Tsimikas
+    236046: "이반 즐로빈",            # Ivan Zlobin
+    239272: "바실리오스 바르카스",    # Vasilios Barkas
+    240225: "마트베이 사포노프",      # Matvey Safonov
+    241821: "모하메드 바요",          # Mohamed Bayo
+    242179: "야히아 포파나",          # Yahia Fofana
+    242458: "아르템 도브비크",        # Artem Dovbyk
+    243952: "안드리 루닌",            # Andriy Lunin
+    244287: "마리오스 브루사이",      # Marios Vrousai
+    244380: "비탈리 미콜렌코",        # Vitaliy Mykolenko
+    244915: "모하메드 살리수",        # Mohammed Salisu
+    246340: "미하일로 무드리크",      # Mykhailo Mudryk
+    246672: "안데르 바레네체아",      # Barrenetxea
+    246960: "모하메드 이하타렌",      # Mohamed Ihattaren
+    247040: "오레스트 레베덴코",      # Orest Lebedenko
+    248199: "발렌틴 안토프",          # Valentin Antov
+    248384: "일리야 그루에프",        # Ilia Gruev
+    250753: "아나톨리 트루빈",        # Anatoliy Trubin
+    251894: "쇼",                    # Show
+    252552: "콘스탄티노스 촐라키스",  # Konstantinos Tzolakis
+    252937: "얀 그보호",              # Yann Gboho
+    252999: "바실리오스 자가리티스",  # Vasilios Zagaritis
+    254910: "사카모토 타츠히로",      # Tatsuhiro Sakamoto
+    255634: "게오르기오스 바기안니디스",# Georgios Vagiannidis
+    255928: "모하메드 디오망데",      # Mohammed Diomande
+    256476: "모하메드알리 쇼",        # Mohamed-Ali Cho
+    256948: "흐리스토스 촐리스",      # Christos Tzolis
+    257975: "빌랄 브라히미",          # Billal Brahimi
+    258015: "포티스 이오안니디스",    # Fotis Ioannidis
+    258753: "쿠하이브 드리우에시",    # Couhaib Driouech
+    258781: "일리야 자바르니",        # Illia Zabarnyi
+    258834: "게오르기오스 쿠치아스",  # Georgios Koutsias
+    259205: "나위루 아하마다",        # Naouirou Ahamada
+    259633: "야니스 콘스탄텔리아스",  # Giannis Konstantelias
+    259913: "헤오르히 수다코프",      # Georgiy Sudakov
+    260925: "루카스 페트코프",        # Lukas Petkov
+    261478: "타소스 두비카스",        # Tasos Douvikas
+    262744: "모하메드 불디니",        # Mohamed Bouldini
+    263056: "에미르 사히티",          # Emir Sahiti
+    263469: "모하메드 카바",          # Mohamed Kaba
+    263555: "니콜라오스 미켈리스",    # Nikolaos Michelis
+    263804: "유힘 코노플랴",          # Yukhym Konoplia
+    264701: "아르센 자하랸",          # Arsen Zakharyan
+    264825: "이야드 모하메드",        # Iyad Mohamed
+    266039: "마르크 푸빌",            # Pubill
+    268751: "일리아스 쿠추피아스",    # Ilias Koutsoupias
+    269164: "모하메드 압델모넴",      # Mohamed Abdelmonem
+    269728: "장마테오 바호야",        # Jean-Mattéo Bahoya
+    270077: "콘스탄티노스 쿨리에라키스",# Konstantinos Koulierakis
+    270355: "로한 두세",              # Lohann Doucet
+    270608: "예호르 야르몰류크",      # Yehor Yarmoliuk
+    270923: "야마모토 리히토",        # Rihito Yamamoto
+    271497: "조하네코",               # Johaneko
+    274219: "아흐메드 압둘라히",      # Ahmed Abdullahi
+    275418: "유네스 타하",            # Younes Taha
+    276007: "파노스 카체리스",        # Panos Katseris
+    276188: "모하메드 우에드라오고",  # Mohamed Ouédraogo
+    276211: "알렉산드로스 키지리디스",# Alexandros Kyziridis
+    276969: "레온 아브둘라후",        # Leon Avdullahu
+    277216: "모하메드 밤바",          # Mohamed Bamba
+    277356: "무하메드 디오프",        # Mouhamed Diop
+    277663: "모하메드 벨루미",        # Mohamed Belloumi
+    278032: "흐리스토스 만다스",      # Christos Mandas
+    278789: "마하마두 디아와라",      # Mahamadou Diawara
+    279557: "마하마두 나지다"         # Mahamadou Nagida
+}
+
+with open("player_corrections_master.json", "w", encoding="utf-8") as f:
+    json.dump(corrections, f, ensure_ascii=False, indent=2)
+
+print(f"Generated player_corrections_master.json with {len(corrections)} entries.")

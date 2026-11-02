@@ -1,4 +1,4 @@
-// sns.js - SNS 시스템 구현
+﻿// sns.js - SNS 시스템 구현
 
 class SNSManager {
     constructor() {
@@ -875,9 +875,8 @@ class SNSManager {
             overlay.className = 'transfer-card-overlay';
 
             const playerImg = document.createElement('img');
-            playerImg.src = `assets/players/${post.playerName}.webp`;
             playerImg.className = 'transfer-card-player';
-            playerImg.onerror = function() { this.src = 'assets/players/default.webp'; };
+            setPlayerPhoto(playerImg, post.playerName);
 
             const badge = document.createElement('div');
             badge.className = 'transfer-card-price-badge';

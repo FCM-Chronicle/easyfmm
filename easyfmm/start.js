@@ -1,4 +1,4 @@
-// start.js - 팀 선택 화면 UI 로직 및 데이터 표시
+﻿// start.js - 팀 선택 화면 UI 로직 및 데이터 표시
 
 const AVAILABLE_LEAGUES = [
     { id: "premier_league", name: "🇬🇧 잉글랜드 프리미어리그" },
@@ -146,9 +146,8 @@ function updateKeyPlayerCard(elementId, player) {
     card.className = 'ts-key-player-card';
 
     const img = document.createElement('img');
-    img.src = `assets/players/${player.name}.webp`;
     img.className = 'ts-kp-img';
-    img.onerror = () => { img.src = 'assets/players/default.webp'; };
+    setPlayerPhoto(img, player);
 
     const info = document.createElement('div');
     info.className = 'ts-kp-info';

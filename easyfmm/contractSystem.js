@@ -1,4 +1,4 @@
-// contractSystem.js - 선수 계약 만료 및 따박따박 재계약 시스템
+﻿// contractSystem.js - 선수 계약 만료 및 따박따박 재계약 시스템
 
 class ContractSystem {
     constructor() {
@@ -220,7 +220,7 @@ class ContractSystem {
                 </div>
 
                 <div style="display:flex; gap:16px; align-items:center; background:rgba(255,255,255,0.05); padding:16px; border-radius:14px; margin-bottom:20px;">
-                    <img src="assets/players/${player.name}.webp" onerror="this.src='assets/players/default.webp'" style="width:72px; height:72px; border-radius:50%; object-fit:cover; border:2px solid #38BDF8; background:#0F172A;">
+                    <img id="contractRenewalPlayerImg" src="assets/players/default.webp" style="width:72px; height:72px; border-radius:50%; object-fit:cover; border:2px solid #38BDF8; background:#0F172A;">
                     <div>
                         <div style="font-size:1.2rem; font-weight:700; color:#FFFFFF;">${player.name}</div>
                         <div style="font-size:0.85rem; color:#94A3B8; margin-top:3px;">
@@ -272,6 +272,7 @@ class ContractSystem {
         `;
 
         modal.style.display = 'flex';
+        setPlayerPhoto(document.getElementById('contractRenewalPlayerImg'), player);
 
         const confirmBtn = document.getElementById('confirmRenewalBtn');
         if (confirmBtn && isAffordable) {

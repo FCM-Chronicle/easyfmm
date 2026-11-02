@@ -1,4 +1,4 @@
-// 이적 시스템
+﻿// 이적 시스템
 console.log('[Transfer] transfer.js 파일 로드 시작');
 
 class TransferSystem {
@@ -2195,14 +2195,10 @@ function createTransferPlayerCard(player, showMarketStatus = false) {
     cutoutWrap.className = 'fc26-cutout-wrap';
 
     const img = document.createElement('img');
-    img.src = `assets/players/${player.name}.webp`;
     img.className = 'player-card-image fc26-cutout-img';
     img.loading = 'lazy';
     img.alt = player.name;
-    img.onerror = function() {
-        this.onerror = null;
-        this.src = 'assets/players/default.webp';
-    };
+    setPlayerPhoto(img, player);
 
     const ratingBadge = document.createElement('div');
     ratingBadge.className = 'player-rating fc26-ovr-badge';

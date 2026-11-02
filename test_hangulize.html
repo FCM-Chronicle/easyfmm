@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="https://hangulize.org/wasm_exec.js"></script>
+</head>
+<body>
+<div id="output">Loading...</div>
+<script>
+async function run() {
+    try {
+        const go = new Go();
+        const resp = await fetch('https://hangulize.org/runtime.wasm');
+        const bytes = await resp.arrayBuffer();
+        const { instance } = await WebAssembly.instantiate(bytes, go.importObject);
+        go.run(instance);
+        
+        // Test hangulize
+        const res1 = hangulize("ita", "Cappuccino");
+        const res2 = hangulize("ita", "Kean");
+        const res3 = hangulize("isl", "Guðmundsson");
+        const res4 = hangulize("eng", "Wan-Bissaka");
+        document.getElementById("output").innerText = `RES: ${res1} | ${res2} | ${res3} | ${res4}`;
+    } catch (e) {
+        document.getElementById("output").innerText = "ERR: " + e.message;
+    }
+}
+run();
+</script>
+</body>
+</html>
+

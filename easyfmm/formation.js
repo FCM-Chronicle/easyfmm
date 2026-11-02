@@ -1,4 +1,4 @@
-// formation.js - 새로운 자유 포메이션 시스템
+﻿// formation.js - 새로운 자유 포메이션 시스템
 
 class FormationSystem {
     constructor() {
@@ -178,14 +178,10 @@ class FormationSystem {
             avatarWrap.className = 'player-slot-avatar-wrap';
 
             const slotImg = document.createElement('img');
-            slotImg.src = `assets/players/${player.name}.webp`;
             slotImg.className = 'player-slot-image';
             slotImg.loading = 'lazy';
             slotImg.alt = player.name;
-            slotImg.onerror = function() {
-                this.onerror = null;
-                this.src = 'assets/players/default.webp';
-            };
+            setPlayerPhoto(slotImg, player);
             avatarWrap.appendChild(slotImg);
 
             const nameplate = document.createElement('div');
@@ -734,14 +730,10 @@ class FormationSystem {
                 topBadgeCol.append(ratingBadge, posBadge);
 
                 const img = document.createElement('img');
-                img.src = `assets/players/${candidate.name}.webp`;
                 img.className = 'player-card-image fc26-cutout-img';
                 img.loading = 'lazy';
                 img.alt = candidate.name;
-                img.onerror = function() {
-                    this.onerror = null;
-                    this.src = 'assets/players/default.webp';
-                };
+                setPlayerPhoto(img, candidate);
 
                 cutoutWrap.append(topBadgeCol, img);
 

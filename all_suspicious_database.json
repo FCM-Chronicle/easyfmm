@@ -1,0 +1,1866 @@
+[
+  [
+    70020,
+    "Mathis Amougou",
+    "마티스 아모우고우",
+    "France",
+    "Strasbourg",
+    "French_ou"
+  ],
+  [
+    70038,
+    "Yannick Eduardo",
+    "얀니츠크 에두아르도",
+    "Czech Republic",
+    "ADO Den Haag",
+    "ck"
+  ],
+  [
+    70065,
+    "Motez Nourani",
+    "모테츠 노우라니",
+    "Tunisia",
+    "Nacional",
+    "French_ou"
+  ],
+  [
+    70448,
+    "Adam Aznou",
+    "아담 아츠노우",
+    "Morocco",
+    "Everton",
+    "French_ou"
+  ],
+  [
+    70541,
+    "Oumar Pona",
+    "오우마르 포나",
+    "Mali",
+    "Angers SCO",
+    "French_ou"
+  ],
+  [
+    70726,
+    "Anis Hadj Moussa",
+    "아니스 아디 모우사",
+    "Algeria",
+    "Feyenoord",
+    "French_ou"
+  ],
+  [
+    71114,
+    "Djaoui Cissé",
+    "디아오우이 치세",
+    "France",
+    "Stade Rennais FC",
+    "French_ou"
+  ],
+  [
+    71350,
+    "Joane Gadou",
+    "요아네 가도우",
+    "France",
+    "Borussia Dortmund",
+    "French_ou"
+  ],
+  [
+    71781,
+    "Ibrahima Ba",
+    "이브라.이마 바",
+    "Senegal",
+    "Sporting CP",
+    "dot/apostrophe"
+  ],
+  [
+    71973,
+    "Ethan Wheatley",
+    "이선 베아틀레이",
+    "England",
+    "Man Utd",
+    "English_italian"
+  ],
+  [
+    72022,
+    "Ewen Jaouen",
+    "에벤 야오우엔",
+    "France",
+    "Newcastle Utd",
+    "French_ou"
+  ],
+  [
+    72138,
+    "Merwan Ifnaoui",
+    "메르반 이프나오우이",
+    "France",
+    "ESTAC Troyes",
+    "French_ou"
+  ],
+  [
+    72281,
+    "Leo Shahar",
+    "레오 사.아르",
+    "England",
+    "Newcastle Utd",
+    "dot/apostrophe"
+  ],
+  [
+    72306,
+    "Patrick Ouotro",
+    "파트리크 오우오트로",
+    "Côte d'Ivoire",
+    "Vitória SC",
+    "French_ou"
+  ],
+  [
+    72374,
+    "Yanis Zouaoui",
+    "야니스 초우아오우이",
+    "France",
+    "Havre AC",
+    "French_ou"
+  ],
+  [
+    72677,
+    "Tom Moustier",
+    "톰 모우스티에르",
+    "France",
+    "Estrela Amadora",
+    "French_ou"
+  ],
+  [
+    73192,
+    "Abdelhamid Aït Boudlal",
+    "아브델라미드 아이트 보우들랄",
+    "Morocco",
+    "Stade Rennais FC",
+    "French_ou"
+  ],
+  [
+    73348,
+    "Yacine Titraoui",
+    "야치네 티트라오우이",
+    "Algeria",
+    "RC Lens",
+    "French_ou"
+  ],
+  [
+    73353,
+    "Rhys Chadwick",
+    "리스 카드비크",
+    "England",
+    "Leeds United",
+    "English_italian"
+  ],
+  [
+    73502,
+    "Rahim Alhassane",
+    "라.임 알라사네",
+    "Niger",
+    "Bologna",
+    "dot/apostrophe"
+  ],
+  [
+    73625,
+    "Guy Noël Zohouri",
+    "구이 노엘 초.오우리",
+    "Côte d'Ivoire",
+    "Havre AC",
+    "dot/apostrophe"
+  ],
+  [
+    73895,
+    "Justin Devenny",
+    "유스틴 데베니",
+    "Northern Ireland",
+    "Crystal Palace",
+    "English_italian"
+  ],
+  [
+    74145,
+    "Sam Chambers",
+    "샘 캄베르스",
+    "Scotland",
+    "Leeds United",
+    "English_italian"
+  ],
+  [
+    74242,
+    "Zach Abbott",
+    "차크 아보트",
+    "England",
+    "Nott'm Forest",
+    "English_italian"
+  ],
+  [
+    74314,
+    "Chiheb Labidi",
+    "키.에브 라비디",
+    "Tunisia",
+    "Nacional",
+    "dot/apostrophe"
+  ],
+  [
+    74483,
+    "Honest Ahanor",
+    "오네스트 아.아노르",
+    "Italy",
+    "Bergamo Calcio",
+    "dot/apostrophe"
+  ],
+  [
+    74557,
+    "Ali Houary",
+    "알리 오우아리",
+    "Morocco",
+    "Elche CF",
+    "French_ou"
+  ],
+  [
+    74862,
+    "George Abbott",
+    "조지 아보트",
+    "England",
+    "Spurs",
+    "English_italian"
+  ],
+  [
+    74885,
+    "Mohamed Bamba",
+    "모.아메드 밤바",
+    "Côte d'Ivoire",
+    "Gil Vicente",
+    "dot/apostrophe"
+  ],
+  [
+    75051,
+    "Aristide Zossou",
+    "아리스티데 초소우",
+    "Côte d'Ivoire",
+    "AJ Auxerre",
+    "French_ou"
+  ],
+  [
+    75087,
+    "Ayden Heaven",
+    "아이덴 에아벤",
+    "England",
+    "Man Utd",
+    "English_italian"
+  ],
+  [
+    75318,
+    "Abdoul Ouattara",
+    "아브도울 오우아타라",
+    "Côte d'Ivoire",
+    "Ipswich",
+    "French_ou"
+  ],
+  [
+    75320,
+    "Ismaëlo Ganiou",
+    "이스마엘로 가니오우",
+    "France",
+    "RC Lens",
+    "French_ou"
+  ],
+  [
+    75439,
+    "Jack Fletcher",
+    "잭 플레트케르",
+    "England",
+    "Man Utd",
+    "English_italian"
+  ],
+  [
+    75577,
+    "Jahmai Simpson-Pusey",
+    "야마이 심슨푸세이",
+    "England",
+    "1. FC Köln",
+    "English_italian"
+  ],
+  [
+    75946,
+    "Rafik El Arguioui",
+    "라피크 엘 아르구이오우이",
+    "Morocco",
+    "SC Cambuur",
+    "French_ou"
+  ],
+  [
+    76255,
+    "Jamaldeen Jimoh-Aloba",
+    "야말덴 이모알로바",
+    "England",
+    "Aston Villa",
+    "English_italian"
+  ],
+  [
+    76730,
+    "Justin Bourgault",
+    "유스틴 보우르가울트",
+    "France",
+    "Stade Brestois 29",
+    "French_ou"
+  ],
+  [
+    76786,
+    "Alioune Ndoye",
+    "알리오우네 느도이에",
+    "Senegal",
+    "Vitória SC",
+    "French_ou"
+  ],
+  [
+    76944,
+    "Rayane Bounida",
+    "라이아네 보우니다",
+    "Morocco",
+    "Ajax",
+    "French_ou"
+  ],
+  [
+    77364,
+    "Soriba Diaoune",
+    "소리바 디아오우네",
+    "France",
+    "LOSC Lille",
+    "French_ou"
+  ],
+  [
+    77524,
+    "Modou Kéba Cissé",
+    "모도우 케바 치세",
+    "Senegal",
+    "Aston Villa",
+    "French_ou"
+  ],
+  [
+    77791,
+    "Sean Neave",
+    "숀 네아베",
+    "England",
+    "Newcastle Utd",
+    "English_italian"
+  ],
+  [
+    77826,
+    "Stephan Zagadou",
+    "스테판 차가도우",
+    "France",
+    "Havre AC",
+    "French_ou"
+  ],
+  [
+    77829,
+    "Hamidou Makalou",
+    "아미도우 마칼로우",
+    "Mali",
+    "Stade Brestois 29",
+    "French_ou"
+  ],
+  [
+    78060,
+    "Jimi Gower",
+    "이미 고베르",
+    "England",
+    "Moreirense FC",
+    "English_italian"
+  ],
+  [
+    78113,
+    "Triston Rowe",
+    "트리스톤 로베",
+    "England",
+    "Aston Villa",
+    "English_italian"
+  ],
+  [
+    78184,
+    "Jay Robinson",
+    "야이 로빈손",
+    "England",
+    "Monza",
+    "English_italian"
+  ],
+  [
+    78216,
+    "Noham Kamara",
+    "노.암 카마라",
+    "France",
+    "OL",
+    "dot/apostrophe"
+  ],
+  [
+    78474,
+    "Ayoube Amaimouni",
+    "아이오우베 아마이모우니",
+    "Morocco",
+    "Frankfurt",
+    "French_ou"
+  ],
+  [
+    79027,
+    "Ronald Koeman Jr.",
+    "로날트 쿠만 이르",
+    "Holland",
+    "SC Telstar",
+    "Jr"
+  ],
+  [
+    79338,
+    "Gaoussou Diarra",
+    "가오우소우 디아라",
+    "Mali",
+    "Feyenoord",
+    "French_ou"
+  ],
+  [
+    79687,
+    "Joshua Wynder",
+    "조슈아 빈데르",
+    "United States",
+    "SL Benfica",
+    "English_italian"
+  ],
+  [
+    80025,
+    "Oumar Camara",
+    "오우마르 카마라",
+    "France",
+    "Vitória SC",
+    "French_ou"
+  ],
+  [
+    80300,
+    "Moussa Kyabou",
+    "모우사 키아보우",
+    "Mali",
+    "Gençlerbirliği",
+    "French_ou"
+  ],
+  [
+    80314,
+    "Zadok Yohanna",
+    "차도크 요.안나",
+    "Nigeria",
+    "Brighton",
+    "dot/apostrophe"
+  ],
+  [
+    80376,
+    "Rio Ngumoha",
+    "리오 느구모.아",
+    "England",
+    "Liverpool",
+    "dot/apostrophe"
+  ],
+  [
+    80538,
+    "Anis Ouzenadji",
+    "아니스 오우체나디이",
+    "France",
+    "ESTAC Troyes",
+    "French_ou"
+  ],
+  [
+    80694,
+    "Thibaud Garondo",
+    "티바우드 가론도",
+    "France",
+    "Toulouse FC",
+    "French_ou"
+  ],
+  [
+    80695,
+    "Seny Koumbassa",
+    "세니 코움바사",
+    "France",
+    "Toulouse FC",
+    "French_ou"
+  ],
+  [
+    80774,
+    "Gaëtan Bakhouche",
+    "가에탄 바코우케",
+    "France",
+    "Toulouse FC",
+    "French_ou"
+  ],
+  [
+    80816,
+    "Bradley Burrowes",
+    "브래들리 부로베스",
+    "England",
+    "Aston Villa",
+    "English_italian"
+  ],
+  [
+    81538,
+    "Stephen Mfuni",
+    "스테펜 므푸니",
+    "England",
+    "Manchester City",
+    "English_italian"
+  ],
+  [
+    81899,
+    "Jun'ai Byfield",
+    "유나이 비피엘드",
+    "England",
+    "Spurs",
+    "English_italian"
+  ],
+  [
+    82350,
+    "George Hemmings",
+    "조지 엠민그스",
+    "England",
+    "Aston Villa",
+    "English_italian"
+  ],
+  [
+    82670,
+    "Mamoudou Cissokho",
+    "마모우도우 치소코",
+    "France",
+    "AJ Auxerre",
+    "French_ou"
+  ],
+  [
+    82789,
+    "Abdellah Ouazane",
+    "아브델라 오우아차네",
+    "Morocco",
+    "Ajax",
+    "French_ou"
+  ],
+  [
+    82815,
+    "Joél Drakes-Thomas",
+    "요엘 드라케스토마스",
+    "England",
+    "Crystal Palace",
+    "English_italian"
+  ],
+  [
+    82841,
+    "Reigan Heskey",
+    "레이간 에스케이",
+    "England",
+    "1. FC Köln",
+    "English_italian"
+  ],
+  [
+    82899,
+    "Tyler Fletcher",
+    "틸레르 플레트케르",
+    "Scotland",
+    "Man Utd",
+    "English_italian"
+  ],
+  [
+    83188,
+    "Oualid Agougil",
+    "오우알리드 아고우질",
+    "Morocco",
+    "FC Utrecht",
+    "French_ou"
+  ],
+  [
+    83205,
+    "Jaden Heskey",
+    "야덴 에스케이",
+    "England",
+    "Manchester City",
+    "English_italian"
+  ],
+  [
+    83396,
+    "Kaïl Boudache",
+    "카일 보우다케",
+    "Algeria",
+    "OL",
+    "French_ou"
+  ],
+  [
+    83550,
+    "Rion Ichihara",
+    "리온 이키.아라",
+    "Japan",
+    "AZ",
+    "dot/apostrophe"
+  ],
+  [
+    83565,
+    "Tyrese Noubissie",
+    "티레세 노우비시에",
+    "France",
+    "Strasbourg",
+    "French_ou"
+  ],
+  [
+    83817,
+    "Adil Bourabaa",
+    "아딜 보우라바",
+    "France",
+    "Le Mans FC",
+    "French_ou"
+  ],
+  [
+    84016,
+    "Ousmane Diabate",
+    "오우스마네 디아바테",
+    "Guinea",
+    "Gençlerbirliği",
+    "French_ou"
+  ],
+  [
+    84017,
+    "Abdou Sy",
+    "아브도우 시",
+    "Senegal",
+    "Eyüpspor",
+    "French_ou"
+  ],
+  [
+    84466,
+    "Adam El Ouali",
+    "아담 엘 오우알리",
+    "France",
+    "Toulouse FC",
+    "French_ou"
+  ],
+  [
+    85290,
+    "Nouhoum Kamissoko",
+    "노우.오움 카미소코",
+    "Mali",
+    "OM",
+    "dot/apostrophe"
+  ],
+  [
+    85618,
+    "Ismaël Baouf",
+    "이스마엘 바오우프",
+    "Morocco",
+    "SC Cambuur",
+    "French_ou"
+  ],
+  [
+    85700,
+    "Jayden Lienou",
+    "야이덴 리에노우",
+    "Wales",
+    "Leeds United",
+    "English_italian"
+  ],
+  [
+    85892,
+    "Lamfia Dioubaté",
+    "람피아 디오우바테",
+    "France",
+    "AJ Auxerre",
+    "French_ou"
+  ],
+  [
+    86044,
+    "Gohi Lorougnon",
+    "고.이 로로우뇬",
+    "Côte d'Ivoire",
+    "Académico de Viseu FC",
+    "dot/apostrophe"
+  ],
+  [
+    86604,
+    "Amara Diouf",
+    "아마라 디오우프",
+    "Senegal",
+    "Fenerbahçe",
+    "French_ou"
+  ],
+  [
+    86890,
+    "Adam Tahaui",
+    "아담 타.아우이",
+    "Morocco",
+    "N.E.C. Nijmegen",
+    "dot/apostrophe"
+  ],
+  [
+    87036,
+    "Tim Blaszczak",
+    "팀 블라스츠크차크",
+    "Germany",
+    "Union Berlin",
+    "ck"
+  ],
+  [
+    87135,
+    "Andreas Sejr Lausen",
+    "안드레아스 세이르 라우센",
+    "Denmark",
+    "Gil Vicente",
+    "Jr"
+  ],
+  [
+    87419,
+    "Bénito Souza",
+    "베니토 소우차",
+    "France",
+    "Estrela Amadora",
+    "French_ou"
+  ],
+  [
+    88085,
+    "Amir Bouhamdi",
+    "아미르 보우.암디",
+    "Morocco",
+    "PSV",
+    "dot/apostrophe"
+  ],
+  [
+    88194,
+    "Sami Bouhoudane",
+    "사미 보우.오우다네",
+    "Morocco",
+    "SC Cambuur",
+    "dot/apostrophe"
+  ],
+  [
+    88606,
+    "Rory Mahady",
+    "로리 마.아디",
+    "Scotland",
+    "Leeds United",
+    "dot/apostrophe"
+  ],
+  [
+    188836,
+    "Jason Steele",
+    "야손 스텔레",
+    "England",
+    "Brighton",
+    "English_italian"
+  ],
+  [
+    196952,
+    "Jake Bidwell",
+    "야케 비드벨",
+    "England",
+    "Coventry City",
+    "English_italian"
+  ],
+  [
+    199915,
+    "Lewis Dunk",
+    "루이스 둔크",
+    "England",
+    "Brighton",
+    "English_italian"
+  ],
+  [
+    201138,
+    "Zacharie Boucher",
+    "차카리에 보우케르",
+    "France",
+    "ESTAC Troyes",
+    "French_ou"
+  ],
+  [
+    213697,
+    "Paddy McNair",
+    "파디 므크나이르",
+    "Northern Ireland",
+    "Hull City",
+    "Mc"
+  ],
+  [
+    215871,
+    "Alireza Jahanbakhsh",
+    "알리레차 야.안박스",
+    "Iran",
+    "Excelsior",
+    "dot/apostrophe"
+  ],
+  [
+    220031,
+    "Oli McBurnie",
+    "올리 므크부르니에",
+    "Scotland",
+    "Hull City",
+    "Mc"
+  ],
+  [
+    224442,
+    "Bingourou Kamara",
+    "빈고우로우 카마라",
+    "Senegal",
+    "FC Lorient",
+    "French_ou"
+  ],
+  [
+    225859,
+    "Moussa Niakhaté",
+    "모우사 니아카테",
+    "Senegal",
+    "OL",
+    "French_ou"
+  ],
+  [
+    226295,
+    "Bilal Boutobba",
+    "빌랄 보우토바",
+    "France",
+    "Eyüpspor",
+    "French_ou"
+  ],
+  [
+    226517,
+    "Haris Hajradinović",
+    "하리스 하이라디노비치",
+    "Bosnia and Herzegovina",
+    "Kasımpaşa",
+    "Jr"
+  ],
+  [
+    229646,
+    "Samuel Yohou",
+    "사무엘 요.오우",
+    "Côte d'Ivoire",
+    "Le Mans FC",
+    "dot/apostrophe"
+  ],
+  [
+    230144,
+    "Assane Dioussé",
+    "아사네 디오우세",
+    "Senegal",
+    "AJ Auxerre",
+    "French_ou"
+  ],
+  [
+    231005,
+    "Chiedozie Ogbene",
+    "키에도치에 오그베네",
+    "Republic of Ireland",
+    "Ipswich",
+    "English_italian"
+  ],
+  [
+    232755,
+    "Jay Dasilva",
+    "야이 다실바",
+    "Wales",
+    "Coventry City",
+    "English_italian"
+  ],
+  [
+    233866,
+    "Odsonne Édouard",
+    "오드손네 에도우아르드",
+    "France",
+    "RC Lens",
+    "French_ou"
+  ],
+  [
+    233897,
+    "Mamadou Fall",
+    "마마도우 팔",
+    "Senegal",
+    "Kasımpaşa",
+    "French_ou"
+  ],
+  [
+    234236,
+    "Patrik Schick",
+    "파트리크 스히츠크",
+    "Czech Republic",
+    "Leverkusen",
+    "ck"
+  ],
+  [
+    235633,
+    "Yehvann Diouf",
+    "예반 디오우프",
+    "Senegal",
+    "OGC Nice",
+    "French_ou"
+  ],
+  [
+    236496,
+    "Mattéo Guendouzi",
+    "마테오 구엔도우치",
+    "France",
+    "Fenerbahçe",
+    "French_ou"
+  ],
+  [
+    237626,
+    "Yvan Neyou",
+    "이반 네이오우",
+    "Cameroon",
+    "Getafe CF",
+    "French_ou"
+  ],
+  [
+    237708,
+    "Moussa Sylla",
+    "모우사 실라",
+    "Mali",
+    "FC Schalke 04",
+    "French_ou"
+  ],
+  [
+    237871,
+    "Jordan Holsgrove",
+    "조던 올스그로베",
+    "Scotland",
+    "Estoril Praia",
+    "English_italian"
+  ],
+  [
+    238476,
+    "Dan-Axel Zagadou",
+    "댄악셀 차가도우",
+    "France",
+    "VfB Stuttgart",
+    "French_ou"
+  ],
+  [
+    238794,
+    "Vini Jr.",
+    "비니시우스 주니오르",
+    "Brazil",
+    "Real Madrid",
+    "Jr"
+  ],
+  [
+    240064,
+    "Ousseynou Ba",
+    "오우세이노우 바",
+    "Senegal",
+    "Başakşehir",
+    "French_ou"
+  ],
+  [
+    240273,
+    "Emile Smith Rowe",
+    "에밀레 스미스 로베",
+    "England",
+    "Fulham",
+    "English_italian"
+  ],
+  [
+    240734,
+    "Matt O'Riley",
+    "맷 오'릴레위",
+    "Denmark",
+    "Brighton",
+    "dot/apostrophe"
+  ],
+  [
+    241821,
+    "Mohamed Bayo",
+    "모.아메드 바이오",
+    "Guinea",
+    "LOSC Lille",
+    "dot/apostrophe"
+  ],
+  [
+    242179,
+    "Yahia Fofana",
+    "야.이아 포파나",
+    "Côte d'Ivoire",
+    "Çaykur Rizespor",
+    "dot/apostrophe"
+  ],
+  [
+    242195,
+    "Mark McKenzie",
+    "마크 므켄치에",
+    "United States",
+    "Toulouse FC",
+    "English_italian"
+  ],
+  [
+    242238,
+    "Oumar Solet",
+    "오우마르 솔레트",
+    "France",
+    "Udinese",
+    "French_ou"
+  ],
+  [
+    242534,
+    "Cristian Cásseres Jr",
+    "크리스티안 카세레스 르",
+    "Venezuela",
+    "Toulouse FC",
+    "Jr"
+  ],
+  [
+    242619,
+    "Cheick Doucouré",
+    "케이크 도우코우레",
+    "Mali",
+    "Crystal Palace",
+    "French_ou"
+  ],
+  [
+    243169,
+    "Yanis Begraoui",
+    "야니스 베그라오우이",
+    "Morocco",
+    "Estoril Praia",
+    "French_ou"
+  ],
+  [
+    243282,
+    "Dwight McNeil",
+    "드비그트 므크네일",
+    "England",
+    "Crystal Palace",
+    "Mc"
+  ],
+  [
+    243588,
+    "Tom McGill",
+    "톰 므크질",
+    "Canada",
+    "Brighton",
+    "Mc"
+  ],
+  [
+    243630,
+    "Jonathan David",
+    "요나탄 다비드",
+    "Canada",
+    "Juventus",
+    "English_italian"
+  ],
+  [
+    243669,
+    "Jaidon Anthony",
+    "야이돈 앤서니",
+    "England",
+    "Brentford",
+    "English_italian"
+  ],
+  [
+    244591,
+    "Jayden Bogle",
+    "야이덴 보글레",
+    "England",
+    "Leeds United",
+    "English_italian"
+  ],
+  [
+    244915,
+    "Mohammed Salisu",
+    "모.암메드 살리수",
+    "Ghana",
+    "AS Monaco",
+    "dot/apostrophe"
+  ],
+  [
+    245630,
+    "Youssouf Fofana",
+    "요우소우프 포파나",
+    "France",
+    "Milano FC",
+    "French_ou"
+  ],
+  [
+    246112,
+    "Naïs Djouahra",
+    "나이스 디오우아라",
+    "France",
+    "Arouca",
+    "French_ou"
+  ],
+  [
+    246548,
+    "Osame Sahraoui",
+    "오사메 사라오우이",
+    "Morocco",
+    "LOSC Lille",
+    "French_ou"
+  ],
+  [
+    246683,
+    "Lucien Agoumé",
+    "루치엔 아고우메",
+    "France",
+    "Sevilla FC",
+    "French_ou"
+  ],
+  [
+    246832,
+    "Vakoun Issouf Bayo",
+    "바코운 이소우프 바이오",
+    "Côte d'Ivoire",
+    "Udinese",
+    "French_ou"
+  ],
+  [
+    246875,
+    "Odilon Kossounou",
+    "오딜론 코소우노우",
+    "Côte d'Ivoire",
+    "Bergamo Calcio",
+    "French_ou"
+  ],
+  [
+    246960,
+    "Mohamed Ihattaren",
+    "모.아메드 이.아타렌",
+    "Morocco",
+    "Fortuna Sittard",
+    "dot/apostrophe"
+  ],
+  [
+    247248,
+    "Moustapha Mbow",
+    "모우스타파 므보브",
+    "Senegal",
+    "Paris FC",
+    "French_ou"
+  ],
+  [
+    247649,
+    "Jarrad Branthwaite",
+    "야라드 브란트바이테",
+    "England",
+    "Everton",
+    "English_italian"
+  ],
+  [
+    248564,
+    "Zakaria Aboukhlal",
+    "차카리아 아보우클랄",
+    "Morocco",
+    "Torino",
+    "French_ou"
+  ],
+  [
+    250724,
+    "Nathan Ngoumou",
+    "네이선 느고우모우",
+    "Cameroon",
+    "OGC Nice",
+    "French_ou"
+  ],
+  [
+    250822,
+    "Bandiougou Fadiga",
+    "반디오우고우 파디가",
+    "France",
+    "FC Lorient",
+    "French_ou"
+  ],
+  [
+    252937,
+    "Yann Gboho",
+    "얀 그보.오",
+    "France",
+    "Toulouse FC",
+    "dot/apostrophe"
+  ],
+  [
+    253102,
+    "Adil Aouchiche",
+    "아딜 아오우키케",
+    "Algeria",
+    "FC Schalke 04",
+    "French_ou"
+  ],
+  [
+    253121,
+    "Issa Soumaré",
+    "이사 소우마레",
+    "Senegal",
+    "Stade Rennais FC",
+    "French_ou"
+  ],
+  [
+    253157,
+    "Hicham Boudaoui",
+    "이캄 보우다오우이",
+    "Algeria",
+    "OGC Nice",
+    "French_ou"
+  ],
+  [
+    253177,
+    "Yunus Musah",
+    "유누스 무사",
+    "United States",
+    "Milano FC",
+    "English_italian"
+  ],
+  [
+    253510,
+    "Jake O'Brien",
+    "야케 오브라이언",
+    "Republic of Ireland",
+    "Everton",
+    "English_italian"
+  ],
+  [
+    254255,
+    "Aliou Dieng",
+    "알리오우 디엔그",
+    "Mali",
+    "Valencia CF",
+    "French_ou"
+  ],
+  [
+    254680,
+    "Yassin Oukili",
+    "야신 오우킬리",
+    "Morocco",
+    "Fortuna Sittard",
+    "French_ou"
+  ],
+  [
+    254910,
+    "Tatsuhiro Sakamoto",
+    "타추.이로 사카모토",
+    "Japan",
+    "Coventry City",
+    "dot/apostrophe"
+  ],
+  [
+    255928,
+    "Mohammed Diomande",
+    "모.암메드 디오만데",
+    "Côte d'Ivoire",
+    "Çorum Futbol Kulübü",
+    "dot/apostrophe"
+  ],
+  [
+    256476,
+    "Mohamed-Ali Cho",
+    "모.아메드알리 코",
+    "France",
+    "OGC Nice",
+    "dot/apostrophe"
+  ],
+  [
+    257090,
+    "Ismaël Doukouré",
+    "이스마엘 도우코우레",
+    "France",
+    "Strasbourg",
+    "French_ou"
+  ],
+  [
+    257271,
+    "Lucas Gourna-Douath",
+    "루카스 고우르나도우아트",
+    "France",
+    "Hull City",
+    "French_ou"
+  ],
+  [
+    257406,
+    "Fodé Doucouré",
+    "포데 도우코우레",
+    "Mali",
+    "Havre AC",
+    "French_ou"
+  ],
+  [
+    257504,
+    "Bilal El Khannouss",
+    "빌랄 엘 칸노우스",
+    "Morocco",
+    "VfB Stuttgart",
+    "French_ou"
+  ],
+  [
+    257975,
+    "Billal Brahimi",
+    "빌랄 브라.이미",
+    "Algeria",
+    "Le Mans FC",
+    "dot/apostrophe"
+  ],
+  [
+    258439,
+    "Ousmane Camara",
+    "오우스마네 카마라",
+    "Mali",
+    "Angers SCO",
+    "French_ou"
+  ],
+  [
+    258575,
+    "Emmanuel Agbadou",
+    "엠마누엘 아그바도우",
+    "Côte d'Ivoire",
+    "Beşiktaş",
+    "French_ou"
+  ],
+  [
+    258601,
+    "Mamadou Sangaré",
+    "마마도우 산가레",
+    "Mali",
+    "Brentford",
+    "French_ou"
+  ],
+  [
+    258753,
+    "Couhaib Driouech",
+    "코우.아이브 드리오우에크",
+    "Morocco",
+    "PSV",
+    "dot/apostrophe"
+  ],
+  [
+    259205,
+    "Naouirou Ahamada",
+    "나오우이로우 아.아마다",
+    "France",
+    "AJ Auxerre",
+    "dot/apostrophe"
+  ],
+  [
+    259516,
+    "Johnny Cardoso",
+    "요니 카르도소",
+    "United States",
+    "Atlético de Madrid",
+    "English_italian"
+  ],
+  [
+    260235,
+    "Mamady Diambou",
+    "마마디 디암보우",
+    "Mali",
+    "Stade Brestois 29",
+    "French_ou"
+  ],
+  [
+    261249,
+    "Édouard Michut",
+    "에도우아르드 미쿠트",
+    "France",
+    "Fortuna Sittard",
+    "French_ou"
+  ],
+  [
+    261336,
+    "Jaden Philogene",
+    "야덴 필로제네",
+    "England",
+    "Ipswich",
+    "English_italian"
+  ],
+  [
+    261495,
+    "Soumaïla Coulibaly",
+    "소우마일라 코울리발리",
+    "France",
+    "Strasbourg",
+    "French_ou"
+  ],
+  [
+    262744,
+    "Mohamed Bouldini",
+    "모.아메드 보울디니",
+    "Morocco",
+    "Académico de Viseu FC",
+    "dot/apostrophe"
+  ],
+  [
+    262745,
+    "Neil El Aynaoui",
+    "네일 엘 아이나오우이",
+    "Morocco",
+    "AS Roma",
+    "French_ou"
+  ],
+  [
+    263056,
+    "Emir Sahiti",
+    "에미르 사.이티",
+    "Kosovo",
+    "Hamburger SV",
+    "dot/apostrophe"
+  ],
+  [
+    263432,
+    "Mortadha Ben Ouanes",
+    "모르타다 벤 오우아네스",
+    "Tunisia",
+    "Kasımpaşa",
+    "French_ou"
+  ],
+  [
+    263469,
+    "Mohamed Kaba",
+    "모.아메드 카바",
+    "France",
+    "Lecce",
+    "dot/apostrophe"
+  ],
+  [
+    263603,
+    "Oussama Targhalline",
+    "오우사마 타르갈리네",
+    "Morocco",
+    "Feyenoord",
+    "French_ou"
+  ],
+  [
+    263677,
+    "Moussa Diarra",
+    "모우사 디아라",
+    "Mali",
+    "Málaga CF",
+    "French_ou"
+  ],
+  [
+    264200,
+    "Cameron Humphreys",
+    "카메론 움프레이스",
+    "England",
+    "Ipswich",
+    "English_italian"
+  ],
+  [
+    264657,
+    "Redouane Halhal",
+    "레도우아네 알랄",
+    "Morocco",
+    "Venezia",
+    "French_ou"
+  ],
+  [
+    264825,
+    "Iyad Mohamed",
+    "이이아드 모.아메드",
+    "Comoros",
+    "Casa Pia AC",
+    "dot/apostrophe"
+  ],
+  [
+    264862,
+    "Maghnes Akliouche",
+    "마그네스 아클리오우케",
+    "France",
+    "Paris SG",
+    "French_ou"
+  ],
+  [
+    264880,
+    "Loum Tchaouna",
+    "로움 트카오우나",
+    "France",
+    "Coventry City",
+    "French_ou"
+  ],
+  [
+    265552,
+    "Dango Ouattara",
+    "단고 오우아타라",
+    "Burkina Faso",
+    "Brentford",
+    "French_ou"
+  ],
+  [
+    266500,
+    "Jonathan Rowe",
+    "요나탄 로베",
+    "England",
+    "Bologna",
+    "English_italian"
+  ],
+  [
+    268534,
+    "Andy Diouf",
+    "안디 디오우프",
+    "France",
+    "Lombardia FC",
+    "French_ou"
+  ],
+  [
+    269164,
+    "Mohamed Abdelmonem",
+    "모.아메드 아브델모넴",
+    "Egypt",
+    "OGC Nice",
+    "dot/apostrophe"
+  ],
+  [
+    269725,
+    "Louis Mouton",
+    "로우이스 모우톤",
+    "France",
+    "Angers SCO",
+    "French_ou"
+  ],
+  [
+    269728,
+    "Jean-Mattéo Bahoya",
+    "장마테오 바.오이아",
+    "France",
+    "Frankfurt",
+    "dot/apostrophe"
+  ],
+  [
+    269745,
+    "Oussama El Azzouzi",
+    "오우사마 엘 아초우치",
+    "Morocco",
+    "Bologna",
+    "French_ou"
+  ],
+  [
+    269823,
+    "Esmir Bajraktarević",
+    "에스미르 바이락타레비치",
+    "Bosnia and Herzegovina",
+    "PSV",
+    "Jr"
+  ],
+  [
+    269923,
+    "Jacen Russell-Rowe",
+    "야첸 러셀로베",
+    "Canada",
+    "Toulouse FC",
+    "English_italian"
+  ],
+  [
+    270355,
+    "Lohann Doucet",
+    "로.안 도우체트",
+    "Burkina Faso",
+    "Vitória SC",
+    "dot/apostrophe"
+  ],
+  [
+    270465,
+    "Badredine Bouanani",
+    "바드레디네 보우아나니",
+    "Algeria",
+    "VfB Stuttgart",
+    "French_ou"
+  ],
+  [
+    270531,
+    "Ousmane Diomande",
+    "오우스마네 디오만데",
+    "Côte d'Ivoire",
+    "Nott'm Forest",
+    "French_ou"
+  ],
+  [
+    270597,
+    "Antoine Makoumbou",
+    "앙투안 마코움보우",
+    "Congo",
+    "Samsunspor",
+    "French_ou"
+  ],
+  [
+    270860,
+    "Jones El-Abdellaoui",
+    "요네스 엘아브델라오우이",
+    "Morocco",
+    "Celta",
+    "French_ou"
+  ],
+  [
+    270923,
+    "Rihito Yamamoto",
+    "리.이토 야마모토",
+    "Japan",
+    "SC Freiburg",
+    "dot/apostrophe"
+  ],
+  [
+    270964,
+    "Jobe Bellingham",
+    "요베 벨링엄",
+    "England",
+    "Borussia Dortmund",
+    "English_italian"
+  ],
+  [
+    271414,
+    "Karl Edouard Etta Eyong",
+    "카를 에도우아르드 에타 에이온그",
+    "Cameroon",
+    "Levante UD",
+    "French_ou"
+  ],
+  [
+    271452,
+    "Benjamin Bouchouari",
+    "베냐민 보우코우아리",
+    "Morocco",
+    "Trabzonspor",
+    "French_ou"
+  ],
+  [
+    271497,
+    "Johaneko",
+    "요.아네코",
+    "France",
+    "Athletic Club",
+    "dot/apostrophe"
+  ],
+  [
+    271689,
+    "Pathé Mboup",
+    "파테 므보우프",
+    "Senegal",
+    "Stade Brestois 29",
+    "French_ou"
+  ],
+  [
+    271743,
+    "Amario Cozier-Duberry",
+    "아마리오 코치에르두베리",
+    "England",
+    "Brighton",
+    "English_italian"
+  ],
+  [
+    271976,
+    "Luke Chambers",
+    "루크 캄베르스",
+    "England",
+    "Liverpool",
+    "English_italian"
+  ],
+  [
+    272668,
+    "Amine El Ouazzani",
+    "아민 엘 오우아차니",
+    "Morocco",
+    "Angers SCO",
+    "French_ou"
+  ],
+  [
+    273933,
+    "Kassoum Ouattara",
+    "카소움 오우아타라",
+    "France",
+    "Beşiktaş",
+    "French_ou"
+  ],
+  [
+    274219,
+    "Ahmed Abdullahi",
+    "아메드 아브둘라.이",
+    "Nigeria",
+    "Eyüpspor",
+    "dot/apostrophe"
+  ],
+  [
+    275418,
+    "Younes Taha",
+    "요우네스 타.아",
+    "Morocco",
+    "FC Twente",
+    "dot/apostrophe"
+  ],
+  [
+    276188,
+    "Mohamed Ouédraogo",
+    "모.아메드 오우에드라오고",
+    "Burkina Faso",
+    "OL",
+    "dot/apostrophe"
+  ],
+  [
+    276594,
+    "Noah Cadiou",
+    "노아 카디오우",
+    "France",
+    "FC Lorient",
+    "French_ou"
+  ],
+  [
+    276632,
+    "Anouar El Azzouzi",
+    "아노우아르 엘 아초우치",
+    "Morocco",
+    "Frosinone",
+    "French_ou"
+  ],
+  [
+    276969,
+    "Leon Avdullahu",
+    "레온 아브둘라.우",
+    "Kosovo",
+    "TSG Hoffenheim",
+    "dot/apostrophe"
+  ],
+  [
+    277216,
+    "Mohamed Bamba",
+    "모.아메드 밤바",
+    "Côte d'Ivoire",
+    "FC Lorient",
+    "dot/apostrophe"
+  ],
+  [
+    277356,
+    "Mouhamed Diop",
+    "모우.아메드 디오프",
+    "Senegal",
+    "ESTAC Troyes",
+    "dot/apostrophe"
+  ],
+  [
+    277498,
+    "Jaurès Assoumou",
+    "야우레스 아소우모우",
+    "Côte d'Ivoire",
+    "Samsunspor",
+    "French_ou"
+  ],
+  [
+    277663,
+    "Mohamed Belloumi",
+    "모.아메드 벨로우미",
+    "Algeria",
+    "Hull City",
+    "dot/apostrophe"
+  ],
+  [
+    277968,
+    "Daouda Weidmann",
+    "다오우다 베이드만",
+    "France",
+    "FC Twente",
+    "French_ou"
+  ],
+  [
+    278057,
+    "Bastien Meupiyou",
+    "바스티엔 메우피이오우",
+    "France",
+    "FC Alverca",
+    "French_ou"
+  ],
+  [
+    278065,
+    "Sadibou Sané",
+    "사디보우 자네",
+    "Senegal",
+    "AS Monaco",
+    "French_ou"
+  ],
+  [
+    278207,
+    "Noah Edjouma",
+    "노아 에디오우마",
+    "France",
+    "LOSC Lille",
+    "French_ou"
+  ],
+  [
+    278557,
+    "Jamie Donley",
+    "야미에 돈레이",
+    "Northern Ireland",
+    "Spurs",
+    "English_italian"
+  ],
+  [
+    278789,
+    "Mahamadou Diawara",
+    "마.아마도우 디아바라",
+    "France",
+    "OL",
+    "dot/apostrophe"
+  ],
+  [
+    278901,
+    "Ayyoub Bouaddi",
+    "아이오우브 보우아디",
+    "Morocco",
+    "LOSC Lille",
+    "French_ou"
+  ],
+  [
+    278957,
+    "Jayden Meghoma",
+    "야이덴 메고마",
+    "England",
+    "Brentford",
+    "English_italian"
+  ],
+  [
+    279144,
+    "Jaden Umeh",
+    "야덴 우메",
+    "Republic of Ireland",
+    "SL Benfica",
+    "English_italian"
+  ],
+  [
+    279502,
+    "Moussa Diakité",
+    "모우사 디아키테",
+    "Mali",
+    "Çaykur Rizespor",
+    "French_ou"
+  ],
+  [
+    279557,
+    "Mahamadou Nagida",
+    "마.아마도우 나지다",
+    "Cameroon",
+    "Stade Rennais FC",
+    "dot/apostrophe"
+  ],
+  [
+    279632,
+    "Ismaïl Bouneb",
+    "이스마일 보우네브",
+    "France",
+    "Havre AC",
+    "French_ou"
+  ],
+  [
+    279700,
+    "Mamadou Coulibaly",
+    "마마도우 코울리발리",
+    "France",
+    "AS Monaco",
+    "French_ou"
+  ],
+  [
+    279701,
+    "Daouda Traoré",
+    "다오우다 트라오레",
+    "France",
+    "Le Mans FC",
+    "French_ou"
+  ],
+  [
+    279702,
+    "Samir El Mourabet",
+    "사미르 엘 모우라베트",
+    "Morocco",
+    "Strasbourg",
+    "French_ou"
+  ],
+  [
+    279896,
+    "Adrian Bajrami",
+    "아드리안 바이라미",
+    "Switzerland",
+    "SC Braga",
+    "Jr"
+  ]
+]

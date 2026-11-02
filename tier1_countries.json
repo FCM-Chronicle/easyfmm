@@ -1,0 +1,19 @@
+{
+  "England": "잉글랜드", "Spain": "스페인", "Germany": "독일", "Italy": "이탈리아", "France": "프랑스",
+  "Netherlands": "네덜란드", "Portugal": "포르투갈", "Turkey": "튀르키예", "Korea Republic": "대한민국", "South Korea": "대한민국",
+  "Brazil": "브라질", "Argentina": "아르헨티나", "Belgium": "벨기에", "Croatia": "크로아티아", "Denmark": "덴마크",
+  "Norway": "노르웨이", "Sweden": "스웨덴", "Poland": "폴란드", "Uruguay": "우루과이", "Colombia": "콜롬비아",
+  "Japan": "일본", "Senegal": "세네갈", "Morocco": "모로코", "Nigeria": "나이지리아", "Egypt": "이집트",
+  "Ghana": "가나", "Cameroon": "카메룬", "Ivory Coast": "코트디부아르", "Cote d'Ivoire": "코트디부아르", "Serbia": "세르비아",
+  "Switzerland": "스위스", "Austria": "오스트리아", "Scotland": "스코틀랜드", "Wales": "웨일스", "Czech Republic": "체코",
+  "Ukraine": "우크라이나", "Algeria": "알제리", "Chile": "칠레", "Ecuador": "에콰도르", "Paraguay": "파라과이",
+  "Peru": "페루", "Venezuela": "베네수엘라", "United States": "미국", "Canada": "캐나다", "Mexico": "멕시코",
+  "Australia": "호주", "New Zealand": "뉴질랜드", "Slovakia": "슬로바키아", "Slovenia": "슬로베니아", "Hungary": "헝가리",
+  "Romania": "루마니아", "Greece": "그리스", "Bulgaria": "불가리아", "Finland": "핀란드", "Iceland": "아이슬란드",
+  "Republic of Ireland": "아일랜드", "Northern Ireland": "북아일랜드", "Bosnia and Herzegovina": "보스니아 헤르체고비나",
+  "Georgia": "조지아", "Albania": "알바니아", "Mali": "말리", "Guinea": "기니", "DR Congo": "민주콩고",
+  "Congo": "콩고", "Gabon": "가봉", "Tunisia": "튀니지", "South Africa": "남아공", "Angola": "앙골라",
+  "Zambia": "잠비아", "Burkina Faso": "부르키나파소", "Cape Verde": "카보베르데", "Cape Verde Islands": "카보베르데",
+  "Kosovo": "코소보", "Montenegro": "몬테네그로", "North Macedonia": "북마케도니아", "Israel": "이스라엘",
+  "Iran": "이란", "Saudi Arabia": "사우디아라비아", "Qatar": "카타르", "Uzbekistan": "우즈베키스탄", "China PR": "중국"
+}

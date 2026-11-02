@@ -70,7 +70,7 @@ const TeamUtils = {
     isPlayerInSquad(player, squad) {
         if (!player || !squad) return false;
         if (squad.gk && squad.gk.name === player.name) return true;
-        
+
         const fieldPositions = ['df', 'mf', 'fw'];
         for (const pos of fieldPositions) {
             if (squad[pos] && squad[pos].some(p => p && p.name === player.name)) {
@@ -83,6 +83,50 @@ const TeamUtils = {
 
 // 하위 호환성을 위해 전역 변수로 노출 (기존 코드 대응)
 window.TeamUtils = TeamUtils;
+
+// [신규] 선수 페이스 사진 설정 헬퍼 (p[선수아이디].png / p[선수아이디].webp 및 선수이름.webp 탐색)
+function setPlayerPhoto(img, player) {
+    if (!img) return;
+    const name = typeof player === 'string' ? player : (player ? player.name : '');
+    let id = player && (player.playerid || player.playerId || player.id);
+
+    // player 객체에 id가 없으면 allTeams에서 검색
+    if (!id && name && typeof allTeams !== 'undefined') {
+        for (const t in allTeams) {
+            const found = (allTeams[t].players || []).find(x => x.name === name);
+            if (found && (found.playerid || found.id)) {
+                id = found.playerid || found.id;
+                break;
+            }
+        }
+    }
+
+    const useId = !(typeof gameData !== 'undefined' && gameData.settings && gameData.settings.useIdFacepack === false);
+
+    const candidates = [];
+    if (useId && id) {
+        const pid = 'p' + String(id).replace(/^p/i, '');
+        candidates.push(`assets/players/${pid}.png`, `assets/players/${pid}.webp`);
+    }
+    if (name) {
+        candidates.push(`assets/players/${name}.webp`);
+    }
+    candidates.push('assets/players/default.webp');
+
+    let idx = 0;
+    img.onerror = function () {
+        idx++;
+        if (idx < candidates.length) {
+            this.src = candidates[idx];
+        } else {
+            this.onerror = null;
+            this.src = 'assets/players/default.webp';
+        }
+    };
+    img.src = candidates[0];
+}
+window.setPlayerPhoto = setPlayerPhoto;
+TeamUtils.setPlayerPhoto = setPlayerPhoto;
 window.calculateTeamRating = (playersOrSquad) => {
     if (typeof playersOrSquad === 'string') {
         return TeamUtils.calculateRating(TeamUtils.getBestEleven(playersOrSquad));
