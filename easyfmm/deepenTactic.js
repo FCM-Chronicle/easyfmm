@@ -1784,10 +1784,10 @@ class RealSoccerEngine {
             const toTraits = to.traits || [];
             const hasLineBreakTrait = toTraits.some(t => t.includes('라인') || t.includes('침투') || t.includes('스피드') || t.includes('오프더볼'));
             
-            let onsideSaveProb = ((toDec + toSpd) * 0.12) + (hasLineBreakTrait ? 20 : 0);
-            if (isOppHighLine) onsideSaveProb -= 25; // 상대가 하이라인 오프사이드 트랩 시 트랩에 더 잘 걸림!
+            let onsideSaveProb = ((toDec + toSpd) * 0.32) + (hasLineBreakTrait ? 20 : 0);
+            if (isOppHighLine) onsideSaveProb -= 12; // 상대가 하이라인 오프사이드 트랩 시 트랩에 더 잘 걸림!
             
-            const beatsTrap = (Math.random() * 100 < clamp(onsideSaveProb, 10, 80));
+            const beatsTrap = (Math.random() * 100 < clamp(onsideSaveProb, 20, 85));
             if (!beatsTrap) {
                 this.pendingOffside = {
                     receiver: to,
@@ -1827,6 +1827,18 @@ class RealSoccerEngine {
         if (from.position === 'GK' && dist > 40) distPen += 15;
         // [신규] 체력 고갈 시 치명적 패스 미스 페널티
         if (from.stamina < 40) distPen += 18;
+
+        // [중원 전력 차이 압박 (원인과 결과 축구)]
+        // 상대 중원이 훨씬 강한데, 중원을 우회하지 않고(isBypassTactics가 아님) 무지성 중앙 패스를 시도할 경우 패스 미스 급증!
+        const oppMid = this.getMidfieldStrength(tid === 'home' ? 'away' : 'home');
+        const myMid = this.getMidfieldStrength(tid);
+        const isMidOutmatched = oppMid > (myMid + 3.0);
+        const tSettings = (this.tacticSettings && this.tacticSettings[tid]) ? this.tacticSettings[tid] : {};
+        const isBypass = tSettings.buildUp === 'direct' || tSettings.passLength === 'direct' || tSettings.width === 'wide';
+        if (isMidOutmatched && !isBypass && (from.position === 'MF' || to.position === 'MF')) {
+            const midDiff = Math.min(15, oppMid - myMid);
+            distPen += midDiff * 1.5;
+        }
         const minAcc = from.stamina < 40 ? 10 : 20;
         const success = Math.random() * 100 <= clamp(acc - distPen + (isThrough ? 6 : 0), minAcc, 99);
 
@@ -2086,7 +2098,7 @@ class RealSoccerEngine {
         // [골 결정력 대폭 상향] 무지성 난사를 억제한 대신, 확실히 만든 찬스에서의 골 결정력과 손맛 보장!
         const inBoxBonus = d <= 6 ? 0.22 : (d <= 12 ? 0.14 : (d <= 18 ? 0.06 : 0));
         const fwBonus = shooter.position === 'FW' ? 0.08 : (shooter.position === 'MF' ? 0.03 : 0);
-        const statBonus = (sp - sv) * 0.005;
+        const statBonus = (sp - sv) * 0.015;
 
         // 슈팅 관련 특성 (감아차기, 파워슛, 칩샷 등) 보유 시 추가 골 결정력 가산
         const traits = shooter.traits || [];
@@ -2098,14 +2110,19 @@ class RealSoccerEngine {
         const isCrossFinish = this.ball && this.ball.isCross;
         const patternBonus = isCutbackFinish ? 0.12 : (isCrossFinish ? 0.08 : 0);
 
+        // [1:1 단독 찬스 / 빅찬스 보너스 (역습 라인 브레이킹 보상)]
+        const nearbyDefs = this.players.filter(p => p.teamId === opp && p.position !== 'GK' && Math.hypot(p.x - shooter.x, p.y - shooter.y) < 7.0);
+        const isOneOnOne = nearbyDefs.length === 0 && d <= 18;
+        const bigChanceBonus = isOneOnOne ? 0.22 : 0;
+
         const goalMult = (typeof MatchTuning !== 'undefined' && MatchTuning.goalMultiplier !== undefined)
             ? MatchTuning.goalMultiplier : 1.25;
         const minG = (typeof MatchTuning !== 'undefined' && MatchTuning.minGoalChance !== undefined)
             ? MatchTuning.minGoalChance : 0.05;
         const maxG = (typeof MatchTuning !== 'undefined' && MatchTuning.maxGoalChance !== undefined)
-            ? MatchTuning.maxGoalChance : 0.65;
+            ? MatchTuning.maxGoalChance : 0.75;
 
-        const goalChance = clamp((0.16 + inBoxBonus + fwBonus + statBonus + traitBonus + patternBonus) * goalMult, minG, maxG);
+        const goalChance = clamp((0.16 + inBoxBonus + fwBonus + statBonus + traitBonus + patternBonus + bigChanceBonus) * goalMult, minG, maxG);
 
         this.ball.state = BallState.IN_FLIGHT;
         this.ball._flightOrigin = { x: shooter.x, y: shooter.y };
@@ -2396,7 +2413,7 @@ class RealSoccerEngine {
             const ss = this.getEffectiveStat(p, 'speed');
             const pB = Math.max(0, (5.5 - prox) / 5.5);
             // [패스 길목 차단 인터셉트: 순수 수비 스탯 & 위치 선점 대결]
-            const chance = 0.010 + (ts / 2600) + (ss / 4500) + (pB * 0.065);
+            const chance = 0.020 + (Math.max(0, ts - 60) * 0.002) + (Math.max(0, ss - 60) * 0.0015) + (pB * 0.10);
             if (Math.random() < chance) {
                 this.ball.state = BallState.CONTROLLED; this.ball.owner = p;
                 this.ball.intendedReceiver = null; this.ball.lastOwner = null;
@@ -2413,9 +2430,9 @@ class RealSoccerEngine {
         const dribbleStat = this.getEffectiveStat(carrier, 'dribble');
         const speedStat = this.getEffectiveStat(carrier, 'speed');
         
-        // [태클 vs 드리블 대결 완전 공정 밸런스]
+        // [태클 vs 드리블 대결 체급 반영]
         const statDiff = tackleStat - (dribbleStat * 0.70 + speedStat * 0.30);
-        let chance = 0.22 + (statDiff * 0.004);
+        let chance = 0.26 + (statDiff * 0.015);
         
         // 박스 안쪽(oppGoalX 기준 22 미만) 신중한 수비
         const oppGoalX = tackler.teamId === 'home' ? 0 : 100;
@@ -3180,15 +3197,17 @@ class RealSoccerEngine {
     }
 
     _enforceAllOffside() {
+        const isBallInFlight = this.ball.state === BallState.IN_FLIGHT;
         for (const p of this.players) {
             if (p.position !== 'FW' && !['W', 'IW', 'IF'].includes(p.role)) continue;
             const isHomeFW = p.teamId === 'home';
             const lim = this._calcOffsideLineX(isHomeFW);
             const bad = isHomeFW ? p.x > lim : p.x < lim;
-            // 침투 중(burst)이 아닐 때 오프사이드 위치에 걸려있으면 온사이드 라인으로 자율 복귀!
-            if (bad && p._fwMode !== 'burst' && p.burstTimer <= 0) {
-                const t = isHomeFW ? lim - 1.2 : lim + 1.2;
-                p.vx = p.vx * 0.40 + (t - p.x) * 0.20;
+            // 공이 아직 공중에 뜨지 않았을 때는 온사이드 위치(0.8야드 뒤)를 엄격히 유지
+            if (bad && (!isBallInFlight || p.burstTimer <= 0)) {
+                const t = isHomeFW ? lim - 0.8 : lim + 0.8;
+                p.x = isHomeFW ? Math.min(p.x, t) : Math.max(p.x, t);
+                p.vx = (t - p.x) * 0.25;
             }
         }
     }
