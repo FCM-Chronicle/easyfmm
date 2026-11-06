@@ -1,4 +1,4 @@
-﻿// 이적 시스템
+// 이적 시스템
 console.log('[Transfer] transfer.js 파일 로드 시작');
 
 class TransferSystem {
@@ -592,15 +592,10 @@ class TransferSystem {
     }
 
     promptPurchaseNegotiation(playerName, originalTeam, price, position, rating, age) {
-        this.chatState = {
-            player: this.transferMarket.find(p => p.name === playerName && p.originalTeam === originalTeam)
-                || { name: playerName, originalTeam, price, position, rating, age },
-            step: 'FEE',
-            fee: 0,
-            wage: 0
-        };
+        const foundPlayer = this.transferMarket.find(p => p.name === playerName && p.originalTeam === originalTeam)
+            || { name: playerName, originalTeam, price, position, rating, age };
 
-        const player = this.chatState.player;
+        foundPlayer.price = Math.max(1, Math.round(foundPlayer.price || 1));
 
         // 팀 인원 제한 및 쿨타임 체크
         const selectedTeamPlayers = window.GameState ? window.GameState.getSelectedTeamPlayers() : teams[gameData.selectedTeam];
@@ -610,7 +605,7 @@ class TransferSystem {
         }
 
         const transferOffers = window.GameState ? window.GameState.ensureTransferOffers() : (gameData.transferOffers ||= {});
-        const playerKey = `${player.name}_${player.originalTeam}`;
+        const playerKey = `${foundPlayer.name}_${foundPlayer.originalTeam}`;
         if (transferOffers[playerKey] && transferOffers[playerKey].attempts >= 2) {
             const matchesPassed = gameData.matchesPlayed - transferOffers[playerKey].lastFailedMatch;
             if (matchesPassed < 10) {
@@ -624,35 +619,733 @@ class TransferSystem {
             }
         }
 
-        player.price = Math.max(1, Math.round(player.price || 1));
-
-        if (this.isPlayerInUserTeam(player.name)) {
+        if (this.isPlayerInUserTeam(foundPlayer.name)) {
             alert("이미 우리 팀에 소속된 선수입니다.");
             return;
         }
 
         const currentMoney = window.GameState ? window.GameState.get().teamMoney : gameData.teamMoney;
-        if (currentMoney < (player.price * 0.3)) {
+        if (currentMoney < (foundPlayer.price * 0.3)) {
             alert("자금이 너무 부족하여 협상 테이블에 앉을 수 없습니다.");
             return;
         }
 
-        const modal = document.getElementById('negotiationChatModal');
-        document.getElementById('chatPlayerName').innerText = player.name;
-        document.getElementById('chatTeamName').innerText = (teamNames[player.originalTeam] || player.originalTeam) + ` (요구 이적료: ${player.price}억)`;
-        document.getElementById('chatMessages').replaceChildren();
+        const suggestedWage = this.calculateNegotiatedWeeklyWage(foundPlayer);
+        const expectedRoleIdx = this.getExpectedSquadRoleIndex(foundPlayer);
+        const defaultYears = (foundPlayer.age <= 24) ? 4 : (foundPlayer.age >= 31 ? 2 : 3);
 
-        modal.style.display = 'block';
+        this.chatState = {
+            player: foundPlayer,
+            step: 'FEE', // 'FEE' | 'WAGE' | 'RENEWAL' | 'WAITING'
+            fee: 0,
+            wage: 0,
+            round: 1,
+            maxRounds: 3,
+            tension: 'LOW',
+            counterFee: null,
+            counterWage: null,
+            demandedFee: foundPlayer.price,
+            baseDemandedWage: suggestedWage,
+            demandedWage: suggestedWage,
+            contractYears: defaultYears,
+            squadRoleIdx: expectedRoleIdx,
+            expectedRoleIdx: expectedRoleIdx
+        };
+
+        this.openFcNegotiationUI('FEE');
+    }
+
+    // [신규] 기존 선수 재계약도 동일한 FC On Call UI로 오픈
+    openRenewalNegotiation(player, demandData) {
+        if (!player) return;
+        const demand = demandData || (typeof contractSystem !== 'undefined' ? contractSystem.calculateRenewalDemand(player) : {
+            currentWage: player.weeklyWage || 5,
+            demandedWage: (player.weeklyWage || 5) * 1.2,
+            extensionYears: 2,
+            wageDiff: 1
+        });
+
+        const expectedRoleIdx = this.getExpectedSquadRoleIndex(player);
+
+        this.chatState = {
+            player: player,
+            step: 'RENEWAL',
+            fee: 0,
+            wage: demand.demandedWage,
+            round: 1,
+            maxRounds: 3,
+            tension: 'LOW',
+            counterFee: null,
+            counterWage: null,
+            demandedFee: 0,
+            baseDemandedWage: demand.demandedWage,
+            demandedWage: demand.demandedWage,
+            contractYears: demand.extensionYears || 2,
+            squadRoleIdx: expectedRoleIdx,
+            expectedRoleIdx: expectedRoleIdx,
+            renewalDemand: demand
+        };
+
+        this.openFcNegotiationUI('RENEWAL');
+    }
+
+    // 선수의 오버롤/팀 내 수준에 따른 기대 주전 위상 인덱스 (0: 유망주/후보, 1: 로테이션, 2: 주전, 3: 핵심 주전)
+    getExpectedSquadRoleIndex(player) {
+        const ovr = player.rating || 75;
+        let myAvg = 78;
+        if (typeof TeamUtils !== 'undefined' && typeof gameData !== 'undefined' && gameData.selectedTeam && teams[gameData.selectedTeam]) {
+            myAvg = TeamUtils.calculateRating(teams[gameData.selectedTeam]) || 78;
+        }
+        const diff = ovr - myAvg;
+        if (ovr >= 86 || diff >= 4) return 3; // CRUCIAL (핵심 주전)
+        if (ovr >= 80 || diff >= 0) return 2; // IMPORTANT (주전)
+        if (ovr >= 74 || diff >= -4) return 1; // ROTATION (로테이션)
+        return 0; // PROSPECT / SPORADIC (후보/유망주)
+    }
+
+    getSquadRoleMeta(idx) {
+        const roles = [
+            { id: 'PROSPECT', label: 'PROSPECT (후보/백업)', short: '후보/백업' },
+            { id: 'ROTATION', label: 'ROTATION (로테이션)', short: '로테이션' },
+            { id: 'IMPORTANT', label: 'IMPORTANT (주전 보장)', short: '주전 보장' },
+            { id: 'CRUCIAL', label: 'CRUCIAL (핵심 에이스)', short: '핵심 에이스' }
+        ];
+        return roles[Math.max(0, Math.min(3, idx))] || roles[2];
+    }
+
+    // 계약 기간(1~5년) 및 주전 위상(0~3) 변경에 따른 요구 주급 & 타결 보너스 재계산
+    recalcPersonalTermsDemand() {
+        if (!this.chatState) return;
+        const state = this.chatState;
+        const baseWage = state.baseDemandedWage || 5;
+        const player = state.player;
+
+        // 1) 주전 위상 차이 반영: 기대보다 낮은 역할을 주면 주급을 더 요구하고, 높은 역할을 약속하면 주급 요구 완화
+        const roleDiff = state.squadRoleIdx - state.expectedRoleIdx;
+        let wageMult = 1.0;
+        if (roleDiff < 0) {
+            // 기대보다 낮은 위상 (예: 에이스에게 로테이션 제의) -> 주급 +12% ~ +28% 보상 요구
+            wageMult += Math.abs(roleDiff) * 0.13;
+        } else if (roleDiff > 0) {
+            // 기대보다 높은 위상 보장 -> 주급 -6% ~ -12% 감수
+            wageMult -= roleDiff * 0.06;
+        }
+
+        // 2) 계약 기간(1~5년) 반영: 젊은 선수는 장기 계약 선호, 노장(31세+)은 단기/중기 선호
+        const yrs = state.contractYears || 3;
+        if (player.age >= 31 && yrs >= 4) {
+            wageMult -= 0.05; // 노장에게 장기 계약 보장 시 주급 소폭 양보
+        } else if (player.age <= 24 && yrs === 1) {
+            wageMult += 0.08; // 젊은 유망주에게 1년 단기만 제시 시 주급 추가 요구
+        } else if (yrs >= 4) {
+            wageMult += (yrs - 3) * 0.04; // 장기 묶기 시 기본 주급 기대치 소폭 상승
+        }
+
+        state.demandedWage = Math.max(0.3, parseFloat((baseWage * wageMult).toFixed(2)));
+    }
+
+    // [신규] 상황별/성향별 초다양화 실감형 대사 생성기
+    pickNegotiationLine(type, ctx = {}) {
+        const state = this.chatState || {};
+        const p = state.player || {};
+        const name = p.name || '선수';
+        const age = p.age || 25;
+        const ovr = Math.floor(p.rating || 75);
+        const pos = p.position || 'FW';
+        const yrs = state.contractYears || 3;
+        const roleMeta = this.getSquadRoleMeta(state.squadRoleIdx);
+        const roleShort = roleMeta ? roleMeta.short : '주전';
+        const clubName = (typeof teamNames !== 'undefined' && teamNames[p.originalTeam]) || p.originalTeam || '우리 구단';
+        const myClub = (typeof teamNames !== 'undefined' && typeof gameData !== 'undefined' && teamNames[gameData.selectedTeam]) || '귀 구단';
+
+        const isStar = ovr >= 86;
+        const isYouth = age <= 22;
+        const isVet = age >= 31;
+
+        const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+        switch (type) {
+            case 'CLUB_GREETING': {
+                const lines = [
+                    `"반갑습니다 감독님. ${name} 영입 문의를 주셨군요. 우리 ${clubName}의 핵심 전력인 만큼 최소 ${p.price}억 원은 생각하고 있습니다."`,
+                    `"연락 기다리고 있었습니다. ${name} 선수를 데려가시려면 ${p.price}억 원 수준의 이적료는 제시해 주셔야 보드진을 설득할 수 있습니다."`,
+                    `"${myClub}에서 직접 전화를 주셨군요! 솔직히 ${name}를 쉽게 내줄 생각은 없습니다만, ${p.price}억 원 정도라면 대화를 시작할 수 있습니다."`,
+                    `"여보세요, ${clubName} 단장입니다. 요즘 ${name}의 폼이 절정이라 문의가 많습니다. 기준 이적료는 ${p.price}억 원입니다."`,
+                    `"안녕하십니까. 시간 끌 것 없이 단도직입적으로 말씀드리죠. ${name}의 바이아웃에 준하는 가치는 ${p.price}억 원입니다."`,
+                    `"${name} 선수 건으로 전화 주셨군요. 팬들의 반발을 잠재우려면 최소 ${p.price}억 원 이상의 오퍼가 필요합니다."`
+                ];
+                return pick(lines);
+            }
+
+            case 'CLUB_COUNTER': {
+                const { fee, counter, round } = ctx;
+                if (round === 2) {
+                    return pick([
+                        `"${fee}억 원이라니요, 그 금액엔 협상 테이블을 유지하기 어렵습니다. 조금 양보해서 ${counter}억 원까지 맞춰주시면 수락하겠습니다."`,
+                        `"감독님, ${name}의 가치를 너무 박하게 보시는군요. 우리 보드진의 마지노선은 ${counter}억 원입니다. 다시 검토해 보시죠."`,
+                        `"솔직히 ${fee}억 원은 아쉬운 숫자입니다. 서로 한 발씩 물러서서 ${counter}억 원에 합의하는 건 어떻습니까?"`,
+                        `"다른 구단에서도 눈독을 들이고 있는 선수입니다. ${counter}억 원 정도는 보장해 주셔야 이적을 승인할 수 있습니다."`,
+                        `"에이, ${fee}억 원으론 대체자도 못 구합니다! 최소한 ${counter}억 원은 챙겨주셔야 도장을 찍죠."`
+                    ]);
+                } else {
+                    return pick([
+                        `"마지막 기회입니다 감독님. 더 이상 양보는 없습니다. ${counter}억 원, 이 금액이 아니면 통화를 종료하겠습니다."`,
+                        `"보드진 회의 결과 ${counter}억 원 밑으로는 절대 불가하다는 결론이 났습니다. 마지막 결단을 내려주시죠."`,
+                        `"우리도 인내심에 한계가 있습니다. ${counter}억 원을 수용하시든가, 아니면 여기서 협상을 접어야겠군요."`,
+                        `"${fee}억 원은 여전히 부족합니다! 정말 마지막으로 ${counter}억 원까지 낮춰드리겠습니다. 어떻게 하시겠습니까?"`
+                    ]);
+                }
+            }
+
+            case 'CLUB_ACCEPT': {
+                const { fee } = ctx;
+                return pick([
+                    `"좋습니다! ${fee}억 원이면 우리 구단도 만족스러운 거래입니다. 지금 바로 ${name} 선수와 직접 통화를 연결해 드리겠습니다."`,
+                    `"결단력 있으시군요 감독님! ${fee}억 원 오퍼 수락합니다. 이제 선수 본인과 개인 조건을 조율해 보시죠."`,
+                    `"합의 완료입니다. ${fee}억 원에 이적 동의서를 발송하겠습니다. ${name} 선수가 수화기 건너편에서 기다리고 있습니다."`,
+                    `"훌륭한 비즈니스였습니다. ${fee}억 원에 손을 잡죠! 곧바로 선수 개인 회선으로 전환해 드립니다."`,
+                    `"어렵게 내린 결정입니다. ${fee}억 원에 ${name}의 이적을 허가합니다. 선수와 좋은 대화 나누시길 바랍니다."`
+                ]);
+            }
+
+            case 'CLUB_REJECT': {
+                return pick([
+                    `"이 정도 금액 차이라면 더 이상 시간 낭비할 필요가 없겠군요. 협상 결렬입니다. 이만 끊겠습니다."`,
+                    `"장난 전화도 아니고, 그 액수로는 어림도 없습니다! ${name}는 우리 팀에 남습니다. 수고하십시오."`,
+                    `"우리 구단과 선수를 무시하는 처사군요. 협상은 여기까지입니다. 당분간 다시 연락하지 마십시오."`,
+                    `"입장 차이가 너무 큽니다. 아쉽지만 이번 이적 건은 없던 일로 하겠습니다. 통화 종료합니다."`
+                ]);
+            }
+
+            case 'PLAYER_GREETING': {
+                const { wage, isRenewal, remYears } = ctx;
+                if (isRenewal) {
+                    const renewalLines = [
+                        `"감독님, 불러주셔서 감사합니다! 잔여 계약이 ${remYears}년 남았는데, [${roleShort}] 역할과 +${yrs}년 연장에 주급 ${wage}억 원을 희망합니다."`,
+                        `"우리 팀과 팬들을 정말 사랑합니다. 앞으로 +${yrs}년 더 헌신하고 싶고, 제 활약에 걸맞은 주급 ${wage}억 원을 부탁드립니다."`,
+                        `"재계약 연락을 기다리고 있었습니다 감독님! [${roleShort}] 입지와 주급 ${wage}억 원만 맞춰주시면 두말없이 남겠습니다."`
+                    ];
+                    if (isStar) {
+                        renewalLines.push(`"팀의 에이스로서 트로피를 위해 남고 싶습니다. +${yrs}년 연장 계약과 주급 ${wage}억 원의 최고 대우를 기대합니다."`);
+                    }
+                    if (isVet) {
+                        renewalLines.push(`"베테랑으로서 라커룸의 중심을 잡겠습니다. +${yrs}년 연장과 주급 ${wage}억 원이면 기쁘게 재계약하겠습니다."`);
+                    }
+                    return pick(renewalLines);
+                }
+
+                const lines = [
+                    `"여보세요 감독님! 구단 간 합의 소식은 들었습니다. 저는 [${roleShort}] 보장과 ${yrs}년 계약, 주급 ${wage}억 원을 원합니다."`,
+                    `"반갑습니다 감독님! 감독님 밑에서 뛰게 될 생각에 설레는군요. 제 희망 조건은 ${yrs}년 계약에 주급 ${wage}억 원입니다."`,
+                    `"안녕하세요, ${name}입니다. 새로운 도전을 앞두고 있는 만큼 [${roleShort}] 역할과 주급 ${wage}억 원 정도는 보장받고 싶습니다."`
+                ];
+                if (isStar) {
+                    lines.push(
+                        `"빅클럽들의 오퍼가 많았지만 감독님의 프로젝트에 끌렸습니다. 제 이름값에 걸맞게 [${roleShort}] 대우와 주급 ${wage}억 원을 원합니다."`,
+                        `"우승 트로피를 들어 올리러 왔습니다. ${yrs}년 계약에 주급 ${wage}억 원이면 주저 없이 합류하겠습니다."`
+                    );
+                }
+                if (isYouth) {
+                    lines.push(
+                        `"감독님! 저를 주목해 주셔서 영광입니다! 크게 성장할 자신이 있습니다. ${yrs}년 계약에 주급 ${wage}억 원이면 열심히 뛰겠습니다!"`,
+                        `"출전 기회를 얻고 발전하고 싶습니다. [${roleShort}] 입지와 주급 ${wage}억 원을 제안해 주시면 최선을 다하겠습니다!"`
+                    );
+                }
+                if (isVet) {
+                    lines.push(
+                        `"제 축구 인생의 황혼기를 감독님과 함께하고 싶군요. ${yrs}년 계약과 주급 ${wage}억 원이면 노련미를 증명해 보이겠습니다."`
+                    );
+                }
+                if (pos === 'FW') {
+                    lines.push(`"득점왕 경쟁을 펼칠 준비가 되어 있습니다! 골로 보답할 테니 [${roleShort}] 보장과 주급 ${wage}억 원을 맞춰주십시오."`);
+                } else if (pos === 'GK' || pos === 'DF') {
+                    lines.push(`"뒷문을 든든하게 잠가드리겠습니다. ${yrs}년 계약과 주급 ${wage}억 원이면 당장 유니폼을 입겠습니다."`);
+                }
+                return pick(lines);
+            }
+
+            case 'YEARS_CHANGE': {
+                const { isRenewal } = ctx;
+                const yLabel = isRenewal ? `+${yrs}년 연장` : `${yrs}년 계약`;
+                if (isVet && yrs >= 4) {
+                    return pick([
+                        `"제 나이에 ${yLabel}이라는 장기 보장이라니 감동입니다! 안정적인 만큼 주급은 ${state.demandedWage}억 원까지 낮춰서 받겠습니다."`,
+                        `"은퇴할 때까지 믿고 맡겨주시는군요. ${yLabel} 조건이라면 주급 ${state.demandedWage}억 원에 기꺼이 합의하겠습니다."`
+                    ]);
+                }
+                if (isYouth && yrs === 1) {
+                    return pick([
+                        `"음... ${yLabel}은 미래가 너무 불안정한데요. 그렇게 단기 계약이라면 주급은 최소 ${state.demandedWage}억 원은 주셔야 합니다."`,
+                        `"1년 계약이라니 조금 서운하네요. 짧게 계약하는 대신 주급 ${state.demandedWage}억 원은 챙겨주셔야겠습니다."`
+                    ]);
+                }
+                if (yrs >= 4) {
+                    return pick([
+                        `"${yLabel}으로 제 전성기를 바치는 거군요! 장기 계약인 만큼 주급 ${state.demandedWage}억 원 수준을 희망합니다."`,
+                        `"오랫동안 팀의 프로젝트에 함께하라는 뜻이군요. ${yLabel}에 [${roleShort}] 조건이면 주급 ${state.demandedWage}억 원을 원합니다."`
+                    ]);
+                }
+                if (yrs === 1) {
+                    return pick([
+                        `"${yLabel}로 짧고 굵게 증명하라는 말씀이시군요. 좋습니다, 주급은 ${state.demandedWage}억 원으로 맞춰주시죠."`,
+                        `"단기 계약도 나쁘지 않죠. 1년 뒤 가치를 다시 평가받는 조건으로 주급 ${state.demandedWage}억 원을 희망합니다."`
+                    ]);
+                }
+                return pick([
+                    `"${yLabel}에 [${roleShort}] 조건이라면 합리적이네요. 주급은 ${state.demandedWage}억 원 수준을 원합니다."`,
+                    `"좋습니다. 기간을 ${yLabel}으로 잡는다면 제 희망 주급은 ${state.demandedWage}억 원입니다."`,
+                    `"${yLabel} 조건 확인했습니다. 에이전트와 상의해 보니 주급 ${state.demandedWage}억 원이 적당하겠군요."`
+                ]);
+            }
+
+            case 'ROLE_CHANGE': {
+                const { roleDiff } = ctx;
+                if (roleDiff <= -2) {
+                    return pick([
+                        `"잠깐만요 감독님, 제 커리어에 [${roleShort}] 취급은 자존심이 상합니다! 정 그러시다면 주급이라도 ${state.demandedWage}억 원 이상 두둑이 챙겨주셔야 합니다."`,
+                        `"벤치만 달구려고 이적하는 게 아닙니다! [${roleShort}] 역할을 감수하라는 거면 주급 ${state.demandedWage}억 원은 주셔야 사인합니다."`,
+                        `"솔직히 충격이네요. 저를 [${roleShort}] 자원으로 보신다면 금전적 보상으로 주급 ${state.demandedWage}억 원은 맞춰주십시오."`,
+                        `"에이전트가 당장 전화를 끊으라고 난리입니다. [${roleShort}] 조건을 받아들이려면 주급 ${state.demandedWage}억 원은 필수입니다."`
+                    ]);
+                } else if (roleDiff === -1) {
+                    return pick([
+                        `"[${roleShort}] 역할이라... 주전 경쟁이 꽤 험난하겠군요. 그렇다면 주급 ${state.demandedWage}억 원은 보장해 주셔야 마음이 동할 것 같습니다."`,
+                        `"확실한 주전을 기대했는데 [${roleShort}] 조건이군요. 출전 시간이 줄어드는 만큼 주급은 ${state.demandedWage}억 원을 원합니다."`,
+                        `"조금 아쉽긴 하지만 실력으로 증명하죠. 대신 [${roleShort}] 조건이라면 주급 ${state.demandedWage}억 원은 맞춰주십시오."`
+                    ]);
+                } else if (roleDiff >= 1) {
+                    return pick([
+                        `"와, 저를 팀의 [${roleShort}] 자원으로까지 믿어주시다니 감격스럽습니다! 주급을 ${state.demandedWage}억 원으로 양보해서라도 꼭 보답하겠습니다!"`,
+                        `"감독님의 전폭적인 신뢰가 느껴집니다! [${roleShort}] 보장이라면 돈보다 명예죠. 주급 ${state.demandedWage}억 원에 당장 계약하겠습니다!"`,
+                        `"선수로서 가장 듣고 싶던 말입니다. [${roleShort}] 대우에 감사드리며, 주급 요구액도 ${state.demandedWage}억 원으로 낮추겠습니다."`
+                    ]);
+                } else {
+                    return pick([
+                        `"[${roleShort}] 역할, 딱 제 실력에 맞는 합리적인 대우네요. 주급 ${state.demandedWage}억 원을 제안해 주시면 좋겠습니다."`,
+                        `"네, 저 역시 팀에서 [${roleShort}] 역할을 맡는 게 이상적이라고 봅니다. 희망 주급은 ${state.demandedWage}억 원입니다."`,
+                        `"[${roleShort}] 입지 조건 좋습니다. 주급 ${state.demandedWage}억 원만 맞춰주시면 흔쾌히 도장을 찍겠습니다."`
+                    ]);
+                }
+            }
+
+            case 'PLAYER_COUNTER': {
+                const { wage, counter, round } = ctx;
+                if (round === 2) {
+                    return pick([
+                        `"감독님, 주급 ${wage}억 원은 제 기대치보다 조금 낮습니다. ${counter}억 원 정도만 맞춰주시면 기분 좋게 사인하겠습니다."`,
+                        `"에이전트와 계산기를 두드려 봤는데, 세금 빼고 나면 ${wage}억 원은 아쉽습니다. 주급 ${counter}억 원을 역제안드립니다."`,
+                        `"팀 프로젝트는 마음에 들지만 프로는 연봉으로 말하는 법이죠. ${counter}억 원까지 올려주실 수 있나요?"`,
+                        `"솔직히 다른 구단에서는 더 높은 주급을 불렀습니다. 감독님을 봐서 ${counter}억 원까지 양보할 테니 맞춰주십시오."`,
+                        `"조금만 더 성의를 보여주시면 좋겠습니다 감독님. 주급 ${counter}억 원이면 두말없이 유니폼을 입겠습니다."`
+                    ]);
+                } else {
+                    return pick([
+                        `"저도 많이 양보했습니다 감독님. 주급 ${counter}억 원이 제 최종 마지노선입니다. 결단을 내려주세요!"`,
+                        `"더 이상 주급을 깎는 건 어렵습니다. ${counter}억 원, 이 조건이 아니면 이번 계약은 없던 일로 해야 할 것 같습니다."`,
+                        `"에이전트는 떠나자고 하지만 제가 마지막으로 붙잡았습니다. 주급 ${counter}억 원만 보장해 주십시오!"`,
+                        `"진짜 마지막 제안입니다. 주급 ${counter}억 원에 합의하시죠. 그렇지 않으면 통화를 마쳐야 할 것 같습니다."`
+                    ]);
+                }
+            }
+
+            case 'PLAYER_ACCEPT': {
+                const { isRenewal } = ctx;
+                if (isRenewal) {
+                    return pick([
+                        `"최고의 대우에 감사드립니다 감독님! [${roleShort}]으로서 앞으로 +${yrs}년 더 이 구단에 뼈를 묻겠습니다!"`,
+                        `"재계약 완료입니다! 팬들에게 곧바로 잔류 소식을 전하겠습니다. 이번 시즌 우승까지 달려보시죠!"`,
+                        `"역시 감독님은 저를 믿어주실 줄 알았습니다! +${yrs}년 동안 경기장에서 모든 걸 쏟아붓겠습니다!"`,
+                        `"서명 완료했습니다 감독님! 새 계약서 잉크가 마르기도 전에 다음 경기에서 득점포로 보답하겠습니다!"`
+                    ]);
+                }
+                return pick([
+                    `"${yrs}년 계약에 [${roleShort}] 조건, 완벽합니다! 지금 바로 계약서에 서명하겠습니다. 훈련장에서 뵙겠습니다 감독님!"`,
+                    `"드디어 오피셜을 찍는군요! 감독님과 함께할 앞으로의 ${yrs}년이 정말 기대됩니다. 최선을 다하겠습니다!"`,
+                    `"계약 성사입니다! 에이전트에게 당장 짐 싸라고 전하겠습니다. 팬들에게 최고의 퍼포먼스를 보여드리죠!"`,
+                    `"믿고 영입해 주셔서 감사합니다 감독님. 제 발끝으로 왜 저를 선택하셨는지 증명해 보이겠습니다!"`,
+                    `"합의 완료! 메디컬 테스트와 프로필 촬영 준비하겠습니다. 불러만 주십시오 감독님!"`
+                ]);
+            }
+
+            case 'PLAYER_REJECT': {
+                return pick([
+                    `"제 가치를 너무 낮게 평가하시는군요. 이 조건으로는 도저히 사인할 수 없습니다. 통화를 종료하겠습니다."`,
+                    `"아쉽지만 서로 생각하는 조건 차이가 너무 큽니다. 좋은 인연이 아닌 것 같네요. 안녕히 계십시오."`,
+                    `"프로의 세계에서 이 정도 대우는 받아들이기 힘듭니다. 다른 구단의 오퍼를 알아보겠습니다. 이만 끊겠습니다."`,
+                    `"기대하고 통화를 시작했는데 실망스럽군요. 협상은 여기서 끝내겠습니다. 수고하십시오 감독님."`
+                ]);
+            }
+
+            default:
+                return `"조건을 검토하고 있습니다..."`;
+        }
+    }
+
+    adjustContractYears(delta) {
+        if (!this.chatState || (this.chatState.step !== 'WAGE' && this.chatState.step !== 'RENEWAL')) return;
+        const state = this.chatState;
+        const isRenewal = (state.step === 'RENEWAL');
+        const minY = 1;
+        const maxY = isRenewal ? 4 : 5;
+
+        const nextY = Math.max(minY, Math.min(maxY, (state.contractYears || 3) + delta));
+        if (nextY === state.contractYears) return;
+        state.contractYears = nextY;
+
+        this.recalcPersonalTermsDemand();
+        this.updatePersonalTermsRowUI();
+
+        this.setFcDialogue(this.pickNegotiationLine('YEARS_CHANGE', { isRenewal }));
+        this.setupChatInput(state.step);
+        this.updateFcBudgetSummary();
+    }
+
+    adjustSquadRole(delta) {
+        if (!this.chatState || (this.chatState.step !== 'WAGE' && this.chatState.step !== 'RENEWAL')) return;
+        const state = this.chatState;
+        const nextIdx = Math.max(0, Math.min(3, (state.squadRoleIdx ?? 2) + delta));
+        if (nextIdx === state.squadRoleIdx) return;
+        state.squadRoleIdx = nextIdx;
+
+        this.recalcPersonalTermsDemand();
+        this.updatePersonalTermsRowUI();
+
+        const roleDiff = nextIdx - state.expectedRoleIdx;
+
+        if (roleDiff <= -2) {
+            this.updateTensionUI('HIGH', state.round);
+        } else if (roleDiff === -1) {
+            this.updateTensionUI('MEDIUM', state.round);
+        } else {
+            this.updateTensionUI('LOW', state.round);
+        }
+
+        this.setFcDialogue(this.pickNegotiationLine('ROLE_CHANGE', { roleDiff }));
+        this.setupChatInput(state.step);
+        this.updateFcBudgetSummary();
+    }
+
+    updatePersonalTermsRowUI() {
+        if (!this.chatState) return;
+        const state = this.chatState;
+        const isRenewal = (state.step === 'RENEWAL');
+        const stepVal1 = document.getElementById('fcRow1StepValue');
+        const stepVal2 = document.getElementById('fcRow2StepValue');
+
+        if (stepVal1) {
+            stepVal1.textContent = isRenewal ? `+${state.contractYears} YEARS (연장)` : `${state.contractYears} YEARS (계약)`;
+        }
+        if (stepVal2) {
+            const roleMeta = this.getSquadRoleMeta(state.squadRoleIdx);
+            stepVal2.textContent = roleMeta.label;
+        }
+    }
+
+    openFcNegotiationUI(mode) {
+        const modal = document.getElementById('negotiationChatModal');
+        if (!modal || !this.chatState) return;
+
+        const state = this.chatState;
+        const player = state.player;
+
+        // 모달 표시
+        modal.style.display = 'flex';
         modal.style.visibility = 'visible';
         modal.style.opacity = '1';
         modal.style.pointerEvents = 'auto';
 
-        this.addChatMessage('system', `--- ${player.name} 영입 협상을 시작합니다 ---`);
+        // 우측 선수 스펙 카드 세팅
+        const posText = player.position || 'FW';
+        const ovrVal = Math.floor(player.rating || 75);
+        const estValue = player.price || Math.round(this.calculatePlayerPrice(player));
+        const estWage = state.demandedWage || this.calculateNegotiatedWeeklyWage(player);
 
-        setTimeout(() => {
-            this.addChatMessage('ai', `안녕하세요. ${player.name} 영입에 관심이 있으시군요. 저희가 생각하는 기본 이적료는 ${player.price}억 입니다. 얼마를 제안하시겠습니까?`);
-            this.setupChatInput('FEE');
-        }, 800);
+        const setElText = (id, txt) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = txt;
+        };
+
+        setElText('chatPlayerName', player.name);
+        setElText('fcCardWatermark', posText);
+        setElText('fcCardCountry', player.country ? player.country.substring(0, 3).toUpperCase() : 'PRO');
+        setElText('fcCardAge', player.age || 24);
+        setElText('fcCardPos', posText);
+        setElText('fcCardOvr', ovrVal);
+        setElText('fcCardValue', `${estValue}억 원`);
+        setElText('fcCardWage', `${estWage}억 / 주`);
+
+        const miniFace = document.getElementById('fcCardMiniFace');
+        if (miniFace && typeof setPlayerPhoto === 'function') {
+            setPlayerPhoto(miniFace, player);
+        }
+
+        // 단계별 UI 전환
+        this.renderFcStage(mode);
+    }
+
+    renderFcStage(step) {
+        if (!this.chatState) return;
+        const state = this.chatState;
+        const player = state.player;
+        state.step = step;
+        state.round = 1;
+        state.tension = 'LOW';
+
+        const avatarWrap = document.getElementById('fcCallerAvatar');
+        const input = document.getElementById('chatFeeInput');
+        const tacRow1 = document.getElementById('fcTacticalRow1');
+        const tacRow2 = document.getElementById('fcTacticalRow2');
+        const acceptCounterBtn = document.getElementById('fcAcceptCounterBtn');
+        if (acceptCounterBtn) acceptCounterBtn.style.display = 'none';
+
+        const setElText = (id, txt) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = txt;
+        };
+
+        const row1Ctrl = document.getElementById('fcRow1Control');
+        const row1Val = document.getElementById('fcRow1Value');
+        const row2Ctrl = document.getElementById('fcRow2Control');
+        const row2Val = document.getElementById('fcRow2Value');
+
+        if (step === 'FEE') {
+            // 1단계: 구단 대 구단 이적료 협상 (상대 구단 로고 통화)
+            const clubDisplayName = (typeof teamNames !== 'undefined' && teamNames[player.originalTeam]) || player.originalTeam || '소속 구단';
+            setElText('fcStepTag', 'STEP 1 · CLUB TO CLUB NEGOTIATION');
+            setElText('fcMainHeading', 'TRANSFER PLAYER');
+            setElText('fcPhoneTopLabel', 'Club Boardroom Line');
+            setElText('chatTeamName', clubDisplayName);
+            setElText('fcCallerRole', `${clubDisplayName} Board Representative`);
+
+            setElText('fcRow1Label', '합류 시점 (Start Date)');
+            setElText('fcRow1Value', 'IMMEDIATE');
+            if (row1Ctrl) row1Ctrl.style.display = 'none';
+            if (row1Val) row1Val.style.display = 'inline';
+
+            setElText('fcActiveTermLabel', '이적료 제안 (Transfer Fee)');
+            setElText('fcAmountUnit', '억 원');
+            setElText('fcRow2Label', '분할 지급 (Instalments)');
+            setElText('fcRow2Value', 'NONE (일시불)');
+            if (row2Ctrl) row2Ctrl.style.display = 'none';
+            if (row2Val) row2Val.style.display = 'inline';
+
+            setElText('fcRow3Label', '셀온 및 기타 조항');
+            setElText('fcRow3Value', 'INCLUDED');
+
+            if (tacRow1) tacRow1.style.display = 'flex';
+            if (tacRow2) tacRow2.style.display = 'flex';
+
+            // 상대 구단 로고 렌더링
+            if (avatarWrap) {
+                avatarWrap.replaceChildren();
+                if (typeof createTeamLogoElement === 'function' && player.originalTeam && player.originalTeam !== '외부리그') {
+                    const logoEl = createTeamLogoElement(player.originalTeam);
+                    if (logoEl && logoEl.nodeType) {
+                        avatarWrap.appendChild(logoEl);
+                    }
+                }
+                if (!avatarWrap.hasChildNodes()) {
+                    const fallbackBadge = document.createElement('div');
+                    fallbackBadge.className = 'fc-caller-club-fallback';
+                    fallbackBadge.textContent = clubDisplayName.substring(0, 2).toUpperCase();
+                    avatarWrap.appendChild(fallbackBadge);
+                }
+            }
+
+            if (input) {
+                input.step = '10';
+                input.min = '1';
+                input.value = player.price;
+            }
+
+            this.setFcDialogue(this.pickNegotiationLine('CLUB_GREETING'));
+        } else if (step === 'WAGE' || step === 'RENEWAL') {
+            // 2단계: 선수 직접 통화 (주급 협상 / 재계약)
+            const isRenewal = (step === 'RENEWAL');
+            setElText('fcStepTag', isRenewal ? 'CONTRACT RENEWAL · DIRECT CALL' : 'STEP 2 · PERSONAL TERMS');
+            setElText('fcMainHeading', isRenewal ? 'RENEW CONTRACT' : 'PLAYER CONTRACT');
+            setElText('fcPhoneTopLabel', isRenewal ? 'Squad Contract Desk' : 'Player & Agent Line');
+            setElText('chatTeamName', player.name);
+            setElText('fcCallerRole', `${player.position} · OVR ${Math.floor(player.rating || 75)} · Personal Line`);
+
+            setElText('fcRow1Label', isRenewal ? '연장 기간 (Extension)' : '계약 기간 (Contract Length)');
+            if (row1Ctrl) row1Ctrl.style.display = 'inline-flex';
+            if (row1Val) row1Val.style.display = 'none';
+
+            setElText('fcActiveTermLabel', '주급 조건 (Weekly Wage)');
+            setElText('fcAmountUnit', '억 / 주');
+            setElText('fcRow2Label', '주전 위상 (Squad Role)');
+            if (row2Ctrl) row2Ctrl.style.display = 'inline-flex';
+            if (row2Val) row2Val.style.display = 'none';
+
+            setElText('fcRow3Label', '클린시트/득점 수당');
+            setElText('fcRow3Value', 'INCLUDED');
+
+            if (tacRow1) tacRow1.style.display = 'none';
+            if (tacRow2) tacRow2.style.display = 'none';
+
+            // 계약 기간 & 주전 위상 UI 및 요구 주급 계산
+            this.recalcPersonalTermsDemand();
+            this.updatePersonalTermsRowUI();
+
+            // 선수 실제 얼굴 사진 렌더링
+            if (avatarWrap) {
+                avatarWrap.replaceChildren();
+                const faceImg = document.createElement('img');
+                faceImg.className = 'fc-caller-face-img';
+                faceImg.src = 'assets/players/default.webp';
+                faceImg.alt = player.name;
+                avatarWrap.appendChild(faceImg);
+                if (typeof setPlayerPhoto === 'function') {
+                    setPlayerPhoto(faceImg, player);
+                }
+            }
+
+            const targetWage = state.demandedWage || this.calculateNegotiatedWeeklyWage(player);
+            state.demandedWage = targetWage;
+
+            if (input) {
+                input.step = '0.2';
+                input.min = '0.1';
+                input.value = targetWage;
+            }
+
+            const remYears = (typeof contractSystem !== 'undefined') ? contractSystem.getPlayerContractYears(player) : 1;
+            this.setFcDialogue(this.pickNegotiationLine('PLAYER_GREETING', {
+                wage: targetWage,
+                isRenewal,
+                remYears
+            }));
+        }
+
+        this.updateTensionUI('LOW', 1);
+        this.setupChatInput(step);
+        this.updateFcBudgetSummary();
+    }
+
+    setFcDialogue(text) {
+        const diagEl = document.getElementById('fcDialogueText');
+        if (diagEl) {
+            diagEl.classList.remove('fc-diag-pop');
+            void diagEl.offsetWidth;
+            diagEl.textContent = text;
+            diagEl.classList.add('fc-diag-pop');
+        }
+        const wave = document.getElementById('fcVoiceWave');
+        if (wave) {
+            wave.classList.add('speaking');
+            clearTimeout(this._waveTimer);
+            this._waveTimer = setTimeout(() => wave.classList.remove('speaking'), 2200);
+        }
+    }
+
+    updateTensionUI(level, round) {
+        const badge = document.getElementById('fcTensionBadge');
+        const roundEl = document.getElementById('fcRoundBadge');
+        if (badge) {
+            badge.className = 'fc-tension-pill';
+            if (level === 'LOW') {
+                badge.classList.add('low');
+                badge.textContent = 'Low Tension · 우호적';
+            } else if (level === 'MEDIUM') {
+                badge.classList.add('medium');
+                badge.textContent = 'Medium Tension · 줄다리기 중';
+            } else {
+                badge.classList.add('high');
+                badge.textContent = 'High Tension · 결렬 주의';
+            }
+        }
+        if (roundEl && this.chatState) {
+            roundEl.textContent = `Round ${round || this.chatState.round} / ${this.chatState.maxRounds}`;
+        }
+    }
+
+    adjustOfferValue(direction) {
+        if (!this.chatState || this.chatState.step === 'WAITING') return;
+        const input = document.getElementById('chatFeeInput');
+        if (!input) return;
+
+        let current = parseFloat(input.value) || 0;
+        if (this.chatState.step === 'FEE') {
+            const base = this.chatState.demandedFee || 100;
+            const stepAmt = Math.max(5, Math.round((base * 0.05) / 5) * 5);
+            current = Math.max(5, Math.round(current + direction * stepAmt));
+            input.value = current;
+        } else {
+            const base = this.chatState.demandedWage || 5;
+            const stepAmt = base >= 10 ? 0.5 : 0.2;
+            current = Math.max(0.2, parseFloat((current + direction * stepAmt).toFixed(2)));
+            input.value = current;
+        }
+        this.updateFcBudgetSummary();
+    }
+
+    onManualAmountInput() {
+        this.updateFcBudgetSummary();
+    }
+
+    updateFcBudgetSummary() {
+        if (!this.chatState) return;
+        const state = this.chatState;
+        const input = document.getElementById('chatFeeInput');
+        const val = parseFloat(input ? input.value : 0) || 0;
+
+        const setElText = (id, txt) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = txt;
+        };
+
+        const val3El = document.getElementById('fcSummaryVal3');
+
+        if (state.step === 'FEE') {
+            const currentMoney = window.GameState ? window.GameState.get().teamMoney : gameData.teamMoney;
+            const remaining = Math.round(currentMoney - val);
+            setElText('fcSummaryLbl1', '제안 이적료 / 구단 기준가');
+            setElText('fcSummaryVal1', `${Math.round(val)}억 / ${state.demandedFee}억`);
+            setElText('fcSummaryLbl2', '상대 구단 역제안 (Counter)');
+            setElText('fcSummaryVal2', state.counterFee ? `${state.counterFee}억 원 요구` : '없음 (첫 제안 대기)');
+            setElText('fcSummaryLbl3', '타결 시 잔여 이적 자금');
+            setElText('fcSummaryVal3', `${remaining}억 원`);
+            if (val3El) val3El.style.color = remaining >= 0 ? '#F8FAFC' : '#EF4444';
+        } else if (state.step === 'WAGE') {
+            const availWage = this.getTeamWageBudget(gameData.selectedTeam);
+            const remaining = parseFloat((availWage - val).toFixed(2));
+            setElText('fcSummaryLbl1', '제안 주급 / 선수 희망 주급');
+            setElText('fcSummaryVal1', `${val}억 / ${state.demandedWage}억`);
+            setElText('fcSummaryLbl2', '선수 측 역제안 (Counter)');
+            setElText('fcSummaryVal2', state.counterWage ? `주급 ${state.counterWage}억 요구` : '없음 (협상 중)');
+            setElText('fcSummaryLbl3', '타결 시 잔여 주급 예산');
+            setElText('fcSummaryVal3', `${remaining}억 / 주`);
+            if (val3El) val3El.style.color = remaining >= 0 ? '#F8FAFC' : '#EF4444';
+        } else if (state.step === 'RENEWAL') {
+            const currentWage = state.player.weeklyWage || 0;
+            const diff = parseFloat((val - currentWage).toFixed(2));
+            const availWage = this.getTeamWageBudget(gameData.selectedTeam);
+            const remaining = parseFloat((availWage - diff).toFixed(2));
+            setElText('fcSummaryLbl1', '제안 주급 / 현재 주급');
+            setElText('fcSummaryVal1', `${val}억 / ${currentWage}억`);
+            setElText('fcSummaryLbl2', '선수 요구 주급');
+            setElText('fcSummaryVal2', `${state.counterWage || state.demandedWage}억 / 주`);
+            setElText('fcSummaryLbl3', '재계약 후 잔여 주급 여유분');
+            setElText('fcSummaryVal3', `${remaining}억 / 주`);
+            if (val3El) val3El.style.color = remaining >= 0 ? '#F8FAFC' : '#EF4444';
+        }
+    }
+
+    acceptCounterOffer() {
+        if (!this.chatState) return;
+        const input = document.getElementById('chatFeeInput');
+        if (!input) return;
+
+        if (this.chatState.step === 'FEE' && this.chatState.counterFee) {
+            input.value = this.chatState.counterFee;
+            this.updateFcBudgetSummary();
+            this.sendNegotiationChat();
+        } else if ((this.chatState.step === 'WAGE' || this.chatState.step === 'RENEWAL') && this.chatState.counterWage) {
+            input.value = this.chatState.counterWage;
+            this.updateFcBudgetSummary();
+            this.sendNegotiationChat();
+        }
     }
 
     closeNegotiationChat() {
@@ -668,124 +1361,149 @@ class TransferSystem {
 
     addChatMessage(sender, text) {
         const messagesDiv = document.getElementById('chatMessages');
-        const msgDiv = document.createElement('div');
-        msgDiv.className = `chat-message ${sender}`;
-        msgDiv.innerText = text;
-        messagesDiv.appendChild(msgDiv);
-        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        if (messagesDiv) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `chat-message ${sender}`;
+            msgDiv.innerText = text;
+            messagesDiv.appendChild(msgDiv);
+        }
+        if (sender === 'ai' || sender === 'system') {
+            this.setFcDialogue(`"${text}"`);
+        }
     }
 
     setupChatInput(step) {
         const input = document.getElementById('chatFeeInput');
         const btn = document.getElementById('chatSendBtn');
         const quickReplies = document.getElementById('chatQuickReplies');
+        const downBtn = document.getElementById('fcStepDownBtn');
+        const upBtn = document.getElementById('fcStepUpBtn');
 
-        input.value = '';
+        if (!quickReplies || !this.chatState) return;
         quickReplies.replaceChildren();
 
         if (step === 'FEE') {
-            input.style.display = 'block';
-            input.placeholder = "제안할 이적료를 입력하세요 (단위: 억)";
-            btn.style.display = 'block';
+            if (input) input.disabled = false;
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = 'Make Offer · 이적료 제안';
+            }
+            if (downBtn) downBtn.disabled = false;
+            if (upBtn) upBtn.disabled = false;
 
-            const p = this.chatState.player.price;
-            const amounts = [p, Math.round(p * 0.9), Math.round(p * 0.8)];
-            amounts.forEach(amt => {
-                const qBtn = document.createElement('button');
-                qBtn.className = 'btn';
-                qBtn.innerText = `${amt}억 제안`;
-                qBtn.onclick = () => { input.value = amt; this.sendNegotiationChat(); };
-                quickReplies.appendChild(qBtn);
+            const p = this.chatState.demandedFee || this.chatState.player.price;
+            const presets = [
+                { label: `100% (${p}억)`, val: p },
+                { label: `90% (${Math.round(p * 0.9)}억)`, val: Math.round(p * 0.9) },
+                { label: `80% (${Math.round(p * 0.8)}억)`, val: Math.round(p * 0.8) }
+            ];
+            presets.forEach(item => {
+                const chip = document.createElement('button');
+                chip.type = 'button';
+                chip.className = 'fc-preset-chip';
+                chip.textContent = item.label;
+                chip.onclick = () => {
+                    if (input) input.value = item.val;
+                    this.updateFcBudgetSummary();
+                };
+                quickReplies.appendChild(chip);
             });
 
-            // --- 언론 유출 및 선수 설득 버튼 ---
+            // 좌측 전술적 액션 슬롯 렌더링 (언론 유출 & 동포 설득)
             const targetPlayer = this.chatState.player;
             const playerKey = `${targetPlayer.name}_${targetPlayer.originalTeam}`;
             const offerData = window.GameState ? window.GameState.getTransferOffer(playerKey) : (gameData.transferOffers ? gameData.transferOffers[playerKey] : null);
             const hasMediaPlayed = !!(offerData && offerData.hasMediaPlayed);
             const hasSocialized = !!(offerData && offerData.hasSocialized);
 
-            const myTeamPlayers = teams[gameData.selectedTeam];
-            let persuader = null;
-
-            if (myTeamPlayers && targetPlayer.country) {
-                const sameCountryPlayers = myTeamPlayers.filter(p => p.country === targetPlayer.country && p.name !== targetPlayer.name);
-                if (sameCountryPlayers.length > 0) {
-                    persuader = sameCountryPlayers.sort((a, b) => b.rating - a.rating)[0];
-                }
-            }
-
-            const swayContainer = document.createElement('div');
-            swayContainer.style.display = 'flex';
-            swayContainer.style.gap = '5px';
-            swayContainer.style.marginTop = '10px';
-            swayContainer.style.width = '100%';
-
-            const qBtnMedia = document.createElement('button');
-            qBtnMedia.className = 'btn';
-            qBtnMedia.style.flex = '1';
-            qBtnMedia.style.background = '#3498db';
-            qBtnMedia.style.fontSize = '0.8rem';
-            qBtnMedia.innerText = hasMediaPlayed ? '언론 유출 완료' : '언론에 유출하기';
-            if (hasMediaPlayed) {
-                qBtnMedia.disabled = true;
-                qBtnMedia.style.opacity = '0.5';
-            }
-            qBtnMedia.onclick = () => {
-                this.doMediaPlay(targetPlayer.name, targetPlayer.originalTeam, true);
-                qBtnMedia.disabled = true;
-                qBtnMedia.style.opacity = '0.5';
-                qBtnMedia.innerText = '언론 유출 완료';
-            };
-
-            const qBtnSocial = document.createElement('button');
-            qBtnSocial.className = 'btn';
-            qBtnSocial.style.flex = '1';
-            qBtnSocial.style.fontSize = '0.8rem';
-
-            if (persuader) {
-                qBtnSocial.style.background = '#2ecc71';
-                qBtnSocial.innerText = hasSocialized ? '설득 완료' : `${persuader.name}을(를) 통해 설득하기`;
-                if (hasSocialized) {
-                    qBtnSocial.disabled = true;
-                    qBtnSocial.style.opacity = '0.5';
-                }
-                qBtnSocial.onclick = () => {
-                    this.doSocialize(targetPlayer.name, targetPlayer.originalTeam, true, persuader.name);
-                    qBtnSocial.disabled = true;
-                    qBtnSocial.style.opacity = '0.5';
-                    qBtnSocial.innerText = '설득 완료';
+            const mediaSlot = document.getElementById('fcMediaActionSlot');
+            if (mediaSlot) {
+                mediaSlot.replaceChildren();
+                const mBtn = document.createElement('button');
+                mBtn.type = 'button';
+                mBtn.className = 'fc-tactical-chip' + (hasMediaPlayed ? ' done' : '');
+                mBtn.textContent = hasMediaPlayed ? 'INCLUDED (완료)' : '언론 유출 실행';
+                mBtn.disabled = hasMediaPlayed;
+                mBtn.onclick = () => {
+                    this.doMediaPlay(targetPlayer.name, targetPlayer.originalTeam, true);
+                    mBtn.textContent = 'INCLUDED (완료)';
+                    mBtn.classList.add('done');
+                    mBtn.disabled = true;
                 };
-            } else {
-                qBtnSocial.style.background = '#7f8c8d';
-                qBtnSocial.innerText = '설득 불가능';
-                qBtnSocial.disabled = true;
+                mediaSlot.appendChild(mBtn);
             }
 
-            swayContainer.appendChild(qBtnMedia);
-            swayContainer.appendChild(qBtnSocial);
-            quickReplies.appendChild(swayContainer);
-        } else if (step === 'WAGE') {
-            input.style.display = 'block';
-            input.placeholder = "제안할 주급을 입력하세요 (단위: 억)";
-            btn.style.display = 'block';
+            const socialSlot = document.getElementById('fcSocialActionSlot');
+            if (socialSlot) {
+                socialSlot.replaceChildren();
+                const myTeamPlayers = teams[gameData.selectedTeam];
+                let persuader = null;
+                if (myTeamPlayers && targetPlayer.country) {
+                    const sameCountryPlayers = myTeamPlayers.filter(p => p.country === targetPlayer.country && p.name !== targetPlayer.name);
+                    if (sameCountryPlayers.length > 0) {
+                        persuader = sameCountryPlayers.sort((a, b) => b.rating - a.rating)[0];
+                    }
+                }
 
-            const suggestedWage = this.calculateNegotiatedWeeklyWage(this.chatState.player);
+                const sBtn = document.createElement('button');
+                sBtn.type = 'button';
+                if (persuader) {
+                    sBtn.className = 'fc-tactical-chip' + (hasSocialized ? ' done' : ' active');
+                    sBtn.textContent = hasSocialized ? 'INCLUDED (완료)' : `${persuader.name} 통해 설득`;
+                    sBtn.disabled = hasSocialized;
+                    sBtn.onclick = () => {
+                        this.doSocialize(targetPlayer.name, targetPlayer.originalTeam, true, persuader.name);
+                        sBtn.textContent = 'INCLUDED (완료)';
+                        sBtn.classList.add('done');
+                        sBtn.disabled = true;
+                    };
+                } else {
+                    sBtn.className = 'fc-tactical-chip disabled';
+                    sBtn.textContent = 'NONE (동포 없음)';
+                    sBtn.disabled = true;
+                }
+                socialSlot.appendChild(sBtn);
+            }
+        } else if (step === 'WAGE' || step === 'RENEWAL') {
+            if (input) input.disabled = false;
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = step === 'RENEWAL' ? 'Make Offer · 재계약 제안' : 'Make Offer · 주급 제안';
+            }
+            if (downBtn) downBtn.disabled = false;
+            if (upBtn) upBtn.disabled = false;
 
-            const qBtn1 = document.createElement('button');
-            qBtn1.className = 'btn';
-            qBtn1.innerText = `${suggestedWage}억 수락`;
-            qBtn1.onclick = () => { input.value = suggestedWage; this.sendNegotiationChat(); };
-            quickReplies.appendChild(qBtn1);
+            const w = this.chatState.demandedWage || this.calculateNegotiatedWeeklyWage(this.chatState.player);
+            const presets = [
+                { label: `요구액 (${w}억)`, val: w },
+                { label: `95% (${parseFloat((w * 0.95).toFixed(2))}억)`, val: parseFloat((w * 0.95).toFixed(2)) },
+                { label: `90% (${parseFloat((w * 0.9).toFixed(2))}억)`, val: parseFloat((w * 0.9).toFixed(2)) }
+            ];
+            presets.forEach(item => {
+                const chip = document.createElement('button');
+                chip.type = 'button';
+                chip.className = 'fc-preset-chip';
+                chip.textContent = item.label;
+                chip.onclick = () => {
+                    if (input) input.value = item.val;
+                    this.updateFcBudgetSummary();
+                };
+                quickReplies.appendChild(chip);
+            });
         } else {
-            input.style.display = 'none';
-            btn.style.display = 'none';
+            if (input) input.disabled = true;
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = '상대방 응답 대기 중...';
+            }
+            if (downBtn) downBtn.disabled = true;
+            if (upBtn) upBtn.disabled = true;
         }
     }
 
     sendNegotiationChat() {
         const input = document.getElementById('chatFeeInput');
-        const val = parseFloat(input.value);
+        const val = parseFloat(input ? input.value : 0);
 
         if (isNaN(val) || val <= 0) {
             alert("올바른 금액을 입력하세요.");
@@ -793,81 +1511,175 @@ class TransferSystem {
         }
 
         const state = this.chatState;
+        if (!state || state.step === 'WAITING') return;
         const player = state.player;
+        const prevStep = state.step;
 
-        if (state.step === 'FEE') {
+        if (prevStep === 'FEE') {
             const fee = Math.round(val);
             const currentMoney = window.GameState ? window.GameState.get().teamMoney : gameData.teamMoney;
 
             if (currentMoney < fee) {
-                this.addChatMessage('system', `자금이 부족합니다. (보유 자금: ${currentMoney}억)`);
+                this.setFcDialogue(`"잠깐만요, 구단 보유 이적 자금(${currentMoney}억 원)이 제안 금액보다 부족합니다."`);
                 return;
             }
 
-            this.addChatMessage('user', `이적료 ${fee}억을 제안합니다.`);
             this.setupChatInput('WAITING');
+            this.setFcDialogue(`"${fee}억 원 제안을 검토하고 있습니다..."`);
 
             setTimeout(() => {
+                if (!this.chatState) return;
+                const targetPrice = state.counterFee || state.demandedFee || player.price;
                 let accepted = false;
-                if (fee >= player.price) {
+
+                if (fee >= targetPrice) {
                     accepted = true;
                 } else {
                     const sellerTeamKey = player.originalTeam;
-                    const chance = this.calculateFeeNegotiationChance(sellerTeamKey, fee, player.price);
-
+                    let chance = this.calculateFeeNegotiationChance(sellerTeamKey, fee, player.price);
+                    // 언론 플레이 및 설득 호감도 보너스 반영
+                    const playerKey = `${player.name}_${player.originalTeam}`;
+                    const offerData = window.GameState ? window.GameState.getTransferOffer(playerKey) : (gameData.transferOffers ? gameData.transferOffers[playerKey] : null);
+                    if (offerData && offerData.favorability) {
+                        chance += offerData.favorability * 0.5;
+                    }
                     accepted = Math.random() <= chance;
                 }
 
                 if (accepted) {
                     state.fee = fee;
-                    state.step = 'WAGE';
-                    this.addChatMessage('ai', `좋습니다. ${fee}억이면 합의할 수 있겠군요. 이제 선수 측과 주급 협상을 진행하시죠.`);
+                    this.updateTensionUI('LOW', state.round);
+                    this.setFcDialogue(this.pickNegotiationLine('CLUB_ACCEPT', { fee }));
+
+                    const acceptCounterBtn = document.getElementById('fcAcceptCounterBtn');
+                    if (acceptCounterBtn) acceptCounterBtn.style.display = 'none';
 
                     setTimeout(() => {
-                        this.addChatMessage('system', `--- 선수 대리인과 연결되었습니다 ---`);
-                        const suggestedWage = this.calculateNegotiatedWeeklyWage(player);
-                        setTimeout(() => {
-                            this.addChatMessage('ai', `안녕하세요. 우리 선수의 가치에 걸맞은 대우를 원합니다. 기본적으로 주급 ${suggestedWage}억을 원합니다.`);
-                            this.setupChatInput('WAGE');
-                        }, 800);
-                    }, 1000);
+                        if (!this.chatState) return;
+                        this.renderFcStage('WAGE');
+                    }, 1500);
                 } else {
-                    this.recordFailure(player);
-                    this.addChatMessage('ai', `그 금액으로는 선수를 넘길 수 없습니다. 협상 결렬입니다.`);
-                    setTimeout(() => this.closeNegotiationChat(), 2000);
+                    // 너무 터무니없는 금액(65% 미만)이거나 3라운드 초과 시 결렬
+                    const ratio = fee / player.price;
+                    if (state.round >= state.maxRounds || ratio < 0.65) {
+                        this.recordFailure(player);
+                        this.updateTensionUI('HIGH', state.round);
+                        this.setFcDialogue(this.pickNegotiationLine('CLUB_REJECT'));
+                        setTimeout(() => this.closeNegotiationChat(), 2200);
+                    } else {
+                        // 멀티 라운드 카운터 오퍼 (밀당)
+                        state.round++;
+                        const discountFactor = state.round === 2 ? 0.95 : 0.91;
+                        const newCounter = Math.max(fee + 5, Math.round(player.price * discountFactor));
+                        state.counterFee = newCounter;
+
+                        const nextTension = state.round >= 3 ? 'HIGH' : 'MEDIUM';
+                        this.updateTensionUI(nextTension, state.round);
+                        this.setFcDialogue(this.pickNegotiationLine('CLUB_COUNTER', {
+                            fee,
+                            counter: newCounter,
+                            round: state.round
+                        }));
+
+                        const acceptCounterBtn = document.getElementById('fcAcceptCounterBtn');
+                        if (acceptCounterBtn) {
+                            acceptCounterBtn.style.display = 'inline-flex';
+                            acceptCounterBtn.textContent = `역제안 수락 (${newCounter}억 원)`;
+                        }
+
+                        this.setupChatInput('FEE');
+                        this.updateFcBudgetSummary();
+                    }
                 }
-            }, 1000);
-        } else if (state.step === 'WAGE') {
+            }, 900);
+        } else if (prevStep === 'WAGE' || prevStep === 'RENEWAL') {
+            const isRenewal = (prevStep === 'RENEWAL');
             const wage = parseFloat(val.toFixed(2));
             const availableWageBudget = this.getTeamWageBudget(gameData.selectedTeam);
+            const neededWage = isRenewal ? Math.max(0, parseFloat((wage - (player.weeklyWage || 0)).toFixed(2))) : wage;
 
-            if (availableWageBudget < wage) {
-                this.addChatMessage('system', `주급 자금이 부족합니다. (보유 자금: ${availableWageBudget}억)`);
+            if (availableWageBudget < neededWage) {
+                this.setFcDialogue(`"구단 잔여 주급 예산(${availableWageBudget}억/주)이 부족합니다. 재정 탭에서 예산을 먼저 확보해 주세요."`);
                 return;
             }
 
-            this.addChatMessage('user', `주급 ${wage}억을 제안합니다.`);
             this.setupChatInput('WAITING');
+            this.setFcDialogue(`"주급 ${wage}억 원 조건을 검토 중입니다..."`);
 
             setTimeout(() => {
-                const chance = this.calculateWageNegotiationChance(player, wage);
-                const transferChance = this.calculateTransferSuccessChance(player);
-                const finalChance = Math.min(0.8, chance * transferChance);
+                if (!this.chatState) return;
+                const targetWage = state.counterWage || state.demandedWage;
+                let accepted = false;
 
-                if (Math.random() <= finalChance) {
-                    state.wage = wage;
-                    this.addChatMessage('ai', `조건이 마음에 드는군요! 계약에 동의합니다.`);
-                    setTimeout(() => {
-                        this.addChatMessage('system', `--- 협상 타결! 선수가 팀에 합류합니다 ---`);
-                        this.finalizeChatTransfer(player, state.fee, state.wage);
-                        setTimeout(() => this.closeNegotiationChat(), 2000);
-                    }, 1000);
+                if (wage >= targetWage) {
+                    accepted = true;
                 } else {
-                    this.recordFailure(player);
-                    this.addChatMessage('ai', `이 조건으로는 계약할 수 없습니다. 죄송합니다.`);
-                    setTimeout(() => this.closeNegotiationChat(), 2000);
+                    const chance = this.calculateWageNegotiationChance(player, wage);
+                    const transferChance = isRenewal ? 0.95 : this.calculateTransferSuccessChance(player);
+                    const roleBonus = (state.squadRoleIdx - state.expectedRoleIdx) * 0.08;
+                    const finalChance = Math.max(0.05, Math.min(0.95, (chance * transferChance) + roleBonus));
+                    accepted = Math.random() <= finalChance;
                 }
-            }, 1500);
+
+                if (accepted) {
+                    state.wage = wage;
+                    this.updateTensionUI('LOW', state.round);
+                    const acceptCounterBtn = document.getElementById('fcAcceptCounterBtn');
+                    if (acceptCounterBtn) acceptCounterBtn.style.display = 'none';
+                    const roleMeta = this.getSquadRoleMeta(state.squadRoleIdx);
+
+                    this.setFcDialogue(this.pickNegotiationLine('PLAYER_ACCEPT', { isRenewal }));
+
+                    if (isRenewal) {
+                        setTimeout(() => {
+                            if (typeof contractSystem !== 'undefined') {
+                                player.weeklyWage = wage;
+                                player.contractYears = Math.min(5, contractSystem.getPlayerContractYears(player) + (state.contractYears || 2));
+                                player.squadRole = roleMeta.id;
+                                if (typeof calculateTotalWages === 'function') calculateTotalWages();
+                                if (typeof updateFinanceDisplay === 'function') updateFinanceDisplay();
+                                if (typeof displayTeamPlayers === 'function') displayTeamPlayers();
+                            }
+                            this.closeNegotiationChat();
+                        }, 1600);
+                    } else {
+                        setTimeout(() => {
+                            this.finalizeChatTransfer(player, state.fee, state.wage, state.contractYears, roleMeta.id);
+                            this.closeNegotiationChat();
+                        }, 1600);
+                    }
+                } else {
+                    const ratio = wage / state.demandedWage;
+                    if (state.round >= state.maxRounds || ratio < 0.72) {
+                        if (!isRenewal) this.recordFailure(player);
+                        this.updateTensionUI('HIGH', state.round);
+                        this.setFcDialogue(this.pickNegotiationLine('PLAYER_REJECT'));
+                        setTimeout(() => this.closeNegotiationChat(), 2200);
+                    } else {
+                        state.round++;
+                        const discountFactor = state.round === 2 ? 0.96 : 0.93;
+                        const newCounterWage = Math.max( parseFloat((wage + 0.2).toFixed(2)), parseFloat((state.demandedWage * discountFactor).toFixed(2)) );
+                        state.counterWage = newCounterWage;
+
+                        const nextTension = state.round >= 3 ? 'HIGH' : 'MEDIUM';
+                        this.updateTensionUI(nextTension, state.round);
+                        this.setFcDialogue(this.pickNegotiationLine('PLAYER_COUNTER', {
+                            wage,
+                            counter: newCounterWage,
+                            round: state.round
+                        }));
+
+                        const acceptCounterBtn = document.getElementById('fcAcceptCounterBtn');
+                        if (acceptCounterBtn) {
+                            acceptCounterBtn.style.display = 'inline-flex';
+                            acceptCounterBtn.textContent = `역제안 수락 (${newCounterWage}억/주)`;
+                        }
+
+                        this.setupChatInput(prevStep);
+                        this.updateFcBudgetSummary();
+                    }
+                }
+            }, 900);
         }
     }
 
@@ -883,7 +1695,45 @@ class TransferSystem {
         }
     }
 
-    finalizeChatTransfer(player, fee, wage) {
+    enrichPlayerData(player) {
+        if (!player) return player;
+        const enriched = { ...player };
+        const name = player.name;
+
+        let found = null;
+        if (typeof allTeams !== 'undefined') {
+            for (const t in allTeams) {
+                found = (allTeams[t].players || []).find(x => x.name === name);
+                if (found) break;
+            }
+        }
+        if (!found && Array.isArray(this.extraPlayers)) {
+            found = this.extraPlayers.find(x => x.name === name);
+        }
+
+        if (found) {
+            const copyKeys = [
+                'playerid', 'playerId', 'id', 'attributes', 'traits', 'detailPosition',
+                'potential', 'preferredFoot', 'weakFoot', 'skillMoves', 'country', 'value'
+            ];
+            copyKeys.forEach(k => {
+                if (enriched[k] === undefined && found[k] !== undefined) {
+                    enriched[k] = found[k];
+                }
+            });
+        }
+
+        // id 및 playerid 상호 동기화 (페이스팩 assets/players/p[id].png/webp 렌더링 100% 보장)
+        const pid = enriched.playerid || enriched.playerId || enriched.id;
+        if (pid) {
+            enriched.playerid = pid;
+            enriched.id = pid;
+        }
+
+        return enriched;
+    }
+
+    finalizeChatTransfer(player, fee, wage, contractYears = 3, squadRole = 'IMPORTANT') {
         try {
             if (window.GameState) window.GameState.spendTeamMoney(fee);
             else gameData.teamMoney -= fee;
@@ -892,13 +1742,16 @@ class TransferSystem {
 
             const selectedTeamPlayers = window.GameState ? window.GameState.getSelectedTeamPlayers() : teams[gameData.selectedTeam];
 
-            const newPlayer = {
+            const newPlayer = this.enrichPlayerData({
+                ...player,
                 name: player.name,
                 position: player.position,
                 rating: player.rating,
                 age: player.age,
-                weeklyWage: wage
-            };
+                weeklyWage: wage,
+                contractYears: contractYears,
+                squadRole: squadRole
+            });
             selectedTeamPlayers.push(newPlayer);
 
             this.transferMarket = this.transferMarket.filter(p => !(p.name === player.name && p.originalTeam === player.originalTeam));
@@ -918,7 +1771,8 @@ class TransferSystem {
             }
 
             if (typeof mailManager !== 'undefined') {
-                const content = `${player.name} 선수가 우리 팀에 합류했습니다.\n이적료: ${fee}억\n연봉: ${wage}억/주\n포지션: ${player.position}`;
+                const roleMeta = this.getSquadRoleMeta(['PROSPECT', 'ROTATION', 'IMPORTANT', 'CRUCIAL'].indexOf(squadRole));
+                const content = `${player.name} 선수가 우리 팀에 합류했습니다.\n이적료: ${fee}억\n주급: ${wage}억/주\n계약 기간: ${contractYears}년\n팀 내 위상: ${roleMeta.short}\n포지션: ${player.position}`;
                 mailManager.addMail(`[영입] ${player.name} 영입 완료`, '스카우트 팀장', content);
             }
 
@@ -1167,14 +2021,15 @@ class TransferSystem {
         // 주급 자금 차감
         this.spendTeamWageBudget(gameData.selectedTeam, negotiatedWeeklyWage);
 
-        // 선수를 팀에 추가
-        const newPlayer = {
+        // 선수를 팀에 추가 (페이스팩 ID 및 세부 스펙 attributes/traits 완전 보존 및 보충)
+        const newPlayer = this.enrichPlayerData({
+            ...player,
             name: player.name,
             position: player.position,
             rating: player.rating,
             age: player.age,
             weeklyWage: negotiatedWeeklyWage
-        };
+        });
 
         selectedTeamPlayers.push(newPlayer);
 
@@ -2097,8 +2952,15 @@ class TransferSystem {
         const success = Math.random() >= 0.5; // 50% 성공
         if (success) {
             offerData.favorability = (offerData.favorability || 0) + 0.15; // 15% 상승
-            const msg = `성공! 언론 플레이를 통해 ${playerName} 선수의 관심을 끌었습니다. (이적 수락 확률 대폭 상승)`;
-            if (inChat) this.addChatMessage('system', msg);
+            const mediaOkLines = [
+                `"언론 보도를 봤습니다. 감독님께서 ${playerName}에게 그 정도로 진심이시라면 우리도 조금 더 유연하게 대화해 보죠."`,
+                `"기사가 대서특필되었더군요! 선수 본인이 이적에 긍정적인 반응을 보여서 우리 보드진도 태도를 누그러뜨렸습니다."`,
+                `"언론 플레이가 꽤 효과적이었군요. ${playerName} 측 에이전트도 협상 타결을 원하고 있습니다."`
+            ];
+            const msg = inChat
+                ? mediaOkLines[Math.floor(Math.random() * mediaOkLines.length)]
+                : `성공! 언론 플레이를 통해 ${playerName} 선수의 관심을 끌었습니다. (이적 수락 확률 대폭 상승)`;
+            if (inChat) this.setFcDialogue(msg);
             else alert(msg);
 
             if (typeof snsManager !== 'undefined') {
@@ -2116,9 +2978,18 @@ class TransferSystem {
             }
         } else {
             offerData.favorability = (offerData.favorability || 0) - 0.1; // 10% 하락
-            const msg = `실패... 지나친 언론 플레이로 인해 ${playerName} 선수가 반감을 가졌습니다. (이적 수락 확률 하락)`;
-            if (inChat) this.addChatMessage('system', msg);
-            else alert(msg);
+            const mediaFailLines = [
+                `"지금 언론을 통해 우리 구단을 압박하시는 겁니까? 이런 식의 여론전은 협상에 전혀 도움이 안 됩니다!"`,
+                `"사전 합의도 없이 언론에 정보를 흘리시다니 불쾌하군요. 보드진의 심기가 많이 불편해졌습니다."`,
+                `"언론 플레이로 흔들어 보시겠다는 속셈 같은데, 오히려 역효과입니다. 정식 금액으로 승부하시죠."`
+            ];
+            const msg = inChat
+                ? mediaFailLines[Math.floor(Math.random() * mediaFailLines.length)]
+                : `실패... 지나친 언론 플레이로 인해 ${playerName} 선수가 반감을 가졌습니다. (이적 수락 확률 하락)`;
+            if (inChat) {
+                this.updateTensionUI('MEDIUM', this.chatState ? this.chatState.round : 1);
+                this.setFcDialogue(msg);
+            } else alert(msg);
         }
 
         if (window.GameState) window.GameState.setTransferOffer(playerKey, offerData);
@@ -2136,7 +3007,7 @@ class TransferSystem {
         // [중복 방지] 이미 친목 설득을 시도한 경우 차단
         if (offerData.hasSocialized) {
             const warnMsg = `이미 ${persuaderName} 선수를 통해 설득을 시도했습니다.`;
-            if (inChat) this.addChatMessage('system', warnMsg);
+            if (inChat) this.setFcDialogue(`"${warnMsg}"`);
             else alert(warnMsg);
             return;
         }
@@ -2146,13 +3017,28 @@ class TransferSystem {
         const success = Math.random() > 0.3; // 70% 성공
         if (success) {
             offerData.favorability = (offerData.favorability || 0) + 0.07; // 7% 상승
-            const msg = `성공! ${persuaderName} 선수가 같은 국가 대표팀 인맥을 활용해 ${playerName} 선수를 설득했습니다. (수락 확률 상승)`;
-            if (inChat) this.addChatMessage('system', msg);
-            else alert(msg);
+            const socOkLines = [
+                `"방금 ${persuaderName} 선수에게서 연락을 받았다고 하더군요. 대표팀 동료가 있는 팀이라 ${playerName}도 무척 호감을 보이고 있습니다!"`,
+                `"${persuaderName} 선수의 설득이 통했습니다! 선수 본인이 그쪽 합류를 강력히 희망해서 협상이 훨씬 수월해지겠군요."`,
+                `"동포인 ${persuaderName} 선수가 구단 분위기를 극찬했다더군요. ${playerName}의 마음이 이미 많이 기울었습니다."`
+            ];
+            const msg = inChat
+                ? socOkLines[Math.floor(Math.random() * socOkLines.length)]
+                : `성공! ${persuaderName} 선수가 같은 국가 대표팀 인맥을 활용해 ${playerName} 선수를 설득했습니다. (수락 확률 상승)`;
+            if (inChat) {
+                this.updateTensionUI('LOW', this.chatState ? this.chatState.round : 1);
+                this.setFcDialogue(msg);
+            } else alert(msg);
         } else {
             offerData.favorability = (offerData.favorability || 0) - 0.05; // 5% 하락
-            const msg = `실패... ${playerName} 선수가 ${persuaderName} 선수의 설득을 부담스러워 합니다. (수락 확률 하락)`;
-            if (inChat) this.addChatMessage('system', msg);
+            const socFailLines = [
+                `"${persuaderName} 선수를 통해 사적으로 접촉하셨더군요. ${playerName}는 프로답게 공식 테이블에서만 얘기하길 원합니다."`,
+                `"인맥을 동원한 설득은 오히려 선수에게 부담을 줬습니다. 조건으로만 대화를 이어가시죠."`
+            ];
+            const msg = inChat
+                ? socFailLines[Math.floor(Math.random() * socFailLines.length)]
+                : `실패... ${playerName} 선수가 ${persuaderName} 선수의 설득을 부담스러워 합니다. (수락 확률 하락)`;
+            if (inChat) this.setFcDialogue(msg);
             else alert(msg);
         }
 
@@ -2181,6 +3067,11 @@ function createTransferPlayerCard(player, showMarketStatus = false) {
     const playerCard = document.createElement('div');
     const posLower = (player.position || 'mf').toLowerCase();
     playerCard.className = `transfer-player fc26-player-card pos-theme-${posLower}`;
+    playerCard.style.cursor = 'pointer';
+    playerCard.addEventListener('click', (ev) => {
+        if (ev.target.closest('button, a, input, select')) return;
+        if (typeof openPlayerDetail === 'function') openPlayerDetail(player, player.originalTeam);
+    });
 
     const teamInfo = player.originalTeam === "외부리그" ?
         "외부리그" : (teamNames[player.originalTeam] || player.originalTeam);

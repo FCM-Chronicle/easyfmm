@@ -265,9 +265,15 @@ function startMatch() {
         const matchTitleEl = document.getElementById('matchTitle');
         if (matchTitleEl) {
             const selloutTag = stadiumRes.isSellout ? " ★전석 매진" : "";
-            const cupPrefix = (gameData.isFACupMatch && typeof faCupManager !== 'undefined')
-                ? `🏆 FA컵 [${faCupManager.stageNames[gameData.faCupStage] || '토너먼트'}] · `
-                : '';
+            let cupPrefix = '';
+            if (gameData.isUCLMatch && typeof cupCompetitionManager !== 'undefined') {
+                const uclStage = cupCompetitionManager.uclStageNames[gameData.uclStage] || '토너먼트';
+                cupPrefix = `⭐ UCL [${uclStage}] · `;
+            } else if (gameData.isFACupMatch && typeof faCupManager !== 'undefined') {
+                const faName = (gameData.faCup && gameData.faCup.config) ? gameData.faCup.config.name : 'FA컵';
+                const faStage = faCupManager.faStageNames[gameData.faCupStage] || '토너먼트';
+                cupPrefix = `🏆 ${faName} [${faStage}] · `;
+            }
             matchTitleEl.textContent = `${cupPrefix}🏟️ ${stadiumRes.stadiumName} (관중: ${stadiumRes.attendance.toLocaleString()}명${selloutTag})`;
         }
     }
@@ -349,8 +355,303 @@ function startMatch() {
         console.warn("matchVisualizer not found. Playing in text mode.");
     }
 
+    // [신규] 상단 브로드캐스트 점수판 로고, 스태미나 HUD, 실시간 텔레메트리 초기화
+    initMatchLiveTelemetry(matchData, engine);
+    updateMatchStaminaUI(matchData);
+    updateMatchTelemetryUI(matchData);
+
     // 8. 킥오프 버튼 표시
     showKickoffButton(matchData, engine);
+}
+
+// =========================================================================================
+// [신규] 인게임 실시간 체력(Stamina) HUD & 브로드캐스트 텔레메트리 (점유율/파울/주목할 선수)
+// =========================================================================================
+
+function initMatchLiveTelemetry(matchData, engine) {
+    // 1. 상단 점수판 홈/어웨이 로고 삽입
+    const homeSlot = document.getElementById('bmhHomeLogoSlot');
+    const awaySlot = document.getElementById('bmhAwayLogoSlot');
+    if (homeSlot) {
+        homeSlot.replaceChildren();
+        if (typeof createTeamLogoElement === 'function' && matchData.homeTeam) {
+            homeSlot.appendChild(createTeamLogoElement(matchData.homeTeam));
+        }
+    }
+    if (awaySlot) {
+        awaySlot.replaceChildren();
+        if (typeof createTeamLogoElement === 'function' && matchData.awayTeam) {
+            awaySlot.appendChild(createTeamLogoElement(matchData.awayTeam));
+        }
+    }
+
+    // 2. 경기 전 주목할 선수 (Player to Watch) 선정
+    const allSimPlayers = (engine && Array.isArray(engine.players)) ? engine.players : [];
+    const userSide = matchData.homeTeam === gameData.selectedTeam ? 'home' : 'away';
+    const userPlayers = allSimPlayers.filter(p => p.teamId === userSide);
+    const starCandidates = (userPlayers.length > 0 ? userPlayers : allSimPlayers)
+        .filter(p => p.position === 'FW' || p.position === 'MF')
+        .sort((a, b) => (b.rating || 0) - (a.rating || 0));
+    const watchPlayer = starCandidates[0] || allSimPlayers[0] || { name: '에이스', position: 'FW', rating: 82, teamId: userSide };
+
+    const playerActions = {};
+    allSimPlayers.forEach(p => {
+        playerActions[p.name] = {
+            name: p.name,
+            teamId: p.teamId,
+            position: p.position,
+            rating: Math.round(p.rating || 75),
+            goals: 0,
+            assists: 0,
+            shots: 0,
+            passes: 0,
+            tackles: 0,
+            dribbles: 0,
+            saves: 0
+        };
+    });
+
+    matchData.liveStats = {
+        possessionTicks: { home: 1, away: 1 },
+        possessionPct: { home: 50, away: 50 },
+        shots: { home: 0, away: 0 },
+        shotsOnTarget: { home: 0, away: 0 },
+        fouls: { home: 0, away: 0 },
+        tackles: { home: 0, away: 0 },
+        passes: { home: 0, away: 0 },
+        playerActions,
+        playerToWatch: {
+            name: watchPlayer.name,
+            position: watchPlayer.position,
+            rating: Math.round(watchPlayer.rating || 80),
+            teamId: watchPlayer.teamId
+        },
+        currentSpotlight: {
+            tag: 'PLAYER TO WATCH',
+            name: `${watchPlayer.name} (${watchPlayer.position} · OVR ${Math.round(watchPlayer.rating || 80)})`,
+            detail: '오늘 경기 공격 전개의 핵심 키플레이어',
+            teamId: watchPlayer.teamId
+        },
+        lastGoalBanner: null
+    };
+}
+
+function updateMatchStaminaUI(matchData) {
+    if (!matchData || !matchData.engine || !Array.isArray(matchData.engine.players)) return;
+
+    const userSide = matchData.homeTeam === gameData.selectedTeam ? 'home' : 'away';
+    const userPlayers = matchData.engine.players.filter(p => p.teamId === userSide);
+
+    const calcAvg = (pos) => {
+        const list = userPlayers.filter(p => p.position === pos);
+        if (list.length === 0) return 100;
+        const sum = list.reduce((acc, p) => acc + (Number.isFinite(p.stamina) ? p.stamina : 100), 0);
+        return Math.max(0, Math.min(100, Math.round(sum / list.length)));
+    };
+
+    const fwPct = calcAvg('FW');
+    const mfPct = calcAvg('MF');
+    const dfPct = calcAvg('DF');
+
+    const applyBar = (barId, textId, pct, baseClass) => {
+        const barEl = document.getElementById(barId);
+        const txtEl = document.getElementById(textId);
+        if (txtEl) txtEl.textContent = `${pct}%`;
+        if (barEl) {
+            barEl.style.width = `${pct}%`;
+            let stateCls = 'good';
+            if (pct < 45) stateCls = 'low';
+            else if (pct < 70) stateCls = 'warn';
+            barEl.className = `bmh-stamina-fill ${baseClass} ${stateCls}`;
+        }
+    };
+
+    applyBar('atkStaminaBar', 'atkStaminaText', fwPct, 'fw');
+    applyBar('midStaminaBar', 'midStaminaText', mfPct, 'mf');
+    applyBar('defStaminaBar', 'defStaminaText', dfPct, 'df');
+
+    // 레거시 숫자 엘리먼트 호환
+    if (document.getElementById('atkStamina')) document.getElementById('atkStamina').textContent = fwPct;
+    if (document.getElementById('midStamina')) document.getElementById('midStamina').textContent = mfPct;
+    if (document.getElementById('defStamina')) document.getElementById('defStamina').textContent = dfPct;
+}
+
+function updateLiveMatchTelemetry(matchData, snapshot, isNewMinute) {
+    if (!matchData || !matchData.liveStats || !snapshot) return;
+    const ls = matchData.liveStats;
+    const enginePlayers = (matchData.engine && matchData.engine.players) ? matchData.engine.players : [];
+
+    const findSideByName = (name) => {
+        if (!name) return null;
+        if (ls.playerActions[name]) return ls.playerActions[name].teamId;
+        const p = enginePlayers.find(u => u.name === name);
+        return p ? p.teamId : null;
+    };
+
+    const ensureActor = (name) => {
+        if (!name) return null;
+        if (!ls.playerActions[name]) {
+            const p = enginePlayers.find(u => u.name === name);
+            ls.playerActions[name] = {
+                name,
+                teamId: p ? p.teamId : 'home',
+                position: p ? p.position : 'MF',
+                rating: p ? Math.round(p.rating || 78) : 78,
+                goals: 0, assists: 0, shots: 0, passes: 0, tackles: 0, dribbles: 0, saves: 0
+            };
+        }
+        return ls.playerActions[name];
+    };
+
+    // 1. 실시간 볼 점유율 틱 누적
+    if (Array.isArray(snapshot.players)) {
+        const holder = snapshot.players.find(p => p.hasBall);
+        if (holder && (holder.teamId === 'home' || holder.teamId === 'away')) {
+            ls.possessionTicks[holder.teamId] += 1;
+        } else if (snapshot.ball && Number.isFinite(snapshot.ball.x)) {
+            ls.possessionTicks[snapshot.ball.x >= 50 ? 'home' : 'away'] += 0.35;
+        }
+    }
+    const totalPoss = ls.possessionTicks.home + ls.possessionTicks.away;
+    ls.possessionPct.home = Math.max(15, Math.min(85, Math.round((ls.possessionTicks.home / totalPoss) * 100)));
+    ls.possessionPct.away = 100 - ls.possessionPct.home;
+
+    // 2. 엔진 이벤트 기반 슈팅/패스/태클/파울/선수 활약 누적
+    if (Array.isArray(snapshot.events)) {
+        snapshot.events.forEach(ev => {
+            if (!ev) return;
+            if (ev.type === 'goal') {
+                const side = ev.team === 'home' || ev.team === 'away' ? ev.team : findSideByName(ev.scorer) || 'home';
+                ls.shots[side]++;
+                ls.shotsOnTarget[side]++;
+                const scorerAct = ensureActor(ev.scorer);
+                if (scorerAct) {
+                    scorerAct.goals++;
+                    scorerAct.shots++;
+                }
+                if (ev.assister) {
+                    const astAct = ensureActor(ev.assister);
+                    if (astAct) astAct.assists++;
+                }
+                ls.lastGoalBanner = {
+                    minute: matchData.minute,
+                    scorer: ev.scorer,
+                    assister: ev.assister || null,
+                    teamId: side,
+                    timestamp: Date.now()
+                };
+            } else if (ev.type === 'shoot') {
+                const side = findSideByName(ev.player) || 'home';
+                ls.shots[side]++;
+                const act = ensureActor(ev.player);
+                if (act) act.shots++;
+            } else if (ev.type === 'save') {
+                const shooterSide = findSideByName(ev.shooter) || 'home';
+                ls.shots[shooterSide]++;
+                ls.shotsOnTarget[shooterSide]++;
+                const sAct = ensureActor(ev.shooter);
+                if (sAct) sAct.shots++;
+                const gkAct = ensureActor(ev.gk);
+                if (gkAct) gkAct.saves++;
+            } else if (ev.type === 'miss' || ev.type === 'block') {
+                const shooterSide = findSideByName(ev.shooter) || 'home';
+                ls.shots[shooterSide]++;
+                const sAct = ensureActor(ev.shooter);
+                if (sAct) sAct.shots++;
+                if (ev.blocker) {
+                    const bAct = ensureActor(ev.blocker);
+                    if (bAct) bAct.tackles++;
+                }
+            } else if (ev.type === 'tackle') {
+                const side = findSideByName(ev.player) || 'home';
+                ls.tackles[side]++;
+                const act = ensureActor(ev.player);
+                if (act) act.tackles++;
+                // 거친 태클/경합 과정에서 일정 확률로 파울 카운트 누적
+                if (Math.random() < 0.28) {
+                    const foulSide = Math.random() < 0.55 ? (side === 'home' ? 'away' : 'home') : side;
+                    ls.fouls[foulSide]++;
+                }
+            } else if (ev.type === 'pass' || ev.type === 'throughpass') {
+                const side = findSideByName(ev.from) || 'home';
+                ls.passes[side]++;
+                const act = ensureActor(ev.from);
+                if (act) act.passes++;
+            } else if (ev.type === 'dribble') {
+                const act = ensureActor(ev.player);
+                if (act) act.dribbles++;
+            }
+        });
+    }
+
+    // 분 변경 시 중원 몸싸움 파울 자연 보정 및 주목할 선수(Spotlight) 갱신
+    if (isNewMinute) {
+        if (matchData.minute > 0 && matchData.minute % 7 === 0 && Math.random() < 0.55) {
+            const fSide = Math.random() < 0.5 ? 'home' : 'away';
+            ls.fouls[fSide]++;
+        }
+
+        // 실시간 가장 활약도가 높은 선수 계산
+        const actors = Object.values(ls.playerActions);
+        if (matchData.minute >= 12 && actors.length > 0) {
+            const scoredActors = actors.map(a => {
+                const impact = (a.goals * 30) + (a.assists * 18) + (a.shots * 5) + (a.tackles * 4) + (a.saves * 6) + (a.dribbles * 3) + (a.passes * 1.2);
+                return { ...a, impact };
+            }).sort((a, b) => b.impact - a.impact);
+
+            const top = scoredActors[0];
+            if (top && top.impact >= 6) {
+                let statParts = [];
+                if (top.goals > 0) statParts.push(`${top.goals}골`);
+                if (top.assists > 0) statParts.push(`${top.assists}도움`);
+                if (top.shots > 0 && top.goals === 0) statParts.push(`슈팅 ${top.shots}`);
+                if (top.tackles >= 2) statParts.push(`태클 ${top.tackles}`);
+                if (top.saves >= 2) statParts.push(`선방 ${top.saves}`);
+                if (statParts.length === 0) statParts.push(`패스 ${Math.max(1, top.passes)}회`);
+
+                ls.currentSpotlight = {
+                    tag: top.goals > 0 ? 'KEY SCORER' : 'HOT PERFORMER',
+                    name: `${top.name} (${top.position}) · ${statParts.join(' / ')}`,
+                    detail: `${top.name} (${top.position}) — ${statParts.join(' · ')}`,
+                    teamId: top.teamId
+                };
+            }
+        }
+    }
+}
+
+function updateMatchTelemetryUI(matchData) {
+    if (!matchData || !matchData.liveStats) return;
+    const ls = matchData.liveStats;
+
+    const pHome = document.getElementById('bmhPossHome');
+    const pAway = document.getElementById('bmhPossAway');
+    const pFill = document.getElementById('bmhPossFillHome');
+    if (pHome) pHome.textContent = `${ls.possessionPct.home}%`;
+    if (pAway) pAway.textContent = `${ls.possessionPct.away}%`;
+    if (pFill) pFill.style.width = `${ls.possessionPct.home}%`;
+
+    const sHome = document.getElementById('bmhShotsHome');
+    const sAway = document.getElementById('bmhShotsAway');
+    if (sHome) sHome.textContent = ls.shots.home;
+    if (sAway) sAway.textContent = ls.shots.away;
+
+    const fHome = document.getElementById('bmhFoulsHome');
+    const fAway = document.getElementById('bmhFoulsAway');
+    if (fHome) fHome.textContent = ls.fouls.home;
+    if (fAway) fAway.textContent = ls.fouls.away;
+
+    const tHome = document.getElementById('bmhTacklesHome');
+    const tAway = document.getElementById('bmhTacklesAway');
+    if (tHome) tHome.textContent = ls.tackles.home;
+    if (tAway) tAway.textContent = ls.tackles.away;
+
+    const spTag = document.getElementById('bmhSpotlightTag');
+    const spName = document.getElementById('bmhSpotlightName');
+    if (ls.currentSpotlight) {
+        if (spTag) spTag.textContent = ls.currentSpotlight.tag;
+        if (spName) spName.textContent = ls.currentSpotlight.name;
+    }
 }
 
 function showKickoffButton(matchData, engine) {
@@ -412,7 +713,7 @@ function simulateMatch(matchData, engine) {
     let tickCount = 0;
     matchData.seconds = 0; // [신규] 초 단위 정밀 시간 계산용
     matchData._lastMinute = -1; // [신규] 중복 체력 소모 방지
-    const tickDuration = 60; // [수정] 140ms -> 60ms (약 16FPS 연산) : 훨씬 부드러운 움직임
+    const tickDuration = 80; // [템포 완화] 60ms -> 80ms (약 12.5FPS) : 탁구 같은 핑퐁 속도를 해소하고 눈으로 축구 전술을 여유 있게 감상할 수 있는 최적 템포
 
     // [최적화] setInterval 대신 setTimeout 재귀 호출 사용
     // 처리 시간이 길어져도 메인 스레드를 차단하지 않도록 함
@@ -469,12 +770,10 @@ function simulateMatch(matchData, engine) {
         }
         const snapshot = engine.update(matchData.minute, isNewMinute);
 
-        // [추가] 경기 중 실시간 라인 체력(숫자) 업데이트
-        if (gameData.lineStats) {
-            if (document.getElementById('atkStamina')) document.getElementById('atkStamina').textContent = Math.floor(gameData.lineStats.attack.stamina);
-            if (document.getElementById('midStamina')) document.getElementById('midStamina').textContent = Math.floor(gameData.lineStats.midfield.stamina);
-            if (document.getElementById('defStamina')) document.getElementById('defStamina').textContent = Math.floor(gameData.lineStats.defense.stamina);
-        }
+        // [수정] 실시간 스태미나 HUD 및 브로드캐스트 텔레메트리(점유율/파울/주목할 선수) 동기화
+        updateLiveMatchTelemetry(matchData, snapshot, isNewMinute);
+        updateMatchStaminaUI(matchData);
+        updateMatchTelemetryUI(matchData);
 
         // 3. 비주얼라이저 동기화
         if (window.matchVisualizer) {
@@ -781,6 +1080,12 @@ function convertToTextEvent(engineEvent, matchData) {
             type: engineEvent.type,
             description: engineEvent.desc
         };
+    } else if (engineEvent.type === 'offside') {
+        return {
+            minute: matchData.minute,
+            type: 'offside',
+            description: engineEvent.desc || '🚩 부심의 깃발이 올라갑니다! 오프사이드 반칙입니다.'
+        };
     }
     return null;
 }
@@ -906,8 +1211,8 @@ function endMatch(matchData) {
         }
     }
 
-    // 리그 데이터 업데이트 (FA컵이 아닐 때만 리그 순위표 반영)
-    if (!gameData.isFACupMatch) {
+    // 리그 데이터 업데이트 (FA컵이나 UCL이 아닐 때만 정규 리그 순위표 반영)
+    if (!gameData.isFACupMatch && !gameData.isUCLMatch) {
         updateLeagueData(matchData, points);
     }
     if (window.GameState) window.GameState.incrementMatchesPlayed();
@@ -1050,10 +1355,11 @@ function endMatch(matchData) {
         else gameData.temporaryStats = {};
     }
 
-    // 다음 라운드 준비 (FA컵 경기면 FA컵 결과 처리 후 리그 라운드는 유지)
-    if (gameData.isFACupMatch && typeof faCupManager !== 'undefined') {
-        faCupManager.handleUserMatchEnd(matchData);
+    // 다음 라운드 준비 (컵 대회(FA컵/UCL) 경기면 컵 대회 결과 처리 후 리그 라운드는 유지)
+    if ((gameData.isFACupMatch || gameData.isUCLMatch) && typeof cupCompetitionManager !== 'undefined') {
+        cupCompetitionManager.handleUserMatchEnd(matchData);
         gameData.isFACupMatch = false;
+        gameData.isUCLMatch = false;
         setNextOpponent();
     } else {
         if (window.GameState) window.GameState.advanceRound();
@@ -1146,102 +1452,601 @@ function updateLeagueData(matchData, points) {
 }
 
 // =========================================================================================
-// [PART 5] 인터뷰 및 평점 시스템
+// [PART 5] 공식 기자회견 (Press Conference) 및 평점 시스템
 // =========================================================================================
 
-function startInterview(result, userScore, opponentScore, strengthDiff) {
+let currentPressState = {
+    questions: [],
+    currentIndex: 0,
+    totalMoraleDelta: 0,
+    selectedHeadlines: [],
+    result: '무승부',
+    userScore: 0,
+    opponentScore: 0,
+    oppTeamName: '상대 구단',
+    userTeamName: '우리 구단',
+    momName: null
+};
+
+function renderPressBackdropWall(userTeamKey) {
+    const wall = document.getElementById('pressBackdropWall');
+    if (!wall) return;
+    wall.replaceChildren();
+
+    const leagueId = (typeof LeagueManager !== 'undefined' && LeagueManager.getLeagueIdByTeam)
+        ? LeagueManager.getLeagueIdByTeam(userTeamKey)
+        : 'premier_league';
+    const leagueCfg = (typeof LEAGUES_CONFIG !== 'undefined' && LEAGUES_CONFIG[leagueId])
+        ? LEAGUES_CONFIG[leagueId]
+        : null;
+
+    let compLabel = leagueCfg ? leagueCfg.id.replace('_', ' ').toUpperCase() : 'OFFICIAL LEAGUE';
+    if (gameData.isUCLMatch) compLabel = 'CHAMPIONS LEAGUE';
+    else if (gameData.isFACupMatch) compLabel = 'OFFICIAL FA CUP';
+    else if (gameData.currentLeague === 0) compLabel = 'LEGEND LEAGUE';
+
+    const teamLabel = (typeof teamNames !== 'undefined' && teamNames[userTeamKey])
+        ? teamNames[userTeamKey]
+        : (userTeamKey || 'CLUB');
+
+    const totalTiles = 48;
+    const frag = document.createDocumentFragment();
+
+    for (let i = 0; i < totalTiles; i++) {
+        const tile = document.createElement('div');
+        const isTeamTile = (i % 2 === 0);
+        tile.className = `press-wall-tile ${isTeamTile ? 'team-tile' : 'comp-tile'}`;
+
+        if (isTeamTile) {
+            if (typeof createTeamLogoElement === 'function' && userTeamKey) {
+                const logoEl = createTeamLogoElement(userTeamKey);
+                logoEl.classList.add('press-wall-logo');
+                tile.appendChild(logoEl);
+            }
+            const txt = document.createElement('span');
+            txt.className = 'press-wall-text';
+            txt.textContent = teamLabel;
+            tile.appendChild(txt);
+        } else {
+            if (!gameData.isUCLMatch && !gameData.isFACupMatch && typeof createLeagueLogoElement === 'function' && leagueCfg) {
+                const lLogo = createLeagueLogoElement(leagueId, 28);
+                if (lLogo && lLogo.tagName === 'IMG') {
+                    lLogo.classList.add('press-wall-logo');
+                    tile.appendChild(lLogo);
+                }
+            } else {
+                const badge = document.createElement('span');
+                badge.className = 'press-wall-trophy';
+                badge.textContent = gameData.isUCLMatch ? '★ UCL' : (gameData.isFACupMatch ? '🏆 CUP' : '⚽');
+                tile.appendChild(badge);
+            }
+            const txt = document.createElement('span');
+            txt.className = 'press-wall-text comp';
+            txt.textContent = compLabel;
+            tile.appendChild(txt);
+        }
+        frag.appendChild(tile);
+    }
+
+    wall.appendChild(frag);
+}
+
+function renderPressHeaderAndSummary(result, userScore, opponentScore, matchData, ratings) {
+    const userTeamKey = gameData.selectedTeam;
+    const oppTeamKey = matchData
+        ? (matchData.homeTeam === userTeamKey ? matchData.awayTeam : matchData.homeTeam)
+        : gameData.currentOpponent;
+
+    const leagueId = (typeof LeagueManager !== 'undefined' && LeagueManager.getLeagueIdByTeam)
+        ? LeagueManager.getLeagueIdByTeam(userTeamKey)
+        : 'premier_league';
+    const leagueCfg = (typeof LEAGUES_CONFIG !== 'undefined' && LEAGUES_CONFIG[leagueId])
+        ? LEAGUES_CONFIG[leagueId]
+        : null;
+
+    const compNameEl = document.getElementById('pressCompName');
+    if (compNameEl) {
+        if (gameData.isUCLMatch) {
+            compNameEl.textContent = 'UEFA CHAMPIONS LEAGUE · OFFICIAL PRESS CONFERENCE';
+        } else if (gameData.isFACupMatch) {
+            compNameEl.textContent = 'OFFICIAL FA CUP · POST-MATCH MEDIA BRIEFING';
+        } else if (leagueCfg) {
+            compNameEl.textContent = `${leagueCfg.name} · R${Math.max(1, (gameData.currentRound || 2) - 1)} 공식 기자회견`;
+        } else {
+            compNameEl.textContent = 'OFFICIAL POST-MATCH PRESS CONFERENCE';
+        }
+    }
+
+    const homeKey = matchData ? matchData.homeTeam : userTeamKey;
+    const awayKey = matchData ? matchData.awayTeam : oppTeamKey;
+    const hScore = matchData ? matchData.homeScore : userScore;
+    const aScore = matchData ? matchData.awayScore : opponentScore;
+
+    const homeSide = document.getElementById('pressHomeSide');
+    const awaySide = document.getElementById('pressAwaySide');
+    const scorePill = document.getElementById('pressScorePill');
+
+    if (homeSide) {
+        homeSide.replaceChildren();
+        if (typeof createTeamLogoElement === 'function' && homeKey) {
+            homeSide.appendChild(createTeamLogoElement(homeKey));
+        }
+        const span = document.createElement('span');
+        span.textContent = (typeof teamNames !== 'undefined' && teamNames[homeKey]) ? teamNames[homeKey] : homeKey;
+        homeSide.appendChild(span);
+    }
+
+    if (awaySide) {
+        awaySide.replaceChildren();
+        const span = document.createElement('span');
+        span.textContent = (typeof teamNames !== 'undefined' && teamNames[awayKey]) ? teamNames[awayKey] : awayKey;
+        awaySide.appendChild(span);
+        if (typeof createTeamLogoElement === 'function' && awayKey) {
+            awaySide.appendChild(createTeamLogoElement(awayKey));
+        }
+    }
+
+    if (scorePill) {
+        scorePill.textContent = `${hScore} - ${aScore}`;
+        scorePill.className = `press-score-pill ${result === '승리' ? 'win' : result === '패배' ? 'loss' : 'draw'}`;
+    }
+
+    const momNameEl = document.getElementById('pressMomName');
+    if (momNameEl) {
+        if (ratings && ratings.mom && ratings.mom.player) {
+            const momP = ratings.mom.player;
+            const statsTxt = ratings.mom.goals > 0 ? ` · ${ratings.mom.goals}골` : (ratings.mom.assists > 0 ? ` · ${ratings.mom.assists}도움` : '');
+            momNameEl.textContent = `${momP.name} (평점 ${ratings.mom.rating}${statsTxt})`;
+        } else {
+            momNameEl.textContent = '집계 완료';
+        }
+    }
+}
+
+function startInterview(result, userScore, opponentScore, strengthDiff, matchData = null, ratings = null) {
     // 부상자 업데이트
     injurySystem.updateInjuries();
     injurySystem.removeInjuredFromSquad();
 
     showScreen('interviewScreen');
 
-    const questions = getInterviewQuestions(result, userScore, opponentScore, strengthDiff);
-    const q = questions[Math.floor(Math.random() * questions.length)];
+    const userTeamKey = gameData.selectedTeam;
+    const oppTeamKey = matchData
+        ? (matchData.homeTeam === userTeamKey ? matchData.awayTeam : matchData.homeTeam)
+        : gameData.currentOpponent;
 
-    document.getElementById('interviewQuestion').textContent = q.question;
+    renderPressBackdropWall(userTeamKey);
+    renderPressHeaderAndSummary(result, userScore, opponentScore, matchData, ratings);
+
+    const qaStage = document.getElementById('pressQAStage');
+    const summaryPanel = document.getElementById('pressResultSummaryPanel');
+    const skipBtn = document.getElementById('pressNoCommentBtn');
+    const stepIndicator = document.getElementById('pressStepIndicator');
+
+    if (qaStage) qaStage.style.display = 'block';
+    if (summaryPanel) summaryPanel.style.display = 'none';
+    if (skipBtn) {
+        skipBtn.style.display = 'inline-flex';
+        skipBtn.onclick = () => finishPressConference(true);
+    }
+    if (stepIndicator) stepIndicator.style.display = 'inline-flex';
+
+    const sequence = buildPressConferenceSequence(result, userScore, opponentScore, strengthDiff, matchData, ratings);
+
+    currentPressState = {
+        questions: sequence,
+        currentIndex: 0,
+        totalMoraleDelta: 0,
+        selectedHeadlines: [],
+        result,
+        userScore,
+        opponentScore,
+        oppTeamName: (typeof teamNames !== 'undefined' && teamNames[oppTeamKey]) ? teamNames[oppTeamKey] : '상대 구단',
+        userTeamName: (typeof teamNames !== 'undefined' && teamNames[userTeamKey]) ? teamNames[userTeamKey] : '우리 구단',
+        momName: (ratings && ratings.mom && ratings.mom.player) ? ratings.mom.player.name : null
+    };
+
+    renderCurrentPressQuestion();
+}
+
+function renderCurrentPressQuestion() {
+    const idx = currentPressState.currentIndex;
+    const total = currentPressState.questions.length;
+    const q = currentPressState.questions[idx];
+    if (!q) {
+        finishPressConference(false);
+        return;
+    }
+
+    const stepEl = document.getElementById('pressStepIndicator');
+    if (stepEl) stepEl.textContent = `QUESTION ${idx + 1} / ${total}`;
+
+    const outletEl = document.getElementById('pressMediaOutlet');
+    const reporterEl = document.getElementById('pressReporterName');
+    if (outletEl) outletEl.textContent = q.outlet || 'FOOTBALL JOURNAL';
+    if (reporterEl) reporterEl.textContent = q.reporter || '현장 취재진 질문';
+
+    const qEl = document.getElementById('interviewQuestion');
+    if (qEl) qEl.textContent = `"${q.question}"`;
+
     const btns = document.querySelectorAll('.interview-btn');
-
     q.options.forEach((opt, i) => {
         if (btns[i]) {
-            btns[i].textContent = opt.text;
             btns[i].dataset.morale = opt.morale;
-            btns[i].style.display = 'block';
+            btns[i].dataset.headline = opt.headline || opt.text;
+            btns[i].style.display = 'flex';
+            btns[i].replaceChildren();
+
+            const numSpan = document.createElement('span');
+            numSpan.className = 'press-opt-num';
+            numSpan.textContent = `0${i + 1}`;
+
+            const bodyDiv = document.createElement('div');
+            bodyDiv.className = 'press-opt-body';
+
+            const metaRow = document.createElement('div');
+            metaRow.className = 'press-opt-meta';
+
+            const toneBadge = document.createElement('span');
+            toneBadge.className = `press-tone-badge ${opt.toneClass || 'calm'}`;
+            toneBadge.textContent = opt.tone || '공식 답변';
+
+            metaRow.appendChild(toneBadge);
+
+            const textP = document.createElement('div');
+            textP.className = 'press-opt-text';
+            textP.textContent = `"${opt.text}"`;
+
+            bodyDiv.append(metaRow, textP);
+            btns[i].append(numSpan, bodyDiv);
         }
     });
-    for (let i = q.options.length; i < btns.length; i++) btns[i].style.display = 'none';
+    for (let i = q.options.length; i < btns.length; i++) {
+        btns[i].style.display = 'none';
+    }
+}
+
+function buildPressConferenceSequence(result, userScore, oppScore, strengthDiff, matchData, ratings) {
+    const scoreDiff = Math.abs(userScore - oppScore);
+    const safeStrengthDiff = strengthDiff || { userAdvantage: false, strengthGap: 0 };
+    const isUpset = (result === '승리' && !safeStrengthDiff.userAdvantage) ||
+        (result === '패배' && safeStrengthDiff.userAdvantage);
+
+    const userTeamKey = gameData.selectedTeam;
+    const oppTeamKey = matchData
+        ? (matchData.homeTeam === userTeamKey ? matchData.awayTeam : matchData.homeTeam)
+        : gameData.currentOpponent;
+    const userTeamName = (typeof teamNames !== 'undefined' && teamNames[userTeamKey]) ? teamNames[userTeamKey] : '우리 팀';
+    const oppTeamName = (typeof teamNames !== 'undefined' && teamNames[oppTeamKey]) ? teamNames[oppTeamKey] : '상대 팀';
+
+    // 유저 팀 평점 및 주요 선수 추출
+    const isUserHome = matchData ? (matchData.homeTeam === userTeamKey) : true;
+    const userRatings = ratings ? (isUserHome ? ratings.home : ratings.away) : [];
+    const sortedUserRatings = [...userRatings].sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating));
+    const bestUserEntry = sortedUserRatings[0] || null;
+    const multiScorerEntry = sortedUserRatings.find(r => r.goals >= 2) || null;
+    const anyScorerEntry = sortedUserRatings.find(r => r.goals >= 1) || null;
+    const lateGoalEvent = (matchData && Array.isArray(matchData.events))
+        ? matchData.events.find(e => e.type === 'goal' && e.minute >= 82 && e.team === userTeamName)
+        : null;
+
+    const sequence = [];
+
+    // =========================================================================
+    // [QUESTION 1] 경기 총평 및 승부처 질의
+    // =========================================================================
+    const q1Pool = getInterviewQuestions(result, userScore, oppScore, strengthDiff);
+    const baseQ1 = q1Pool[Math.floor(Math.random() * q1Pool.length)];
+
+    if (result === '승리' && lateGoalEvent) {
+        sequence.push({
+            outlet: 'SKY SPORTS DESK',
+            reporter: '김태훈 현장 리포터',
+            question: `후반 ${lateGoalEvent.minute}분에 터진 ${lateGoalEvent.scorer} 선수의 극적인 골로 ${userScore}-${oppScore} 승리를 거머쥐었습니다! 벤치에서도 엄청난 환호가 터져 나왔는데, 당시 기분이 어떠셨습니까?`,
+            options: [
+                {
+                    tone: '열정적 격려',
+                    toneClass: 'positive',
+                    text: `종료 휘슬이 울릴 때까지 단 한 명도 포기하지 않았습니다! ${lateGoalEvent.scorer}의 골은 우리 선수단 전체의 집념이 만들어낸 드라마입니다.`,
+                    morale: 10,
+                    headline: `"${lateGoalEvent.scorer}의 극장골, 포기하지 않는 팀 정신이 만든 기적"`
+                },
+                {
+                    tone: '전술적 자부심',
+                    toneClass: 'calm',
+                    text: `후반 막판 상대 체력이 떨어질 타이밍을 노려 공격 템포를 끌어올린 전술적 노림수가 정확히 적중했습니다.`,
+                    morale: 7,
+                    headline: `"막판 승부수 적중... 준비된 시나리오대로 거둔 승리"`
+                },
+                {
+                    tone: '침착한 분석',
+                    toneClass: 'strict',
+                    text: `승점 3점은 기쁘지만, 경기를 훨씬 일찍 끝낼 수 있는 찬스들을 놓친 점은 복기해야 합니다.`,
+                    morale: 3,
+                    headline: `"극적 승리에도 냉정함 유지... 결정력 보완 예고"`
+                }
+            ]
+        });
+    } else {
+        sequence.push(baseQ1);
+    }
+
+    // =========================================================================
+    // [QUESTION 2] 선수 개인 활약상 (MOM / 멀티골 / 무실점 / 수비 붕괴 등)
+    // =========================================================================
+    if (multiScorerEntry) {
+        const pName = multiScorerEntry.player.name;
+        const gCnt = multiScorerEntry.goals;
+        sequence.push({
+            outlet: 'THE ATHLETIC KOREA',
+            reporter: '박진우 수석 기자',
+            question: `오늘 ${pName} 선수가 무려 ${gCnt}골(평점 ${multiScorerEntry.rating})을 터뜨리며 ${oppTeamName} 수비진을 완전히 무너뜨렸습니다. 오늘 ${pName} 선수의 퍼포먼스를 어떻게 평가하십니까?`,
+            options: [
+                {
+                    tone: '극찬과 신뢰',
+                    toneClass: 'positive',
+                    text: `${pName}은(는) 현재 리그에서 가장 위협적인 결정력을 가진 선수입니다. 오늘 경기장은 완전히 그의 무대였습니다!`,
+                    morale: 8,
+                    headline: `"${pName}, 리그 최고의 크랙 증명... 오늘 경기장은 그의 무대"`
+                },
+                {
+                    tone: '팀워크 강조',
+                    toneClass: 'calm',
+                    text: `${pName}의 마무리도 훌륭했지만, 뒤에서 헌신적으로 공간을 만들어준 동료들의 패스가 있었기에 가능한 기록입니다.`,
+                    morale: 6,
+                    headline: `"${pName}의 ${gCnt}골 폭발, 동료들의 헌신이 뒷받침된 결과"`
+                },
+                {
+                    tone: '자만심 경계',
+                    toneClass: 'strict',
+                    text: `좋은 골들을 넣었지만, 지금에 안주해선 안 됩니다. 매 경기 이런 집중력을 유지해야 진정한 월드클래스입니다.`,
+                    morale: 2,
+                    headline: `"멀티골 활약에도 긴장감 불어넣은 벤치의 메시지"`
+                }
+            ]
+        });
+    } else if (oppScore === 0 && bestUserEntry) {
+        const pName = bestUserEntry.player.name;
+        sequence.push({
+            outlet: 'FOOTBALL TACTICS LAB',
+            reporter: '이준호 전술 전문 기자',
+            question: `오늘 ${oppTeamName}의 공세를 상대로 완벽한 클린시트(무실점)를 기록했습니다. 특히 최고 평점(${bestUserEntry.rating})을 받은 ${pName} 선수를 비롯해 수비 집중력이 돋보였는데요?`,
+            options: [
+                {
+                    tone: '수비진 찬사',
+                    toneClass: 'positive',
+                    text: `공격은 관중을 부르지만 수비는 승점을 만든다는 말을 증명했습니다. ${pName}을(를) 중심으로 한 수비 라인에 만점을 주고 싶습니다.`,
+                    morale: 8,
+                    headline: `"통곡의 벽 세운 ${userTeamName}, 무실점 수비 조직력에 극찬"`
+                },
+                {
+                    tone: '전술적 규율',
+                    toneClass: 'calm',
+                    text: `최전방부터 시작된 전방 압박과 간격 유지가 90분 내내 흔들리지 않았던 것이 무실점의 비결입니다.`,
+                    morale: 5,
+                    headline: `"90분 내내 완벽했던 간격 유지... 전술적 완성도 과시"`
+                },
+                {
+                    tone: '공격력 아쉬움',
+                    toneClass: 'strict',
+                    text: `무실점은 만족스럽지만, 수비에서 공을 탈취한 뒤 역습 전환 속도는 더 날카로워져야 합니다.`,
+                    morale: 1,
+                    headline: `"무실점에도 만족 없다... 더 날카로운 공수 전환 주문"`
+                }
+            ]
+        });
+    } else if (result === '패배' && oppScore >= 3) {
+        sequence.push({
+            outlet: 'PRESS ROOM LIVE',
+            reporter: '정민석 축구전문기자',
+            question: `오늘 ${oppTeamName}에게 ${oppScore}실점을 허용하며 수비 밸런스가 크게 흔들렸습니다. 라인 간격과 대인 마크 중 어느 부분이 가장 뼈아팠습니까?`,
+            options: [
+                {
+                    tone: '감독 책임론',
+                    toneClass: 'calm',
+                    text: `선수들의 탓이 아닙니다. 상대의 공격 패턴에 맞춰 전술적 변화를 한발 일찍 가져가지 못한 제 판단 미스입니다.`,
+                    morale: 6,
+                    headline: `"${oppScore}실점 아픔 속 선수단 감싼 감독, '모든 책임은 나에게'"`
+                },
+                {
+                    tone: '강도 높은 질책',
+                    toneClass: 'strict',
+                    text: `실점 장면 모두 집중력 결여에서 비롯되었습니다. 구단 엠블럼의 무게를 안다면 다음 경기에서는 완전히 달라져야 합니다.`,
+                    morale: -8,
+                    headline: `"라커룸에 떨어진 불호령, '프로다운 집중력 다시 찾아야'"`
+                },
+                {
+                    tone: '냉정한 복기',
+                    toneClass: 'calm',
+                    text: `수비 라인만의 문제가 아니라 중원에서의 1차 저지선이 쉽게 뚫린 것이 원인입니다. 비디오 분석을 통해 즉시 교정하겠습니다.`,
+                    morale: 0,
+                    headline: `"수비 붕괴 원인 정밀 진단... 다음 라운드 대수술 예고"`
+                }
+            ]
+        });
+    } else if (bestUserEntry) {
+        const pName = bestUserEntry.player.name;
+        const pRating = bestUserEntry.rating;
+        sequence.push({
+            outlet: 'BEST ELEVEN MEDIA',
+            reporter: '최유나 취재기자',
+            question: `오늘 경기에서 ${pName} 선수가 팀 내 최고 평점(${pRating})을 기록하며 고군분투했습니다. 감독님께서 보신 ${pName} 선수의 활약은 어땠습니까?`,
+            options: [
+                {
+                    tone: '핵심 자원 격려',
+                    toneClass: 'positive',
+                    text: `${pName}은(는) 언제나 팀이 가장 필요로 할 때 제 몫 이상을 해주는 핵심 선수입니다. 오늘도 최고의 헌신을 보여줬습니다.`,
+                    morale: 7,
+                    headline: `"에이스 ${pName}(평점 ${pRating}) 향한 전폭적 신뢰"`
+                },
+                {
+                    tone: '원팀 메시지',
+                    toneClass: 'calm',
+                    text: `${pName}의 활약도 빛났지만, 오늘 그라운드 위 11명 모두가 각자의 전술적 롤을 충실히 수행했습니다.`,
+                    morale: 5,
+                    headline: `"특정 스타보다 '원팀' 강조... 흔들림 없는 조직력"`
+                },
+                {
+                    tone: '더 높은 기준',
+                    toneClass: 'strict',
+                    text: `${pName}의 잠재력을 생각하면 오늘 활약도 아직 100%가 아닙니다. 팀을 더 높은 곳으로 이끌어주길 기대합니다.`,
+                    morale: 2,
+                    headline: `"활약 속에서도 더 높은 목표 제시한 ${userTeamName} 벤치"`
+                }
+            ]
+        });
+    }
+
+    // =========================================================================
+    // [QUESTION 3] 향후 일정 및 라커룸·서포터즈 메시지
+    // =========================================================================
+    const tacticNames = {
+        balanced: '밸런스 전술',
+        attacking: '공격적 전술',
+        defensive: '선수비 후역습',
+        possession: '점유율 티키타카',
+        pressing: '게겐프레싱',
+        counter: '고속 카운터'
+    };
+    const curTacLabel = tacticNames[gameData.currentTactic] || '현재 전술 철학';
+
+    if (result === '승리') {
+        sequence.push({
+            outlet: 'CLUB OFFICIAL MEDIA',
+            reporter: '구단 공식 미디어팀',
+            question: `오늘 승리로 팀 분위기가 한층 고조되었습니다. 현재 구사 중인 '${curTacLabel}' 완성도와 다음 라운드를 기다리는 서포터즈에게 한 말씀 부탁드립니다.`,
+            options: [
+                {
+                    tone: '자신감 표출',
+                    toneClass: 'positive',
+                    text: `우리의 '${curTacLabel}'은(는) 매 경기 진화하고 있습니다. 경기장을 가득 메워주신 팬분들께 다음 경기에서도 승리로 보답하겠습니다!`,
+                    morale: 7,
+                    headline: `"기세 탄 ${userTeamName}, '우리의 축구는 매 경기 진화 중'"`
+                },
+                {
+                    tone: '차분한 집중',
+                    toneClass: 'calm',
+                    text: `오늘 승리의 기쁨은 자정까지만 누리겠습니다. 내일 아침 훈련장부터는 오직 다음 상대만을 생각하며 준비하겠습니다.`,
+                    morale: 5,
+                    headline: `"일희일비 없는 ${userTeamName}, '오늘 승리는 자정까지만'"`
+                },
+                {
+                    tone: '로테이션/경쟁 예고',
+                    toneClass: 'strict',
+                    text: `시즌은 길고 누구도 주전 자리를 보장받지 못합니다. 훈련장에서 가장 좋은 폼을 보여주는 선수에게 다음 경기 기회가 갈 것입니다.`,
+                    morale: 2,
+                    headline: `"승리에도 치열한 내부 경쟁 예고... 긴장감 유지"`
+                }
+            ]
+        });
+    } else {
+        sequence.push({
+            outlet: 'SPORTS INSIGHT',
+            reporter: '한승우 출입기자',
+            question: `아쉬운 결과를 뒤로하고 곧바로 다음 라운드 일정이 기다리고 있습니다. 라커룸 분위기를 어떻게 추스르고 다음 경기를 준비하실 계획입니까?`,
+            options: [
+                {
+                    tone: '선수단 사기 진작',
+                    toneClass: 'positive',
+                    text: `고개 숙일 필요 없다고 선수들에게 말했습니다. 나는 우리 선수들을 100% 믿으며, 다음 경기에서 반드시 반등할 것입니다!`,
+                    morale: 8,
+                    headline: `"흔들림 없는 믿음, '고개 숙이지 마라, 다음 경기에 반등한다'"`
+                },
+                {
+                    tone: '전술적 해법 모색',
+                    toneClass: 'calm',
+                    text: `'${curTacLabel}'의 세부 디테일을 다듬어 오늘 노출된 문제점을 보완하겠습니다. 결과로 증명하겠습니다.`,
+                    morale: 4,
+                    headline: `"전술 디테일 재점검 예고... '다음 라운드 결과로 증명할 것'"`
+                },
+                {
+                    tone: '강도 높은 훈련 예고',
+                    toneClass: 'strict',
+                    text: `말보다는 행동이 필요한 시점입니다. 이번 주 훈련 강도를 높여 정신력과 체력 모두 재무장하겠습니다.`,
+                    morale: -3,
+                    headline: `"특단의 조치 예고한 ${userTeamName}, 고강도 훈련으로 돌파구 찾는다"`
+                }
+            ]
+        });
+    }
+
+    return sequence;
 }
 
 
 function getInterviewQuestions(result, userScore, oppScore, strengthDiff) {
     const scoreDiff = Math.abs(userScore - oppScore);
-    // strengthDiff가 없을 경우 대비
     const safeStrengthDiff = strengthDiff || { userAdvantage: false, strengthGap: 0 };
-    // 이변 여부: 내가 불리한데 이겼거나, 유리한데 졌을 때
     const isUpset = (result === '승리' && !safeStrengthDiff.userAdvantage) ||
         (result === '패배' && safeStrengthDiff.userAdvantage);
 
     if (result === '승리') {
         if (isUpset) {
-            // 업셋 승리 (불리한 전력으로 승리)
             return [{
-                question: "객관적인 전력의 열세를 뒤집고 훌륭한 승리를 거뒀습니다. 오늘 경기의 승인(勝因)은 무엇입니까?",
+                outlet: 'FOOTBALL JOURNAL',
+                reporter: '이현우 수석 기자',
+                question: "객관적인 전력의 열세를 뒤집고 짜릿한 이변을 연출하셨습니다! 오늘 경기의 가장 큰 승인(勝因)은 무엇입니까?",
                 options: [
-                    { text: "선수들의 투지가 만들어낸 기적입니다. 그들은 운동장에서 모든 것을 쏟아부었고, 불가능을 가능으로 만들었습니다.", morale: 20 },
-                    { text: "우리가 준비한 맞춤형 전술이 완벽하게 적중했습니다. 상대의 허점을 파고든 것이 주효했습니다.", morale: 15 },
-                    { text: "운이 꽤 좋았던 경기였습니다. 하지만 결과에 만족하며 승점 3점을 챙긴 것에 의의를 둡니다.", morale: 5 }
+                    { tone: '열정적 찬사', toneClass: 'positive', text: "선수들의 투지가 만들어낸 기적입니다. 그들은 운동장에서 모든 것을 쏟아부었고, 불가능을 가능으로 만들었습니다.", morale: 12, headline: `"선수들의 투지가 만든 기적... 불가능을 가능으로"` },
+                    { tone: '전술적 자부심', toneClass: 'calm', text: "우리가 준비한 맞춤형 전술이 완벽하게 적중했습니다. 상대의 허점을 집요하게 파고든 것이 주효했습니다.", morale: 9, headline: `"맞춤형 전술 완벽 적중, 거함을 침몰시키다"` },
+                    { tone: '겸손한 태도', toneClass: 'strict', text: "운이 꽤 따랐던 경기였습니다. 들뜨지 않고 승점 3점을 챙긴 것에 의의를 두며 다음 경기를 준비하겠습니다.", morale: 4, headline: `"대이변 연출에도 침착함 유지, '승점 3점에 만족'"` }
                 ]
             }];
         } else if (scoreDiff >= 3) {
-            // 대승 (3점차 이상)
             return [{
-                question: "압도적인 경기력으로 대승을 거두셨습니다. 오늘 경기력에 대해 어떻게 평가하시나요?",
+                outlet: 'SKY SPORTS DESK',
+                reporter: '정윤성 현장 기자',
+                question: `${userScore}-${oppScore}, 압도적인 화력으로 대승을 거두셨습니다! 오늘 경기력에 대해 어떻게 총평하시겠습니까?`,
                 options: [
-                    { text: "완벽에 가까운 경기였습니다. 공수 모든 면에서 우리가 원하던 플레이가 나왔고, 선수들이 자랑스럽습니다.", morale: 15 },
-                    { text: "우리의 본실력을 보여준 경기였습니다. 이 기세를 몰아 다음 경기에서도 좋은 모습을 보여드리겠습니다.", morale: 10 },
-                    { text: "상대가 오늘 유독 부진했던 것 같습니다. 점수 차만큼의 실력 차이는 아니었다고 생각합니다.", morale: 0 }
+                    { tone: '열정적 격려', toneClass: 'positive', text: "완벽에 가까운 경기였습니다. 공수 모든 면에서 우리가 원하던 플레이가 나왔고, 선수들이 정말 자랑스럽습니다.", morale: 10, headline: `"공수 완벽했던 마스터클래스, 선수들이 자랑스럽다"` },
+                    { tone: '자신감 표출', toneClass: 'calm', text: "우리의 본실력을 보여준 경기일 뿐입니다. 이 기세를 몰아 다음 경기에서도 압도적인 모습을 보여드리겠습니다.", morale: 7, headline: `"대승 거둔 벤치의 자신감, '우리 본실력 보여준 것뿐'"` },
+                    { tone: '냉정한 평가', toneClass: 'strict', text: "상대가 오늘 유독 부진했던 점도 있습니다. 점수 차에 취하지 않고 세밀한 부분들을 계속 가다듬겠습니다.", morale: 1, headline: `"대승에도 자만 경계... '점수 차에 취하지 않겠다'"` }
                 ]
             }];
         } else {
-            // 일반 승리
             return [{
-                question: "치열한 접전 끝에 귀중한 승리를 챙겼습니다. 오늘 경기를 총평해주신다면?",
+                outlet: 'SPORTING NEWS',
+                reporter: '강민수 출입기자',
+                question: "치열한 접전 끝에 귀중한 승점 3점을 챙겼습니다. 오늘 90분 경기를 총평해주신다면?",
                 options: [
-                    { text: "선수들이 끝까지 집중력을 잃지 않고 뛰어준 덕분입니다. 팀워크가 빛난 승리였습니다.", morale: 10 },
-                    { text: "힘든 경기였지만 결과적으로 승리했다는 것이 중요합니다. 우리는 승점 3점을 얻을 자격이 있었습니다.", morale: 7 },
-                    { text: "몇몇 장면에서는 실수가 있었지만, 결과를 가져온 것에 만족합니다. 보완할 점은 훈련을 통해 고쳐나가겠습니다.", morale: 3 }
+                    { tone: '팀워크 칭찬', toneClass: 'positive', text: "선수들이 끝까지 집중력을 잃지 않고 뛰어준 덕분입니다. 끈끈한 팀워크가 빛난 승리였습니다.", morale: 8, headline: `"끝까지 잃지 않은 집중력, 팀워크가 빛난 값진 승리"` },
+                    { tone: '실리적 만족', toneClass: 'calm', text: "힘든 경기였지만 결과적으로 승리했다는 것이 가장 중요합니다. 우리는 승점 3점을 얻을 자격이 충분했습니다.", morale: 6, headline: `"접전 끝 승점 3점 수확, '이기는 법을 아는 팀'"` },
+                    { tone: '보완점 지적', toneClass: 'strict', text: "몇몇 장면에서는 위험한 실수가 있었지만 결과를 가져온 것에 만족합니다. 부족한 점은 훈련장에서 고쳐나가겠습니다.", morale: 3, headline: `"승리 속에서도 옥에 티 점검... '훈련으로 보완할 것'"` }
                 ]
             }];
         }
     } else if (result === '패배') {
         if (isUpset) {
-            // 충격패 (유리한 전력으로 패배)
             return [{
-                question: "전력상 우위가 예상되었음에도 불구하고 충격적인 패배를 당했습니다. 팬들의 실망이 클 텐데, 어떻게 생각하십니까?",
+                outlet: 'FOOTBALL JOURNAL',
+                reporter: '김도현 기자',
+                question: "전력상 우위가 예상되었음에도 충격적인 일격을 당했습니다. 팬들의 실망이 클 텐데 어떻게 보십니까?",
                 options: [
-                    { text: "오늘 패배의 모든 책임은 감독인 저에게 있습니다. 전술적 준비가 미흡했고, 선수들을 제대로 이끌지 못했습니다.", morale: 10 }, // 책임 감수 -> 사기 상승(보호)
-                    { text: "몇몇 선수들의 안일한 플레이가 실망스러웠습니다. 프로라면 경기장에서 증명해야 합니다. 정신력 재무장이 필요합니다.", morale: -15 }, // 선수 비난 -> 사기 하락
-                    { text: "축구에서는 일어날 수 있는 일입니다. 상대가 오늘 매우 잘 준비해왔고, 우리는 운이 따르지 않았습니다.", morale: -5 }
+                    { tone: '선수단 보호', toneClass: 'calm', text: "오늘 패배의 모든 책임은 감독인 저에게 있습니다. 전술적 대처가 늦었고, 선수들을 제대로 이끌지 못했습니다.", morale: 7, headline: `"충격패 책임 자처한 감독, '선수들 아닌 내 불찰'"` },
+                    { tone: '강력한 질책', toneClass: 'strict', text: "몇몇 선수들의 안일한 플레이가 너무나 실망스러웠습니다. 프로라면 경기장에서 투쟁심을 증명해야 합니다.", morale: -10, headline: `"충격패 후 라커룸 강타한 질책, '안일한 태도 용납 못 해'"` },
+                    { tone: '현실적 인정', toneClass: 'calm', text: "축구에서는 언제든 일어날 수 있는 일입니다. 상대가 오늘 매우 잘 준비해왔고, 우리는 골운이 따르지 않았습니다.", morale: -3, headline: `"아쉬운 이변 허용, '상대 준비성 인정... 다음 경기 반등 다짐'"` }
                 ]
             }];
         } else if (scoreDiff >= 3) {
-            // 대패
             return [{
-                question: "무기력한 경기 끝에 대패를 당했습니다. 무엇이 가장 큰 문제였다고 보십니까?",
+                outlet: 'PRESS ROOM LIVE',
+                reporter: '배성재 현장 리포터',
+                question: `${userScore}-${oppScore}로 무기력한 대패를 당했습니다. 오늘 경기에서 가장 큰 문제점은 무엇이었다고 보십니까?`,
                 options: [
-                    { text: "팬 여러분께 죄송합니다. 오늘 우리는 아무것도 보여주지 못했습니다. 철저히 분석하여 다시는 이런 경기를 하지 않겠습니다.", morale: 5 },
-                    { text: "상대와의 실력 차이를 인정할 수밖에 없습니다. 우리는 아직 부족하고, 배워야 할 점이 많습니다.", morale: -5 },
-                    { text: "초반 실점 이후 팀이 급격히 무너졌습니다. 수비 조직력을 처음부터 다시 점검해야 할 것 같습니다.", morale: -10 }
+                    { tone: '팬 사과 및 보호', toneClass: 'calm', text: "끝까지 자리를 지켜주신 팬 여러분께 죄송합니다. 철저히 분석하여 다시는 이런 무기력한 경기를 하지 않겠습니다.", morale: 4, headline: `"대패에 고개 숙인 벤치, '팬들께 죄송... 철저히 환골탈태할 것'"` },
+                    { tone: '냉정한 현실 인식', toneClass: 'strict', text: "상대와의 실력 차이를 인정할 수밖에 없는 하루였습니다. 우리는 아직 부족하고 배워야 할 점이 많습니다.", morale: -4, headline: `"완패 인정한 감독, '뼈아픈 교훈 삼아 처음부터 다시'"` },
+                    { tone: '수비진 질책', toneClass: 'strict', text: "초반 실점 이후 선수들이 너무 쉽게 무너졌습니다. 수비 조직력과 정신력을 처음부터 다시 점검해야 합니다.", morale: -8, headline: `"대패 후 수비 조직력 정조준... 대대적 개편 예고"` }
                 ]
             }];
         } else {
-            // 일반 패배 (아쉬운 패배)
             return [{
-                question: "아쉽게 패배하며 승점을 얻지 못했습니다. 오늘 경기에서 긍정적인 부분을 찾을 수 있었나요?",
+                outlet: 'SPORTING NEWS',
+                reporter: '박찬영 기자',
+                question: "한 끗 차이로 아쉽게 패배하며 승점을 놓쳤습니다. 오늘 경기에서 긍정적인 부분을 찾을 수 있었나요?",
                 options: [
-                    { text: "패배는 언제나 쓰라리지만, 선수들이 끝까지 포기하지 않고 뛴 점은 높이 평가합니다.", morale: 5 },
-                    { text: "결정력 부족이 아쉽습니다. 찬스는 만들었지만 마무리하지 못하면 이길 수 없습니다.", morale: -5 },
-                    { text: "상대가 우리보다 조금 더 이길 자격이 있었습니다. 패배를 인정하고 다음 경기를 준비하겠습니다.", morale: 0 }
+                    { tone: '투지 격려', toneClass: 'positive', text: "패배는 언제나 쓰라리지만, 선수들이 마지막 순간까지 포기하지 않고 뛴 점은 높이 평가합니다.", morale: 5, headline: `"석패에도 선수단 격려, '포기하지 않은 투지 높이 산다'"` },
+                    { tone: '결정력 아쉬움', toneClass: 'strict', text: "골 결정력 부족이 뼈아픕니다. 찬스를 아무리 만들어도 마무리하지 못하면 축구에서는 이길 수 없습니다.", morale: -4, headline: `"한 끗 차 석패, '찬스 살리지 못한 결정력이 패인'"` },
+                    { tone: '담담한 승복', toneClass: 'calm', text: "상대가 우리보다 조금 더 집중력이 높았습니다. 패배를 깨끗이 인정하고 다음 라운드를 준비하겠습니다.", morale: 0, headline: `"깔끔히 패배 인정한 벤치, 시선은 이미 다음 라운드로"` }
                 ]
             }];
         }
@@ -1249,47 +2054,134 @@ function getInterviewQuestions(result, userScore, oppScore, strengthDiff) {
 
     // 무승부
     if (safeStrengthDiff.userAdvantage && safeStrengthDiff.strengthGap > 10) {
-        // 강한 팀이 무승부 (실망스러운 무승부)
         return [{
-            question: "반드시 잡아야 할 경기에서 무승부에 그쳤습니다. 결과에 만족하시나요?",
+            outlet: 'FOOTBALL JOURNAL',
+            reporter: '오세훈 기자',
+            question: "반드시 잡아야 할 경기에서 무승부에 그쳤습니다. 오늘 승점 1점이라는 결과에 만족하시나요?",
             options: [
-                { text: "전혀 만족스럽지 않습니다. 우리는 이길 수 있는 경기를 놓쳤고, 승점 2점을 잃은 기분입니다.", morale: -5 },
-                { text: "상대가 작정하고 수비적으로 나왔을 때 뚫어내지 못한 우리의 책임입니다. 더 창의적인 공격 해법을 찾아야 합니다.", morale: 0 },
-                { text: "아쉽지만 원정에서 승점 1점도 나쁘지 않습니다. 리그는 장기 레이스니까요.", morale: 2 }
+                { tone: '강한 아쉬움', toneClass: 'strict', text: "전혀 만족스럽지 않습니다. 우리는 이길 수 있는 경기를 놓쳤고, 승점 2점을 잃어버린 기분입니다.", morale: -4, headline: `"무승부에 굳은 표정, '승점 1점 아닌 2점을 잃은 경기'"` },
+                { tone: '전술적 반성', toneClass: 'calm', text: "상대가 내려앉았을 때 뚫어내지 못한 우리의 숙제입니다. 더 창의적인 공격 패턴을 준비하겠습니다.", morale: 1, headline: `"밀집수비 파훼법 고심... '더 창의적인 공격 해법 찾겠다'"` },
+                { tone: '긍정적 수용', toneClass: 'positive', text: "아쉽지만 패하지 않고 승점 1점을 쌓은 것도 의미가 있습니다. 리그는 장기 레이스니까요.", morale: 3, headline: `"아쉬운 무승부에도 여유, '리그는 길다, 승점 1점도 소중'"` }
             ]
         }];
     } else if (!safeStrengthDiff.userAdvantage && safeStrengthDiff.strengthGap > 10) {
-        // 약한 팀이 무승부 (값진 무승부)
         return [{
-            question: "강팀을 상대로 대등한 경기를 펼치며 무승부를 기록했습니다. 오늘 경기를 어떻게 보셨습니까?",
+            outlet: 'THE ATHLETIC KOREA',
+            reporter: '장현석 기자',
+            question: "강팀을 상대로 대등한 경기를 펼치며 값진 무승부를 기록했습니다. 오늘 경기를 어떻게 보셨습니까?",
             options: [
-                { text: "선수들이 자랑스럽습니다. 강팀을 상대로 물러서지 않고 우리의 축구를 보여줬습니다. 승리만큼 값진 무승부입니다.", morale: 10 },
-                { text: "수비적으로 잘 버텨줬습니다. 계획대로 승점을 챙길 수 있어서 다행입니다.", morale: 5 },
-                { text: "이길 수도 있었던 경기라 조금 아쉬움이 남습니다. 하지만 선수들의 자신감은 확실히 올라갔을 것입니다.", morale: 8 }
+                { tone: '열정적 격려', toneClass: 'positive', text: "선수들이 정말 자랑스럽습니다! 강팀을 상대로 물러서지 않고 우리의 축구를 보여준, 승리만큼 값진 무승부입니다.", morale: 8, headline: `"강팀 상대로 거둔 값진 승점 1점, '승리 못지않은 수확'"` },
+                { tone: '전술적 만족', toneClass: 'calm', text: "수비 블록이 계획대로 단단하게 버텨줬습니다. 목표했던 승점을 챙길 수 있어서 다행입니다.", morale: 5, headline: `"치밀했던 수비 전술 성공, 강호 상대로 승점 확보"` },
+                { tone: '야망 표출', toneClass: 'positive', text: "막판 찬스를 살렸다면 이길 수도 있었던 경기라 오히려 아쉽습니다. 우리 선수들의 자신감은 확실히 올라갔을 겁니다.", morale: 7, headline: `"강호 상대 무승부에도 '이길 수 있었다'... 높아진 팀 눈높이"` }
             ]
         }];
     } else {
-        // 비슷한 전력 간 무승부
         return [{
-            question: "팽팽한 접전 끝에 승부를 가리지 못했습니다. 경기 내용에 대해 어떻게 생각하십니까?",
+            outlet: 'SPORTS INSIGHT',
+            reporter: '윤재호 기자',
+            question: `${userScore}-${oppScore}, 팽팽한 접전 끝에 승부를 가리지 못했습니다. 오늘 경기 내용에 대해 어떻게 생각하십니까?`,
             options: [
-                { text: "양 팀 모두 좋은 경기를 했습니다. 무승부가 공정한 결과라고 생각합니다.", morale: 3 },
-                { text: "우리가 조금 더 우세했다고 생각하지만, 골 결정력이 아쉬웠습니다. 다음에는 반드시 승리하겠습니다.", morale: 0 },
-                { text: "팬들에게 승리를 선물하지 못해 죄송합니다. 다음 경기에서는 더 공격적인 모습으로 보답하겠습니다.", morale: 2 }
+                { tone: '공정한 평가', toneClass: 'calm', text: "양 팀 모두 수준 높은 경기를 펼쳤습니다. 무승부가 가장 공정한 결과라고 생각합니다.", morale: 3, headline: `"명승부 끝 무승부, '양 팀 모두 박수받아 마땅한 경기'"` },
+                { tone: '아쉬움 토로', toneClass: 'strict', text: "경기 주도권은 우리가 쥐고 있었는데 마무리가 아쉬웠습니다. 다음 맞대결에서는 반드시 승리하겠습니다.", morale: 0, headline: `"주도권 쥐고도 무승부... '다음 맞대결에선 반드시 결판낸다'"` },
+                { tone: '팬들을 향한 약속', toneClass: 'positive', text: "끝까지 응원해주신 팬분들께 승리를 안겨드리지 못해 아쉽습니다. 다음 경기에서는 더 화끈한 공격 축구로 보답하겠습니다.", morale: 3, headline: `"팬들에게 전한 약속, '다음 경기에선 화끈한 승리로 보답'"` }
             ]
         }];
     }
 }
 
 function handleInterview(option) {
-    const moraleChange = parseInt(document.querySelector(`[data-option="${option}"]`).dataset.morale);
-    if (window.GameState) window.GameState.adjustTeamMorale(moraleChange);
-    else gameData.teamMorale = Math.max(0, Math.min(100, gameData.teamMorale + moraleChange));
+    const btn = document.querySelector(`.interview-btn[data-option="${option}"]`);
+    if (!btn) return;
 
-    checkSeasonEnd();
-    showScreen('lobby');
-    updateDisplay();
-    alert(`인터뷰 완료! 팀 사기 ${moraleChange > 0 ? '+' : ''}${moraleChange}`);
+    const moraleChange = parseInt(btn.dataset.morale || '0', 10);
+    const headline = btn.dataset.headline || '';
+
+    currentPressState.totalMoraleDelta += moraleChange;
+    if (headline) currentPressState.selectedHeadlines.push(headline);
+
+    currentPressState.currentIndex++;
+
+    if (currentPressState.currentIndex < currentPressState.questions.length) {
+        renderCurrentPressQuestion();
+    } else {
+        finishPressConference(false);
+    }
+}
+
+function finishPressConference(skipped = false) {
+    const qaStage = document.getElementById('pressQAStage');
+    const summaryPanel = document.getElementById('pressResultSummaryPanel');
+    const skipBtn = document.getElementById('pressNoCommentBtn');
+    const stepIndicator = document.getElementById('pressStepIndicator');
+
+    if (qaStage) qaStage.style.display = 'none';
+    if (skipBtn) skipBtn.style.display = 'none';
+    if (stepIndicator) {
+        stepIndicator.textContent = skipped ? ' WALKED OUT' : 'BRIEFING COMPLETE';
+    }
+
+    // 사기 반영
+    const delta = currentPressState.totalMoraleDelta;
+    if (window.GameState) {
+        window.GameState.adjustTeamMorale(delta);
+    } else {
+        gameData.teamMorale = Math.max(0, Math.min(100, (gameData.teamMorale || 70) + delta));
+    }
+
+    const currentMorale = Math.round(gameData.teamMorale || 70);
+
+    // 헤드라인 구성
+    const headlineTitle = document.getElementById('pressHeadlineTitle');
+    const headlineSub = document.getElementById('pressHeadlineSub');
+    const moraleDeltaEl = document.getElementById('pressMoraleDelta');
+    const moraleBarFill = document.getElementById('pressMoraleBarFill');
+    const moraleCurrentText = document.getElementById('pressMoraleCurrentText');
+
+    if (headlineTitle) {
+        if (skipped && currentPressState.selectedHeadlines.length === 0) {
+            headlineTitle.textContent = `[속보] ${currentPressState.userTeamName} 감독, "노코멘트"... 공식 기자회견 조기 퇴장`;
+        } else {
+            const mainHeadline = currentPressState.selectedHeadlines[0] || `"${currentPressState.userTeamName}, 다음 라운드 준비에 총력"`;
+            headlineTitle.textContent = `[공식 브리핑] ${currentPressState.userTeamName} 감독, ${mainHeadline}`;
+        }
+    }
+
+    if (headlineSub) {
+        if (skipped && currentPressState.selectedHeadlines.length === 0) {
+            headlineSub.textContent = `취재진의 질문 공세에 말을 아낀 채 곧바로 라커룸으로 향했습니다. 선수단은 차분하게 다음 일정을 준비합니다.`;
+        } else if (currentPressState.selectedHeadlines.length > 1) {
+            headlineSub.textContent = `추가 코멘트: ${currentPressState.selectedHeadlines.slice(1).join(' · ')}`;
+        } else {
+            headlineSub.textContent = `기자회견 발언이 구단 공식 채널과 주요 스포츠 미디어를 통해 보도되며 선수단 라커룸 사기에 즉시 반영되었습니다.`;
+        }
+    }
+
+    if (moraleDeltaEl) {
+        const sign = delta > 0 ? '+' : '';
+        moraleDeltaEl.textContent = `${sign}${delta} ${delta > 0 ? '▲' : delta < 0 ? '▼' : '—'}`;
+        moraleDeltaEl.className = `press-morale-delta ${delta > 0 ? 'up' : delta < 0 ? 'down' : 'neutral'}`;
+    }
+
+    if (moraleBarFill) {
+        moraleBarFill.style.width = `${Math.max(4, Math.min(100, currentMorale))}%`;
+    }
+
+    if (moraleCurrentText) {
+        moraleCurrentText.textContent = `현재 팀 사기: ${currentMorale} / 100`;
+    }
+
+    if (summaryPanel) {
+        summaryPanel.style.display = 'block';
+    }
+
+    const finishBtn = document.getElementById('pressFinishReturnBtn');
+    if (finishBtn) {
+        finishBtn.onclick = () => {
+            checkSeasonEnd();
+            showScreen('lobby');
+            updateDisplay();
+        };
+    }
 }
 
 function calculateMatchRatings(matchData) {
@@ -1389,7 +2281,7 @@ function showMatchResultModal(matchData, ratings, result, userScore, oppScore, d
             return;
         }
 
-        startInterview(result, userScore, oppScore, diff);
+        startInterview(result, userScore, oppScore, diff, matchData, ratings);
     };
     modal.style.display = 'block';
 }
@@ -1657,6 +2549,7 @@ function performSubstitution(playerOut, playerIn, matchData) {
         if (typeof matchData.engine.recalculateStaminaOnSub === 'function') {
             matchData.engine.recalculateStaminaOnSub(playerIn);
         }
+        updateMatchStaminaUI(matchData);
     }
 
     // 이미 교체되어 나간 선수는 다시 투입 불가

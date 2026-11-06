@@ -1,25 +1,22 @@
 /**
- * scoreboard.js — Redesigned Premium Scoreboard
+ * scoreboard.js — Premier League / EA Sports FC Broadcast Scorebug & Live Stats Drawer
  *
- * Modern broadcast-style scoreboard with frosted glass aesthetics.
- * Reads team colors from CSS custom properties on document.body:
- *   --team-primary / --team-secondary (홈)
- *   --away-team-primary / --away-team-secondary (어웨이)
+ * - Top broadcast scorebug with Competition Emblem, Match Timer Capsule, Home/Away Logos & Score
+ * - Periodic TV Broadcast Lower-Third Drawer showing:
+ *   1) Ball Possession (%)
+ *   2) Total Fouls & Tackles
+ *   3) Shots & On Target
+ *   4) Player to Watch / Live Key Performer
+ *   5) Goal Scorer Broadcast Banner on Goal
  */
 
 (function () {
   "use strict";
 
-  /* ─────────────────────────────────────────
-     1. CSS
-  ───────────────────────────────────────── */
   const STYLE = `
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Noto+Sans+KR:wght@500;700;900&display=swap');
-
-    /* ── Root Container ── */
     #ingame-scoreboard {
       position: absolute;
-      top: 16px;
+      top: 14px;
       left: 50%;
       transform: translateX(-50%);
       z-index: 100;
@@ -28,101 +25,105 @@
       align-items: center;
       pointer-events: none;
       user-select: none;
-      font-family: 'Pretendard Variable', 'Pretendard', 'Noto Sans KR', sans-serif;
-      filter: drop-shadow(0 6px 24px rgba(0,0,0,0.5));
+      font-family: 'Pretendard Variable', 'Pretendard', 'Inter', 'Noto Sans KR', sans-serif;
+      filter: drop-shadow(0 10px 28px rgba(0, 0, 0, 0.58));
     }
 
-    /* ── Main Bar ── */
+    /* ── Main Broadcast Scorebug Bar ── */
     #sb-main-bar {
       display: flex;
       align-items: stretch;
-      height: 48px;
-      background: rgba(12, 12, 16, 0.88);
-      backdrop-filter: blur(16px) saturate(1.4);
-      -webkit-backdrop-filter: blur(16px) saturate(1.4);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 14px;
+      height: 44px;
+      background: rgba(9, 13, 22, 0.94);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 10px;
       overflow: hidden;
       position: relative;
     }
 
-    /* subtle top highlight line */
-    #sb-main-bar::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 20%;
-      right: 20%;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
-      z-index: 5;
+    /* ── Competition & Timer Left Capsule ── */
+    #sb-clock-wing {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 13px;
+      background: rgba(2, 132, 199, 0.18);
+      border-right: 1px solid rgba(255, 255, 255, 0.1);
     }
 
-    /* ── Shared Team Section ── */
+    #sb-comp-logo {
+      width: 20px;
+      height: 20px;
+      object-fit: contain;
+      display: none;
+    }
+
+    #sb-comp-tag {
+      font-size: 0.68rem;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      color: #38BDF8;
+      text-transform: uppercase;
+    }
+
+    #sb-timer-box {
+      font-size: 0.84rem;
+      font-weight: 800;
+      color: #F8FAFC;
+      letter-spacing: 0.05em;
+      font-variant-numeric: tabular-nums;
+      min-width: 46px;
+      text-align: center;
+    }
+
+    /* ── Team Sections ── */
     .sb-team-section {
       display: flex;
       align-items: center;
       position: relative;
-      min-width: 100px;
+      min-width: 118px;
     }
 
-    /* Team color accent bar (left edge for home, right edge for away) */
-    .sb-team-section::before {
-      content: '';
-      position: absolute;
-      top: 6px;
-      bottom: 6px;
-      width: 3px;
-      border-radius: 2px;
-      transition: background 0.3s;
-    }
-
-    #sb-home::before {
-      left: 0;
-      background: var(--sb-home-p, #e74c3c);
-    }
-
-    #sb-away::before {
-      right: 0;
-      background: var(--sb-away-p, #3498db);
-    }
-
-    /* ── Team Logo ── */
     .sb-team-logo {
-      width: 26px;
-      height: 26px;
+      width: 24px;
+      height: 24px;
       object-fit: contain;
       flex-shrink: 0;
-      filter: drop-shadow(0 1px 4px rgba(0,0,0,0.6)) drop-shadow(0 0 2px rgba(0,0,0,0.4));
+      filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.6));
     }
 
-    /* ── Team Name Boxes ── */
     .sb-name-box {
       display: flex;
       align-items: center;
       gap: 8px;
-      padding: 0 16px;
-      font-size: clamp(0.72rem, 1.6vw, 0.88rem);
-      font-weight: 700;
-      letter-spacing: 0.04em;
+      padding: 0 14px;
+      font-size: clamp(0.76rem, 1.5vw, 0.88rem);
+      font-weight: 800;
+      letter-spacing: -0.01em;
       white-space: nowrap;
-      color: rgba(255, 255, 255, 0.88);
-      transition: color 0.3s;
+      color: #F8FAFC;
     }
 
     #sb-home .sb-name-box {
-      padding-left: 12px;
+      justify-content: flex-end;
+      width: 100%;
     }
 
     #sb-away .sb-name-box {
-      padding-right: 12px;
+      justify-content: flex-start;
+      width: 100%;
     }
 
-    /* ── Score Container (center) ── */
+    /* ── Center Score Capsule ── */
     #sb-score-center {
       display: flex;
       align-items: center;
-      gap: 1px;
+      background: #1E293B;
+      border-left: 1px solid rgba(255, 255, 255, 0.1);
+      border-right: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 0 4px;
       flex-shrink: 0;
     }
 
@@ -130,125 +131,147 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      min-width: 40px;
+      min-width: 34px;
       padding: 0 4px;
-      position: relative;
-    }
-
-    /* Home score has right border, away score has left border */
-    #sb-home-score-box {
-      border-right: 1px solid rgba(255, 255, 255, 0.06);
-    }
-
-    #sb-away-score-box {
-      border-left: 1px solid rgba(255, 255, 255, 0.06);
     }
 
     .sb-score-num {
-      font-size: clamp(1.35rem, 3.2vw, 1.7rem);
+      font-size: 1.32rem;
       font-weight: 900;
-      color: #fff;
+      color: #FFFFFF;
       line-height: 1;
       font-variant-numeric: tabular-nums;
-      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
-                  color 0.3s;
+      transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.25s;
     }
 
     .sb-score-num.scored {
-      transform: scale(1.35);
-      color: #ffd700;
+      transform: scale(1.3);
+      color: #FBBF24;
     }
 
-    /* Score divider dash */
     #sb-score-divider {
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 24px;
-      flex-shrink: 0;
+      width: 14px;
     }
 
     #sb-score-divider span {
       display: block;
-      width: 8px;
+      width: 6px;
       height: 2px;
-      background: rgba(255, 255, 255, 0.25);
+      background: rgba(255, 255, 255, 0.35);
       border-radius: 1px;
     }
 
-    /* ── Timer Box ── */
-    #sb-timer-box {
-      background: rgba(255, 255, 255, 0.06);
-      color: rgba(255, 255, 255, 0.65);
-      font-size: clamp(0.64rem, 1.2vw, 0.74rem);
-      font-weight: 700;
-      letter-spacing: 0.14em;
-      padding: 4px 24px;
-      border-radius: 0 0 10px 10px;
-      text-align: center;
-      font-variant-numeric: tabular-nums;
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      border-top: none;
+    /* ── Broadcast Lower-Third Drawer (Possession / Fouls / Player to Watch / Goal) ── */
+    #sb-broadcast-drawer {
+      margin-top: 5px;
+      min-width: 340px;
+      max-width: 480px;
+      padding: 7px 16px;
+      border-radius: 8px;
+      background: rgba(9, 13, 22, 0.92);
+      border: 1px solid rgba(148, 163, 184, 0.2);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
-      min-width: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      opacity: 0;
+      transform: translateY(-8px) scale(0.98);
+      transition: opacity 0.28s ease, transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: none;
+    }
+
+    #sb-broadcast-drawer.open {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    #sb-broadcast-drawer.mode-goal {
+      background: linear-gradient(90deg, rgba(6, 78, 59, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%);
+      border-color: rgba(52, 211, 153, 0.5);
+    }
+
+    .sb-drawer-tag {
+      font-size: 0.66rem;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: rgba(56, 189, 248, 0.16);
+      color: #38BDF8;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    #sb-broadcast-drawer.mode-goal .sb-drawer-tag {
+      background: #10B981;
+      color: #06281E;
+    }
+
+    #sb-broadcast-drawer.mode-watch .sb-drawer-tag {
+      background: rgba(245, 158, 11, 0.2);
+      color: #FBBF24;
+    }
+
+    .sb-drawer-body {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #F1F5F9;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .sb-drawer-poss-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+    }
+
+    .sb-drawer-poss-track {
+      flex: 1;
+      height: 5px;
+      background: rgba(255, 255, 255, 0.14);
+      border-radius: 999px;
+      overflow: hidden;
+      min-width: 90px;
+    }
+
+    .sb-drawer-poss-fill {
+      height: 100%;
+      background: #38BDF8;
+      border-radius: 999px;
+      transition: width 0.35s ease;
     }
 
     /* ── Goal Flash Animation ── */
     @keyframes sb-goal-flash {
-      0%   { filter: drop-shadow(0 6px 24px rgba(0,0,0,0.5)); }
-      30%  { filter: drop-shadow(0 0 30px rgba(255,215,0,0.8)) drop-shadow(0 0 60px rgba(255,215,0,0.3)); }
-      100% { filter: drop-shadow(0 6px 24px rgba(0,0,0,0.5)); }
+      0%   { filter: drop-shadow(0 8px 24px rgba(0,0,0,0.5)); }
+      35%  { filter: drop-shadow(0 0 28px rgba(52, 211, 153, 0.75)); }
+      100% { filter: drop-shadow(0 8px 24px rgba(0,0,0,0.5)); }
     }
 
     #ingame-scoreboard.goal-flash {
       animation: sb-goal-flash 0.8s ease-out 2;
     }
 
-    /* Score number pulse ring on goal */
-    @keyframes sb-score-pulse {
-      0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.5); }
-      70% { box-shadow: 0 0 0 12px rgba(255, 215, 0, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); }
-    }
-
-    .sb-score-box.pulse-ring {
-      animation: sb-score-pulse 0.8s ease-out;
-      border-radius: 6px;
-    }
-
-    /* ── Responsive ── */
-    @media (max-width: 480px) {
-      #sb-main-bar {
-        height: 40px;
-        border-radius: 10px;
-      }
-      .sb-team-logo {
-        width: 20px;
-        height: 20px;
-      }
-      .sb-name-box {
-        padding: 0 10px;
-        font-size: 0.68rem;
-        gap: 5px;
-      }
-      .sb-score-num {
-        font-size: 1.2rem;
-      }
-      .sb-score-box {
-        min-width: 32px;
-      }
-      #sb-score-divider {
-        width: 18px;
-      }
-      #sb-timer-box {
-        padding: 3px 18px;
-        font-size: 0.6rem;
-        border-radius: 0 0 8px 8px;
-      }
-      .sb-team-section::before {
-        width: 2px;
-      }
+    @media (max-width: 600px) {
+      #sb-main-bar { height: 38px; }
+      .sb-team-section { min-width: 84px; }
+      .sb-name-box { padding: 0 8px; font-size: 0.72rem; }
+      #sb-broadcast-drawer { min-width: 260px; padding: 5px 10px; }
     }
   `;
 
@@ -260,15 +283,30 @@
     document.head.appendChild(s);
   }
 
-  /* ─────────────────────────────────────────
-     2. HTML 빌드
-  ───────────────────────────────────────── */
   function buildScoreboard() {
     const sb = document.createElement("div");
     sb.id = "ingame-scoreboard";
 
     const mainBar = document.createElement("div");
     mainBar.id = "sb-main-bar";
+
+    // 좌측 대회 로고 & 타이머 캡슐
+    const clockWing = document.createElement("div");
+    clockWing.id = "sb-clock-wing";
+
+    const compLogo = document.createElement("img");
+    compLogo.id = "sb-comp-logo";
+    compLogo.alt = "";
+
+    const compTag = document.createElement("span");
+    compTag.id = "sb-comp-tag";
+    compTag.textContent = "LIVE";
+
+    const timerBox = document.createElement("div");
+    timerBox.id = "sb-timer-box";
+    timerBox.textContent = "00:00";
+
+    clockWing.append(compLogo, compTag, timerBox);
 
     // 홈팀
     const homeSection = document.createElement("div");
@@ -334,47 +372,47 @@
     awayNameBox.append(awayName, awayLogo);
     awaySection.appendChild(awayNameBox);
 
-    mainBar.append(homeSection, scoreCenter, awaySection);
+    mainBar.append(clockWing, homeSection, scoreCenter, awaySection);
 
-    const timerBox = document.createElement("div");
-    timerBox.id = "sb-timer-box";
-    timerBox.textContent = "00:00";
+    // 하단 중계 드로어 (점유율 · 총 파울 · 슈팅 · 주목할 선수 · 골 배너)
+    const drawer = document.createElement("div");
+    drawer.id = "sb-broadcast-drawer";
 
-    sb.append(mainBar, timerBox);
+    const drawerTag = document.createElement("span");
+    drawerTag.id = "sb-drawer-tag";
+    drawerTag.className = "sb-drawer-tag";
+    drawerTag.textContent = "MATCH INFO";
+
+    const drawerBody = document.createElement("div");
+    drawerBody.id = "sb-drawer-body";
+    drawerBody.className = "sb-drawer-body";
+
+    drawer.append(drawerTag, drawerBody);
+
+    sb.append(mainBar, drawer);
     return sb;
   }
 
-  /* ─────────────────────────────────────────
-     3. 팀 색상 적용
-  ───────────────────────────────────────── */
   function applyTeamColors() {
     const sbEl = document.getElementById("ingame-scoreboard");
     if (!sbEl) return;
 
     const cs = getComputedStyle(document.body);
-    const homePrimary   = cs.getPropertyValue("--team-primary").trim()        || "#e74c3c";
-    const homeSecondary = cs.getPropertyValue("--team-secondary").trim()      || "#ffffff";
-    const awayPrimary   = cs.getPropertyValue("--away-team-primary").trim()   || "#3498db";
-    const awaySecondary = cs.getPropertyValue("--away-team-secondary").trim() || "#ffffff";
+    const homePrimary = cs.getPropertyValue("--team-primary").trim() || "#e74c3c";
+    const awayPrimary = cs.getPropertyValue("--away-team-primary").trim() || "#3498db";
 
     sbEl.style.setProperty("--sb-home-p", homePrimary);
-    sbEl.style.setProperty("--sb-home-s", homeSecondary);
     sbEl.style.setProperty("--sb-away-p", awayPrimary);
-    sbEl.style.setProperty("--sb-away-s", awaySecondary);
   }
 
-  /* ─────────────────────────────────────────
-     4. 데이터 동기화
-  ───────────────────────────────────────── */
-  let syncInterval  = null;
+  let syncInterval = null;
   let prevHomeScore = -1;
   let prevAwayScore = -1;
-
-  // 마지막으로 로고를 세팅한 팀 키를 기억해서, 경기가 바뀌면(팀 키가 달라지면) 다시 세팅한다.
-  // "한 번만 적용"플래그 방식은 스코어보드 DOM이 경기 사이에 재사용될 때
-  // 새 경기의 팀으로 로고가 갱신되지 않는 버그가 있어 팀 키 비교 방식으로 변경.
   let lastLogoHomeKey = null;
   let lastLogoAwayKey = null;
+  let lastDrawerMinute = -1;
+  let drawerHideTimeout = null;
+  let lastShownGoalTimestamp = 0;
 
   function applyTeamLogos() {
     const md = window.currentMatchData;
@@ -384,8 +422,31 @@
     const homeKey = md.homeTeam;
     const awayKey = md.awayTeam;
 
-    // 이전과 팀 키가 동일하면 다시 그릴 필요 없음
     if (homeKey === lastLogoHomeKey && awayKey === lastLogoAwayKey) return;
+
+    // 대회 로고 / 태그 세팅
+    const compLogo = document.getElementById("sb-comp-logo");
+    const compTag = document.getElementById("sb-comp-tag");
+    if (compTag && window.gameData) {
+      if (window.gameData.isUCLMatch) {
+        compTag.textContent = "UCL";
+        if (compLogo) compLogo.style.display = "none";
+      } else if (window.gameData.isFACupMatch) {
+        compTag.textContent = "FA CUP";
+        if (compLogo) compLogo.style.display = "none";
+      } else if (typeof LeagueManager !== "undefined" && typeof LEAGUES_CONFIG !== "undefined") {
+        const lid = LeagueManager.getLeagueIdByTeam(homeKey);
+        const cfg = LEAGUES_CONFIG[lid];
+        if (cfg && cfg.logo && compLogo) {
+          compLogo.src = cfg.logo;
+          compLogo.style.display = "block";
+          compLogo.onerror = function () { this.style.display = "none"; };
+          compTag.textContent = "";
+        } else {
+          compTag.textContent = "LEAGUE";
+        }
+      }
+    }
 
     const getTeamInfo = (key) => {
       if (key && key.startsWith("Legend_")) {
@@ -407,26 +468,113 @@
       return `assets/logo/${info.league || 1}/${info.logoCode || "DFT"}.webp`;
     };
 
-    const homePath = getLogoPath(homeInfo);
-    const awayPath = getLogoPath(awayInfo);
-
     const homeLogo = document.getElementById("sb-home-logo");
     const awayLogo = document.getElementById("sb-away-logo");
     if (homeLogo) {
-      homeLogo.src = homePath;
+      homeLogo.src = getLogoPath(homeInfo);
       homeLogo.alt = homeKey;
       homeLogo.style.display = "";
-      homeLogo.onerror = function() { this.style.display = "none"; };
+      homeLogo.onerror = function () { this.style.display = "none"; };
     }
     if (awayLogo) {
-      awayLogo.src = awayPath;
+      awayLogo.src = getLogoPath(awayInfo);
       awayLogo.alt = awayKey;
       awayLogo.style.display = "";
-      awayLogo.onerror = function() { this.style.display = "none"; };
+      awayLogo.onerror = function () { this.style.display = "none"; };
     }
 
     lastLogoHomeKey = homeKey;
     lastLogoAwayKey = awayKey;
+  }
+
+  function showBroadcastDrawer(mode, tagText, renderBodyFn, durationMs = 4400) {
+    const drawer = document.getElementById("sb-broadcast-drawer");
+    const tagEl = document.getElementById("sb-drawer-tag");
+    const bodyEl = document.getElementById("sb-drawer-body");
+    if (!drawer || !tagEl || !bodyEl) return;
+
+    drawer.className = `open ${mode || ""}`.trim();
+    tagEl.textContent = tagText;
+    bodyEl.replaceChildren();
+    renderBodyFn(bodyEl);
+
+    if (drawerHideTimeout) clearTimeout(drawerHideTimeout);
+    drawerHideTimeout = setTimeout(() => {
+      drawer.classList.remove("open");
+    }, durationMs);
+  }
+
+  function updateBroadcastDrawerCycle() {
+    const md = window.currentMatchData;
+    if (!md || !md.liveStats) return;
+    const ls = md.liveStats;
+
+    // 1. 득점 발생 시 즉시 골 배너 최우선 노출
+    if (ls.lastGoalBanner && ls.lastGoalBanner.timestamp !== lastShownGoalTimestamp) {
+      lastShownGoalTimestamp = ls.lastGoalBanner.timestamp;
+      const g = ls.lastGoalBanner;
+      showBroadcastDrawer("mode-goal", `⚽ GOAL · ${g.minute}'`, (body) => {
+        const span = document.createElement("span");
+        span.textContent = g.assister ? `${g.scorer} (도움: ${g.assister})` : `${g.scorer} 득점!`;
+        body.appendChild(span);
+      }, 5200);
+      return;
+    }
+
+    // 2. 경기 진행 중 주기적 중계 팝업 (점유율 / 파울·태클 / 슈팅 / 주목할 선수)
+    const min = md.minute || 0;
+    if (min === lastDrawerMinute || min <= 0) return;
+
+    // 2분(주목할 선수), 이후 7분 주기로 중계 그래픽 팝업
+    if (min === 2 || min % 7 === 0) {
+      lastDrawerMinute = min;
+      const cycleIdx = (min === 2) ? 0 : (Math.floor(min / 7) % 4);
+
+      if (cycleIdx === 0 && ls.currentSpotlight) {
+        // 주목할 만한 선수 / 실시간 키플레이어
+        showBroadcastDrawer("mode-watch", ls.currentSpotlight.tag || "PLAYER TO WATCH", (body) => {
+          const span = document.createElement("span");
+          span.textContent = ls.currentSpotlight.name;
+          body.appendChild(span);
+        }, 4800);
+      } else if (cycleIdx === 1) {
+        // 실시간 볼 점유율
+        showBroadcastDrawer("mode-stat", "BALL POSSESSION", (body) => {
+          const wrap = document.createElement("div");
+          wrap.className = "sb-drawer-poss-wrap";
+
+          const hTxt = document.createElement("span");
+          hTxt.textContent = `${ls.possessionPct.home}%`;
+
+          const track = document.createElement("div");
+          track.className = "sb-drawer-poss-track";
+          const fill = document.createElement("div");
+          fill.className = "sb-drawer-poss-fill";
+          fill.style.width = `${ls.possessionPct.home}%`;
+          track.appendChild(fill);
+
+          const aTxt = document.createElement("span");
+          aTxt.textContent = `${ls.possessionPct.away}%`;
+
+          wrap.append(hTxt, track, aTxt);
+          body.appendChild(wrap);
+        }, 4600);
+      } else if (cycleIdx === 2) {
+        // 총 파울 & 태클 성공
+        showBroadcastDrawer("mode-stat", "FOULS & TACKLES", (body) => {
+          const span = document.createElement("span");
+          span.textContent = `총 파울 ${ls.fouls.home} : ${ls.fouls.away}   ·   태클 ${ls.tackles.home} : ${ls.tackles.away}`;
+          body.appendChild(span);
+        }, 4600);
+      } else {
+        // 슈팅 & 패스 통계
+        showBroadcastDrawer("mode-stat", "ATTACK STATS", (body) => {
+          const span = document.createElement("span");
+          span.textContent = `슈팅(유효) ${ls.shots.home}(${ls.shotsOnTarget.home}) : ${ls.shots.away}(${ls.shotsOnTarget.away})  ·  패스 ${ls.passes.home} : ${ls.passes.away}`;
+          body.appendChild(span);
+        }, 4600);
+      }
+    }
   }
 
   function syncData() {
@@ -437,7 +585,6 @@
     if (homeTeamEl && sbHomeName) sbHomeName.textContent = homeTeamEl.textContent.trim() || "홈팀";
     if (awayTeamEl && sbAwayName) sbAwayName.textContent = awayTeamEl.textContent.trim() || "어웨이팀";
 
-    // 매 tick마다 확인하되, 실제로 팀이 바뀐 경우에만 내부적으로 다시 그림
     applyTeamLogos();
 
     const scoreEl = document.getElementById("scoreDisplay");
@@ -448,30 +595,29 @@
 
       const sbScoreHome = document.getElementById("sb-score-home");
       const sbScoreAway = document.getElementById("sb-score-away");
-      const sbRoot      = document.getElementById("ingame-scoreboard");
+      const sbRoot = document.getElementById("ingame-scoreboard");
 
       if (sbScoreHome && sbScoreAway) {
         if (h !== prevHomeScore) {
           sbScoreHome.textContent = h;
-          if (prevHomeScore !== -1) flashScore(sbScoreHome, sbRoot, "sb-home-score-box");
+          if (prevHomeScore !== -1) flashScore(sbScoreHome, sbRoot);
           prevHomeScore = h;
         }
         if (a !== prevAwayScore) {
           sbScoreAway.textContent = a;
-          if (prevAwayScore !== -1) flashScore(sbScoreAway, sbRoot, "sb-away-score-box");
+          if (prevAwayScore !== -1) flashScore(sbScoreAway, sbRoot);
           prevAwayScore = a;
         }
       }
     }
+
+    updateBroadcastDrawerCycle();
   }
 
-  /* ─────────────────────────────────────────
-     5. 타이머
-  ───────────────────────────────────────── */
-  let timerSec     = 0;
+  let timerSec = 0;
   let lastMinValue = -1;
-  let timerRAF     = null;
-  let lastRAFTime  = null;
+  let timerRAF = null;
+  let lastRAFTime = null;
 
   function startInternalTimer() {
     if (timerRAF) cancelAnimationFrame(timerRAF);
@@ -485,8 +631,12 @@
         const timeEl = document.getElementById("matchTime");
         if (timeEl) {
           const mins = parseInt(timeEl.textContent) || 0;
-          if (mins !== lastMinValue) { timerSec = mins * 60; lastMinValue = mins; }
-          else timerSec++;
+          if (mins !== lastMinValue) {
+            timerSec = mins * 60;
+            lastMinValue = mins;
+          } else {
+            timerSec++;
+          }
         }
         if (timerSec > 5999) timerSec = 5999;
         const sbTimer = document.getElementById("sb-timer-box");
@@ -501,22 +651,12 @@
     timerRAF = requestAnimationFrame(tick);
   }
 
-  function flashScore(el, root, boxId) {
-    // Score number animation
+  function flashScore(el, root) {
     el.classList.remove("scored");
     root.classList.remove("goal-flash");
     void el.offsetWidth;
     el.classList.add("scored");
     root.classList.add("goal-flash");
-
-    // Pulse ring on score box
-    const box = document.getElementById(boxId);
-    if (box) {
-      box.classList.remove("pulse-ring");
-      void box.offsetWidth;
-      box.classList.add("pulse-ring");
-      setTimeout(() => box.classList.remove("pulse-ring"), 900);
-    }
 
     setTimeout(() => {
       el.classList.remove("scored");
@@ -524,17 +664,14 @@
     }, 1600);
   }
 
-  /* ─────────────────────────────────────────
-     6. 삽입
-  ───────────────────────────────────────── */
   function insertScoreboard() {
     const container = document.getElementById("matchVisualizerContainer");
     if (!container) return false;
 
-    // 새 경기 → 점수 상태 리셋 (로고 키는 syncData/applyTeamLogos가 알아서 비교 갱신함)
     prevHomeScore = -1;
     prevAwayScore = -1;
-    
+    lastDrawerMinute = -1;
+
     if (document.getElementById("ingame-scoreboard")) return true;
 
     if (getComputedStyle(container).position === "static")
@@ -551,21 +688,17 @@
     return true;
   }
 
-  /* ─────────────────────────────────────────
-     7. Observer들
-  ───────────────────────────────────────── */
   function watchForContainer() {
     if (insertScoreboard()) return;
-    const obs = new MutationObserver(() => { if (insertScoreboard()) obs.disconnect(); });
+    const obs = new MutationObserver(() => {
+      if (insertScoreboard()) obs.disconnect();
+    });
     obs.observe(document.body, { childList: true, subtree: true });
   }
 
   new MutationObserver(() => applyTeamColors())
     .observe(document.body, { attributes: true, attributeFilter: ["class", "style"] });
 
-  /* ─────────────────────────────────────────
-     8. 초기화
-  ───────────────────────────────────────── */
   injectStyle();
 
   if (document.readyState === "loading") {

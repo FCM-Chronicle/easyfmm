@@ -1,4 +1,4 @@
-﻿// records.js
+// records.js
 // 개인기록 시스템 구현
 // gameData, teams, teamNames, allTeams 객체가 이미 정의되어 있다고 가정    
 // 개인기록 시스템 (리그별)
@@ -475,11 +475,12 @@ generateTeamOfTheWeek() {
         this.currentBest11 = { 1: [], 2: [], 3: [], 4: [] }; // [수정] 4부 포함
 
     // 리그별로 순회하며 베스트 11 선정
-        for (let league = 1; league <= 4; league++) { // [수정] 4부까지 순회
+        const bestLeagues = [...(typeof LEAGUES_CONFIG !== 'undefined' ? Object.keys(LEAGUES_CONFIG) : []), 'all', 4];
+        for (const league of bestLeagues) { // 9개 리그 + 리그 전체 + 월드컵(4)
         // 해당 리그의 평점 데이터만 필터링
         const leagueRatings = this.weeklyRatings.filter(r => {
             const teamData = allTeams[r.team];
-            return teamData && teamData.league === league;
+            return teamData && (league === 'all' || (typeof league === 'string' ? teamData.leagueId === league : teamData.league === league));
         });
 
         if (leagueRatings.length === 0) continue;
@@ -501,7 +502,7 @@ generateTeamOfTheWeek() {
         this.currentBest11[league] = best11;
 
         // 라운드 베스트 11 선정 횟수(totw) 증가
-        best11.forEach(item => {
+        (league === 'all' ? [] : best11).forEach(item => {
             const playerName = item.player.name;
             let stats = this.playerStats.get(playerName);
             if (!stats) {
@@ -515,7 +516,7 @@ generateTeamOfTheWeek() {
     console.log("이번 라운드 베스트 11 선정 완료");
 
     // 우리 팀 선수가 포함되었는지 확인 및 메일 발송
-    const userLeague = gameData.currentLeague;
+    const userLeague = (typeof LeagueManager !== 'undefined' && gameData.selectedTeam && !gameData.isWorldCupMode) ? LeagueManager.getLeagueIdByTeam(gameData.selectedTeam) : gameData.currentLeague;
     const userBest11 = this.currentBest11[userLeague] || [];
     const myPlayers = userBest11.filter(r => r.team === gameData.selectedTeam);
     
@@ -529,21 +530,29 @@ generateTeamOfTheWeek() {
     this.weeklyRatings = [];
 }
 
-// 발롱도르 / 올해의 선수 선정 (1부리그 한정, 평균 평점 + 시즌 우승 + 득점 + 도움 + MOM/베스트11 종합 평가)
+// 발롱도르 / 올해의 선수 선정 (평균 평점 + 정규리그 우승 + FA컵/UCL 트로피 + 득점 + 도움 + MOM 종합 평가)
 getPlayerOfTheSeason() {
-    // 1. 1부리그 순위 산정 (우승 및 상위권 보너스 계산용)
-    const div1Data = (typeof gameData !== 'undefined' && gameData.leagueData && gameData.leagueData.division1)
-        ? gameData.leagueData.division1
-        : (typeof window !== 'undefined' && window.league1Table ? window.league1Table : null);
+    // 1. 현재 유저의 리그 데이터 및 전체 클럽 순위 산정
+    const userTeam = (typeof gameData !== 'undefined') ? gameData.selectedTeam : null;
+    const userLeagueId = (typeof LeagueManager !== 'undefined') ? LeagueManager.getLeagueIdByTeam(userTeam) : 'premier_league';
+    
+    // 리그 순위표 가져오기
+    let leagueData = null;
+    if (typeof gameData !== 'undefined' && gameData.leagueData) {
+        leagueData = gameData.leagueData[userLeagueId] || gameData.leagueData.division1 || null;
+    }
+    if (!leagueData && typeof window !== 'undefined') {
+        leagueData = window[`${userLeagueId}Table`] || window.league1Table || null;
+    }
 
     const teamRanks = {};
-    if (div1Data) {
-        const sortedTeams = Object.keys(div1Data)
+    if (leagueData) {
+        const sortedTeams = Object.keys(leagueData)
             .map(teamKey => ({
                 team: teamKey,
-                points: div1Data[teamKey]?.points || 0,
-                goalDiff: (div1Data[teamKey]?.goalsFor || 0) - (div1Data[teamKey]?.goalsAgainst || 0),
-                goalsFor: div1Data[teamKey]?.goalsFor || 0
+                points: leagueData[teamKey]?.points || 0,
+                goalDiff: (leagueData[teamKey]?.goalsFor || 0) - (leagueData[teamKey]?.goalsAgainst || 0),
+                goalsFor: leagueData[teamKey]?.goalsFor || 0
             }))
             .sort((a, b) => {
                 if (b.points !== a.points) return b.points - a.points;
@@ -555,45 +564,42 @@ getPlayerOfTheSeason() {
         });
     }
 
-    // 2. 1부리그 소속 선수 필터링
-    const div1Map = this.leagueStats && this.leagueStats.division1 ? this.leagueStats.division1 : null;
-    const isDiv1Team = (teamKey) => {
-        if (div1Data && Object.prototype.hasOwnProperty.call(div1Data, teamKey)) return true;
-        if (typeof allTeams !== 'undefined' && allTeams[teamKey]) return allTeams[teamKey].league === 1;
+    // 2. 컵 대회 결과 확인 (FA컵 및 UEFA 챔피언스리그)
+    const faCupChamp = (typeof gameData !== 'undefined' && gameData.faCup) ? gameData.faCup.champion : null;
+    const faCupRunnerUp = (typeof gameData !== 'undefined' && gameData.faCup) ? gameData.faCup.runnerUp : null;
+    const uclChamp = (typeof gameData !== 'undefined' && gameData.ucl) ? gameData.ucl.champion : null;
+    const uclRunnerUp = (typeof gameData !== 'undefined' && gameData.ucl) ? gameData.ucl.runnerUp : null;
+
+    // 3. 후보 선수 풀 구성
+    const candidates = Array.from(this.playerStats.values()).filter(stat => {
+        if (!stat.team) return false;
+        // 등록된 1부 리그 팀 소속 확인
+        if (typeof allTeams !== 'undefined' && allTeams[stat.team]) return true;
+        if (leagueData && Object.prototype.hasOwnProperty.call(leagueData, stat.team)) return true;
         return false;
-    };
-
-    const div1Candidates = Array.from(this.playerStats.values()).filter(stat => isDiv1Team(stat.team));
-    if (div1Candidates.length === 0) return null;
-
-    // 최소 출전 경기 기준 (최대 출전 경기의 35% 이상 또는 최소 3경기 이상, 해당자가 없으면 출전 선수 전체)
-    const maxMatches = div1Candidates.reduce((m, s) => {
-        const dStat = div1Map && div1Map.get(s.name);
-        const matches = dStat ? dStat.matches : (s.matches || 0);
-        return Math.max(m, matches);
-    }, 0);
-    const minRequiredMatches = Math.max(1, Math.min(5, Math.floor(maxMatches * 0.35)));
-
-    let pool = div1Candidates.filter(s => {
-        const dStat = div1Map && div1Map.get(s.name);
-        const matches = dStat ? dStat.matches : (s.matches || 0);
-        return matches >= minRequiredMatches && (matches > 0 || s.goals > 0 || s.assists > 0 || s.moms > 0);
     });
-    if (pool.length === 0) {
-        pool = div1Candidates.filter(s => (s.matches || 0) > 0 || (s.goals || 0) > 0 || (s.assists || 0) > 0 || (s.moms || 0) > 0);
-    }
-    if (pool.length === 0) return null;
 
-    // 3. 발롱도르 종합 점수 산출
+    if (candidates.length === 0) return null;
+
+    // 최소 출전 경기 기준
+    const maxMatches = candidates.reduce((m, s) => Math.max(m, s.matches || 0), 0);
+    const minRequiredMatches = Math.max(1, Math.min(5, Math.floor(maxMatches * 0.3)));
+
+    let pool = candidates.filter(s => {
+        const matches = s.matches || 0;
+        return matches >= minRequiredMatches && (matches > 0 || (s.goals || 0) > 0 || (s.assists || 0) > 0 || (s.moms || 0) > 0);
+    });
+    if (pool.length === 0) pool = candidates;
+
+    // 4. 발롱도르 종합 점수 산출
     const scored = pool.map(stat => {
-        const dStat = div1Map && div1Map.get(stat.name);
-        const goals = dStat ? dStat.goals : (stat.goals || 0);
-        const assists = dStat ? dStat.assists : (stat.assists || 0);
-        const matches = dStat ? dStat.matches : (stat.matches || 0);
+        const goals = stat.goals || 0;
+        const assists = stat.assists || 0;
+        const matches = stat.matches || 0;
         const moms = stat.moms || 0;
         const totw = stat.totw || 0;
 
-        // 시즌 평균 평점 계산 (누적 평점이 없는 구 세이브의 경우 기록 기반 추정)
+        // 평균 평점
         let avgRating;
         if ((stat.ratingCount || 0) > 0) {
             avgRating = stat.ratingSum / stat.ratingCount;
@@ -603,19 +609,42 @@ getPlayerOfTheSeason() {
         }
 
         const teamRank = teamRanks[stat.team] || 99;
-        const isChampion = teamRank === 1;
+        const isLeagueChampion = (teamRank === 1);
+        const isFaCupChampion = (stat.team === faCupChamp);
+        const isFaCupRunnerUp = (stat.team === faCupRunnerUp);
+        const isUclChampion = (stat.team === uclChamp);
+        const isUclRunnerUp = (stat.team === uclRunnerUp);
 
-        // 항목별 가중치 점수
-        // - 평점 점수: 6.0 기준 1.0당 25점 (예: 평점 7.4 -> 35점)
+        // [가중치 산출]
+        // 1. 개인 활약 점수
         const ratingScore = Math.max(0, (avgRating - 6.0) * 25);
-        // - 팀 우승/성적 점수: 1부리그 우승 +18점, 준우승 +6점, 3위 +3점
-        const titleScore = teamRank === 1 ? 18 : (teamRank === 2 ? 6 : (teamRank === 3 ? 3 : 0));
-        // - 득점 및 도움 점수: 골당 2.2점, 도움당 1.8점
         const attackScore = (goals * 2.2) + (assists * 1.8);
-        // - MOM 및 라운드 베스트11 임팩트 점수
         const impactScore = (moms * 2.5) + (totw * 1.0);
 
-        const ballonScore = ratingScore + titleScore + attackScore + impactScore;
+        // 2. 대회 타이틀 가중치 (실제 발롱도르 기준 반영!)
+        // - 정규 리그: 우승 +18점, 준우승 +6점, 3위 +3점
+        let leagueTitleScore = (teamRank === 1 ? 18 : (teamRank === 2 ? 6 : (teamRank === 3 ? 3 : 0)));
+        
+        // - 국가별 FA컵: 우승 +15점, 준우승 +5점
+        let faTitleScore = isUclChampion ? 0 : 0;
+        if (isFaCupChampion) faTitleScore += 15;
+        else if (isFaCupRunnerUp) faTitleScore += 5;
+
+        // - UEFA 챔피언스리그 (최고 권위 빅이어!): 우승 +35점, 준우승 +15점, 4강권 +8점
+        let uclTitleScore = 0;
+        if (isUclChampion) uclTitleScore += 35;
+        else if (isUclRunnerUp) uclTitleScore += 15;
+
+        // - 멀티 트로피 보너스 (더블/트레블 프리미엄)
+        let multiTitleBonus = 0;
+        if (isLeagueChampion && isFaCupChampion && isUclChampion) {
+            multiTitleBonus += 25; // 🏆 유러피언 트레블 보너스!
+        } else if ((isLeagueChampion && isUclChampion) || (isLeagueChampion && isFaCupChampion)) {
+            multiTitleBonus += 12; // 🏆 더블 보너스!
+        }
+
+        const totalTitleScore = leagueTitleScore + faTitleScore + uclTitleScore + multiTitleBonus;
+        const ballonScore = ratingScore + attackScore + impactScore + totalTitleScore;
 
         return {
             ...stat,
@@ -626,7 +655,10 @@ getPlayerOfTheSeason() {
             totw,
             avgRating: Number(avgRating.toFixed(2)),
             teamRank,
-            isChampion,
+            isLeagueChampion,
+            isFaCupChampion,
+            isUclChampion,
+            totalTitleScore,
             ballonScore: Number(ballonScore.toFixed(2))
         };
     });
@@ -646,7 +678,7 @@ getSeasonBest11(league) {
     const leaguePlayers = [];
     this.playerStats.forEach(stat => {
         const team = allTeams[stat.team];
-        if (team && team.league === league) {
+        if (team && (league === 'all' || (typeof league === 'string' ? team.leagueId === league : team.league === league))) {
             // 현재 능력치 가져오기
             const currentRating = teams[stat.team]?.find(p => p.name === stat.name)?.rating || 70;
             leaguePlayers.push({
@@ -1201,6 +1233,56 @@ class LeagueBasedRecordsSystem extends RecordsSystem {
         super.initialize();
     }
 
+    // [신규] 팀 → 리그 키 (9개국 리그 기준: leagueId)
+    getLeagueKey(teamKey) {
+        const t = allTeams && allTeams[teamKey];
+        if (!t) return 'division1';
+        return t.leagueId || `division${t.league}`;
+    }
+
+    // [신규] 숫자(구 division) 또는 leagueId 문자열 → 저장 키
+    toDivisionKey(league) {
+        if (typeof league === 'string') return league;
+        // 구 division 번호는 LeagueManager 호환 매핑과 동일하게 변환
+        if (league === 1) return this.getUserLeagueId();
+        if (league === 2) return 'laliga';
+        if (league === 3) return 'bundesliga';
+        return `division${league}`;
+    }
+
+    // [신규] 리그 표시 이름
+    getLeagueLabel(league) {
+        if (league === 'all') return '리그 전체';
+        if (typeof league === 'string' && typeof LEAGUES_CONFIG !== 'undefined' && LEAGUES_CONFIG[league]) return LEAGUES_CONFIG[league].name;
+        return `${league}부리그`;
+    }
+
+    // [신규] 리그별 기록 목록 ('all' 이면 9개 리그 합산)
+    getLeagueEntries(league) {
+        if (league === 'all') {
+            let keys = Object.keys(this.leagueStats).filter(k => typeof LEAGUES_CONFIG !== 'undefined' && LEAGUES_CONFIG[k]);
+            if (keys.length === 0) keys = Object.keys(this.leagueStats);
+            const out = [];
+            keys.forEach(k => out.push(...this.leagueStats[k].values()));
+            return out;
+        }
+        const m = this.leagueStats[this.toDivisionKey(league)];
+        return m ? Array.from(m.values()) : [];
+    }
+
+    // [신규] 유저 리그 ID
+    getUserLeagueId() {
+        try {
+            if (typeof LeagueManager !== 'undefined' && gameData.selectedTeam) return LeagueManager.getLeagueIdByTeam(gameData.selectedTeam);
+        } catch (e) {}
+        return 'premier_league';
+    }
+
+    // [신규] 베스트11(division 인덱스 기반 저장) 키 변환
+    toBest11Key(league) {
+        return league;
+    }
+
     // 선수 초기화 시 리그별로 분류
     initializePlayer(playerName, teamKey, position) {
         // 기존 전체 통계
@@ -1209,7 +1291,7 @@ class LeagueBasedRecordsSystem extends RecordsSystem {
         // 리그별 통계
         if (allTeams && allTeams[teamKey]) {
             const league = allTeams[teamKey].league;
-            const divisionKey = `division${league}`;
+            const divisionKey = this.getLeagueKey(teamKey);
             
             // [수정] divisionKey가 없으면 초기화 (월드컵 모드 등 대비)
             if (!this.leagueStats[divisionKey]) {
@@ -1238,7 +1320,7 @@ class LeagueBasedRecordsSystem extends RecordsSystem {
         // 리그별 통계 업데이트
         if (allTeams && allTeams[teamKey]) {
             const league = allTeams[teamKey].league;
-            const divisionKey = `division${league}`;
+            const divisionKey = this.getLeagueKey(teamKey);
             
             // [수정] divisionKey가 없으면 초기화
             if (!this.leagueStats[divisionKey]) {
@@ -1281,7 +1363,7 @@ class LeagueBasedRecordsSystem extends RecordsSystem {
         // 리그별 통계 업데이트
         if (allTeams && allTeams[teamKey]) {
             const league = allTeams[teamKey].league;
-            const divisionKey = `division${league}`;
+            const divisionKey = this.getLeagueKey(teamKey);
             
             // [수정] divisionKey가 없으면 초기화
             if (!this.leagueStats[divisionKey]) {
@@ -1304,10 +1386,9 @@ class LeagueBasedRecordsSystem extends RecordsSystem {
 
     // 리그별 득점왕 순위
     getTopScorersByLeague(league, limit = 5) {
-        const divisionKey = `division${league}`;
-        if (!this.leagueStats[divisionKey]) return [];
+        const divisionKey = this.toDivisionKey(league);
         
-        const scorers = Array.from(this.leagueStats[divisionKey].values())
+        const scorers = this.getLeagueEntries(league)
             .filter(player => player.goals > 0)
             .sort((a, b) => {
                 if (b.goals !== a.goals) return b.goals - a.goals;
@@ -1320,10 +1401,9 @@ class LeagueBasedRecordsSystem extends RecordsSystem {
 
     // 리그별 도움왕 순위
     getTopAssistersByLeague(league, limit = 5) {
-        const divisionKey = `division${league}`;
-        if (!this.leagueStats[divisionKey]) return [];
+        const divisionKey = this.toDivisionKey(league);
         
-        const assisters = Array.from(this.leagueStats[divisionKey].values())
+        const assisters = this.getLeagueEntries(league)
             .filter(player => player.assists > 0)
             .sort((a, b) => {
                 if (b.assists !== a.assists) return b.assists - a.assists;
@@ -1341,7 +1421,7 @@ class LeagueBasedRecordsSystem extends RecordsSystem {
                 if (player.moms <= 0) return false;
                 // 해당 선수의 팀이 현재 조회하려는 리그인지 확인
                 const teamData = allTeams[player.team];
-                return teamData && teamData.league === league;
+                return teamData && (league === 'all' || (typeof league === 'string' ? teamData.leagueId === league : teamData.league === league));
             })
             .sort((a, b) => {
                 if (b.moms !== a.moms) return b.moms - a.moms;
@@ -1362,7 +1442,7 @@ class LeagueBasedRecordsSystem extends RecordsSystem {
         const leagueHeader = document.createElement('div');
         leagueHeader.className = 'league-records-header';
         const h5 = document.createElement('h5');
-        h5.textContent = `${league}부리그 득점왕`;
+        h5.textContent = `${this.getLeagueLabel(league)} 득점왕`;
         leagueHeader.appendChild(h5);
         container.appendChild(leagueHeader);
         
@@ -1413,7 +1493,7 @@ class LeagueBasedRecordsSystem extends RecordsSystem {
         const leagueHeader = document.createElement('div');
         leagueHeader.className = 'league-records-header';
         const h5 = document.createElement('h5');
-        h5.textContent = `${league}부리그 도움왕`;
+        h5.textContent = `${this.getLeagueLabel(league)} 도움왕`;
         leagueHeader.appendChild(h5);
         container.appendChild(leagueHeader);
         
@@ -1474,25 +1554,28 @@ class LeagueBasedRecordsSystem extends RecordsSystem {
             flex-wrap: wrap;
         `;
         
-        for (let i = 1; i <= 3; i++) {
+        const activeLeague = this.viewLeague || this.getUserLeagueId();
+        const leagueIds = ['all', ...((typeof LEAGUES_CONFIG !== 'undefined') ? Object.keys(LEAGUES_CONFIG) : ['premier_league'])];
+        leagueIds.forEach(id => {
+            const cfg = (typeof LEAGUES_CONFIG !== 'undefined') ? LEAGUES_CONFIG[id] : null;
+            const isActive = id === activeLeague;
             const button = document.createElement('button');
-            button.className = `league-switch-btn ${i === gameData.currentLeague ? 'active' : ''}`;
-            button.textContent = `${i}부리그`;
+            button.className = `league-switch-btn ${isActive ? 'active' : ''}`;
+            button.dataset.league = id;
+            button.textContent = id === 'all' ? '🌍 리그 전체' : (cfg ? `${cfg.flag || ''} ${cfg.name}`.trim() : id);
             button.style.cssText = `padding: 8px 16px;
                 border: 1px solid rgba(255, 255, 255, 0.3);
                 border-radius: 20px;
-                background: ${i === gameData.currentLeague ? 'rgba(255, 215, 0, 0.3)' : 'rgba(255, 255, 255, 0.1)'};
+                background: ${isActive ? 'rgba(255, 215, 0, 0.3)' : 'rgba(255, 255, 255, 0.1)'};
                 color: white;
                 cursor: pointer;
                 transition: all 0.3s ease;
             `;
-            
             button.addEventListener('click', () => {
-                this.switchToLeague(i);
+                this.switchToLeague(id);
             });
-            
             buttonContainer.appendChild(button);
-        }
+        });
         
         recordsContent.insertBefore(buttonContainer, recordsContent.firstChild);
     }
@@ -1983,6 +2066,17 @@ class LeagueBasedRecordsSystem extends RecordsSystem {
             };
         }
 
+        // [신규] 9개국 리그별 + 리그 전체 기록
+        seasonData.leaguesById = {};
+        const archiveIds = [...((typeof LEAGUES_CONFIG !== 'undefined') ? Object.keys(LEAGUES_CONFIG) : []), 'all'];
+        archiveIds.forEach(id => {
+            seasonData.leaguesById[id] = {
+                topScorer: this.getTopScorer(id),
+                topAssister: this.getTopAssister(id),
+                best11: this.getSeasonBest11(id).map(p => ({ name: p.name, position: p.position, team: p.team }))
+            };
+        });
+
         this.seasonHistory.unshift(seasonData); // 최신 시즌이 앞으로
         console.log(`[Records] ${seasonName} 시즌 기록 아카이빙 완료`);
     }
@@ -1993,6 +2087,24 @@ class LeagueBasedRecordsSystem extends RecordsSystem {
         if (!container) return;
         
         container.replaceChildren();
+
+        // [신규] 역대기록 리그 필터 (리그 전체 + 9개국)
+        const selLeague = this.historyLeague || 'all';
+        const filterBar = document.createElement('div');
+        filterBar.style.cssText = 'display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin:0 0 20px;';
+        const filterIds = ['all', ...((typeof LEAGUES_CONFIG !== 'undefined') ? Object.keys(LEAGUES_CONFIG) : [])];
+        filterIds.forEach(id => {
+            const cfg = (typeof LEAGUES_CONFIG !== 'undefined') ? LEAGUES_CONFIG[id] : null;
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'league-switch-btn' + (id === selLeague ? ' active' : '');
+            b.textContent = id === 'all' ? '🌍 리그 전체' : (cfg ? `${cfg.flag || ''} ${cfg.name}`.trim() : id);
+            b.style.cssText = 'padding:6px 14px; border:1px solid rgba(255,255,255,0.3); border-radius:20px; color:white; cursor:pointer; background:' + (id === selLeague ? 'rgba(255,215,0,0.3)' : 'rgba(255,255,255,0.1)');
+            b.addEventListener('click', () => { this.historyLeague = id; this.displayHistory(); });
+            filterBar.appendChild(b);
+        });
+        container.appendChild(filterBar);
+
         
         if (this.seasonHistory.length === 0) {
             const emptyBox = document.createElement('div');
@@ -2063,8 +2175,14 @@ class LeagueBasedRecordsSystem extends RecordsSystem {
             const leaguesContainer = document.createElement('div');
             leaguesContainer.className = 'history-leagues';
 
-            for (let i = 1; i <= 3; i++) {
-                const leagueData = data.leagues[i];
+            const histEntries = [];
+            if (data.leaguesById) {
+                histEntries.push([this.getLeagueLabel(selLeague), data.leaguesById[selLeague]]);
+            } else if (selLeague === 'all') {
+                for (let i = 1; i <= 3; i++) histEntries.push([`${i}부 리그`, data.leagues && data.leagues[i]]);
+            }
+            for (const [histTitle, leagueData] of histEntries) {
+                
                 if (!leagueData) continue;
 
                 const leagueSection = document.createElement('div');
@@ -2072,7 +2190,7 @@ class LeagueBasedRecordsSystem extends RecordsSystem {
 
                 const leagueTitle = document.createElement('h5');
                 leagueTitle.className = 'league-title';
-                leagueTitle.textContent = `${i}부 리그`;
+                leagueTitle.textContent = histTitle;
                 leagueSection.appendChild(leagueTitle);
 
                 const statsGrid = document.createElement('div');
@@ -2148,10 +2266,9 @@ class LeagueBasedRecordsSystem extends RecordsSystem {
 
 // 특정 리그의 득점왕 1명 반환
 getTopScorer(league) {
-    const divisionKey = `division${league}`;
-    if (!this.leagueStats[divisionKey]) return null;
+    const divisionKey = this.toDivisionKey(league);
     
-    const scorers = Array.from(this.leagueStats[divisionKey].values())
+    const scorers = this.getLeagueEntries(league)
         .filter(player => player.goals > 0)
         .sort((a, b) => {
             if (b.goals !== a.goals) return b.goals - a.goals;
@@ -2170,10 +2287,9 @@ getTopScorer(league) {
 
 // 특정 리그의 도움왕 1명 반환
 getTopAssister(league) {
-    const divisionKey = `division${league}`;
-    if (!this.leagueStats[divisionKey]) return null;
+    const divisionKey = this.toDivisionKey(league);
     
-    const assisters = Array.from(this.leagueStats[divisionKey].values())
+    const assisters = this.getLeagueEntries(league)
         .filter(player => player.assists > 0)
         .sort((a, b) => {
             if (b.assists !== a.assists) return b.assists - a.assists;

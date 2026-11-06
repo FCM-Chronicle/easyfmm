@@ -328,7 +328,7 @@ const sponsors = [
         payPerWin: 5,
         payPerLoss: 1,
         contractLength: 28,
-        signingBonus: 25,
+        signingBonus: 100,
         requirements: { minRating: 70 }
     },
     {
@@ -337,7 +337,7 @@ const sponsors = [
         payPerWin: 7,
         payPerLoss: 2,
         contractLength: 28,
-        signingBonus: 35,
+        signingBonus: 130,
         requirements: { minRating: 75 }
     },
     {
@@ -346,7 +346,7 @@ const sponsors = [
         payPerWin: 6,
         payPerLoss: 1,
         contractLength: 28,
-        signingBonus: 30,
+        signingBonus: 120,
         requirements: { minRating: 78 }
     },
     {
@@ -355,7 +355,7 @@ const sponsors = [
         payPerWin: 8,
         payPerLoss: 2,
         contractLength: 28,
-        signingBonus: 45,
+        signingBonus: 170,
         requirements: { minRating: 80 }
     },
     {
@@ -364,7 +364,7 @@ const sponsors = [
         payPerWin: 10,
         payPerLoss: 3,
         contractLength: 28,
-        signingBonus: 60,
+        signingBonus: 220,
         requirements: { minRating: 85 }
     },
     {
@@ -373,7 +373,7 @@ const sponsors = [
         payPerWin: 14,
         payPerLoss: 4,
         contractLength: 28,
-        signingBonus: 90,
+        signingBonus: 300,
         requirements: { minRating: 90 }
     },
     {
@@ -382,7 +382,7 @@ const sponsors = [
         payPerWin: 18,
         payPerLoss: 5,
         contractLength: 28,
-        signingBonus: 120,
+        signingBonus: 400,
         requirements: { minRating: 92 }
     }
 ];
@@ -470,7 +470,10 @@ function initializeGame() {
 function handlePlayerListClick(e) {
     const card = e.target.closest('.player-card');
     if (!card) return;
-    // 상세 정보 보기 등을 구현할 수 있음
+    if (e.target.closest('button, a, input, select, .fc26-status-pill')) return;
+    const playerName = card.dataset.playerName;
+    const player = (teams[gameData.selectedTeam] || []).find(p => p.name === playerName);
+    if (player && typeof openPlayerDetail === 'function') openPlayerDetail(player, gameData.selectedTeam);
 }
 
 // [신규] 선수 목록 우클릭 핸들러
@@ -1389,12 +1392,38 @@ function updateMatchTabCurrentTacticDisplay() {
     nameEl.textContent = info.name;
     descEl.textContent = info.desc;
     tagsEl.replaceChildren();
-    info.tags.forEach(t => {
-        const span = document.createElement('span');
-        span.className = `tactic-tag tag-${t.type}`;
-        span.textContent = t.text;
-        tagsEl.appendChild(span);
-    });
+
+    // 6대 전술 설정이 있을 경우 실시간 세부 태그 반영
+    if (gameData.tacticSettings) {
+        const ts = gameData.tacticSettings;
+        const customTags = [];
+        if (ts.buildUp === 'direct') customTags.push({ text: '다이렉트 빌드업', type: 'tempo' });
+        else if (ts.buildUp === 'back3') customTags.push({ text: '변형 3백 빌드업', type: 'mentality' });
+        else customTags.push({ text: '후방 숏패스', type: 'mentality' });
+
+        if (ts.defensiveLine === 'high') customTags.push({ text: '하이 프레스 라인', type: 'press' });
+        else if (ts.defensiveLine === 'low') customTags.push({ text: '로우 블록 (텐백)', type: 'press' });
+
+        if (ts.width === 'wide') customTags.push({ text: '넓은 너비 (측면 우회)', type: 'tempo' });
+        else if (ts.width === 'narrow') customTags.push({ text: '좁은 너비 (중앙 집약)', type: 'mentality' });
+
+        if (ts.offensiveTrans === 'counter') customTags.push({ text: '즉시 카운터 역습', type: 'press' });
+        if (ts.tempo === 'fast') customTags.push({ text: '빠른 템포', type: 'tempo' });
+
+        customTags.slice(0, 4).forEach(t => {
+            const span = document.createElement('span');
+            span.className = `tactic-tag tag-${t.type}`;
+            span.textContent = t.text;
+            tagsEl.appendChild(span);
+        });
+    } else {
+        info.tags.forEach(t => {
+            const span = document.createElement('span');
+            span.className = `tactic-tag tag-${t.type}`;
+            span.textContent = t.text;
+            tagsEl.appendChild(span);
+        });
+    }
 }
 window.updateMatchTabCurrentTacticDisplay = updateMatchTabCurrentTacticDisplay;
 
@@ -2533,9 +2562,15 @@ function updateDisplay() {
             const tag = gameData.isHomeGame ? '홈 경기' : '원정 경기';
             const stadDesc = stad ? ` · ${stad.name} (${(stad.currentCapacity || stad.capacity).toLocaleString()}석)` : '';
 
-            if (gameData.isFACupMatch && typeof faCupManager !== 'undefined') {
-                const stName = faCupManager.stageNames[gameData.faCupStage] || '토너먼트';
-                matchTypeSpan.textContent = `🏆 FA컵 [${stName} · ${tag}]${stadDesc}`;
+            if (gameData.isUCLMatch && typeof cupCompetitionManager !== 'undefined') {
+                const stName = cupCompetitionManager.uclStageNames[gameData.uclStage] || '토너먼트';
+                matchTypeSpan.textContent = `⭐ UCL [${stName} · ${tag}]${stadDesc}`;
+                matchTypeSpan.style.color = '#38BDF8';
+                matchTypeSpan.style.fontWeight = '800';
+            } else if (gameData.isFACupMatch && typeof faCupManager !== 'undefined') {
+                const cupName = (gameData.faCup && gameData.faCup.config) ? gameData.faCup.config.name : 'FA컵';
+                const stName = faCupManager.faStageNames[gameData.faCupStage] || '토너먼트';
+                matchTypeSpan.textContent = `🏆 ${cupName} [${stName} · ${tag}]${stadDesc}`;
                 matchTypeSpan.style.color = '#FBBF24';
                 matchTypeSpan.style.fontWeight = '800';
             } else {
@@ -2616,15 +2651,16 @@ function generateFullSchedule() {
 }
 
 function setNextOpponent() {
-    // [신규] FA컵 토너먼트 경기 체크 (우선순위)
-    if (typeof faCupManager !== 'undefined' && !gameData.isWorldCupMode && gameData.faCup) {
-        const isCup = faCupManager.checkAndSetupCupMatch();
+    // [신규] 컵 대회 (UCL 리그 페이즈 / FA컵 토너먼트) 경기 체크 (우선순위)
+    if (typeof cupCompetitionManager !== 'undefined' && !gameData.isWorldCupMode && (gameData.faCup || gameData.ucl)) {
+        const isCup = cupCompetitionManager.checkAndSetupCupMatch();
         if (isCup) {
             updateDisplay();
             return;
         }
     }
     gameData.isFACupMatch = false;
+    gameData.isUCLMatch = false;
 
     if (!gameData.schedule) {
         generateFullSchedule();
@@ -3069,12 +3105,39 @@ function checkSponsorDataInSave() {
 }
 
 
-// [신규] 불러오기 후 스쿼드 선수 객체 재연결 (Re-linking)
+// [신규] 불러오기 후 스쿼드 선수 객체 재연결 (Re-linking) 및 페이스팩/스펙 자동 복원
 // 저장된 스쿼드의 선수 객체는 복사본이므로, 실제 teams의 선수 객체와 연결해줘야 함
 function relinkSquadPlayers() {
     if (!gameData.squad || !gameData.selectedTeam || !teams[gameData.selectedTeam]) return;
 
     const teamPlayers = teams[gameData.selectedTeam];
+
+    // [페이스팩 & 스펙 자동 복원] 이적 선수나 기존 선수의 id/attributes 누락 시 allTeams에서 자동 보충
+    teamPlayers.forEach(p => {
+        if (!p) return;
+        if ((!p.playerid && !p.id) || !p.attributes) {
+            let found = null;
+            if (typeof allTeams !== 'undefined') {
+                for (const t in allTeams) {
+                    found = (allTeams[t].players || []).find(x => x.name === p.name);
+                    if (found) break;
+                }
+            }
+            if (!found && typeof transferSystem !== 'undefined' && Array.isArray(transferSystem.extraPlayers)) {
+                found = transferSystem.extraPlayers.find(x => x.name === p.name);
+            }
+            if (found) {
+                ['playerid', 'playerId', 'id', 'attributes', 'traits', 'detailPosition', 'potential', 'preferredFoot', 'weakFoot', 'skillMoves', 'country'].forEach(k => {
+                    if (p[k] === undefined && found[k] !== undefined) p[k] = found[k];
+                });
+            }
+            const pid = p.playerid || p.playerId || p.id;
+            if (pid) {
+                p.playerid = pid;
+                p.id = pid;
+            }
+        }
+    });
 
     const findRealPlayer = (savedPlayer) => {
         if (!savedPlayer) return null;
@@ -3087,7 +3150,7 @@ function relinkSquadPlayers() {
     gameData.squad.mf = gameData.squad.mf.map(p => findRealPlayer(p));
     gameData.squad.fw = gameData.squad.fw.map(p => findRealPlayer(p));
 
-    console.log('스쿼드 선수 객체 재연결 완료');
+    console.log('스쿼드 선수 객체 재연결 및 페이스팩/스펙 복원 완료');
 }
 
 function saveGame() {
@@ -5849,9 +5912,11 @@ function renderDashboard() {
         }
     };
 
-    // [신규] 통합 FA컵 카드
-    const faCupCard = createDashboardCard('통합 FA컵', 'facup', () => {
+    // [신규] 컵 대회 카드 (국가별 FA컵 & UEFA 챔피언스리그)
+    const faConfig = (typeof cupCompetitionManager !== 'undefined') ? cupCompetitionManager.getUserFACupConfig() : { name: 'FA컵' };
+    const faCupCard = createDashboardCard(faConfig.name, 'facup', () => {
         const cup = gameData.faCup;
+        const ucl = gameData.ucl;
         const wrapper = document.createElement('div');
         wrapper.style.textAlign = 'center';
         wrapper.style.display = 'flex';
@@ -5860,25 +5925,25 @@ function renderDashboard() {
         wrapper.style.height = '100%';
 
         const titleDiv = document.createElement('div');
-        titleDiv.style.fontSize = '0.9rem';
+        titleDiv.style.fontSize = '0.85rem';
         titleDiv.style.color = '#94A3B8';
-        titleDiv.textContent = '토너먼트 여정';
+        titleDiv.textContent = 'FA컵 & 챔피언스리그';
 
         const statusDiv = document.createElement('div');
-        statusDiv.style.fontSize = '1.25rem';
+        statusDiv.style.fontSize = '1.15rem';
         statusDiv.style.fontWeight = '900';
         statusDiv.style.margin = '4px 0';
 
         if (cup) {
             if (cup.champion === gameData.selectedTeam) {
                 statusDiv.style.color = '#FBBF24';
-                statusDiv.textContent = '🏆 FA컵 챔피언';
+                statusDiv.textContent = '🏆 컵 대회 챔피언';
             } else if (cup.isUserActive) {
                 statusDiv.style.color = '#38BDF8';
-                statusDiv.textContent = (typeof faCupManager !== 'undefined' ? faCupManager.stageNames[cup.currentStage] : '진행 중') || '생존 중';
+                statusDiv.textContent = (typeof cupCompetitionManager !== 'undefined' ? cupCompetitionManager.faStageNames[cup.currentStage] : '진행 중') || '생존 중';
             } else {
                 statusDiv.style.color = '#EF4444';
-                statusDiv.textContent = `${(typeof faCupManager !== 'undefined' && cup.userEliminatedStage) ? faCupManager.stageNames[cup.userEliminatedStage] : ''} 탈락`;
+                statusDiv.textContent = `${(typeof cupCompetitionManager !== 'undefined' && cup.userEliminatedStage) ? cupCompetitionManager.faStageNames[cup.userEliminatedStage] : ''} 탈락`;
             }
         } else {
             statusDiv.style.color = '#94A3B8';
@@ -5886,17 +5951,24 @@ function renderDashboard() {
         }
 
         const subDiv = document.createElement('div');
-        subDiv.style.fontSize = '0.8rem';
+        subDiv.style.fontSize = '0.75rem';
         subDiv.style.color = '#FBBF24';
         subDiv.style.fontWeight = '700';
-        subDiv.textContent = '클릭하여 대진표 확인';
+
+        // UCL 상태 요약 표시
+        if (ucl && ucl.teams && ucl.teams.includes(gameData.selectedTeam)) {
+            const uclStageName = (typeof cupCompetitionManager !== 'undefined') ? (cupCompetitionManager.uclStageNames[ucl.currentStage] || ucl.currentStage) : '';
+            subDiv.textContent = `⭐ UCL: ${ucl.champion === gameData.selectedTeam ? '우승' : (ucl.isUserActive ? uclStageName : '탈락')} (클릭)`;
+        } else {
+            subDiv.textContent = '클릭하여 컵 대회 센터 확인';
+        }
 
         wrapper.append(titleDiv, statusDiv, subDiv);
         return wrapper;
     });
     faCupCard.onclick = () => {
-        if (typeof faCupManager !== 'undefined') {
-            faCupManager.openBracketModal();
+        if (typeof cupCompetitionManager !== 'undefined') {
+            cupCompetitionManager.openModal('fa');
         }
     };
 

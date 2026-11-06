@@ -1,4 +1,4 @@
-﻿// endSeason.js - 승강제 시스템
+// endSeason.js - 승강제 시스템
 // 다른 파일들의 의존성을 최소화하여 독립적으로 작동
 
 
@@ -148,15 +148,19 @@ function endSeason(silent = false) {
         seasonPoty = poty;
         if (poty) {
             const isMyPlayer = poty.team === gameData.selectedTeam;
-            const champTag = poty.isChampion ? ' · 1부리그 우승' : '';
+            const titles = [];
+            if (poty.isUclChampion) titles.push('UCL 챔피언⭐');
+            if (poty.isLeagueChampion) titles.push('리그 우승🏆');
+            if (poty.isFaCupChampion) titles.push('FA컵 우승🏆');
+            const champTag = titles.length > 0 ? ` · [${titles.join(' / ')}]` : '';
             const ratingTag = poty.avgRating ? `평점 ${poty.avgRating} · ` : '';
-            potyMessage = `\n\n [발롱도르 (Ballon d'Or)]\n${poty.name} (${teamNames[poty.team] || poty.team})\n${ratingTag}${poty.goals || 0}골 ${poty.assists || 0}도움 · MOM ${poty.moms || 0}회${champTag}`;
+            potyMessage = `\n\n [발롱도르 (Ballon d'Or)]\n${poty.name} (${(typeof teamNames !== 'undefined' && teamNames[poty.team]) ? teamNames[poty.team] : poty.team})\n${ratingTag}${poty.goals || 0}골 ${poty.assists || 0}도움 · MOM ${poty.moms || 0}회${champTag}`;
             
             if (isMyPlayer) {
-                potyMessage += "\n(우리 팀 선수가 발롱도르를 수상했습니다! 상금 100억)";
-                gameData.teamMoney += 100;
+                potyMessage += "\n(우리 팀 선수가 발롱도르를 수상했습니다!)";
                 // 메일 발송
-                mailManager.addMail(`[수상] ${poty.name} 발롱도르(올해의 선수) 수상!`, '리그 사무국', `축하합니다!\n1부리그 최고의 별을 가리는 발롱도르에서 ${poty.name} 선수가 수상자로 선정되었습니다.\n\n[시즌 기록]\n- 평균 평점: ${poty.avgRating || '-'}\n- 공격 포인트: ${poty.goals || 0}골 ${poty.assists || 0}도움 (MOM ${poty.moms || 0}회)${poty.isChampion ? '\n- 소속팀 1부리그 우승 프리미엄 반영' : ''}\n\n구단의 위상을 드높인 공로로 상금 100억원이 지급됩니다.`);
+                const titleDesc = titles.length > 0 ? `\n- 트로피 프리미엄: ${titles.join(', ')} 달성 반영` : '';
+                mailManager.addMail(`[수상] ${poty.name} 발롱도르(올해의 선수) 수상!`, '세계 축구 연맹', `축하합니다!\n세계 최고의 선수를 가리는 발롱도르(Ballon d'Or)에서 ${poty.name} 선수가 영예의 수상자로 선정되었습니다.\n\n[시즌 기록]\n- 평균 평점: ${poty.avgRating || '-'}\n- 공격 포인트: ${poty.goals || 0}골 ${poty.assists || 0}도움 (MOM ${poty.moms || 0}회)${titleDesc}\n\n구단의 위상을 드높인 최고의 영예입니다.`);
             }
         }
     }

@@ -438,53 +438,221 @@ const DNAManager = {
 
         container.replaceChildren();
 
-        // [신규] 메인 전술 선택 UI 추가
-        const tacticSelectionContainer = document.createElement('div');
-        tacticSelectionContainer.className = 'tactic-selection-container';
-        tacticSelectionContainer.style.marginBottom = '20px';
-
-        const tacticTitle = document.createElement('h4');
-        tacticTitle.style.cssText = 'color: #F8FAFC; margin-top: 0; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; font-weight: 800; letter-spacing: -0.03em;';
-        if (typeof window.createIcon === 'function') {
-            tacticTitle.appendChild(window.createIcon('clipboard'));
+        // ─────────────────────────────────────────────────────────────
+        // [신규] 6대 코어 전술 컨트롤 보드 (Modern Tactical Board)
+        // ─────────────────────────────────────────────────────────────
+        if (!gameData.tacticSettings) {
+            const curTactic = gameData.currentTactic || 'balanced';
+            gameData.tacticSettings = (typeof getDefaultTacticSettings === 'function')
+                ? getDefaultTacticSettings(curTactic)
+                : { buildUp: 'short', defensiveLine: 'mid', pressIntensity: 'balanced', offensiveTrans: 'counter', defensiveTrans: 'regroup', passLength: 'mixed', tempo: 'standard', width: 'standard' };
         }
-        tacticTitle.appendChild(document.createTextNode('메인 전술'));
+        const ts = gameData.tacticSettings;
 
+        const boardCard = document.createElement('div');
+        boardCard.className = 'tactical-board-card';
+        boardCard.style.cssText = 'background: linear-gradient(180deg, #161F30 0%, #0F172A 100%); border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; padding: 20px; margin-bottom: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.4);';
+
+        const boardHeader = document.createElement('div');
+        boardHeader.style.cssText = 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 12px;';
+
+        const bTitle = document.createElement('h3');
+        bTitle.style.cssText = 'margin: 0; color: #F8FAFC; font-size: 1.15rem; font-weight: 800; display: flex; align-items: center; gap: 8px;';
+        if (typeof window.createIcon === 'function') bTitle.appendChild(window.createIcon('clipboard'));
+        bTitle.appendChild(document.createTextNode('감독 6대 코어 전술 설정'));
+
+        // 프리셋 간편 선택 셀렉트
+        const presetWrap = document.createElement('div');
+        presetWrap.style.cssText = 'display: flex; align-items: center; gap: 8px;';
+        const presetLabel = document.createElement('span');
+        presetLabel.style.cssText = 'font-size: 0.8rem; color: #94A3B8;';
+        presetLabel.textContent = '기본 프리셋:';
         const tacticSelect = document.createElement('select');
         tacticSelect.id = 'dnaTacticSelect';
-        tacticSelect.style.cssText = 'width: 100%; padding: 10px 12px; background: #161F30; color: #F8FAFC; border: 1px solid rgba(255,255,255,0.08); border-radius: 6px;';
+        tacticSelect.style.cssText = 'padding: 6px 12px; background: #0B1120; color: #F8FAFC; border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; font-size: 0.82rem; font-weight: 700; cursor: pointer;';
 
         const tacticSystem = new TacticSystem();
         const allTactics = tacticSystem.getAllTactics();
-
-        allTactics.forEach(tactic => {
+        allTactics.forEach(t => {
             const opt = document.createElement('option');
-            opt.value = tactic.key;
-            opt.textContent = tactic.name;
-            if (gameData.currentTactic === tactic.key) opt.selected = true;
+            opt.value = t.key;
+            opt.textContent = t.name;
+            if (gameData.currentTactic === t.key) opt.selected = true;
             tacticSelect.appendChild(opt);
         });
 
-        tacticSelectionContainer.append(tacticTitle, tacticSelect);
-        container.appendChild(tacticSelectionContainer);
-
-        // 전술 변경 이벤트 리스너 추가
         tacticSelect.addEventListener('change', function() {
             gameData.currentTactic = this.value;
-            
-            // [추가] 경기 탭의 전술 디스플레이 동기화
-            const matchTacticSelect = document.getElementById('tacticSelect');
-            if (matchTacticSelect) matchTacticSelect.value = this.value;
-            if (typeof window.updateMatchTabCurrentTacticDisplay === 'function') {
-                window.updateMatchTabCurrentTacticDisplay();
+            if (typeof getDefaultTacticSettings === 'function') {
+                gameData.tacticSettings = getDefaultTacticSettings(this.value);
             }
-
-            // [추가] 전술 변경 시 자동 저장 및 UI 즉시 갱신
-            if (typeof window.triggerAutoSave === 'function') {
-                window.triggerAutoSave();
-            }
-            DNAManager.renderUI(); 
+            if (typeof window.triggerAutoSave === 'function') window.triggerAutoSave();
+            DNAManager.renderUI();
         });
+
+        presetWrap.append(presetLabel, tacticSelect);
+        boardHeader.append(bTitle, presetWrap);
+        boardCard.appendChild(boardHeader);
+
+        // 6대 전술 버튼 그리드
+        const tacticFields = [
+            {
+                key: 'buildUp',
+                title: '1. 빌드업 구조',
+                desc: '후방에서 공격 진영으로 볼을 전개하는 방식',
+                options: [
+                    { value: 'short', label: '숏패스 빌드업', tip: '골키퍼/센터백부터 차근차근 짧은 패스로 전개' },
+                    { value: 'back3', label: '변형 3백 (라볼피아나)', tip: '수미가 CB 사이로 내려와 수적 우위로 안정적 탈압박' },
+                    { value: 'direct', label: '다이렉트 롱볼', tip: '상대 중원 압박을 우회하여 전방 윙어/타겟맨으로 즉시 롱킥' }
+                ]
+            },
+            {
+                key: 'defensiveLine',
+                title: '2. 수비 라인',
+                desc: '수비 블록을 형성하는 필드 위의 높이',
+                options: [
+                    { value: 'high', label: '하이 라인', tip: '하프라인까지 라인을 올려 상대 진영에서 전방 압박' },
+                    { value: 'mid', label: '미들 블록', tip: '중앙선 부근에서 공수 밸런스를 잡고 패스 길 차단' },
+                    { value: 'low', label: '로우 블록 (텐백)', tip: '페널티 박스 앞까지 내려앉아 밀집 수비 구축' }
+                ]
+            },
+            {
+                key: 'pressIntensity',
+                title: '3. 압박 강도',
+                desc: '상대 선수가 공을 잡았을 때 포위 및 경합 강도',
+                options: [
+                    { value: 'cautious', label: '거리 유지', tip: '무리한 돌진을 자제하고 패스 각도 차단 (체력 안배)' },
+                    { value: 'balanced', label: '균형', tip: '적절한 거리에서 협력 수비 진행' },
+                    { value: 'aggressive', label: '맹렬한 압박', tip: '볼 소유자에게 2~3명이 즉각 달려들어 탈취 시도 (체력 소모↑)' }
+                ]
+            },
+            {
+                key: 'offensiveTrans',
+                title: '4. 공격 전환 (볼 탈취 시)',
+                desc: '공을 빼앗은 직후 첫 5초간의 행동',
+                options: [
+                    { value: 'counter', label: '즉시 역습', tip: '볼 탈취 즉시 공격수와 윙어가 전방 뒷공간으로 스프린트 침투' },
+                    { value: 'hold', label: '소유권 유지/지공', tip: '서두르지 않고 안전하게 공을 돌리며 전열 재정비' }
+                ]
+            },
+            {
+                key: 'defensiveTrans',
+                title: '5. 수비 전환 (볼 상실 시)',
+                desc: '공을 빼앗긴 직후 첫 5초간의 행동',
+                options: [
+                    { value: 'counterpress', label: '즉시 재압박', tip: '뺏긴 지점 주변 선수들이 즉각 달라붙어 5초 내 재탈취 시도' },
+                    { value: 'regroup', label: '진형 복귀', tip: '무리한 압박 없이 전원 신속하게 자기 수비 블록으로 후퇴' }
+                ]
+            },
+            {
+                key: 'passLength',
+                title: '6. 패스 길이',
+                desc: '팀의 패스 평균 거리 및 궤적',
+                options: [
+                    { value: 'short', label: '짧게', tip: '안전한 10~15m 짧은 연결 위주 (티키타카형)' },
+                    { value: 'mixed', label: '혼합', tip: '상황에 맞춰 숏패스와 전진패스 혼용' },
+                    { value: 'direct', label: '다이렉트', tip: '전방 공간을 찌르는 롱 스루패스 및 반대 전환 롱패스' }
+                ]
+            },
+            {
+                key: 'tempo',
+                title: '7. 전개 템포',
+                desc: '볼을 잡았을 때 처리 속도',
+                options: [
+                    { value: 'slow', label: '느리게 (지공)', tip: '상대 수비 빈틈이 열릴 때까지 여유롭게 볼 소유' },
+                    { value: 'standard', label: '보통', tip: '상황에 맞춘 유연한 속도 조절' },
+                    { value: 'fast', label: '빠르게 (속공)', tip: '원터치/투터치 위주의 번개 같은 빠른 전개' }
+                ]
+            },
+            {
+                key: 'width',
+                title: '8. 팀 너비',
+                desc: '공격 시 좌우 공간 활용 폭',
+                options: [
+                    { value: 'narrow', label: '좁게 (중앙 집약)', tip: '하프스페이스와 중앙에 밀집하여 수적 우위 확보' },
+                    { value: 'standard', label: '보통', tip: '공수 균형 잡힌 간격 유지' },
+                    { value: 'wide', label: '넓게 (측면 우회)', tip: '윙어/풀백이 터치라인까지 벌려서 상대 중원 압박을 우회' }
+                ]
+            }
+        ];
+
+        const gridDiv = document.createElement('div');
+        gridDiv.style.cssText = 'display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin-bottom: 18px;';
+
+        tacticFields.forEach(f => {
+            const fCard = document.createElement('div');
+            fCard.style.cssText = 'background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 12px;';
+
+            const fHead = document.createElement('div');
+            fHead.style.cssText = 'margin-bottom: 8px;';
+            const fName = document.createElement('div');
+            fName.style.cssText = 'font-size: 0.86rem; font-weight: 700; color: #E2E8F0; margin-bottom: 2px;';
+            fName.textContent = f.title;
+            const fDesc = document.createElement('div');
+            fDesc.style.cssText = 'font-size: 0.72rem; color: #64748B;';
+            fDesc.textContent = f.desc;
+            fHead.append(fName, fDesc);
+
+            const btnGroup = document.createElement('div');
+            btnGroup.style.cssText = 'display: flex; gap: 6px; flex-wrap: wrap;';
+
+            f.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                const isSelected = ts[f.key] === opt.value;
+                btn.style.cssText = `flex: 1; min-width: 75px; padding: 7px 8px; font-size: 0.76rem; font-weight: 700; border-radius: 6px; cursor: pointer; transition: all 0.15s ease; border: 1px solid ${isSelected ? '#38BDF8' : 'rgba(255,255,255,0.1)'}; background: ${isSelected ? 'rgba(56, 189, 248, 0.2)' : 'rgba(255,255,255,0.04)'}; color: ${isSelected ? '#38BDF8' : '#94A3B8'}; text-align: center;`;
+                btn.textContent = opt.label;
+                btn.title = opt.tip;
+
+                btn.addEventListener('click', () => {
+                    ts[f.key] = opt.value;
+                    if (typeof migrateDeepTactics === 'function') migrateDeepTactics();
+                    if (typeof window.triggerAutoSave === 'function') window.triggerAutoSave();
+                    DNAManager.renderUI();
+                });
+                btnGroup.appendChild(btn);
+            });
+
+            fCard.append(fHead, btnGroup);
+            gridDiv.appendChild(fCard);
+        });
+
+        boardCard.appendChild(gridDiv);
+
+        // 인과관계 전술 팁 & 스쿼드 분석 배너
+        const guideBanner = document.createElement('div');
+        guideBanner.style.cssText = 'background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 8px; padding: 12px 16px; display: flex; gap: 12px; align-items: flex-start;';
+
+        const guideIcon = document.createElement('span');
+        guideIcon.style.cssText = 'color: #38BDF8; font-size: 1.2rem; flex-shrink: 0;';
+        guideIcon.textContent = '💡';
+
+        const guideContent = document.createElement('div');
+        const gTitle = document.createElement('div');
+        gTitle.style.cssText = 'font-weight: 800; color: #38BDF8; font-size: 0.84rem; margin-bottom: 4px;';
+        gTitle.textContent = '인과관계 전술 가이드:';
+
+        const gText = document.createElement('div');
+        gText.style.cssText = 'font-size: 0.78rem; color: #CBD5E1; line-height: 1.45;';
+
+        // 현재 설정에 따른 실시간 분석
+        let tipText = '';
+        if (ts.buildUp === 'direct' && ts.width === 'wide') {
+            tipText = '【중원 우회 & 측면 공략】 상대 중원이 우리보다 강하더라도, 중앙을 건너뛰고 측면 윙어에게 다이렉트 롱볼을 보내 상대 미드필더의 압박을 무력화합니다. 측면에서 풀백-윙어의 3자 패스로 박스를 허물어 득점 찬스를 창출합니다!';
+        } else if (ts.defensiveLine === 'low' && ts.offensiveTrans === 'counter') {
+            tipText = '【텐백 로우블록 & 번개 역습】 페널티 박스 앞을 두텁게 잠그고, 볼 탈취 즉시 발 빠른 윙어와 포처가 뒷공간으로 스프린트하여 1:1 찬스를 노립니다.';
+        } else if (ts.buildUp === 'short' && ts.width === 'narrow' && ts.passLength === 'short') {
+            tipText = '【중앙 티키타카】 중앙에 수적 우위를 두고 짧은 패스로 썰어 들어갑니다. 상대 중원이 약할 때는 완벽한 지배가 가능하지만, 상대 중원이 강할 경우 중앙 턴오버에 유의하세요!';
+        } else {
+            tipText = '선수들의 포지션별 롤(Role)과 세부 스탯(속도, 패스, 피지컬 등)에 맞춰 6대 전술을 세팅하세요. 약팀도 전술적 인과관계에 따라 강팀의 약점을 찔러 승리할 수 있습니다!';
+        }
+        gText.textContent = tipText;
+
+        guideContent.append(gTitle, gText);
+        guideBanner.append(guideIcon, guideContent);
+        boardCard.appendChild(guideBanner);
+
+        container.appendChild(boardCard);
 
         // [신규] DNA 프리셋 선택 UI
         const presetContainer = document.createElement('div');

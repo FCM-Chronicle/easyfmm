@@ -2,10 +2,10 @@
  * TeamUtils.js - 팀 전력 계산 및 선수 관리 공통 유틸리티
  */
 const TeamUtils = {
-    // 1. 특정 팀의 베스트 11 선발 (포지션 고려)
+    // 1. 특정 팀의 베스트 11 선발 (세부 포지션 밸런스 및 실제 축구 4백/3톱 정밀 선발)
     getBestEleven(teamKey) {
         const teamPlayers = teams[teamKey];
-        if (!teamPlayers) return [];
+        if (!teamPlayers || !Array.isArray(teamPlayers) || teamPlayers.length === 0) return [];
 
         const gks = teamPlayers.filter(p => p.position === 'GK').sort((a, b) => b.rating - a.rating);
         const dfs = teamPlayers.filter(p => p.position === 'DF').sort((a, b) => b.rating - a.rating);
@@ -14,11 +14,47 @@ const TeamUtils = {
 
         const best11 = [];
         if (gks.length > 0) best11.push(gks[0]);
-        for (let i = 0; i < 4 && i < dfs.length; i++) best11.push(dfs[i]);
-        for (let i = 0; i < 3 && i < mfs.length; i++) best11.push(mfs[i]);
-        for (let i = 0; i < 3 && i < fws.length; i++) best11.push(fws[i]);
 
-        // 11명이 부족할 경우 나머지 포지션에서 보충
+        // [스마트 DF 4백 선발: 좌측 풀백(LB) 1명 + 중앙 센터백(CB) 2명 + 우측 풀백(RB) 1명]
+        const isLB = p => { const d = (p.detailPosition || '').toUpperCase(); return d === 'LB' || d === 'LWB'; };
+        const isRB = p => { const d = (p.detailPosition || '').toUpperCase(); return d === 'RB' || d === 'RWB'; };
+        const isCB = p => { const d = (p.detailPosition || '').toUpperCase(); return d === 'CB' || d === 'LCB' || d === 'RCB' || d === 'SW'; };
+
+        const chosenDFs = [];
+        const lbCandidate = dfs.find(p => isLB(p));
+        if (lbCandidate) chosenDFs.push(lbCandidate);
+
+        const rbCandidate = dfs.find(p => isRB(p) && !chosenDFs.includes(p));
+        if (rbCandidate) chosenDFs.push(rbCandidate);
+
+        const cbCandidates = dfs.filter(p => !chosenDFs.includes(p) && isCB(p));
+        for (const cb of cbCandidates) {
+            if (chosenDFs.length >= 4) break;
+            chosenDFs.push(cb);
+        }
+
+        // 전용 세부 포지션이 없거나 부족하면 레이팅 순으로 4명 충원
+        for (const d of dfs) {
+            if (chosenDFs.length >= 4) break;
+            if (!chosenDFs.includes(d)) chosenDFs.push(d);
+        }
+        best11.push(...chosenDFs);
+
+        // [스마트 MF 선발 (3~4명)]
+        const chosenMFs = [];
+        for (let i = 0; i < 3 && i < mfs.length; i++) {
+            chosenMFs.push(mfs[i]);
+        }
+        best11.push(...chosenMFs);
+
+        // [스마트 FW 선발 (3명: 윙어 + 중앙 스트라이커)]
+        const chosenFWs = [];
+        for (let i = 0; i < 3 && i < fws.length; i++) {
+            chosenFWs.push(fws[i]);
+        }
+        best11.push(...chosenFWs);
+
+        // 11명이 부족할 경우 나머지 포지션에서 레이팅 순으로 보충
         if (best11.length < 11) {
             const remaining = teamPlayers.filter(p => !best11.includes(p)).sort((a, b) => b.rating - a.rating);
             for (let i = 0; i < remaining.length && best11.length < 11; i++) {

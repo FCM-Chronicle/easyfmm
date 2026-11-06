@@ -1,4 +1,4 @@
-﻿// contractSystem.js - 선수 계약 만료 및 따박따박 재계약 시스템
+// contractSystem.js - 선수 계약 만료 및 따박따박 재계약 시스템
 
 class ContractSystem {
     constructor() {
@@ -191,98 +191,14 @@ class ContractSystem {
         console.log(`[Contract] 계약 연수 차감 완료: FA 방출 ${expiredPlayers.length}명, 1년 잔여 경고 ${warningPlayers.length}명`);
     }
 
-    // 재계약 협상 모달 UI 열기
+    // 재계약 협상 모달 UI 열기 (EA FC On Call 통화 UI로 통합)
     openRenewalModal(player) {
         if (!player) return;
         const demand = this.calculateRenewalDemand(player);
-        const currentTotal = (typeof calculateTotalWages === 'function') ? calculateTotalWages() : (gameData.totalWeeklyWage || 0);
-        const projectedTotal = parseFloat((currentTotal + demand.wageDiff).toFixed(2));
-        const wageBudget = (gameData.wageBudget || 0);
-        const isAffordable = projectedTotal <= wageBudget;
 
-        let modal = document.getElementById('contractRenewalModal');
-        if (!modal) {
-            modal = document.createElement('div');
-            modal.id = 'contractRenewalModal';
-            modal.className = 'modal';
-            modal.style.cssText = 'display:none; position:fixed; z-index:99999; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.85); align-items:center; justify-content:center; backdrop-filter:blur(6px);';
-            document.body.appendChild(modal);
-        }
-
-        modal.innerHTML = `
-            <div class="modal-content" style="max-width:480px; background:linear-gradient(135deg, #0F172A, #1E293B); border:1px solid rgba(255,255,255,0.15); border-radius:18px; padding:24px; color:#F8FAFC; box-shadow:0 20px 40px rgba(0,0,0,0.6);">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:12px;">
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <span style="font-size:1.4rem;">📝</span>
-                        <h3 style="margin:0; font-size:1.2rem; font-weight:700;">선수 재계약 협상</h3>
-                    </div>
-                    <span style="cursor:pointer; font-size:1.5rem; color:#94A3B8;" onclick="document.getElementById('contractRenewalModal').style.display='none'">&times;</span>
-                </div>
-
-                <div style="display:flex; gap:16px; align-items:center; background:rgba(255,255,255,0.05); padding:16px; border-radius:14px; margin-bottom:20px;">
-                    <img id="contractRenewalPlayerImg" src="assets/players/default.webp" style="width:72px; height:72px; border-radius:50%; object-fit:cover; border:2px solid #38BDF8; background:#0F172A;">
-                    <div>
-                        <div style="font-size:1.2rem; font-weight:700; color:#FFFFFF;">${player.name}</div>
-                        <div style="font-size:0.85rem; color:#94A3B8; margin-top:3px;">
-                            ${player.position} · ${player.age}세 · OVR <strong style="color:#FBBF24;">${Math.floor(player.rating)}</strong>
-                        </div>
-                        <div style="font-size:0.85rem; color:#EF4444; margin-top:4px; font-weight:600;">
-                            현재 잔여 계약: ${this.getPlayerContractYears(player)}년 (만료 임박)
-                        </div>
-                    </div>
-                </div>
-
-                <div style="background:rgba(15,23,42,0.8); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:16px; margin-bottom:20px; font-size:0.9rem;">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                        <span style="color:#94A3B8;">현재 주급</span>
-                        <span style="font-weight:600;">${demand.currentWage}억원 / 주</span>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; margin-bottom:10px; color:#38BDF8;">
-                        <span style="font-weight:600;">선수 요구 조건</span>
-                        <span style="font-weight:700;">+${demand.extensionYears}년 연장 (주급 ${demand.demandedWage}억원)</span>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                        <span style="color:#94A3B8;">주급 변동</span>
-                        <span style="font-weight:700; color:${demand.wageDiff > 0 ? '#FBBF24' : '#34D399'};">
-                            ${demand.wageDiff > 0 ? '+' : ''}${demand.wageDiff}억원 / 주
-                        </span>
-                    </div>
-                    <div style="border-top:1px dashed rgba(255,255,255,0.1); margin:10px 0; padding-top:10px; display:flex; justify-content:space-between;">
-                        <span style="color:#94A3B8;">재계약 후 구단 총 주급</span>
-                        <span style="font-weight:700; color:${isAffordable ? '#34D399' : '#EF4444'};">
-                            ${projectedTotal}억 / 한도 ${wageBudget}억
-                        </span>
-                    </div>
-                    ${!isAffordable ? `
-                        <div style="color:#EF4444; font-size:0.8rem; margin-top:8px; line-height:1.4;">
-                            ⚠️ 주급 예산 초과! 재정 탭에서 자금을 전환하거나 고액 선수를 팔아야 계약을 체결할 수 있습니다.
-                        </div>
-                    ` : ''}
-                </div>
-
-                <div style="display:flex; gap:10px;">
-                    <button id="confirmRenewalBtn" style="flex:1; padding:12px; background:${isAffordable ? 'linear-gradient(135deg, #2563EB, #1D4ED8)' : '#475569'}; color:white; border:none; border-radius:10px; font-weight:700; cursor:${isAffordable ? 'pointer' : 'not-allowed'};" ${!isAffordable ? 'disabled' : ''}>
-                        재계약 체결 (+2년 연장)
-                    </button>
-                    <button onclick="document.getElementById('contractRenewalModal').style.display='none'" style="padding:12px 18px; background:rgba(255,255,255,0.1); color:#94A3B8; border:none; border-radius:10px; cursor:pointer;">
-                        취소
-                    </button>
-                </div>
-            </div>
-        `;
-
-        modal.style.display = 'flex';
-        setPlayerPhoto(document.getElementById('contractRenewalPlayerImg'), player);
-
-        const confirmBtn = document.getElementById('confirmRenewalBtn');
-        if (confirmBtn && isAffordable) {
-            confirmBtn.onclick = () => {
-                const res = this.renewContract(player.name);
-                alert(res.message);
-                if (res.success) {
-                    modal.style.display = 'none';
-                }
-            };
+        if (typeof transferSystem !== 'undefined' && typeof transferSystem.openRenewalNegotiation === 'function') {
+            transferSystem.openRenewalNegotiation(player, demand);
+            return;
         }
     }
 }

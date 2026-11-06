@@ -468,27 +468,38 @@ const managerSystem = {
         
         if (this.managers.length === 0) {
             const emptyBox = document.createElement('div');
-            emptyBox.style.cssText = 'grid-column: 1/-1; text-align: center; color: #94A3B8; padding: 60px 20px; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px dashed rgba(255,255,255,0.12);';
+            emptyBox.className = 'manager-empty-hero-card';
+
+            const badgeTag = document.createElement('div');
+            badgeTag.className = 'manager-empty-badge';
+            badgeTag.innerHTML = `${typeof iconSVG === 'function' ? iconSVG('trophy') : ''} <span>CAREER MODE</span>`;
 
             const iconDiv = document.createElement('div');
-            iconDiv.style.cssText = 'font-size: 2.5rem; margin-bottom: 12px; color: #38BDF8; display: flex; justify-content: center;';
+            iconDiv.className = 'manager-empty-avatar-ring';
             iconDiv.innerHTML = getAvatarIconHTML('suit');
 
-            const h3 = document.createElement('h3');
-            h3.style.cssText = 'color: #F8FAFC; margin-bottom: 8px;';
-            h3.textContent = '등록된 감독이 없습니다';
+            const h2 = document.createElement('h2');
+            h2.className = 'manager-empty-title';
+            h2.textContent = '새로운 명장의 탄생을 기다리고 있습니다';
 
             const p = document.createElement('p');
-            p.style.cssText = 'color: #94A3B8; margin-bottom: 20px;';
-            p.textContent = "'새 감독 생성'버튼을 눌러 여러분만의 사령탑을 등록하고 축구 세계를 제패하세요!";
+            p.className = 'manager-empty-desc';
+            p.textContent = '아직 등록된 감독 프로필이 없습니다. 나만의 전술 철학과 캐릭터를 설정하고 세계 무대에 도전해 보세요.';
+
+            const featureRow = document.createElement('div');
+            featureRow.className = 'manager-empty-features';
+            featureRow.innerHTML = `
+                <div class="mgr-feat-pill">${typeof iconSVG === 'function' ? iconSVG('activity') : ''} <span>실시간 전술 철학 시뮬레이션</span></div>
+                <div class="mgr-feat-pill">${typeof iconSVG === 'function' ? iconSVG('shield') : ''} <span>독점 라이센스 ID 발급</span></div>
+                <div class="mgr-feat-pill">${typeof iconSVG === 'function' ? iconSVG('briefcase') : ''} <span>구단 협상 & 머니볼</span></div>
+            `;
 
             const btn = document.createElement('button');
-            btn.className = 'btn primary';
-            btn.style.cssText = 'font-weight: 800; padding: 12px 28px; display: inline-flex; align-items: center; gap: 6px;';
-            btn.innerHTML = `${typeof iconSVG === 'function' ? iconSVG('sparkles') : ''} <span>첫 감독 생성하기</span>`;
+            btn.className = 'manager-hero-cta-btn';
+            btn.innerHTML = `${typeof iconSVG === 'function' ? iconSVG('sparkles') : ''} <span>새 감독 프로필 생성하기</span>`;
             btn.onclick = () => managerSystem.openEditModal();
 
-            emptyBox.append(iconDiv, h3, p, btn);
+            emptyBox.append(badgeTag, iconDiv, h2, p, featureRow, btn);
             grid.appendChild(emptyBox);
             return;
         }

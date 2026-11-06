@@ -47,30 +47,26 @@
 
     <!-- [신규] 감독 선택 화면 -->
     <div id="managerSelectionScreen" class="screen active">
-        <div style="text-align: center; max-width: 1200px; margin: 0 auto 30px;">
-            <h1
-                style="font-size: 2.8rem; margin-bottom: 8px; display: inline-flex; align-items: center; gap: 12px; color: #F8FAFC; font-weight: 900; letter-spacing: -0.03em;">
-                <span data-icon="trophy" data-icon-class="lg"></span><span>FOOTBALL MANAGER</span></h1>
-            <p style="color: #94A3B8; font-size: 1.05rem; margin: 0;">구단을 이끌 명장을 선택하거나 새로운 감독 커리어를 시작하세요.</p>
+        <div class="manager-screen-hero">
+            <h1 class="manager-screen-title">
+                <span data-icon="trophy" data-icon-class="lg"></span><span>FOOTBALL MANAGER</span>
+            </h1>
+            <p class="manager-screen-subtitle">구단을 이끌 명장을 선택하거나 새로운 감독 커리어를 시작하세요.</p>
         </div>
 
-        <div
-            style="max-width: 1200px; margin: 0 auto 24px; display: flex; justify-content: space-between; align-items: center; background: #111827; padding: 16px 24px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08);">
-            <div style="display: flex; align-items: center; gap: 10px;">
+        <div class="manager-toolbar">
+            <div class="manager-toolbar-status">
                 <span data-icon="clipboard"></span>
-                <span style="color: #F8FAFC; font-weight: 800; font-size: 1.1rem; letter-spacing: -0.03em;">등록된 감독
-                    목록</span>
-                <span id="managerCountBadge"
-                    style="background: rgba(56, 189, 248, 0.15); color: #38BDF8; border: 1px solid rgba(56, 189, 248, 0.35); padding: 2px 10px; border-radius: 6px; font-size: 0.85rem; font-weight: 800; font-variant-numeric: tabular-nums;">0명</span>
+                <span class="manager-toolbar-title">등록된 감독 목록</span>
+                <span id="managerCountBadge" class="manager-count-badge">0명</span>
             </div>
             <button id="createNewManagerBtn" class="btn primary">
                 <span data-icon="sparkles"></span>
                 <span>새 감독 생성</span>
             </button>
-        </div>
+</div>
 
-        <div id="managerListGrid"
-            style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; max-width: 1200px; margin: 0 auto;">
+        <div id="managerListGrid" class="manager-list-grid">
             <!-- JS로 감독 목록 동적 렌더링 -->
         </div>
     </div>
@@ -192,39 +188,33 @@
 
     <!-- [신규] 감독 프로필 및 세이브 슬롯 모달 -->
     <div id="managerProfileModal" class="modal">
-        <div class="modal-content" style="max-width: 800px;">
+        <div class="modal-content manager-profile-modal-content">
             <span class="close-btn" id="closeManagerProfileModal">&times;</span>
 
-            <div style="display: flex; gap: 20px; align-items: flex-start; margin-bottom: 30px;">
+            <div class="manager-profile-header-wrap">
                 <!-- 감독 정보 표시 -->
-                <div
-                    style="flex: 1; background: rgba(255,255,255,0.05); padding: 20px; border-radius: 10px; border: 1px solid rgba(255,215,0,0.3);">
-                    <div
-                        style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; margin-bottom: 15px;">
-                        <h2 id="profileManagerName" style="margin: 0; color: #ffd700;">감독 이름</h2>
-                        <button id="editManagerProfileBtn" class="btn small"
-                            style="background: rgba(255,255,255,0.1);">정보 수정</button>
+                <div class="manager-profile-card">
+                    <div class="manager-profile-card-top">
+                        <h2 id="profileManagerName" class="manager-profile-name">감독 이름</h2>
+                        <button id="editManagerProfileBtn" class="btn small edit-profile-btn">정보 수정</button>
                     </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 1rem;">
-                        <div><span style="color:#aaa;">국적:</span> <span id="profileManagerNation">대한민국</span></div>
-                        <div><span style="color:#aaa;">나이:</span> <span id="profileManagerAge">45</span>세</div>
-                        <div><span style="color:#aaa;">통산 전적:</span> <span id="profileManagerMatches">0</span>전</div>
-                        <div><span style="color:#aaa;">승/무/패:</span> <span id="profileManagerWDL"
-                                style="color:#2ecc71;">0 / 0 / 0</span></div>
-                        <div style="grid-column: 1 / -1;"><span style="color:#aaa;">우승 트로피:</span> <span
-                                id="profileManagerTrophies">0</span>개</div>
+                    <div class="manager-profile-stats-grid">
+                        <div><span class="stat-label-muted">국적:</span> <span id="profileManagerNation">대한민국</span></div>
+                        <div><span class="stat-label-muted">나이:</span> <span id="profileManagerAge">45</span>세</div>
+                        <div><span class="stat-label-muted">통산 전적:</span> <span id="profileManagerMatches">0</span>전</div>
+                        <div><span class="stat-label-muted">승/무/패:</span> <span id="profileManagerWDL" class="stat-val-wdl">0 / 0 / 0</span></div>
+                        <div class="profile-trophy-row"><span class="stat-label-muted">우승 트로피:</span> <span id="profileManagerTrophies" class="stat-val-trophy">0</span>개</div>
                     </div>
                 </div>
             </div>
 
-            <h3 style="color: #fff; margin-bottom: 15px;">저장 슬롯 (해당 감독 전용)</h3>
-            <div id="managerSaveSlotsGrid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
+            <h3 class="manager-saves-heading">저장 슬롯 (해당 감독 전용)</h3>
+            <div id="managerSaveSlotsGrid" class="manager-save-slots-grid">
                 <!-- JS로 세이브 슬롯 3개 렌더링 -->
             </div>
 
-            <div
-                style="margin-top: 25px; text-align: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
-                <button id="deleteManagerBtn" class="btn danger" style="opacity: 0.7;">감독 삭제</button>
+            <div class="manager-profile-danger-zone">
+                <button id="deleteManagerBtn" class="btn danger delete-mgr-btn">감독 삭제</button>
             </div>
         </div>
     </div>
@@ -340,31 +330,32 @@
     <!-- 로비 화면 -->
     <div id="lobby" class="screen">
         <div class="lobby-header">
-            <div style="display: flex; align-items: center; gap: 15px;">
-                <button id="homeBtn" class="btn" style="display: none; padding: 8px 15px; font-size: 1.2rem;">홈</button>
-                <h1 id="teamName" style="margin: 0;">팀 이름</h1>
+            <div class="lobby-header-brand">
+                <button id="homeBtn" class="btn lobby-home-btn">홈</button>
+                <h1 id="teamName">팀 이름</h1>
             </div>
             <div id="topbarTitle" class="topbar-title"></div>
             <div class="team-info">
                 <div class="info-item">
-                    <span class="label">자금:</span>
+                    <span class="label">자금</span>
                     <span id="teamMoney">1000억</span>
                 </div>
                 <div class="info-item">
-                    <span class="label">사기:</span>
+                    <span class="label">사기</span>
                     <span id="teamMorale">50</span>
                 </div>
                 <div class="info-item">
-                    <span class="label">스폰서:</span>
+                    <span class="label">스폰서</span>
                     <span id="currentSponsor">없음</span>
                 </div>
                 <div class="info-item">
-                    <span class="label">라운드:</span>
+                    <span class="label">라운드</span>
                     <span id="teamRound">1</span>
                 </div>
-                <a href="match_tester.html" target="_blank"
-                    style="text-decoration: none; padding: 4px 10px; font-size: 0.8rem; background: rgba(255, 215, 0, 0.15); border: 1px solid #ffd700; color: #ffd700; border-radius: 6px; font-weight: bold; margin-left: 8px;">⚡
-                    매치엔진 샌드박스</a>
+                <a href="match_tester.html" target="_blank" class="sandbox-quick-link">
+                    <span data-icon="zap"></span>
+                    <span>엔진 샌드박스</span>
+                </a>
             </div>
         </div>
 
@@ -1030,56 +1021,98 @@
 
     <!-- 경기 화면 -->
     <div id="matchScreen" class="screen cm-match-layout">
-        <div class="match-header">
-            <h2 id="matchTitle">경기 진행</h2>
-            <div class="score">
-                <span id="homeTeam">홈팀</span>
-                <span id="scoreDisplay">0 - 0</span>
-                <span id="awayTeam">어웨이팀</span>
+        <div class="match-header broadcast-match-header">
+            <!-- 상단 대회 & 경기장/관중 브리핑 바 -->
+            <div class="bmh-top-meta">
+                <span class="bmh-live-badge"><span class="bmh-live-dot"></span>LIVE BROADCAST</span>
+                <h2 id="matchTitle" class="bmh-stadium-title">경기 진행</h2>
+                <div class="time bmh-clock-pill">
+                    <span id="matchTime">0분</span>
+                </div>
             </div>
-            <div class="time">
-                <span id="matchTime">0분</span>
+
+            <!-- 메인 스코어보드 행 -->
+            <div class="score bmh-scoreboard-row">
+                <div class="bmh-team-block home">
+                    <span class="bmh-team-logo-slot" id="bmhHomeLogoSlot"></span>
+                    <span id="homeTeam" class="bmh-team-name">홈팀</span>
+                </div>
+                <div class="bmh-score-center">
+                    <span id="scoreDisplay" class="bmh-score-digits">0 - 0</span>
+                </div>
+                <div class="bmh-team-block away">
+                    <span id="awayTeam" class="bmh-team-name">어웨이팀</span>
+                    <span class="bmh-team-logo-slot" id="bmhAwayLogoSlot"></span>
+                </div>
             </div>
-            <!-- 스태미나 표시기 -->
-            <div id="staminaContainer"
-                style="margin-top: 15px; width: 90%; max-width: 500px; display: flex; gap: 10px; justify-content: center; background: rgba(0,0,0,0.4); padding: 10px; border-radius: 10px; margin-left: auto; margin-right: auto;">
-                <!-- 공격진 -->
-                <div class="stamina-group" style="flex: 1;">
-                    <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px;">
-                        <span style="color: #e74c3c; font-weight: bold;">FW</span>
-                        <span id="atkStaminaText" style="color: #fff;">100%</span>
+
+            <!-- 실시간 중계 텔레메트리 (점유율 · 슈팅 · 파울/태클 · 주목할 선수) -->
+            <div class="bmh-telemetry-strip" id="matchLiveTelemetryStrip">
+                <div class="bmh-stat-cell possession">
+                    <div class="bmh-stat-head">
+                        <span class="bmh-stat-val home" id="bmhPossHome">50%</span>
+                        <span class="bmh-stat-label">볼 점유율</span>
+                        <span class="bmh-stat-val away" id="bmhPossAway">50%</span>
                     </div>
-                    <div
-                        style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
-                        <div id="atkStaminaBar"
-                            style="width: 100%; height: 100%; background: #e74c3c; transition: width 0.5s, background-color 0.3s;">
-                        </div>
+                    <div class="bmh-poss-bar">
+                        <div class="bmh-poss-fill-home" id="bmhPossFillHome" style="width: 50%;"></div>
+                    </div>
+                </div>
+
+                <div class="bmh-stat-cell metrics">
+                    <div class="bmh-metric-pill">
+                        <span class="bmh-m-val" id="bmhShotsHome">0</span>
+                        <span class="bmh-m-lbl">슈팅</span>
+                        <span class="bmh-m-val" id="bmhShotsAway">0</span>
+                    </div>
+                    <div class="bmh-metric-pill">
+                        <span class="bmh-m-val" id="bmhFoulsHome">0</span>
+                        <span class="bmh-m-lbl">파울</span>
+                        <span class="bmh-m-val" id="bmhFoulsAway">0</span>
+                    </div>
+                    <div class="bmh-metric-pill">
+                        <span class="bmh-m-val" id="bmhTacklesHome">0</span>
+                        <span class="bmh-m-lbl">태클</span>
+                        <span class="bmh-m-val" id="bmhTacklesAway">0</span>
+                    </div>
+                </div>
+
+                <div class="bmh-stat-cell spotlight" id="bmhSpotlightBox">
+                    <span class="bmh-spotlight-tag" id="bmhSpotlightTag">PLAYER TO WATCH</span>
+                    <span class="bmh-spotlight-name" id="bmhSpotlightName">선수단 데이터 분석 중...</span>
+                </div>
+            </div>
+
+            <!-- 라인별 실시간 체력(Stamina) HUD -->
+            <div id="staminaContainer" class="bmh-stamina-hud">
+                <!-- 공격진 -->
+                <div class="stamina-group bmh-stamina-item">
+                    <div class="bmh-stamina-top">
+                        <span class="bmh-pos-tag fw">FW 공격진</span>
+                        <span id="atkStaminaText" class="bmh-stamina-pct">100%</span>
+                    </div>
+                    <div class="bmh-stamina-track">
+                        <div id="atkStaminaBar" class="bmh-stamina-fill fw" style="width: 100%;"></div>
                     </div>
                 </div>
                 <!-- 미드필더 -->
-                <div class="stamina-group" style="flex: 1;">
-                    <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px;">
-                        <span style="color: #3498db; font-weight: bold;">MF</span>
-                        <span id="midStaminaText" style="color: #fff;">100%</span>
+                <div class="stamina-group bmh-stamina-item">
+                    <div class="bmh-stamina-top">
+                        <span class="bmh-pos-tag mf">MF 미드필더</span>
+                        <span id="midStaminaText" class="bmh-stamina-pct">100%</span>
                     </div>
-                    <div
-                        style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
-                        <div id="midStaminaBar"
-                            style="width: 100%; height: 100%; background: #3498db; transition: width 0.5s, background-color 0.3s;">
-                        </div>
+                    <div class="bmh-stamina-track">
+                        <div id="midStaminaBar" class="bmh-stamina-fill mf" style="width: 100%;"></div>
                     </div>
                 </div>
                 <!-- 수비진 -->
-                <div class="stamina-group" style="flex: 1;">
-                    <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px;">
-                        <span style="color: #2ecc71; font-weight: bold;">DF</span>
-                        <span id="defStaminaText" style="color: #fff;">100%</span>
+                <div class="stamina-group bmh-stamina-item">
+                    <div class="bmh-stamina-top">
+                        <span class="bmh-pos-tag df">DF 수비진</span>
+                        <span id="defStaminaText" class="bmh-stamina-pct">100%</span>
                     </div>
-                    <div
-                        style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
-                        <div id="defStaminaBar"
-                            style="width: 100%; height: 100%; background: #2ecc71; transition: width 0.5s, background-color 0.3s;">
-                        </div>
+                    <div class="bmh-stamina-track">
+                        <div id="defStaminaBar" class="bmh-stamina-fill df" style="width: 100%;"></div>
                     </div>
                 </div>
             </div>
@@ -1105,15 +1138,93 @@
         </div>
     </div>
 
-    <!-- 인터뷰 화면 -->
-    <div id="interviewScreen" class="screen">
-        <div class="interview-container">
-            <h2>경기 후 인터뷰</h2>
-            <div id="interviewQuestion"></div>
-            <div class="interview-options">
-                <button class="interview-btn" data-option="1"></button>
-                <button class="interview-btn" data-option="2"></button>
-                <button class="interview-btn" data-option="3"></button>
+    <!-- 인터뷰 화면 (EA FC / FM 공식 미디어 브리핑룸 & 포토월) -->
+    <div id="interviewScreen" class="screen press-room-screen">
+        <!-- 구단 로고 & 대회 로고 반복 포토월 (Step-and-Repeat Backdrop Wall) -->
+        <div class="press-backdrop-wall" id="pressBackdropWall" aria-hidden="true"></div>
+        <div class="press-spotlight-overlay" aria-hidden="true"></div>
+
+        <div class="interview-container press-conference-shell">
+            <!-- 상단 공식 미디어 브리핑 헤더 & 경기 결과/MOM 요약 바 -->
+            <div class="press-header-bar">
+                <div class="press-comp-badge" id="pressCompBadge">
+                    <span class="press-live-dot"></span>
+                    <span id="pressCompName">OFFICIAL POST-MATCH PRESS CONFERENCE</span>
+                </div>
+                <div class="press-header-right">
+                    <span class="press-step-pill" id="pressStepIndicator">QUESTION 1 / 3</span>
+                    <button type="button" class="press-skip-btn" id="pressNoCommentBtn" title="추가 질문을 거절하고 기자회견장을 떠납니다">
+                        노코멘트 · 퇴장
+                    </button>
+                </div>
+            </div>
+
+            <!-- 경기 스코어 및 MOM 요약 스트립 -->
+            <div class="press-match-summary-strip" id="pressMatchSummaryStrip">
+                <div class="press-match-teams" id="pressMatchTeams">
+                    <span class="press-team-side home" id="pressHomeSide">HOME</span>
+                    <span class="press-score-pill" id="pressScorePill">0 - 0</span>
+                    <span class="press-team-side away" id="pressAwaySide">AWAY</span>
+                </div>
+                <div class="press-mom-badge" id="pressMomBadge">
+                    <span class="press-mom-label">MOM</span>
+                    <span class="press-mom-name" id="pressMomName">-</span>
+                </div>
+            </div>
+
+            <!-- 질의응답 메인 영역 -->
+            <div id="pressQAStage" class="press-qa-stage">
+                <div class="press-journalist-bar">
+                    <div class="press-mic-icon">🎙️</div>
+                    <div class="press-journalist-meta">
+                        <span class="press-media-outlet" id="pressMediaOutlet">FOOTBALL JOURNAL</span>
+                        <span class="press-reporter-name" id="pressReporterName">현장 취재진 대표 질문</span>
+                    </div>
+                </div>
+
+                <h2 class="sr-only">경기 후 인터뷰</h2>
+                <div id="interviewQuestion" class="press-question-box"></div>
+
+                <div class="interview-options press-options-list">
+                    <button type="button" class="interview-btn press-answer-card" data-option="1"></button>
+                    <button type="button" class="interview-btn press-answer-card" data-option="2"></button>
+                    <button type="button" class="interview-btn press-answer-card" data-option="3"></button>
+                </div>
+            </div>
+
+            <!-- 기자회견 종료 후 미디어 헤드라인 & 팀 사기 결산 패널 (alert 대체) -->
+            <div id="pressResultSummaryPanel" class="press-result-summary-panel" style="display: none;">
+                <div class="press-breaking-tag">BREAKING MEDIA HEADLINE</div>
+                <h3 class="press-headline-title" id="pressHeadlineTitle"></h3>
+                <p class="press-headline-sub" id="pressHeadlineSub"></p>
+
+                <div class="press-morale-card">
+                    <div class="press-morale-row">
+                        <span class="press-morale-label">기자회견 팀 사기 영향</span>
+                        <span class="press-morale-delta" id="pressMoraleDelta">+0</span>
+                    </div>
+                    <div class="press-morale-bar-track">
+                        <div class="press-morale-bar-fill" id="pressMoraleBarFill" style="width: 50%;"></div>
+                    </div>
+                    <div class="press-morale-foot">
+                        <span>라커룸 분위기</span>
+                        <span id="pressMoraleCurrentText">현재 사기: 75 / 100</span>
+                    </div>
+                </div>
+
+                <div class="press-summary-actions">
+                    <button type="button" class="btn primary press-finish-btn" id="pressFinishReturnBtn">
+                        라커룸 복귀 (로비로 이동)
+                    </button>
+                </div>
+            </div>
+
+            <!-- 하단 방송사 마이크 데스크 장식 -->
+            <div class="press-desk-footer" aria-hidden="true">
+                <div class="press-desk-mic"><span class="mic-sponge blue">SPORTS</span></div>
+                <div class="press-desk-mic"><span class="mic-sponge red">LIVE</span></div>
+                <div class="press-desk-mic"><span class="mic-sponge gold">OFFICIAL</span></div>
+                <div class="press-desk-mic"><span class="mic-sponge green">PRESS</span></div>
             </div>
         </div>
     </div>
@@ -1475,24 +1586,199 @@
         </div>
     </div>
 
-    <!-- 협상 채팅 모달 -->
-    <div id="negotiationChatModal" class="modal">
-        <div class="modal-content chat-modal-content">
-            <div class="chat-header">
-                <span class="close" onclick="transferSystem.closeNegotiationChat()">&times;</span>
-                <h3 id="chatPlayerName">선수 이름</h3>
-                <p id="chatTeamName">소속 팀</p>
-            </div>
-            <div id="chatMessages" class="chat-messages">
-                <!-- 메시지 동적 추가 -->
-            </div>
-            <div id="chatInputArea" class="chat-input-area">
-                <input type="number" id="chatFeeInput" placeholder="제안할 금액을 입력하세요 (단위: 억)" style="display: none;">
-                <div id="chatQuickReplies" class="chat-quick-replies">
-                    <!-- 빠른 답변 버튼 동적 추가 -->
+    <!-- [개편] EA FC (TransferRoom) 스타일 온 콜(On Call) 이적 & 계약 협상 모달 -->
+    <div id="negotiationChatModal" class="modal fc-negotiation-overlay">
+        <div class="modal-content fc-negotiation-modal">
+            <div class="fc-negotiation-shell">
+                <!-- 좌측: 협상 조항 리스트 & 재정 요약 (Terms Column) -->
+                <div class="fc-terms-col">
+                    <div class="fc-header-group">
+                        <span class="fc-step-tag" id="fcStepTag">STEP 1 · CLUB TO CLUB</span>
+                        <h2 class="fc-main-heading" id="fcMainHeading">TRANSFER PLAYER</h2>
+                    </div>
+
+                    <div class="fc-clause-list">
+                        <div class="fc-clause-row">
+                            <span class="fc-clause-label" id="fcRow1Label">합류 시점 (Start Date)</span>
+                            <div class="fc-inline-stepper" id="fcRow1Control" style="display: none;">
+                                <button type="button" class="fc-mini-step-btn" onclick="transferSystem.adjustContractYears(-1)" title="기간 단축">&#9664;</button>
+                                <span class="fc-clause-value" id="fcRow1StepValue">3 YEARS</span>
+                                <button type="button" class="fc-mini-step-btn" onclick="transferSystem.adjustContractYears(1)" title="기간 연장">&#9654;</button>
+                            </div>
+                            <span class="fc-clause-value" id="fcRow1Value">IMMEDIATE</span>
+                        </div>
+
+                        <!-- 메인 조절 조항 박스 (이적료 또는 주급) -->
+                        <div class="fc-active-clause-box" id="fcMainTermBox">
+                            <div class="fc-active-clause-main">
+                                <span class="fc-active-clause-title" id="fcActiveTermLabel">이적료 (Transfer Fee)</span>
+                                <div class="fc-stepper-control">
+                                    <button type="button" class="fc-step-btn" id="fcStepDownBtn" onclick="transferSystem.adjustOfferValue(-1)" title="금액 낮추기">&#9664;</button>
+                                    <div class="fc-input-wrap">
+                                        <input type="number" id="chatFeeInput" class="fc-amount-input" step="any" onchange="transferSystem.onManualAmountInput()">
+                                        <span class="fc-unit-suffix" id="fcAmountUnit">억 원</span>
+                                    </div>
+                                    <button type="button" class="fc-step-btn" id="fcStepUpBtn" onclick="transferSystem.adjustOfferValue(1)" title="금액 올리기">&#9654;</button>
+                                </div>
+                            </div>
+                            <div class="fc-active-clause-sub">
+                                <div class="fc-quick-presets" id="chatQuickReplies">
+                                    <!-- 금액 프리셋 칩 동적 렌더링 -->
+                                </div>
+                                <span class="fc-edit-hint">Direct Input / Stepper</span>
+                            </div>
+                        </div>
+
+                        <div class="fc-clause-row">
+                            <span class="fc-clause-label" id="fcRow2Label">분할 지급 (Instalments)</span>
+                            <div class="fc-inline-stepper" id="fcRow2Control" style="display: none;">
+                                <button type="button" class="fc-mini-step-btn" onclick="transferSystem.adjustSquadRole(-1)" title="역할 낮추기">&#9664;</button>
+                                <span class="fc-clause-value" id="fcRow2StepValue">IMPORTANT (주전)</span>
+                                <button type="button" class="fc-mini-step-btn" onclick="transferSystem.adjustSquadRole(1)" title="역할 높이기">&#9654;</button>
+                            </div>
+                            <span class="fc-clause-value" id="fcRow2Value">NONE (일시불)</span>
+                        </div>
+
+                        <div class="fc-clause-row" id="fcTacticalRow1">
+                            <span class="fc-clause-label">언론 플레이 (Media Pressure)</span>
+                            <div class="fc-clause-action" id="fcMediaActionSlot">
+                                <span class="fc-clause-value">AVAILABLE</span>
+                            </div>
+                        </div>
+
+                        <div class="fc-clause-row" id="fcTacticalRow2">
+                            <span class="fc-clause-label">에이전트/동포 설득 (Persuasion)</span>
+                            <div class="fc-clause-action" id="fcSocialActionSlot">
+                                <span class="fc-clause-value">NONE</span>
+                            </div>
+                        </div>
+
+                        <div class="fc-clause-row">
+                            <span class="fc-clause-label" id="fcRow3Label">기타 조항 (Other Clauses)</span>
+                            <span class="fc-clause-value" id="fcRow3Value">INCLUDED</span>
+                        </div>
+                    </div>
+
+                    <!-- 하단 예산 브리핑 -->
+                    <div class="fc-budget-summary">
+                        <div class="fc-summary-row">
+                            <span class="fc-summary-lbl" id="fcSummaryLbl1">현재 제안액 / 상대 요구액</span>
+                            <span class="fc-summary-val" id="fcSummaryVal1">0억 / 0억</span>
+                        </div>
+                        <div class="fc-summary-row">
+                            <span class="fc-summary-lbl" id="fcSummaryLbl2">역제안 요구 (Counter Offer)</span>
+                            <span class="fc-summary-val accent" id="fcSummaryVal2">대기 중</span>
+                        </div>
+                        <div class="fc-summary-row total">
+                            <span class="fc-summary-lbl" id="fcSummaryLbl3">협상 타결 시 잔여 예산</span>
+                            <span class="fc-summary-val" id="fcSummaryVal3">0억</span>
+                        </div>
+                    </div>
+
+                    <!-- 오퍼 전송 및 역제안 수락 버튼 -->
+                    <div class="fc-offer-actions">
+                        <button type="button" id="chatSendBtn" class="fc-make-offer-btn" onclick="transferSystem.sendNegotiationChat()">
+                            Make Offer · 제안 보내기
+                        </button>
+                        <button type="button" id="fcAcceptCounterBtn" class="fc-accept-counter-btn" style="display: none;" onclick="transferSystem.acceptCounterOffer()">
+                            역제안 즉시 수락
+                        </button>
+                    </div>
                 </div>
-                <button id="chatSendBtn" class="btn" style="display: none;"
-                    onclick="transferSystem.sendNegotiationChat()">제안하기</button>
+
+                <!-- 우측: 스마트폰 On Call 통화 & TransferRoom 선수 카드 (Phone Column) -->
+                <div class="fc-phone-col">
+                    <div class="fc-phone-device">
+                        <div class="fc-phone-topbar">
+                            <span class="fc-phone-time">LIVE CALL</span>
+                            <span class="fc-phone-rec-title" id="fcPhoneTopLabel">Scout Recommendation</span>
+                            <span class="fc-phone-signal">5G</span>
+                        </div>
+
+                        <!-- 발신자/수신자 On Call 배너 -->
+                        <div class="fc-caller-card">
+                            <div class="fc-caller-avatar-wrap" id="fcCallerAvatar">
+                                <!-- 1단계: 구단 로고 / 2단계: 선수 얼굴 사진 -->
+                            </div>
+                            <div class="fc-caller-meta">
+                                <span class="fc-oncall-tag">On call with</span>
+                                <h3 class="fc-caller-name" id="chatTeamName">소속 구단</h3>
+                                <p class="fc-caller-role" id="fcCallerRole">Club Board Representative</p>
+                            </div>
+                            <div class="fc-voice-wave" id="fcVoiceWave">
+                                <span></span><span></span><span></span><span></span><span></span>
+                            </div>
+                        </div>
+
+                        <!-- 긴장도(Tension) & 라운드 표시 -->
+                        <div class="fc-tension-row">
+                            <span class="fc-tension-pill low" id="fcTensionBadge">Low Tension · 우호적</span>
+                            <span class="fc-round-indicator" id="fcRoundBadge">Round 1 / 3</span>
+                        </div>
+
+                        <!-- 상대방 실시간 대사 영역 -->
+                        <div class="fc-dialogue-area">
+                            <p class="fc-dialogue-text" id="fcDialogueText">
+                                "통화를 연결하고 있습니다..."
+                            </p>
+                            <!-- 하위 호환용 숨김 로그 -->
+                            <div id="chatMessages" style="display: none;"></div>
+                        </div>
+
+                        <!-- TransferRoom 선수 스펙 카드 -->
+                        <div class="fc-tr-player-card">
+                            <div class="fc-tr-watermark" id="fcCardWatermark">ST</div>
+                            <div class="fc-tr-header">
+                                <div class="fc-tr-player-title">
+                                    <span class="fc-tr-country-badge" id="fcCardCountry">INT</span>
+                                    <h4 class="fc-tr-name" id="chatPlayerName">선수 이름</h4>
+                                </div>
+                                <img id="fcCardMiniFace" class="fc-tr-mini-face" src="assets/players/default.webp" alt="player">
+                            </div>
+
+                            <div class="fc-tr-stats-strip">
+                                <div class="fc-tr-stat-cell">
+                                    <span class="lbl">Age</span>
+                                    <strong class="val" id="fcCardAge">25</strong>
+                                </div>
+                                <div class="fc-tr-stat-cell">
+                                    <span class="lbl">POS</span>
+                                    <strong class="val" id="fcCardPos">FW</strong>
+                                </div>
+                                <div class="fc-tr-stat-cell">
+                                    <span class="lbl">OVR</span>
+                                    <strong class="val ovr-diamond" id="fcCardOvr">80</strong>
+                                </div>
+                            </div>
+
+                            <div class="fc-tr-finance-rows">
+                                <div class="fc-tr-fin-line">
+                                    <span>Value (시장 가치)</span>
+                                    <strong id="fcCardValue">0억 원</strong>
+                                </div>
+                                <div class="fc-tr-fin-line">
+                                    <span>Weekly Wage (예상 주급)</span>
+                                    <strong id="fcCardWage">0억 원</strong>
+                                </div>
+                            </div>
+
+                            <div class="fc-tr-brand-footer">
+                                Enhanced by <strong>TransferRoom</strong>
+                            </div>
+                        </div>
+
+                        <!-- 통화 끊기 (협상 종료) 버튼 -->
+                        <div class="fc-hangup-zone">
+                            <button type="button" class="fc-hangup-btn" onclick="transferSystem.closeNegotiationChat()" title="통화 종료 및 협상 나가기">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7 2 2 0 0 1 1.72 2v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.42 19.42 0 0 1-3.33-2.67m-2.67-3.34a19.79 19.79 0 0 1-3.07-8.63A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91"/>
+                                    <line x1="22" y1="2" x2="2" y2="22"/>
+                                </svg>
+                            </button>
+                            <span class="fc-hangup-caption">Click to End Negotiation</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -1540,8 +1826,9 @@
     <script src="teamUtils.js"></script>
     <script src="managerSystem.js"></script>
     <script src="stadiumSystem.js"></script>
-    <script src="faCupSystem.js"></script>
+    <script src="cupCompetition.js"></script>
     <script src="contractSystem.js"></script>
+    <script src="playerDetail.js"></script>
     <script src="icons.js"></script>
     <script src="script.js"></script>
     <script src="matchTuning.js"></script>
