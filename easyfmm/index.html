@@ -231,11 +231,23 @@
 
     <!-- 팀 선택 화면 (active 클래스 제거) -->
     <div id="teamSelection" class="screen">
-        <div
-            style="max-width: 1400px; margin: 0 auto 10px; display: flex; justify-content: space-between; align-items: center;">
-            <button id="backToManagerBtn" class="back-nav-btn">감독 선택으로 돌아가기</button>
-            <h1 style="margin: 0; font-size: 2rem;">팀 선택</h1>
-            <div style="width: 160px;"></div> <!-- 균형용 빈 공간 -->
+        <div class="team-selection-header">
+            <div class="team-selection-header-left">
+                <button id="backToManagerBtn" class="back-nav-btn">감독 선택으로 돌아가기</button>
+            </div>
+            <div class="team-selection-header-center">
+                <h1 style="margin: 0; font-size: 2rem;">팀 선택</h1>
+            </div>
+            <div class="team-selection-extra-modes">
+                <button id="worldCupBtn" class="btn" type="button" title="FIFA 월드컵 모드 시작">
+                    <span data-icon="trophy"></span>
+                    <span>월드컵 모드</span>
+                </button>
+                <button id="legendLeagueBtn" class="btn" type="button" title="레전드 슈퍼 리그 시작">
+                    <span data-icon="crown"></span>
+                    <span>레전드 리그</span>
+                </button>
+            </div>
         </div>
 
         <!-- [신규] 저장된 게임 이어하기 섹션 -->

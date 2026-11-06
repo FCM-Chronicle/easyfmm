@@ -401,12 +401,14 @@
     const awayInfo = getTeamInfo(awayKey);
     if (!homeInfo || !awayInfo) return;
 
-    const homePath = homeInfo.isLegend
-      ? `assets/logo/legend/${homeInfo.logoCode}.webp`
-      : `assets/logo/${homeInfo.league || 1}/${homeInfo.logoCode || "DFT"}.webp`;
-    const awayPath = awayInfo.isLegend
-      ? `assets/logo/legend/${awayInfo.logoCode}.webp`
-      : `assets/logo/${awayInfo.league || 1}/${awayInfo.logoCode || "DFT"}.webp`;
+    const getLogoPath = (info) => {
+      if (info.isLegend) return `assets/logo/legend/${info.logoCode}.webp`;
+      if (info.teamid) return `assets/team_logos/L${info.teamid}.png`;
+      return `assets/logo/${info.league || 1}/${info.logoCode || "DFT"}.webp`;
+    };
+
+    const homePath = getLogoPath(homeInfo);
+    const awayPath = getLogoPath(awayInfo);
 
     const homeLogo = document.getElementById("sb-home-logo");
     const awayLogo = document.getElementById("sb-away-logo");

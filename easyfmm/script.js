@@ -1,4 +1,4 @@
-﻿// script.js
+// script.js
 // 주요 데이터 구조 및 초기화
 
 // gameData 객체에 부상 정보 추가 (기존 gameData 선언 부분 수정)
@@ -225,19 +225,24 @@ function getTeamLogoHTML(teamName) {
         const legendCode = (typeof LegendLeagueManager !== 'undefined' && LegendLeagueManager.legendLogoCodes && LegendLeagueManager.legendLogoCodes[teamName])
             || (typeof LegendLeagueManager !== 'undefined' && LegendLeagueManager.legendTeams && LegendLeagueManager.legendTeams[teamName]?.logoCode)
             || "DFT";
-        return `<img src="assets/logo/legend/${legendCode}.webp" class="team-logo"alt="${teamName}" onerror="this.outerHTML='<span class=\\'team-logo-fallback\\'>LG</span>'">`;
+        return `<img src="assets/logo/legend/${legendCode}.webp" class="team-logo" alt="${teamName}" onerror="this.outerHTML='<span class=\\'team-logo-fallback\\'>LG</span>'">`;
     }
 
     const team = typeof allTeams !== 'undefined' ? allTeams[teamName] : null;
     if (!team) return '';
-    const code = team.logoCode || "DFT";
 
+    // 1순위: teamid 기반 assets/team_logos/L{teamid}.png
+    if (team.teamid) {
+        return `<img src="assets/team_logos/L${team.teamid}.png" class="team-logo" alt="${teamName}" onerror="this.outerHTML='<span class=\\'team-logo-fallback\\' style=\\'display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; background:linear-gradient(135deg, #38BDF8, #0284C7); color:#090D16; border-radius:6px; font-weight:900; font-size:0.72rem; margin-right:6px; flex-shrink:0; vertical-align:middle;\\'>FC</span>'">`;
+    }
+
+    const code = team.logoCode || "DFT";
     if (code === "DFT" || team.isCustom || team.isIcon || !team.league) {
         const initials = ((typeof teamNames !== 'undefined' && teamNames[teamName]) || teamName || 'FC').substring(0, 2).toUpperCase();
         return `<span class="team-logo-fallback" style="display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; background:linear-gradient(135deg, #FBBF24, #D97706); color:#090D16; border-radius:6px; font-weight:900; font-size:0.75rem; border:1px solid rgba(251,191,36,0.6); margin-right:6px; flex-shrink:0; vertical-align:middle;">${initials}</span>`;
     }
 
-    return `<img src="assets/logo/${team.league}/${code}.webp" class="team-logo"alt="${teamName}" onerror="this.outerHTML='<span class=\\'team-logo-fallback\\'style=\\'display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; background:linear-gradient(135deg, #38BDF8, #0284C7); color:#090D16; border-radius:6px; font-weight:900; font-size:0.72rem; margin-right:6px; flex-shrink:0; vertical-align:middle;\\'>FC</span>'">`;
+    return `<img src="assets/logo/${team.league}/${code}.webp" class="team-logo" alt="${teamName}" onerror="this.outerHTML='<span class=\\'team-logo-fallback\\' style=\\'display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; background:linear-gradient(135deg, #38BDF8, #0284C7); color:#090D16; border-radius:6px; font-weight:900; font-size:0.72rem; margin-right:6px; flex-shrink:0; vertical-align:middle;\\'>FC</span>'">`;
 }
 
 function createTeamLogoElement(teamName) {
@@ -271,8 +276,24 @@ function createTeamLogoElement(teamName) {
 
     const team = typeof allTeams !== 'undefined' ? allTeams[teamName] : null;
     if (!team) return document.createDocumentFragment();
-    const code = team.logoCode || "DFT";
 
+    // 1순위: teamid 기반 assets/team_logos/L{teamid}.png
+    if (team.teamid) {
+        const img = document.createElement('img');
+        img.src = `assets/team_logos/L${team.teamid}.png`;
+        img.className = 'team-logo';
+        img.alt = teamName;
+        img.onerror = function() {
+            const fallback = document.createElement('span');
+            fallback.className = 'team-logo-fallback';
+            fallback.style.cssText = 'display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; background:linear-gradient(135deg, #38BDF8, #0284C7); color:#090D16; border-radius:6px; font-weight:900; font-size:0.72rem; margin-right:6px; flex-shrink:0; vertical-align:middle;';
+            fallback.textContent = 'FC';
+            this.replaceWith(fallback);
+        };
+        return img;
+    }
+
+    const code = team.logoCode || "DFT";
     if (code === "DFT" || team.isCustom || team.isIcon || !team.league) {
         const initials = ((typeof teamNames !== 'undefined' && teamNames[teamName]) || teamName || 'FC').substring(0, 2).toUpperCase();
         const span = document.createElement('span');
@@ -1259,35 +1280,30 @@ function showScreen(screenId) {
     });
     document.getElementById(screenId).classList.add('active');
 
-    // [추가] 월드컵 모드 버튼 표시/숨김 처리
+    // [수정] 스페셜 모드 버튼 (월드컵 / 레전드 리그) 표시/숨김 처리
     const wcBtn = document.getElementById('worldCupBtn');
     if (wcBtn) {
-        if (screenId === 'lobby') {
-            // 로비 화면(게임 시작)에서는 버튼 숨기기
-            wcBtn.style.display = 'none';
-        } else if (screenId === 'teamSelection') {
-            // 팀 선택 화면에서는 버튼 보이기
-            // [수정] 레전드 모드 진행 중(팀 선택)일 때는 월드컵 버튼도 숨김
+        if (screenId === 'teamSelection') {
             if (typeof gameData !== 'undefined' && gameData.isLegendMode) {
                 wcBtn.style.display = 'none';
             } else {
-                wcBtn.style.display = 'block';
+                wcBtn.style.display = 'inline-flex';
             }
+        } else {
+            wcBtn.style.display = 'none';
         }
     }
 
-    // [추가] 레전드 리그 버튼 표시/숨김 처리
     const legendBtn = document.getElementById('legendLeagueBtn');
     if (legendBtn) {
-        if (screenId === 'lobby') {
-            legendBtn.style.display = 'none';
-        } else if (screenId === 'teamSelection') {
-            // 레전드 모드가 활성화된 상태라면 버튼 숨김 (이미 진입했으므로)
+        if (screenId === 'teamSelection') {
             if (typeof gameData !== 'undefined' && gameData.isLegendMode) {
                 legendBtn.style.display = 'none';
             } else {
-                legendBtn.style.display = 'block';
+                legendBtn.style.display = 'inline-flex';
             }
+        } else {
+            legendBtn.style.display = 'none';
         }
     }
 }

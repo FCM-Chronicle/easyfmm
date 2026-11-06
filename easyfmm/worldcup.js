@@ -1,4 +1,4 @@
-﻿// c:\Users\jinuj\vsc\easyfmm\worldcup.js
+// c:\Users\jinuj\vsc\easyfmm\worldcup.js
 
 const WorldCupManager = {
     wcPlayers: {}, // 월드컵 참가 선수 데이터
@@ -80,15 +80,22 @@ const WorldCupManager = {
     },
 
     createWorldCupButton() {
-        if (document.getElementById('worldCupBtn')) return; // 중복 방지
+        const existingBtn = document.getElementById('worldCupBtn');
+        if (existingBtn) {
+            existingBtn.onclick = () => this.openWorldCupMenu();
+            return;
+        }
 
         const btn = document.createElement('button');
         btn.id = 'worldCupBtn';
         btn.className = 'btn';
+        btn.type = 'button';
+        btn.title = 'FIFA 월드컵 모드 시작';
         btn.innerHTML = `${typeof iconSVG === 'function' ? iconSVG('trophy') : ''} <span>월드컵 모드</span>`;
-        btn.style.cssText = `position: fixed; top: 20px; left: 20px; z-index: 100000; background: linear-gradient(45deg, #e74c3c, #c0392b); color: white; padding: 10px 20px; border: none; border-radius: 5px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); cursor: pointer; font-weight: bold; display: inline-flex; align-items: center; gap: 6px;`;
         btn.onclick = () => this.openWorldCupMenu();
-        document.body.appendChild(btn);
+
+        const container = document.querySelector('.team-selection-extra-modes') || document.getElementById('teamSelection') || document.body;
+        container.appendChild(btn);
     },
 
     openWorldCupMenu() {

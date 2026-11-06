@@ -1,4 +1,4 @@
-﻿// start.js - 팀 선택 화면 UI 로직 및 데이터 표시
+// start.js - 팀 선택 화면 UI 로직 및 데이터 표시
 
 const AVAILABLE_LEAGUES = [
     { id: "premier_league", name: "🇬🇧 잉글랜드 프리미어리그" },
@@ -54,7 +54,20 @@ function renderTeamSelectionUI() {
 
     // 0. 리그 표시 업데이트
     const leagueNameEl = document.getElementById('ts-league-name');
-    if (leagueNameEl) leagueNameEl.textContent = curLeague.name;
+    if (leagueNameEl) {
+        leagueNameEl.replaceChildren();
+        if (curLeague.id && curLeague.id !== 'other') {
+            const leagueImg = document.createElement('img');
+            leagueImg.src = `assets/league_logos/${curLeague.id}.png`;
+            leagueImg.alt = curLeague.name;
+            leagueImg.style.cssText = 'width: 22px; height: 22px; object-fit: contain; vertical-align: middle; margin-right: 6px; display: inline-block;';
+            leagueImg.onerror = function() { this.style.display = 'none'; };
+            leagueNameEl.appendChild(leagueImg);
+        }
+        const textSpan = document.createElement('span');
+        textSpan.textContent = curLeague.name;
+        leagueNameEl.appendChild(textSpan);
+    }
 
     // 1. 좌측: Identity Section (로고, 이름, 별점)
     const logoContainer = document.getElementById('ts-team-logo-container');
@@ -64,7 +77,10 @@ function renderTeamSelectionUI() {
         logoImg.className = 'ts-team-logo';
         const logoCode = teamData?.logoCode || "DFT";
         const logoLeague = teamData?.league || 1;
-        logoImg.src = `assets/logo/${logoLeague}/${logoCode}.webp`;
+        const logoSrc = teamData?.teamid
+            ? `assets/team_logos/L${teamData.teamid}.png`
+            : `assets/logo/${logoLeague}/${logoCode}.webp`;
+        logoImg.src = logoSrc;
         logoImg.alt = teamName;
         logoImg.onerror = function () {
             this.onerror = null;

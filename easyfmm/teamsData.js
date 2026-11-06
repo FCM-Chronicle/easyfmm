@@ -1,6 +1,7 @@
 ﻿// easyfmm - FC 27 Real Football World (162 Clubs with Hangulize)
 const allTeams = {
     "아스널": {
+        teamid: 1,
         displayName: "아스널",
         city: "런던",
         country: "잉글랜드",
@@ -44,6 +45,7 @@ const allTeams = {
         ]
     },
     "아스톤_빌라": {
+        teamid: 2,
         displayName: "아스톤 빌라",
         city: "버밍엄",
         country: "잉글랜드",
@@ -91,6 +93,7 @@ const allTeams = {
         ]
     },
     "본머스": {
+        teamid: 1943,
         displayName: "본머스",
         city: "본머스",
         country: "잉글랜드",
@@ -135,6 +138,7 @@ const allTeams = {
         ]
     },
     "브렌트포드": {
+        teamid: 1925,
         displayName: "브렌트포드",
         city: "런던",
         country: "잉글랜드",
@@ -179,6 +183,7 @@ const allTeams = {
         ]
     },
     "브라이튼": {
+        teamid: 1808,
         displayName: "브라이튼",
         city: "브라이튼",
         country: "잉글랜드",
@@ -227,6 +232,7 @@ const allTeams = {
         ]
     },
     "첼시": {
+        teamid: 5,
         displayName: "첼시",
         city: "런던",
         country: "잉글랜드",
@@ -279,6 +285,7 @@ const allTeams = {
         ]
     },
     "코번트리_시티": {
+        teamid: 1800,
         displayName: "코번트리 시티",
         city: "코번트리",
         country: "잉글랜드",
@@ -324,6 +331,7 @@ const allTeams = {
         ]
     },
     "크리스탈_팰리스": {
+        teamid: 1799,
         displayName: "크리스탈 팰리스",
         city: "런던",
         country: "잉글랜드",
@@ -370,6 +378,7 @@ const allTeams = {
         ]
     },
     "에버턴": {
+        teamid: 7,
         displayName: "에버턴",
         city: "리버풀",
         country: "잉글랜드",
@@ -408,6 +417,7 @@ const allTeams = {
         ]
     },
     "풀럼": {
+        teamid: 144,
         displayName: "풀럼",
         city: "런던",
         country: "잉글랜드",
@@ -445,6 +455,7 @@ const allTeams = {
         ]
     },
     "헐_시티": {
+        teamid: 1952,
         displayName: "헐 시티",
         city: "킹스턴어폰헐",
         country: "잉글랜드",
@@ -490,6 +501,7 @@ const allTeams = {
         ]
     },
     "입스위치": {
+        teamid: 94,
         displayName: "입스위치 타운",
         city: "입스위치",
         country: "잉글랜드",
@@ -534,6 +546,7 @@ const allTeams = {
         ]
     },
     "리즈_유나이티드": {
+        teamid: 8,
         displayName: "리즈 유나이티드",
         city: "리즈",
         country: "잉글랜드",
@@ -578,6 +591,7 @@ const allTeams = {
         ]
     },
     "리버풀": {
+        teamid: 9,
         displayName: "리버풀",
         city: "리버풀",
         country: "잉글랜드",
@@ -624,6 +638,7 @@ const allTeams = {
         ]
     },
     "맨체스터_유나이티드": {
+        teamid: 11,
         displayName: "맨체스터 유나이티드",
         city: "맨체스터",
         country: "잉글랜드",
@@ -672,6 +687,7 @@ const allTeams = {
         ]
     },
     "맨체스터_시티": {
+        teamid: 10,
         displayName: "맨체스터 시티",
         city: "맨체스터",
         country: "잉글랜드",
@@ -716,6 +732,7 @@ const allTeams = {
         ]
     },
     "뉴캐슬_유나이티드": {
+        teamid: 13,
         displayName: "뉴캐슬 유나이티드",
         city: "뉴캐슬",
         country: "잉글랜드",
@@ -758,6 +775,7 @@ const allTeams = {
         ]
     },
     "노팅엄_포레스트": {
+        teamid: 14,
         displayName: "노팅엄 포레스트",
         city: "노팅엄",
         country: "잉글랜드",
@@ -800,6 +818,7 @@ const allTeams = {
         ]
     },
     "토트넘_홋스퍼": {
+        teamid: 18,
         displayName: "토트넘 홋스퍼",
         city: "런던",
         country: "잉글랜드",
@@ -851,6 +870,7 @@ const allTeams = {
         ]
     },
     "선덜랜드": {
+        teamid: 106,
         displayName: "선덜랜드",
         city: "선덜랜드",
         country: "잉글랜드",
@@ -893,6 +913,7 @@ const allTeams = {
         ]
     },
     "아틀레틱_클루브": {
+        teamid: 448,
         displayName: "아틀레틱 빌바오",
         city: "빌바오",
         country: "스페인",
@@ -939,6 +960,7 @@ const allTeams = {
         ]
     },
     "아틀레티코_마드리드": {
+        teamid: 240,
         displayName: "아틀레티코 마드리드",
         city: "마드리드",
         country: "스페인",
@@ -984,6 +1006,7 @@ const allTeams = {
         ]
     },
     "오사수나": {
+        teamid: 479,
         displayName: "오사수나",
         city: "팜플로나",
         country: "스페인",
@@ -1021,6 +1044,7 @@ const allTeams = {
         ]
     },
     "셀타_비고": {
+        teamid: 450,
         displayName: "셀타 비고",
         city: "비고",
         country: "스페인",
@@ -1060,6 +1084,7 @@ const allTeams = {
         ]
     },
     "알라베스": {
+        teamid: 463,
         displayName: "데포르티보 알라베스",
         city: "비토리아",
         country: "스페인",
@@ -1101,6 +1126,7 @@ const allTeams = {
         ]
     },
     "엘체": {
+        teamid: 468,
         displayName: "엘체 CF",
         city: "엘체",
         country: "스페인",
@@ -1142,6 +1168,7 @@ const allTeams = {
         ]
     },
     "바르셀로나": {
+        teamid: 241,
         displayName: "바르셀로나",
         city: "바르셀로나",
         country: "스페인",
@@ -1185,6 +1212,7 @@ const allTeams = {
         ]
     },
     "헤타페": {
+        teamid: 1860,
         displayName: "헤타페 CF",
         city: "헤타페",
         country: "스페인",
@@ -1229,6 +1257,7 @@ const allTeams = {
         ]
     },
     "레반테": {
+        teamid: 1853,
         displayName: "레반테 UD",
         city: "발렌시아",
         country: "스페인",
@@ -1270,6 +1299,7 @@ const allTeams = {
         ]
     },
     "말라가": {
+        teamid: 573,
         displayName: "말라가 CF",
         city: "말라가",
         country: "스페인",
@@ -1312,6 +1342,7 @@ const allTeams = {
         ]
     },
     "라싱_클루브": {
+        teamid: 456,
         displayName: "라싱 산탄데르",
         city: "산탄데르",
         country: "스페인",
@@ -1349,6 +1380,7 @@ const allTeams = {
         ]
     },
     "라요_바예카노": {
+        teamid: 480,
         displayName: "라요 바예카노",
         city: "마드리드",
         country: "스페인",
@@ -1390,6 +1422,7 @@ const allTeams = {
         ]
     },
     "데포르티보": {
+        teamid: 242,
         displayName: "데포르티보 라 코루냐",
         city: "라코루냐",
         country: "스페인",
@@ -1436,6 +1469,7 @@ const allTeams = {
         ]
     },
     "에스파뇰": {
+        teamid: 452,
         displayName: "RCD 에스파뇰",
         city: "바르셀로나",
         country: "스페인",
@@ -1475,6 +1509,7 @@ const allTeams = {
         ]
     },
     "레알_베티스": {
+        teamid: 449,
         displayName: "레알 베티스",
         city: "세비야",
         country: "스페인",
@@ -1516,6 +1551,7 @@ const allTeams = {
         ]
     },
     "레알_마드리드": {
+        teamid: 243,
         displayName: "레알 마드리드",
         city: "마드리드",
         country: "스페인",
@@ -1562,6 +1598,7 @@ const allTeams = {
         ]
     },
     "레알_소시에다드": {
+        teamid: 457,
         displayName: "레알 소시에다드",
         city: "산세바스티안",
         country: "스페인",
@@ -1600,6 +1637,7 @@ const allTeams = {
         ]
     },
     "세비야": {
+        teamid: 481,
         displayName: "세비야 FC",
         city: "세비야",
         country: "스페인",
@@ -1640,6 +1678,7 @@ const allTeams = {
         ]
     },
     "발렌시아": {
+        teamid: 461,
         displayName: "발렌시아 CF",
         city: "발렌시아",
         country: "스페인",
@@ -1683,6 +1722,7 @@ const allTeams = {
         ]
     },
     "비야레알": {
+        teamid: 483,
         displayName: "비야레알 CF",
         city: "비야레알",
         country: "스페인",
@@ -1721,6 +1761,7 @@ const allTeams = {
         ]
     },
     "FC_쾰른": {
+        teamid: 31,
         displayName: "FC 쾰른",
         city: "쾰른",
         country: "독일",
@@ -1766,6 +1807,7 @@ const allTeams = {
         ]
     },
     "마인츠": {
+        teamid: 169,
         displayName: "마인츠 05",
         city: "마인츠",
         country: "독일",
@@ -1811,6 +1853,7 @@ const allTeams = {
         ]
     },
     "도르트문트": {
+        teamid: 22,
         displayName: "보루시아 도르트문트",
         city: "도르트문트",
         country: "독일",
@@ -1854,6 +1897,7 @@ const allTeams = {
         ]
     },
     "아우크스부르크": {
+        teamid: 100409,
         displayName: "아우크스부르크",
         city: "아우크스부르크",
         country: "독일",
@@ -1897,6 +1941,7 @@ const allTeams = {
         ]
     },
     "바이에른_뮌헨": {
+        teamid: 21,
         displayName: "바이에른 뮌헨",
         city: "뮌헨",
         country: "독일",
@@ -1940,6 +1985,7 @@ const allTeams = {
         ]
     },
     "샬케_04": {
+        teamid: 34,
         displayName: "샬케 04",
         city: "겔젠키르헨",
         country: "독일",
@@ -1987,6 +2033,7 @@ const allTeams = {
         ]
     },
     "프랑크푸르트": {
+        teamid: 1824,
         displayName: "아인트라흐트 프랑크푸르트",
         city: "프랑크푸르트",
         country: "독일",
@@ -2032,6 +2079,7 @@ const allTeams = {
         ]
     },
     "함부르크": {
+        teamid: 28,
         displayName: "함부르크 SV",
         city: "함부르크",
         country: "독일",
@@ -2073,6 +2121,7 @@ const allTeams = {
         ]
     },
     "레버쿠젠": {
+        teamid: 32,
         displayName: "바이어 레버쿠젠",
         city: "레버쿠젠",
         country: "독일",
@@ -2117,6 +2166,7 @@ const allTeams = {
         ]
     },
     "묀헨글라트바흐": {
+        teamid: 23,
         displayName: "묀헨글라트바흐",
         city: "묀헨글라트바흐",
         country: "독일",
@@ -2161,6 +2211,7 @@ const allTeams = {
         ]
     },
     "라이프치히": {
+        teamid: 112172,
         displayName: "RB 라이프치히",
         city: "라이프치히",
         country: "독일",
@@ -2207,6 +2258,7 @@ const allTeams = {
         ]
     },
     "프라이부르크": {
+        teamid: 25,
         displayName: "SC 프라이부르크",
         city: "프라이부르크",
         country: "독일",
@@ -2250,6 +2302,7 @@ const allTeams = {
         ]
     },
     "파더보른": {
+        teamid: 10030,
         displayName: "SC 파더보른",
         city: "파더보른",
         country: "독일",
@@ -2296,6 +2349,7 @@ const allTeams = {
         ]
     },
     "엘버스베르크": {
+        teamid: 580,
         displayName: "SV 엘버스베르크",
         city: "슈피젠엘버스베르크",
         country: "독일",
@@ -2339,6 +2393,7 @@ const allTeams = {
         ]
     },
     "베르더_브레멘": {
+        teamid: 38,
         displayName: "베르더 브레멘",
         city: "브레멘",
         country: "독일",
@@ -2383,6 +2438,7 @@ const allTeams = {
         ]
     },
     "호펜하임": {
+        teamid: 10029,
         displayName: "TSG 호펜하임",
         city: "진스하임",
         country: "독일",
@@ -2428,6 +2484,7 @@ const allTeams = {
         ]
     },
     "우니온_베를린": {
+        teamid: 1831,
         displayName: "우니온 베를린",
         city: "베를린",
         country: "독일",
@@ -2473,6 +2530,7 @@ const allTeams = {
         ]
     },
     "슈투트가르트": {
+        teamid: 36,
         displayName: "VfB 슈투트가르트",
         city: "슈투트가르트",
         country: "독일",
@@ -2521,6 +2579,7 @@ const allTeams = {
         ]
     },
     "AS_로마": {
+        teamid: 52,
         displayName: "AS 로마",
         city: "로마",
         country: "이탈리아",
@@ -2561,6 +2620,7 @@ const allTeams = {
         ]
     },
     "아탈란타": {
+        teamid: 115845,
         displayName: "아탈란타 BC",
         city: "베르가모",
         country: "이탈리아",
@@ -2602,6 +2662,7 @@ const allTeams = {
         ]
     },
     "볼로냐": {
+        teamid: 189,
         displayName: "볼로냐 FC",
         city: "볼로냐",
         country: "이탈리아",
@@ -2640,6 +2701,7 @@ const allTeams = {
         ]
     },
     "칼리아리": {
+        teamid: 1842,
         displayName: "칼리아리 칼초",
         city: "칼리아리",
         country: "이탈리아",
@@ -2683,6 +2745,7 @@ const allTeams = {
         ]
     },
     "코모": {
+        teamid: 1745,
         displayName: "코모 1907",
         city: "코모",
         country: "이탈리아",
@@ -2731,6 +2794,7 @@ const allTeams = {
         ]
     },
     "피오렌티나": {
+        teamid: 110374,
         displayName: "ACF 피오렌티나",
         city: "피렌체",
         country: "이탈리아",
@@ -2772,6 +2836,7 @@ const allTeams = {
         ]
     },
     "프로시노네": {
+        teamid: 111657,
         displayName: "프로시노네 칼초",
         city: "프로시노네",
         country: "이탈리아",
@@ -2818,6 +2883,7 @@ const allTeams = {
         ]
     },
     "제노아": {
+        teamid: 110556,
         displayName: "제노아 CFC",
         city: "제노바",
         country: "이탈리아",
@@ -2859,6 +2925,7 @@ const allTeams = {
         ]
     },
     "유벤투스": {
+        teamid: 45,
         displayName: "유벤투스",
         city: "토리노",
         country: "이탈리아",
@@ -2902,6 +2969,7 @@ const allTeams = {
         ]
     },
     "라치오": {
+        teamid: 115841,
         displayName: "SS 라치오",
         city: "로마",
         country: "이탈리아",
@@ -2947,6 +3015,7 @@ const allTeams = {
         ]
     },
     "레체": {
+        teamid: 347,
         displayName: "US 레체",
         city: "레체",
         country: "이탈리아",
@@ -2986,6 +3055,7 @@ const allTeams = {
         ]
     },
     "인터_밀란": {
+        teamid: 131681,
         displayName: "인터 밀란",
         city: "밀라노",
         country: "이탈리아",
@@ -3027,6 +3097,7 @@ const allTeams = {
         ]
     },
     "AC_밀란": {
+        teamid: 131682,
         displayName: "AC 밀란",
         city: "밀라노",
         country: "이탈리아",
@@ -3073,6 +3144,7 @@ const allTeams = {
         ]
     },
     "몬차": {
+        teamid: 111811,
         displayName: "AC 몬차",
         city: "몬차",
         country: "이탈리아",
@@ -3111,6 +3183,7 @@ const allTeams = {
         ]
     },
     "파르마": {
+        teamid: 50,
         displayName: "파르마 칼초",
         city: "파르마",
         country: "이탈리아",
@@ -3148,6 +3221,7 @@ const allTeams = {
         ]
     },
     "사수올로": {
+        teamid: 111974,
         displayName: "US 사수올로",
         city: "사수올로",
         country: "이탈리아",
@@ -3198,6 +3272,7 @@ const allTeams = {
         ]
     },
     "나폴리": {
+        teamid: 48,
         displayName: "SSC 나폴리",
         city: "나폴리",
         country: "이탈리아",
@@ -3246,6 +3321,7 @@ const allTeams = {
         ]
     },
     "토리노": {
+        teamid: 54,
         displayName: "토리노 FC",
         city: "토리노",
         country: "이탈리아",
@@ -3291,6 +3367,7 @@ const allTeams = {
         ]
     },
     "우디네세": {
+        teamid: 55,
         displayName: "우디네세 칼초",
         city: "우디네",
         country: "이탈리아",
@@ -3332,6 +3409,7 @@ const allTeams = {
         ]
     },
     "베네치아": {
+        teamid: 205,
         displayName: "베네치아 FC",
         city: "베네치아",
         country: "이탈리아",
@@ -3379,6 +3457,7 @@ const allTeams = {
         ]
     },
     "오세르": {
+        teamid: 57,
         displayName: "AJ 오세르",
         city: "오세르",
         country: "프랑스",
@@ -3427,6 +3506,7 @@ const allTeams = {
         ]
     },
     "앙제": {
+        teamid: 1530,
         displayName: "앙제 SCO",
         city: "앙제",
         country: "프랑스",
@@ -3464,6 +3544,7 @@ const allTeams = {
         ]
     },
     "모나코": {
+        teamid: 69,
         displayName: "AS 모나코",
         city: "모나코",
         country: "프랑스",
@@ -3506,6 +3587,7 @@ const allTeams = {
         ]
     },
     "트루아": {
+        teamid: 294,
         displayName: "트루아 AC",
         city: "트루아",
         country: "프랑스",
@@ -3547,6 +3629,7 @@ const allTeams = {
         ]
     },
     "로리앙": {
+        teamid: 217,
         displayName: "FC 로리앙",
         city: "로리앙",
         country: "프랑스",
@@ -3585,6 +3668,7 @@ const allTeams = {
         ]
     },
     "르아브르": {
+        teamid: 1738,
         displayName: "르아브르 AC",
         city: "르아브르",
         country: "프랑스",
@@ -3625,6 +3709,7 @@ const allTeams = {
         ]
     },
     "르망": {
+        teamid: 1739,
         displayName: "르망 FC",
         city: "르망",
         country: "프랑스",
@@ -3666,6 +3751,7 @@ const allTeams = {
         ]
     },
     "릴": {
+        teamid: 65,
         displayName: "LOSC 릴",
         city: "릴",
         country: "프랑스",
@@ -3707,6 +3793,7 @@ const allTeams = {
         ]
     },
     "니스": {
+        teamid: 72,
         displayName: "OGC 니스",
         city: "니스",
         country: "프랑스",
@@ -3750,6 +3837,7 @@ const allTeams = {
         ]
     },
     "리옹": {
+        teamid: 66,
         displayName: "올랭피크 리옹",
         city: "리옹",
         country: "프랑스",
@@ -3798,6 +3886,7 @@ const allTeams = {
         ]
     },
     "올랭피크_드_마르세유": {
+        teamid: 219,
         displayName: "올랭피크 드 마르세유",
         city: "마르세유",
         country: "프랑스",
@@ -3837,6 +3926,7 @@ const allTeams = {
         ]
     },
     "파리_FC": {
+        teamid: 111817,
         displayName: "파리 FC",
         city: "파리",
         country: "프랑스",
@@ -3877,6 +3967,7 @@ const allTeams = {
         ]
     },
     "파리_생제르맹": {
+        teamid: 73,
         displayName: "파리 생제르맹",
         city: "파리",
         country: "프랑스",
@@ -3920,6 +4011,7 @@ const allTeams = {
         ]
     },
     "랑스": {
+        teamid: 64,
         displayName: "RC 랑스",
         city: "랑스",
         country: "프랑스",
@@ -3961,6 +4053,7 @@ const allTeams = {
         ]
     },
     "브레스트": {
+        teamid: 378,
         displayName: "스타드 브레스트",
         city: "브레스트",
         country: "프랑스",
@@ -3997,6 +4090,7 @@ const allTeams = {
         ]
     },
     "렌": {
+        teamid: 74,
         displayName: "스타드 렌",
         city: "렌",
         country: "프랑스",
@@ -4036,6 +4130,7 @@ const allTeams = {
         ]
     },
     "스트라스부르": {
+        teamid: 76,
         displayName: "RC 스트라스부르",
         city: "스트라스부르",
         country: "프랑스",
@@ -4085,6 +4180,7 @@ const allTeams = {
         ]
     },
     "툴루즈": {
+        teamid: 1809,
         displayName: "툴루즈 FC",
         city: "툴루즈",
         country: "프랑스",
@@ -4131,6 +4227,7 @@ const allTeams = {
         ]
     },
     "덴하흐": {
+        teamid: 650,
         displayName: "ADO 덴하흐",
         city: "헤이그",
         country: "네덜란드",
@@ -4171,6 +4268,7 @@ const allTeams = {
         ]
     },
     "아약스": {
+        teamid: 245,
         displayName: "AFC 아약스",
         city: "암스테르담",
         country: "네덜란드",
@@ -4217,6 +4315,7 @@ const allTeams = {
         ]
     },
     "AZ_알크마르": {
+        teamid: 1906,
         displayName: "AZ 알크마르",
         city: "알크마르",
         country: "네덜란드",
@@ -4268,6 +4367,7 @@ const allTeams = {
         ]
     },
     "엑셀시오르": {
+        teamid: 1971,
         displayName: "SBV 엑셀시오르",
         city: "로테르담",
         country: "네덜란드",
@@ -4307,6 +4407,7 @@ const allTeams = {
         ]
     },
     "흐로닝언": {
+        teamid: 1915,
         displayName: "FC 흐로닝언",
         city: "흐로닝언",
         country: "네덜란드",
@@ -4344,6 +4445,7 @@ const allTeams = {
         ]
     },
     "트벤테": {
+        teamid: 1908,
         displayName: "FC 트벤테",
         city: "엔스헤데",
         country: "네덜란드",
@@ -4389,6 +4491,7 @@ const allTeams = {
         ]
     },
     "위트레흐트": {
+        teamid: 1903,
         displayName: "FC 위트레흐트",
         city: "위트레흐트",
         country: "네덜란드",
@@ -4433,6 +4536,7 @@ const allTeams = {
         ]
     },
     "페예노르트": {
+        teamid: 246,
         displayName: "페예노르트",
         city: "로테르담",
         country: "네덜란드",
@@ -4481,6 +4585,7 @@ const allTeams = {
         ]
     },
     "포르투나_시타르트": {
+        teamid: 634,
         displayName: "포르투나 시타르트",
         city: "시타르트",
         country: "네덜란드",
@@ -4516,6 +4621,7 @@ const allTeams = {
         ]
     },
     "고_어헤드_이글스": {
+        teamid: 100632,
         displayName: "고 어헤드 이글스",
         city: "데벤터르",
         country: "네덜란드",
@@ -4555,6 +4661,7 @@ const allTeams = {
         ]
     },
     "NEC_네이메헌": {
+        teamid: 1910,
         displayName: "NEC 네이메헌",
         city: "네이메헌",
         country: "네덜란드",
@@ -4603,6 +4710,7 @@ const allTeams = {
         ]
     },
     "PEC_즈볼레": {
+        teamid: 1914,
         displayName: "PEC 즈볼레",
         city: "즈볼레",
         country: "네덜란드",
@@ -4640,6 +4748,7 @@ const allTeams = {
         ]
     },
     "PSV_에인트호번": {
+        teamid: 247,
         displayName: "PSV 에인트호번",
         city: "에인트호번",
         country: "네덜란드",
@@ -4684,6 +4793,7 @@ const allTeams = {
         ]
     },
     "캄뷔르": {
+        teamid: 647,
         displayName: "SC 캄뷔르",
         city: "레이와르던",
         country: "네덜란드",
@@ -4723,6 +4833,7 @@ const allTeams = {
         ]
     },
     "헤이렌베인": {
+        teamid: 1913,
         displayName: "SC 헤이렌베인",
         city: "헤이렌베인",
         country: "네덜란드",
@@ -4759,6 +4870,7 @@ const allTeams = {
         ]
     },
     "텔스타": {
+        teamid: 100638,
         displayName: "SC 텔스타",
         city: "펠선",
         country: "네덜란드",
@@ -4795,6 +4907,7 @@ const allTeams = {
         ]
     },
     "스파르타_로테르담": {
+        teamid: 100646,
         displayName: "스파르타 로테르담",
         city: "로테르담",
         country: "네덜란드",
@@ -4833,6 +4946,7 @@ const allTeams = {
         ]
     },
     "빌럼_II": {
+        teamid: 1907,
         displayName: "빌럼 II",
         city: "틸뷔르흐",
         country: "네덜란드",
@@ -4872,6 +4986,7 @@ const allTeams = {
         ]
     },
     "비제우": {
+        teamid: 112587,
         displayName: "비제우",
         city: "비제우",
         country: "포르투갈",
@@ -4912,6 +5027,7 @@ const allTeams = {
         ]
     },
     "아로카": {
+        teamid: 112513,
         displayName: "FC 아로카",
         city: "아로카",
         country: "포르투갈",
@@ -4951,6 +5067,7 @@ const allTeams = {
         ]
     },
     "카사_피아": {
+        teamid: 114510,
         displayName: "카사 피아 AC",
         city: "리스본",
         country: "포르투갈",
@@ -4993,6 +5110,7 @@ const allTeams = {
         ]
     },
     "에스토릴": {
+        teamid: 10020,
         displayName: "에스토릴 프라이아",
         city: "에스토릴",
         country: "포르투갈",
@@ -5032,6 +5150,7 @@ const allTeams = {
         ]
     },
     "에스트렐라": {
+        teamid: 718,
         displayName: "에스트렐라 다 아마도라",
         city: "아마도라",
         country: "포르투갈",
@@ -5073,6 +5192,7 @@ const allTeams = {
         ]
     },
     "알베르카": {
+        teamid: 717,
         displayName: "FC 알베르카",
         city: "알베르카",
         country: "포르투갈",
@@ -5117,6 +5237,7 @@ const allTeams = {
         ]
     },
     "파말리캉": {
+        teamid: 112809,
         displayName: "FC 파말리캉",
         city: "파말리캉",
         country: "포르투갈",
@@ -5158,6 +5279,7 @@ const allTeams = {
         ]
     },
     "FC_포르투": {
+        teamid: 236,
         displayName: "FC 포르투",
         city: "포르투",
         country: "포르투갈",
@@ -5201,6 +5323,7 @@ const allTeams = {
         ]
     },
     "질_비센테": {
+        teamid: 1888,
         displayName: "질 비센테 FC",
         city: "바르셀루스",
         country: "포르투갈",
@@ -5242,6 +5365,7 @@ const allTeams = {
         ]
     },
     "마리티무": {
+        teamid: 1893,
         displayName: "CS 마리티무",
         city: "푼샬",
         country: "포르투갈",
@@ -5282,6 +5406,7 @@ const allTeams = {
         ]
     },
     "모레이렌스": {
+        teamid: 1900,
         displayName: "모레이렌스 FC",
         city: "모레이라드코네고스",
         country: "포르투갈",
@@ -5311,6 +5436,7 @@ const allTeams = {
         ]
     },
     "나시오날": {
+        teamid: 1891,
         displayName: "CD 나시오날",
         city: "푼샬",
         country: "포르투갈",
@@ -5381,6 +5507,7 @@ const allTeams = {
         ]
     },
     "히우_아브": {
+        teamid: 744,
         displayName: "히우 아브 FC",
         city: "빌라두콘드",
         country: "포르투갈",
@@ -5420,6 +5547,7 @@ const allTeams = {
         ]
     },
     "산타_클라라": {
+        teamid: 1438,
         displayName: "CD 산타 클라라",
         city: "폰타델가다",
         country: "포르투갈",
@@ -5461,6 +5589,7 @@ const allTeams = {
         ]
     },
     "SC_브라가": {
+        teamid: 1896,
         displayName: "SC 브라가",
         city: "브라가",
         country: "포르투갈",
@@ -5504,6 +5633,7 @@ const allTeams = {
         ]
     },
     "벤피카": {
+        teamid: 234,
         displayName: "SL 벤피카",
         city: "리스본",
         country: "포르투갈",
@@ -5548,6 +5678,7 @@ const allTeams = {
         ]
     },
     "스포르팅_CP": {
+        teamid: 237,
         displayName: "스포르팅 CP",
         city: "리스본",
         country: "포르투갈",
@@ -5591,6 +5722,7 @@ const allTeams = {
         ]
     },
     "비토리아_기마랑이스": {
+        teamid: 1887,
         displayName: "비토리아 기마랑이스",
         city: "기마랑이스",
         country: "포르투갈",
@@ -5635,6 +5767,7 @@ const allTeams = {
         ]
     },
     "알라냐스포르": {
+        teamid: 113142,
         displayName: "알라냐스포르",
         city: "알라냐",
         country: "튀르키예",
@@ -5676,6 +5809,7 @@ const allTeams = {
         ]
     },
     "아메드": {
+        teamid: 132392,
         displayName: "아메드 SFK",
         city: "디야르바키르",
         country: "튀르키예",
@@ -5715,6 +5849,7 @@ const allTeams = {
         ]
     },
     "바샥셰히르": {
+        teamid: 101014,
         displayName: "이스탄불 바샥셰히르",
         city: "이스탄불",
         country: "튀르키예",
@@ -5756,6 +5891,7 @@ const allTeams = {
         ]
     },
     "베식타스": {
+        teamid: 327,
         displayName: "베식타스 JK",
         city: "이스탄불",
         country: "튀르키예",
@@ -5805,6 +5941,7 @@ const allTeams = {
         ]
     },
     "리제스포르": {
+        teamid: 101037,
         displayName: "차이쿠르 리제스포르",
         city: "리제",
         country: "튀르키예",
@@ -5844,6 +5981,7 @@ const allTeams = {
         ]
     },
     "초룸_FK": {
+        teamid: 132868,
         displayName: "초룸 FK",
         city: "초룸",
         country: "튀르키예",
@@ -5880,6 +6018,7 @@ const allTeams = {
         ]
     },
     "에르주룸스포르": {
+        teamid: 749,
         displayName: "에르주룸스포르 FK",
         city: "에르주룸",
         country: "튀르키예",
@@ -5919,6 +6058,7 @@ const allTeams = {
         ]
     },
     "에위프스포르": {
+        teamid: 131174,
         displayName: "에위프스포르",
         city: "이스탄불",
         country: "튀르키예",
@@ -5959,6 +6099,7 @@ const allTeams = {
         ]
     },
     "페네르바체": {
+        teamid: 326,
         displayName: "페네르바체 SK",
         city: "이스탄불",
         country: "튀르키예",
@@ -6006,6 +6147,7 @@ const allTeams = {
         ]
     },
     "갈라타사라이": {
+        teamid: 325,
         displayName: "갈라타사라이 SK",
         city: "이스탄불",
         country: "튀르키예",
@@ -6046,6 +6188,7 @@ const allTeams = {
         ]
     },
     "가지안테프": {
+        teamid: 110776,
         displayName: "가지안테프 FK",
         city: "가지안테프",
         country: "튀르키예",
@@ -6081,6 +6224,7 @@ const allTeams = {
         ]
     },
     "겐츨레르비를리이": {
+        teamid: 101025,
         displayName: "겐츨레르비를리이 SK",
         city: "앙카라",
         country: "튀르키예",
@@ -6121,6 +6265,7 @@ const allTeams = {
         ]
     },
     "괴즈테페": {
+        teamid: 101026,
         displayName: "괴즈테페 SK",
         city: "리즈미르",
         country: "튀르키예",
@@ -6159,6 +6304,7 @@ const allTeams = {
         ]
     },
     "카슴파샤": {
+        teamid: 111339,
         displayName: "카슴파샤 SK",
         city: "이스탄불",
         country: "튀르키예",
@@ -6199,6 +6345,7 @@ const allTeams = {
         ]
     },
     "코자엘리스포르": {
+        teamid: 101032,
         displayName: "코자엘리스포르",
         city: "이즈미트",
         country: "튀르키예",
@@ -6240,6 +6387,7 @@ const allTeams = {
         ]
     },
     "코냐스포르": {
+        teamid: 101033,
         displayName: "코냐스포르",
         city: "코냐",
         country: "튀르키예",
@@ -6273,6 +6421,7 @@ const allTeams = {
         ]
     },
     "삼순스포르": {
+        teamid: 748,
         displayName: "삼순스포르",
         city: "삼순",
         country: "튀르키예",
@@ -6317,6 +6466,7 @@ const allTeams = {
         ]
     },
     "트라브존스포르": {
+        teamid: 436,
         displayName: "트라브존스포르",
         city: "트라브존",
         country: "튀르키예",
@@ -6362,6 +6512,7 @@ const allTeams = {
         ]
     },
     "부천_FC": {
+        teamid: 112554,
         displayName: "부천 FC 1995",
         city: "부천",
         country: "대한민국",
@@ -6409,6 +6560,7 @@ const allTeams = {
         ]
     },
     "대전_하나": {
+        teamid: 980,
         displayName: "대전 하나 시티즌",
         city: "대전",
         country: "대한민국",
@@ -6459,6 +6611,7 @@ const allTeams = {
         ]
     },
     "FC_안양": {
+        teamid: 112555,
         displayName: "FC 안양",
         city: "안양",
         country: "대한민국",
@@ -6506,6 +6659,7 @@ const allTeams = {
         ]
     },
     "FC_서울": {
+        teamid: 982,
         displayName: "FC 서울",
         city: "서울",
         country: "대한민국",
@@ -6549,6 +6703,7 @@ const allTeams = {
         ]
     },
     "강원_FC": {
+        teamid: 112115,
         displayName: "강원 FC",
         city: "강원",
         country: "대한민국",
@@ -6601,6 +6756,7 @@ const allTeams = {
         ]
     },
     "김천_상무": {
+        teamid: 2055,
         displayName: "김천 상무",
         city: "김천",
         country: "대한민국",
@@ -6653,6 +6809,7 @@ const allTeams = {
         ]
     },
     "광주_FC": {
+        teamid: 112258,
         displayName: "광주 FC",
         city: "광주",
         country: "대한민국",
@@ -6701,6 +6858,7 @@ const allTeams = {
         ]
     },
     "인천_유나이티드": {
+        teamid: 110765,
         displayName: "인천 유나이티드",
         city: "인천",
         country: "대한민국",
@@ -6746,6 +6904,7 @@ const allTeams = {
         ]
     },
     "제주_유나이티드": {
+        teamid: 1478,
         displayName: "제주 유나이티드",
         city: "제주",
         country: "대한민국",
@@ -6787,6 +6946,7 @@ const allTeams = {
         ]
     },
     "전북_현대": {
+        teamid: 1477,
         displayName: "전북 현대 모터스",
         city: "전북",
         country: "대한민국",
@@ -6837,6 +6997,7 @@ const allTeams = {
         ]
     },
     "포항_스틸러스": {
+        teamid: 1474,
         displayName: "포항 스틸러스",
         city: "포항",
         country: "대한민국",
@@ -6885,6 +7046,7 @@ const allTeams = {
         ]
     },
     "울산_현대": {
+        teamid: 1473,
         displayName: "울산 HD",
         city: "울산",
         country: "대한민국",

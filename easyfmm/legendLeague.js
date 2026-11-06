@@ -359,31 +359,22 @@ const LegendLeagueManager = {
     },
 
     createLegendLeagueButton() {
-        if (document.getElementById('legendLeagueBtn')) return;
+        const existingBtn = document.getElementById('legendLeagueBtn');
+        if (existingBtn) {
+            existingBtn.onclick = () => this.startLegendLeague();
+            return;
+        }
 
         const btn = document.createElement('button');
         btn.id = 'legendLeagueBtn';
         btn.className = 'btn';
+        btn.type = 'button';
+        btn.title = '레전드 슈퍼 리그 시작';
         btn.innerHTML = `${typeof iconSVG === 'function' ? iconSVG('crown') : ''} <span>레전드 리그</span>`;
-        btn.style.cssText = `position: fixed; 
-            top: 70px; 
-            left: 20px; 
-            z-index: 100000; 
-            background: linear-gradient(45deg, #f1c40f, #e67e22); 
-            color: white; 
-            padding: 10px 20px; 
-            border: none; 
-            border-radius: 5px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3); 
-            cursor: pointer; 
-            font-weight: bold;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        `;
         btn.onclick = () => this.startLegendLeague();
-        document.body.appendChild(btn);
+
+        const container = document.querySelector('.team-selection-extra-modes') || document.getElementById('teamSelection') || document.body;
+        container.appendChild(btn);
     },
 
     startLegendLeague() {

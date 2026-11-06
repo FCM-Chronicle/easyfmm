@@ -1,16 +1,36 @@
 // leagueManager.js - 실제 축구 9개국 1부 리그 관리 시스템
 
 const LEAGUES_CONFIG = {
-    premier_league: { id: "premier_league", name: "잉글랜드 프리미어리그", country: "잉글랜드", flag: "🇬🇧", rounds: 38 },
-    laliga: { id: "laliga", name: "스페인 라리가", country: "스페인", flag: "🇪🇸", rounds: 38 },
-    bundesliga: { id: "bundesliga", name: "독일 분데스리가", country: "독일", flag: "🇩🇪", rounds: 34 },
-    serie_a: { id: "serie_a", name: "이탈리아 세리에 A", country: "이탈리아", flag: "🇮🇹", rounds: 38 },
-    ligue_1: { id: "ligue_1", name: "프랑스 리그 1", country: "프랑스", flag: "🇫🇷", rounds: 34 },
-    eredivisie: { id: "eredivisie", name: "네덜란드 에레디비시", country: "네덜란드", flag: "🇳🇱", rounds: 34 },
-    liga_portugal: { id: "liga_portugal", name: "포르투갈 프리메이라리가", country: "포르투갈", flag: "🇵🇹", rounds: 34 },
-    super_lig: { id: "super_lig", name: "튀르키예 쉬페르리그", country: "튀르키예", flag: "🇹🇷", rounds: 34 },
-    kleague_1: { id: "kleague_1", name: "대한민국 K리그 1", country: "대한민국", flag: "🇰🇷", rounds: 33 }
+    premier_league: { id: "premier_league", name: "잉글랜드 프리미어리그", country: "잉글랜드", flag: "🇬🇧", rounds: 38, leagueId: 13, logo: "assets/league_logos/premier_league.png" },
+    laliga: { id: "laliga", name: "스페인 라리가", country: "스페인", flag: "🇪🇸", rounds: 38, leagueId: 53, logo: "assets/league_logos/laliga.png" },
+    bundesliga: { id: "bundesliga", name: "독일 분데스리가", country: "독일", flag: "🇩🇪", rounds: 34, leagueId: 19, logo: "assets/league_logos/bundesliga.png" },
+    serie_a: { id: "serie_a", name: "이탈리아 세리에 A", country: "이탈리아", flag: "🇮🇹", rounds: 38, leagueId: 31, logo: "assets/league_logos/serie_a.png" },
+    ligue_1: { id: "ligue_1", name: "프랑스 리그 1", country: "프랑스", flag: "🇫🇷", rounds: 34, leagueId: 16, logo: "assets/league_logos/ligue_1.png" },
+    eredivisie: { id: "eredivisie", name: "네덜란드 에레디비시", country: "네덜란드", flag: "🇳🇱", rounds: 34, leagueId: 10, logo: "assets/league_logos/eredivisie.png" },
+    liga_portugal: { id: "liga_portugal", name: "포르투갈 프리메이라리가", country: "포르투갈", flag: "🇵🇹", rounds: 34, leagueId: 308, logo: "assets/league_logos/liga_portugal.png" },
+    super_lig: { id: "super_lig", name: "튀르키예 쉬페르리그", country: "튀르키예", flag: "🇹🇷", rounds: 34, leagueId: 68, logo: "assets/league_logos/super_lig.png" },
+    kleague_1: { id: "kleague_1", name: "대한민국 K리그 1", country: "대한민국", flag: "🇰🇷", rounds: 33, leagueId: 83, logo: "assets/league_logos/kleague_1.png" }
 };
+
+// 리그 로고 HTML 생성 헬퍼 함수
+function getLeagueLogoHTML(leagueId, size = 24) {
+    const cfg = LEAGUES_CONFIG[leagueId];
+    if (!cfg || !cfg.logo) return '';
+    return `<img src="${cfg.logo}" class="league-logo" alt="${cfg.name}" style="width:${size}px; height:${size}px; object-fit:contain; vertical-align:middle; display:inline-block;" onerror="this.style.display='none'">`;
+}
+
+// 리그 로고 DOM 엘리먼트 생성 헬퍼 함수
+function createLeagueLogoElement(leagueId, size = 24) {
+    const cfg = LEAGUES_CONFIG[leagueId];
+    if (!cfg || !cfg.logo) return document.createDocumentFragment();
+    const img = document.createElement('img');
+    img.src = cfg.logo;
+    img.className = 'league-logo';
+    img.alt = cfg.name;
+    img.style.cssText = `width:${size}px; height:${size}px; object-fit:contain; vertical-align:middle; display:inline-block;`;
+    img.onerror = function() { this.style.display = 'none'; };
+    return img;
+}
 
 const LeagueManager = {
     activeViewLeague: null,
@@ -223,8 +243,20 @@ const LeagueManager = {
             const btn = document.createElement('button');
             const isActive = (this.activeViewLeague === lId);
             btn.className = `btn btn-sm ${isActive ? 'primary' : ''}`;
-            btn.style.cssText = `white-space: nowrap; font-size: 0.85rem; padding: 6px 12px; border-radius: 6px; cursor: pointer; ${isActive ? 'background: #ffd700; color: #000; font-weight: bold;' : 'background: rgba(255,255,255,0.08); color: #ccc;'}`;
-            btn.textContent = `${cfg.flag} ${cfg.name.split(' ')[1] || cfg.name}`;
+            btn.style.cssText = `white-space: nowrap; font-size: 0.85rem; padding: 6px 12px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; ${isActive ? 'background: #ffd700; color: #000; font-weight: bold;' : 'background: rgba(255,255,255,0.08); color: #ccc;'}`;
+
+            if (cfg.logo) {
+                const logoImg = document.createElement('img');
+                logoImg.src = cfg.logo;
+                logoImg.alt = cfg.name;
+                logoImg.style.cssText = 'width: 18px; height: 18px; object-fit: contain;';
+                logoImg.onerror = function() { this.style.display = 'none'; };
+                btn.appendChild(logoImg);
+            }
+
+            const labelSpan = document.createElement('span');
+            labelSpan.textContent = cfg.name.split(' ')[1] || cfg.name;
+            btn.appendChild(labelSpan);
 
             btn.onclick = () => {
                 this.activeViewLeague = lId;

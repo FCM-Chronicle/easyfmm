@@ -7966,26 +7966,89 @@ body {
     color: #ffffff;
 }
 
-/* 시작 화면 좌상단 모드 버튼 (월드컵 / 레전드 리그) */
+/* 팀 선택 화면 상단 헤더 및 스페셜 모드 버튼 (월드컵 / 레전드 리그) */
+.team-selection-header {
+    max-width: 1400px;
+    margin: 0 auto 16px;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 16px;
+}
+
+.team-selection-header-left {
+    justify-self: start;
+}
+
+.team-selection-header-center {
+    text-align: center;
+}
+
+.team-selection-extra-modes {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-self: end;
+}
+
 #worldCupBtn:not(#_),
 #legendLeagueBtn:not(#_) {
+    position: static !important;
+    top: auto !important;
+    left: auto !important;
+    z-index: auto !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 7px !important;
     background: #1b2d4b !important;
     background-image: none !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
     border-radius: 7px !important;
     box-shadow: none !important;
     text-shadow: none !important;
     color: #e2edfc !important;
     font-size: 0.86rem !important;
     font-weight: 600 !important;
-    min-height: 36px !important;
+    min-height: 38px !important;
     padding: 0 14px !important;
+    cursor: pointer !important;
+    transition: all 0.15s ease !important;
 }
 
-#worldCupBtn:not(#_):hover,
+#worldCupBtn:not(#_) .ui-icon,
+#worldCupBtn:not(#_) svg {
+    color: #f87171 !important;
+}
+
+#legendLeagueBtn:not(#_) .ui-icon,
+#legendLeagueBtn:not(#_) svg {
+    color: #fbbf24 !important;
+}
+
+#worldCupBtn:not(#_):hover {
+    background: #274068 !important;
+    border-color: rgba(248, 113, 113, 0.45) !important;
+    color: #ffffff !important;
+}
+
 #legendLeagueBtn:not(#_):hover {
     background: #274068 !important;
+    border-color: rgba(251, 191, 36, 0.45) !important;
     color: #ffffff !important;
+}
+
+@media (max-width: 800px) {
+    .team-selection-header {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        gap: 12px !important;
+    }
+    .team-selection-header-left,
+    .team-selection-extra-modes {
+        justify-self: center !important;
+    }
 }
 
 /* 사이드바 메뉴 버튼 디테일 개선 */
