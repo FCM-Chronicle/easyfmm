@@ -627,17 +627,25 @@ class RealSoccerEngine {
                 sp.detailPosition = ((p.detailPosition || p.position) || '').toUpperCase();
                 sp.otherPositions = p.otherPositions || [];
 
-                let resolvedPos = linePos;
-                if (linePos === 'AM') {
-                    const dp = sp.detailPosition;
-                    resolvedPos = ['LW', 'RW', 'FW', 'ST', 'CF'].includes(dp) ? 'FW' : 'MF';
+                let resolvedPos = 'MF';
+                if (linePos === 'GK') {
+                    resolvedPos = 'GK';
+                } else if (linePos === 'DF') {
+                    resolvedPos = 'DF';
                 } else if (linePos === 'DM') {
                     const dp = sp.detailPosition;
                     resolvedPos = ['LWB', 'RWB', 'DF', 'CB', 'LB', 'RB'].includes(dp) ? 'DF' : 'MF';
-                } else if (linePos === 'TOP') {
+                } else if (linePos === 'CM') {
+                    resolvedPos = 'MF';
+                } else if (linePos === 'AM') {
+                    const dp = sp.detailPosition;
+                    resolvedPos = ['LW', 'RW', 'FW', 'ST', 'CF'].includes(dp) ? 'FW' : 'MF';
+                } else if (linePos === 'TOP' || linePos === 'FW') {
                     resolvedPos = 'FW';
+                } else if (['GK', 'DF', 'MF', 'FW'].includes(p.position)) {
+                    resolvedPos = p.position;
                 }
-                if (resolvedPos) sp.position = resolvedPos; // 공격수 등 실제 출전 라인 포지션 반영
+                sp.position = resolvedPos; // 모든 라인 선수의 포지션을 GK, DF, MF, FW 4대 핵심 포지션으로 완전 정규화
                 sp.baseX = baseX;
                 sp.slotY = this._calcLineSlotY(linePos, sortedList, i, p);
                 sp.baseY = sp.slotY;
@@ -652,17 +660,17 @@ class RealSoccerEngine {
             if (teamId === 'home') {
                 if (lines.GK && lines.GK.length > 0) setupLine(lines.GK, 5, 'GK');
                 if (lines.DF && lines.DF.length > 0) setupLine(lines.DF, 22, 'DF');
-                if (lines.DM && lines.DM.length > 0) setupLine(lines.DM, 36, 'DM');
-                if (lines.CM && lines.CM.length > 0) setupLine(lines.CM, 50, 'CM');
-                if (lines.AM && lines.AM.length > 0) setupLine(lines.AM, 64, 'AM');
-                if (lines.TOP && lines.TOP.length > 0) setupLine(lines.TOP, 76, 'TOP');
+                if (lines.DM && lines.DM.length > 0) setupLine(lines.DM, 34, 'DM');
+                if (lines.CM && lines.CM.length > 0) setupLine(lines.CM, 44, 'CM');
+                if (lines.AM && lines.AM.length > 0) setupLine(lines.AM, 58, 'AM');
+                if (lines.TOP && lines.TOP.length > 0) setupLine(lines.TOP, 72, 'TOP');
             } else {
                 if (lines.GK && lines.GK.length > 0) setupLine(lines.GK, 95, 'GK');
                 if (lines.DF && lines.DF.length > 0) setupLine(lines.DF, 78, 'DF');
-                if (lines.DM && lines.DM.length > 0) setupLine(lines.DM, 64, 'DM');
-                if (lines.CM && lines.CM.length > 0) setupLine(lines.CM, 50, 'CM');
-                if (lines.AM && lines.AM.length > 0) setupLine(lines.AM, 36, 'AM');
-                if (lines.TOP && lines.TOP.length > 0) setupLine(lines.TOP, 24, 'TOP');
+                if (lines.DM && lines.DM.length > 0) setupLine(lines.DM, 66, 'DM');
+                if (lines.CM && lines.CM.length > 0) setupLine(lines.CM, 56, 'CM');
+                if (lines.AM && lines.AM.length > 0) setupLine(lines.AM, 42, 'AM');
+                if (lines.TOP && lines.TOP.length > 0) setupLine(lines.TOP, 28, 'TOP');
             }
         } else {
             if (teamId === 'home') {
@@ -848,11 +856,13 @@ class RealSoccerEngine {
             p.vx = 0; p.vy = 0;
             p.y = p.slotY || p.baseY;  // Use SLOT! not arbitrary baseY!
             if (p.teamId === 'home') {
-                const mx = p.position === 'FW' ? 48 : (p.position === 'MF' ? 42 : 50);
-                p.x = Math.min(p.baseX, mx);
+                if (p.position === 'FW') p.x = Math.min(p.baseX, 46);
+                else if (p.position === 'MF') p.x = Math.min(p.baseX, 38);
+                else p.x = Math.min(p.baseX, 22);
             } else {
-                const mn = p.position === 'FW' ? 52 : (p.position === 'MF' ? 58 : 50);
-                p.x = Math.max(p.baseX, mn);
+                if (p.position === 'FW') p.x = Math.max(p.baseX, 54);
+                else if (p.position === 'MF') p.x = Math.max(p.baseX, 62);
+                else p.x = Math.max(p.baseX, 78);
             }
         });
     }
@@ -1194,24 +1204,27 @@ class RealSoccerEngine {
                 ? clamp(ballX > 50 ? 46 + (ballX - 50) * 0.10 : 36 + ballX * 0.20, 32, 49)
                 : clamp(ballX < 50 ? 54 - (50 - ballX) * 0.10 : 64 - (100 - ballX) * 0.20, 51, 68);
         } else {
-            // [FLR 수비 블록 이식]
-            // CB 라인: 상대 공격이 박스(32야드 이내)로 접근 시 8~14선까지 깊숙이 내려앉아 골문을 방어하고 오프사이드 라인을 자연스럽게 확보
+            // [하이 프레싱 & 다이내믹 수비 블록: 상대 빌드업 시 라인을 올려 전방 압박, 위기 시 콤팩트 후퇴]
             if (isHome) {
                 if (threatX < 32) {
                     dfX = clamp(threatX - 4.5, 8, 22);
+                    mfX = clamp(dfX + 8, 16, 32);
+                    fwX = clamp(mfX + 18, 36, 55);
                 } else {
-                    dfX = clamp(14 + lineBias + threatX * 0.22, 14, 38);
+                    dfX = clamp(16 + lineBias + (threatX - 30) * 0.35, 16, 45);
+                    mfX = clamp(dfX + 10, 26, 62);
+                    fwX = clamp(Math.max(mfX + 12, threatX - 6), 40, 85);
                 }
-                mfX = clamp(dfX + (threatX < 35 ? 7 : 11), 18, 46);
-                fwX = clamp(Math.max(52, mfX + 22), 52, 70);
             } else {
                 if (threatX > 68) {
-                    dfX = clamp(100 - ((100 - threatX) - 4.5), 78, 92);
+                    dfX = clamp(threatX + 4.5, 78, 92);
+                    mfX = clamp(dfX - 8, 68, 84);
+                    fwX = clamp(mfX - 18, 45, 64);
                 } else {
-                    dfX = clamp(100 - (14 + lineBias + (100 - threatX) * 0.22), 62, 86);
+                    dfX = clamp(84 - lineBias - (70 - threatX) * 0.35, 55, 84);
+                    mfX = clamp(dfX - 10, 38, 74);
+                    fwX = clamp(Math.min(mfX - 12, threatX + 6), 15, 60);
                 }
-                mfX = clamp(dfX - (threatX > 65 ? 7 : 11), 54, 82);
-                fwX = clamp(Math.min(48, mfX - 22), 30, 48);
             }
         }
 
@@ -3097,18 +3110,17 @@ class RealSoccerEngine {
             p.burstTimer = 0; p._fwMode = 'shadow';
             const isCentralST = ['ST', 'CF', 'AF', 'P', 'TM', 'DLF'].includes(p.role);
             const baseFWX = isCentralST ? (lines.fwX + fwd * 2) : lines.fwX;
-            let tx = isHome ? clamp(baseFWX, 48, 65) : clamp(baseFWX, 35, 52);
+            let tx = isHome ? clamp(baseFWX, 20, 90) : clamp(baseFWX, 10, 80);
             let ty = p.slotY;
-            let s = 0.20;
+            let s = 0.28 * clamp(sf, 0.8, 1.5);
 
-            const ballInOppHalf = isHome ? ballX > 40 : ballX < 60;
-            // 전담 압박자이거나 볼과 가까운 공격수(dBall < 22)는 전방 압박으로 공을 적극 압박!
-            if ((pressIsMe || dBall < 22) && ballInOppHalf) {
+            // 전담 압박자이거나 볼과 가까운 공격수(dBall < 26)는 전방 압박으로 공을 적극 압박!
+            if (pressIsMe || dBall < 26) {
                 tx = ballX;
                 ty = ballY;
-                s = 0.55 * clamp(sf, 0.8, 1.5);
+                s = 0.65 * clamp(sf, 0.8, 1.6);
             } else {
-                ty += clamp((ballY - ty) * 0.35, -12, 12);
+                ty += clamp((ballY - ty) * 0.45, -15, 15);
             }
             this._physicsStep(p, tx, ty, s);
             return;
@@ -3121,19 +3133,18 @@ class RealSoccerEngine {
             if (isDM) tx -= fwd * 3;
             let ty = p.slotY;
 
-            const ballInOurHalf = isHome ? ballX < 55 : ballX > 45;
-            let ms = (ballInOurHalf ? 0.65 : 0.45) * clamp(sf, 0.8, 1.6);
-
-            // 전담 압박자이거나 볼이 사정거리(dBall < 20) 내에 진입하면 적극적으로 압박 대시!
-            if (pressIsMe || (dBall < 20 && ballInOurHalf)) {
+            // 전담 압박자이거나 볼이 사정거리(dBall < 24) 내에 진입하면 어느 진영이든 적극적으로 압박 대시!
+            if (pressIsMe || dBall < 24) {
                 tx = ballX;
                 ty = ballY;
-                ms = 0.70 * clamp(sf, 0.8, 1.5);
+                let ms = 0.72 * clamp(sf, 0.8, 1.6);
+                this._physicsStep(p, clamp(tx, 4, 96), clamp(ty, 4, 96), ms);
             } else {
                 // 볼 위치에 맞춰 패스 길목 차단 (좌우 압축)
-                ty += clamp((ballY - ty) * 0.45, -12, 12);
+                ty += clamp((ballY - ty) * 0.45, -15, 15);
+                let ms = 0.50 * clamp(sf, 0.8, 1.5);
+                this._physicsStep(p, clamp(tx, 4, 96), clamp(ty, 4, 96), ms);
             }
-            this._physicsStep(p, clamp(tx, 4, 96), clamp(ty, 4, 96), ms);
             return;
         }
 
