@@ -1206,24 +1206,24 @@ class RealSoccerEngine {
         } else {
             // [하이 프레싱 & 다이내믹 수비 블록: 상대 빌드업 시 라인을 올려 전방 압박, 위기 시 콤팩트 후퇴]
             if (isHome) {
-                if (threatX < 32) {
+                if (threatX < 34) {
                     dfX = clamp(threatX - 4.5, 8, 22);
-                    mfX = clamp(dfX + 8, 16, 32);
-                    fwX = clamp(mfX + 18, 36, 55);
+                    mfX = clamp(dfX + 6.5, 14, 28);
+                    fwX = clamp(mfX + 16, 32, 50);
                 } else {
-                    dfX = clamp(16 + lineBias + (threatX - 30) * 0.35, 16, 45);
-                    mfX = clamp(dfX + 10, 26, 62);
-                    fwX = clamp(Math.max(mfX + 12, threatX - 6), 40, 85);
+                    dfX = clamp(15 + lineBias + (threatX - 30) * 0.32, 15, 42);
+                    mfX = clamp(dfX + 8.5, 22, 55);
+                    fwX = clamp(Math.max(mfX + 14, threatX - 4), 38, 80);
                 }
             } else {
-                if (threatX > 68) {
+                if (threatX > 66) {
                     dfX = clamp(threatX + 4.5, 78, 92);
-                    mfX = clamp(dfX - 8, 68, 84);
-                    fwX = clamp(mfX - 18, 45, 64);
+                    mfX = clamp(dfX - 6.5, 72, 86);
+                    fwX = clamp(mfX - 16, 50, 68);
                 } else {
-                    dfX = clamp(84 - lineBias - (70 - threatX) * 0.35, 55, 84);
-                    mfX = clamp(dfX - 10, 38, 74);
-                    fwX = clamp(Math.min(mfX - 12, threatX + 6), 15, 60);
+                    dfX = clamp(85 - lineBias - (70 - threatX) * 0.32, 58, 85);
+                    mfX = clamp(dfX - 8.5, 45, 78);
+                    fwX = clamp(Math.min(mfX - 14, threatX + 4), 20, 62);
                 }
             }
         }
@@ -3115,46 +3115,75 @@ class RealSoccerEngine {
             if (canTackle && this._attemptTackle(p, owner)) return;
         }
 
-        // 1) FW DEFENSE (공격수 수비 시 적극적 전방 압박 및 볼 탈환)
+        // 1) FW DEFENSE (공격수 수비 시 적극적 전방 압박 및 백프레싱 가담)
         if (p.position === 'FW') {
             p.burstTimer = 0; p._fwMode = 'shadow';
             const isCentralST = ['ST', 'CF', 'AF', 'P', 'TM', 'DLF'].includes(p.role);
+            const inOurHalf = isHome ? ballX < 50 : ballX > 50;
             const baseFWX = isCentralST ? (lines.fwX + fwd * 2) : lines.fwX;
             let tx = isHome ? clamp(baseFWX, 20, 90) : clamp(baseFWX, 10, 80);
+            if (inOurHalf) {
+                // 상대가 우리 진영으로 들어왔을 때 하프라인 근처까지 내려와 미드필더 지원 및 백프레싱
+                tx = isHome ? Math.min(tx, 50) : Math.max(tx, 50);
+            }
             let ty = p.slotY;
-            let s = 0.35 * clamp(sf, 0.8, 1.5);
+            let s = 0.38 * clamp(sf, 0.8, 1.5);
 
             // 전담 압박자이거나 볼과 가까운 공격수(dBall < 30)는 전방 압박으로 공을 적극 압박!
             if (pressIsMe || dBall < 30) {
                 tx = ballX;
                 ty = ballY;
-                s = 0.72 * clamp(sf, 0.8, 1.6);
+                s = 0.74 * clamp(sf, 0.8, 1.6);
             } else {
-                tx = lines.fwX + (ballX - lines.fwX) * 0.25;
+                tx = tx + (ballX - tx) * 0.28;
                 ty += clamp((ballY - ty) * 0.50, -18, 18);
             }
             this._physicsStep(p, tx, ty, s);
             return;
         }
 
-        // 2) MF DEFENSE (미드필더: 박스 앞 2선 장벽 형성 + 전방/측면 유기적 적극 압박)
+        // 2) MF DEFENSE (미드필더: 박스 앞 2선 장벽 형성 + 전방/측면 유기적 적극 압박 + 볼 뒤 복귀 전력질주)
         if (p.position === 'MF') {
-            const isDM = ['DM', 'BWM', 'A', 'HB', 'DLP'].includes(p.role);
-            let tx = lines.mfX;
-            if (isDM) tx -= fwd * 3;
+            const isDM = ['DM', 'BWM', 'A', 'HB', 'DLP'].includes(p.role) || ['CDM', 'DM'].includes(p.detailPosition);
+            const isAM = ['AP', 'AM', 'SS'].includes(p.role) || ['CAM', 'AM'].includes(p.detailPosition);
+            const inOurHalf = isHome ? ballX < 50 : ballX > 50;
+
+            // [미드필더 수비 위치 기본선: 상대 공격 전개 시 백라인 앞 2선(Zone 14)으로 깊숙이 하강 가담]
+            let baseLineX;
+            if (inOwnThird) {
+                // 페널티 박스 위기 시 D-아크 앞 및 박스 라인 밀착 수비
+                baseLineX = isDM ? (lines.dfX + fwd * 3.5) : (lines.dfX + fwd * (isAM ? 7.5 : 5.5));
+            } else if (inOurHalf) {
+                // 우리 진영 빌드업 수비 시 백라인 바로 앞 2선 블록 형성
+                baseLineX = isDM ? (lines.dfX + fwd * 5.0) : (lines.dfX + fwd * (isAM ? 9.5 : 7.0));
+            } else {
+                baseLineX = isDM ? (lines.mfX - fwd * 3.0) : lines.mfX;
+            }
+
+            let tx = baseLineX;
             let ty = p.slotY;
 
-            // 전담 압박자이거나 볼이 사정거리(dBall < 28) 내에 진입하면 어느 진영이든 적극적으로 압박 대시!
-            if (pressIsMe || dBall < 28) {
+            // 볼보다 앞서서 공격 진영에 처져 있는 경우: 즉시 전력질주로 볼 뒤로 백러닝 복귀!
+            const caughtBehindBall = isHome ? (p.x > ballX + 2) : (p.x < ballX - 2);
+
+            // [적극적 수비 압박 & 볼 탈환]
+            // 전담 압박자이거나, 볼이 사정거리(dBall < 30) 내에 진입하거나, 박스 근처(inOurHalf & dBall < 22)일 때 맹렬히 압박!
+            if (pressIsMe || dBall < 30 || (inOurHalf && dBall < 22)) {
                 tx = ballX;
                 ty = ballY;
-                let ms = 0.78 * clamp(sf, 0.8, 1.6);
+                let ms = 0.85 * clamp(sf, 0.85, 1.7);
+                this._physicsStep(p, clamp(tx, 4, 96), clamp(ty, 4, 96), ms);
+            } else if (caughtBehindBall) {
+                // 수비 복귀 전력 질주 (Sprint back into defensive block)
+                tx = baseLineX;
+                ty += clamp((ballY - ty) * 0.40, -14, 14);
+                let ms = 0.88 * clamp(sf, 0.85, 1.75);
                 this._physicsStep(p, clamp(tx, 4, 96), clamp(ty, 4, 96), ms);
             } else {
                 // 볼 위치에 맞춰 전후좌우 능동적 간격 축소 및 패스 길목 차단
-                tx = lines.mfX + (ballX - lines.mfX) * 0.35;
+                tx = baseLineX + (ballX - baseLineX) * 0.35;
                 ty += clamp((ballY - ty) * 0.55, -18, 18);
-                let ms = 0.55 * clamp(sf, 0.8, 1.5);
+                let ms = (inOurHalf ? 0.70 : 0.55) * clamp(sf, 0.8, 1.5);
                 this._physicsStep(p, clamp(tx, 4, 96), clamp(ty, 4, 96), ms);
             }
             return;
