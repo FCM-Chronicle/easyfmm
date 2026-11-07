@@ -80,6 +80,7 @@
         polyline: ['points'],
         polygon: ['points'],
         circle: ['cx', 'cy', 'r'],
+        ellipse: ['cx', 'cy', 'rx', 'ry'],
         line: ['x1', 'y1', 'x2', 'y2'],
         rect: ['x', 'y', 'width', 'height', 'rx']
     };

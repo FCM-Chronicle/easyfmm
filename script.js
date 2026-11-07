@@ -1506,8 +1506,8 @@ function showTab(tabName) {
     // [추가] 월드컵 모드 탭 제어
     if (gameData.isWorldCupMode) {
         // 허용된 탭: squad, match, tactics, settings, records(대회기록), callup(차출)
-        // 차단된 탭: transfer, league, sponsor, youth, sns, transfer_news, mail
-        const blockedTabs = ['transfer', 'league', 'sponsor', 'youth', 'sns', 'transfer_news', 'mail'];
+        // 차단된 탭: transfer, league, sponsor, youth, sns, transfer_news, mail, stadium
+        const blockedTabs = ['transfer', 'league', 'sponsor', 'youth', 'sns', 'transfer_news', 'mail', 'stadium'];
 
         if (blockedTabs.includes(tabName)) {
             return;
@@ -1599,6 +1599,12 @@ function showTab(tabName) {
         case 'finance':
             if (typeof renderFinanceTab === 'function') {
                 renderFinanceTab();
+            }
+            break;
+
+        case 'stadium':
+            if (typeof stadiumSystem !== 'undefined' && typeof stadiumSystem.renderTab === 'function') {
+                stadiumSystem.renderTab();
             }
             break;
 
@@ -6741,6 +6747,41 @@ function renderFinanceTab() {
     noteDiv.className = 'finance-note';
     noteDiv.textContent = '주급 자금이 부족하면 협상 단계에서 계약이 막힙니다. 필요할 때만 자금을 이동시키고, 과도한 전환은 피하세요.';
     panel.appendChild(noteDiv);
+
+    // 5. 구단 스타디움 증축 & 부대시설 바로가기 카드
+    if (typeof stadiumSystem !== 'undefined') {
+        const stad = stadiumSystem.getUserStadium();
+        if (stad) {
+            const stadCard = document.createElement('div');
+            stadCard.className = 'finance-conversion-card';
+            stadCard.style.marginTop = '18px';
+            const upg = stad.upgrades || {};
+            const installedCount = ['skybox', 'hybridPitch', 'megastore', 'trainingCenter'].filter(k => upg[k]).length;
+
+            stadCard.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+                    <div>
+                        <div style="font-size: 0.76rem; font-weight: 900; color: #38BDF8; letter-spacing: 0.06em; margin-bottom: 4px;">CLUB INFRASTRUCTURE & STADIUM</div>
+                        <h4 style="margin: 0 0 6px; font-size: 1.15rem; color: #F8FAFC;">🏟️ ${stad.name} (Lv.${stad.level}) · 구단 설비 증축</h4>
+                        <p style="margin: 0; font-size: 0.88rem; color: #94A3B8;">
+                            현재 수용 인원: <strong style="color: #FBBF24;">${stad.currentCapacity.toLocaleString()}석</strong> · 부대시설 설치: <strong style="color: #34D399;">${installedCount} / 4개</strong> (스카이박스 · 온열잔디 · 메가스토어 · 유스 아카데미)
+                        </p>
+                    </div>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button type="button" class="btn primary" style="padding: 10px 18px; font-weight: 800;"
+                            onclick="showTab('stadium')">
+                            🏟️ 구장/설비 탭 열기
+                        </button>
+                        <button type="button" class="btn" style="padding: 10px 16px; background: rgba(56, 189, 248, 0.16); border: 1px solid rgba(56, 189, 248, 0.45); color: #38BDF8; font-weight: 800;"
+                            onclick="stadiumSystem.openModal()">
+                            팝업 모달로 열기
+                        </button>
+                    </div>
+                </div>
+            `;
+            panel.appendChild(stadCard);
+        }
+    }
 
     container.replaceChildren(panel);
 

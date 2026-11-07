@@ -294,8 +294,22 @@ class StadiumSystem {
         if (typeof renderDashboard === 'function') renderDashboard();
     }
 
-    // 모달 내부 HTML 생성
-    buildModalHTML(stadium) {
+    // 인라인 탭(구장/설비 탭) 내부에 스타디움 & 구단 설비 증축 UI 렌더링
+    renderTab(containerId = 'stadiumTabContent') {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+
+        const stadium = this.getUserStadium();
+        if (!stadium) {
+            container.innerHTML = '<div style="padding:30px; text-align:center; color:#94A3B8;">구단 스타디움 정보를 불러올 수 없습니다.</div>';
+            return;
+        }
+
+        container.innerHTML = this.buildModalHTML(stadium, true);
+    }
+
+    // 모달 내부 또는 탭 내부 HTML 생성
+    buildModalHTML(stadium, isInlineTab = false) {
         const stats = stadium.stats || { totalAttendance: 0, totalRevenue: 0, homeMatches: 0, selloutCount: 0 };
         const avgAttendance = stats.homeMatches > 0 ? Math.round(stats.totalAttendance / stats.homeMatches) : 0;
         const progressPct = Math.min(100, Math.round((stadium.currentCapacity / this.maxCapacity) * 100));
@@ -303,14 +317,14 @@ class StadiumSystem {
         const isMaxCapacity = stadium.currentCapacity >= this.maxCapacity;
 
         return `
-        <div class="stadium-modal-content">
+        <div class="${isInlineTab ? 'stadium-inline-panel' : 'stadium-modal-content'}" style="${isInlineTab ? 'max-width: 1100px; margin: 0 auto;' : ''}">
             <div class="stadium-modal-header">
                 <div class="stadium-title-box">
-                    <span class="stadium-badge">HOME STADIUM</span>
+                    <span class="stadium-badge">HOME STADIUM & CLUB FACILITIES</span>
                     <h2>${stadium.name}</h2>
-                    <p class="stadium-sub">${teamNames[stadium.teamKey] || stadium.teamKey}의 홈 그라운드 · Lv.${stadium.level}</p>
+                    <p class="stadium-sub">${(typeof teamNames !== 'undefined' && teamNames[stadium.teamKey]) ? teamNames[stadium.teamKey] : stadium.teamKey}의 홈 그라운드 & 구단 설비 센터 · Lv.${stadium.level}</p>
                 </div>
-                <button class="stadium-modal-close" title="닫기">&times;</button>
+                ${isInlineTab ? '' : '<button class="stadium-modal-close" title="닫기">&times;</button>'}
             </div>
 
             <!-- 스타디움 메인 스탯 배너 -->
@@ -429,7 +443,12 @@ class StadiumSystem {
         const res = this.expandCapacity(seats, cost);
         alert(res.message);
         if (res.success) {
-            this.openModal(); // 모달 갱신
+            const modal = document.getElementById('stadiumManagementModal');
+            if (modal && modal.style.display === 'flex') {
+                this.openModal();
+            }
+            this.renderTab();
+            if (typeof renderFinanceTab === 'function') renderFinanceTab();
         }
     }
 
@@ -437,7 +456,12 @@ class StadiumSystem {
         const res = this.installFacility(facilityKey);
         alert(res.message);
         if (res.success) {
-            this.openModal(); // 모달 갱신
+            const modal = document.getElementById('stadiumManagementModal');
+            if (modal && modal.style.display === 'flex') {
+                this.openModal();
+            }
+            this.renderTab();
+            if (typeof renderFinanceTab === 'function') renderFinanceTab();
         }
     }
 }

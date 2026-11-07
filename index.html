@@ -352,6 +352,11 @@
                     <span class="label">라운드</span>
                     <span id="teamRound">1</span>
                 </div>
+                <button type="button" class="sandbox-quick-link" style="cursor: pointer; border-color: rgba(56, 189, 248, 0.45); background: rgba(56, 189, 248, 0.14); color: #38BDF8;"
+                    onclick="if(typeof stadiumSystem!=='undefined'){stadiumSystem.openModal();}">
+                    <span data-icon="stadium"></span>
+                    <span>구장/설비 증축</span>
+                </button>
                 <a href="match_tester.html" target="_blank" class="sandbox-quick-link">
                     <span data-icon="zap"></span>
                     <span>엔진 샌드박스</span>
@@ -382,6 +387,8 @@
                     class="tab-label">이적뉴스</span></button>
             <button class="tab-btn" data-tab="finance"><span class="tab-ico"></span><span
                     class="tab-label">재정</span></button>
+            <button class="tab-btn" data-tab="stadium"><span class="tab-ico"></span><span
+                    class="tab-label">구장/설비</span></button>
             <button class="tab-btn" data-tab="sponsor"><span class="tab-ico"></span><span
                     class="tab-label">후원</span></button>
             <button class="tab-btn" data-tab="records"><span class="tab-ico"></span><span
@@ -553,6 +560,11 @@
                     </p>
                 </div>
                 <div id="financeContent"></div>
+            </div>
+
+            <!-- 구장 및 구단 설비 증축 탭 -->
+            <div id="stadium" class="tab-panel">
+                <div id="stadiumTabContent"></div>
             </div>
 
             <!-- 대화 탭 -->
