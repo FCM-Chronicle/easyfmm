@@ -1322,23 +1322,45 @@ class RealSoccerEngine {
         const behavior = this.getRoleBehavior(player.role);
         const onFlank = player.y < 25 || player.y > 75;
         const nDef = this._nearestOpponent(player);
-        const underPressure = nDef && nDef.dist < 8;
+        const underPressure = nDef && nDef.dist < 4.8;
         const effectSpeed = this.getEffectiveStat(player, 'speed');
+        const effDrib = this.getEffectiveStat(player, 'dribble');
         const isWinger = (behavior.hugLine && onFlank) || Math.abs(player.y - 50) > 20 || ['LW', 'RW', 'LM', 'RM'].includes(player.detailPosition);
-
-        // [볼 점유 템포 조절: 여유 있는 볼 홀딩 및 전진 드리블]
-        // 공을 잡자마자 바로 뻥 차버리지 않고, 전방 공간으로 치고 나가며 시야 확보
-        if (!player._ballHoldTicks) player._ballHoldTicks = 0;
         const isFlankWinger = isWinger || ['LW', 'RW', 'LM', 'RM'].includes(player.detailPosition);
-        const maxHoldTicks = isFlankWinger ? 5 : (player.position === 'MF' ? 3 : 2);
-        if (!underPressure && distToGoal > 14 && player._ballHoldTicks < maxHoldTicks) {
+        const isConfidentDribbler = isFlankWinger || player.position === 'FW' || effDrib >= 72 || ['AM', 'AP', 'MEZ', 'BBM', 'SS', 'IW', 'IF', 'W', 'CWB', 'WB'].includes(player.role);
+
+        // [자신감 있는 볼 캐리 & 과감한 전진 드리블]
+        // 공을 잡았을 때 소극적으로 멈칫하거나 바로 패스하지 않고, 과감하게 치고 달리며 돌파 시도
+        if (!player._ballHoldTicks) player._ballHoldTicks = 0;
+        const maxHoldTicks = isFlankWinger ? 4 : (player.position === 'FW' ? 3 : (player.position === 'MF' ? 3 : 1));
+        const canConfidentDrive = player.position !== 'DF' && (!underPressure || (nDef && nDef.dist >= 3.8 && isConfidentDribbler));
+
+        if (canConfidentDrive && distToGoal > 14 && player._ballHoldTicks < maxHoldTicks) {
             player._ballHoldTicks++;
-            // 앞 공간으로 치고 나가기
-            this._physicsStep(player, player.x + moveDir * 4.5, player.y + (player.slotY - player.y) * 0.15, 0.55);
-            this.ball.x = player.x; this.ball.y = player.y; this.ball.z = 0;
+            if (player.burstTimer <= 0 && isConfidentDribbler) {
+                player.burstTimer = 14;
+            }
+            this._dribbleV3(player, goalX, moveDir, phase, underPressure, isWinger, distToGoal, nDef, effectSpeed);
+            if (nDef && nDef.dist < 4.2) {
+                const defTackleStat = this.getEffectiveStat(nDef.player, 'tackle') || this.getEffectiveStat(nDef.player, 'defense');
+                if (Math.random() * 100 < clamp(18 + (defTackleStat - 68) * 0.35, 12, 48)) {
+                    this._attemptTackle(nDef.player, player);
+                }
+            }
             return;
         }
-        player._ballHoldTicks = 0; // 패스/슈팅/돌파 행동 시 홀딩 틱 리셋
+        // 드리블 커밋이 남아 있으면 끊기지 않고 연속 돌파 유지 (단, 근접 수비 시 태클 경합 발생)
+        if (player._dribbleCommit > 0 && distToGoal > 14 && (!nDef || nDef.dist >= 3.8)) {
+            player._dribbleCommit--;
+            this._dribbleV3(player, goalX, moveDir, phase, underPressure, isWinger, distToGoal, nDef, effectSpeed);
+            if (nDef && nDef.dist < 4.5) {
+                const defTackleStat = this.getEffectiveStat(nDef.player, 'tackle') || this.getEffectiveStat(nDef.player, 'defense');
+                if (Math.random() * 100 < clamp(20 + (defTackleStat - 65) * 0.35, 14, 52)) {
+                    this._attemptTackle(nDef.player, player);
+                }
+            }
+            return;
+        }
 
         // 2) PASS OR DRIBBLE based on PHASE + role!
         const teammates = this.players.filter(p => p.teamId === tid && p !== player);
@@ -1432,6 +1454,16 @@ class RealSoccerEngine {
                 return;
             }
 
+            // 박스 안 수비수의 최후의 태클 저지 체크
+            if (nDef && nDef.dist < 4.5) {
+                const defTackleStat = this.getEffectiveStat(nDef.player, 'tackle') || this.getEffectiveStat(nDef.player, 'defense');
+                const distBonus = Math.max(0, (4.5 - nDef.dist) * 4.5);
+                const baseTackleTryChance = 20 + ((defTackleStat - 65) * 0.40) + distBonus;
+                if (Math.random() * 100 < clamp(baseTackleTryChance, 15, 58)) {
+                    if (this._attemptTackle(nDef.player, player)) return;
+                }
+            }
+
             // 수비수를 제치거나 각도를 열기 위한 침착한 드리블 돌파
             this._dribbleV3(player, goalX, moveDir, phase, underPressure, isWinger, distToGoal, nDef, effectSpeed);
             return;
@@ -1477,16 +1509,19 @@ class RealSoccerEngine {
             : false;
         const frontCrowd = this._numOpponentsAhead(player, 10, 18);
 
-        // 앞이 훤히 비어있고 압박이 없거나, 윙어가 1v1 돌파 찬스를 맞이했을 때는 적극 전진 드리블!
-        const wingerDribbleBias = isFlankWinger && distToGoal <= 58 && carryScore >= passScore - 30;
+        // 앞이 훤히 비어있거나, 윙어/드리블러가 1v1 돌파 찬스를 맞이했을 때는 자신감 있게 전진 드리블!
+        const wingerDribbleBias = isFlankWinger && distToGoal <= 68 && carryScore >= passScore - 35;
+        const confidentDribbleBias = isConfidentDribbler && distToGoal <= 65 && carryScore >= passScore - 18;
         if (bestPassTarget && player.position !== 'DF' && (!isCutback && !isCross) &&
-            ((!underPressure && frontCrowd <= 1) || wingerDribbleBias || carryScore >= passScore + 10)) {
+            ((!underPressure && frontCrowd <= 1 && carryScore >= passScore - 12) || wingerDribbleBias || confidentDribbleBias || carryScore >= passScore)) {
+            player._dribbleCommit = isFlankWinger ? 3 : 2;
+            if (player.burstTimer <= 0 && isConfidentDribbler) player.burstTimer = 14;
             this._dribbleV3(player, goalX, moveDir, phase, underPressure, isWinger, distToGoal, nDef, effectSpeed);
             return;
         }
 
         // [볼 순환(Circulation) & 패스 전개]
-        if (bestPassTarget && passScore >= carryScore) {
+        if (bestPassTarget && (passScore >= carryScore || player.position === 'DF')) {
             // 골문 바로 앞(distToGoal <= 10)에서만 비정상적인 백패스를 거부하고, 그 외 지역에서는 안전한 볼 순환 허용!
             const isBackwardPass = Math.abs(bestPassTarget.x - goalX) > distToGoal + 2;
             if (distToGoal <= 10 && isBackwardPass && !isCutback) {
@@ -1497,17 +1532,19 @@ class RealSoccerEngine {
             return;
         }
 
-        // 3) 수비수의 적극적인 가로채기 및 압박 태클 (공평한 거리 비례 및 수비 스탯 반영)
-        if (nDef && nDef.dist < 7.5) {
+        // 3) 수비수의 근접 가로채기 및 태클 (사거리 4.8m)
+        if (nDef && nDef.dist < 4.8) {
             const defTackleStat = this.getEffectiveStat(nDef.player, 'tackle') || this.getEffectiveStat(nDef.player, 'defense');
-            const distBonus = Math.max(0, (7.5 - nDef.dist) * 4.0);
-            const baseTackleTryChance = 16 + ((defTackleStat - 65) * 0.35) + distBonus;
-            if (Math.random() * 100 < clamp(baseTackleTryChance, 12, 60)) {
+            const distBonus = Math.max(0, (4.8 - nDef.dist) * 4.2);
+            const baseTackleTryChance = 18 + ((defTackleStat - 65) * 0.38) + distBonus;
+            if (Math.random() * 100 < clamp(baseTackleTryChance, 12, 56)) {
                 if (this._attemptTackle(nDef.player, player)) return;
             }
         }
 
         // 4) DRIBBLE CARRY — phase/role driven! (V3: NEVER dribble in place!)
+        player._dribbleCommit = player.position === 'DF' ? 0 : (isFlankWinger ? 3 : 2);
+        if (player.burstTimer <= 0 && isConfidentDribbler) player.burstTimer = 14;
         this._dribbleV3(player, goalX, moveDir, phase, underPressure, isWinger, distToGoal, nDef, effectSpeed);
     }
 
@@ -1536,7 +1573,7 @@ class RealSoccerEngine {
     }
 
     _isUnderPressure(player) {
-        return this.players.some(p => p.teamId !== player.teamId && Math.hypot(p.x - player.x, p.y - player.y) < 8);
+        return this.players.some(p => p.teamId !== player.teamId && Math.hypot(p.x - player.x, p.y - player.y) < 4.8);
     }
 
     _nearestOpponent(player) {
@@ -1864,26 +1901,27 @@ class RealSoccerEngine {
                 p = underPressure ? 0.65 : 0.45;
             }
         } else if (phase === 'progressing') {
-            // [패스 확률 대폭 개선: 미드필더 무한 드리블 방지 & 빠른 원투/측면 배급]
-            if (isCB_def) p = 0.92;
-            else if (isFB) p = underPressure ? 0.82 : 0.45;
+            // [자신감 있는 볼 운반 & 드리블 빈도 상향]
+            if (isCB_def) p = 0.88;
+            else if (isFB) p = underPressure ? 0.72 : 0.35;
             else if (pos === 'MF') {
-                p = 0.55; // 기본 패스 빈도 55%로 상향
-                if (tSt.tempo === 'fast' || tSt.passLength === 'direct') p += 0.20; // 빠른 전개 시 75% 패스 방출!
-                if (tSt.tempo === 'slow') p -= 0.15; // 지공 시 드리블 허용
-                if (underPressure) p = 0.78;
+                p = isWinger ? 0.30 : 0.44;
+                if (tSt.tempo === 'fast' || tSt.passLength === 'direct') p += 0.14;
+                if (tSt.tempo === 'slow') p -= 0.15;
+                if (underPressure) p += 0.15;
                 const nearFinal = (player.teamId === 'home' && player.x > 60) || (player.teamId === 'away' && player.x < 40);
-                if (nearFinal) p += isWinger ? 0.35 : 0.20;
+                if (nearFinal) p += isWinger ? -0.08 : 0.08; // 윙어는 상대 진영 진입 시 더욱 과감히 돌파!
             } else {
-                p = 0.35;
-                if (underPressure) p = 0.65;
+                p = 0.24;
+                if (underPressure) p = 0.45;
             }
         } else {
-            // finalThird: shoot or cross or final pass
-            if (isWinger && distToGoal < 34) p = 0.88; // cross / cutback
-            else if (pos === 'FW') p = 0.28; // mostly shoot/dribble
-            else if (pos === 'MF') p = 0.52;
-            else p = 0.5;
+            // finalThird: 깊숙이 파고든 뒤 크로스/컷백, 그 전에는 과감한 돌파!
+            if (isWinger && distToGoal < 16) p = 0.76; // 엔드라인 깊숙이 진입 시 크로스/컷백
+            else if (isWinger) p = 0.28; // 박스 외곽~측면에서는 자신감 있게 1v1 드리블 돌파!
+            else if (pos === 'FW') p = 0.22; // 공격수는 적극적인 돌파 & 피니시
+            else if (pos === 'MF') p = 0.42;
+            else p = 0.45;
         }
 
         if (tSt.tempo === 'fast') p = Math.min(0.98, p + 0.08);
@@ -1892,50 +1930,55 @@ class RealSoccerEngine {
         const profile = this.getTacticProfile(player.teamId);
         p += (profile.tempo - 0.92) * 0.25;
 
-        if (tSt.offensiveTrans === 'counter' && (phase === 'counter' || phase === 'progressing')) p = Math.min(0.98, p + 0.16);
+        if (tSt.offensiveTrans === 'counter' && (phase === 'counter' || phase === 'progressing')) p = Math.min(0.98, p + 0.12);
         if (tSt.buildUp === 'direct' && phase === 'building') p = Math.min(0.98, p + 0.20); // 롱볼 빌드업 즉시 롱패스!
-        if (underPressure) p = Math.min(0.98, p + 0.10);
-        return clamp(p, 0.10, 0.98);
+        if (underPressure) p = Math.min(0.98, p + 0.06);
+        return clamp(p, 0.08, 0.96);
     }
 
     _scoreCarryChoice(player, phase, underPressure, isWinger, distToGoal, nDef) {
-        let score = 25; // 기본 베이스 상향
+        if (player.position === 'DF' && ['CD', 'BPD', 'NCB', 'LIB'].includes(player.role)) return -30;
+        let score = 58; // [자신감 대폭 강화] 기본 드리블 선호 베이스 상향
         const speed = this.getEffectiveStat(player, 'speed');
         const decision = this.getEffectiveStat(player, 'decision');
         const dribble = this.getEffectiveStat(player, 'dribble');
-        const blockedAhead = this._numOpponentsAhead(player, 10, 18);
+        const blockedAhead = this._numOpponentsAhead(player, 10, 16);
         const isFlankWinger = isWinger || ['LW', 'RW', 'LM', 'RM'].includes(player.detailPosition);
 
-        if (phase === 'building') score += player.position === 'MF' ? 30 : 18;
-        else if (phase === 'progressing') score += player.position === 'MF' ? 52 : 42;
-        else score += player.position === 'FW' ? 64 : 52; // [공격 가담] 파이널 서드에서 과감한 전진
+        if (phase === 'building') score += player.position === 'MF' ? 38 : 24;
+        else if (phase === 'progressing') score += player.position === 'MF' ? 68 : 56;
+        else score += player.position === 'FW' ? 82 : 68; // 파이널 서드에서 과감한 전진 돌파
 
-        // [윙어 드리블 대폭 우대 (유저 피드백 반영)]
-        if (isFlankWinger) score += 48; // 윙어 드리블 선호 대폭 상향
-        if (player.position === 'FW') score += 24;
-        if (Math.abs(player.y - 50) > 16) score += 22; // 측면 공간 드리블 선호
-        if (player.position !== 'DF' && !underPressure) score += 20;
+        // [윙어 및 공격진 드리블 자신감 극대화]
+        if (isFlankWinger) score += 68;
+        if (player.position === 'FW') score += 45;
+        if (player.position === 'MF' && ['AM', 'AP', 'MEZ', 'BBM', 'SS', 'IW', 'IF', 'W'].includes(player.role)) score += 36;
+        if (Math.abs(player.y - 50) > 16) score += 28; // 측면 공간 드리블 선호
+        if (player.position !== 'DF' && !underPressure) score += 26;
 
-        if (underPressure) score -= (dribble > 75 ? 4 : 12);
-        if (blockedAhead >= 2) score -= 18;
-        else if (blockedAhead === 1) score -= 4;
-        else if (blockedAhead === 0) score += 28; // 전방 열려있으면 시원하게 치고 달림
+        // 압박 상황에서도 드리블 능력이 좋으면 쫄지 않고 탈압박 돌파 시도!
+        if (underPressure) score += (dribble >= 74 ? 18 : -6);
+        if (blockedAhead >= 2) score -= 12;
+        else if (blockedAhead === 1) score += 10; // 수비 1명 앞에서는 자신감 있게 1v1 맞대결!
+        else if (blockedAhead === 0) score += 42; // 전방 열려있으면 시원하게 치고 달림
 
-        // 박스 근처(distToGoal <= 28)에서 공격수의 돌파 점수 버프
-        if (distToGoal <= 28) {
-            score += player.position === 'FW' ? 32 : 18;
+        // 박스 근처(distToGoal <= 32)에서 공격수/윙어의 과감한 돌파 버프
+        if (distToGoal <= 32) {
+            score += (player.position === 'FW' || isFlankWinger) ? 44 : 26;
         }
-        // [선수 돌파 능력 버프] 드리블 능력치에 비례한 확실한 돌파 선호 가산점 강화
-        score += (dribble - 65) * 1.0 + (speed - 65) * 0.65 + (decision - 65) * 0.35;
+        // [선수 돌파 능력 버프] 드리블/스피드 능력치에 비례한 확실한 돌파 가산점
+        score += (dribble - 65) * 1.35 + (speed - 65) * 0.85 + (decision - 65) * 0.40;
         if (nDef) {
             const defTackle = this.getEffectiveStat(nDef.player, 'tackle') || this.getEffectiveStat(nDef.player, 'defense');
-            if (dribble > defTackle - 4) score += 28; // 수비수와 1v1 맞대결 적극 돌파!
-            if (speed > this.getEffectiveStat(nDef.player, 'speed')) score += 20;
+            if (dribble >= defTackle - 8) score += 42; // 수비수와 1v1 맞대결 적극 돌파!
+            if (speed >= this.getEffectiveStat(nDef.player, 'speed') - 3) score += 28;
         }
         return score;
     }
 
     _executePassV3(from, to, phase) {
+        from._ballHoldTicks = 0;
+        from._dribbleCommit = 0;
         this.ball.state = BallState.IN_FLIGHT;
         this.ball._flightOrigin = { x: from.x, y: from.y };
         this.ball.lastOwner = from;
@@ -2138,42 +2181,44 @@ class RealSoccerEngine {
     // ─────────────────────────────────────────────────────────────
     _dribbleV3(player, goalX, moveDir, phase, underPressure, isWinger, distToGoal, nDef, effSpeed) {
         const effDribble = this.getEffectiveStat(player, 'dribble');
-        const sf = (effSpeed * 0.40 + effDribble * 0.60) / 75;
+        const sf = (effSpeed * 0.40 + effDribble * 0.60) / 72;
         const isBlockedFront = this._isFrontalBlocked(player, goalX);
         const defTackle = nDef ? (this.getEffectiveStat(nDef.player, 'tackle') || this.getEffectiveStat(nDef.player, 'defense')) : 65;
         const defSpeed = nDef ? this.getEffectiveStat(nDef.player, 'speed') : 65;
-        const canBreakThrough = nDef ? ((effDribble * 0.65 + effSpeed * 0.35) >= (defTackle * 0.55 + defSpeed * 0.45) - 4) : true;
+        const canBreakThrough = nDef ? ((effDribble * 0.68 + effSpeed * 0.32) >= (defTackle * 0.52 + defSpeed * 0.48) - 8) : true;
         let targetX, targetY, moveSpd;
 
-        if (player.position === 'FW' && distToGoal < 25) {
-            // [공격수 피니시 드라이브] 박스 안에서는 중앙 골문 정면(40~60)으로 거침없이 파고듦
+        if (player.position === 'FW' && distToGoal < 28) {
+            // [공격수 피니시 드라이브] 박스 안팎에서는 중앙 골문 정면(38~62)으로 거침없이 파고듦
             targetX = goalX;
-            targetY = clamp(50 + (player.y - 50) * 0.25, 40, 60);
-            moveSpd = 1.15 * clamp(sf, 0.95, 2.35);
-            if (player.burstTimer > 0) moveSpd *= 1.30;
+            targetY = clamp(50 + (player.y - 50) * 0.25, 38, 62);
+            moveSpd = 1.22 * clamp(sf, 0.98, 2.40);
+            if (player.burstTimer > 0) moveSpd *= 1.32;
         } else if (isWinger || ['W', 'IW', 'IF', 'WB', 'CWB', 'IWB', 'LM', 'RM'].includes(player.role) || player._fbMode === 'overlap') {
-            // [공격 다변화: 클래식 윙어/윙백 엔드라인 치달 vs 인버티드 윙어 중앙 컷인]
+            // [공격 다변화: 클래식 윙어/윙백 엔드라인 치달 vs 인버티드 윙어/깊숙한 윙어 중앙 컷인 돌파]
             const bhv = this.getRoleBehavior(player.role);
-            const isInsideCutter = ['IW', 'IF'].includes(player.role) || bhv.cutInside || player._fbMode === 'underlap';
+            const isInsideCutter = ['IW', 'IF'].includes(player.role) || bhv.cutInside || player._fbMode === 'underlap' || distToGoal < 24;
             if (isInsideCutter) {
-                // [인버티드 윙어 컷인 드리블] 측면에서 중앙 하프스페이스/아크 정면을 향해 과감하게 파고듦
-                targetX = player.x + moveDir * 50;
-                targetY = clamp(50 + (player.y - 50) * 0.28, 28, 72);
-                moveSpd = 1.05 * clamp(sf, 0.9, 2.2);
+                // [인버티드 윙어 & 박스 진입 컷인 드리블] 측면에서 페널티 박스/골문 정면을 향해 자신감 있게 파고듦!
+                targetX = goalX;
+                targetY = clamp(50 + (player.y - 50) * 0.26, 26, 74);
+                moveSpd = 1.18 * clamp(sf, 0.95, 2.32);
+                if (player.burstTimer <= 0 && Math.random() < 0.35) player.burstTimer = 16;
             } else {
-                // [클래식 윙어 & 오버래핑 윙백 직선 치달] 터치라인에 바짝 붙어 엔드라인 깊숙이 전력 스프린트!
-                targetX = player.x + moveDir * 62;
-                targetY = player.y < 50 ? 6 : 94;
-                moveSpd = 1.05 * clamp(sf, 0.9, 2.2);
+                // [클래식 윙어 & 오버래핑 윙백 직선 치달] 터치라인을 타고 엔드라인 깊숙이 전력 스프린트!
+                targetX = player.x + moveDir * 68;
+                targetY = player.y < 50 ? 7 : 93;
+                moveSpd = 1.20 * clamp(sf, 0.96, 2.35);
+                if (player.burstTimer <= 0 && Math.random() < 0.35) player.burstTimer = 16;
             }
-        } else if (player.position === 'FW' && !underPressure && distToGoal < 65) {
-            // FW drive: attack diagonal towards goal
-            targetX = player.x + moveDir * 65;
-            targetY = clamp(player.y + (player.y < 50 ? 8 : -8), 12, 88);
-            moveSpd = 1.02 * clamp(sf, 0.9, 2.15);
+        } else if (player.position === 'FW' && !underPressure && distToGoal < 70) {
+            // FW drive: attack diagonal towards goal with full conviction
+            targetX = goalX;
+            targetY = clamp(50 + (player.y - 50) * 0.45, 18, 82);
+            moveSpd = 1.15 * clamp(sf, 0.95, 2.28);
+            if (player.burstTimer <= 0 && Math.random() < 0.35) player.burstTimer = 16;
         } else if (underPressure || isBlockedFront) {
-            // [버그 픽스] 벌벌 떠는 현상(Trembling) 방지: 수비수와의 Y축 거리가 너무 가까울 때는 
-            // 매 프레임마다 evadeSign이 반전되어 위아래로 진동하는 것을 막기 위해 기존 vy 방향을 우선하거나, 중앙을 향하도록 고정.
+            // [자신감 있는 1v1 탈압박 돌파] 수비수 앞에서 주춤거리지 않고 대각선 앞으로 과감히 제치며 돌파!
             let evadeSign = 1;
             if (nDef) {
                 if (Math.abs(nDef.player.y - player.y) < 1.5) {
@@ -2186,34 +2231,34 @@ class RealSoccerEngine {
             }
 
             if (canBreakThrough) {
-                // [선수 돌파 능력 버프] 수비수를 제치며 전방 대각선으로 거침없이 치고 달림 (가속 버스트 획득)
-                targetX = player.x + moveDir * 46;
-                targetY = player.y + evadeSign * 12;
-                moveSpd = 0.92 * clamp(sf, 0.88, 2.1);
-                if (player.burstTimer <= 0 && Math.random() < 0.35) {
+                // 수비수를 제치며 전방 대각선으로 거침없이 치고 달림 (가속 버스트 획득)
+                targetX = player.x + moveDir * 52;
+                targetY = player.y + evadeSign * 10;
+                moveSpd = 1.12 * clamp(sf, 0.94, 2.25);
+                if (player.burstTimer <= 0) {
                     player.burstTimer = 18;
                 }
             } else {
-                // side step then still forward
-                targetY = player.y + evadeSign * 10;
-                targetX = player.x + moveDir * 32;
-                moveSpd = 0.78 * clamp(sf, 0.8, 1.8);
+                // 수비가 강해도 뒤로 물러서지 않고 옆공간을 파고들며 전진 유지
+                targetY = player.y + evadeSign * 9;
+                targetX = player.x + moveDir * 40;
+                moveSpd = 0.98 * clamp(sf, 0.88, 2.05);
             }
         } else if (phase === 'progressing') {
-            // Progressing: push hard forward
-            targetX = player.x + moveDir * 52;
-            targetY = clamp(player.y + (player.y < 50 ? 6 : -6), 8, 92);
-            moveSpd = 0.78 * clamp(sf, 0.8, 1.8);
+            // Progressing: 미드필더/공격수의 시원시원한 전진 볼 운반
+            targetX = player.x + moveDir * 58;
+            targetY = clamp(player.y + (50 - player.y) * 0.15, 8, 92);
+            moveSpd = 1.06 * clamp(sf, 0.92, 2.18);
         } else if (phase === 'building') {
-            // Building: walk forward
-            targetX = player.x + moveDir * 32;
+            // Building: 후방에서도 자신감 있게 전진 드리블
+            targetX = player.x + moveDir * 42;
             targetY = clamp(player.y + (player.y < 50 ? 4 : -4), 10, 90);
-            moveSpd = 0.55 * clamp(sf, 0.7, 1.5);
+            moveSpd = 0.88 * clamp(sf, 0.85, 1.90);
         } else {
-            // finalThird: push to byline or shoot area
-            targetX = player.x + moveDir * 40;
-            targetY = clamp(player.y + (player.y < 50 ? 6 : -6), 10, 90);
-            moveSpd = 0.75 * clamp(sf, 0.78, 1.8);
+            // finalThird: 페널티 박스 및 아크 정면을 향해 과감히 돌파
+            targetX = goalX;
+            targetY = clamp(50 + (player.y - 50) * 0.40, 16, 84);
+            moveSpd = 1.12 * clamp(sf, 0.95, 2.25);
         }
 
         // NO BACKWARD DRIBBLING: prevent backward movement, but respect pitch boundary clamp
@@ -2437,9 +2482,17 @@ class RealSoccerEngine {
             // [사실적 축구 물리] 유효 슈팅 실패: 골문 빗나감 (골킥 전개)
             shooter.forceReturnTimer = 60;
             const opp = shooter.teamId === 'home' ? 'away' : 'home';
+            const egk = this.players.find(p => p.teamId === opp && p.position === 'GK');
             this.eventsQueue.push({ type: 'miss', shooter: shooter.name, desc: ` ${shooter.name}의 슈팅이 골대를 벗어납니다!` });
-            this.ball.state = BallState.LOOSE;
-            this.ball.x = goalX === 0 ? 5 : 95; this.ball.y = 50;
+            if (egk) {
+                egk.x = goalX === 0 ? 5 : 95; egk.y = 50;
+                this.ball.state = BallState.CONTROLLED;
+                this.ball.owner = egk;
+                this.ball.x = egk.x; this.ball.y = egk.y;
+            } else {
+                this.ball.state = BallState.LOOSE;
+                this.ball.x = goalX === 0 ? 5 : 95; this.ball.y = 50;
+            }
             this._triggerTurnover(opp);
         } else {
             // 유효 슈팅: 수비수 블록 또는 GK 선방
@@ -2684,29 +2737,31 @@ class RealSoccerEngine {
         const dribbleStat = this.getEffectiveStat(carrier, 'dribble');
         const speedStat = this.getEffectiveStat(carrier, 'speed');
         
-        // [태클 vs 드리블 대결 체급 반영]
-        const statDiff = tackleStat - (dribbleStat * 0.65 + speedStat * 0.35);
-        let chance = 0.28 + (statDiff * 0.012);
+        // [태클 vs 드리블 대결 체급 반영 - 드리블러 돌파 성공률 상향]
+        const statDiff = tackleStat - (dribbleStat * 0.68 + speedStat * 0.32);
+        let chance = 0.22 + (statDiff * 0.010);
         
         // [전술 상성 및 무전술 태클 영향도]
         const tacklerTactic = this.getTeamTactic(tackler.teamId);
         const carrierTactic = this.getTeamTactic(carrier.teamId);
         if (tacklerTactic === 'balanced') chance -= 0.12; // 협력 수비 부재로 탈취율 감소
         if (carrierTactic === 'balanced') chance += 0.12; // 패스 탈출구 부재로 쉽게 뺏김
-        if (tacklerTactic === 'gegenpress' && ['possession', 'tikitaka', 'balanced'].includes(carrierTactic)) chance += 0.10; // 전방 압박 우위
+        if (tacklerTactic === 'gegenpress' && ['possession', 'tikitaka', 'balanced'].includes(carrierTactic)) chance += 0.08; // 전방 압박 우위
         
         // 박스 안쪽(oppGoalX 기준 18 미만) 신중한 수비
         const oppGoalX = tackler.teamId === 'home' ? 0 : 100;
         if (Math.abs(carrier.x - oppGoalX) < 18) {
-            chance -= 0.04;
+            chance -= 0.05;
         }
         // 캐리어가 가속 질주(burst) 중이면 돌파 관성
         if (carrier.burstTimer > 0) {
-            chance -= 0.05;
+            chance -= 0.07;
         }
         
-        if (Math.random() < clamp(chance, 0.14, 0.68)) {
+        if (Math.random() < clamp(chance, 0.10, 0.55)) {
             // 태클 성공
+            carrier._ballHoldTicks = 0;
+            carrier._dribbleCommit = 0;
             this.ball.state = BallState.CONTROLLED;
             this.ball.owner = tackler;
             this.ball.lastOwner = null;
@@ -2719,12 +2774,13 @@ class RealSoccerEngine {
             return true;
         } else {
             // 태클 실패 (볼 캐리어가 제쳐냄)
-            tackler._stealCooldown = 20; // 헛발질한 수비수 쿨다운
-            carrier.burstTimer = 16;
-            carrier._protectionTicks = 4;
+            tackler._stealCooldown = 22; // 제쳐진 수비수 쿨다운
+            carrier.burstTimer = 20;
+            carrier._protectionTicks = 6;
+            carrier._dribbleCommit = 4;
             
-            // 능력치(드리블 70 이상)에 따라 개인기 연출 발생
-            if (dribbleStat >= 70 && Math.random() < 0.45) {
+            // 능력치(드리블 65 이상)에 따라 개인기 연출 활발히 발생
+            if (dribbleStat >= 65 && Math.random() < 0.65) {
                 const skills = ['STEP_OVER', 'BODY_FEINT', 'ROULETTE', 'ELASTICO', 'LA_CROQUETA', 'MARSEILLE_TURN'];
                 const skillId = skills[Math.floor(Math.random() * skills.length)];
                 this.eventsQueue.push({
@@ -2830,19 +2886,17 @@ class RealSoccerEngine {
     _gkOffBall(gk) {
         const isHome = gk.teamId === 'home';
         const goalX = isHome ? 0 : 100;
-        const baseHomeX = gk.baseX || (isHome ? 4 : 96);
+        const baseHomeX = gk.baseX || (isHome ? 5 : 95);
 
-        // 볼이나 상대 공격수가 골문 근처로 올 때 각도를 좁히기 위해 전진 (스위퍼 키퍼)
+        // 볼이나 상대 공격수가 골문 근처로 올 때 항상 볼과 골문 사이에서 각도를 좁히기 위해 전진 (스위퍼 키퍼)
         const ballDistToGoal = Math.abs(this.ball.x - goalX);
         let targetX = baseHomeX;
-        if (ballDistToGoal < 28) {
-            // 최대 7~8m까지 전진하여 슈팅 각도 좁힘
-            const advance = (28 - ballDistToGoal) * 0.30;
-            targetX = isHome ? (baseHomeX + advance) : (baseHomeX - advance);
+        if (ballDistToGoal < 28 && ballDistToGoal > 5) {
+            targetX = baseHomeX + (this.ball.x - baseHomeX) * 0.25;
         }
 
-        // Y축도 볼 위치에 맞춰 골문 범위(38~62) 내에서 각도 차단
-        const targetY = clamp(50 + (this.ball.y - 50) * 0.32, 39, 61);
+        // Y축도 볼 위치에 맞춰 골문 범위(39~61) 내에서 각도 차단
+        const targetY = clamp(50 + (this.ball.y - 50) * 0.30, 39, 61);
 
         gk.vx *= 0.3; gk.vy *= 0.3;
         gk.x += (targetX - gk.x) * 0.25 + gk.vx;

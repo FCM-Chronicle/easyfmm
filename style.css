@@ -9168,6 +9168,136 @@ input[type="range"].game-range-slider::-moz-range-thumb:hover,
     border-color: #7DD3FC !important;
 }
 
+/* ==================== BGM 미니 플레이어 ==================== */
+.now-playing-card {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+    display: none;
+    width: min(320px, calc(100vw - 32px));
+    min-height: 68px;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    color: var(--text-primary);
+    background: linear-gradient(135deg, rgba(17, 24, 39, 0.96), rgba(22, 31, 48, 0.96));
+    border: 1px solid rgba(56, 189, 248, 0.26);
+    border-radius: 14px;
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.38), 0 0 0 1px rgba(255, 255, 255, 0.02) inset;
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    opacity: 0;
+    transform: translateY(-12px);
+    transition: opacity 0.35s ease, transform 0.35s ease, border-color 0.2s ease;
+    pointer-events: none;
+}
+
+.now-playing-card::before {
+    width: 3px;
+    height: 34px;
+    flex: 0 0 3px;
+    content: "";
+    background: var(--accent-primary);
+    border-radius: 999px;
+    box-shadow: 0 0 14px rgba(56, 189, 248, 0.7);
+}
+
+.now-playing-icon {
+    display: grid;
+    width: 36px;
+    height: 36px;
+    flex: 0 0 36px;
+    place-items: center;
+    color: var(--accent-primary);
+    background: rgba(56, 189, 248, 0.12);
+    border: 1px solid rgba(56, 189, 248, 0.22);
+    border-radius: 10px;
+}
+
+.now-playing-icon svg {
+    width: 18px;
+    height: 18px;
+}
+
+.now-playing-copy {
+    min-width: 0;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.now-playing-eyebrow {
+    color: var(--accent-primary);
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+}
+
+.now-playing-title {
+    display: block;
+    overflow: hidden;
+    color: var(--text-primary);
+    font-size: 0.82rem;
+    font-weight: 700;
+    line-height: 1.25;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.now-playing-bars {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    height: 24px;
+    padding: 0 2px;
+}
+
+.now-playing-bars i {
+    display: block;
+    width: 3px;
+    height: 8px;
+    background: var(--accent-primary);
+    border-radius: 999px;
+    animation: nowPlayingPulse 1s ease-in-out infinite;
+}
+
+.now-playing-bars i:nth-child(2) {
+    height: 15px;
+    animation-delay: -0.35s;
+}
+
+.now-playing-bars i:nth-child(3) {
+    height: 20px;
+    animation-delay: -0.18s;
+}
+
+.now-playing-bars i:nth-child(4) {
+    height: 12px;
+    animation-delay: -0.5s;
+}
+
+@keyframes nowPlayingPulse {
+    0%, 100% {
+        opacity: 0.42;
+        transform: scaleY(0.65);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scaleY(1);
+    }
+}
+
+@media (max-width: 600px) {
+    .now-playing-card {
+        top: 12px;
+        right: 12px;
+        width: calc(100vw - 24px);
+    }
+}
+
 /* ==========================================================================
    [모던 UI 리뉴얼] 경기 탭 현재 전술 패널, 후원 탭, 유스 & 스카우팅 탭
    ========================================================================== */
@@ -12631,6 +12761,588 @@ input[type="range"].game-range-slider::-moz-range-thumb:hover,
         justify-content: center;
     }
 }
+
+/* ==================== 시각적 토너먼트 대진표 트리 (FA컵 & UCL) & 시즌 경기 일정 ==================== */
+.tourney-tree-scroll {
+    width: 100%;
+    overflow-x: auto;
+    padding: 12px 6px 20px;
+    box-sizing: border-box;
+    scrollbar-width: thin;
+}
+
+.tourney-tree-grid {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    min-width: 980px;
+}
+
+.tourney-stage-col {
+    flex: 1 0 210px;
+    min-width: 210px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    padding: 0 14px;
+    box-sizing: border-box;
+}
+
+.tourney-stage-header {
+    text-align: center;
+    padding: 9px 12px;
+    margin-bottom: 14px;
+    border-radius: 10px;
+    background: rgba(30, 41, 59, 0.85);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    color: #CBD5E1;
+    font-size: 0.82rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.tourney-stage-header.active {
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.22), rgba(245, 158, 11, 0.08));
+    border-color: rgba(251, 191, 36, 0.65);
+    color: #FBBF24;
+    box-shadow: 0 0 16px rgba(251, 191, 36, 0.16);
+}
+
+.tourney-stage-header.ucl-active {
+    background: linear-gradient(135deg, rgba(56, 189, 248, 0.24), rgba(37, 99, 235, 0.12));
+    border-color: rgba(56, 189, 248, 0.7);
+    color: #38BDF8;
+    box-shadow: 0 0 16px rgba(56, 189, 248, 0.2);
+}
+
+.tourney-stage-live-dot {
+    padding: 2px 6px;
+    border-radius: 999px;
+    background: #EF4444;
+    color: #fff;
+    font-size: 0.64rem;
+    font-weight: 900;
+    letter-spacing: 0.05em;
+}
+
+.tourney-stage-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    gap: 10px;
+}
+
+.tourney-pair-box {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    gap: 8px;
+    position: relative;
+    flex: 1;
+    padding: 4px 0;
+}
+
+/* 우측 브래킷 트리 연결선 */
+.tourney-connector-bridge {
+    position: absolute;
+    right: -14px;
+    top: 25%;
+    bottom: 25%;
+    width: 14px;
+    border-top: 2px solid rgba(148, 163, 184, 0.35);
+    border-bottom: 2px solid rgba(148, 163, 184, 0.35);
+    border-right: 2px solid rgba(148, 163, 184, 0.35);
+    border-radius: 0 6px 6px 0;
+    pointer-events: none;
+}
+
+.tourney-connector-bridge::after {
+    content: '';
+    position: absolute;
+    right: -14px;
+    top: 50%;
+    width: 14px;
+    height: 2px;
+    background: rgba(148, 163, 184, 0.35);
+    transform: translateY(-50%);
+}
+
+.tourney-node-card {
+    background: rgba(15, 23, 42, 0.92);
+    border: 1px solid rgba(148, 163, 184, 0.22);
+    border-radius: 10px;
+    padding: 6px 9px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    position: relative;
+    transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.tourney-node-card:hover {
+    transform: translateY(-1px);
+    border-color: rgba(255, 255, 255, 0.35);
+}
+
+.tourney-node-card.my-match {
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.16), rgba(15, 23, 42, 0.95));
+    border: 1.5px solid #FBBF24;
+    box-shadow: 0 0 16px rgba(251, 191, 36, 0.22);
+}
+
+.tourney-node-card.played {
+    border-color: rgba(148, 163, 184, 0.32);
+}
+
+.tourney-node-card.pending {
+    background: rgba(15, 23, 42, 0.58);
+    border-style: dashed;
+    border-color: rgba(148, 163, 184, 0.2);
+}
+
+.tourney-team-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    padding: 3px 5px;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    color: #CBD5E1;
+}
+
+.tourney-team-row.win {
+    background: rgba(16, 185, 129, 0.14);
+    color: #F8FAFC;
+    font-weight: 800;
+}
+
+.tourney-team-row.lose {
+    opacity: 0.55;
+}
+
+.tourney-team-row.me .tourney-team-name {
+    color: #FBBF24;
+    font-weight: 900;
+}
+
+.tourney-team-info {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    flex: 1;
+}
+
+.tourney-team-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tourney-team-score {
+    font-weight: 900;
+    font-size: 0.8rem;
+    color: #F8FAFC;
+    font-variant-numeric: tabular-nums;
+    padding-left: 4px;
+}
+
+.tourney-team-row.win .tourney-team-score {
+    color: #34D399;
+}
+
+.tourney-pk-badge {
+    font-size: 0.68rem;
+    font-weight: 800;
+    color: #FBBF24;
+    text-align: right;
+    padding-right: 4px;
+}
+
+.tourney-champion-podium {
+    margin-top: 12px;
+    padding: 14px 12px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.22), rgba(15, 23, 42, 0.92));
+    border: 1.5px solid rgba(251, 191, 36, 0.65);
+    text-align: center;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.tourney-champion-podium.ucl {
+    background: linear-gradient(135deg, rgba(56, 189, 248, 0.22), rgba(15, 23, 42, 0.92));
+    border-color: rgba(56, 189, 248, 0.65);
+}
+
+.tourney-champ-crown {
+    font-size: 1.6rem;
+    margin-bottom: 4px;
+}
+
+.tourney-champ-label {
+    font-size: 0.7rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    color: #FBBF24;
+    margin-bottom: 6px;
+}
+
+.tourney-champion-podium.ucl .tourney-champ-label {
+    color: #38BDF8;
+}
+
+.tourney-champ-team {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 0.92rem;
+    font-weight: 900;
+    color: #FFFFFF;
+}
+
+.tourney-champ-tbd {
+    font-size: 0.8rem;
+    color: #94A3B8;
+    font-weight: 700;
+}
+
+/* 시즌 전체 경기 일정 카드 그리드 */
+.season-fixture-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(235px, 1fr));
+    gap: 10px;
+    max-height: 520px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.season-fixture-card {
+    background: rgba(15, 23, 42, 0.82);
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    border-radius: 12px;
+    padding: 11px 13px;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.season-fixture-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.28);
+}
+
+.season-fixture-card.current {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.18), rgba(15, 23, 42, 0.95));
+    border: 1.5px solid #10B981;
+    box-shadow: 0 0 16px rgba(16, 185, 129, 0.22);
+}
+
+.season-fixture-card.cup-ucl {
+    border-left: 3px solid #38BDF8;
+}
+
+.season-fixture-card.cup-fa {
+    border-left: 3px solid #FBBF24;
+}
+
+.tourney-stage-col.active-stage-col .tourney-stage-header {
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.22), rgba(245, 158, 11, 0.08));
+    border-color: rgba(251, 191, 36, 0.65);
+    color: #FBBF24;
+    box-shadow: 0 0 16px rgba(251, 191, 36, 0.16);
+}
+
+.tourney-stage-col.ucl-active-col .tourney-stage-header {
+    background: linear-gradient(135deg, rgba(56, 189, 248, 0.24), rgba(37, 99, 235, 0.12));
+    border-color: rgba(56, 189, 248, 0.7);
+    color: #38BDF8;
+    box-shadow: 0 0 16px rgba(56, 189, 248, 0.2);
+}
+
+.tourney-stage-header {
+    flex-direction: column;
+    gap: 2px;
+}
+
+.tourney-stage-title {
+    font-size: 0.84rem;
+    font-weight: 800;
+    color: #F8FAFC;
+}
+
+.tourney-stage-sub {
+    font-size: 0.7rem;
+    color: #94A3B8;
+    font-weight: 600;
+}
+
+.col-active-tag {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: #EF4444;
+    color: #fff;
+    font-size: 0.64rem;
+    font-weight: 800;
+    margin-left: 4px;
+}
+
+.tourney-pair-items {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    gap: 8px;
+    flex: 1;
+}
+
+.tourney-single-box {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.tourney-connector-bridge.ucl-bridge {
+    border-color: rgba(56, 189, 248, 0.4);
+}
+
+.tourney-connector-bridge.ucl-bridge::after {
+    background: rgba(56, 189, 248, 0.4);
+}
+
+.tourney-node-card.my-cup-match {
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.16), rgba(15, 23, 42, 0.95));
+    border: 1.5px solid #FBBF24;
+    box-shadow: 0 0 16px rgba(251, 191, 36, 0.22);
+}
+
+.tourney-node-card.projected-node {
+    background: rgba(15, 23, 42, 0.65);
+    border-style: dashed;
+    border-color: rgba(148, 163, 184, 0.26);
+}
+
+.tourney-node-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.66rem;
+    color: #64748B;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+    padding-bottom: 3px;
+    margin-bottom: 2px;
+}
+
+.tourney-match-no {
+    font-weight: 800;
+    color: #94A3B8;
+}
+
+.tourney-round-hint {
+    color: #64748B;
+}
+
+.tourney-pk-pill {
+    color: #FBBF24;
+    font-weight: 800;
+}
+
+.tourney-team-row.winner {
+    background: rgba(16, 185, 129, 0.14);
+    color: #F8FAFC;
+    font-weight: 800;
+}
+
+.tourney-team-row.eliminated {
+    opacity: 0.52;
+}
+
+.tourney-team-label {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tourney-team-label.is-user {
+    color: #FBBF24;
+    font-weight: 900;
+}
+
+.tourney-seed-tag {
+    font-size: 0.64rem;
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: rgba(56, 189, 248, 0.16);
+    color: #38BDF8;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.tourney-my-tag {
+    font-size: 0.62rem;
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: #FBBF24;
+    color: #090D16;
+    font-weight: 900;
+    flex-shrink: 0;
+}
+
+.tourney-score-box {
+    font-size: 0.8rem;
+    font-weight: 900;
+    color: #CBD5E1;
+    font-variant-numeric: tabular-nums;
+    padding-left: 6px;
+}
+
+.tourney-score-box.win-score {
+    color: #34D399;
+}
+
+.tourney-champion-podium.ucl-podium {
+    background: linear-gradient(135deg, rgba(56, 189, 248, 0.22), rgba(15, 23, 42, 0.92));
+    border-color: rgba(56, 189, 248, 0.65);
+}
+
+.tourney-champion-podium .podium-icon {
+    font-size: 1.65rem;
+    margin-bottom: 4px;
+}
+
+.tourney-champion-podium .podium-label {
+    font-size: 0.72rem;
+    font-weight: 900;
+    color: #FBBF24;
+    margin-bottom: 6px;
+}
+
+.tourney-champion-podium.ucl-podium .podium-label {
+    color: #38BDF8;
+}
+
+.tourney-champion-podium .podium-team {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 0.92rem;
+    font-weight: 900;
+    color: #FFFFFF;
+}
+
+.season-fixture-card.current-fixture {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.18), rgba(15, 23, 42, 0.95));
+    border: 1.5px solid #10B981;
+    box-shadow: 0 0 16px rgba(16, 185, 129, 0.22);
+}
+
+.season-fixture-card.ucl-fixture {
+    border-left: 3px solid #38BDF8;
+}
+
+.season-fixture-card.fa-fixture {
+    border-left: 3px solid #FBBF24;
+}
+
+.season-fixture-card.league-fixture {
+    border-left: 3px solid #10B981;
+}
+
+.fixture-comp-badge {
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: #94A3B8;
+}
+
+.fixture-comp-badge.ucl { color: #38BDF8; }
+.fixture-comp-badge.fa { color: #FBBF24; }
+.fixture-comp-badge.league { color: #34D399; }
+
+.fixture-main-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.fixture-ha-tag {
+    font-size: 0.65rem;
+    font-weight: 900;
+    padding: 2px 6px;
+    border-radius: 4px;
+    letter-spacing: 0.04em;
+}
+
+.fixture-ha-tag.home {
+    background: rgba(56, 189, 248, 0.16);
+    color: #38BDF8;
+}
+
+.fixture-ha-tag.away {
+    background: rgba(245, 158, 11, 0.16);
+    color: #FBBF24;
+}
+
+.fixture-opp-name {
+    font-size: 0.9rem;
+    color: #F8FAFC;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.fixture-status-box {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+    font-size: 0.8rem;
+}
+
+.fixture-score {
+    font-weight: 900;
+    color: #F8FAFC;
+    font-variant-numeric: tabular-nums;
+}
+
+.fixture-next-pill {
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: #10B981;
+    color: #090D16;
+    font-size: 0.68rem;
+    font-weight: 900;
+}
+
+.fixture-upcoming {
+    color: #64748B;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.res-w, .res-d, .res-l {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 5px;
+    font-size: 0.72rem;
+    font-weight: 900;
+}
+
+.res-w { background: rgba(16, 185, 129, 0.2); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.5); }
+.res-d { background: rgba(251, 191, 36, 0.2); color: #FBBF24; border: 1px solid rgba(251, 191, 36, 0.5); }
+.res-l { background: rgba(239, 68, 68, 0.2); color: #F87171; border: 1px solid rgba(239, 68, 68, 0.5); }
+
 
 
 

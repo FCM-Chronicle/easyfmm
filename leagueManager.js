@@ -186,6 +186,9 @@ const LeagueManager = {
                     score2 = Math.floor(Math.random() * 3);
                     this.applyMatchResult(leagueTable, match.home, match.away, score1, score2);
                 }
+                match.homeScore = score1;
+                match.awayScore = score2;
+                match.played = true;
             });
         });
 
@@ -220,7 +223,7 @@ const LeagueManager = {
         }
     },
 
-    // 리그 순위표 UI 렌더링 (9개국 리그 선택 탭 지원)
+    // 리그 순위표 & 경기 일정 & 토너먼트 대진표 UI 렌더링
     renderLeagueStandingsUI() {
         const container = document.getElementById('leagueTable');
         if (!container) return;
@@ -230,6 +233,58 @@ const LeagueManager = {
         const userLeagueId = this.getLeagueIdByTeam(gameData.selectedTeam);
         if (!this.activeViewLeague) {
             this.activeViewLeague = userLeagueId;
+        }
+        if (!this.activeSubView) {
+            this.activeSubView = 'standings'; // 'standings' | 'schedule' | 'fa' | 'ucl'
+        }
+
+        // 0. 최상단 뷰 전환 탭 (리그 순위표 | 경기 일정표 | FA컵 토너먼트 | UCL 토너먼트)
+        const modeBar = document.createElement('div');
+        modeBar.className = 'league-mode-switcher';
+        modeBar.style.cssText = 'display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.08);';
+
+        const modes = [
+            { id: 'standings', label: '📊 리그 순위표', color: '#FBBF24' },
+            { id: 'schedule', label: '📅 경기 일정표 (1~38R)', color: '#10B981' },
+            { id: 'fa', label: '🏆 FA컵 토너먼트 대진표', color: '#F59E0B' },
+            { id: 'ucl', label: '⭐ UCL 토너먼트 대진표', color: '#38BDF8' }
+        ];
+
+        modes.forEach(m => {
+            const mBtn = document.createElement('button');
+            const isAct = (this.activeSubView === m.id);
+            mBtn.type = 'button';
+            mBtn.className = `btn btn-sm ${isAct ? 'primary' : ''}`;
+            mBtn.style.cssText = `padding: 9px 16px; font-size: 0.88rem; font-weight: 800; border-radius: 10px; cursor: pointer; transition: all 0.2s; ${isAct ? `background: ${m.color}; color: #090D16; border: 1px solid ${m.color}; box-shadow: 0 4px 14px rgba(0,0,0,0.3);` : 'background: rgba(30,41,59,0.75); color: #CBD5E1; border: 1px solid rgba(255,255,255,0.1);'}`;
+            mBtn.textContent = m.label;
+            mBtn.onclick = () => {
+                this.activeSubView = m.id;
+                if (typeof cupCompetitionManager !== 'undefined' && m.id === 'schedule') {
+                    cupCompetitionManager.activeSeasonSchedLeague = this.activeViewLeague;
+                }
+                this.renderLeagueStandingsUI();
+            };
+            modeBar.appendChild(mBtn);
+        });
+        container.appendChild(modeBar);
+
+        // 컵 토너먼트 / 경기 일정 뷰 분기
+        if (this.activeSubView !== 'standings' && typeof cupCompetitionManager !== 'undefined') {
+            const subWrap = document.createElement('div');
+            subWrap.className = 'league-subview-content';
+            const rerenderSub = () => {
+                if (this.activeSubView === 'schedule') {
+                    subWrap.innerHTML = cupCompetitionManager.buildSeasonScheduleHTML();
+                } else if (this.activeSubView === 'fa') {
+                    subWrap.innerHTML = cupCompetitionManager.buildFAContentHTML();
+                } else if (this.activeSubView === 'ucl') {
+                    subWrap.innerHTML = cupCompetitionManager.buildUCLContentHTML();
+                }
+                cupCompetitionManager.bindInteractiveControls(subWrap, rerenderSub);
+            };
+            rerenderSub();
+            container.appendChild(subWrap);
+            return;
         }
 
         // 1. 상단 9개 리그 선택 버튼 바

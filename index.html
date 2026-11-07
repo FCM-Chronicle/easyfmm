@@ -446,7 +446,28 @@
                         <button id="startMatchBtn" class="btn primary"
                             style="padding: 15px 40px; font-size: 1.2rem; font-weight: bold;">경기 시작</button>
                     </div>
+                    <div class="match-hub-quick-actions" style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.08);">
+                        <button type="button" class="btn btn-sm" style="background: rgba(16, 185, 129, 0.16); border: 1px solid rgba(16, 185, 129, 0.45); color: #34D399; font-weight: 800; padding: 9px 16px; border-radius: 10px;"
+                            onclick="if(typeof renderMatchTabScheduleOrBracket==='function'){renderMatchTabScheduleOrBracket('schedule');}else if(typeof cupCompetitionManager!=='undefined'){cupCompetitionManager.openCupModal('schedule');}">
+                            📅 시즌 전체 경기 일정 보기
+                        </button>
+                        <button type="button" class="btn btn-sm" style="background: rgba(245, 158, 11, 0.16); border: 1px solid rgba(245, 158, 11, 0.45); color: #FBBF24; font-weight: 800; padding: 9px 16px; border-radius: 10px;"
+                            onclick="if(typeof renderMatchTabScheduleOrBracket==='function'){renderMatchTabScheduleOrBracket('fa');}else if(typeof cupCompetitionManager!=='undefined'){cupCompetitionManager.openCupModal('fa');}">
+                            🏆 FA컵 토너먼트 대진표
+                        </button>
+                        <button type="button" class="btn btn-sm" style="background: rgba(56, 189, 248, 0.16); border: 1px solid rgba(56, 189, 248, 0.45); color: #38BDF8; font-weight: 800; padding: 9px 16px; border-radius: 10px;"
+                            onclick="if(typeof renderMatchTabScheduleOrBracket==='function'){renderMatchTabScheduleOrBracket('ucl');}else if(typeof cupCompetitionManager!=='undefined'){cupCompetitionManager.openCupModal('ucl');}">
+                            ⭐ UCL 토너먼트 대진표
+                        </button>
+                        <button type="button" class="btn btn-sm" style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.18); color: #E2E8F0; font-weight: 700; padding: 9px 14px; border-radius: 10px; margin-left: auto;"
+                            onclick="if(typeof cupCompetitionManager!=='undefined'){cupCompetitionManager.openCupModal(window._matchTabInlineMode || 'schedule');}">
+                            🔍 큰 창(모달)으로 열기
+                        </button>
+                    </div>
                 </div>
+
+                <!-- 경기 일정 & 토너먼트 대진표 인라인 뷰어 -->
+                <div id="matchScheduleAndBracketPanel" class="match-schedule-bracket-panel" style="margin-bottom: 20px; background: rgba(15, 23, 42, 0.72); border: 1px solid rgba(148, 163, 184, 0.16); border-radius: 18px; padding: 18px;"></div>
 
                 <div class="current-tactic-display-panel">
                     <div class="current-tactic-header">
@@ -546,7 +567,7 @@
 
             <!-- 리그 탭 -->
             <div id="league" class="tab-panel">
-                <h3>리그 순위표</h3>
+                <h3>리그 순위표 · 경기 일정 · 토너먼트 대진표</h3>
                 <div id="leagueTable"></div>
             </div>
 

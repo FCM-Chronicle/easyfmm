@@ -1559,6 +1559,21 @@ function updateLeagueData(matchData, points) {
     } else {
         oppData.losses++;
     }
+
+    // [신규] 스케줄 객체에 유저 경기 스코어 저장 (경기 일정 뷰어 연동)
+    if (gameData.schedule) {
+        const sKey = (uLId && gameData.schedule[uLId]) ? uLId : ('division' + gameData.currentLeague);
+        const lSched = gameData.schedule[sKey];
+        const rIdx = (gameData.currentRound || 1) - 1;
+        if (lSched && lSched[rIdx]) {
+            const mObj = lSched[rIdx].find(m => m && (m.home === gameData.selectedTeam || m.away === gameData.selectedTeam));
+            if (mObj) {
+                mObj.homeScore = matchData.homeScore;
+                mObj.awayScore = matchData.awayScore;
+                mObj.played = true;
+            }
+        }
+    }
 }
 
 // =========================================================================================

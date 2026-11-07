@@ -1446,6 +1446,39 @@ function updateMatchTabCurrentTacticDisplay() {
 }
 window.updateMatchTabCurrentTacticDisplay = updateMatchTabCurrentTacticDisplay;
 
+// [신규] 경기 탭 내 시즌 일정 & FA컵/UCL 토너먼트 대진표 인라인 렌더링
+function renderMatchTabScheduleOrBracket(mode) {
+    const panel = document.getElementById('matchScheduleAndBracketPanel');
+    if (!panel || typeof cupCompetitionManager === 'undefined') return;
+    if (gameData && gameData.isWorldCupMode) {
+        panel.style.display = 'none';
+        return;
+    }
+    panel.style.display = 'block';
+
+    if (mode) {
+        window._matchTabInlineMode = mode;
+    } else if (!window._matchTabInlineMode) {
+        if (gameData && gameData.isUCLMatch) window._matchTabInlineMode = 'ucl';
+        else if (gameData && gameData.isFACupMatch) window._matchTabInlineMode = 'fa';
+        else window._matchTabInlineMode = 'schedule';
+    }
+
+    const curMode = window._matchTabInlineMode;
+    const rerenderInline = () => {
+        if (curMode === 'fa') {
+            panel.innerHTML = cupCompetitionManager.buildFAContentHTML();
+        } else if (curMode === 'ucl') {
+            panel.innerHTML = cupCompetitionManager.buildUCLContentHTML();
+        } else {
+            panel.innerHTML = cupCompetitionManager.buildSeasonScheduleHTML();
+        }
+        cupCompetitionManager.bindInteractiveControls(panel, rerenderInline);
+    };
+    rerenderInline();
+}
+window.renderMatchTabScheduleOrBracket = renderMatchTabScheduleOrBracket;
+
 // [신규] 탭 버튼 라벨 교체 (아이콘/텍스트 span 구조 유지)
 function setTabButtonLabel(btn, iconName, label) {
     if (!btn) return;
@@ -1511,6 +1544,9 @@ function showTab(tabName) {
         // [추가] 경기 탭의 현재 전술 디스플레이 동기화
         if (typeof updateMatchTabCurrentTacticDisplay === 'function') {
             updateMatchTabCurrentTacticDisplay();
+        }
+        if (typeof renderMatchTabScheduleOrBracket === 'function') {
+            renderMatchTabScheduleOrBracket();
         }
     }
 
@@ -2557,6 +2593,12 @@ function updateDisplay() {
     // [신규] 경기 탭 현재 전술 디스플레이 동기화
     if (typeof updateMatchTabCurrentTacticDisplay === 'function') {
         updateMatchTabCurrentTacticDisplay();
+    }
+    if (typeof renderMatchTabScheduleOrBracket === 'function') {
+        const matchPanel = document.getElementById('match');
+        if (matchPanel && matchPanel.classList.contains('active')) {
+            renderMatchTabScheduleOrBracket();
+        }
     }
 
     // [신규] 주급 표시 업데이트 (HTML에 totalWages ID가 있다고 가정)
@@ -4917,32 +4959,32 @@ class AudioManager {
 
         const container = document.createElement('div');
         container.id = 'nowPlayingContainer';
-        container.style.cssText = `position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.7);
-            color: #fff;
-            padding: 12px 20px;
-            border-radius: 30px;
-            z-index: 10000;
-            display: none;
-            align-items: center;
-            gap: 10px;
-            font-size: 0.95rem;
-            font-weight: 500;
-            backdrop-filter: blur(5px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            transition: opacity 0.5s ease, transform 0.5s ease;
-            opacity: 0;
-            transform: translateY(-20px);
-            pointer-events: none;
-        `;
+        container.className = 'now-playing-card';
+        container.setAttribute('role', 'status');
+        container.setAttribute('aria-live', 'polite');
+
+        const icon = document.createElement('span');
+        icon.className = 'now-playing-icon';
+        icon.innerHTML = typeof iconSVG === 'function' ? iconSVG('music') : '♪';
+
+        const copy = document.createElement('span');
+        copy.className = 'now-playing-copy';
+
+        const eyebrow = document.createElement('span');
+        eyebrow.className = 'now-playing-eyebrow';
+        eyebrow.textContent = 'NOW PLAYING';
 
         const text = document.createElement('span');
         text.id = 'nowPlayingText';
+        text.className = 'now-playing-title';
 
-        container.appendChild(text);
+        const bars = document.createElement('span');
+        bars.className = 'now-playing-bars';
+        bars.setAttribute('aria-hidden', 'true');
+        bars.innerHTML = '<i></i><i></i><i></i><i></i>';
+
+        copy.append(eyebrow, text);
+        container.append(icon, copy, bars);
         document.body.appendChild(container);
         this.nowPlayingElement = container;
         this.nowPlayingText = text;
@@ -4969,8 +5011,7 @@ class AudioManager {
             cleanName = cleanName.replace('-', ' - ');
         }
 
-        this.nowPlayingText.innerHTML = `${typeof iconSVG === 'function' ? iconSVG('music') : ''} <span>${cleanName}</span>`;
-        this.nowPlayingText.style.cssText = 'display: inline-flex; align-items: center; gap: 8px;';
+        this.nowPlayingText.textContent = cleanName;
 
         // 표시 애니메이션
         this.nowPlayingElement.style.display = 'flex';
