@@ -21,10 +21,10 @@ class VisualUnit {
         this.pulse = 0; // [신규] 공 소유 시 강조 애니메이션용
     }
 
-    //  [FLR 이식] 어댑티브 거리 기반 부드러운 가감속 보간
+    //  [FLR 이식] 어댑티브 거리 기반 부드러운 가감속 보간 (달리기 반응성 개선)
     update() {
         const d = Math.hypot(this.targetX - this.x, this.targetY - this.y);
-        const lerpFactor = d > 8 ? 0.18 : 0.13; 
+        const lerpFactor = d > 8 ? 0.38 : (d > 3 ? 0.28 : 0.20); 
         this.x += (this.targetX - this.x) * lerpFactor;
         this.y += (this.targetY - this.y) * lerpFactor;
 
