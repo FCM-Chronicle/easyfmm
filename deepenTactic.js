@@ -1694,7 +1694,7 @@ class RealSoccerEngine {
             else if (to.position === 'DF') score -= 35;
 
             // Burst FW trigger → through pass bonus!
-            if (to._fwMode === 'burst' && to.burstTimer > 5) score += 60;
+            if (to._fwMode === 'burst' && to.burstTimer > 5) score += 25;
             if (to._fwMode === 'linkup') score += 35;
         } else {
             // finalThird
@@ -2032,7 +2032,7 @@ class RealSoccerEngine {
 
         // accuracy
         let acc = this.getEffectiveStat(from, 'passing');
-        if (to._fwMode === 'burst' && to.burstTimer > 0) acc += 25;
+        if (to._fwMode === 'burst' && to.burstTimer > 0) acc += 8; // 과도한 침투 보너스 축소 (일방적 뒤공간 털림 완화)
         if (isCross) acc += this.getRoleBehavior(from.role).hugLine ? 15 : -5;
         let distPen = Math.max(0, (dist - 20) * 0.7);
         if (passKind === 'risky') distPen *= 1.4;
@@ -2083,7 +2083,7 @@ class RealSoccerEngine {
         const success = Math.random() * 100 <= clamp(acc - distPen + (isThrough ? 6 : 0), minAcc, 99);
 
         if (success) {
-            const lead = isThrough || (dist > 24 && (to.position === 'FW' || to._fwMode === 'burst')) ? 6 : 0;
+            const lead = isThrough ? 3.5 : (dist > 24 && (to.position === 'FW' || to._fwMode === 'burst') ? 2.5 : 0);
             const moveDir = to.teamId === 'home' ? 1 : -1;
             this.ball.targetPos = {
                 x: clamp(to.x + moveDir * lead, 2, 98),
@@ -2550,6 +2550,13 @@ class RealSoccerEngine {
             this.ball.owner._protectionTicks = 6;
         }
 
+        // 공을 뺏긴 팀(losing): 오버랩/침투 모드 즉시 해제 및 수비 복귀
+        this.players.filter(p => p.teamId === losing).forEach(p => {
+            p.burstTimer = 0;
+            if (p._fwMode === 'burst') p._fwMode = 'normal';
+            if (p.position === 'DF') p._fbMode = 'hold';
+        });
+
         // 볼 탈환 팀의 전환 모드 가동
         this._phase[winningTeamId] = 'counter';
         const counterDuration = isCounterTeam ? 65 : (isPossessionTeam ? 10 : 30);
@@ -2822,10 +2829,24 @@ class RealSoccerEngine {
 
     _gkOffBall(gk) {
         const isHome = gk.teamId === 'home';
-        const homeX = gk.baseX || (isHome ? 5 : 95);
+        const goalX = isHome ? 0 : 100;
+        const baseHomeX = gk.baseX || (isHome ? 4 : 96);
+
+        // 볼이나 상대 공격수가 골문 근처로 올 때 각도를 좁히기 위해 전진 (스위퍼 키퍼)
+        const ballDistToGoal = Math.abs(this.ball.x - goalX);
+        let targetX = baseHomeX;
+        if (ballDistToGoal < 28) {
+            // 최대 7~8m까지 전진하여 슈팅 각도 좁힘
+            const advance = (28 - ballDistToGoal) * 0.30;
+            targetX = isHome ? (baseHomeX + advance) : (baseHomeX - advance);
+        }
+
+        // Y축도 볼 위치에 맞춰 골문 범위(38~62) 내에서 각도 차단
+        const targetY = clamp(50 + (this.ball.y - 50) * 0.32, 39, 61);
+
         gk.vx *= 0.3; gk.vy *= 0.3;
-        gk.x += (homeX - gk.x) * 0.2 + gk.vx;
-        gk.y += (clamp(50 + (this.ball.y - 50) * 0.08, 42, 58) - gk.y) * 0.2 + gk.vy;
+        gk.x += (targetX - gk.x) * 0.25 + gk.vx;
+        gk.y += (targetY - gk.y) * 0.25 + gk.vy;
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -3293,32 +3314,44 @@ class RealSoccerEngine {
             return;
         }
 
-        // 3) DF DEFENSE (백포 라인 철통 규율: CB는 라인 홀딩, FB는 터치라인 측면 채널 사수)
+        // 3) DF DEFENSE (백포 라인 철통 규율: 침투/역습 시 전력 질주로 복귀, 평시 라인 홀딩)
         if (p.position === 'DF') {
             const isCB = ['CD', 'BPD', 'NCB', 'LIB'].includes(p.role);
             const isFB_role = ['FB', 'WB', 'CWB', 'IWB'].includes(p.role);
             const tidDFs = this.players.filter(q => q.teamId === tid && q.position === 'DF');
+            const oppTid = tid === 'home' ? 'away' : 'home';
+            const isOppCounter = this._phase[oppTid] === 'counter';
+            const caughtBehind = isHome ? (p.x > ballX + 2) : (p.x < ballX - 2);
+
             let tx = lines.dfX;
             if (isFB_role) tx += fwd * 1.5;
             let ty = p.slotY;
-            let ms = 0.45 * clamp(sf, 0.7, 1.5);
+            let ms = 0.52 * clamp(sf, 0.75, 1.5);
 
             if (isCB) {
                 const isLeftCB = p.slotY < 50;
-                // [CB 규율] 센터백은 중앙 자리를 비우고 공으로 뛰어나가지 않음!
-                // 오직 페널티 박스 정면 위험 지역(dBall < 5.0 && pressIsMe)에서만 최후의 차단 발뻗기
+                // [CB 규율] 페널티 박스 정면 위험 지역(dBall < 5.0 && pressIsMe)에서 최후의 태클/차단
                 if (inOwnThird && dBall < 5.0 && pressIsMe) {
                     tx = ballX; ty = ballY;
-                    ms = 0.88 * clamp(sf, 0.8, 1.7);
+                    ms = 0.90 * clamp(sf, 0.85, 1.8);
                 } else {
-                    // 상대 공격수 마킹 및 오프사이드 라인 유지
                     const oppFW = this._findMarkTargetForDF(p, 'FW');
                     if (oppFW) {
-                        const markW = clamp(0.35 + (inOwnThird ? 0.15 : 0), 0.20, 0.50);
+                        const markW = clamp(0.35 + (inOwnThird ? 0.20 : 0), 0.20, 0.55);
                         ty = p.slotY * (1 - markW) + oppFW.y * markW;
                         const markX = isHome ? (oppFW.x - 2) : (oppFW.x + 2);
-                        tx = isHome ? clamp(markX, lines.dfX - 2.0, lines.dfX + 2.0)
-                                    : clamp(markX, lines.dfX - 2.0, lines.dfX + 2.0);
+                        const isThreat = oppFW._fwMode === 'burst' || (isHome ? oppFW.x < lines.dfX : oppFW.x > lines.dfX);
+                        if (isThreat || caughtBehind || isOppCounter) {
+                            // 상대 공격수가 뒷공간을 파거나 역습 시 라인 구속을 풀고 골문 쪽으로 전력 질주하며 맨마킹
+                            tx = isHome ? clamp(markX, 5, lines.dfX + 2.0) : clamp(markX, lines.dfX - 2.0, 95);
+                            ms = 0.95 * clamp(sf, 0.85, 1.85);
+                        } else {
+                            // 일반적인 오프사이드 트랩 유지 상태
+                            tx = isHome ? clamp(markX, lines.dfX - 2.0, lines.dfX + 2.0)
+                                        : clamp(markX, lines.dfX - 2.0, lines.dfX + 2.0);
+                        }
+                    } else if (caughtBehind || isOppCounter) {
+                        ms = 0.90 * clamp(sf, 0.85, 1.8);
                     }
                 }
                 ty = isLeftCB ? clamp(ty, 33, 46) : clamp(ty, 54, 67);
@@ -3330,19 +3363,36 @@ class RealSoccerEngine {
                     if (a < 15) ty = o.y + s * 15;
                 }
             } else if (isFB_role) {
-                // [FB 규율] 풀백은 측면 터치라인 채널(y < 22 or y > 78)을 지킴. 중앙으로 절대 몰려들지 않음!
+                // [FB 규율] 풀백은 측면 터치라인 채널 사수 및 상대 측면 침투 커버
+                const oppW = this._findMarkTargetForDF(p, 'wide');
+                if (oppW) {
+                    const markX = isHome ? (oppW.x - 2) : (oppW.x + 2);
+                    const isThreat = oppW._fwMode === 'burst' || (isHome ? oppW.x < lines.dfX : oppW.x > lines.dfX);
+                    if (isThreat || caughtBehind || isOppCounter) {
+                        tx = isHome ? clamp(markX, 5, lines.dfX + 3.0) : clamp(markX, lines.dfX - 3.0, 95);
+                        ms = 0.95 * clamp(sf, 0.85, 1.85);
+                    } else {
+                        tx = isHome ? clamp(markX, lines.dfX - 2.0, lines.dfX + 3.0)
+                                    : clamp(markX, lines.dfX - 3.0, lines.dfX + 2.0);
+                    }
+                    ty = oppW.y;
+                } else {
+                    ty = p.slotY < 50 ? 14 : 86;
+                    if (caughtBehind || isOppCounter) {
+                        ms = 0.90 * clamp(sf, 0.85, 1.8);
+                    }
+                }
+
                 const sameSide = (p.slotY < 50 && ballY < 40) || (p.slotY > 50 && ballY > 60);
                 if (sameSide && pressIsMe && dBall < 8.0) {
                     tx = ballX;
                     ty = clamp(ballY, p.slotY - 7, p.slotY + 7);
-                    ms = 0.85 * clamp(sf, 0.8, 1.7);
-                } else {
-                    ty = p.slotY < 50 ? 12 : 88;
+                    ms = 0.88 * clamp(sf, 0.8, 1.7);
                 }
-                ty = clamp(ty, p.slotY < 50 ? 6 : 74, p.slotY < 50 ? 24 : 94);
+                ty = clamp(ty, p.slotY < 50 ? 6 : 74, p.slotY < 50 ? 26 : 94);
             }
 
-            this._physicsStep(p, clamp(tx, 2, 90), clamp(ty, 3, 97), ms);
+            this._physicsStep(p, clamp(tx, 4, 96), clamp(ty, 3, 97), ms);
             return;
         }
     }
