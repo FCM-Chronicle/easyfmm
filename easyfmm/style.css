@@ -2014,19 +2014,19 @@ body {
 }
 
 .position-badge.gk {
-    background: #E74C3C;
+    background: #F59E0B;
 }
 
 .position-badge.df {
-    background: #3498DB;
+    background: #3B82F6;
 }
 
 .position-badge.mf {
-    background: #2ECC71;
+    background: #10B981;
 }
 
 .position-badge.fw {
-    background: #F39C12;
+    background: #EF4444;
 }
 
 .rating-badge {
@@ -8161,7 +8161,7 @@ body {
     bottom: auto !important;
     width: 100%;
     max-width: 720px;
-    height: 580px;
+    height: 640px;
     margin: 0 auto;
     background: #1c6644;
     border: 2px solid rgba(255, 255, 255, 0.28);
@@ -8659,32 +8659,50 @@ body,
     flex-shrink: 0;
 }
 
+/* 포지션 테마 컬러: 공격(빨강), 미드(초록), 수비(파랑), 키퍼(노랑) */
 .pos-badge.pos-fw,
+.pos-badge.pos-st,
+.pos-badge.pos-cf,
+.pos-badge.pos-lw,
+.pos-badge.pos-rw,
 .icon-pos-tag.FW {
-    background: rgba(244, 63, 94, 0.18) !important;
-    color: #FB7185 !important;
-    border: 1px solid rgba(244, 63, 94, 0.4) !important;
+    background: rgba(239, 68, 68, 0.2) !important;
+    color: #EF4444 !important;
+    border: 1px solid rgba(239, 68, 68, 0.45) !important;
 }
 
 .pos-badge.pos-mf,
+.pos-badge.pos-cam,
+.pos-badge.pos-am,
+.pos-badge.pos-cm,
+.pos-badge.pos-lm,
+.pos-badge.pos-rm,
+.pos-badge.pos-cdm,
+.pos-badge.pos-dm,
 .icon-pos-tag.MF {
-    background: rgba(163, 230, 53, 0.16) !important;
-    color: #A3E635 !important;
-    border: 1px solid rgba(163, 230, 53, 0.4) !important;
+    background: rgba(16, 185, 129, 0.2) !important;
+    color: #10B981 !important;
+    border: 1px solid rgba(16, 185, 129, 0.45) !important;
 }
 
 .pos-badge.pos-df,
+.pos-badge.pos-cb,
+.pos-badge.pos-lb,
+.pos-badge.pos-rb,
+.pos-badge.pos-lwb,
+.pos-badge.pos-rwb,
+.pos-badge.pos-sw,
 .icon-pos-tag.DF {
-    background: rgba(56, 189, 248, 0.16) !important;
-    color: #38BDF8 !important;
-    border: 1px solid rgba(56, 189, 248, 0.4) !important;
+    background: rgba(59, 130, 246, 0.2) !important;
+    color: #3B82F6 !important;
+    border: 1px solid rgba(59, 130, 246, 0.45) !important;
 }
 
 .pos-badge.pos-gk,
 .icon-pos-tag.GK {
-    background: rgba(251, 191, 36, 0.16) !important;
-    color: #FBBF24 !important;
-    border: 1px solid rgba(251, 191, 36, 0.4) !important;
+    background: rgba(245, 158, 11, 0.2) !important;
+    color: #F59E0B !important;
+    border: 1px solid rgba(245, 158, 11, 0.45) !important;
 }
 
 /* 3. FC26 스타일 선수 카드 개조 (이적 시장 & 스쿼드 & 유스 & 스카우트) */
@@ -12573,9 +12591,10 @@ input[type="range"].game-range-slider::-moz-range-thumb:hover,
     font-weight: 800;
 }
 
-.bmh-pos-tag.fw { color: #F87171; }
-.bmh-pos-tag.mf { color: #38BDF8; }
-.bmh-pos-tag.df { color: #34D399; }
+.bmh-pos-tag.fw { color: #EF4444; }
+.bmh-pos-tag.mf { color: #10B981; }
+.bmh-pos-tag.df { color: #3B82F6; }
+.bmh-pos-tag.gk { color: #F59E0B; }
 
 .bmh-stamina-pct {
     color: #F8FAFC;

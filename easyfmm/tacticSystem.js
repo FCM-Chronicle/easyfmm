@@ -869,8 +869,15 @@ function simulateMatch(matchData, engine) {
 // [헬퍼] 스쿼드 데이터 추출 (엔진 전달용)
 function getSquadData(teamKey) {
     if (teamKey === gameData.selectedTeam) {
-        return gameData.squad;
+        return {
+            ...gameData.squad,
+            squadLines: gameData.squadLines
+        };
     } else {
+        if (typeof TeamUtils !== 'undefined' && typeof TeamUtils.getOptimalSquadData === 'function') {
+            const optimal = TeamUtils.getOptimalSquadData(teamKey);
+            if (optimal) return optimal;
+        }
         const best11 = getBestEleven(teamKey);
         return {
             gk: best11.find(p => p.position === 'GK'),
@@ -2468,7 +2475,7 @@ function selectPlayerForSub(player, element, type, matchData) {
 }
 
 function performSubstitution(playerOut, playerIn, matchData) {
-    // 1. gameData.squad ?낅뜲?댄듃
+    // 1. gameData.squad 업데이트
     const squad = gameData.squad;
     if (squad.gk && squad.gk.name === playerOut.name) squad.gk = playerIn;
     else {
@@ -2476,6 +2483,20 @@ function performSubstitution(playerOut, playerIn, matchData) {
             const idx = squad[pos].findIndex(p => p && p.name === playerOut.name);
             if (idx !== -1) squad[pos][idx] = playerIn;
         });
+    }
+
+    // 1.1 gameData.squadLines 동기화 (5선 라인 체계)
+    if (gameData && gameData.squadLines) {
+        for (const lineKey in gameData.squadLines) {
+            const arr = gameData.squadLines[lineKey];
+            if (Array.isArray(arr)) {
+                const idx = arr.findIndex(p => p && p.name === playerOut.name);
+                if (idx !== -1) {
+                    arr[idx] = playerIn;
+                    break;
+                }
+            }
+        }
     }
 
     // 2. 엔진 데이터 업데이트 (SimPlayer 교체)
@@ -2491,6 +2512,8 @@ function performSubstitution(playerOut, playerIn, matchData) {
             simPlayer.name = playerIn.name;
             simPlayer.rating = playerIn.rating;
             simPlayer.position = playerIn.position;
+            simPlayer.detailPosition = ((playerIn.detailPosition || playerIn.position) || '').toUpperCase();
+            simPlayer.otherPositions = playerIn.otherPositions || [];
             // [수정] 교체 투입 선수 체력 반영
             simPlayer.stamina = (playerIn.condition !== undefined) ? playerIn.condition : 100;
 
@@ -2501,7 +2524,7 @@ function performSubstitution(playerOut, playerIn, matchData) {
             } else {
                 const tactic = matchData.engine.getTeamTactic ? matchData.engine.getTeamTactic(simPlayer.teamId) : 'balanced';
                 if (matchData.engine && typeof matchData.engine._bestRoleForTactic === 'function') {
-                    role = matchData.engine._bestRoleForTactic(tactic, playerIn.position, 0);
+                    role = matchData.engine._bestRoleForTactic(tactic, playerIn.position, 0, 4, simPlayer.detailPosition);
                 } else {
                     if (playerIn.position === 'FW') role = 'AF';
                     else if (playerIn.position === 'MF') role = 'BBM';
@@ -2623,12 +2646,14 @@ function performAISubstitution(playerOut, playerIn, aiTeam, matchData) {
         simPlayer.name = inName;
         simPlayer.rating = playerIn.rating;
         simPlayer.position = playerIn.position;
+        simPlayer.detailPosition = ((playerIn.detailPosition || playerIn.position) || '').toUpperCase();
+        simPlayer.otherPositions = playerIn.otherPositions || [];
         simPlayer.stamina = (playerIn.condition !== undefined) ? playerIn.condition : 100;
 
         const tactic = matchData.engine.getTeamTactic ? matchData.engine.getTeamTactic(simPlayer.teamId) : 'balanced';
         let role = 'CM';
         if (typeof matchData.engine._bestRoleForTactic === 'function') {
-            role = matchData.engine._bestRoleForTactic(tactic, playerIn.position, 0);
+            role = matchData.engine._bestRoleForTactic(tactic, playerIn.position, 0, 4, simPlayer.detailPosition);
         } else {
             if (playerIn.position === 'FW') role = 'AF';
             else if (playerIn.position === 'MF') role = 'BBM';

@@ -41,6 +41,7 @@ let gameData = {
     settings: { autoSave: false, bgm: true, bgmVolume: 50, sfxVolume: 50, immersionMode: true, customCursor: false, useIdFacepack: true }, // 게임 설정 (오디오, SFX, 몰입 모드, 커스텀 커서, ID 페이스팩)
     matchDrama: { enabled: true, intensity: 'high' }, // 골 직전 몰입 연출 (CM 스타일)
     playerRoles: {}, // [추가] 선수별 역할 데이터 초기화
+    aiFormations: {}, // [신규] AI 팀별 최적 포메이션 데이터 저장소
     temporaryStats: {}, // [신규] 일시적 스탯 버프/디버프 저장소
     secretaryName: "김지수", // [신규] 비서 이름 (secretary.js에서 사용)
     losingStreak: 0, // [신규] 연패 기록
@@ -464,6 +465,11 @@ function initializeGame() {
 
     // [신규] 팀 선택 UI 초기화
     renderTeamSelectionUI();
+
+    // [신규] 전체 AI 팀의 최적 포메이션 연산 및 초기화
+    if (typeof TeamUtils !== 'undefined') {
+        TeamUtils.initializeAllAIFormations();
+    }
 }
 
 // [신규] 선수 목록 클릭 핸들러
@@ -1198,6 +1204,9 @@ function selectTeam(teamKey) {
     }
 
     // 상대팀 설정 (리그 또는 FA컵)
+    if (typeof TeamUtils !== 'undefined') {
+        TeamUtils.initializeAllAIFormations();
+    }
     setNextOpponent();
 
     // 로비 진입 공통 처리 함수
@@ -1241,37 +1250,47 @@ function selectTeam(teamKey) {
     }
 }
 
-// 자동으로 스쿼드 채우기 함수
+// 자동으로 스쿼드 채우기 함수 (팀의 최적 실축 포메이션 기반 자동 선발)
 function autoFillSquad() {
-    const teamPlayers = teams[gameData.selectedTeam];
+    if (!gameData || !gameData.selectedTeam) return;
 
-    // 포지션별로 선수들을 분류하고 능력치 순으로 정렬
+    if (typeof TeamUtils !== 'undefined' && TeamUtils.calculateBestFormation) {
+        const best = TeamUtils.calculateBestFormation(gameData.selectedTeam);
+        if (best && best.squad && best.squadLines) {
+            gameData.squad = {
+                gk: best.squad.gk,
+                df: [...best.squad.df],
+                mf: [...best.squad.mf],
+                fw: [...best.squad.fw]
+            };
+            gameData.squadLines = {
+                TOP: [...best.squadLines.TOP],
+                AM: [...best.squadLines.AM],
+                CM: [...best.squadLines.CM],
+                DM: [...best.squadLines.DM],
+                DF: [...best.squadLines.DF],
+                GK: [...best.squadLines.GK]
+            };
+            gameData.currentFormation = best.formationName || best.formation;
+
+            if (window.refreshFormation) {
+                window.refreshFormation();
+            }
+            return;
+        }
+    }
+
+    const teamPlayers = teams[gameData.selectedTeam] || [];
     const gks = teamPlayers.filter(p => p.position === 'GK').sort((a, b) => b.rating - a.rating);
     const dfs = teamPlayers.filter(p => p.position === 'DF').sort((a, b) => b.rating - a.rating);
     const mfs = teamPlayers.filter(p => p.position === 'MF').sort((a, b) => b.rating - a.rating);
     const fws = teamPlayers.filter(p => p.position === 'FW').sort((a, b) => b.rating - a.rating);
 
-    // 최고 능력치 선수들로 자동 배치
-    if (gks.length > 0) {
-        gameData.squad.gk = gks[0];
-    }
+    if (gks.length > 0) gameData.squad.gk = gks[0];
+    for (let i = 0; i < 4 && i < dfs.length; i++) gameData.squad.df[i] = dfs[i];
+    for (let i = 0; i < 3 && i < mfs.length; i++) gameData.squad.mf[i] = mfs[i];
+    for (let i = 0; i < 3 && i < fws.length; i++) gameData.squad.fw[i] = fws[i];
 
-    // 수비수 4명
-    for (let i = 0; i < 4 && i < dfs.length; i++) {
-        gameData.squad.df[i] = dfs[i];
-    }
-
-    // 미드필더 3명
-    for (let i = 0; i < 3 && i < mfs.length; i++) {
-        gameData.squad.mf[i] = mfs[i];
-    }
-
-    // 공격수 3명
-    for (let i = 0; i < 3 && i < fws.length; i++) {
-        gameData.squad.fw[i] = fws[i];
-    }
-
-    // 새 포메이션 시스템으로 화면 새로고침
     if (window.refreshFormation) {
         window.refreshFormation();
     }
@@ -3127,7 +3146,7 @@ function relinkSquadPlayers() {
                 found = transferSystem.extraPlayers.find(x => x.name === p.name);
             }
             if (found) {
-                ['playerid', 'playerId', 'id', 'attributes', 'traits', 'detailPosition', 'potential', 'preferredFoot', 'weakFoot', 'skillMoves', 'country'].forEach(k => {
+                ['playerid', 'playerId', 'id', 'attributes', 'traits', 'detailPosition', 'otherPositions', 'potential', 'preferredFoot', 'weakFoot', 'skillMoves', 'country'].forEach(k => {
                     if (p[k] === undefined && found[k] !== undefined) p[k] = found[k];
                 });
             }
@@ -3253,6 +3272,9 @@ function loadGame(event) {
             gameData = saveData.gameData;
             if (!gameData.playerRoles) gameData.playerRoles = {}; // [추가] 구버전 세이브 호환성 보장
             if (!gameData.mentoringPairs) gameData.mentoringPairs = []; // [추가] 멘토링 세이브 호환성 보장
+            if (!gameData.aiFormations && typeof TeamUtils !== 'undefined') {
+                TeamUtils.initializeAllAIFormations();
+            }
             if (typeof gameData.wageBudget !== 'number') {
                 gameData.wageBudget = gameData.totalWeeklyWage || 0;
             }

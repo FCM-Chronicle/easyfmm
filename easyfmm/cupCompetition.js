@@ -178,15 +178,19 @@ class CupCompetitionManager {
         return CUP_CONFIGS.faCups[leagueId] || CUP_CONFIGS.faCups.premier_league;
     }
 
-    // 팀 평점 계산 헬퍼
+    // 팀 평점 계산 헬퍼 (주전 Top 11 평균 기준 정밀 계산)
     getTeamRating(teamKey) {
         if (!teamKey) return 75;
+        let players = null;
         if (typeof teams !== 'undefined' && teams[teamKey] && Array.isArray(teams[teamKey])) {
-            const players = teams[teamKey];
-            if (players.length > 0) {
-                const sum = players.reduce((acc, p) => acc + (p.rating || 75), 0);
-                return Math.round(sum / players.length);
-            }
+            players = teams[teamKey];
+        } else if (typeof allTeams !== 'undefined' && allTeams[teamKey] && Array.isArray(allTeams[teamKey].players)) {
+            players = allTeams[teamKey].players;
+        }
+        if (players && players.length > 0) {
+            const sorted = [...players].sort((a, b) => (b.rating || 70) - (a.rating || 70));
+            const top11 = sorted.slice(0, 11);
+            return Math.round((top11.reduce((acc, p) => acc + (p.rating || 75), 0) / top11.length) * 10) / 10;
         }
         if (typeof allTeams !== 'undefined' && allTeams[teamKey]) {
             return allTeams[teamKey].reputation || 78;
@@ -362,25 +366,76 @@ class CupCompetitionManager {
         const userTeam = gameData.selectedTeam;
         const allKeys = Object.keys(allTeams || {});
 
-        // 유럽 리그 팀들 선별 (K리그 제외)
-        const europeanTeams = allKeys.filter(k => allTeams[k].leagueId !== 'kleague_1');
-        
-        // 능력치/명성 순으로 정렬하여 상위 36팀 선발
-        const sortedEuropean = [...europeanTeams].sort((a, b) => {
-            const repA = (allTeams[a].reputation || 70);
-            const repB = (allTeams[b].reputation || 70);
-            return repB - repA;
-        });
+        const europeanLeagues = [
+            'premier_league', 'laliga', 'bundesliga', 'serie_a',
+            'ligue_1', 'liga_portugal', 'eredivisie', 'super_lig'
+        ];
+        const excludedKeys = ['브라질_연합', '알_힐랄', '알_나스르'];
 
-        let uclTeams = sortedEuropean.slice(0, 36);
+        // 리그별 팀 분류 및 Top 11 OVR 정렬
+        const leagueTeams = {};
+        europeanLeagues.forEach(l => { leagueTeams[l] = []; });
 
-        // 만약 유저 팀이 유럽 팀인데 36위 밖이면 강제로 36위에 유저 팀 포함
-        const isUserEuropean = europeanTeams.includes(userTeam);
-        if (isUserEuropean && !uclTeams.includes(userTeam)) {
-            uclTeams[35] = userTeam;
+        for (const key of allKeys) {
+            const t = allTeams[key];
+            if (!t || excludedKeys.includes(key)) continue;
+            if (europeanLeagues.includes(t.leagueId)) {
+                leagueTeams[t.leagueId].push({
+                    key,
+                    league: t.leagueId,
+                    ovr: this.getTeamRating(key)
+                });
+            }
         }
 
-        // 4개 포트 분류 (각 포트 9팀)
+        for (const l in leagueTeams) {
+            leagueTeams[l].sort((a, b) => b.ovr - a.ovr);
+        }
+
+        // 실축 UEFA 챔피언스리그 리그별 쿼터 분배
+        // 5대 리그 상위 4~5개 팀 + 중상위 리그 명문 클럽 우선 선발 (입스위치 등 약팀 배제)
+        const quotas = {
+            premier_league: 5,
+            laliga: 5,
+            bundesliga: 5,
+            serie_a: 5,
+            ligue_1: 4,
+            liga_portugal: 3,
+            eredivisie: 3,
+            super_lig: 2
+        };
+
+        const selected = [];
+        const remaining = [];
+
+        for (const l of europeanLeagues) {
+            const q = quotas[l] || 2;
+            const topTeams = leagueTeams[l].slice(0, q);
+            selected.push(...topTeams);
+            remaining.push(...leagueTeams[l].slice(q));
+        }
+
+        // 남은 자리를 유럽 전체 잔여 최강팀으로 충원 (총 36팀)
+        remaining.sort((a, b) => b.ovr - a.ovr);
+        while (selected.length < 36 && remaining.length > 0) {
+            selected.push(remaining.shift());
+        }
+
+        // 만약 유저 팀이 유럽 리그 소속인데 36팀에 미포함된 경우 36번째 자리에 강제 배정
+        const isUserEuropean = allTeams[userTeam] && europeanLeagues.includes(allTeams[userTeam].leagueId);
+        const userInSelected = selected.some(t => t.key === userTeam);
+        if (isUserEuropean && !userInSelected) {
+            selected[35] = {
+                key: userTeam,
+                league: allTeams[userTeam].leagueId,
+                ovr: this.getTeamRating(userTeam)
+            };
+        }
+
+        // 능력치 순으로 정렬하여 4개 포트(각 9팀) 배정
+        selected.sort((a, b) => b.ovr - a.ovr);
+        const uclTeams = selected.map(t => t.key);
+
         const pot1 = uclTeams.slice(0, 9);
         const pot2 = uclTeams.slice(9, 18);
         const pot3 = uclTeams.slice(18, 27);
@@ -402,28 +457,109 @@ class CupCompetitionManager {
             };
         });
 
-        // 8라운드 대진표 생성 (각 팀마다 8경기: 포트별 2팀씩, 홈 4 / 원정 4)
-        const scheduleRounds = {};
-        for (let r = 1; r <= 8; r++) {
-            scheduleRounds[`LP${r}`] = [];
+        // 8라운드 대진표 생성 (동국가 배제 + 중복 상대 방지 + 홈4/원정4 보장)
+        const leagueMap = {};
+        selected.forEach(t => { leagueMap[t.key] = t.league; });
+
+        let scheduleRounds = null;
+        for (let attempt = 0; attempt < 60; attempt++) {
+            const tempSchedule = {};
+            const teamOpponents = {};
+            const homeCount = {};
+            const awayCount = {};
+
+            uclTeams.forEach(t => {
+                teamOpponents[t] = new Set();
+                homeCount[t] = 0;
+                awayCount[t] = 0;
+            });
+
+            let success = true;
+            for (let r = 1; r <= 8; r++) {
+                const roundKey = `LP${r}`;
+                const roundMatches = [];
+                const available = [...uclTeams].sort(() => Math.random() - 0.5);
+
+                let roundTries = 0;
+                while (available.length > 0 && roundTries < 250) {
+                    roundTries++;
+                    const t1 = available[0];
+                    let partnerIdx = -1;
+
+                    for (let i = 1; i < available.length; i++) {
+                        const t2 = available[i];
+                        // 동국가(같은 리그) 매칭 금지 (Country Protection)
+                        if (leagueMap[t1] && leagueMap[t2] && leagueMap[t1] === leagueMap[t2]) continue;
+                        // 동일 상대 중복 매칭 금지 (8경기 모두 다른 상대)
+                        if (teamOpponents[t1].has(t2)) continue;
+
+                        partnerIdx = i;
+                        break;
+                    }
+
+                    if (partnerIdx === -1) {
+                        success = false;
+                        break;
+                    }
+
+                    const t2 = available.splice(partnerIdx, 1)[0];
+                    available.shift();
+
+                    let home, away;
+                    if (homeCount[t1] < homeCount[t2]) {
+                        home = t1; away = t2;
+                    } else if (awayCount[t1] < awayCount[t2]) {
+                        home = t2; away = t1;
+                    } else {
+                        home = (r % 2 === 1) ? t1 : t2;
+                        away = (r % 2 === 1) ? t2 : t1;
+                    }
+
+                    homeCount[home]++;
+                    awayCount[away]++;
+                    teamOpponents[home].add(away);
+                    teamOpponents[away].add(home);
+
+                    roundMatches.push({
+                        home,
+                        away,
+                        homeScore: null,
+                        awayScore: null,
+                        played: false
+                    });
+                }
+
+                if (!success || roundMatches.length !== 18) {
+                    success = false;
+                    break;
+                }
+                tempSchedule[roundKey] = roundMatches;
+            }
+
+            if (success) {
+                scheduleRounds = tempSchedule;
+                break;
+            }
         }
 
-        // 간단하고 공정한 8R 매칭 생성 (각 라운드당 18경기)
-        // 36개 팀을 셔플하여 각 라운드마다 2팀씩 짝지음 (충돌 방지 로직)
-        for (let r = 1; r <= 8; r++) {
-            const roundKey = `LP${r}`;
-            const shuffledRoundTeams = this.shuffle(uclTeams);
-            const roundMatches = [];
-            for (let i = 0; i < shuffledRoundTeams.length; i += 2) {
-                roundMatches.push({
-                    home: (r % 2 === 1) ? shuffledRoundTeams[i] : shuffledRoundTeams[i + 1],
-                    away: (r % 2 === 1) ? shuffledRoundTeams[i + 1] : shuffledRoundTeams[i],
-                    homeScore: null,
-                    awayScore: null,
-                    played: false
-                });
+        // 혹시 셔플 충돌 시의 fallback
+        if (!scheduleRounds) {
+            scheduleRounds = {};
+            for (let r = 1; r <= 8; r++) {
+                const roundKey = `LP${r}`;
+                const shuffled = this.shuffle(uclTeams);
+                const roundMatches = [];
+                for (let i = 0; i < shuffled.length; i += 2) {
+                    roundMatches.push({
+                        home: (r % 2 === 1) ? shuffled[i] : shuffled[i + 1],
+                        away: (r % 2 === 1) ? shuffled[i + 1] : shuffled[i],
+                        homeScore: null,
+                        awayScore: null,
+                        played: false
+                    });
+                }
+                scheduleRounds[roundKey] = roundMatches;
             }
-            scheduleRounds[roundKey] = roundMatches;
         }
 
         gameData.ucl = {
@@ -447,7 +583,7 @@ class CupCompetitionManager {
             matchPending: false
         };
 
-        console.log(`[UCL] 36개 클럽 리그 페이즈 구축 완료. 유저(${userTeam}) 참가여부: ${gameData.ucl.isUserActive}`);
+        console.log(`[UCL] 최강 36개 명문 클럽 리그 페이즈 구축 완료 (동국가 배제 & 포트 배분). 유저(${userTeam}) 참가여부: ${gameData.ucl.isUserActive}`);
     }
 
     // ==========================================

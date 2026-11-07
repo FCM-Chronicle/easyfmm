@@ -429,11 +429,34 @@
     const compTag = document.getElementById("sb-comp-tag");
     if (compTag && window.gameData) {
       if (window.gameData.isUCLMatch) {
-        compTag.textContent = "UCL";
-        if (compLogo) compLogo.style.display = "none";
+        if (compLogo) {
+          compLogo.src = (window.CUP_CONFIGS && window.CUP_CONFIGS.ucl && window.CUP_CONFIGS.ucl.logo)
+            ? window.CUP_CONFIGS.ucl.logo
+            : "assets/cup_logos/ucl.png";
+          compLogo.style.display = "block";
+          compLogo.onerror = function () {
+            this.style.display = "none";
+            if (compTag) compTag.textContent = "UCL";
+          };
+        }
+        compTag.textContent = "";
       } else if (window.gameData.isFACupMatch) {
-        compTag.textContent = "FA CUP";
-        if (compLogo) compLogo.style.display = "none";
+        let faLogo = "assets/cup_logos/fa_cup.png";
+        if (typeof LeagueManager !== "undefined" && window.CUP_CONFIGS && window.CUP_CONFIGS.faCups) {
+          const lid = LeagueManager.getLeagueIdByTeam(homeKey);
+          if (window.CUP_CONFIGS.faCups[lid] && window.CUP_CONFIGS.faCups[lid].logo) {
+            faLogo = window.CUP_CONFIGS.faCups[lid].logo;
+          }
+        }
+        if (compLogo) {
+          compLogo.src = faLogo;
+          compLogo.style.display = "block";
+          compLogo.onerror = function () {
+            this.style.display = "none";
+            if (compTag) compTag.textContent = "FA CUP";
+          };
+        }
+        compTag.textContent = "";
       } else if (typeof LeagueManager !== "undefined" && typeof LEAGUES_CONFIG !== "undefined") {
         const lid = LeagueManager.getLeagueIdByTeam(homeKey);
         const cfg = LEAGUES_CONFIG[lid];

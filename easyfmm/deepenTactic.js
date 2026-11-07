@@ -422,7 +422,26 @@ class RealSoccerEngine {
         const s = { attack: { stats: {} }, midfield: { stats: {} }, defense: { stats: {} } };
         const avg = a => a.length > 0 ? Math.round(a.reduce((x, y) => x + (y.rating || 70), 0) / a.length) : 70;
         let fwList = [], mfList = [], dfList = [], gkObj = null;
-        if (Array.isArray(squad)) {
+
+        if (squad && squad.squadLines) {
+            const sl = squad.squadLines;
+            gkObj = sl.GK && sl.GK[0];
+            dfList = [...(sl.DF || [])];
+            (sl.DM || []).forEach(p => {
+                if (!p) return;
+                const dp = ((p.detailPosition || p.position) || '').toUpperCase();
+                if (['LWB', 'RWB', 'DF', 'CB', 'LB', 'RB'].includes(dp)) dfList.push(p);
+                else mfList.push(p);
+            });
+            (sl.CM || []).forEach(p => { if (p) mfList.push(p); });
+            (sl.AM || []).forEach(p => {
+                if (!p) return;
+                const dp = ((p.detailPosition || p.position) || '').toUpperCase();
+                if (['LW', 'RW', 'ST', 'CF', 'FW'].includes(dp)) fwList.push(p);
+                else { mfList.push(p); fwList.push(p); }
+            });
+            (sl.TOP || []).forEach(p => { if (p) fwList.push(p); });
+        } else if (Array.isArray(squad)) {
             fwList = squad.filter(p => p && p.position === 'FW');
             mfList = squad.filter(p => p && p.position === 'MF');
             dfList = squad.filter(p => p && p.position === 'DF');
@@ -463,13 +482,102 @@ class RealSoccerEngine {
         return s;
     }
 
+    _getPlayerLateralOrder(player) {
+        if (!player) return 50;
+        const dp = ((player.detailPosition || player.position) || '').toUpperCase();
+        if (['LB', 'LWB'].includes(dp)) return 10;
+        if (['LW', 'LM'].includes(dp)) return 15;
+        if (['LCB', 'LCM'].includes(dp)) return 35;
+        if (['CB', 'CCB', 'CDM', 'CM', 'CAM', 'CF', 'ST', 'GK'].includes(dp)) return 50;
+        if (['RCB', 'RCM'].includes(dp)) return 65;
+        if (['RW', 'RM'].includes(dp)) return 85;
+        if (['RB', 'RWB'].includes(dp)) return 90;
+        return 50;
+    }
+
+    _sortLinePlayersLeftToRight(players) {
+        if (!Array.isArray(players) || players.length <= 1) return players || [];
+        return [...players].sort((a, b) => this._getPlayerLateralOrder(a) - this._getPlayerLateralOrder(b));
+    }
+
+    _calcLineSlotY(linePos, sortedList, idx, player) {
+        const n = sortedList.length;
+        if (n <= 1) return 50;
+
+        if (linePos === 'GK') return 50;
+
+        if (linePos === 'DF') {
+            if (n === 4) return [10, 37, 63, 90][idx];
+            if (n === 3) return [28, 50, 72][idx];
+            if (n === 5) return [8, 28, 50, 72, 92][idx];
+            return (100 / (n + 1)) * (idx + 1);
+        }
+
+        if (linePos === 'DM') {
+            if (n === 1) return 50;
+            if (n === 2) {
+                const lat0 = this._getPlayerLateralOrder(sortedList[0]);
+                const lat1 = this._getPlayerLateralOrder(sortedList[1]);
+                if (lat0 <= 20 && lat1 >= 80) return [10, 90][idx];
+                return [37, 63][idx];
+            }
+            if (n === 3) return [10, 50, 90][idx];
+            return (100 / (n + 1)) * (idx + 1);
+        }
+
+        if (linePos === 'CM') {
+            if (n === 1) return 50;
+            if (n === 2) return [37, 63][idx];
+            if (n === 3) return [26, 50, 74][idx];
+            if (n === 4) return [12, 38, 62, 88][idx];
+            if (n === 5) return [10, 30, 50, 70, 90][idx];
+            return (100 / (n + 1)) * (idx + 1);
+        }
+
+        if (linePos === 'AM') {
+            if (n === 1) return 50;
+            if (n === 2) {
+                const isWideWingers = sortedList.every(p => {
+                    const pdp = ((p.detailPosition || p.position) || '').toUpperCase();
+                    return ['LW', 'RW', 'LM', 'RM'].includes(pdp) || (this._getPlayerLateralOrder(p) <= 25 || this._getPlayerLateralOrder(p) >= 75);
+                });
+                if (isWideWingers) return [15, 85][idx];
+                return [36, 64][idx];
+            }
+            if (n === 3) return [15, 50, 85][idx];
+            if (n === 4) return [12, 38, 62, 88][idx];
+            return (100 / (n + 1)) * (idx + 1);
+        }
+
+        if (linePos === 'TOP') {
+            if (n === 1) return 50;
+            if (n === 2) return [37, 63][idx];
+            if (n === 3) return [25, 50, 75][idx];
+            return (100 / (n + 1)) * (idx + 1);
+        }
+
+        if (linePos === 'MF') {
+            if (n === 4) return [12, 38, 62, 88][idx];
+            if (n === 3) return [26, 50, 74][idx];
+            if (n === 2) return [37, 63][idx];
+            if (n === 5) return [10, 30, 50, 70, 90][idx];
+        }
+        if (linePos === 'FW') {
+            if (n === 3) return [15, 50, 85][idx];
+            if (n === 2) return [37, 63][idx];
+            if (n === 1) return 50;
+        }
+
+        return (100 / (n + 1)) * (idx + 1);
+    }
+
     initTeam(squad, teamId, tactic) {
         let mul = tactic === 'balanced' ? 0.95 : 1.0;
         // 전술 상성 효과 반영 (tacticSystem.js에서 계산한 teamStrength 보정치 활용)
         if (this.teamStrength && this.teamStrength[teamId] !== undefined) {
             mul *= 1 + ((this.teamStrength[teamId] - 70) * 0.01);
         }
-        const setupLine = (list, baseX) => {
+        const setupLine = (list, baseX, linePos = null) => {
             const hasGameData = (typeof gameData !== 'undefined' && gameData);
             const isUser = hasGameData
                 ? ((teamId === 'home' && gameData.isHomeGame) || (teamId === 'away' && !gameData.isHomeGame))
@@ -486,17 +594,19 @@ class RealSoccerEngine {
                 if (isUser) this.userStats = lineStats;
                 else this.aiStats = lineStats; 
                 morale = 65 + Math.floor(Math.random() * 21); // AI 팀 안정적인 사기 유지 (65~85)
-                // [공정 경쟁] 인위적인 스탯 조작(1.07)을 제거하고, 순수 전술과 선수 스탯 대결로 전환
             }
             
-            list.forEach((p, i) => {
+            // 라인 내 좌우 순서 정렬 (LB -> LCB -> RCB -> RB / LW -> CAM -> RW 등)
+            const sortedList = this._sortLinePlayersLeftToRight((list || []).filter(Boolean));
+
+            sortedList.forEach((p, i) => {
                 if (!p) return;
                 // 세부 정보 보충 (allTeams 참조)
                 if (!p.attributes && typeof allTeams !== 'undefined') {
                     for (const t in allTeams) {
                         const found = (allTeams[t].players || []).find(x => x.name === p.name);
                         if (found && found.attributes) {
-                            ['attributes', 'traits', 'detailPosition', 'preferredFoot', 'weakFoot', 'skillMoves'].forEach(k => {
+                            ['attributes', 'traits', 'detailPosition', 'otherPositions', 'preferredFoot', 'weakFoot', 'skillMoves'].forEach(k => {
                                 if (p[k] === undefined && found[k] !== undefined) p[k] = found[k];
                             });
                             break;
@@ -508,26 +618,63 @@ class RealSoccerEngine {
                 if (!role || role === 'None' || !ROLE_BEHAVIOR[role]) {
                     role = (typeof gameData !== 'undefined' && gameData.playerRoles && gameData.playerRoles[p.name])
                         ? gameData.playerRoles[p.name]
-                        : this._bestRoleForTactic(tactic, p.position, i, list.length, p.detailPosition);
+                        : this._bestRoleForTactic(tactic, linePos || p.position, i, sortedList.length, p.detailPosition);
                 }
                 const sp = new SimPlayer(p, teamId, role, lineStats, morale, finalMul);
+                sp.linePos = linePos;
+                sp._hasCustomSlot = true;
+                sp.detailPosition = ((p.detailPosition || p.position) || '').toUpperCase();
+                sp.otherPositions = p.otherPositions || [];
+
+                let resolvedPos = linePos;
+                if (linePos === 'AM') {
+                    const dp = sp.detailPosition;
+                    resolvedPos = ['LW', 'RW', 'FW', 'ST', 'CF'].includes(dp) ? 'FW' : 'MF';
+                } else if (linePos === 'DM') {
+                    const dp = sp.detailPosition;
+                    resolvedPos = ['LWB', 'RWB', 'DF', 'CB', 'LB', 'RB'].includes(dp) ? 'DF' : 'MF';
+                } else if (linePos === 'TOP') {
+                    resolvedPos = 'FW';
+                }
+                if (resolvedPos) sp.position = resolvedPos; // 공격수 등 실제 출전 라인 포지션 반영
                 sp.baseX = baseX;
-                sp.baseY = (100 / (list.length + 1)) * (i + 1);
-                sp.slotY = sp.baseY;
-                sp.x = sp.baseX; sp.y = sp.baseY;
+                sp.slotY = this._calcLineSlotY(linePos, sortedList, i, p);
+                sp.baseY = sp.slotY;
+                sp.x = sp.baseX;
+                sp.y = sp.slotY;
                 this.players.push(sp);
             });
         };
-        if (teamId === 'home') {
-            if (squad.gk) setupLine([squad.gk], 5);
-            setupLine(squad.df, 22);
-            setupLine(squad.mf, 45);
-            setupLine(squad.fw, 72);
+        if (!squad) return;
+        const lines = (squad && squad.squadLines) || (isUser && hasGameData && gameData.squadLines ? gameData.squadLines : null);
+        if (lines) {
+            if (teamId === 'home') {
+                if (lines.GK && lines.GK.length > 0) setupLine(lines.GK, 5, 'GK');
+                if (lines.DF && lines.DF.length > 0) setupLine(lines.DF, 22, 'DF');
+                if (lines.DM && lines.DM.length > 0) setupLine(lines.DM, 36, 'DM');
+                if (lines.CM && lines.CM.length > 0) setupLine(lines.CM, 50, 'CM');
+                if (lines.AM && lines.AM.length > 0) setupLine(lines.AM, 64, 'AM');
+                if (lines.TOP && lines.TOP.length > 0) setupLine(lines.TOP, 76, 'TOP');
+            } else {
+                if (lines.GK && lines.GK.length > 0) setupLine(lines.GK, 95, 'GK');
+                if (lines.DF && lines.DF.length > 0) setupLine(lines.DF, 78, 'DF');
+                if (lines.DM && lines.DM.length > 0) setupLine(lines.DM, 64, 'DM');
+                if (lines.CM && lines.CM.length > 0) setupLine(lines.CM, 50, 'CM');
+                if (lines.AM && lines.AM.length > 0) setupLine(lines.AM, 36, 'AM');
+                if (lines.TOP && lines.TOP.length > 0) setupLine(lines.TOP, 24, 'TOP');
+            }
         } else {
-            if (squad.gk) setupLine([squad.gk], 95);
-            setupLine(squad.df, 78);
-            setupLine(squad.mf, 55);
-            setupLine(squad.fw, 28);
+            if (teamId === 'home') {
+                if (squad.gk) setupLine([squad.gk], 5, 'GK');
+                setupLine(squad.df, 22, 'DF');
+                setupLine(squad.mf, 45, 'MF');
+                setupLine(squad.fw, 72, 'FW');
+            } else {
+                if (squad.gk) setupLine([squad.gk], 95, 'GK');
+                setupLine(squad.df, 78, 'DF');
+                setupLine(squad.mf, 55, 'MF');
+                setupLine(squad.fw, 28, 'FW');
+            }
         }
     }
 
@@ -632,71 +779,35 @@ class RealSoccerEngine {
         return 'CM';
     }
 
-    //  NEW: Assign fixed vertical slots per position band!
-    // 이게 중원 과포화 & 몰려다님을 해결하는 핵심!
+    // 5선 라인 기반 슬롯 보존 및 레거시 스쿼드 fallback
     _assignVerticalSlots() {
         for (const teamId of ['home', 'away']) {
-            // DFs: LB/CB/CB/RB 정밀 슬롯 배정
-            const dfs = this.players.filter(p => p.teamId === teamId && p.position === 'DF').sort((a, b) => a.baseY - b.baseY);
-            if (dfs.length === 4) {
-                dfs[0].slotY = 10; // LB
-                dfs[1].slotY = 38; // LCB
-                dfs[2].slotY = 62; // RCB
-                dfs[3].slotY = 90; // RB
-            } else if (dfs.length === 5) {
-                dfs[0].slotY = 8;  // LWB
-                dfs[1].slotY = 30; // LCB
-                dfs[2].slotY = 50; // CCB
-                dfs[3].slotY = 70; // RCB
-                dfs[4].slotY = 92; // RWB
-            } else if (dfs.length === 3) {
-                dfs[0].slotY = 28; // LCB
-                dfs[1].slotY = 50; // CCB
-                dfs[2].slotY = 72; // RCB
-            } else {
-                dfs.forEach((p, idx) => { p.slotY = (100 / (dfs.length + 1)) * (idx + 1); });
-            }
+            const teamPlayers = this.players.filter(p => p.teamId === teamId);
+            // 만약 이미 squadLines를 통해 slotY가 정밀 지정되어 있다면 보존!
+            const hasCustomSlots = teamPlayers.some(p => p._hasCustomSlot && p.slotY);
+            if (hasCustomSlots) continue;
 
-            // MFs: LM/CM/CM/RM 정밀 슬롯 배정
-            const mfs = this.players.filter(p => p.teamId === teamId && p.position === 'MF').sort((a, b) => a.baseY - b.baseY);
+            // 레거시 스쿼드(라인 구분 없는 경우)를 위한 안전망 fallback
+            const dfs = teamPlayers.filter(p => p.position === 'DF').sort((a, b) => (this._getPlayerLateralOrder(a) - this._getPlayerLateralOrder(b)) || (a.baseY - b.baseY));
+            if (dfs.length === 4) { dfs[0].slotY = 10; dfs[1].slotY = 37; dfs[2].slotY = 63; dfs[3].slotY = 90; }
+            else if (dfs.length === 5) { dfs[0].slotY = 8; dfs[1].slotY = 28; dfs[2].slotY = 50; dfs[3].slotY = 72; dfs[4].slotY = 92; }
+            else if (dfs.length === 3) { dfs[0].slotY = 28; dfs[1].slotY = 50; dfs[2].slotY = 72; }
+            else { dfs.forEach((p, idx) => { p.slotY = (100 / (dfs.length + 1)) * (idx + 1); }); }
+
+            const mfs = teamPlayers.filter(p => p.position === 'MF').sort((a, b) => (this._getPlayerLateralOrder(a) - this._getPlayerLateralOrder(b)) || (a.baseY - b.baseY));
             const n = mfs.length;
-            if (n === 4) {
-                mfs[0].slotY = 10; // LM (윙어 터치라인 밀착)
-                mfs[1].slotY = 38; // LCM
-                mfs[2].slotY = 62; // RCM
-                mfs[3].slotY = 90; // RM (윙어 터치라인 밀착)
-            } else if (n === 3) {
-                mfs[0].slotY = 25; // LCM
-                mfs[1].slotY = 50; // CM/CDM
-                mfs[2].slotY = 75; // RCM
-            } else if (n === 5) {
-                mfs[0].slotY = 10; // LM
-                mfs[1].slotY = 32; // LCM
-                mfs[2].slotY = 50; // CAM/CDM
-                mfs[3].slotY = 68; // RCM
-                mfs[4].slotY = 90; // RM
-            } else if (n === 2) {
-                mfs[0].slotY = 35;
-                mfs[1].slotY = 65;
-            } else {
-                mfs.forEach((p, idx) => { p.slotY = (100 / (n + 1)) * (idx + 1); });
-            }
+            if (n === 4) { mfs[0].slotY = 12; mfs[1].slotY = 38; mfs[2].slotY = 62; mfs[3].slotY = 88; }
+            else if (n === 3) { mfs[0].slotY = 26; mfs[1].slotY = 50; mfs[2].slotY = 74; }
+            else if (n === 5) { mfs[0].slotY = 10; mfs[1].slotY = 30; mfs[2].slotY = 50; mfs[3].slotY = 70; mfs[4].slotY = 90; }
+            else if (n === 2) { mfs[0].slotY = 37; mfs[1].slotY = 63; }
+            else { mfs.forEach((p, idx) => { p.slotY = (100 / (n + 1)) * (idx + 1); }); }
 
-            // FWs: LW/ST/RW 또는 CF/ST 정밀 슬롯 배정
-            const fws = this.players.filter(p => p.teamId === teamId && p.position === 'FW').sort((a, b) => a.baseY - b.baseY);
+            const fws = teamPlayers.filter(p => p.position === 'FW').sort((a, b) => (this._getPlayerLateralOrder(a) - this._getPlayerLateralOrder(b)) || (a.baseY - b.baseY));
             const nfw = fws.length;
-            if (nfw === 3) {
-                fws[0].slotY = 12; // LW (측면 윙어)
-                fws[1].slotY = 50; // ST (중앙 공격수)
-                fws[2].slotY = 88; // RW (측면 윙어)
-            } else if (nfw === 2) {
-                fws[0].slotY = 38; // CF
-                fws[1].slotY = 62; // ST
-            } else if (nfw === 1) {
-                fws[0].slotY = 50;
-            } else {
-                fws.forEach((p, idx) => { p.slotY = (100 / (nfw + 1)) * (idx + 1); });
-            }
+            if (nfw === 3) { fws[0].slotY = 15; fws[1].slotY = 50; fws[2].slotY = 85; }
+            else if (nfw === 2) { fws[0].slotY = 37; fws[1].slotY = 63; }
+            else if (nfw === 1) { fws[0].slotY = 50; }
+            else { fws.forEach((p, idx) => { p.slotY = (100 / (nfw + 1)) * (idx + 1); }); }
         }
     }
 
@@ -983,8 +1094,10 @@ class RealSoccerEngine {
             if (this._numOpponentsAhead(to, 6, 14) > 1) continue;
             let score = this._scorePass(from, to, phase);
             if (to._fwMode === 'burst') score += 28;
-            if (to.position === 'FW') score += 18;
-            if (to.position === 'MF' && ['AM', 'AP', 'SS', 'MEZ', 'BBM'].includes(to.role)) score += 12;
+            if (to.position === 'FW' || ['LW', 'RW', 'ST', 'CF'].includes(to.detailPosition)) score += 18;
+            if (['CAM', 'AM'].includes(to.detailPosition) || (to.position === 'MF' && ['AM', 'AP', 'SS', 'MEZ', 'BBM'].includes(to.role))) score += 14;
+            if (['LW', 'RW'].includes(to.detailPosition) && Math.abs(to.slotY - 50) > 22) score += 10;
+            if (['CAM', 'AM'].includes(from.detailPosition) || ['AP', 'AM', 'DLP'].includes(from.role)) score += 15;
             if (this._isReceiverBehindDefLine(from, to)) score += 16;
             if (Math.abs(to.x - goalX) < 30) score += 10;
             if (score > bestScore) { bestScore = score; best = to; }
@@ -1071,11 +1184,14 @@ class RealSoccerEngine {
 
         let dfX, mfX, fwX;
         if (haveBall) {
-            const phasePush = phase === 'building' ? 5 : (phase === 'progressing' ? 14 : (phase === 'finalThird' ? 20 : 16));
-            fwX = isHome ? clamp(ballX + 21 + phasePush, 60, 93)
-                : clamp(ballX - 21 - phasePush, 7, 40);
-            mfX = fwX - fwd * (phase === 'building' ? 9 : 7); // [간격 축소] 미드필더가 공격수 바로 뒤까지 높게 전진
-            dfX = mfX - fwd * (phase === 'building' ? 10 : 8); // [라인 올림] 수비수 라인을 대폭 끌어올려 팀 간격 컴팩트화
+            const phasePush = phase === 'building' ? 8 : (phase === 'progressing' ? 18 : (phase === 'finalThird' ? 26 : 20));
+            fwX = isHome ? clamp(ballX + 22 + phasePush, 65, 95)
+                : clamp(ballX - 22 - phasePush, 5, 35);
+            mfX = fwX - fwd * (phase === 'building' ? 8 : 6);
+            // [라인 대폭 전진] 공격 시 수비 라인을 하프라인(46~49) 부근까지 바짝 끌어올림!
+            dfX = isHome
+                ? clamp(ballX > 50 ? 46 + (ballX - 50) * 0.10 : 36 + ballX * 0.20, 32, 49)
+                : clamp(ballX < 50 ? 54 - (50 - ballX) * 0.10 : 64 - (100 - ballX) * 0.20, 51, 68);
         } else {
             // [FLR 수비 블록 이식]
             // CB 라인: 상대 공격이 박스(32야드 이내)로 접근 시 8~14선까지 깊숙이 내려앉아 골문을 방어하고 오프사이드 라인을 자연스럽게 확보
@@ -1123,7 +1239,7 @@ class RealSoccerEngine {
         const nDef = this._nearestOpponent(player);
         const underPressure = nDef && nDef.dist < 8;
         const effectSpeed = this.getEffectiveStat(player, 'speed');
-        const isWinger = (behavior.hugLine && onFlank) || Math.abs(player.y - 50) > 20;
+        const isWinger = (behavior.hugLine && onFlank) || Math.abs(player.y - 50) > 20 || ['LW', 'RW', 'LM', 'RM'].includes(player.detailPosition);
 
         // [볼 점유 템포 조절: 여유 있는 볼 홀딩]
         // 강한 압박을 받지 않을 때 공을 잡자마자 0초만에 뻥 차버리지 않고,
@@ -1275,14 +1391,15 @@ class RealSoccerEngine {
             : false;
         const frontCrowd = this._numOpponentsAhead(player, 10, 18);
 
-        // 앞이 훤히 비어있고 압박이 없을 때는 전진 드리블
-        if (bestPassTarget && player.position !== 'DF' && !underPressure && frontCrowd <= 1 && (!bestPassProgressive || bestPassLateral) && !isCutback && !isCross) {
+        // 앞이 훤히 비어있고 압박이 없거나, 윙어가 1v1 돌파 찬스를 맞이했을 때는 전진 드리블!
+        const wingerDribbleBias = (isWinger || ['LW', 'RW'].includes(player.detailPosition)) && distToGoal <= 48 && carryScore >= passScore - 18;
+        if (bestPassTarget && player.position !== 'DF' && (!isCutback && !isCross) &&
+            ((!underPressure && frontCrowd <= 1 && (!bestPassProgressive || bestPassLateral)) || wingerDribbleBias)) {
             this._dribbleV3(player, goalX, moveDir, phase, underPressure, isWinger, distToGoal, nDef, effectSpeed);
             return;
         }
 
         // [볼 순환(Circulation) & 패스 전개]
-        // 전방이 막혀있을 때 후방/횡방향으로 볼을 돌리는 패스 허용
         if (bestPassTarget && passScore >= carryScore) {
             // 골문 바로 앞(distToGoal <= 10)에서만 비정상적인 백패스를 거부하고, 그 외 지역에서는 안전한 볼 순환 허용!
             const isBackwardPass = Math.abs(bestPassTarget.x - goalX) > distToGoal + 2;
@@ -1703,8 +1820,10 @@ class RealSoccerEngine {
         if (phase === 'building') score += player.position === 'MF' ? 24 : 10;
         else if (phase === 'progressing') score += player.position === 'MF' ? 46 : 34;
         else score += player.position === 'FW' ? 52 : 44; // [미드필더 공격 가담] 파이널 서드에서 공을 과감하게 끌고 전진
-        if (isWinger) score += 18;
-        if (player.position === 'FW') score += 16;
+        if (['LW', 'RW'].includes(player.detailPosition)) score += 34;
+        else if (isWinger) score += 26;
+        if (player.position === 'FW') score += 18;
+        if (Math.abs(player.y - 50) > 18) score += 14; // 측면 공간 드리블 선호
         if (player.position !== 'DF' && !underPressure) score += 10;
         if (underPressure) score -= (dribble > 75 ? 6 : 14);
         if (blockedAhead >= 2) score -= 20;
@@ -2752,14 +2871,15 @@ class RealSoccerEngine {
         const tid = p.teamId;
         const phase = this._phase[tid];
         const lines = this._getTeamBlockLines(tid);
-        const isDM = ['DM', 'CDM', 'ANC'].includes(p.role);
-        const isAM = ['AP', 'AM', 'SS', 'BBM', 'MEZ'].includes(p.role);
-        const isWingerRole = ['W', 'IW', 'IF', 'LM', 'RM'].includes(p.role) || bhv.hugLine || bhv.cutInside || Math.abs(p.slotY - 50) > 22;
+        const isDM = ['DM', 'CDM', 'ANC'].includes(p.role) || ['CDM', 'DM'].includes(p.detailPosition);
+        const isAM = ['AP', 'AM', 'SS', 'BBM', 'MEZ'].includes(p.role) || ['CAM', 'AM'].includes(p.detailPosition);
+        const isWingerRole = ['W', 'IW', 'IF', 'LM', 'RM'].includes(p.role) || ['LW', 'RW', 'LM', 'RM'].includes(p.detailPosition) || bhv.hugLine || bhv.cutInside || Math.abs(p.slotY - 50) > 22;
         const mates = this.players.filter(q => q.teamId === tid && q !== p);
         const offX = this._calcOffsideLineX(isHome);
 
         let tx = lines.mfX;
-        let ms = 0.38 * clamp(sf, 0.7, 1.6);
+        // [미드필더 기동력 강화] 볼 순환 지원과 빈 공간 침투를 위해 활발한 템포(0.58) 부여
+        let ms = 0.58 * clamp(sf, 0.8, 1.7);
 
         // 1. 윙어 (W, IW, IF, LM, RM): 전방 공격수와 동일 선상으로 전력 침투!
         if (isWingerRole) {
@@ -2845,8 +2965,8 @@ class RealSoccerEngine {
         const tid = p.teamId;
         const phase = this._phase[tid];
         const lines = this._getTeamBlockLines(tid);
-        const isCB = ['CD', 'BPD', 'NCB', 'LIB'].includes(p.role);
-        const isFB = ['FB', 'WB', 'CWB', 'IWB'].includes(p.role);
+        const isCB = ['CD', 'BPD', 'NCB', 'LIB'].includes(p.role) || ['CB', 'SW'].includes(p.detailPosition);
+        const isFB = ['FB', 'WB', 'CWB', 'IWB'].includes(p.role) || ['LB', 'RB', 'LWB', 'RWB'].includes(p.detailPosition);
         const mates = this.players.filter(q => q.teamId === tid && q !== p);
         const offX = this._calcOffsideLineX(isHome);
 
@@ -2874,27 +2994,35 @@ class RealSoccerEngine {
 
         let tx, ty;
         if (isCB) {
-            tx = lines.dfX + fwd * (phase === 'building' ? -2 : 0);
-            const teamMFs = mates.filter(q => q.position === 'MF');
-            const mfFront = teamMFs.length
-                ? (isHome ? Math.max(...teamMFs.map(q => q.x)) : Math.min(...teamMFs.map(q => q.x)))
-                : (isHome ? 45 : 55);
-            const mfCap = isHome ? mfFront - 7 : mfFront + 7;
-            tx = isHome ? Math.min(tx, mfCap) : Math.max(tx, mfCap);
+            // [수비 라인 대폭 전진] 아군 공격 시 센터백들도 하프라인(45~49) 직전까지 당당하게 전진 배치!
+            if (lines.haveBall || phase === 'progressing' || phase === 'finalThird') {
+                tx = isHome ? clamp(lines.dfX, 42, 49) : clamp(lines.dfX, 51, 58);
+            } else {
+                tx = lines.dfX + fwd * (phase === 'building' ? -2 : 0);
+                const teamMFs = mates.filter(q => q.position === 'MF');
+                const mfFront = teamMFs.length
+                    ? (isHome ? Math.max(...teamMFs.map(q => q.x)) : Math.min(...teamMFs.map(q => q.x)))
+                    : (isHome ? 45 : 55);
+                const mfCap = isHome ? mfFront - 5 : mfFront + 5;
+                tx = isHome ? Math.min(tx, mfCap) : Math.max(tx, mfCap);
+            }
             tx = clamp(tx, isHome ? 8 : 20, isHome ? 80 : 92);
-            // CB 횡방향 고유 레인 고정 (LCB: 36~46, RCB: 54~64)
-            const isLeftCB = p.slotY < 50;
-            ty = isLeftCB ? clamp(p.slotY, 36, 46) : clamp(p.slotY, 54, 64);
+
+            // CB 횡방향 고유 레인 고정 (LCB: 36~46, RCB: 54~64, CCB: 50)
+            const isLeftCB = p.slotY < 45;
+            const isRightCB = p.slotY > 55;
+            ty = isLeftCB ? clamp(p.slotY, 36, 46) : (isRightCB ? clamp(p.slotY, 54, 64) : 50);
 
             // Keep 14-22 vertical gap from other CB
-            const otherCBs = mates.filter(q => q.position === 'DF' && ['CD', 'BPD', 'NCB', 'LIB'].includes(q.role));
+            const otherCBs = mates.filter(q => q.position === 'DF' && (['CD', 'BPD', 'NCB', 'LIB'].includes(q.role) || ['CB', 'SW'].includes(q.detailPosition)));
             for (const o of otherCBs) {
                 const dY = ty - o.y; const a = Math.abs(dY); const s = dY >= 0 ? 1 : -1;
                 if (a < 14) ty = o.y + s * 14;
             }
             const isRetreating = isHome ? (tx < p.x - 2) : (tx > p.x + 2);
-            const cbSpd = isRetreating ? 0.45 : 0.35;
-            this._physicsStep(p, tx, ty, cbSpd * clamp(sf, 0.7, 1.5)); return;
+            // 전진/후퇴 기동 속도 대폭 상향 (0.58)
+            const cbSpd = isRetreating ? 0.58 : 0.52;
+            this._physicsStep(p, tx, ty, cbSpd * clamp(sf, 0.8, 1.6)); return;
         }
 
         if (isFB) {

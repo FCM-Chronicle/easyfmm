@@ -1,4 +1,50 @@
-﻿// formation.js - 새로운 자유 포메이션 시스템
+// formation.js - 5선 라인 세부 포메이션 시스템 (최전방 / 2선 / 중앙 / 3선 / 후방 / 골키퍼)
+
+// 포메이션 5선 + GK 라인 정의
+const FORMATION_LINES = {
+    TOP: {
+        key: 'TOP',
+        name: '최전방',
+        subName: 'ST · CF',
+        positions: ['ST', 'CF', 'FW'],
+        color: '#EF4444' // 빨강 (공격)
+    },
+    AM: {
+        key: 'AM',
+        name: '2선',
+        subName: 'CAM · LW · RW',
+        positions: ['CAM', 'LW', 'RW', 'AM'],
+        color: '#EF4444' // 빨강 (공격/2선)
+    },
+    CM: {
+        key: 'CM',
+        name: '중앙',
+        subName: 'CM · LM · RM',
+        positions: ['CM', 'LM', 'RM', 'MF'],
+        color: '#10B981' // 초록 (미드)
+    },
+    DM: {
+        key: 'DM',
+        name: '3선',
+        subName: 'CDM · LWB · RWB',
+        positions: ['CDM', 'LWB', 'RWB', 'DM'],
+        color: '#10B981' // 초록 (미드)
+    },
+    DF: {
+        key: 'DF',
+        name: '후방',
+        subName: 'CB · LB · RB',
+        positions: ['CB', 'LB', 'RB', 'DF', 'SW'],
+        color: '#3B82F6' // 파랑 (수비)
+    },
+    GK: {
+        key: 'GK',
+        name: '골키퍼',
+        subName: 'GK',
+        positions: ['GK'],
+        color: '#F59E0B' // 노랑 (키퍼)
+    }
+};
 
 class FormationSystem {
     constructor() {
@@ -22,10 +68,12 @@ class FormationSystem {
         if (!this.field) return;
 
         this.areas = {
-            FW: document.getElementById('fw-area'),
-            MF: document.getElementById('mf-area'),
+            TOP: document.getElementById('top-area'),
+            AM: document.getElementById('am-area'),
+            CM: document.getElementById('cm-area'),
+            DM: document.getElementById('dm-area'),
             DF: document.getElementById('df-area'),
-            GK: document.getElementById('gk-area'),
+            GK: document.getElementById('gk-area')
         };
 
         this.substitutionSheet = document.getElementById('substitutionSheet');
@@ -34,31 +82,54 @@ class FormationSystem {
         const closeSheetBtn = document.getElementById('closeSubstitutionSheet');
         if (closeSheetBtn) closeSheetBtn.addEventListener('click', () => this.hideSubstitutionSheet());
         
-        this.createControlButtons(); // [수정] 버튼 생성 함수 교체
+        this.createControlButtons();
+        this.ensureSquadLines();
         this.displayCurrentSquad();
         this.setupDragEvents();
     }
     
-    // [수정] 컨트롤 버튼 생성 (수정 버튼 + 롤 정보 버튼)
+    // 컨트롤 버튼 생성 (롤 정보 버튼 + 포메이션 수정 버튼 + 최적 추천 버튼)
     createControlButtons() {
         const container = document.querySelector('.squad-controls');
         if (!container) return;
         
-        container.replaceChildren(); // 기존 내용 초기화
+        container.replaceChildren();
 
-        // 버튼 컨테이너
         const controlsDiv = document.createElement('div');
         controlsDiv.className = 'formation-controls';
-        
 
-        // 1. 롤 정보 버튼 (왼쪽)
+        // 1. 롤 정보 버튼
         const roleBtn = document.createElement('button');
         roleBtn.id = 'viewRoleBtn';
         roleBtn.className = 'btn btn-sm';
         roleBtn.textContent = '롤 정보';
         roleBtn.onclick = () => this.toggleRoleViewMode();
 
-        // 2. 포메이션 수정 버튼 (오른쪽)
+        // 2. 최적 포메이션 자동 설정 버튼
+        const autoBtn = document.createElement('button');
+        autoBtn.id = 'autoOptimizeBtn';
+        autoBtn.className = 'btn btn-sm';
+        autoBtn.textContent = '⚡ 최적 포메이션';
+        autoBtn.title = '구단 선수단에 가장 이상적인 실축 포메이션으로 자동 재배치합니다.';
+        autoBtn.onclick = () => {
+            if (confirm('현재 구단 선수단에 가장 어울리는 최적의 실축 포메이션으로 자동 재정렬하시겠습니까?')) {
+                if (typeof autoFillSquad === 'function') {
+                    autoFillSquad();
+                } else if (typeof TeamUtils !== 'undefined') {
+                    const best = TeamUtils.calculateBestFormation(gameData.selectedTeam);
+                    if (best) {
+                        gameData.squad = best.squad;
+                        gameData.squadLines = best.squadLines;
+                        this.displayCurrentSquad();
+                    }
+                }
+                const fName = this.getFormationDisplayName();
+                alert(`최적 실축 포메이션 [${fName}] 설정이 완료되었습니다!`);
+                this.updateTitle();
+            }
+        };
+
+        // 3. 포메이션 수정 버튼
         const editBtn = document.createElement('button');
         editBtn.id = 'editFormationBtn';
         editBtn.className = 'btn btn-sm primary';
@@ -66,17 +137,26 @@ class FormationSystem {
         editBtn.onclick = () => this.toggleEditMode();
 
         const titleSpan = document.createElement('span');
+        titleSpan.id = 'formationControlsTitle';
         titleSpan.className = 'formation-controls-title';
-        titleSpan.textContent = '베스트 11 선발 라인업';
+        titleSpan.textContent = `베스트 11: ${this.getFormationDisplayName()}`;
+
         const btnGroup = document.createElement('div');
         btnGroup.className = 'formation-controls-btns';
-        btnGroup.append(roleBtn, editBtn);
+        btnGroup.append(roleBtn, autoBtn, editBtn);
         controlsDiv.append(titleSpan, btnGroup);
         container.appendChild(controlsDiv);
     }
+
+    updateTitle() {
+        const titleSpan = document.getElementById('formationControlsTitle');
+        if (titleSpan) {
+            titleSpan.textContent = `베스트 11: ${this.getFormationDisplayName()}`;
+        }
+    }
     
     toggleEditMode() {
-        if (this.isRoleViewMode) this.toggleRoleViewMode(); // 롤 보기 모드 끄기
+        if (this.isRoleViewMode) this.toggleRoleViewMode();
 
         this.isEditMode = !this.isEditMode;
         const btn = document.getElementById('editFormationBtn');
@@ -85,7 +165,7 @@ class FormationSystem {
             btn.textContent = '수정 완료';
             btn.classList.add('confirm');
             this.field.classList.add('edit-mode');
-            alert('포메이션 수정 모드가 활성화되었습니다. 선수를 드래그하여 위치를 자유롭게 변경하세요.');
+            alert('포메이션 수정 모드가 활성화되었습니다. 선수를 원하는 라인으로 드래그하거나 위치를 교체하세요.');
         } else {
             // 1. 포지션 검사 및 자동 교체 먼저 실행
             this.validateAndAutoCorrect();
@@ -103,9 +183,9 @@ class FormationSystem {
         }
     }
 
-    // [신규] 롤 정보 보기 모드 토글
+    // 롤 정보 보기 모드 토글
     toggleRoleViewMode() {
-        if (this.isEditMode) this.toggleEditMode(); // 수정 모드 끄기
+        if (this.isEditMode) this.toggleEditMode();
 
         this.isRoleViewMode = !this.isRoleViewMode;
         const btn = document.getElementById('viewRoleBtn');
@@ -114,7 +194,7 @@ class FormationSystem {
         if (this.isRoleViewMode) {
             btn.textContent = '닫기';
             btn.classList.add('is-on');
-            field.classList.add('role-view-mode'); // 커서 스타일 변경용 클래스
+            field.classList.add('role-view-mode');
         } else {
             btn.textContent = '롤 정보';
             btn.classList.remove('is-on');
@@ -122,58 +202,484 @@ class FormationSystem {
             this.hideSubstitutionSheet();
         }
     }
-    
-    displayCurrentSquad() {
-        Object.values(this.areas).forEach(area => area.replaceChildren());
-        
-        const squad = gameData.squad;
-        const positions = ['GK', 'DF', 'MF', 'FW'];
-        const positionMap = { GK: [squad.gk], DF: squad.df, MF: squad.mf, FW: squad.fw };
-    
-        positions.forEach(pos => {
-            // null 값을 포함하여 전체 선수 배열을 가져옵니다.
-            const playersWithNulls = positionMap[pos];
-            if (!playersWithNulls) return;
-    
-            const total = playersWithNulls.length;
-    
-            playersWithNulls.forEach((player, index) => {
-                const x = (100 / (total + 1)) * (index + 1);
-                const y = pos === 'GK' ? 32 : 50;
-                // player가 null이면 빈 슬롯을, 아니면 선수 슬롯을 생성합니다.
-                this.createPlayerElement(player, pos, x, y, index);
-            });
+
+    // 5선 라인 데이터(gameData.squadLines) 보장 및 동기화
+    ensureSquadLines() {
+        if (typeof gameData === 'undefined' || !gameData) return;
+        if (!gameData.squad) {
+            gameData.squad = { gk: null, df: [], mf: [], fw: [] };
+        }
+
+        const keys = ['TOP', 'AM', 'CM', 'DM', 'DF', 'GK'];
+
+        // 현재 gameData.squad의 유효 선수 목록
+        const currentSquadPlayers = [
+            gameData.squad.gk,
+            ...(Array.isArray(gameData.squad.df) ? gameData.squad.df : []),
+            ...(Array.isArray(gameData.squad.mf) ? gameData.squad.mf : []),
+            ...(Array.isArray(gameData.squad.fw) ? gameData.squad.fw : [])
+        ].filter(Boolean);
+
+        const currentSquadNames = new Set(currentSquadPlayers.map(p => p.name));
+
+        // 이미 squadLines가 온전하고 squad와 잘 일치하는 경우 유지
+        if (gameData.squadLines && typeof gameData.squadLines === 'object') {
+            const hasAllKeys = keys.every(k => Array.isArray(gameData.squadLines[k]));
+            if (hasAllKeys) {
+                const linesPlayers = [];
+                keys.forEach(k => {
+                    (gameData.squadLines[k] || []).forEach(p => { if (p) linesPlayers.push(p); });
+                });
+                const linesNames = new Set(linesPlayers.map(p => p.name));
+
+                let matchCount = 0;
+                linesNames.forEach(name => {
+                    if (currentSquadNames.has(name)) matchCount++;
+                });
+
+                // 스쿼드 변경이 없으면 기존 squadLines 유지
+                if (linesPlayers.length === 11 && currentSquadNames.size === 11 && matchCount === 11) {
+                    this.syncLegacySquad();
+                    return;
+                }
+            }
+        }
+
+        // squadLines 새로 분배 생성
+        const lines = {
+            TOP: [],
+            AM: [],
+            CM: [],
+            DM: [],
+            DF: [],
+            GK: []
+        };
+
+        // 1. GK
+        if (gameData.squad.gk) {
+            lines.GK.push(gameData.squad.gk);
+        } else {
+            lines.GK.push(null);
+        }
+
+        // 2. DF 분배 (기본 CB, LB, RB -> DF / 윙백 LWB, RWB -> 3선 DM)
+        const dfs = Array.isArray(gameData.squad.df) ? gameData.squad.df : [];
+        dfs.forEach(p => {
+            if (!p) {
+                lines.DF.push(null);
+                return;
+            }
+            const dp = (p.detailPosition || '').toUpperCase();
+            if (['LWB', 'RWB'].includes(dp)) {
+                lines.DM.push(p);
+            } else {
+                lines.DF.push(p);
+            }
         });
+
+        // 3. MF 분배 (CDM -> 3선 DM / CAM -> 2선 AM / CM, LM, RM -> 중앙 CM)
+        const mfs = Array.isArray(gameData.squad.mf) ? gameData.squad.mf : [];
+        mfs.forEach(p => {
+            if (!p) {
+                lines.CM.push(null);
+                return;
+            }
+            const dp = (p.detailPosition || '').toUpperCase();
+            if (['CDM', 'DM'].includes(dp)) {
+                lines.DM.push(p);
+            } else if (['CAM', 'AM'].includes(dp)) {
+                lines.AM.push(p);
+            } else {
+                lines.CM.push(p);
+            }
+        });
+
+        // 4. FW 분배 (LW, RW -> 2선 AM / ST, CF -> 최전방 TOP)
+        const fws = Array.isArray(gameData.squad.fw) ? gameData.squad.fw : [];
+        fws.forEach(p => {
+            if (!p) {
+                lines.TOP.push(null);
+                return;
+            }
+            const dp = (p.detailPosition || '').toUpperCase();
+            if (['LW', 'RW'].includes(dp)) {
+                lines.AM.push(p);
+            } else {
+                lines.TOP.push(p);
+            }
+        });
+
+        gameData.squadLines = lines;
+        this.syncLegacySquad();
+    }
+
+    // gameData.squadLines -> 레거시 gameData.squad 동기화 (기존 시스템 100% 호환)
+    syncLegacySquad() {
+        if (!gameData || !gameData.squadLines) return;
+        if (!gameData.squad) {
+            gameData.squad = { gk: null, df: [], mf: [], fw: [] };
+        }
+
+        const lines = gameData.squadLines;
+        gameData.squad.gk = (lines.GK && lines.GK[0]) || null;
+
+        const df = [];
+        const mf = [];
+        const fw = [];
+
+        (lines.DF || []).forEach(p => df.push(p));
+        (lines.DM || []).forEach(p => mf.push(p));
+        (lines.CM || []).forEach(p => mf.push(p));
+        (lines.AM || []).forEach(p => {
+            if (!p) {
+                mf.push(p);
+                return;
+            }
+            const dp = (p.detailPosition || p.position || '').toUpperCase();
+            if (['LW', 'RW'].includes(dp)) {
+                fw.push(p);
+            } else {
+                mf.push(p);
+            }
+        });
+        (lines.TOP || []).forEach(p => fw.push(p));
+
+        gameData.squad.df = df;
+        gameData.squad.mf = mf;
+        gameData.squad.fw = fw;
+    }
+
+    // 선수가 소화 가능한 모든 포지션 추출 (주 포지션 + 세부 포지션 + otherPositions)
+    getPlayerAllPositions(player) {
+        if (!player) return [];
+        const list = [];
+        if (player.detailPosition) list.push(player.detailPosition.toUpperCase());
+        if (Array.isArray(player.otherPositions)) {
+            player.otherPositions.forEach(p => {
+                if (p) list.push(p.toUpperCase());
+            });
+        }
+        if (player.position) list.push(player.position.toUpperCase());
+        return [...new Set(list)];
+    }
+
+    // 해당 라인(TOP, AM, CM, DM, DF, GK)에 출전 가능한지 판정
+    canPlayLine(player, lineKey) {
+        if (!player) return false;
+        const lk = (lineKey || '').toUpperCase();
+        const config = FORMATION_LINES[lk];
+        if (!config) return false;
+
+        // 골키퍼 라인은 GK만 가능
+        if (lk === 'GK') {
+            const base = (player.position || '').toUpperCase();
+            const detail = (player.detailPosition || '').toUpperCase();
+            return base === 'GK' || detail === 'GK';
+        }
+
+        // 골키퍼 선수는 필드 라인 출전 불가
+        if ((player.position || '').toUpperCase() === 'GK' || (player.detailPosition || '').toUpperCase() === 'GK') {
+            return false;
+        }
+
+        const allPositions = this.getPlayerAllPositions(player);
+
+        // 허용 포지션 중 하나라도 소화 가능하면 참
+        if (allPositions.some(p => config.positions.includes(p))) {
+            return true;
+        }
+
+        // 세부 포지션이 없고 주 포지션(position)만 있는 경우를 위한 기본 폴백
+        if (!player.detailPosition) {
+            const basePos = (player.position || '').toUpperCase();
+            if (basePos === 'FW' && (lk === 'TOP' || lk === 'AM')) return true;
+            if (basePos === 'MF' && (lk === 'CM' || lk === 'DM' || lk === 'AM')) return true;
+            if (basePos === 'DF' && lk === 'DF') return true;
+        }
+
+        return false;
+    }
+
+    // 하위 호환용 레거시 검증 메서드
+    canPlayPosition(player, targetPositionType) {
+        const target = (targetPositionType || '').toUpperCase();
+        if (FORMATION_LINES[target]) return this.canPlayLine(player, target);
+        if (target === 'FW') return this.canPlayLine(player, 'TOP') || this.canPlayLine(player, 'AM');
+        if (target === 'MF') return this.canPlayLine(player, 'CM') || this.canPlayLine(player, 'DM') || this.canPlayLine(player, 'AM');
+        if (target === 'DF') return this.canPlayLine(player, 'DF') || this.canPlayLine(player, 'DM');
+        if (target === 'GK') return this.canPlayLine(player, 'GK');
+        return false;
+    }
+
+    // 선수가 해당 라인에 섰을 때 가장 적합한 세부 포지션 태그 산출
+    getDisplayPositionForLine(player, lineKey) {
+        if (!player) return lineKey;
+        const config = FORMATION_LINES[lineKey];
+        if (!config) return player.detailPosition || player.position || lineKey;
+
+        const dp = (player.detailPosition || '').toUpperCase();
+        if (config.positions.includes(dp)) return dp;
+
+        const others = Array.isArray(player.otherPositions) ? player.otherPositions : [];
+        const match = others.find(p => config.positions.includes((p || '').toUpperCase()));
+        if (match) return match.toUpperCase();
+
+        return player.detailPosition || player.position || lineKey;
     }
     
-    createPlayerElement(player, positionType, x, y, index) {
+    // 현재 스쿼드 라인 구성을 분석하여 실축 포메이션 명칭 산출
+    getFormationDisplayName() {
+        if (!gameData || !gameData.squadLines) return '기본 포메이션';
+        const l = gameData.squadLines;
+        const df = (l.DF || []).filter(Boolean).length;
+        const dm = (l.DM || []).filter(Boolean).length;
+        const cm = (l.CM || []).filter(Boolean).length;
+        const am = (l.AM || []).filter(Boolean).length;
+        const top = (l.TOP || []).filter(Boolean).length;
+
+        // 정규 실축 포메이션 식별
+        if (df === 4 && dm === 1 && cm === 2 && am === 2 && top === 1) return '4-3-3 (홀딩)';
+        if (df === 4 && dm === 0 && cm === 3 && am === 2 && top === 1) return '4-3-3 (플랫)';
+        if (df === 4 && dm === 0 && cm === 2 && am === 3 && top === 1) return '4-3-3 (어택)';
+        if (df === 4 && dm === 2 && cm === 0 && am === 3 && top === 1) return '4-2-3-1';
+        if (df === 4 && dm === 0 && cm === 4 && am === 0 && top === 2) return '4-4-2';
+        if (df === 4 && dm === 2 && cm === 0 && am === 2 && top === 2) {
+            const hasWingers = (l.AM || []).some(p => p && ['LW', 'RW'].includes((p.detailPosition || '').toUpperCase()));
+            return hasWingers ? '4-2-4' : '4-2-2-2';
+        }
+        if (df === 4 && dm === 1 && cm === 2 && am === 1 && top === 2) return '4-1-2-1-2';
+        if (df === 4 && dm === 1 && cm === 4 && am === 0 && top === 1) return '4-5-1';
+        if (df === 3 && dm === 3 && cm === 1 && am === 1 && top === 2) return '3-5-2';
+        if (df === 5 && dm === 0 && cm === 2 && am === 2 && top === 1) return '5-2-3';
+        if (df === 5 && dm === 1 && cm === 2 && am === 0 && top === 2) return '5-3-2';
+        if (df === 3 && cm === 4 && am === 2 && top === 1) return '3-4-3';
+
+        // 4-1-1-2-2 같은 비정규 라인 배치 감지 시 친절한 실축 명칭 제공
+        if (df === 4 && top === 2 && (dm + cm + am) === 4) {
+            return '4-4-2 (변형)';
+        }
+        if (df === 4 && top === 1 && (dm + cm + am) === 5) {
+            return '4-5-1 (변형)';
+        }
+
+        return `${df}-${dm + cm + am}-${top}`;
+    }
+
+    // 각 라인 내 선수들을 좌측 -> 중앙 -> 우측 순서로 정렬하기 위한 가중치
+    getPlayerLateralOrder(player, lineKey) {
+        if (!player) return 50;
+        const dp = (player.detailPosition || player.position || '').toUpperCase();
+        const others = Array.isArray(player.otherPositions) ? player.otherPositions.map(x => (x || '').toUpperCase()) : [];
+
+        // 좌측 자원: LB, LWB, LM, LW
+        if (['LB', 'LWB', 'LM', 'LW'].includes(dp)) return 10;
+        if (others.some(p => ['LB', 'LWB', 'LM', 'LW'].includes(p))) return 20;
+
+        // 우측 자원: RB, RWB, RM, RW
+        if (['RB', 'RWB', 'RM', 'RW'].includes(dp)) return 90;
+        if (others.some(p => ['RB', 'RWB', 'RM', 'RW'].includes(p))) return 80;
+
+        // 중앙 자원: CB, CDM, CM, CAM, ST, GK
+        return 50;
+    }
+
+    // 라인 내 선수들을 좌측(왼쪽) -> 우측(오른쪽) 순서로 정렬
+    sortLinePlayersLeftToRight(lineKey) {
+        if (!gameData || !gameData.squadLines || !Array.isArray(gameData.squadLines[lineKey])) return;
+        const arr = gameData.squadLines[lineKey];
+        if (arr.length <= 1) return;
+
+        arr.sort((a, b) => {
+            const oa = this.getPlayerLateralOrder(a, lineKey);
+            const ob = this.getPlayerLateralOrder(b, lineKey);
+            return oa - ob;
+        });
+    }
+
+    // 피치 슬롯의 가로 좌표(x %) 계산 - LW, RW는 CAM이 없어도 양 측면(18%, 82%)으로 넓게 배치!
+    getSlotXCoordinate(player, lineKey, index, total, linePlayers) {
+        if (!player) return (100 / (total + 1)) * (index + 1);
+        const dp = (player.detailPosition || player.position || '').toUpperCase();
+
+        // 1. 최전방 라인 (TOP)
+        if (lineKey === 'TOP') {
+            if (total === 1) return 50;
+            if (total === 2) return index === 0 ? 36 : 64;
+            if (total === 3) return index === 0 ? 25 : (index === 1 ? 50 : 75);
+            return (100 / (total + 1)) * (index + 1);
+        }
+
+        // 2. 2선 라인 (AM: CAM, LW, RW)
+        if (lineKey === 'AM') {
+            const hasLW = linePlayers.some(p => p && ['LW', 'LM'].includes((p.detailPosition || p.position || '').toUpperCase()));
+            const hasRW = linePlayers.some(p => p && ['RW', 'RM'].includes((p.detailPosition || p.position || '').toUpperCase()));
+            const hasCAM = linePlayers.some(p => p && ['CAM', 'AM', 'CM', 'CF'].includes((p.detailPosition || p.position || '').toUpperCase()));
+
+            // LW와 RW만 있는 경우 (중간에 CAM 없음): 양 측면 터치라인으로 완전히 벌려줌!
+            if (total === 2 && hasLW && hasRW && !hasCAM) {
+                return index === 0 ? 18 : 82;
+            }
+
+            // LW - CAM - RW 3인 편대
+            if (total === 3 && hasLW && hasRW) {
+                if (['LW', 'LM'].includes(dp) || index === 0) return 18;
+                if (['RW', 'RM'].includes(dp) || index === 2) return 82;
+                return 50; // CAM
+            }
+
+            // 더블 공미 (4-2-2-2)
+            if (total === 2 && !hasLW && !hasRW) {
+                return index === 0 ? 33 : 67;
+            }
+
+            if (['LW', 'LM'].includes(dp)) return 18;
+            if (['RW', 'RM'].includes(dp)) return 82;
+            if (['CAM', 'AM'].includes(dp) && total === 1) return 50;
+
+            return (100 / (total + 1)) * (index + 1);
+        }
+
+        // 3. 중앙 라인 (CM: LM, CM, RM)
+        if (lineKey === 'CM') {
+            const hasLM = linePlayers.some(p => p && ['LM', 'LW'].includes((p.detailPosition || p.position || '').toUpperCase()));
+            const hasRM = linePlayers.some(p => p && ['RM', 'RW'].includes((p.detailPosition || p.position || '').toUpperCase()));
+
+            // 다이아몬드의 LM과 RM만 있는 경우 (중앙 비움)
+            if (total === 2 && hasLM && hasRM) {
+                return index === 0 ? 18 : 82;
+            }
+
+            // 4-4-2 플랫 (LM - CM1 - CM2 - RM)
+            if (total === 4 && hasLM && hasRM) {
+                if (index === 0) return 16;
+                if (index === 1) return 39;
+                if (index === 2) return 61;
+                return 84;
+            }
+
+            if (total === 1) return 50;
+            if (total === 2) return index === 0 ? 36 : 64;
+            if (total === 3) return index === 0 ? 28 : (index === 1 ? 50 : 72);
+
+            return (100 / (total + 1)) * (index + 1);
+        }
+
+        // 4. 3선 라인 (DM: LWB, CDM, RWB)
+        if (lineKey === 'DM') {
+            const hasLWB = linePlayers.some(p => p && ['LWB', 'LB'].includes((p.detailPosition || p.position || '').toUpperCase()));
+            const hasRWB = linePlayers.some(p => p && ['RWB', 'RB'].includes((p.detailPosition || p.position || '').toUpperCase()));
+
+            // 3-5-2에서 LWB - CDM - RWB
+            if (total === 3 && hasLWB && hasRWB) {
+                if (index === 0) return 16;
+                if (index === 1) return 50;
+                return 84;
+            }
+
+            // 2 윙백 (LWB, RWB)
+            if (total === 2 && hasLWB && hasRWB) {
+                return index === 0 ? 16 : 84;
+            }
+
+            if (total === 1) return 50;
+            if (total === 2) return index === 0 ? 36 : 64;
+
+            return (100 / (total + 1)) * (index + 1);
+        }
+
+        // 5. 후방 라인 (DF: LB, CB, RB)
+        if (lineKey === 'DF') {
+            // 4백 (LB - CB - CB - RB)
+            if (total === 4) {
+                if (index === 0) return 16;
+                if (index === 1) return 39;
+                if (index === 2) return 61;
+                return 84;
+            }
+
+            // 5백 (LWB - CB - CB - CB - RWB)
+            if (total === 5) {
+                if (index === 0) return 14;
+                if (index === 1) return 32;
+                if (index === 2) return 50;
+                if (index === 3) return 68;
+                return 86;
+            }
+
+            // 3백 (CB - CB - CB)
+            if (total === 3) {
+                return index === 0 ? 28 : (index === 1 ? 50 : 72);
+            }
+
+            if (total === 2) return index === 0 ? 36 : 64;
+            return (100 / (total + 1)) * (index + 1);
+        }
+
+        // 6. 골키퍼 (GK)
+        if (lineKey === 'GK') return 50;
+
+        return (100 / (total + 1)) * (index + 1);
+    }
+    
+    displayCurrentSquad() {
+        this.ensureSquadLines();
+
+        Object.keys(this.areas).forEach(lineKey => {
+            const area = this.areas[lineKey];
+            if (!area) return;
+
+            area.replaceChildren();
+
+            // 라인 라벨 추가
+            const config = FORMATION_LINES[lineKey];
+            const labelSpan = document.createElement('span');
+            labelSpan.className = 'area-line-label';
+            labelSpan.textContent = config ? `${config.name} (${config.subName})` : lineKey;
+            area.appendChild(labelSpan);
+
+            // 좌측 -> 우측 순서로 정렬
+            this.sortLinePlayersLeftToRight(lineKey);
+
+            const players = (typeof gameData !== 'undefined' && gameData && gameData.squadLines && gameData.squadLines[lineKey]) || [];
+            const total = players.length;
+
+            players.forEach((player, index) => {
+                const x = this.getSlotXCoordinate(player, lineKey, index, total, players);
+                const y = lineKey === 'GK' ? 44 : 50;
+                this.createPlayerElement(player, lineKey, x, y, index);
+            });
+        });
+
+        this.updateTitle();
+    }
+    
+    createPlayerElement(player, lineKey, x, y, index) {
         const slot = document.createElement('div');
         slot.className = 'player-slot';
-        slot.style.left = x + '%';
-        slot.style.top = y + '%';
-        slot.dataset.index = index; // [추가] 교체를 위해 인덱스 정보 저장 (모든 슬롯)
-    
+        slot.style.left = `${x}%`;
+        slot.style.top = `${y}%`;
+        slot.dataset.index = index;
+        slot.dataset.lineKey = lineKey;
+        slot.dataset.positionType = lineKey;
+
+        const config = FORMATION_LINES[lineKey];
+
         if (player) {
-            // [추가] 역할 표시 로직
             let roleDisplay = '';
-            if (positionType !== 'GK' && typeof gameData !== 'undefined') {
-                // 1. 개별 역할 확인
+            if (lineKey !== 'GK' && typeof gameData !== 'undefined') {
                 if (gameData.playerRoles && gameData.playerRoles[player.name]) {
                     roleDisplay = gameData.playerRoles[player.name];
-                } 
-                // 2. 없으면 기존 라인 역할(하위 호환) 또는 기본값
-                else if (gameData.lineRoles) {
-                    // 표시 안 함 (개별 설정 유도)
                 }
             }
 
-            // [신규] 체력바 색상 및 너비 계산
             const condition = (player.condition !== undefined) ? player.condition : 100;
             let condColor = '#A3E635';
             if (condition < 70) condColor = '#EF4444';
             else if (condition < 90) condColor = '#FBBF24';
 
-            // 선수가 있는 경우 (어색한 하단 잘림 방지를 위한 아바타 래퍼 + 유리 네임플레이트 구조)
+            const displayPos = this.getDisplayPositionForLine(player, lineKey);
+            const posClass = `pos-tag-${displayPos.toLowerCase()}`;
+
             const avatarWrap = document.createElement('div');
             avatarWrap.className = 'player-slot-avatar-wrap';
 
@@ -181,7 +687,9 @@ class FormationSystem {
             slotImg.className = 'player-slot-image';
             slotImg.loading = 'lazy';
             slotImg.alt = player.name;
-            setPlayerPhoto(slotImg, player);
+            if (typeof setPlayerPhoto === 'function') {
+                setPlayerPhoto(slotImg, player);
+            }
             avatarWrap.appendChild(slotImg);
 
             const nameplate = document.createElement('div');
@@ -190,6 +698,10 @@ class FormationSystem {
             const nameRow = document.createElement('div');
             nameRow.className = 'player-slot-name-row';
 
+            const posBadge = document.createElement('span');
+            posBadge.className = `slot-pos-badge ${posClass}`;
+            posBadge.textContent = displayPos;
+
             const slotRating = document.createElement('span');
             slotRating.className = 'player-rating';
             slotRating.textContent = Math.floor(player.rating);
@@ -197,9 +709,9 @@ class FormationSystem {
             const slotName = document.createElement('span');
             slotName.className = 'player-name';
             slotName.textContent = player.name;
-            slotName.title = player.name;
+            slotName.title = `${player.name} (${displayPos})`;
 
-            nameRow.append(slotRating, slotName);
+            nameRow.append(posBadge, slotRating, slotName);
 
             const condBar = document.createElement('div');
             condBar.className = 'player-condition-bar';
@@ -210,7 +722,6 @@ class FormationSystem {
             condBar.appendChild(condFill);
 
             nameplate.append(nameRow, condBar);
-
             slot.append(avatarWrap, nameplate);
 
             if (roleDisplay) {
@@ -221,22 +732,18 @@ class FormationSystem {
             }
 
             slot.dataset.playerName = player.name;
-            slot.dataset.positionType = positionType;
             slot.classList.add('filled');
-    
-            // [수정] 클릭 이벤트 통합 (교체 및 롤 정보)
-            slot.addEventListener('click', (e) => {
-                if (this.isEditMode) return;
 
+            slot.addEventListener('click', () => {
+                if (this.isEditMode) return;
                 if (this.isRoleViewMode) {
-                    this.showRoleInfo(player, positionType);
+                    this.showRoleInfo(player, lineKey);
                 } else {
-                    this.showSubstitutionSheet(player, positionType);
+                    this.showSubstitutionSheet(player, lineKey);
                 }
             });
-
         } else {
-            // 선수가 없는 경우 (공석)
+            // 공석
             const nameplate = document.createElement('div');
             nameplate.className = 'player-slot-nameplate empty-plate';
 
@@ -245,30 +752,29 @@ class FormationSystem {
 
             const emptyRating = document.createElement('span');
             emptyRating.className = 'player-rating';
-            emptyRating.style.opacity = '0.6';
-            emptyRating.textContent = positionType;
+            emptyRating.style.opacity = '0.7';
+            emptyRating.textContent = config ? config.name : lineKey;
 
             const emptyName = document.createElement('span');
             emptyName.className = 'player-name';
-            emptyName.style.opacity = '0.6';
+            emptyName.style.opacity = '0.7';
             emptyName.textContent = '공석';
 
             nameRow.append(emptyRating, emptyName);
             nameplate.appendChild(nameRow);
             slot.appendChild(nameplate);
-            slot.dataset.positionType = positionType;
             slot.classList.add('empty');
-    
-            // [수정] 클릭 이벤트 통합 (공석 교체)
-            slot.addEventListener('click', (e) => {
+
+            slot.addEventListener('click', () => {
                 if (this.isEditMode) return;
-                
-                const dummyPlayer = { name: `공석 (${positionType})`, isDummy: true };
-                this.showSubstitutionSheet(dummyPlayer, positionType);
+                const dummyPlayer = { name: `${config ? config.name : lineKey} 공석`, isDummy: true };
+                this.showSubstitutionSheet(dummyPlayer, lineKey);
             });
         }
-    
-        this.areas[positionType].appendChild(slot);
+
+        if (this.areas[lineKey]) {
+            this.areas[lineKey].appendChild(slot);
+        }
         return slot;
     }
     
@@ -280,7 +786,7 @@ class FormationSystem {
         document.addEventListener('touchmove', e => this.onDragMove(e), { passive: false });
 
         document.addEventListener('mouseup', e => this.onDragEnd(e));
-        document.addEventListener('touchend', e => this.onDragEnd(e.changedTouches[0]));
+        document.addEventListener('touchend', e => this.onDragEnd(e.changedTouches ? e.changedTouches[0] : e));
     }
     
     onDragStart(e) {
@@ -288,12 +794,6 @@ class FormationSystem {
         const target = touch.target.closest('.player-slot');
 
         if (!target) return;
-
-        // GK는 움직일 수 없음
-        if (target.dataset.positionType === 'GK' && this.areas.GK.contains(target)) {
-            if (this.isEditMode) alert('골키퍼는 교체만 가능하며, 필드 내에서 위치를 변경할 수 없습니다.');
-            return;
-        }
 
         // 시작 좌표 저장 (롱프레스 감지용)
         this.startX = touch.clientX;
@@ -310,30 +810,27 @@ class FormationSystem {
 
         // 롱프레스 타이머 시작
         this.longPressTimer = setTimeout(() => {
-            if (navigator.vibrate) navigator.vibrate(50); // 햅틱 피드백
+            if (navigator.vibrate) navigator.vibrate(50);
             this.isLongPressDrag = true;
             this.startDragging(e, target);
         }, this.longPressDuration);
     }
 
     startDragging(e, target) {
-        // 드래그 시작 시 원래 선수 정보 저장
         this.originalDraggedPlayerInfo = {
             name: target.dataset.playerName,
-            positionType: target.dataset.positionType
+            lineKey: target.dataset.lineKey || target.dataset.positionType,
+            positionType: target.dataset.positionType,
+            index: parseInt(target.dataset.index)
         };
 
         this.draggedPlayer = target;
-        const rect = this.draggedPlayer.getBoundingClientRect();
         const fieldRect = this.field.getBoundingClientRect();
-
         const touch = e.touches ? e.touches[0] : e;
 
-        // 드래그 시작 시 field를 기준으로 절대 위치 설정
         this.draggedPlayer.style.left = `${touch.clientX - fieldRect.left - (this.draggedPlayer.offsetWidth / 2)}px`;
         this.draggedPlayer.style.top = `${touch.clientY - fieldRect.top - (this.draggedPlayer.offsetHeight / 2)}px`;
         
-        // 부모를 field로 옮겨서 영역의 제약에서 벗어남 (기존 로직 유지)
         this.field.appendChild(this.draggedPlayer);
         this.draggedPlayer.classList.add('dragging');
         
@@ -344,11 +841,10 @@ class FormationSystem {
     onDragMove(e) {
         const touch = e.touches ? e.touches[0] : e;
 
-        // 롱프레스 대기 중 움직임 감지 시 타이머 취소
         if (this.longPressTimer && !this.isLongPressDrag) {
             const moveX = Math.abs(touch.clientX - this.startX);
             const moveY = Math.abs(touch.clientY - this.startY);
-            if (moveX > 10 || moveY > 10) { // 10px 이상 움직이면 취소
+            if (moveX > 10 || moveY > 10) {
                 clearTimeout(this.longPressTimer);
                 this.longPressTimer = null;
             }
@@ -356,7 +852,6 @@ class FormationSystem {
 
         if (!this.draggedPlayer) return;
         
-        // passive: false가 제대로 동작하지 않는 브라우저를 위해 추가
         if (e.cancelable) {
             e.preventDefault();
         }
@@ -365,7 +860,6 @@ class FormationSystem {
         let x = touch.clientX - fieldRect.left - this.offsetX;
         let y = touch.clientY - fieldRect.top - this.offsetY;
 
-        // 필드 경계 제한
         x = Math.max(0, Math.min(x, fieldRect.width - this.draggedPlayer.offsetWidth));
         y = Math.max(0, Math.min(y, fieldRect.height - this.draggedPlayer.offsetHeight));
 
@@ -385,264 +879,246 @@ class FormationSystem {
 
         if (!this.draggedPlayer) return;
 
-        const touch = e.touches ? e.touches[0] : e;
+        const touch = (e.touches && e.touches[0]) || e;
         const dropX = touch.clientX;
         const dropY = touch.clientY;
 
-        // [신규] 같은 포지션 내 선수 교체 (Swap) 감지
-        this.draggedPlayer.style.display = 'none'; // 드래그 중인 요소를 숨겨서 아래 요소를 감지
+        // 드래그 중인 요소를 일시적으로 숨겨 아래 위치한 슬롯 감지
+        this.draggedPlayer.style.display = 'none';
         const elemBelow = document.elementFromPoint(dropX, dropY);
-        this.draggedPlayer.style.display = ''; // 다시 표시
+        this.draggedPlayer.style.display = '';
 
         const targetSlot = elemBelow ? elemBelow.closest('.player-slot') : null;
 
+        // 1. 다른 슬롯 위에 드롭했을 때 (스왑 교체)
         if (targetSlot && targetSlot !== this.draggedPlayer) {
-            const sourcePos = this.originalDraggedPlayerInfo.positionType;
-            const targetPos = targetSlot.dataset.positionType;
+            const sourceLine = this.originalDraggedPlayerInfo.lineKey;
+            const targetLine = targetSlot.dataset.lineKey || targetSlot.dataset.positionType;
+            const sourceIdx = parseInt(this.draggedPlayer.dataset.index);
+            const targetIdx = parseInt(targetSlot.dataset.index);
 
-            // 같은 포지션 그룹이고 GK가 아닌 경우 교체 (예: MF <-> MF)
-            if (sourcePos === targetPos && sourcePos !== 'GK') {
-                const sourceIndex = parseInt(this.draggedPlayer.dataset.index);
-                const targetIndex = parseInt(targetSlot.dataset.index);
+            // 같은 라인 내 위치 스왑
+            if (sourceLine === targetLine) {
+                this.swapSquadIndices(sourceLine, sourceIdx, targetIdx);
+                this.finalizeDrag();
+                return;
+            } else {
+                // 다른 라인 간 스왑
+                if (sourceLine === 'GK' || targetLine === 'GK') {
+                    alert('골키퍼는 필드 플레이어와 직접 맞교환할 수 없습니다.');
+                    this.finalizeDrag();
+                    return;
+                }
 
-                if (!isNaN(sourceIndex) && !isNaN(targetIndex)) {
-                    this.swapSquadIndices(sourcePos, sourceIndex, targetIndex);
+                const pSource = gameData.squadLines[sourceLine][sourceIdx];
+                const pTarget = gameData.squadLines[targetLine][targetIdx];
+
+                const sourceCanTarget = !pSource || this.canPlayLine(pSource, targetLine);
+                const targetCanSource = !pTarget || this.canPlayLine(pTarget, sourceLine);
+
+                if (sourceCanTarget && targetCanSource) {
+                    gameData.squadLines[sourceLine][sourceIdx] = pTarget;
+                    gameData.squadLines[targetLine][targetIdx] = pSource;
+                    this.syncLegacySquad();
+                    this.finalizeDrag();
+                    return;
+                } else {
+                    const errors = [];
+                    if (pSource && !sourceCanTarget) errors.push(`${pSource.name}은(는) ${FORMATION_LINES[targetLine].name} 라인 불가`);
+                    if (pTarget && !targetCanSource) errors.push(`${pTarget.name}은(는) ${FORMATION_LINES[sourceLine].name} 라인 불가`);
+                    alert(`선수 위치를 맞교환할 수 없습니다:\n${errors.join('\n')}`);
                     this.finalizeDrag();
                     return;
                 }
             }
         }
 
+        // 2. 영역(Line Area)에 드롭했을 때 (라인 간 이동)
         let targetArea = null;
-        for (const pos in this.areas) {
-            const areaRect = this.areas[pos].getBoundingClientRect();
+        for (const lineKey in this.areas) {
+            const areaEl = this.areas[lineKey];
+            if (!areaEl) continue;
+            const areaRect = areaEl.getBoundingClientRect();
             if (dropX >= areaRect.left && dropX <= areaRect.right &&
                 dropY >= areaRect.top && dropY <= areaRect.bottom) {
-                targetArea = this.areas[pos];
+                targetArea = areaEl;
                 break;
             }
         }
 
-        const newPositionType = targetArea ? targetArea.dataset.positionType : null;
-        const oldPositionType = this.originalDraggedPlayerInfo.positionType;
+        const newLineKey = targetArea ? (targetArea.dataset.positionType || targetArea.id.replace('-area', '').toUpperCase()) : null;
+        const oldLineKey = this.originalDraggedPlayerInfo.lineKey;
+        const playerName = this.originalDraggedPlayerInfo.name;
 
-        // 유효한 드롭 영역인지 확인 (필드 플레이어는 GK 영역으로 이동 불가)
-        if (targetArea && (newPositionType !== 'GK' || oldPositionType === 'GK')) {
-            // 포지션이 변경된 경우
-            if (newPositionType !== oldPositionType) {
-                const playerName = this.originalDraggedPlayerInfo.name;
-
-                if (playerName) { // 실제 선수를 옮기는 경우
-                    const playerObj = teams[gameData.selectedTeam].find(p => p.name === playerName);
-                    if (playerObj) {
-                        // 1. gameData에서 선수 이동
-                        const oldPosKey = oldPositionType.toLowerCase();
-                        if (oldPosKey === 'gk') {
-                            gameData.squad.gk = null;
-                        } else {
-                            gameData.squad[oldPosKey] = gameData.squad[oldPosKey].filter(p => p && p.name !== playerObj.name);
-                        }
-                        const newPosKey = newPositionType.toLowerCase();
-                        if (newPosKey === 'gk') {
-                            gameData.squad.gk = playerObj;
-                        } else {
-                            gameData.squad[newPosKey].push(playerObj);
-                        }
-                    }
-                } else { // 공석을 옮기는 경우
-                    // 1. 이전 포지션에서 null 제거
-                    const oldPosKey = oldPositionType.toLowerCase();
-                    const nullIndex = gameData.squad[oldPosKey].indexOf(null);
-                    if (nullIndex > -1) {
-                        gameData.squad[oldPosKey].splice(nullIndex, 1);
-                    }
-                    // 2. 새로운 포지션에 null 추가
-                    const newPosKey = newPositionType.toLowerCase();
-                    gameData.squad[newPosKey].push(null);
-                }
-                // 2. 드래그된 원본 DOM 요소를 제거하여 복제 문제 방지
-                this.draggedPlayer.remove();
-                // 3. 화면 전체를 다시 그려서 데이터와 동기화 (자동 정렬 포함)
-                this.displayCurrentSquad();
-                
-                // [추가] 스쿼드 변경 시 DNA 포인트 재계산
-                if (typeof DNAManager !== 'undefined') DNAManager.recalculateLineOVRs();
-            } else { // 같은 포지션 내에서 위치만 변경된 경우
-                targetArea.appendChild(this.draggedPlayer);
-                const areaRect = targetArea.getBoundingClientRect();
-                // Calculate newLeft and newTop relative to the targetArea's top-left corner.
-                // These should be the coordinates of the *center* of the player slot, as transform: translate(-50%, -50%) will be applied.
-                const newLeft = touch.clientX - areaRect.left;
-                const newTop = touch.clientY - areaRect.top;
-                this.draggedPlayer.style.left = `${(newLeft / areaRect.width) * 100}%`;
-                this.draggedPlayer.style.top = `${(newTop / areaRect.height) * 100}%`;
-            }
-        } else {
-            // 유효하지 않은 영역에 드롭 시, 드래그했던 DOM 요소를 제거하고 화면을 다시 그림
-            // 이렇게 하면 선수가 복제되지 않고 원래 상태로 돌아감
-            this.draggedPlayer.remove();
-            this.displayCurrentSquad();
-            if (targetArea && targetArea.id === 'gk-area') {
+        if (targetArea && newLineKey) {
+            if (newLineKey === 'GK' && oldLineKey !== 'GK') {
                 alert('필드 플레이어는 GK 영역으로 이동할 수 없습니다.');
+                this.finalizeDrag();
+                return;
+            }
+            if (oldLineKey === 'GK' && newLineKey !== 'GK') {
+                alert('골키퍼는 필드 플레이어 영역으로 이동할 수 없습니다.');
+                this.finalizeDrag();
+                return;
+            }
+
+            if (newLineKey !== oldLineKey) {
+                if (playerName) {
+                    const allTeamPlayers = (allTeams[gameData.selectedTeam] && allTeams[gameData.selectedTeam].players) || teams[gameData.selectedTeam] || [];
+                    const playerObj = allTeamPlayers.find(p => p.name === playerName);
+                    if (playerObj) {
+                        if (!this.canPlayLine(playerObj, newLineKey)) {
+                            const allPos = this.getPlayerAllPositions(playerObj);
+                            alert(`${playerObj.name} 선수는 ${FORMATION_LINES[newLineKey].name}(${newLineKey}) 라인에서 뛸 수 없습니다.\n가능한 포지션: ${allPos.join(', ')}`);
+                            this.finalizeDrag();
+                            return;
+                        }
+
+                        // 이전 라인에서 제거하고 새 라인에 추가
+                        const oldArr = gameData.squadLines[oldLineKey] || [];
+                        const oldIdx = oldArr.findIndex(p => p && p.name === playerObj.name);
+                        if (oldIdx !== -1) oldArr.splice(oldIdx, 1);
+
+                        if (!gameData.squadLines[newLineKey]) gameData.squadLines[newLineKey] = [];
+                        gameData.squadLines[newLineKey].push(playerObj);
+
+                        this.syncLegacySquad();
+                        this.finalizeDrag();
+                        return;
+                    }
+                } else {
+                    // 공석 이동
+                    const oldArr = gameData.squadLines[oldLineKey] || [];
+                    const nullIdx = oldArr.indexOf(null);
+                    if (nullIdx !== -1) oldArr.splice(nullIdx, 1);
+
+                    if (!gameData.squadLines[newLineKey]) gameData.squadLines[newLineKey] = [];
+                    gameData.squadLines[newLineKey].push(null);
+
+                    this.syncLegacySquad();
+                    this.finalizeDrag();
+                    return;
+                }
             }
         }
 
-        this.finalizeDrag(false); // false means don't need to re-render if just removed (but here we removed and re-rendered in if/else blocks mostly)
-        // Actually, the logic above handles re-rendering or removing.
-        // Let's just clean up.
-        this.originalDraggedPlayerInfo = null; // 드래그 정보 초기화
-        this.draggedPlayer.classList.remove('dragging');
-        this.draggedPlayer = null;
+        // 유효하지 않거나 같은 자리 드롭 시 복귀
+        this.finalizeDrag();
     }
     
-    // [신규] 드래그 종료 후 처리 (스왑 시 사용)
     finalizeDrag() {
-        this.draggedPlayer.remove();
+        if (this.draggedPlayer) {
+            this.draggedPlayer.remove();
+            this.draggedPlayer = null;
+        }
+        this.originalDraggedPlayerInfo = null;
         this.displayCurrentSquad();
         if (typeof DNAManager !== 'undefined') DNAManager.recalculateLineOVRs();
-        this.originalDraggedPlayerInfo = null;
-        this.draggedPlayer = null;
     }
 
-    // [신규] 스쿼드 배열 내 인덱스 교체
-    swapSquadIndices(posType, idx1, idx2) {
-        const key = posType.toLowerCase();
-        const arr = gameData.squad[key];
-        if (Array.isArray(arr)) {
+    swapSquadIndices(lineKey, idx1, idx2) {
+        const arr = gameData.squadLines && gameData.squadLines[lineKey];
+        if (Array.isArray(arr) && arr[idx1] !== undefined && arr[idx2] !== undefined) {
             [arr[idx1], arr[idx2]] = [arr[idx2], arr[idx1]];
+            this.syncLegacySquad();
         }
     }
 
     // 포지션 검증 및 자동 교체 함수
     validateAndAutoCorrect() {
-        console.log("[Formation] 포지션 검증 및 자동 교체 시작");
+        console.log("[Formation] 5선 포지션 검증 및 자동 교체 시작");
+        this.ensureSquadLines();
         let changesMade = false;
-        const currentSquadOnField = this.getCurrentFieldSquad();
-        const finalSquad = {
-            gk: currentSquadOnField.GK[0] || null,
-            df: [...currentSquadOnField.DF],
-            mf: [...currentSquadOnField.MF],
-            fw: [...currentSquadOnField.FW]
-        };
 
-        // 모든 포지션 영역을 순회
-        for (const positionType of ['GK', 'DF', 'MF', 'FW']) {
-            const playersInArea = currentSquadOnField[positionType];
-            const originalCount = playersInArea.length;
-            const correctedPlayers = []; // 수정된 선수 목록
+        const keys = ['TOP', 'AM', 'CM', 'DM', 'DF', 'GK'];
 
-            for (const player of playersInArea) {
-                const originalPosition = allTeams[gameData.selectedTeam].players.find(p => p.name === player.name)?.position;
+        keys.forEach(lineKey => {
+            const lineArr = gameData.squadLines[lineKey] || [];
+            for (let i = 0; i < lineArr.length; i++) {
+                const player = lineArr[i];
+                if (!player) continue;
 
-                if (originalPosition !== positionType) {
+                const allTeamPlayers = (allTeams[gameData.selectedTeam] && allTeams[gameData.selectedTeam].players) || teams[gameData.selectedTeam] || [];
+                const fullPlayer = allTeamPlayers.find(p => p.name === player.name) || player;
+
+                if (!this.canPlayLine(fullPlayer, lineKey)) {
                     changesMade = true;
-                    console.log(`- ${player.name}(원래 ${originalPosition})가 ${positionType} 자리에 잘못 배치되었습니다.`);
+                    console.log(`- ${player.name} 선수가 ${lineKey} 라인에 부적합하여 교체를 진행합니다.`);
 
-                    // 교체 선수 찾기
-                    const replacement = this.findBestReplacement(positionType, finalSquad);
+                    const replacement = this.findBestReplacement(lineKey);
                     if (replacement) {
-                        console.log(`  -> ${replacement.name}(${replacement.rating})으로 자동 교체합니다.`);
-                        correctedPlayers.push(replacement);
-                        // 교체된 선수는 더 이상 후보가 아님
-                        this.addToTempSquad(finalSquad, replacement);
+                        console.log(`  -> ${replacement.name}으로 교체`);
+                        lineArr[i] = replacement;
                     } else {
-                        console.log(`  -> 교체할 ${positionType} 선수가 없어 공석으로 처리합니다.`);
-                        correctedPlayers.push(null); // 자리를 비우기 위해 null 추가
+                        console.log(`  -> 적합한 후보가 없어 공석 처리`);
+                        lineArr[i] = null;
                     }
-                } else {
-                    // 포지션이 맞는 선수는 그대로 유지
-                    correctedPlayers.push(player);
                 }
             }
-
-            // 최종 스쿼드 업데이트
-            if (positionType === 'GK') {
-                finalSquad.gk = correctedPlayers[0] || null;
-            } else {
-                finalSquad[positionType.toLowerCase()] = correctedPlayers;
-            }
-        }
+        });
 
         if (changesMade) {
-            console.log("[Formation] 자동 교체 완료. 최종 스쿼드를 반영합니다.");
-            gameData.squad = finalSquad; // 선수 교체 및 공석이 반영된 스쿼드로 업데이트
-            this.displayCurrentSquad(); // 변경된 스쿼드를 화면에 다시 그림
-            displayTeamPlayers(); // 선수 목록도 새로고침
-            
-            // [추가] 자동 교체 후 DNA 포인트 재계산
+            this.syncLegacySquad();
+            this.displayCurrentSquad();
+            if (typeof displayTeamPlayers === 'function') displayTeamPlayers();
             if (typeof DNAManager !== 'undefined') DNAManager.recalculateLineOVRs();
             alert('포지션에 맞지 않는 선수들이 자동으로 교체되었습니다.');
         } else {
-            console.log("[Formation] 모든 선수가 올바른 포지션에 있습니다.");
+            console.log("[Formation] 모든 선수가 올바른 라인 포지션에 배치되어 있습니다.");
         }
     }
 
-    // 현재 필드 위의 선수들을 객체로 반환하는 헬퍼 함수
-    getCurrentFieldSquad() {
-        const squad = { GK: [], DF: [], MF: [], FW: [] };
-        for (const pos in this.areas) {
-            const area = this.areas[pos];
-            area.querySelectorAll('.player-slot').forEach(slot => {
-                const player = allTeams[gameData.selectedTeam].players.find(p => p.name === slot.dataset.playerName);
-                if (player) squad[pos].push(player);
+    findBestReplacement(lineKey) {
+        const allTeamPlayers = (allTeams[gameData.selectedTeam] && allTeams[gameData.selectedTeam].players) || teams[gameData.selectedTeam] || [];
+        const inSquadNames = new Set();
+
+        if (gameData.squadLines) {
+            Object.values(gameData.squadLines).forEach(arr => {
+                (arr || []).forEach(p => { if (p) inSquadNames.add(p.name); });
             });
         }
-        return squad;
-    }
 
-    // 최고의 교체 선수를 찾는 헬퍼 함수
-    findBestReplacement(positionType, currentFinalSquad) {
-        const allTeamPlayers = allTeams[gameData.selectedTeam].players;
-        
-        // 현재 최종 스쿼드에 포함된 선수들의 이름 목록
-        const squadPlayerNames = new Set();
-        if (currentFinalSquad.gk) squadPlayerNames.add(currentFinalSquad.gk.name);
-        ['df', 'mf', 'fw'].forEach(posKey => {
-            currentFinalSquad[posKey].forEach(p => squadPlayerNames.add(p.name));
-        });
-
-        const candidates = allTeamPlayers.filter(p =>
-            p.position === positionType && !squadPlayerNames.has(p.name)
-        ).sort((a, b) => b.rating - a.rating);
+        const candidates = allTeamPlayers.filter(p => {
+            const isInjured = typeof injurySystem !== 'undefined' && injurySystem.isInjured(gameData.selectedTeam, p.name);
+            return this.canPlayLine(p, lineKey) && !inSquadNames.has(p.name) && !isInjured;
+        }).sort((a, b) => b.rating - a.rating);
 
         return candidates[0] || null;
     }
 
-    // 임시 스쿼드에 선수를 추가하는 헬퍼 함수
-    addToTempSquad(squad, player) {
-        const posKey = player.position.toLowerCase();
-        if (posKey === 'gk') {
-            squad.gk = player;
-        } else {
-            squad[posKey].push(player);
-        }
-    }
-
     saveFormation() {
-        // onDragEnd에서 gameData.squad가 이미 업데이트되었으므로, 여기서는 유효성 검사만 수행하고 저장 메시지를 표시합니다.
-        alert(`포메이션이 저장되었습니다.\n(${gameData.squad.df.length}-${gameData.squad.mf.length}-${gameData.squad.fw.length})`);
-        console.log('[Formation] 포메이션 저장 완료:', gameData.squad);
+        this.ensureSquadLines();
+        const l = typeof gameData !== 'undefined' && gameData ? gameData.squadLines : null;
+        if (!l) return;
+        const top = (l.TOP || []).filter(Boolean).length;
+        const am = (l.AM || []).filter(Boolean).length;
+        const cm = (l.CM || []).filter(Boolean).length;
+        const dm = (l.DM || []).filter(Boolean).length;
+        const df = (l.DF || []).filter(Boolean).length;
+        const fName = this.getFormationDisplayName();
+        alert(`포메이션이 저장되었습니다.\n전술: ${fName} (수비 ${df} · 미드 ${dm + cm + am} · 공격 ${top})`);
+        console.log('[Formation] 5선 포메이션 저장 완료:', gameData.squadLines);
+        this.updateTitle();
     }
     
     validate(isSaving = false) {
-        const counts = { GK: 0, DF: 0, MF: 0, FW: 0 };
+        this.ensureSquadLines();
+        const l = typeof gameData !== 'undefined' && gameData ? gameData.squadLines : null;
+        if (!l) return { valid: false, message: '게임 데이터가 없습니다.' };
         let total = 0;
+        let gkCount = 0;
 
-        // gameData.squad의 실제 선수(null이 아닌) 수를 기준으로 카운트
-        if (gameData.squad.gk) {
-            counts.GK++;
-            total++;
-        }
-        ['df', 'mf', 'fw'].forEach(posKey => {
-            const players = gameData.squad[posKey].filter(p => p !== null);
-            counts[posKey.toUpperCase()] = players.length;
-            total += players.length;
+        ['TOP', 'AM', 'CM', 'DM', 'DF', 'GK'].forEach(k => {
+            const count = (l[k] || []).filter(p => p !== null).length;
+            total += count;
+            if (k === 'GK') gkCount = count;
         });
 
         let message = '';
-
         if (total !== 11) {
             message = `선발 인원은 11명이어야 합니다. (현재 ${total}명)`;
+        } else if (gkCount !== 1) {
+            message = `골키퍼는 반드시 1명이어야 합니다. (현재 ${gkCount}명)`;
         }
 
         if (message) {
@@ -654,60 +1130,83 @@ class FormationSystem {
     }
 
     // 선수 교체 실행
-    swapPlayers(playerOut, playerIn, positionType) {
-        const posKey = positionType.toLowerCase();
+    swapPlayers(playerOut, playerIn, lineKey) {
+        this.ensureSquadLines();
+        const lk = lineKey || 'CM';
+        const arr = gameData.squadLines[lk];
+        if (!arr) return;
 
-        if (posKey === 'gk') {
-            gameData.squad.gk = playerIn;
+        if (playerOut && playerOut.isDummy) {
+            const nullIdx = arr.indexOf(null);
+            if (nullIdx !== -1) {
+                arr[nullIdx] = playerIn;
+            } else {
+                arr.push(playerIn);
+            }
         } else {
-            // 이름, 나이, 포지션을 모두 비교하여 더 정확하게 선수를 찾음
-            const index = gameData.squad[posKey].findIndex(p => 
-                p && p.name === playerOut.name && p.age === playerOut.age && p.position === playerOut.position);
-            if (index !== -1) {
-                gameData.squad[posKey][index] = playerIn;
+            const idx = arr.findIndex(p => p && p.name === playerOut.name);
+            if (idx !== -1) {
+                arr[idx] = playerIn;
+            } else {
+                for (const k in gameData.squadLines) {
+                    const subIdx = gameData.squadLines[k].findIndex(p => p && p.name === playerOut.name);
+                    if (subIdx !== -1) {
+                        gameData.squadLines[k][subIdx] = playerIn;
+                        break;
+                    }
+                }
             }
         }
 
-        // 화면 및 선수 목록 새로고침
+        this.syncLegacySquad();
         this.displayCurrentSquad();
         if (typeof displayTeamPlayers === 'function') {
             displayTeamPlayers();
         }
+        if (typeof DNAManager !== 'undefined') DNAManager.recalculateLineOVRs();
+        if (typeof window.triggerAutoSave === 'function') window.triggerAutoSave();
     }
 
-    // 선수가 스쿼드에 있는지 확인하는 헬퍼 함수
+    // 선수가 스쿼드에 있는지 확인
     isPlayerInSquad(player) {
-        const { gk, df, mf, fw } = gameData.squad;
+        if (!player) return false;
+        if (gameData.squadLines) {
+            for (const k in gameData.squadLines) {
+                if ((gameData.squadLines[k] || []).some(p => p && p.name === player.name)) return true;
+            }
+        }
+        const { gk, df, mf, fw } = gameData.squad || {};
         if (gk && gk.name === player.name) return true;
-        const fieldPlayers = [...df, ...mf, ...fw].filter(p => p);
+        const fieldPlayers = [...(df || []), ...(mf || []), ...(fw || [])].filter(Boolean);
         return fieldPlayers.some(p => p.name === player.name);
     }
 
-    // [신규] 교체용 바텀 시트 표시
-    showSubstitutionSheet(playerOut, positionType) {
-        this.sheetTitle.textContent = `${playerOut.name} 교체`;
+    // 교체용 바텀 시트 표시
+    showSubstitutionSheet(playerOut, lineKey) {
+        const config = FORMATION_LINES[lineKey];
+        const lineTitle = config ? `${config.name} (${config.subName})` : lineKey;
+        this.sheetTitle.textContent = playerOut.isDummy ? `${lineTitle} 선수 기용` : `${playerOut.name} 교체 (${lineTitle})`;
         this.sheetPlayerList.replaceChildren();
 
-        const teamPlayers = teams[gameData.selectedTeam];
-        const candidates = teamPlayers.filter(p => {
-            const originalPosition = allTeams[gameData.selectedTeam].players.find(pl => pl.name === p.name)?.position;
+        const allTeamPlayers = (allTeams[gameData.selectedTeam] && allTeams[gameData.selectedTeam].players) || teams[gameData.selectedTeam] || [];
+        const candidates = allTeamPlayers.filter(p => {
             const isInjured = typeof injurySystem !== 'undefined' && injurySystem.isInjured(gameData.selectedTeam, p.name);
-            
-            // 교체 대상의 포지션(positionType)과 원래 포지션이 같고, 현재 스쿼드에 없는 선수만 필터링
-            // 단, playerOut이 더미(공석)가 아닐 경우, playerOut 자신은 후보에서 제외
             const notSelf = playerOut.isDummy ? true : p.name !== playerOut.name;
-            
-            return originalPosition === positionType && !this.isPlayerInSquad(p) && !isInjured && notSelf;
-        });
+            const canPlay = this.canPlayLine(p, lineKey);
+            return canPlay && !this.isPlayerInSquad(p) && !isInjured && notSelf;
+        }).sort((a, b) => b.rating - a.rating);
 
         if (candidates.length === 0) {
             const emptyP = document.createElement('p');
-            emptyP.style.cssText = 'text-align: center; padding: 20px 0; color: #aaa;';
-            emptyP.textContent = '교체 가능한 선수가 없습니다.';
+            emptyP.style.cssText = 'text-align: center; padding: 25px 0; color: #94a3b8; font-size: 0.95rem;';
+            emptyP.textContent = `${lineTitle} 포지션을 소화할 수 있는 대기 선수가 없습니다.`;
             this.sheetPlayerList.appendChild(emptyP);
         } else {
             candidates.forEach(candidate => {
-                const posLower = (candidate.position || positionType || 'mf').toLowerCase();
+                const posLower = (candidate.position || 'mf').toLowerCase();
+                const displayPos = candidate.detailPosition || candidate.position || lineKey;
+                const matchPos = this.getDisplayPositionForLine(candidate, lineKey);
+
                 const playerCard = document.createElement('div');
                 playerCard.className = `player-card fc26-player-card pos-theme-${posLower}`;
 
@@ -722,8 +1221,8 @@ class FormationSystem {
                 ratingBadge.textContent = `${Math.floor(candidate.rating)}`;
 
                 const posBadge = document.createElement('span');
-                posBadge.className = `pos-badge pos-${posLower}`;
-                posBadge.textContent = candidate.position || positionType;
+                posBadge.className = `pos-badge pos-${matchPos.toLowerCase()}`;
+                posBadge.textContent = matchPos;
 
                 const topBadgeCol = document.createElement('div');
                 topBadgeCol.className = 'fc26-badge-stack';
@@ -733,7 +1232,9 @@ class FormationSystem {
                 img.className = 'player-card-image fc26-cutout-img';
                 img.loading = 'lazy';
                 img.alt = candidate.name;
-                setPlayerPhoto(img, candidate);
+                if (typeof setPlayerPhoto === 'function') {
+                    setPlayerPhoto(img, candidate);
+                }
 
                 cutoutWrap.append(topBadgeCol, img);
 
@@ -744,15 +1245,16 @@ class FormationSystem {
                 nameDiv.className = 'name player-name';
                 nameDiv.textContent = candidate.name;
 
+                const allPos = this.getPlayerAllPositions(candidate);
                 const detailsDiv = document.createElement('div');
                 detailsDiv.className = 'details';
-                detailsDiv.textContent = `${candidate.age}세 · 교체 대기`;
+                detailsDiv.textContent = `${candidate.age}세 · 가능: ${allPos.join(', ')}`;
 
                 infoText.append(nameDiv, detailsDiv);
                 contentDiv.append(cutoutWrap, infoText);
                 playerCard.appendChild(contentDiv);
                 
-                // [수정] 롱프레스(방출) 및 클릭(교체) 이벤트 처리
+                // 롱프레스(방출) 및 클릭(교체) 이벤트
                 let pressTimer;
                 let isLongPress = false;
 
@@ -760,19 +1262,15 @@ class FormationSystem {
                     isLongPress = false;
                     pressTimer = setTimeout(() => {
                         isLongPress = true;
-                        // 방출 함수 호출 (script.js에 정의됨)
                         if (typeof releasePlayerWithFee === 'function') {
                             releasePlayerWithFee(candidate);
                             this.hideSubstitutionSheet();
                         }
-                    }, 600); // 600ms 롱프레스
+                    }, 600);
                 };
 
-                const cancelPress = () => {
-                    clearTimeout(pressTimer);
-                };
+                const cancelPress = () => clearTimeout(pressTimer);
 
-                // 터치 및 마우스 이벤트 등록
                 playerCard.addEventListener('mousedown', startPress);
                 playerCard.addEventListener('touchstart', startPress, { passive: true });
                 playerCard.addEventListener('mouseup', cancelPress);
@@ -780,13 +1278,12 @@ class FormationSystem {
                 playerCard.addEventListener('touchend', cancelPress);
                 playerCard.addEventListener('touchmove', cancelPress);
 
-                playerCard.onclick = (e) => {
-                    if (isLongPress) return; // 롱프레스였으면 클릭 무시
-                    this.swapPlayers(playerOut, candidate, positionType);
+                playerCard.onclick = () => {
+                    if (isLongPress) return;
+                    this.swapPlayers(playerOut, candidate, lineKey);
                     this.hideSubstitutionSheet();
                 };
                 
-                // 우클릭 이벤트 (PC 방출 편의성)
                 playerCard.oncontextmenu = (e) => {
                     e.preventDefault();
                     if (typeof releasePlayerWithFee === 'function') {
@@ -802,45 +1299,41 @@ class FormationSystem {
         this.substitutionSheet.classList.add('active');
     }
 
-    // [신규] 교체용 바텀 시트 숨기기
     hideSubstitutionSheet() {
         this.substitutionSheet.classList.remove('active');
     }
 
-    // [신규] 롤 정보 표시 (바텀 시트 재사용)
-    showRoleInfo(player, positionType) {
+    // 롤 정보 표시
+    showRoleInfo(player, lineKey) {
         const render = () => {
-            // 포지션 타입을 라인(line)으로 변환
             let line = 'defense';
-            if (positionType === 'FW') line = 'attack';
-            else if (positionType === 'MF') line = 'midfield';
-            else if (positionType === 'DF') line = 'defense';
-            else if (positionType === 'GK') {
+            if (lineKey === 'TOP') line = 'attack';
+            else if (lineKey === 'AM') {
+                const dp = (player.detailPosition || '').toUpperCase();
+                line = ['LW', 'RW'].includes(dp) ? 'attack' : 'midfield';
+            } else if (lineKey === 'CM' || lineKey === 'DM') {
+                line = 'midfield';
+            } else if (lineKey === 'DF') {
+                line = 'defense';
+            } else if (lineKey === 'GK') {
                 this.showSheetContent(player.name, "골키퍼", "최후방을 사수하는 수문장입니다.", []);
                 return;
             }
 
-            // [수정] 개별 역할 가져오기
             if (!gameData.playerRoles) gameData.playerRoles = {};
-            
             let currentRoleKey = gameData.playerRoles[player.name];
             
-            // 설정된 역할이 없으면 기본값 할당
             if (!currentRoleKey) {
                 if (line === 'attack') currentRoleKey = 'AF';
                 else if (line === 'midfield') currentRoleKey = 'BBM';
                 else currentRoleKey = 'BPD';
-                
-                // 기본값을 저장
                 gameData.playerRoles[player.name] = currentRoleKey;
             }
 
-            // 역할 데이터 가져오기
             const roleDataMap = window.RoleData ? window.RoleData[line] : null;
             if (!roleDataMap) return;
 
             const currentRoleData = roleDataMap[currentRoleKey];
-            
             const bonuses = [];
             const displayNames = {
                 attack: "공격", technique: "기술", mobility: "스피드",
@@ -856,7 +1349,6 @@ class FormationSystem {
                 }
             }
             
-            // [추가] 역할 변경 셀렉터 생성
             const selectorWrap = document.createElement('div');
             selectorWrap.style.cssText = 'margin-bottom: 20px; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);';
 
@@ -897,20 +1389,16 @@ class FormationSystem {
             const lineName = line === 'attack' ? '공격진' : line === 'midfield' ? '미드필더진' : '수비진';
             this.showSheetContent(player.name, currentRoleData ? currentRoleData.name : "역할 없음", currentRoleData ? `${lineName} 역할` : "", bonuses, selectorWrap);
 
-            // 셀렉터 이벤트 바인딩
             select.addEventListener('change', (e) => {
-                // [수정] 개별 선수 역할 저장
                 gameData.playerRoles[player.name] = e.target.value;
-                
                 if (typeof window.triggerAutoSave === 'function') window.triggerAutoSave();
-                render(); // 변경 후 UI 갱신
-                this.displayCurrentSquad(); // [추가] 필드 UI 즉시 갱신 (역할 태그 업데이트)
+                render();
+                this.displayCurrentSquad();
             });
         };
         render();
     }
 
-    // [신규] 바텀 시트 내용 채우기 (롤 정보용)
     showSheetContent(title, subtitle, description, stats, extraEl = null) {
         this.sheetTitle.textContent = title;
         this.sheetPlayerList.replaceChildren();
@@ -918,9 +1406,7 @@ class FormationSystem {
         const wrap = document.createElement('div');
         wrap.style.cssText = 'padding: 20px; color: white;';
 
-        if (extraEl) {
-            wrap.appendChild(extraEl);
-        }
+        if (extraEl) wrap.appendChild(extraEl);
 
         const h3 = document.createElement('h3');
         h3.style.cssText = 'color: #ffd700; margin-top: 0; margin-bottom: 10px;';
@@ -956,184 +1442,48 @@ class FormationSystem {
     }
 }
 
-// CSS 추가 (기존 style 태그 내용에 추가)
-const newStyle = `
-.player-slot.empty {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 18px;
-    cursor: pointer;
-    backdrop-filter: blur(5px);
-    -webkit-backdrop-filter: blur(5px);
-    /* 빈 슬롯은 안으로 파인 느낌 (Pressed Clay) */
-    box-shadow: inset 4px 4px 8px rgba(0,0,0,0.2), inset -4px -4px 8px rgba(255,255,255,0.1);
-}
-.player-slot.empty:hover {
-    background: rgba(255, 255, 255, 0.15);
-    border-color: #ffd700;
-}
-
-/* 바텀 시트 스타일 강제 주입 (CSS 깨짐 방지) */
-.bottom-sheet {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: rgba(40, 50, 60, 0.65);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-top-left-radius: 30px;
-    border-top-right-radius: 30px;
-    box-shadow: 0 -10px 40px rgba(0,0,0,0.4), inset 0 2px 10px rgba(255,255,255,0.1);
-    transform: translateY(100%);
-    transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-    z-index: 2000; /* 모달보다 높게 */
-    max-height: 80vh; /* 높이 증가 */
-    display: flex;
-    flex-direction: column;
-    color: white;
-}
-.bottom-sheet.active {
-    transform: translateY(0);
-}
-.sheet-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 20px;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-    background: rgba(0,0,0,0.2);
-    border-radius: 15px 15px 0 0;
-    flex-shrink: 0; /* 헤더 크기 고정 */
-}
-.sheet-header h4 { margin: 0; color: #ffd700; font-size: 1.2rem; }
-.close-sheet-btn { font-size: 2rem; cursor: pointer; color: #aaa; line-height: 1; }
-.close-sheet-btn:hover { color: white; }
-
-.sheet-player-list {
-    flex: 1;
-    overflow-y: auto;
-    padding: 10px;
-    -webkit-overflow-scrolling: touch;
-}
-/* 스크롤바 스타일 */
-.sheet-player-list::-webkit-scrollbar { width: 6px; }
-.sheet-player-list::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
-.sheet-player-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
-
-.field.role-view-mode .player-slot {
-    cursor: help !important;
-    border-color: #3498db !important;
-    animation: pulse-border 2s infinite;
-}
-@keyframes pulse-border {
-    0% { box-shadow: 0 0 0 0 rgba(52, 152, 219, 0.4); }
-    70% { box-shadow: 0 0 0 6px rgba(52, 152, 219, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(52, 152, 219, 0); }
-}
-
-.player-role {
-    font-size: 0.7rem;
-    color: #f1c40f;
-    font-weight: bold;
-    background-color: rgba(0, 0, 0, 0.6);
-    padding: 1px 4px;
-    border-radius: 3px;
-    margin-top: 2px;
-    line-height: 1;
-    z-index: 5;
-}
-
-/* 체력바 스타일 */
-.player-condition-bar {
-    width: 80%;
-    height: 4px;
-    background-color: rgba(0, 0, 0, 0.5);
-    border-radius: 2px;
-    margin-top: 2px;
-    overflow: hidden;
-    z-index: 30;
-}
-.condition-fill {
-    height: 100%;
-    transition: width 0.3s ease;
-}
-`;
-
-// 기존 스타일 태그를 찾아 새 스타일을 추가하거나, 없으면 새로 만듭니다.
-let styleTag = document.querySelector('style');
-if (styleTag) {
-    styleTag.textContent += newStyle;
-} else {
-    styleTag = document.createElement('style');
-    styleTag.textContent = newStyle;
-    document.head.appendChild(styleTag);
-}
-
-// FormationSystem 클래스의 swapPlayers 메서드 수정
-const originalSwapPlayers = FormationSystem.prototype.swapPlayers;
-FormationSystem.prototype.swapPlayers = function(playerOut, playerIn, positionType) {
-    if (playerOut.isDummy) {
-        // 공석 채우기
-        if (positionType === 'GK') {
-            // 골키퍼 공석 채우기
-            gameData.squad.gk = playerIn;
-        } else {
-            // 필드 플레이어 공석 채우기
-            const posKey = positionType.toLowerCase();
-            const emptyIndex = gameData.squad[posKey].findIndex(p => p === null);
-            if (emptyIndex !== -1) {
-                gameData.squad[posKey][emptyIndex] = playerIn;
-            }
-        }
-    } else {
-        // 기존 선수 교체 로직
-        originalSwapPlayers.call(this, playerOut, playerIn, positionType);
-    }
-
-    // 화면 새로고침
-    this.displayCurrentSquad();
-    if (typeof displayTeamPlayers === 'function') {
-        displayTeamPlayers();
-    }
-    
-    // [추가] 선수 교체 시 DNA 포인트 재계산
-    if (typeof DNAManager !== 'undefined') DNAManager.recalculateLineOVRs();
-};
-
-// CSS
-const style = document.createElement('style');
-style.textContent = `
+// 5선 라인 UI 및 슬롯 스타일 주입
+const formationStyle = document.createElement('style');
+formationStyle.textContent = `
 .field-wrapper {
     width: 100%;
-    padding-top: 25%;
     position: relative;
     margin: 0 auto;
 }
 .field {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    position: relative;
     display: flex;
     flex-direction: column;
 }
 .formation-container {
     padding: 0; 
 }
+
+/* 5선 + GK 라인 비율 배분 */
 .player-area {
     position: relative;
     border: 1px dashed rgba(255, 255, 255, 0.08);
 }
-#fw-area { flex-grow: 3.1; }
-#mf-area { flex-grow: 3.1; }
-#df-area { flex-grow: 3.1; }
-#gk-area { flex-grow: 1.9; }
+#top-area { flex-grow: 2.1; min-height: 85px; }
+#am-area  { flex-grow: 2.1; min-height: 85px; }
+#cm-area  { flex-grow: 2.0; min-height: 85px; }
+#dm-area  { flex-grow: 2.0; min-height: 85px; }
+#df-area  { flex-grow: 2.1; min-height: 85px; }
+#gk-area  { flex-grow: 1.6; min-height: 80px; }
 
-.field .player-area {
-    border-color: rgba(255, 255, 255, 0.08);
+/* 라인 이름 라벨 태그 */
+.area-line-label {
+    position: absolute;
+    left: 10px;
+    top: 5px;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    color: rgba(255, 255, 255, 0.32);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+    pointer-events: none;
+    z-index: 2;
+    user-select: none;
 }
 
 .formation-container .player-slot {
@@ -1160,27 +1510,19 @@ style.textContent = `
     padding: 0;
 }
 
-.formation-container .player-slot::before,
-.formation-container .player-slot::after {
-    display: none !important;
-    content: none !important;
-}
-
 .formation-container .player-slot:hover {
     transform: translate(-50%, -50%) scale(1.06);
     background: transparent !important;
     z-index: 25;
 }
 
-/* 골키퍼 슬롯 하단 잘림 방지 (하단 기준 안전 여백 고정) */
-.formation-container .field:not(.edit-mode) #gk-area .player-slot {
-    top: auto !important;
-    bottom: 16px !important;
-    transform: translateX(-50%) !important;
+.formation-container .player-slot.empty {
+    width: 110px;
+    height: 38px;
+    cursor: pointer;
 }
-
-.formation-container .field:not(.edit-mode) #gk-area .player-slot:hover {
-    transform: translateX(-50%) scale(1.06) !important;
+.formation-container .player-slot.empty:hover {
+    transform: translate(-50%, -50%) scale(1.05);
 }
 
 .formation-container .player-slot-avatar-wrap {
@@ -1214,7 +1556,7 @@ style.textContent = `
 .formation-container .player-slot-nameplate {
     width: 128px;
     max-width: 132px;
-    background: rgba(15, 23, 42, 0.88) !important;
+    background: rgba(15, 23, 42, 0.90) !important;
     backdrop-filter: blur(8px) !important;
     -webkit-backdrop-filter: blur(8px) !important;
     border: 1px solid rgba(255, 255, 255, 0.18) !important;
@@ -1228,6 +1570,15 @@ style.textContent = `
     gap: 3px;
 }
 
+.formation-container .player-slot-nameplate.empty-plate {
+    background: rgba(15, 23, 42, 0.6) !important;
+    border: 1px dashed rgba(255, 255, 255, 0.3) !important;
+}
+.formation-container .player-slot.empty:hover .empty-plate {
+    border-color: #FBBF24 !important;
+    background: rgba(15, 23, 42, 0.85) !important;
+}
+
 .formation-container .player-slot:hover .player-slot-nameplate {
     border-color: rgba(56, 189, 248, 0.6) !important;
     background: rgba(15, 23, 42, 0.96) !important;
@@ -1236,10 +1587,32 @@ style.textContent = `
 .formation-container .player-slot-name-row {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
     width: 100%;
     min-width: 0;
 }
+
+/* 세부 포지션 뱃지 */
+.slot-pos-badge {
+    font-size: 0.62rem !important;
+    font-weight: 900 !important;
+    padding: 1px 4px !important;
+    border-radius: 3px !important;
+    line-height: 1.1 !important;
+    color: #ffffff !important;
+    flex-shrink: 0 !important;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+}
+/* 공격 (빨강) */
+.pos-tag-st, .pos-tag-cf, .pos-tag-fw, .pos-tag-lw, .pos-tag-rw { background: #EF4444 !important; color: #ffffff !important; }
+/* 미드 (초록) */
+.pos-tag-cam, .pos-tag-am, .pos-tag-cm, .pos-tag-lm, .pos-tag-rm, .pos-tag-cdm, .pos-tag-dm, .pos-tag-mf { background: #10B981 !important; color: #ffffff !important; }
+/* 수비 (파랑) */
+.pos-tag-cb, .pos-tag-lb, .pos-tag-rb, .pos-tag-lwb, .pos-tag-rwb, .pos-tag-df, .pos-tag-sw { background: #3B82F6 !important; color: #ffffff !important; }
+/* 키퍼 (노랑) */
+.pos-tag-gk { background: #F59E0B !important; color: #1e293b !important; font-weight: 900 !important; }
 
 .formation-container .field .player-slot {
     cursor: grab;
@@ -1259,7 +1632,7 @@ style.textContent = `
 }
 
 .formation-container .player-slot .player-rating {
-    font-size: 1.05rem !important;
+    font-size: 0.98rem !important;
     font-weight: 900 !important;
     letter-spacing: -0.03em;
     font-variant-numeric: tabular-nums;
@@ -1271,7 +1644,7 @@ style.textContent = `
 }
 
 .formation-container .player-slot .player-name {
-    font-size: 0.92rem !important;
+    font-size: 0.88rem !important;
     font-weight: 800 !important;
     color: #F8FAFC !important;
     white-space: nowrap !important;
@@ -1315,71 +1688,103 @@ style.textContent = `
     color: #090D16;
 }
 
+/* 바텀 시트 스타일 */
+.bottom-sheet {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(30, 41, 59, 0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-top-left-radius: 24px;
+    border-top-right-radius: 24px;
+    box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    z-index: 2000;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    color: white;
+}
+.bottom-sheet.active {
+    transform: translateY(0);
+}
+.sheet-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    background: rgba(0,0,0,0.25);
+    border-radius: 24px 24px 0 0;
+    flex-shrink: 0;
+}
+.sheet-header h4 { margin: 0; color: #ffd700; font-size: 1.15rem; font-weight: 800; }
+.close-sheet-btn { font-size: 2rem; cursor: pointer; color: #aaa; line-height: 1; }
+.close-sheet-btn:hover { color: white; }
+
+.sheet-player-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+    -webkit-overflow-scrolling: touch;
+}
+.sheet-player-list::-webkit-scrollbar { width: 6px; }
+.sheet-player-list::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+.sheet-player-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
+
+.field.role-view-mode .player-slot {
+    cursor: help !important;
+    border-color: #38bdf8 !important;
+}
+
 @media (max-width: 768px) {
+    #top-area, #am-area, #cm-area, #dm-area, #df-area { min-height: 64px; }
+    #gk-area { min-height: 56px; }
     .formation-container .player-slot {
         width: 82px;
-        height: 74px;
+        height: 72px;
     }
-    .formation-container .field:not(.edit-mode) #gk-area .player-slot {
-        bottom: 8px !important;
+    .formation-container .player-slot.empty {
+        width: 72px;
+        height: 30px;
     }
     .formation-container .player-slot-avatar-wrap {
         width: 60px;
-        height: 52px;
-        overflow: visible !important;
+        height: 50px;
         margin-bottom: -12px;
     }
     .formation-container .player-slot-image {
         width: 60px !important;
         height: 60px !important;
-        object-fit: contain !important;
-        object-position: center bottom !important;
         transform: scale(1.18) translateY(16px) !important;
-        transform-origin: center bottom !important;
     }
     .formation-container .player-slot-nameplate {
         width: 82px;
         max-width: 84px;
-        padding: 3px 5px;
+        padding: 3px 4px;
+    }
+    .slot-pos-badge {
+        font-size: 0.55rem !important;
+        padding: 1px 3px !important;
     }
     .formation-container .player-slot .player-name {
         font-size: 0.68rem !important;
-        white-space: nowrap !important;
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
     }
     .formation-container .player-slot .player-rating {
         font-size: 0.72rem !important;
     }
-    .field-wrapper {
-        padding-top: 65%;
-    }
-    .btn, button.btn {
-        padding: 12px 16px !important;
-        font-size: 1rem !important;
-        min-height: 48px;
-        margin-bottom: 5px;
-    }
-    .formation-controls .btn {
-        flex: 1;
-        padding: 10px 8px !important;
-        font-size: 0.9rem !important;
-        white-space: nowrap;
-    }
-    .dashboard-card {
-        min-height: 110px !important;
-        padding: 20px 15px !important;
-    }
-    .tab-btn {
-        min-height: 50px !important;
-        padding: 12px 5px !important;
-    }
-    .main-load-slot {
-        padding: 15px !important;
+    .area-line-label {
+        font-size: 0.58rem;
+        left: 6px;
+        top: 2px;
     }
 }
 `;
-document.head.appendChild(style);
+document.head.appendChild(formationStyle);
 
 let formationSystem = null;
 
@@ -1392,9 +1797,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
 window.refreshFormation = function() {
     if (formationSystem) {
+        formationSystem.ensureSquadLines();
         formationSystem.displayCurrentSquad();
     } else {
         formationSystem = new FormationSystem();
+        window.formationSystem = formationSystem;
     }
 };
 
@@ -1403,15 +1810,11 @@ window.validateFormationBeforeMatch = function() {
         alert('포메이션 시스템 오류!');
         return false;
     }
-    
-    // 저장하지 않고 현재 상태만 검증
     const result = formationSystem.validate(false);
-    
     if (!result.valid) {
         alert(result.message);
         return false;
     }
-    
     return true;
 };
 

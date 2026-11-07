@@ -1713,7 +1713,7 @@ class TransferSystem {
 
         if (found) {
             const copyKeys = [
-                'playerid', 'playerId', 'id', 'attributes', 'traits', 'detailPosition',
+                'playerid', 'playerId', 'id', 'attributes', 'traits', 'detailPosition', 'otherPositions',
                 'potential', 'preferredFoot', 'weakFoot', 'skillMoves', 'country', 'value'
             ];
             copyKeys.forEach(k => {

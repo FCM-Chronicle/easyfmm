@@ -442,9 +442,15 @@ class MailManager {
         const recommended = recommendations[0];
         const secretaryName = gameData.secretaryName || "비서";
         
+        const opponentData = (typeof TeamUtils !== 'undefined' && typeof TeamUtils.getOptimalSquadData === 'function')
+            ? TeamUtils.getOptimalSquadData(gameData.currentOpponent)
+            : null;
+        const opponentFormation = opponentData ? `${opponentData.formation} (${opponentData.description})` : '4-3-3';
+        
         const content = `감독님, 다음 상대인 ${teamNames[gameData.currentOpponent]}의 전력 분석 보고서입니다.\n\n` +
-            `상대는 주로 '${ts.getTacticName(opponentTactic)}'전술을 사용합니다.\n` +
-            `이에 대한 대응책으로 '${recommended.name}'전술을 추천드립니다.\n\n` +
+            `• 상대 전술: '${ts.getTacticName(opponentTactic)}'\n` +
+            `• 예상 포메이션: [${opponentFormation}]\n\n` +
+            `이에 대한 대응책으로 '${recommended.name}' 전술을 추천드립니다.\n\n` +
             `전술을 변경하시겠습니까?`;
             
         this.addMail(

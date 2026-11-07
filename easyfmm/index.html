@@ -412,11 +412,13 @@
                             <div class="penalty-box penalty-box-top"></div>
                             <div class="penalty-box penalty-box-bottom"></div>
 
-                            <!-- 선수 영역 -->
-                            <div class="player-area" id="fw-area" data-position-type="FW"></div>
-                            <div class="player-area" id="mf-area" data-position-type="MF"></div>
-                            <div class="player-area" id="df-area" data-position-type="DF"></div>
-                            <div class="player-area" id="gk-area" data-position-type="GK"></div>
+                            <!-- 5선 + GK 선수 영역 (최전방 / 2선 / 중앙 / 3선 / 후방 / 골키퍼) -->
+                            <div class="player-area area-top" id="top-area" data-position-type="TOP" data-label="최전방 (ST)"><span class="area-line-label">최전방 (ST)</span></div>
+                            <div class="player-area area-am" id="am-area" data-position-type="AM" data-label="2선 (CAM / LW / RW)"><span class="area-line-label">2선 (CAM / LW / RW)</span></div>
+                            <div class="player-area area-cm" id="cm-area" data-position-type="CM" data-label="중앙 (CM / LM / RM)"><span class="area-line-label">중앙 (CM / LM / RM)</span></div>
+                            <div class="player-area area-dm" id="dm-area" data-position-type="DM" data-label="3선 (CDM / LWB / RWB)"><span class="area-line-label">3선 (CDM / LWB / RWB)</span></div>
+                            <div class="player-area area-df" id="df-area" data-position-type="DF" data-label="후방 (CB / LB / RB)"><span class="area-line-label">후방 (CB / LB / RB)</span></div>
+                            <div class="player-area area-gk" id="gk-area" data-position-type="GK" data-label="골키퍼 (GK)"><span class="area-line-label">골키퍼 (GK)</span></div>
                         </div>
                     </div>
                 </div>

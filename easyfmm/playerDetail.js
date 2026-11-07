@@ -52,6 +52,7 @@ const _PD_CSS = `
 #playerDetailModal .pd-tags { display: flex; gap: 6px; flex-wrap: wrap; }
 #playerDetailModal .pd-tag { padding: 3px 10px; border-radius: 999px; font-size: .74rem; font-weight: 700; background: rgba(255,255,255,.1); }
 #playerDetailModal .pd-tag.pos { background: var(--pd-pos); color: #0b0f17; }
+#playerDetailModal .pd-tag.other-pos { background: rgba(255,255,255,.07); color: #cbd5e1; border: 1px dashed rgba(255,255,255,.25); }
 #playerDetailModal .pd-ovr { margin-left: auto; text-align: center; padding-right: 30px; }
 #playerDetailModal .pd-ovr b { display: block; font-size: 3rem; line-height: 1; font-weight: 900; color: var(--pd-ovr); }
 #playerDetailModal .pd-ovr span { font-size: .68rem; color: #94a3b8; letter-spacing: .12em; }
@@ -161,7 +162,7 @@ function openPlayerDetail(player, teamName) {
             if (found) break;
         }
         if (found) {
-            ['attributes', 'traits', 'detailPosition', 'potential', 'preferredFoot', 'weakFoot', 'skillMoves', 'playerid', 'country', 'weeklyWage'].forEach(k => {
+            ['attributes', 'traits', 'detailPosition', 'otherPositions', 'potential', 'preferredFoot', 'weakFoot', 'skillMoves', 'playerid', 'country', 'weeklyWage'].forEach(k => {
                 if (p[k] === undefined && found[k] !== undefined) p[k] = found[k];
             });
         }
@@ -171,8 +172,13 @@ function openPlayerDetail(player, teamName) {
     const team = teamName || p.originalTeam || (typeof gameData !== 'undefined' ? gameData.selectedTeam : '') || '';
     const ovr = Math.floor(p.rating || 0);
     const ovrColor = ovr >= 85 ? '#a3e635' : ovr >= 78 ? '#facc15' : ovr >= 70 ? '#fb923c' : '#94a3b8';
-    const posColors = { GK: '#fbbf24', DF: '#38bdf8', MF: '#4ade80', FW: '#f87171' };
-    const posColor = posColors[p.position] || '#cbd5e1';
+    const posColors = { GK: '#F59E0B', DF: '#3B82F6', MF: '#10B981', FW: '#EF4444' };
+    const dp = (p.detailPosition || p.position || '').toUpperCase();
+    let posColor = posColors[p.position] || '#cbd5e1';
+    if (['ST', 'CF', 'LW', 'RW', 'FW'].includes(dp)) posColor = '#EF4444'; // 공격: 빨강
+    else if (['CAM', 'AM', 'CM', 'LM', 'RM', 'CDM', 'DM', 'MF'].includes(dp)) posColor = '#10B981'; // 미드: 초록
+    else if (['CB', 'LB', 'RB', 'LWB', 'RWB', 'DF', 'SW'].includes(dp)) posColor = '#3B82F6'; // 수비: 파랑
+    else if (dp === 'GK') posColor = '#F59E0B'; // 키퍼: 노랑
     const stars = n => n ? '★'.repeat(n) + '☆'.repeat(Math.max(0, 5 - n)) : '-';
     const foot = f => f === 'Left' ? '왼발' : f === 'Right' ? '오른발' : (f || '-');
     const attrNames = { pace: '속력', shooting: '슈팅', passing: '패스', dribbling: '드리블', defending: '수비', physical: '피지컬' };
@@ -202,6 +208,11 @@ function openPlayerDetail(player, teamName) {
     const tags = _pdEl('div', 'pd-tags');
     tags.append(_pdEl('span', 'pd-tag pos', p.position || '-'));
     if (p.detailPosition) tags.append(_pdEl('span', 'pd-tag', p.detailPosition));
+    if (Array.isArray(p.otherPositions) && p.otherPositions.length > 0) {
+        p.otherPositions.forEach(op => {
+            tags.append(_pdEl('span', 'pd-tag other-pos', op));
+        });
+    }
     info.append(tags);
     const ovrBox = _pdEl('div', 'pd-ovr');
     ovrBox.append(_pdEl('b', null, ovr), _pdEl('span', null, 'OVR'));
