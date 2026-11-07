@@ -2506,9 +2506,9 @@ function updateFinanceDisplay() {
 
 function convertTransferToWageBudget(amount) {
     const rawValue = Math.round(Number(amount));
-    const units = Math.floor(rawValue / 12);
-    const value = units * 12;
-    if (!Number.isFinite(rawValue) || units <= 0) return { success: false, message: '이적 자금은 12억 단위(주급 자금 1억 단위)로만 전환할 수 있습니다.' };
+    const units = Math.floor(rawValue / 52);
+    const value = units * 52;
+    if (!Number.isFinite(rawValue) || units <= 0) return { success: false, message: '이적 자금은 52억 단위(주급 자금 1억 단위)로만 전환할 수 있습니다.' };
     if (gameData.teamMoney < value) return { success: false, message: '이적 자금이 부족합니다.' };
 
     gameData.teamMoney = Math.round(gameData.teamMoney - value);
@@ -2520,21 +2520,21 @@ function convertTransferToWageBudget(amount) {
 
 function convertWageToTransferBudget(amount) {
     const units = Math.floor(Number(amount));
-    if (!Number.isFinite(units) || units <= 0) return { success: false, message: '주급 자금은 1억 단위(이적 자금 12억 단위)로만 전환할 수 있습니다.' };
+    if (!Number.isFinite(units) || units <= 0) return { success: false, message: '주급 자금은 1억 단위(이적 자금 52억 단위)로만 전환할 수 있습니다.' };
     if (gameData.wageBudget < units) return { success: false, message: '주급 자금이 부족합니다.' };
 
     gameData.wageBudget = formatFinanceVal(gameData.wageBudget - units);
-    gameData.teamMoney = Math.round((gameData.teamMoney || 0) + units * 12);
+    gameData.teamMoney = Math.round((gameData.teamMoney || 0) + units * 52);
     if (typeof updateDisplay === 'function') updateDisplay();
     updateFinanceDisplay();
-    return { success: true, message: `${units}억 주급 자금을 이적 자금 ${units * 12}억으로 전환했습니다.` };
+    return { success: true, message: `${units}억 주급 자금을 이적 자금 ${units * 52}억으로 전환했습니다.` };
 }
 
 function promptBudgetConversion(direction) {
     const amountText = window.prompt(
         direction === 'transferToWage'
-            ? `이적 자금을 주급 자금으로 바꿀 금액을 입력하세요.\n(1억 이적 자금 -> 1/12억 주급 자금)`
-            : `주급 자금을 이적 자금으로 바꿀 금액을 입력하세요.\n(1억 주급 자금 -> 12억 이적 자금)`
+            ? `이적 자금을 주급 자금으로 바꿀 금액을 입력하세요.\n(52억 이적 자금 -> 1억 주급 자금)`
+            : `주급 자금을 이적 자금으로 바꿀 금액을 입력하세요.\n(1억 주급 자금 -> 52억 이적 자금)`
     );
 
     if (amountText === null) return;
@@ -6517,7 +6517,7 @@ function renderFinanceTab() {
     heroH3.textContent = '예산을 직접 조절하세요';
 
     const heroP = document.createElement('p');
-    heroP.textContent = '슬라이더를 오른쪽으로 밀수록 주급 자금이 늘고, 왼쪽으로 밀수록 이적 자금이 늘어납니다. 전환은 12억 이적 자금  1억 주급 자금 단위로 정확히 적용됩니다.';
+    heroP.textContent = '슬라이더를 오른쪽으로 밀수록 주급 자금이 늘고, 왼쪽으로 밀수록 이적 자금이 늘어납니다. 전환은 52억 이적 자금 ↔ 1억 주급 자금 단위로 정확히 적용됩니다.';
 
     heroCopy.append(kicker, heroH3, heroP);
 
@@ -6571,7 +6571,7 @@ function renderFinanceTab() {
     convHeaderLeft.append(convH4, convP);
     const rateNote = document.createElement('div');
     rateNote.className = 'finance-rate-note';
-    rateNote.textContent = '전환 단위 = 이적 12억  주급 1억';
+    rateNote.textContent = '전환 단위 = 이적 52억 ↔ 주급 1억';
     convHeader.append(convHeaderLeft, rateNote);
     convCard.appendChild(convHeader);
 
@@ -6729,17 +6729,17 @@ function updateFinanceBalancePreview(rawValue) {
     let statusText = '중립 상태';
 
     if (direction === 'transferToWage') {
-        const maxUnits = Math.floor(transferBudget / 12);
+        const maxUnits = Math.floor(transferBudget / 52);
         const units = Math.round(maxUnits * ratio);
-        transferDelta = -(units * 12);
+        transferDelta = -(units * 52);
         wageDelta = units;
-        statusText = units > 0 ? `오른쪽으로 이동 중: 주급 자금 +${units}억 강화` : '전환 가능한 이적 자금(최소 12억)이 부족합니다';
+        statusText = units > 0 ? `오른쪽으로 이동 중: 주급 자금 +${units}억 강화` : '전환 가능한 이적 자금(최소 52억)이 부족합니다';
     } else if (direction === 'wageToTransfer') {
         const maxUnits = Math.floor(wageBudget);
         const units = Math.round(maxUnits * ratio);
         wageDelta = -units;
-        transferDelta = units * 12;
-        statusText = units > 0 ? `왼쪽으로 이동 중: 이적 자금 +${units * 12}억 강화` : '전환 가능한 주급 자금(최소 1억)이 부족합니다';
+        transferDelta = units * 52;
+        statusText = units > 0 ? `왼쪽으로 이동 중: 이적 자금 +${units * 52}억 강화` : '전환 가능한 주급 자금(최소 1억)이 부족합니다';
     }
 
     const nextTransfer = formatFinanceVal(Math.max(0, transferBudget + transferDelta));
@@ -6772,11 +6772,11 @@ function applyFinanceBalanceSlider() {
     const wageBudget = Math.max(0, gameData.wageBudget || 0);
 
     if (sliderValue > 0) {
-        const maxUnits = Math.floor(transferBudget / 12);
+        const maxUnits = Math.floor(transferBudget / 52);
         const units = Math.round(maxUnits * ratio);
-        const transferSource = units * 12;
-        if (transferSource < 12) {
-            alert('이적 자금은 최소 12억 단위(주급 자금 1억 단위)로만 전환할 수 있습니다.');
+        const transferSource = units * 52;
+        if (transferSource < 52) {
+            alert('이적 자금은 최소 52억 단위(주급 자금 1억 단위)로만 전환할 수 있습니다.');
             return;
         }
         const result = transferSystem.convertTransferToWageBudget(transferSource);
@@ -6785,7 +6785,7 @@ function applyFinanceBalanceSlider() {
         const maxUnits = Math.floor(wageBudget);
         const units = Math.round(maxUnits * ratio);
         if (units < 1) {
-            alert('주급 자금은 최소 1억 단위(이적 자금 12억 단위)로만 전환할 수 있습니다.');
+            alert('주급 자금은 최소 1억 단위(이적 자금 52억 단위)로만 전환할 수 있습니다.');
             return;
         }
         const result = transferSystem.convertWageToTransferBudget(units);

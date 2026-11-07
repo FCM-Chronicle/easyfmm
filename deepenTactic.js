@@ -2545,14 +2545,9 @@ class RealSoccerEngine {
         const isCounterTeam = winTactic === 'counter' || winTSet.offensiveTrans === 'counter';
         const isPossessionTeam = winTactic === 'possession' || winTactic === 'tikitaka' || winTSet.offensiveTrans === 'hold';
 
-        // [수비 진영 볼 보호] 탈환 즉시 재탈취 당하는 무한 가패 루프 방지
+        // [볼 탈환 후 보호] 탈환 즉시 재탈취 당하는 중원 탁구/가패 루프 방지
         if (this.ball.owner) {
-            const isHome = winningTeamId === 'home';
-            const ownGoalX = isHome ? 0 : 100;
-            const distToOwnGoal = Math.abs(this.ball.owner.x - ownGoalX);
-            if (distToOwnGoal <= 38) {
-                this.ball.owner._protectionTicks = 5;
-            }
+            this.ball.owner._protectionTicks = 6;
         }
 
         // 볼 탈환 팀의 전환 모드 가동
@@ -2652,7 +2647,7 @@ class RealSoccerEngine {
             if (this.ball.lastOwner && p.teamId === this.ball.lastOwner.teamId) return;
             if (p._stealCooldown > 0) return;
             const db = Math.hypot(p.x - bx, p.y - by);
-            if (db > 8.5) return;
+            if (db > 4.5) return;
             const flx = tx - ox, fly = ty - oy;
             const fL2 = flx * flx + fly * fly;
             let traj = 0;
@@ -2661,13 +2656,14 @@ class RealSoccerEngine {
             const prox = Math.hypot(p.x - nx, p.y - ny);
             const ts = this.getEffectiveStat(p, 'tackle') || this.getEffectiveStat(p, 'defense');
             const ss = this.getEffectiveStat(p, 'speed');
-            const pB = Math.max(0, (8.5 - prox) / 8.5);
+            const pB = Math.max(0, (4.5 - prox) / 4.5);
             // [패스 길목 차단 인터셉트: 순수 수비 스탯 & 위치 선점 대결]
-            const chance = 0.065 + (Math.max(0, ts - 50) * 0.003) + (Math.max(0, ss - 50) * 0.0025) + (pB * 0.16);
+            const chance = 0.035 + (Math.max(0, ts - 50) * 0.002) + (Math.max(0, ss - 50) * 0.0015) + (pB * 0.10);
             if (Math.random() < chance) {
                 this.ball.state = BallState.CONTROLLED; this.ball.owner = p;
                 this.ball.intendedReceiver = null; this.ball.lastOwner = null;
-                p._stealCooldown = 10;
+                p._stealCooldown = 12;
+                p._protectionTicks = 6;
                 this.eventsQueue.push({ type: 'tackle', player: p.name, desc: `${p.name}, 날카로운 패스 차단!` });
                 this._triggerTurnover(p.teamId);
             }
@@ -2683,7 +2679,7 @@ class RealSoccerEngine {
         
         // [태클 vs 드리블 대결 체급 반영]
         const statDiff = tackleStat - (dribbleStat * 0.65 + speedStat * 0.35);
-        let chance = 0.38 + (statDiff * 0.016);
+        let chance = 0.28 + (statDiff * 0.012);
         
         // [전술 상성 및 무전술 태클 영향도]
         const tacklerTactic = this.getTeamTactic(tackler.teamId);
@@ -2702,20 +2698,23 @@ class RealSoccerEngine {
             chance -= 0.05;
         }
         
-        if (Math.random() < clamp(chance, 0.18, 0.75)) {
+        if (Math.random() < clamp(chance, 0.14, 0.68)) {
             // 태클 성공
             this.ball.state = BallState.CONTROLLED;
             this.ball.owner = tackler;
             this.ball.lastOwner = null;
             this.ball.intendedReceiver = null;
-            tackler._stealCooldown = 10;
+            tackler._stealCooldown = 12;
+            tackler._protectionTicks = 6; // 탈환 직후 즉시 재탈취 방지
+            carrier._stealCooldown = 16;  // 방금 뺏긴 선수가 0초만에 다시 뺏지 못하도록 쿨다운 부여
             this.eventsQueue.push({ type: 'tackle', player: tackler.name, desc: ` ${tackler.name}, 날카로운 태클로 공을 완벽히 탈취합니다!` });
             this._triggerTurnover(tackler.teamId);
             return true;
         } else {
             // 태클 실패 (볼 캐리어가 제쳐냄)
-            tackler._stealCooldown = 12; // 수비수 딜레이 단축 (빠른 재정비)
+            tackler._stealCooldown = 20; // 헛발질한 수비수 쿨다운
             carrier.burstTimer = 16;
+            carrier._protectionTicks = 4;
             
             // 능력치(드리블 70 이상)에 따라 개인기 연출 발생
             if (dribbleStat >= 70 && Math.random() < 0.45) {
@@ -3244,8 +3243,8 @@ class RealSoccerEngine {
             }
             let ty = p.slotY;
 
-            // [동네축구 방지] 오직 단독 전담 압박자이거나, 공이 바로 앞(dBall < 5.5)일 때만 공으로 돌진!
-            if (pressIsMe || dBall < 5.5) {
+            // [동네축구 방지] 오직 단독 전담 압박자이거나, 공이 바로 앞(dBall < 3.4)일 때만 공으로 돌진!
+            if (pressIsMe || dBall < 3.4) {
                 tx = ballX; ty = ballY;
                 let s = 0.88 * clamp(sf, 0.85, 1.75);
                 this._physicsStep(p, tx, ty, s);
@@ -3275,8 +3274,8 @@ class RealSoccerEngine {
             }
 
             // [동네축구 방지 핵심 원칙]
-            // 전담 압박자이거나 공이 내 발밑(dBall < 5.5)에 들어왔을 때만 공으로 압박!
-            if (pressIsMe || dBall < 5.5) {
+            // 전담 압박자이거나 공이 내 발밑(dBall < 3.4)에 들어왔을 때만 공으로 압박!
+            if (pressIsMe || dBall < 3.4) {
                 let tx = ballX;
                 let ty = ballY;
                 let ms = 0.90 * clamp(sf, 0.85, 1.85);

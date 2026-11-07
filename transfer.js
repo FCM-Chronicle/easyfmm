@@ -553,12 +553,12 @@ class TransferSystem {
     }
 
     convertTransferToWageBudget(amount) {
-        const units = Math.floor(Number(amount) / 12);
+        const units = Math.floor(Number(amount) / 52);
         if (!Number.isFinite(units) || units <= 0) {
-            return { success: false, message: '이적 자금은 12억 단위(주급 자금 1억)로만 전환할 수 있습니다.' };
+            return { success: false, message: '이적 자금은 52억 단위(주급 자금 1억)로만 전환할 수 있습니다.' };
         }
 
-        const value = units * 12;
+        const value = units * 52;
         const converted = units;
 
         const currentMoney = window.GameState ? window.GameState.get().teamMoney : gameData.teamMoney;
@@ -575,7 +575,7 @@ class TransferSystem {
     convertWageToTransferBudget(amount) {
         const units = Math.floor(Number(amount));
         if (!Number.isFinite(units) || units <= 0) {
-            return { success: false, message: '주급 자금은 1억 단위(이적 자금 12억)로만 전환할 수 있습니다.' };
+            return { success: false, message: '주급 자금은 1억 단위(이적 자금 52억)로만 전환할 수 있습니다.' };
         }
 
         const value = units;
@@ -584,7 +584,7 @@ class TransferSystem {
             return { success: false, message: '주급 자금이 부족합니다.' };
         }
 
-        const converted = value * 12;
+        const converted = value * 52;
         this.spendTeamWageBudget(gameData.selectedTeam, value);
         if (window.GameState) window.GameState.addTeamMoney(converted);
         else gameData.teamMoney = Math.round((gameData.teamMoney + converted) * 100) / 100;

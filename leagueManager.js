@@ -175,18 +175,17 @@ const LeagueManager = {
                 let score2 = 0;
 
                 if (window.recordsSystem && typeof window.recordsSystem.simulateSingleAIMatch === 'function') {
+                    // simulateSingleAIMatch 내부에서 이미 순위표(leagueTable)에 결과를 1회 반영함
                     const res = window.recordsSystem.simulateSingleAIMatch(match.home, match.away);
                     score1 = res.score1;
                     score2 = res.score2;
                     window.recordsSystem.matchRecords.push(res);
                 } else {
-                    // 기본 시뮬레이션
+                    // 기본 시뮬레이션 (recordsSystem이 없을 때만 여기서 순위표에 직접 반영하여 중복 2판 방지)
                     score1 = Math.floor(Math.random() * 3);
                     score2 = Math.floor(Math.random() * 3);
+                    this.applyMatchResult(leagueTable, match.home, match.away, score1, score2);
                 }
-
-                // 순위표 반영
-                this.applyMatchResult(leagueTable, match.home, match.away, score1, score2);
             });
         });
 

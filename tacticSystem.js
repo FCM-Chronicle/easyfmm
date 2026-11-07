@@ -1449,8 +1449,10 @@ function endMatch(matchData) {
     if (typeof processPostMatchGrowth === 'function') setTimeout(processPostMatchGrowth, 1000);
 
     // [以묒슂] 媛쒖씤湲곕줉 ?낅뜲?댄듃 諛?AI ?쒕??덉씠???ㅽ뻾 (simulateOtherMatches ?泥?
-    if (typeof updateRecordsAfterMatch === 'function') {
-        updateRecordsAfterMatch(resultPayload);
+    if (!gameData.isFACupMatch && !gameData.isUCLMatch) {
+        if (typeof updateRecordsAfterMatch === 'function') {
+            updateRecordsAfterMatch(resultPayload);
+        }
     }
 
     injurySystem.removeInjuredFromSquad();
