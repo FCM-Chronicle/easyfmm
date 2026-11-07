@@ -825,22 +825,29 @@
                 isHomeGame: true
             });
 
-            simMinute = 1;
+            simMinute = 0;
             simTick = 0;
+            liveEngine._lastSimMin = -1;
             isPaused = false;
             startLoop();
         }
 
         function startLoop() {
-            const delay = Math.max(10, Math.floor(80 / simSpeed));
+            const delay = Math.max(4, Math.floor(80 / simSpeed));
             simInterval = setInterval(() => {
                 if (isPaused) return;
 
-                simTick++;
-                const isNewMinute = (simTick % 10 === 0);
-                if (isNewMinute) simMinute++;
+                const isNewMinute = (simMinute !== liveEngine._lastSimMin);
+                if (isNewMinute) liveEngine._lastSimMin = simMinute;
 
                 const snapshot = liveEngine.update(simMinute, isNewMinute);
+                if (!snapshot.isCelebration && !snapshot.isSuspense) {
+                    simTick += 4;
+                    if (simTick >= 60) {
+                        simMinute++;
+                        simTick = simTick % 60;
+                    }
+                }
                 renderPitch(snapshot);
 
                 // 스코어 & 시간 업데이트
@@ -883,18 +890,24 @@
             if (!liveEngine) startMatch();
             if (simInterval) clearInterval(simInterval);
 
-            while (simMinute <= 90) {
-                for (let t = 0; t < 10; t++) {
-                    const snap = liveEngine.update(simMinute, t === 0);
-                    if (snap.events && snap.events.length) {
-                        snap.events.forEach(e => {
-                            if (e.type === 'goal') {
-                                appendCommentary(`⚽ [${simMinute}'] GOOOAL!! ${e.scorer} 득점! (${liveEngine.homeScore}-${liveEngine.awayScore})`, 'goal');
-                            }
-                        });
+            while (simMinute < 90) {
+                const isNewMinute = (simMinute !== liveEngine._lastSimMin);
+                if (isNewMinute) liveEngine._lastSimMin = simMinute;
+                const snap = liveEngine.update(simMinute, isNewMinute);
+                if (snap.events && snap.events.length) {
+                    snap.events.forEach(e => {
+                        if (e.type === 'goal') {
+                            appendCommentary(`⚽ [${simMinute}'] GOOOAL!! ${e.scorer} 득점! (${liveEngine.homeScore}-${liveEngine.awayScore})`, 'goal');
+                        }
+                    });
+                }
+                if (!snap.isCelebration && !snap.isSuspense) {
+                    simTick += 4;
+                    if (simTick >= 60) {
+                        simMinute++;
+                        simTick = simTick % 60;
                     }
                 }
-                simMinute++;
             }
 
             renderPitch(liveEngine.getSnapshot());
@@ -930,9 +943,17 @@
                     isHomeGame: true
                 });
 
-                for (let m = 1; m <= 90; m++) {
-                    for (let t = 0; t < 10; t++) {
-                        eng.update(m, t === 0);
+                let m = 0, sec = 0, lastM = -1;
+                while (m < 90) {
+                    const isNew = (m !== lastM);
+                    if (isNew) lastM = m;
+                    const snap = eng.update(m, isNew);
+                    if (!snap.isCelebration && !snap.isSuspense) {
+                        sec += 4;
+                        if (sec >= 60) {
+                            m++;
+                            sec = sec % 60;
+                        }
                     }
                 }
 
