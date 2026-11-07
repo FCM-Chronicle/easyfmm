@@ -708,6 +708,15 @@ class RealSoccerEngine {
             });
         };
         if (!squad) return;
+        if (Array.isArray(squad)) {
+            const list = squad.filter(Boolean);
+            const gk = list.find(p => p.position === 'GK') || list[0];
+            const outfield = list.filter(p => p !== gk);
+            const df = outfield.filter(p => p.position === 'DF').slice(0, 4);
+            const mf = outfield.filter(p => p.position === 'MF').slice(0, 4);
+            const fw = outfield.filter(p => p.position === 'FW').slice(0, 3);
+            squad = { gk, df, mf, fw };
+        }
         const lines = (squad && squad.squadLines) || (isUser && hasGameData && gameData.squadLines ? gameData.squadLines : null);
         if (lines) {
             if (teamId === 'home') {
@@ -999,6 +1008,7 @@ class RealSoccerEngine {
         }
         this.players.forEach(p => {
             if (p._stealCooldown > 0) p._stealCooldown--;
+            if (p._protectionTicks > 0) p._protectionTicks--;
         });
 
         // Exit animation (post-match)
@@ -1064,7 +1074,15 @@ class RealSoccerEngine {
         return {
             ball: { x: this.ball.x, y: this.ball.y, z: this.ball.z, state: this.ball.state },
             players: this.players.map(p => ({
-                id: p.id, x: p.x, y: p.y, team: p.teamId, hasBall: this.ball.owner === p
+                id: p.id,
+                name: p.name,
+                x: p.x,
+                y: p.y,
+                team: p.teamId,
+                teamId: p.teamId,
+                position: p.position,
+                hasBall: this.ball.owner === p,
+                stamina: Math.max(0, Math.min(100, Math.round(p.stamina || 100)))
             })),
             events: [...this.eventsQueue],
             isCelebration: this.celebrationTimer > 0,
@@ -1308,14 +1326,15 @@ class RealSoccerEngine {
         const effectSpeed = this.getEffectiveStat(player, 'speed');
         const isWinger = (behavior.hugLine && onFlank) || Math.abs(player.y - 50) > 20 || ['LW', 'RW', 'LM', 'RM'].includes(player.detailPosition);
 
-        // [볼 점유 템포 조절: 여유 있는 볼 홀딩]
-        // 강한 압박을 받지 않을 때 공을 잡자마자 0초만에 뻥 차버리지 않고,
-        // 주위를 살피며 패스 길과 동료 침투를 기다리는 1~2틱의 침착한 템포 부여
+        // [볼 점유 템포 조절: 여유 있는 볼 홀딩 및 전진 드리블]
+        // 공을 잡자마자 바로 뻥 차버리지 않고, 전방 공간으로 치고 나가며 시야 확보
         if (!player._ballHoldTicks) player._ballHoldTicks = 0;
-        if (!underPressure && distToGoal > 12 && player._ballHoldTicks < 2) {
+        const isFlankWinger = isWinger || ['LW', 'RW', 'LM', 'RM'].includes(player.detailPosition);
+        const maxHoldTicks = isFlankWinger ? 5 : (player.position === 'MF' ? 3 : 2);
+        if (!underPressure && distToGoal > 14 && player._ballHoldTicks < maxHoldTicks) {
             player._ballHoldTicks++;
-            // 가볍게 볼을 키핑하며 전방 주시
-            this._physicsStep(player, player.x + moveDir * 4, player.y, 0.45);
+            // 앞 공간으로 치고 나가기
+            this._physicsStep(player, player.x + moveDir * 4.5, player.y + (player.slotY - player.y) * 0.15, 0.55);
             this.ball.x = player.x; this.ball.y = player.y; this.ball.z = 0;
             return;
         }
@@ -1339,13 +1358,13 @@ class RealSoccerEngine {
         const myTactic = this.getTeamTactic(tid);
         const myTSet = (this.tacticSettings && this.tacticSettings[tid]) || {};
         const isCounterStyle = myTactic === 'counter' || myTSet.offensiveTrans === 'counter';
-        const isPossessionStyle = myTactic === 'possession' || myTactic === 'tikitaka' || myTSet.buildUp === 'short';
+        const isLongBallTactic = myTactic === 'longBall' || myTactic === 'twoLine' || myTSet.passLength === 'direct';
 
-        if (isPossessionStyle && (phase === 'progressing' || phase === 'finalThird' || phase === 'counter')) {
+        if (isLongBallTactic && (phase === 'progressing' || phase === 'counter')) {
             const longBall = this._findLongBallTarget(player, phase);
-            if (longBall && longBall.score > bestPassScore - 5) {
+            if (longBall && longBall.score > bestPassScore + 5) {
                 bestPassTarget = longBall.target;
-                bestPassScore = longBall.score + 18;
+                bestPassScore = longBall.score + 10;
             }
         }
         if (isCounterStyle && (phase === 'counter' || phase === 'progressing' || this._possession.duration < 22)) {
@@ -1364,7 +1383,7 @@ class RealSoccerEngine {
         // Situation-first choice: compare best pass with carry value
         const passProb = this._calcPassProbV3(player, phase, underPressure, isWinger, distToGoal, nDef);
         const carryScore = this._scoreCarryChoice(player, phase, underPressure, isWinger, distToGoal, nDef);
-        const passScore = bestPassScore + passProb * 18;
+        const passScore = bestPassScore + (passProb - 0.5) * 10;
 
         // [긴급 슈팅] 골문 5m 바로 앞 (탭인 상황)
         if (distToGoal <= 5 && player.position !== 'GK') {
@@ -1458,10 +1477,10 @@ class RealSoccerEngine {
             : false;
         const frontCrowd = this._numOpponentsAhead(player, 10, 18);
 
-        // 앞이 훤히 비어있고 압박이 없거나, 윙어가 1v1 돌파 찬스를 맞이했을 때는 전진 드리블!
-        const wingerDribbleBias = (isWinger || ['LW', 'RW'].includes(player.detailPosition)) && distToGoal <= 48 && carryScore >= passScore - 18;
+        // 앞이 훤히 비어있고 압박이 없거나, 윙어가 1v1 돌파 찬스를 맞이했을 때는 적극 전진 드리블!
+        const wingerDribbleBias = isFlankWinger && distToGoal <= 58 && carryScore >= passScore - 30;
         if (bestPassTarget && player.position !== 'DF' && (!isCutback && !isCross) &&
-            ((!underPressure && frontCrowd <= 1 && (!bestPassProgressive || bestPassLateral)) || wingerDribbleBias)) {
+            ((!underPressure && frontCrowd <= 1) || wingerDribbleBias || carryScore >= passScore + 10)) {
             this._dribbleV3(player, goalX, moveDir, phase, underPressure, isWinger, distToGoal, nDef, effectSpeed);
             return;
         }
@@ -1584,15 +1603,16 @@ class RealSoccerEngine {
             if (back && !isCutbackCandidate && (dToGoal - dFromGoal > 14)) return -Infinity;
         }
 
-        // Distance penalty (very short passes ok in buildup, but not spamming)
+        // [장거리 패스 감점 강화 & 탁구 축구 억제]
         if (dist < 5) score -= 8;
-        if (dist > 60) score -= 12;
+        if (dist > 45) score -= ((dist - 45) * 1.8 + 24);
+        else if (dist > 28) score -= ((dist - 28) * 1.1 + 8);
 
-        // [공격 다변화: 사이드 체인지 전환 패스는 Y축 감점 면제 및 노마크 시 대폭 가산, 크로스/컷백 면제]
+        // [공격 다변화: 사이드 체인지 전환 패스는 Y축 감점 면제, 크로스/컷백 면제]
         const yShift = Math.abs(to.y - from.y);
         if (isSwitchPlay) {
-            if (oppNearRecv === 0) score += 65; // 반대편 완전 노마크 윙어 전환
-            else if (oppNearRecv === 1) score += 30;
+            if (oppNearRecv === 0) score += 20; // 탁구식 장거리 횡전환 남발 억제
+            else if (oppNearRecv === 1) score += 8;
         } else if (isCrossCandidate || isCutbackCandidate) {
             // 크로스 및 컷백은 중앙 투입이므로 yShift 감점 면제
         } else {
@@ -1879,32 +1899,38 @@ class RealSoccerEngine {
     }
 
     _scoreCarryChoice(player, phase, underPressure, isWinger, distToGoal, nDef) {
-        let score = 0;
+        let score = 25; // 기본 베이스 상향
         const speed = this.getEffectiveStat(player, 'speed');
         const decision = this.getEffectiveStat(player, 'decision');
         const dribble = this.getEffectiveStat(player, 'dribble');
         const blockedAhead = this._numOpponentsAhead(player, 10, 18);
-        if (phase === 'building') score += player.position === 'MF' ? 24 : 10;
-        else if (phase === 'progressing') score += player.position === 'MF' ? 46 : 34;
-        else score += player.position === 'FW' ? 52 : 44; // [미드필더 공격 가담] 파이널 서드에서 공을 과감하게 끌고 전진
-        if (['LW', 'RW'].includes(player.detailPosition)) score += 34;
-        else if (isWinger) score += 26;
-        if (player.position === 'FW') score += 18;
-        if (Math.abs(player.y - 50) > 18) score += 14; // 측면 공간 드리블 선호
-        if (player.position !== 'DF' && !underPressure) score += 10;
-        if (underPressure) score -= (dribble > 75 ? 6 : 14);
-        if (blockedAhead >= 2) score -= 20;
-        else if (blockedAhead === 1) score -= 6;
+        const isFlankWinger = isWinger || ['LW', 'RW', 'LM', 'RM'].includes(player.detailPosition);
+
+        if (phase === 'building') score += player.position === 'MF' ? 30 : 18;
+        else if (phase === 'progressing') score += player.position === 'MF' ? 52 : 42;
+        else score += player.position === 'FW' ? 64 : 52; // [공격 가담] 파이널 서드에서 과감한 전진
+
+        // [윙어 드리블 대폭 우대 (유저 피드백 반영)]
+        if (isFlankWinger) score += 48; // 윙어 드리블 선호 대폭 상향
+        if (player.position === 'FW') score += 24;
+        if (Math.abs(player.y - 50) > 16) score += 22; // 측면 공간 드리블 선호
+        if (player.position !== 'DF' && !underPressure) score += 20;
+
+        if (underPressure) score -= (dribble > 75 ? 4 : 12);
+        if (blockedAhead >= 2) score -= 18;
+        else if (blockedAhead === 1) score -= 4;
+        else if (blockedAhead === 0) score += 28; // 전방 열려있으면 시원하게 치고 달림
+
         // 박스 근처(distToGoal <= 28)에서 공격수의 돌파 점수 버프
         if (distToGoal <= 28) {
-            score += player.position === 'FW' ? 26 : 12;
+            score += player.position === 'FW' ? 32 : 18;
         }
         // [선수 돌파 능력 버프] 드리블 능력치에 비례한 확실한 돌파 선호 가산점 강화
-        score += (dribble - 70) * 0.70 + (speed - 70) * 0.45 + (decision - 70) * 0.25;
+        score += (dribble - 65) * 1.0 + (speed - 65) * 0.65 + (decision - 65) * 0.35;
         if (nDef) {
             const defTackle = this.getEffectiveStat(nDef.player, 'tackle') || this.getEffectiveStat(nDef.player, 'defense');
-            if (dribble > defTackle) score += 22; // 수비수보다 드리블이 높으면 적극적인 1v1 돌파 시도!
-            if (speed > this.getEffectiveStat(nDef.player, 'speed')) score += 18;
+            if (dribble > defTackle - 4) score += 28; // 수비수와 1v1 맞대결 적극 돌파!
+            if (speed > this.getEffectiveStat(nDef.player, 'speed')) score += 20;
         }
         return score;
     }
@@ -2032,15 +2058,26 @@ class RealSoccerEngine {
         }
 
         // [중원 전력 차이 압박 (원인과 결과 축구)]
-        // 상대 중원이 훨씬 강한데, 중원을 우회하지 않고(isBypassTactics가 아님) 무지성 중앙 패스를 시도할 경우 패스 미스 급증!
+        // 상대 중원이 강할 때 무지성 중앙 패스 감점 완화 (일방적 가패/슈팅 0개 방지)
         const oppMid = this.getMidfieldStrength(tid === 'home' ? 'away' : 'home');
         const myMid = this.getMidfieldStrength(tid);
-        const isMidOutmatched = oppMid > (myMid + 3.0);
+        const isMidOutmatched = oppMid > (myMid + 4.0);
         const tSettings = (this.tacticSettings && this.tacticSettings[tid]) ? this.tacticSettings[tid] : {};
         const isBypass = tSettings.buildUp === 'direct' || tSettings.passLength === 'direct' || tSettings.width === 'wide';
         if (isMidOutmatched && !isBypass && (from.position === 'MF' || to.position === 'MF')) {
-            const midDiff = Math.min(15, oppMid - myMid);
-            distPen += midDiff * 1.5;
+            const midDiff = Math.min(8, Math.max(0, oppMid - myMid - 4.0));
+            distPen += midDiff * 0.7; // 무한 끊김 방지를 위해 완화
+        }
+
+        // [수비 진영 압박 탈출 보너스 (수->공 전환 구제: 유저 피드백)]
+        // 밀리는 팀이 수비 진영(골문 38m 이내)에서 전방 공격수/미드필더로 길게 찌를 때 성공률 대폭 보장
+        const isHome = tid === 'home';
+        const ownGoalX = isHome ? 0 : 100;
+        const distFromOwnGoal = Math.abs(from.x - ownGoalX);
+        const isDefensiveThirdOutlet = distFromOwnGoal <= 38 && forward && dist >= 20 && (to.position === 'FW' || to.position === 'MF');
+        if (isDefensiveThirdOutlet) {
+            distPen = Math.max(0, distPen - 18);
+            acc += 16; // 압박 라인을 훌쩍 넘기는 시원한 탈출 롱패스 가산
         }
         const minAcc = from.stamina < 40 ? 10 : 20;
         const success = Math.random() * 100 <= clamp(acc - distPen + (isThrough ? 6 : 0), minAcc, 99);
@@ -2293,39 +2330,39 @@ class RealSoccerEngine {
         const effSh = this.getEffectiveStat(shooter, 'shooting');
         const sp = effSh * (0.85 + Math.random() * 0.35) * dF * aF;
 
-        // [MatchTuning 연동] 골키퍼 선방 능력 배율 (기본 0.95로 야신 모드 완화)
+        // [MatchTuning 연동] 골키퍼 선방 능력 배율 (기본 1.15로 다이빙 선방 정상화)
         const gkMod = (typeof MatchTuning !== 'undefined' && MatchTuning.gkSaveMultiplier !== undefined)
-            ? MatchTuning.gkSaveMultiplier : 0.95;
+            ? MatchTuning.gkSaveMultiplier : 1.15;
         const sv = gkV * (0.85 + Math.random() * 0.35) * gkMod;
         
-        // [골 결정력 대폭 상향] 무지성 난사를 억제한 대신, 확실히 만든 찬스에서의 골 결정력과 손맛 보장!
-        const inBoxBonus = d <= 6 ? 0.22 : (d <= 12 ? 0.14 : (d <= 18 ? 0.06 : 0));
-        const fwBonus = shooter.position === 'FW' ? 0.08 : (shooter.position === 'MF' ? 0.03 : 0);
-        const statBonus = (sp - sv) * 0.015;
+        // [골 결정력 현실화: 경기당 1~4골의 축구다운 스코어 보장]
+        const inBoxBonus = d <= 6 ? 0.12 : (d <= 12 ? 0.07 : (d <= 18 ? 0.03 : 0));
+        const fwBonus = shooter.position === 'FW' ? 0.05 : (shooter.position === 'MF' ? 0.02 : 0);
+        const statBonus = (sp - sv) * 0.008;
 
         // 슈팅 관련 특성 (감아차기, 파워슛, 칩샷 등) 보유 시 추가 골 결정력 가산
         const traits = shooter.traits || [];
         const hasShootingTrait = traits.some(t => t.includes('감아차기') || t.includes('파워슛') || t.includes('슈팅') || t.includes('피니셔'));
-        const traitBonus = hasShootingTrait ? 0.06 : 0;
+        const traitBonus = hasShootingTrait ? 0.04 : 0;
 
-        // [공격 패턴 보너스] 직전 연계가 컷백이나 크로스 원터치 피니시인 경우 대폭 가산
+        // [공격 패턴 보너스] 직전 연계가 컷백이나 크로스 원터치 피니시인 경우 가산
         const isCutbackFinish = this.ball && this.ball.isCutback;
         const isCrossFinish = this.ball && this.ball.isCross;
-        const patternBonus = isCutbackFinish ? 0.12 : (isCrossFinish ? 0.08 : 0);
+        const patternBonus = isCutbackFinish ? 0.06 : (isCrossFinish ? 0.04 : 0);
 
         // [1:1 단독 찬스 / 빅찬스 보너스 (역습 라인 브레이킹 보상)]
         const nearbyDefs = this.players.filter(p => p.teamId === opp && p.position !== 'GK' && Math.hypot(p.x - shooter.x, p.y - shooter.y) < 7.0);
         const isOneOnOne = nearbyDefs.length === 0 && d <= 18;
-        const bigChanceBonus = isOneOnOne ? 0.22 : 0;
+        const bigChanceBonus = isOneOnOne ? 0.10 : 0;
 
         const goalMult = (typeof MatchTuning !== 'undefined' && MatchTuning.goalMultiplier !== undefined)
-            ? MatchTuning.goalMultiplier : 1.25;
+            ? MatchTuning.goalMultiplier : 0.85;
         const minG = (typeof MatchTuning !== 'undefined' && MatchTuning.minGoalChance !== undefined)
-            ? MatchTuning.minGoalChance : 0.05;
+            ? MatchTuning.minGoalChance : 0.03;
         const maxG = (typeof MatchTuning !== 'undefined' && MatchTuning.maxGoalChance !== undefined)
-            ? MatchTuning.maxGoalChance : 0.75;
+            ? MatchTuning.maxGoalChance : 0.42;
 
-        const goalChance = clamp((0.16 + inBoxBonus + fwBonus + statBonus + traitBonus + patternBonus + bigChanceBonus) * goalMult, minG, maxG);
+        const goalChance = clamp((0.08 + inBoxBonus + fwBonus + statBonus + traitBonus + patternBonus + bigChanceBonus) * goalMult, minG, maxG);
 
         this.ball.state = BallState.IN_FLIGHT;
         this.ball._flightOrigin = { x: shooter.x, y: shooter.y };
@@ -2508,6 +2545,16 @@ class RealSoccerEngine {
         const isCounterTeam = winTactic === 'counter' || winTSet.offensiveTrans === 'counter';
         const isPossessionTeam = winTactic === 'possession' || winTactic === 'tikitaka' || winTSet.offensiveTrans === 'hold';
 
+        // [수비 진영 볼 보호] 탈환 즉시 재탈취 당하는 무한 가패 루프 방지
+        if (this.ball.owner) {
+            const isHome = winningTeamId === 'home';
+            const ownGoalX = isHome ? 0 : 100;
+            const distToOwnGoal = Math.abs(this.ball.owner.x - ownGoalX);
+            if (distToOwnGoal <= 38) {
+                this.ball.owner._protectionTicks = 5;
+            }
+        }
+
         // 볼 탈환 팀의 전환 모드 가동
         this._phase[winningTeamId] = 'counter';
         const counterDuration = isCounterTeam ? 65 : (isPossessionTeam ? 10 : 30);
@@ -2629,6 +2676,7 @@ class RealSoccerEngine {
 
     _attemptTackle(tackler, carrier) {
         if (tackler._stealCooldown > 0) return false;
+        if (carrier._protectionTicks && carrier._protectionTicks > 0) return false; // 탈환 직후 보호
         const tackleStat = this.getEffectiveStat(tackler, 'tackle') || this.getEffectiveStat(tackler, 'defense');
         const dribbleStat = this.getEffectiveStat(carrier, 'dribble');
         const speedStat = this.getEffectiveStat(carrier, 'speed');

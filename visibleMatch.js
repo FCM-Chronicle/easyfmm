@@ -19,6 +19,7 @@ class VisualUnit {
         this.activeSkillId = null; // 현재 진행 중인 개인기 ID
         this.color = color || (teamType === 'home' ? '#e74c3c' : '#3498db'); // [수정] 전달받은 컬러 사용
         this.pulse = 0; // [신규] 공 소유 시 강조 애니메이션용
+        this.stamina = 100; // [신규] 실시간 체력 표시용
     }
 
     //  [FLR 이식] 어댑티브 거리 기반 부드러운 가감속 보간 (달리기 반응성 개선)
@@ -146,6 +147,21 @@ class VisualUnit {
             ctx.lineWidth = 4;
             ctx.beginPath();
             ctx.arc(0, 0, r + 1, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        // [신규] 인게임 실시간 체력 게이지 링 (체력이 닳을수록 링이 줄어들며 색상 변화)
+        const stam = Number.isFinite(this.stamina) ? this.stamina : 100;
+        if (stam < 96) {
+            ctx.save();
+            ctx.beginPath();
+            const startAngle = -Math.PI / 2;
+            const endAngle = startAngle + (Math.PI * 2 * (stam / 100));
+            ctx.arc(0, 0, r + 2.5, startAngle, endAngle);
+            ctx.strokeStyle = stam < 40 ? '#ef4444' : (stam < 68 ? '#f59e0b' : '#10b981');
+            ctx.lineWidth = 2.2;
+            ctx.lineCap = 'round';
             ctx.stroke();
             ctx.restore();
         }
@@ -313,6 +329,7 @@ class MatchVisualizer {
                 unit.targetX = pData.x;
                 unit.targetY = pData.y;
                 unit.hasBall = pData.hasBall;
+                if (pData.stamina !== undefined) unit.stamina = pData.stamina;
             }
         });
 

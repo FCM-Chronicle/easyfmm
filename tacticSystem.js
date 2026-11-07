@@ -1493,7 +1493,9 @@ function endMatch(matchData) {
 
                     // [蹂듦뎄] 泥대젰 ?뚮났 濡쒖쭅 (?뚮え??泥대젰????83% ?뚮났)
                     // ?? ?붿뿬 40(?뚮え 60) -> ?뚮났 50 -> 寃곌낵 90
-                    const recovered = Math.min(100, Math.floor(remaining + (100 - remaining) * (5 / 6)));
+                    // 출전 선수: 경기 종료 후 휴식 회복(+18) 부여 (최대 100)
+                    // 예: 90분 풀타임 45 잔여 시 -> 63으로 다음 경기 진입 (로테이션 관리 필요)
+                    const recovered = Math.min(100, Math.max(15, Math.round(remaining + 18)));
 
                     realPlayer.condition = recovered;
                 }
@@ -1504,7 +1506,7 @@ function endMatch(matchData) {
         userPlayers.forEach(p => {
             if (!playedPlayerNames.has(p.name)) {
                 const current = p.condition !== undefined ? p.condition : 100;
-                p.condition = Math.min(100, current + 25);
+                p.condition = Math.min(100, current + 30);
             }
         });
     }
@@ -2468,7 +2470,13 @@ function createSubPlayerElement(player) {
 
     const detailsDiv = document.createElement('div');
     detailsDiv.className = 'details';
-    detailsDiv.textContent = `OVR ${Math.floor(player.rating)}`;
+    let staminaVal = player.condition !== undefined ? player.condition : 100;
+    if (window.currentMatchData && window.currentMatchData.engine && Array.isArray(window.currentMatchData.engine.players)) {
+        const sp = window.currentMatchData.engine.players.find(p => p.name === player.name);
+        if (sp && sp.stamina !== undefined) staminaVal = Math.round(sp.stamina);
+    }
+    const stamColor = staminaVal >= 75 ? '#2ecc71' : (staminaVal >= 50 ? '#f39c12' : '#e74c3c');
+    detailsDiv.innerHTML = `OVR ${Math.floor(player.rating)} · 체력 <span style="color:${stamColor}; font-weight:bold;">${staminaVal}%</span>`;
 
     el.append(nameDiv, detailsDiv);
     return el;
