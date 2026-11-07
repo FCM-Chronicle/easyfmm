@@ -577,11 +577,12 @@ class RealSoccerEngine {
         if (this.teamStrength && this.teamStrength[teamId] !== undefined) {
             mul *= 1 + ((this.teamStrength[teamId] - 70) * 0.01);
         }
+        const hasGameData = (typeof gameData !== 'undefined' && gameData);
+        const isUser = hasGameData
+            ? ((teamId === 'home' && gameData.isHomeGame) || (teamId === 'away' && !gameData.isHomeGame))
+            : (teamId === 'home');
+
         const setupLine = (list, baseX, linePos = null) => {
-            const hasGameData = (typeof gameData !== 'undefined' && gameData);
-            const isUser = hasGameData
-                ? ((teamId === 'home' && gameData.isHomeGame) || (teamId === 'away' && !gameData.isHomeGame))
-                : (teamId === 'home');
             let lineStats, morale = 50;
             let finalMul = mul;
             
@@ -2521,7 +2522,7 @@ class RealSoccerEngine {
             if (this.ball.lastOwner && p.teamId === this.ball.lastOwner.teamId) return;
             if (p._stealCooldown > 0) return;
             const db = Math.hypot(p.x - bx, p.y - by);
-            if (db > 5.5) return;
+            if (db > 7.0) return;
             const flx = tx - ox, fly = ty - oy;
             const fL2 = flx * flx + fly * fly;
             let traj = 0;
@@ -2530,13 +2531,13 @@ class RealSoccerEngine {
             const prox = Math.hypot(p.x - nx, p.y - ny);
             const ts = this.getEffectiveStat(p, 'tackle') || this.getEffectiveStat(p, 'defense');
             const ss = this.getEffectiveStat(p, 'speed');
-            const pB = Math.max(0, (5.5 - prox) / 5.5);
+            const pB = Math.max(0, (7.0 - prox) / 7.0);
             // [패스 길목 차단 인터셉트: 순수 수비 스탯 & 위치 선점 대결]
-            const chance = 0.020 + (Math.max(0, ts - 60) * 0.002) + (Math.max(0, ss - 60) * 0.0015) + (pB * 0.10);
+            const chance = 0.045 + (Math.max(0, ts - 50) * 0.0025) + (Math.max(0, ss - 50) * 0.002) + (pB * 0.14);
             if (Math.random() < chance) {
                 this.ball.state = BallState.CONTROLLED; this.ball.owner = p;
                 this.ball.intendedReceiver = null; this.ball.lastOwner = null;
-                p._stealCooldown = 14;
+                p._stealCooldown = 12;
                 this.eventsQueue.push({ type: 'tackle', player: p.name, desc: `${p.name}, 날카로운 패스 차단!` });
                 this._triggerTurnover(p.teamId);
             }
@@ -2610,11 +2611,13 @@ class RealSoccerEngine {
             });
         }
         let presser = null;
-        if (this.ball.owner && attacking) {
+        if (attacking) {
             let mD = 999;
+            const refX = (this.ball.state === BallState.IN_FLIGHT && this.ball.targetPos) ? this.ball.targetPos.x : this.ball.x;
+            const refY = (this.ball.state === BallState.IN_FLIGHT && this.ball.targetPos) ? this.ball.targetPos.y : this.ball.y;
             this.players.forEach(p => {
-                if (p.teamId === attacking) return;
-                const d = Math.hypot(p.x - this.ball.x, p.y - this.ball.y);
+                if (p.teamId === attacking || p.position === 'GK') return;
+                const d = Math.hypot(p.x - refX, p.y - refY);
                 if (d < mD) { mD = d; presser = p; }
             });
         }
@@ -3089,42 +3092,46 @@ class RealSoccerEngine {
             if (canTackle && this._attemptTackle(p, owner)) return;
         }
 
-        // 1) FW DEFENSE (공격수 수비 시 하프라인 선까지 천천히 내려와 대기)
+        // 1) FW DEFENSE (공격수 수비 시 대형 유지 + 근접 시 적극적 전방 압박 및 볼 탈환)
         if (p.position === 'FW') {
             p.burstTimer = 0; p._fwMode = 'shadow';
             const isCentralST = ['ST', 'CF', 'AF', 'P', 'TM', 'DLF'].includes(p.role);
-            // 수비 시 하프라인(48~52) 부근까지 천천히 복귀하여 대형 유지 및 역습 준비
             const baseFWX = isCentralST ? (lines.fwX + fwd * 2) : lines.fwX;
             let tx = isHome ? clamp(baseFWX, 48, 65) : clamp(baseFWX, 35, 52);
             let ty = p.slotY;
-            let s = 0.13; // 천천히 조깅하듯 하프라인 선까지 복귀
+            let s = 0.20;
 
-            // 상대 진영에서 볼이 가까울 때만 전방 압박
-            const ballInOppHalf = isHome ? ballX > 50 : ballX < 50;
-            if (pressInt === 'high' && ballInOppHalf && dBall < 14 && Math.random() < (bhv.pressBias || 0.5) * 0.7) {
-                tx = ballX; ty = ballY; s = 0.45;
+            const ballInOppHalf = isHome ? ballX > 40 : ballX < 60;
+            // 전담 압박자이거나 볼과 가까운 공격수(dBall < 22)는 전방 압박으로 공을 적극 압박!
+            if ((pressIsMe || dBall < 22) && ballInOppHalf) {
+                tx = ballX;
+                ty = ballY;
+                s = 0.55 * clamp(sf, 0.8, 1.5);
+            } else {
+                ty += clamp((ballY - ty) * 0.35, -12, 12);
             }
             this._physicsStep(p, tx, ty, s);
             return;
         }
 
-        // 2) MF DEFENSE (FLR 이식: 미드필더는 박스 앞 아크로 깊숙이 내려와 수비벽 형성, 수비 전환 시 전력질주)
+        // 2) MF DEFENSE (미드필더: 박스 앞 2선 장벽 형성 + 전방/측면 유기적 압박)
         if (p.position === 'MF') {
             const isDM = ['DM', 'BWM', 'A', 'HB', 'DLP'].includes(p.role);
             let tx = lines.mfX;
-            if (isDM) tx -= fwd * 3; // 수비형 미드필더는 센터백 바로 앞(22선)까지 하강
+            if (isDM) tx -= fwd * 3;
             let ty = p.slotY;
 
-            const ballInOurHalf = isHome ? ballX < 52 : ballX > 48;
-            // 우리 진영 수비 시 미드필더는 전력 질주로 복귀 (ms = 0.65)
+            const ballInOurHalf = isHome ? ballX < 55 : ballX > 45;
             let ms = (ballInOurHalf ? 0.65 : 0.45) * clamp(sf, 0.8, 1.6);
 
-            // 볼 캐리어와 가까우면 즉각 볼 탈환 도전
-            if (pressIsMe && dBall < 16) {
-                tx = ballX; ty = ballY; ms = 0.70;
+            // 전담 압박자이거나 볼이 사정거리(dBall < 20) 내에 진입하면 적극적으로 압박 대시!
+            if (pressIsMe || (dBall < 20 && ballInOurHalf)) {
+                tx = ballX;
+                ty = ballY;
+                ms = 0.70 * clamp(sf, 0.8, 1.5);
             } else {
                 // 볼 위치에 맞춰 패스 길목 차단 (좌우 압축)
-                ty += clamp((ballY - ty) * 0.4, -10, 10);
+                ty += clamp((ballY - ty) * 0.45, -12, 12);
             }
             this._physicsStep(p, clamp(tx, 4, 96), clamp(ty, 4, 96), ms);
             return;
