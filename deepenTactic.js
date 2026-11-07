@@ -1449,19 +1449,25 @@ class RealSoccerEngine {
                 return;
             }
 
-            // 골문 앞 탭인/오픈 찬스 타겟 확인
+            // 골문 앞 탭인/오픈 찬스 타겟 확인 (뒤로 물러나는 패스는 절대 더 나은 피니시가 아님)
+            const isTargetForwardOrBox = bestPassTarget && (
+                isCutback || isCross ||
+                ((Math.abs(bestPassTarget.x - goalX) <= distToGoal + 1.0) && Math.abs(bestPassTarget.y - 50) <= 24)
+            );
             const isPassBetterFinish = bestPassTarget && (
                 isCutback || isCross ||
                 ((Math.abs(bestPassTarget.x - goalX) < distToGoal - 1.5) && Math.abs(bestPassTarget.y - 50) < 20)
             );
 
-            if (distToGoal <= 6 || shootScore >= shootThreshold) {
+            // 공격수가 박스 안(17m 이내)에서 더 나은 패스 타겟이 없고 정면이 열려있으면 과감히 슈팅 마무리
+            const fwFinishBonus = (player.position === 'FW' && distToGoal <= 17 && !isPassBetterFinish && !this._isFrontalBlocked(player, goalX)) ? 8 : 0;
+            if (distToGoal <= 6 || (shootScore + fwFinishBonus) >= shootThreshold) {
                 this._attemptShoot(player, goalX);
                 return;
             }
 
-            // 슈팅 각이 안 나오고 동료가 더 좋은 위치에 있을 때 패스
-            if (bestPassTarget && (isPassBetterFinish || passScore >= carryScore - 4)) {
+            // 슈팅 각이 안 나오고 동료가 더 좋은 전방/박스 내 위치에 있을 때만 패스 (박스 밖 백패스 원천 차단!)
+            if (bestPassTarget && isTargetForwardOrBox && (isPassBetterFinish || passScore >= carryScore - 4)) {
                 this._executePassV3(player, bestPassTarget, phase);
                 return;
             }
@@ -1534,8 +1540,26 @@ class RealSoccerEngine {
 
         // [볼 순환(Circulation) & 패스 전개]
         if (bestPassTarget && (passScore >= carryScore || player.position === 'DF' || underPressure)) {
-            const isBackwardPass = Math.abs(bestPassTarget.x - goalX) > distToGoal + 2;
-            if (distToGoal <= 10 && isBackwardPass && !isCutback) {
+            const isBackwardPass = Math.abs(bestPassTarget.x - goalX) > distToGoal + 1.5;
+            // 공격수(FW) 또는 전방(골문 32m 이내)까지 전진한 공격 자원이 컷백/크로스가 아닌 백패스를 주려 할 때 차단!
+            if ((player.position === 'FW' || distToGoal <= 32) && isBackwardPass && !isCutback && !isCross) {
+                let forwardAlt = null;
+                let forwardAltScore = -Infinity;
+                for (const tm of teammates) {
+                    const tmDistToGoal = Math.abs(tm.x - goalX);
+                    if (tmDistToGoal <= distToGoal + 1.5) {
+                        const s = this._scorePass(player, tm, phase);
+                        if (s > forwardAltScore) {
+                            forwardAltScore = s;
+                            forwardAlt = tm;
+                        }
+                    }
+                }
+                if (forwardAlt && forwardAltScore >= 25) {
+                    this._executePassV3(player, forwardAlt, phase);
+                    return;
+                }
+                player._dribbleCommit = 1;
                 this._dribbleV3(player, goalX, moveDir, phase, underPressure, isWinger, distToGoal, nDef, effectSpeed);
                 return;
             }
@@ -1600,7 +1624,7 @@ class RealSoccerEngine {
         const dFromGoal = Math.abs(from.x - goalX);
         const dToGoal = Math.abs(to.x - goalX);
         const forward = dToGoal < dFromGoal - 1;
-        const back = dToGoal > dFromGoal + 4;
+        const back = dToGoal > dFromGoal + 1.5;
         const later = !forward && !back;
         const fromUnderPressure = this.players.some(opp =>
             opp.teamId !== tid &&
@@ -1636,9 +1660,12 @@ class RealSoccerEngine {
         const isSwitchPlay = Math.abs(from.y - 50) > 18 && Math.abs(to.y - 50) > 18 && (Math.sign(from.y - 50) !== Math.sign(to.y - 50)) && dist > 28;
         const isOneTwoCandidate = from._receivedFromId && to.id === from._receivedFromId;
 
-        // 골문 바로 앞(12야드 이내) 결정적 구역에서만 컷백을 제외한 비상식적 장거리 백패스 억제
-        if (dFromGoal <= 12) {
-            if (back && !isCutbackCandidate && (dToGoal - dFromGoal > 14)) return -Infinity;
+        // [전방 공격수 및 파이널 서드 백패스 원천 차단]
+        // 기왕 앞까지 전진해 놓고(골문 32m 이내 또는 FW) 컷백이 아닌데 뒤로 빼는 패스 엄격 금지!
+        if (back && !isCutbackCandidate) {
+            if (dFromGoal <= 28 && (dToGoal - dFromGoal > 2.5)) return -Infinity;
+            if (from.position === 'FW' && (to.position === 'DF' || dToGoal - dFromGoal > 5 || dFromGoal <= 36)) return -Infinity;
+            if (dFromGoal <= 34) score -= 120;
         }
 
         // [장거리 패스 감점 강화 & 탁구 축구 억제]
@@ -1677,10 +1704,10 @@ class RealSoccerEngine {
         } else if (back) {
             if (isCutbackCandidate) {
                 score += 95; // 컷백 패스는 최우선 찬스로 가산!
-            } else if (dFromGoal <= 12) {
-                score -= 90; // 골문 바로 앞 억지 백패스 감점
+            } else if (from.position === 'FW' || dFromGoal <= 32) {
+                score -= 110; // 공격수 및 전방 진입 선수의 후방 백패스 강력 감점!
             } else if ((isFrontBlocked || frontDefCount >= 2 || fromUnderPressure) && oppNearRecv === 0 && laneBlock === 0) {
-                // 전방이 밀집 수비로 꽉 막혔을 때, 2선(MF/DF)의 노마크 동료에게 볼을 빼서 재정비하는 고품격 빌드업 패스!
+                // 중원/후방에서 전방이 밀집 수비로 꽉 막혔을 때만 노마크 동료에게 재정비 빌드업 패스!
                 score += 45;
                 if (isLowTempo) score += 15;
             } else if (phase === 'building') {
@@ -1739,10 +1766,10 @@ class RealSoccerEngine {
             const isWideTarget = Math.abs(to.slotY - 50) > 18;
             const isWingerTarget = ['W', 'IW', 'IF', 'LM', 'RM'].includes(to.role);
             if (to.position === 'FW') score += 50;
-            else if (to.position === 'MF') score += (isWingerTarget ? 50 : (isWideTarget ? 45 : 12));
+            else if (to.position === 'MF' && (!back || isCutbackCandidate)) score += (isWingerTarget ? 50 : (isWideTarget ? 45 : 12));
             
-            // 파이널 서드 오버래핑 풀백 크로스 연계 가산
-            if (to._fbMode === 'overlap') score += 80;
+            // 파이널 서드 오버래핑 풀백 크로스 연계 가산 (전방/측면 침투 시에만 가산)
+            if (to._fbMode === 'overlap' && (!back || isCutbackCandidate)) score += 80;
             else if (to.position === 'DF') score -= 60;
 
             if (to._fwMode === 'burst') score += 75;
@@ -1790,9 +1817,9 @@ class RealSoccerEngine {
             if (back) score -= 40;  // [TUNED] Under pressure, back pass is very dangerous
             if (later && dist > 8) score += 8;
             if (to.position === 'FW') score += 18;
-            else if (to.position === 'MF') score += 12;
-            if (oppNearRecv === 0) score += 14;
-            if (laneBlock === 0 && dist > 10) score += 10;
+            else if (to.position === 'MF' && !back) score += 12;
+            if (oppNearRecv === 0 && !back) score += 14;
+            if (laneBlock === 0 && dist > 10 && !back) score += 10;
             // Bonus for short support pass to free nearby teammate
             if (dist < 12 && oppNearRecv === 0 && !back) score += 12;
         }
@@ -1824,7 +1851,7 @@ class RealSoccerEngine {
         const isWideTarget = Math.abs(to.y - 50) > 22 || ['W', 'IW', 'IF', 'CWB', 'WB', 'FB', 'LM', 'RM'].includes(to.role);
         const isTargetMan = to.role === 'TM' || (to.traits && to.traits.some(t => t.includes('공중의 성벽') || t.includes('강력한 어깨')));
 
-        if (isMidOutmatched && isBypassTactics) {
+        if (isMidOutmatched && isBypassTactics && !back) {
             if (isWideTarget || isTargetMan) {
                 score += 55; // 상대 막강 중원을 우회하는 측면/타겟 패스 대폭 우대!
                 if (isTargetMan) score += 20;
@@ -1834,10 +1861,12 @@ class RealSoccerEngine {
         }
 
         // 3. [측면 3자 패스 (Triangular Combination Play)]
-        // 풀백(DF) - 윙어(FW) - 미드필더(MF) 간의 유기적 측면 삼각 연계
-        const isTriangular = (from.position === 'DF' && to.position === 'FW' && isWideTarget) ||
+        // 풀백(DF) - 윙어(FW) - 미드필더(MF) 간의 유기적 측면 삼각 연계 (뒤로 후퇴하는 백패스 제외)
+        const isTriangular = !back && (
+                             (from.position === 'DF' && to.position === 'FW' && isWideTarget) ||
                              (from.position === 'FW' && to.position === 'DF' && to._fbMode === 'overlap') ||
-                             (from.position === 'FW' && to.position === 'MF' && ['BBM', 'SS', 'MEZ', 'AM'].includes(to.role));
+                             (from.position === 'FW' && to.position === 'MF' && ['BBM', 'SS', 'MEZ', 'AM'].includes(to.role))
+                             );
         if (isTriangular && (tSettings.width === 'wide' || tSettings.tempo === 'fast' || tSettings.buildUp !== 'direct')) {
             score += 48; // 측면 3자 패스 가산점!
         }
@@ -1871,9 +1900,9 @@ class RealSoccerEngine {
 
         // 7. [전술 설정 반영]
         if (tSettings.offensiveTrans === 'counter' && forward && (phase === 'counter' || phase === 'progressing')) score += 25;
-        if (tSettings.passLength === 'short' && dist < 18) score += 18;
+        if (tSettings.passLength === 'short' && dist < 18 && !back) score += 18;
         if (tSettings.passLength === 'direct' && dist > 24 && forward) score += 28;
-        if (tSettings.width === 'wide' && isWideTarget) score += 22;
+        if (tSettings.width === 'wide' && isWideTarget && !back) score += 22;
         if (tSettings.width === 'narrow' && !isWideTarget && forward) score += 18;
 
         return score;
@@ -2408,11 +2437,11 @@ class RealSoccerEngine {
             goalChance *= 0.35; // 3골 차 이상 리드 시 페이스 조절
         }
         if (totalMatchGoals === 3) {
-            goalChance *= 0.68;
+            goalChance *= 0.55;
         } else if (totalMatchGoals === 4) {
-            goalChance *= 0.30;
+            goalChance *= 0.22;
         } else if (totalMatchGoals >= 5) {
-            goalChance *= 0.02; // 5골 이상 진입 시 극강의 수비 집중력 발동으로 6골 이상 사실상 봉쇄
+            goalChance = 0; // 5골 도달 시 추가 득점 원천 봉쇄 (최대 5골 상한 준수)
         }
 
         this.ball.state = BallState.IN_FLIGHT;
