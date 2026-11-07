@@ -2494,6 +2494,12 @@ function createSubPlayerElement(player) {
     }
     const stamColor = staminaVal >= 75 ? '#2ecc71' : (staminaVal >= 50 ? '#f39c12' : '#e74c3c');
     detailsDiv.innerHTML = `OVR ${Math.floor(player.rating)} · 체력 <span style="color:${stamColor}; font-weight:bold;">${staminaVal}%</span>`;
+    const stamBar = document.createElement('div');
+    stamBar.style.cssText = 'width: 100%; height: 4px; background: rgba(255,255,255,0.14); border-radius: 2px; margin-top: 5px; overflow: hidden;';
+    const stamFill = document.createElement('div');
+    stamFill.style.cssText = `width: ${Math.max(0, Math.min(100, staminaVal))}%; height: 100%; background: ${stamColor}; border-radius: 2px;`;
+    stamBar.appendChild(stamFill);
+    detailsDiv.appendChild(stamBar);
 
     el.append(nameDiv, detailsDiv);
     return el;

@@ -715,9 +715,11 @@ class FormationSystem {
 
             const condBar = document.createElement('div');
             condBar.className = 'player-condition-bar';
+            condBar.title = `체력: ${Math.round(condition)}%`;
             const condFill = document.createElement('div');
             condFill.className = 'condition-fill';
             condFill.style.width = `${condition}%`;
+            condFill.style.height = '100%';
             condFill.style.backgroundColor = condColor;
             condBar.appendChild(condFill);
 
@@ -1246,9 +1248,22 @@ class FormationSystem {
                 nameDiv.textContent = candidate.name;
 
                 const allPos = this.getPlayerAllPositions(candidate);
+                const condVal = (candidate.condition !== undefined) ? candidate.condition : 100;
+                let condColor = '#A3E635';
+                if (condVal < 70) condColor = '#EF4444';
+                else if (condVal < 90) condColor = '#FBBF24';
+
                 const detailsDiv = document.createElement('div');
                 detailsDiv.className = 'details';
-                detailsDiv.textContent = `${candidate.age}세 · 가능: ${allPos.join(', ')}`;
+                detailsDiv.textContent = `${candidate.age}세 · 체력 ${Math.round(condVal)}% · 가능: ${allPos.join(', ')}`;
+
+                const condBar = document.createElement('div');
+                condBar.className = 'player-list-condition';
+                condBar.style.cssText = 'width: 100%; height: 4px; background: rgba(255,255,255,0.12); margin-top: 6px; border-radius: 2px; overflow: hidden;';
+                const condFill = document.createElement('div');
+                condFill.style.cssText = `width: ${condVal}%; height: 100%; background: ${condColor}; border-radius: 2px;`;
+                condBar.appendChild(condFill);
+                detailsDiv.appendChild(condBar);
 
                 infoText.append(nameDiv, detailsDiv);
                 contentDiv.append(cutoutWrap, infoText);
@@ -1662,10 +1677,18 @@ formationStyle.textContent = `
 .formation-container .player-slot .player-condition-bar {
     width: 100% !important;
     height: 4px !important;
-    background-color: rgba(255, 255, 255, 0.12);
+    background-color: rgba(255, 255, 255, 0.16);
     border-radius: 2px;
-    margin: 0 !important;
+    margin: 2px 0 0 0 !important;
     overflow: hidden;
+}
+
+.formation-container .player-slot .condition-fill,
+.condition-fill {
+    height: 100% !important;
+    display: block !important;
+    border-radius: 2px;
+    transition: width 0.3s ease;
 }
 
 .formation-container .player-slot .player-role {

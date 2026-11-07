@@ -151,22 +151,36 @@ class VisualUnit {
             ctx.restore();
         }
 
-        // [신규] 인게임 실시간 체력 게이지 링 (체력이 닳을수록 링이 줄어들며 색상 변화)
-        const stam = Number.isFinite(this.stamina) ? this.stamina : 100;
+        // [신규] 인게임 실시간 체력 게이지 (바둑돌 하단 체력바 + 체력 링)
+        const stam = Math.max(0, Math.min(100, Number.isFinite(this.stamina) ? this.stamina : 100));
+        const stamColor = stam < 45 ? '#ef4444' : (stam < 72 ? '#f59e0b' : '#22c55e');
+
         if (stam < 96) {
             ctx.save();
             ctx.beginPath();
             const startAngle = -Math.PI / 2;
             const endAngle = startAngle + (Math.PI * 2 * (stam / 100));
             ctx.arc(0, 0, r + 2.5, startAngle, endAngle);
-            ctx.strokeStyle = stam < 40 ? '#ef4444' : (stam < 68 ? '#f59e0b' : '#10b981');
+            ctx.strokeStyle = stamColor;
             ctx.lineWidth = 2.2;
             ctx.lineCap = 'round';
             ctx.stroke();
             ctx.restore();
         }
 
-        // [신규] 선수 이름 표시 (바둑돌 아래)
+        // 바둑돌 바로 아래 가로형 미니 체력바
+        const barW = 24;
+        const barH = 3.2;
+        const barX = -barW / 2;
+        const barY = r + 3;
+        ctx.save();
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
+        ctx.fillRect(barX - 0.5, barY - 0.5, barW + 1, barH + 1);
+        ctx.fillStyle = stamColor;
+        ctx.fillRect(barX, barY, barW * (stam / 100), barH);
+        ctx.restore();
+
+        // [신규] 선수 이름 표시 (체력바 아래)
         ctx.font = 'bold 10px sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
@@ -174,11 +188,11 @@ class VisualUnit {
         // 텍스트 외곽선 (translate 외부 좌표계 기준이므로 px, py 유지)
         ctx.lineWidth = 2.5;
         ctx.strokeStyle = 'rgba(0,0,0,0.7)';
-        ctx.strokeText(this.name, 0, r + 4); // 0, r + 4로 수정
+        ctx.strokeText(this.name, 0, r + 8);
         
         // 텍스트 채우기
         ctx.fillStyle = '#ffffff';
-        ctx.fillText(this.name, 0, r + 4); // 0, r + 4로 수정
+        ctx.fillText(this.name, 0, r + 8);
 
         ctx.restore(); // 회전/이동 컨텍스트 복구
 

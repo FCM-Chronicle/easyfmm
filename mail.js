@@ -614,12 +614,8 @@ class MailManager {
         }
 
         if (typeof transferSystem !== 'undefined') {
-            const restoredWage = transferSystem.estimateWeeklyWage(player);
-            // 유저 주급 예산 복구
-            transferSystem.addTeamWageBudget(gameData.selectedTeam, restoredWage);
-            // 상대 AI 팀 예산 및 주급 차감
+            // 상대 AI 팀 이적료 지출
             transferSystem.spendTeamBudget(targetTeam, price);
-            transferSystem.spendTeamWageBudget(targetTeam, restoredWage);
             // 이적 뉴스 등록
             transferSystem.addTransferNews(player, gameData.selectedTeam, targetTeam, price);
         }

@@ -532,6 +532,16 @@ class TransferSystem {
         return this.aiTeamWageBudgets[teamKey];
     }
 
+    // [신규] 구단이 사용 가능한 잔여 여유 주급 계산 (주급 예산 한도 - 현재 선수단 총 주급)
+    // 시작 시점에는 wageBudget == totalWeeklyWage 이므로 여유 주급이 정확히 0이 됨
+    getAvailableWageBudget(teamKey) {
+        const budget = this.getTeamWageBudget(teamKey);
+        const currentTotal = (teamKey === gameData.selectedTeam && typeof calculateTotalWages === 'function')
+            ? calculateTotalWages()
+            : this.calculateTeamWeeklyWage(teamKey);
+        return Math.max(0, parseFloat((budget - currentTotal).toFixed(2)));
+    }
+
     setTeamWageBudget(teamKey, amount) {
         const safeAmount = Math.max(0, parseFloat(Number(amount).toFixed(2)));
 
@@ -569,7 +579,15 @@ class TransferSystem {
         if (window.GameState) window.GameState.spendTeamMoney(value);
         else gameData.teamMoney = Math.round((gameData.teamMoney - value) * 100) / 100;
         this.addTeamWageBudget(gameData.selectedTeam, converted);
-        return { success: true, message: `${value}억 이적 자금을 주급 자금 ${converted}억으로 전환했습니다.` };
+
+        if (typeof updateDisplay === 'function') updateDisplay();
+        if (typeof updateFinanceDisplay === 'function') updateFinanceDisplay();
+        const finPanel = document.getElementById('finance');
+        if (finPanel && finPanel.classList.contains('active') && typeof renderFinanceTab === 'function') {
+            renderFinanceTab();
+        }
+
+        return { success: true, message: `${value}억 이적 자금을 주급 자금 ${converted}억으로 전환했습니다. (여유 주급 +${converted}억 확보)` };
     }
 
     convertWageToTransferBudget(amount) {
@@ -579,15 +597,26 @@ class TransferSystem {
         }
 
         const value = units;
-        const wageBudget = this.getTeamWageBudget(gameData.selectedTeam);
-        if (wageBudget < value) {
-            return { success: false, message: '주급 자금이 부족합니다.' };
+        const availableWage = this.getAvailableWageBudget(gameData.selectedTeam);
+        if (availableWage < value) {
+            return { 
+                success: false, 
+                message: `전환 가능한 여유 주급 예산이 부족합니다.\n현재 잔여 여유 주급: ${availableWage}억 (전환 요구: ${value}억)\n선수단 총 주급 이하로는 주급 예산을 줄일 수 없습니다.` 
+            };
         }
 
         const converted = value * 52;
         this.spendTeamWageBudget(gameData.selectedTeam, value);
         if (window.GameState) window.GameState.addTeamMoney(converted);
         else gameData.teamMoney = Math.round((gameData.teamMoney + converted) * 100) / 100;
+
+        if (typeof updateDisplay === 'function') updateDisplay();
+        if (typeof updateFinanceDisplay === 'function') updateFinanceDisplay();
+        const finPanel = document.getElementById('finance');
+        if (finPanel && finPanel.classList.contains('active') && typeof renderFinanceTab === 'function') {
+            renderFinanceTab();
+        }
+
         return { success: true, message: `${value}억 주급 자금을 이적 자금 ${converted}억으로 전환했습니다.` };
     }
 
@@ -1308,19 +1337,19 @@ class TransferSystem {
             setElText('fcSummaryVal3', `${remaining}억 원`);
             if (val3El) val3El.style.color = remaining >= 0 ? '#F8FAFC' : '#EF4444';
         } else if (state.step === 'WAGE') {
-            const availWage = this.getTeamWageBudget(gameData.selectedTeam);
+            const availWage = this.getAvailableWageBudget(gameData.selectedTeam);
             const remaining = parseFloat((availWage - val).toFixed(2));
             setElText('fcSummaryLbl1', '제안 주급 / 선수 희망 주급');
             setElText('fcSummaryVal1', `${val}억 / ${state.demandedWage}억`);
             setElText('fcSummaryLbl2', '선수 측 역제안 (Counter)');
             setElText('fcSummaryVal2', state.counterWage ? `주급 ${state.counterWage}억 요구` : '없음 (협상 중)');
-            setElText('fcSummaryLbl3', '타결 시 잔여 주급 예산');
+            setElText('fcSummaryLbl3', '타결 시 잔여 주급 여유분');
             setElText('fcSummaryVal3', `${remaining}억 / 주`);
             if (val3El) val3El.style.color = remaining >= 0 ? '#F8FAFC' : '#EF4444';
         } else if (state.step === 'RENEWAL') {
             const currentWage = state.player.weeklyWage || 0;
             const diff = parseFloat((val - currentWage).toFixed(2));
-            const availWage = this.getTeamWageBudget(gameData.selectedTeam);
+            const availWage = this.getAvailableWageBudget(gameData.selectedTeam);
             const remaining = parseFloat((availWage - diff).toFixed(2));
             setElText('fcSummaryLbl1', '제안 주급 / 현재 주급');
             setElText('fcSummaryVal1', `${val}억 / ${currentWage}억`);
@@ -1595,11 +1624,11 @@ class TransferSystem {
         } else if (prevStep === 'WAGE' || prevStep === 'RENEWAL') {
             const isRenewal = (prevStep === 'RENEWAL');
             const wage = parseFloat(val.toFixed(2));
-            const availableWageBudget = this.getTeamWageBudget(gameData.selectedTeam);
+            const availableWageBudget = this.getAvailableWageBudget(gameData.selectedTeam);
             const neededWage = isRenewal ? Math.max(0, parseFloat((wage - (player.weeklyWage || 0)).toFixed(2))) : wage;
 
             if (availableWageBudget < neededWage) {
-                this.setFcDialogue(`"구단 잔여 주급 예산(${availableWageBudget}억/주)이 부족합니다. 재정 탭에서 예산을 먼저 확보해 주세요."`);
+                this.setFcDialogue(`"구단 잔여 여유 주급(${availableWageBudget}억/주)이 부족합니다. (필요: ${neededWage}억/주) 재정 탭에서 이적 자금을 전환하거나 선수를 방출해 주세요."`);
                 return;
             }
 
@@ -1638,7 +1667,12 @@ class TransferSystem {
                                 player.squadRole = roleMeta.id;
                                 if (typeof calculateTotalWages === 'function') calculateTotalWages();
                                 if (typeof updateFinanceDisplay === 'function') updateFinanceDisplay();
+                                if (typeof updateDisplay === 'function') updateDisplay();
                                 if (typeof displayTeamPlayers === 'function') displayTeamPlayers();
+                                const finPanel = document.getElementById('finance');
+                                if (finPanel && finPanel.classList.contains('active') && typeof renderFinanceTab === 'function') {
+                                    renderFinanceTab();
+                                }
                             }
                             this.closeNegotiationChat();
                         }, 1600);
@@ -1738,7 +1772,9 @@ class TransferSystem {
             if (window.GameState) window.GameState.spendTeamMoney(fee);
             else gameData.teamMoney -= fee;
 
-            this.spendTeamWageBudget(gameData.selectedTeam, wage);
+            // [수정] 영입 시 wageBudget(한도)을 차감하지 않음. 
+            // 선수가 스쿼드에 추가되고 calculateTotalWages()가 호출되어 총 주급이 늘어나므로,
+            // 가용 주급(wageBudget - totalWeeklyWage)이 자동으로 wage만큼 줄어듦.
 
             const selectedTeamPlayers = window.GameState ? window.GameState.getSelectedTeamPlayers() : teams[gameData.selectedTeam];
 
@@ -1765,9 +1801,8 @@ class TransferSystem {
                 const playerIndex = originalTeamPlayers.findIndex(p => p.name === player.name && p.position === player.position);
                 if (playerIndex !== -1) originalTeamPlayers.splice(playerIndex, 1);
 
-                // [수정] 판매 구단에 이적료 입금 및 주급 예산 복구 (AI 구단 재정 유지)
+                // [수정] 판매 구단에 이적료 입금 (선수가 빠져나가 총 주급이 줄어들므로 주급 한도 증액 불필요)
                 this.addTeamBudget(player.originalTeam, fee);
-                this.addTeamWageBudget(player.originalTeam, this.estimateWeeklyWage(player));
             }
 
             if (typeof mailManager !== 'undefined') {
@@ -1785,6 +1820,11 @@ class TransferSystem {
             else gameData.teamMoney = Math.max(0, gameData.teamMoney);
 
             updateDisplay();
+            if (typeof updateFinanceDisplay === 'function') updateFinanceDisplay();
+            const finPanel = document.getElementById('finance');
+            if (finPanel && finPanel.classList.contains('active') && typeof renderFinanceTab === 'function') {
+                renderFinanceTab();
+            }
             displayTransferPlayers();
             if (document.getElementById('squad') && document.getElementById('squad').classList.contains('active')) {
                 displayTeamPlayers();
@@ -1880,8 +1920,7 @@ class TransferSystem {
         teamPlayers.splice(playerIndex, 1);
         if (typeof removePlayerFromSquad === 'function') removePlayerFromSquad(soldPlayer);
 
-        const restoredWage = this.estimateWeeklyWage(soldPlayer);
-        this.addTeamWageBudget(gameData.selectedTeam, restoredWage);
+        if (typeof calculateTotalWages === 'function') calculateTotalWages();
 
         if (window.GameState) window.GameState.addTeamMoney(fee);
         else gameData.teamMoney += fee;
@@ -1894,6 +1933,13 @@ class TransferSystem {
         else gameData.userTransferList = gameData.userTransferList.filter(entry => entry.player.name !== player.name);
 
         this.addTransferNews(soldPlayer, gameData.selectedTeam, targetTeamKey, fee);
+
+        if (typeof updateDisplay === 'function') updateDisplay();
+        if (typeof updateFinanceDisplay === 'function') updateFinanceDisplay();
+        const finPanel = document.getElementById('finance');
+        if (finPanel && finPanel.classList.contains('active') && typeof renderFinanceTab === 'function') {
+            renderFinanceTab();
+        }
 
         return {
             success: true,
@@ -1970,13 +2016,13 @@ class TransferSystem {
         const wageSuccessChance = this.calculateWageNegotiationChance(player, negotiatedWeeklyWage);
         const wageRoll = Math.random();
 
-        const availableWageBudget = this.getTeamWageBudget(gameData.selectedTeam);
+        const availableWageBudget = this.getAvailableWageBudget(gameData.selectedTeam);
         if (availableWageBudget < negotiatedWeeklyWage) {
             if (window.GameState) window.GameState.addTeamMoney(transferFee);
             else gameData.teamMoney += transferFee;
             return {
                 success: false,
-                message: `주급 자금이 부족합니다.\n필요 주급 자금: ${negotiatedWeeklyWage}억 / 보유 주급 자금: ${availableWageBudget}억`
+                message: `주급 예산이 부족합니다.\n필요 주급: ${negotiatedWeeklyWage}억/주 / 가용 여유 주급: ${availableWageBudget}억/주\n[재정] 탭에서 이적 자금을 주급 예산으로 전환하거나 잉여 선수를 처분하세요.`
             };
         }
 
@@ -2018,9 +2064,6 @@ class TransferSystem {
             return { success: false, message: `협상 실패! 선수가 이적 제안을 거절했습니다.\n(성공 확률: ${successPercent}%)\n\n남은 기회: ${2 - offerData.attempts}회` };
         }
 
-        // 주급 자금 차감
-        this.spendTeamWageBudget(gameData.selectedTeam, negotiatedWeeklyWage);
-
         // 선수를 팀에 추가 (페이스팩 ID 및 세부 스펙 attributes/traits 완전 보존 및 보충)
         const newPlayer = this.enrichPlayerData({
             ...player,
@@ -2057,8 +2100,14 @@ class TransferSystem {
             mailManager.addMail(`[영입] ${player.name} 영입 완료`, '스카우트 팀장', content);
         }
 
-        // [신규] 영입 후 주급 재계산
+        // [신규] 영입 후 주급 재계산 및 UI 동기화
         if (typeof calculateTotalWages === 'function') calculateTotalWages();
+        if (typeof updateDisplay === 'function') updateDisplay();
+        if (typeof updateFinanceDisplay === 'function') updateFinanceDisplay();
+        const finPanel = document.getElementById('finance');
+        if (finPanel && finPanel.classList.contains('active') && typeof renderFinanceTab === 'function') {
+            renderFinanceTab();
+        }
 
         // [추가] 이적 뉴스 기록
         this.addTransferNews(newPlayer, player.originalTeam, gameData.selectedTeam, transferFee);
@@ -2091,8 +2140,6 @@ class TransferSystem {
 
         // 팀에서 제거
         teamPlayers.splice(playerIndex, 1);
-        const restoredWage = this.estimateWeeklyWage(player);
-        this.addTeamWageBudget(gameData.selectedTeam, restoredWage);
 
         // 이적료 받기
         if (window.GameState) window.GameState.addTeamMoney(transferFee);
@@ -2111,7 +2158,6 @@ class TransferSystem {
                 age: player.age
             });
             this.spendTeamBudget(randomTeam, transferFee);
-            this.spendTeamWageBudget(randomTeam, restoredWage);
 
             // 방출 메일 발송
             if (typeof mailManager !== 'undefined') {
@@ -2121,6 +2167,12 @@ class TransferSystem {
 
             // [신규] 방출 후 주급 재계산
             if (typeof calculateTotalWages === 'function') calculateTotalWages();
+            if (typeof updateDisplay === 'function') updateDisplay();
+            if (typeof updateFinanceDisplay === 'function') updateFinanceDisplay();
+            const finPanel = document.getElementById('finance');
+            if (finPanel && finPanel.classList.contains('active') && typeof renderFinanceTab === 'function') {
+                renderFinanceTab();
+            }
 
             // [추가] 이적 뉴스 기록
             this.addTransferNews(player, gameData.selectedTeam, randomTeam, transferFee);
@@ -2324,14 +2376,12 @@ class TransferSystem {
                 teams[buyingTeam].push(newPlayer);
 
                 this.spendTeamBudget(buyingTeam, fee);
-                this.spendTeamWageBudget(buyingTeam, weeklyWage);
 
                 if (fromTeam !== "외부리그" && teams[fromTeam]) {
                     const originalPlayers = teams[fromTeam];
                     const pIdx = originalPlayers.findIndex(p => p.name === pickedPlayer.name);
                     if (pIdx > -1) originalPlayers.splice(pIdx, 1);
                     this.addTeamBudget(fromTeam, fee);
-                    this.addTeamWageBudget(fromTeam, weeklyWage);
                 }
 
                 console.log(`[시장 AI 영입] ${pickedPlayer.name}(${pickedPlayer.position}, ${pickedPlayer.rating})이(가) ${teamNames[fromTeam] || fromTeam}에서 ${teamNames[buyingTeam]}로 이적했습니다.`);
@@ -2401,8 +2451,6 @@ class TransferSystem {
             const estimatedFee = this.calculatePlayerPrice(transferCandidate, sellingTeam);
             this.spendTeamBudget(buyingTeam, estimatedFee);
             this.addTeamBudget(sellingTeam, estimatedFee);
-            this.spendTeamWageBudget(buyingTeam, this.estimateWeeklyWage(transferCandidate));
-            this.addTeamWageBudget(sellingTeam, this.estimateWeeklyWage(transferCandidate));
 
             console.log(`AI 이적: ${transferCandidate.name}(${transferCandidate.position}, ${transferCandidate.rating})이(가) ${teamNames[sellingTeam]}에서 ${teamNames[buyingTeam]}로 이적했습니다.`);
 
@@ -2811,8 +2859,6 @@ class TransferSystem {
                     const estimatedFee = this.calculatePlayerPrice(player, teamKey);
                     this.spendTeamBudget(buyerTeamKey, estimatedFee);
                     this.addTeamBudget(teamKey, estimatedFee);
-                    this.spendTeamWageBudget(buyerTeamKey, this.estimateWeeklyWage(player));
-                    this.addTeamWageBudget(teamKey, this.estimateWeeklyWage(player));
                     console.log(`[AI Transfer] 지능적 이적: ${player.name} (${teamNames[teamKey]} -> ${teamNames[buyerTeamKey]})`);
 
                     // [추가] 이적 뉴스 기록

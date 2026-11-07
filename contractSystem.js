@@ -100,8 +100,17 @@ class ContractSystem {
             updateFinanceDisplay();
         }
 
+        if (typeof updateDisplay === 'function') {
+            updateDisplay();
+        }
+
         if (typeof displayTeamPlayers === 'function') {
             displayTeamPlayers();
+        }
+
+        const finPanel = document.getElementById('finance');
+        if (finPanel && finPanel.classList.contains('active') && typeof renderFinanceTab === 'function') {
+            renderFinanceTab();
         }
 
         return {
@@ -158,9 +167,15 @@ class ContractSystem {
             }
         });
 
-        // 3. 유저 팀 주급 재계산
+        // 3. 유저 팀 주급 재계산 및 UI 동기화
         if (typeof calculateTotalWages === 'function') {
             calculateTotalWages();
+        }
+        if (typeof updateFinanceDisplay === 'function') {
+            updateFinanceDisplay();
+        }
+        if (typeof updateDisplay === 'function') {
+            updateDisplay();
         }
 
         // 4. 메일 발송

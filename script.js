@@ -2529,6 +2529,10 @@ function calculateTotalWages() {
 function initializeTeamFinance() {
     if (!gameData.selectedTeam) return;
 
+    // 시작 시 선수단 총 주급 계산
+    calculateTotalWages();
+
+    // 시작 시에는 사용 가능한 여유 주급이 0이어야 하므로, 주급 예산(wageBudget)을 선수단 총 주급과 동일하게 설정
     if (typeof gameData.wageBudget !== 'number' || gameData.wageBudget <= 0) {
         gameData.wageBudget = gameData.totalWeeklyWage || 0;
     }
@@ -2542,8 +2546,25 @@ function formatFinanceVal(num) {
 }
 
 function updateFinanceDisplay() {
+    const wageBudgetVal = formatFinanceVal(gameData.wageBudget || 0);
+    const totalWageVal = formatFinanceVal(gameData.totalWeeklyWage || 0);
+    const availableWage = Math.max(0, formatFinanceVal((gameData.wageBudget || 0) - (gameData.totalWeeklyWage || 0)));
+
     const wageBudgetEl = document.getElementById('wageBudget');
-    if (wageBudgetEl) wageBudgetEl.textContent = formatFinanceVal(gameData.wageBudget) + '억';
+    if (wageBudgetEl) wageBudgetEl.textContent = wageBudgetVal + '억';
+
+    const totalWageEl = document.getElementById('totalWages');
+    if (totalWageEl) totalWageEl.textContent = totalWageVal + '억';
+
+    const availableWageEl = document.getElementById('availableWage');
+    if (availableWageEl) availableWageEl.textContent = availableWage + '억';
+
+    // 로비 상단 헤더의 주급 여유분 표시 갱신
+    const lobbyAvailableWageEl = document.getElementById('lobbyAvailableWage');
+    if (lobbyAvailableWageEl) {
+        lobbyAvailableWageEl.textContent = `${availableWage}억`;
+        lobbyAvailableWageEl.title = `총 주급: ${totalWageVal}억 / 예산: ${wageBudgetVal}억`;
+    }
 }
 
 function convertTransferToWageBudget(amount) {
@@ -2557,18 +2578,34 @@ function convertTransferToWageBudget(amount) {
     gameData.wageBudget = formatFinanceVal((gameData.wageBudget || 0) + units);
     if (typeof updateDisplay === 'function') updateDisplay();
     updateFinanceDisplay();
-    return { success: true, message: `${value}억 이적 자금을 주급 자금 ${units}억으로 전환했습니다.` };
+    const finPanel = document.getElementById('finance');
+    if (finPanel && finPanel.classList.contains('active') && typeof renderFinanceTab === 'function') {
+        renderFinanceTab();
+    }
+    return { success: true, message: `${value}억 이적 자금을 주급 자금 ${units}억으로 전환했습니다. (여유 주급 +${units}억 확보)` };
 }
 
 function convertWageToTransferBudget(amount) {
     const units = Math.floor(Number(amount));
     if (!Number.isFinite(units) || units <= 0) return { success: false, message: '주급 자금은 1억 단위(이적 자금 52억 단위)로만 전환할 수 있습니다.' };
-    if (gameData.wageBudget < units) return { success: false, message: '주급 자금이 부족합니다.' };
+    
+    // 현재 사용 가능한 여유 주급 확인 (선수단 총 주급을 제외한 여유분만 이적 자금으로 회수 가능)
+    const available = Math.max(0, formatFinanceVal((gameData.wageBudget || 0) - (gameData.totalWeeklyWage || 0)));
+    if (available < units) {
+        return { 
+            success: false, 
+            message: `전환 가능한 여유 주급 예산이 부족합니다.\n현재 잔여 여유 주급: ${available}억 (전환 요구: ${units}억)\n선수단 총 주급(${formatFinanceVal(gameData.totalWeeklyWage)}억) 이하로는 줄일 수 없습니다.` 
+        };
+    }
 
     gameData.wageBudget = formatFinanceVal(gameData.wageBudget - units);
     gameData.teamMoney = Math.round((gameData.teamMoney || 0) + units * 52);
     if (typeof updateDisplay === 'function') updateDisplay();
     updateFinanceDisplay();
+    const finPanel = document.getElementById('finance');
+    if (finPanel && finPanel.classList.contains('active') && typeof renderFinanceTab === 'function') {
+        renderFinanceTab();
+    }
     return { success: true, message: `${units}억 주급 자금을 이적 자금 ${units * 52}억으로 전환했습니다.` };
 }
 
@@ -3323,7 +3360,8 @@ function loadGame(event) {
             if (!gameData.aiFormations && typeof TeamUtils !== 'undefined') {
                 TeamUtils.initializeAllAIFormations();
             }
-            if (typeof gameData.wageBudget !== 'number') {
+            if (typeof calculateTotalWages === 'function') calculateTotalWages();
+            if (typeof gameData.wageBudget !== 'number' || gameData.wageBudget < (gameData.totalWeeklyWage || 0)) {
                 gameData.wageBudget = gameData.totalWeeklyWage || 0;
             }
             if (!gameData.stadiumInfo && gameData.selectedTeam && typeof stadiumSystem !== 'undefined') {
@@ -4234,7 +4272,8 @@ function loadFromSlot(slotNumber, overrideManagerId = null) {
         gameData = saveData.gameData;
         if (!gameData.playerRoles) gameData.playerRoles = {};
         if (!gameData.mentoringPairs) gameData.mentoringPairs = [];
-        if (typeof gameData.wageBudget !== 'number') {
+        if (typeof calculateTotalWages === 'function') calculateTotalWages();
+        if (typeof gameData.wageBudget !== 'number' || gameData.wageBudget < (gameData.totalWeeklyWage || 0)) {
             gameData.wageBudget = gameData.totalWeeklyWage || 0;
         }
         if (!gameData.stadiumInfo && gameData.selectedTeam && typeof stadiumSystem !== 'undefined') {
@@ -4489,15 +4528,22 @@ function displayYouthPlayers() {
             }
 
             if (confirm(`${player.name} 선수를 1군 스쿼드로 콜업하시겠습니까?`)) {
+                if (typeof player.contractYears !== 'number') player.contractYears = 3;
+                if (typeof player.weeklyWage !== 'number') player.weeklyWage = calculatePlayerWage(player);
+
                 teams[gameData.selectedTeam].push(player);
                 gameData.youthSquad = gameData.youthSquad.filter(p => p.name !== player.name);
+
+                if (typeof calculateTotalWages === 'function') calculateTotalWages();
+                if (typeof updateDisplay === 'function') updateDisplay();
+                if (typeof updateFinanceDisplay === 'function') updateFinanceDisplay();
 
                 if (typeof playerGrowthSystem !== 'undefined') {
                     const potentialGranted = playerGrowthSystem.grantPotentialToPlayer(player);
                     if (potentialGranted) {
-                        alert(`${player.name} 선수가 1군으로 콜업되었으며, 잠재력 성장 시스템이 적용되었습니다!`);
+                        alert(`${player.name} 선수가 1군으로 콜업되었으며, 잠재력 성장 시스템이 적용되었습니다!\n(주급: ${player.weeklyWage}억/주, 계약: ${player.contractYears}년)`);
                     } else {
-                        alert(`${player.name} 선수가 1군으로 콜업되었습니다.`);
+                        alert(`${player.name} 선수가 1군으로 콜업되었습니다.\n(주급: ${player.weeklyWage}억/주, 계약: ${player.contractYears}년)`);
                     }
                 }
 
@@ -6596,11 +6642,13 @@ function renderFinanceTab() {
         return card;
     };
 
+    const availableWage = formatFinanceVal(Math.max(0, wageBudget - (gameData.totalWeeklyWage || 0)));
+
     summaryGrid.append(
         createSummaryCard('이적 자금', `${transferBudget}억`, 'transfer'),
-        createSummaryCard('주급 자금', `${wageBudget}억`, 'wage'),
-        createSummaryCard('총 주급', `${formatFinanceVal(gameData.totalWeeklyWage)}억`, 'wage-debt'),
-        createSummaryCard('연간 예상 주급 지출', `${Math.round(gameData.totalWeeklyWage * 52)}억`, 'annual')
+        createSummaryCard('주급 예산 (한도)', `${wageBudget}억`, 'wage'),
+        createSummaryCard('선수단 총 주급', `${formatFinanceVal(gameData.totalWeeklyWage)}억`, 'wage-debt'),
+        createSummaryCard('가용 여유 주급', `${availableWage}억`, 'annual')
     );
     panel.appendChild(summaryGrid);
 
@@ -6817,11 +6865,13 @@ function updateFinanceBalancePreview(rawValue) {
         wageDelta = units;
         statusText = units > 0 ? `오른쪽으로 이동 중: 주급 자금 +${units}억 강화` : '전환 가능한 이적 자금(최소 52억)이 부족합니다';
     } else if (direction === 'wageToTransfer') {
-        const maxUnits = Math.floor(wageBudget);
+        const currentTotal = formatFinanceVal(gameData.totalWeeklyWage || 0);
+        const availableWageBudget = Math.max(0, wageBudget - currentTotal);
+        const maxUnits = Math.floor(availableWageBudget);
         const units = Math.round(maxUnits * ratio);
         wageDelta = -units;
         transferDelta = units * 52;
-        statusText = units > 0 ? `왼쪽으로 이동 중: 이적 자금 +${units * 52}억 강화` : '전환 가능한 주급 자금(최소 1억)이 부족합니다';
+        statusText = units > 0 ? `왼쪽으로 이동 중: 이적 자금 +${units * 52}억 강화` : '전환 가능한 여유 주급 자금(최소 1억)이 부족합니다';
     }
 
     const nextTransfer = formatFinanceVal(Math.max(0, transferBudget + transferDelta));
@@ -6864,10 +6914,11 @@ function applyFinanceBalanceSlider() {
         const result = transferSystem.convertTransferToWageBudget(transferSource);
         alert(result.message);
     } else {
-        const maxUnits = Math.floor(wageBudget);
+        const availableWageBudget = Math.max(0, wageBudget - (gameData.totalWeeklyWage || 0));
+        const maxUnits = Math.floor(availableWageBudget);
         const units = Math.round(maxUnits * ratio);
         if (units < 1) {
-            alert('주급 자금은 최소 1억 단위(이적 자금 52억 단위)로만 전환할 수 있습니다.');
+            alert('전환 가능한 여유 주급 자금(최소 1억 단위)이 부족합니다.\n현재 선수단 총 주급 이하로는 이적 자금으로 뺄 수 없습니다.');
             return;
         }
         const result = transferSystem.convertWageToTransferBudget(units);

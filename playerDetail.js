@@ -227,9 +227,10 @@ function openPlayerDetail(player, teamName) {
     if (myPlayer && typeof contractSystem !== 'undefined') {
         const years = contractSystem.getPlayerContractYears(myPlayer);
         const need = years <= 1;
+        const currentWage = (typeof calculatePlayerWage === 'function') ? calculatePlayerWage(myPlayer) : (myPlayer.weeklyWage || 0);
         const box = _pdEl('div', 'pd-contract' + (need ? ' warn' : ''));
         const left = _pdEl('div');
-        left.append(_pdEl('small', null, need ? '재계약 필요' : '계약 기간'), _pdEl('b', null, `잔여 ${years}년`));
+        left.append(_pdEl('small', null, need ? '재계약 필요' : '계약 정보'), _pdEl('b', null, `잔여 ${years}년 · 주급 ${currentWage}억/주`));
         box.appendChild(left);
         const btn = _pdEl('button', 'pd-btn', '재계약 협상');
         btn.type = 'button';
@@ -242,10 +243,12 @@ function openPlayerDetail(player, teamName) {
     }
 
     // 요약
+    const playerWage = (typeof calculatePlayerWage === 'function') ? calculatePlayerWage(p) : (p.weeklyWage || 0);
     const sec1 = _pdEl('div', 'pd-sec');
     sec1.appendChild(_pdEl('h4', null, 'Profile'));
     const stats = _pdEl('div', 'pd-stats');
     [
+        ['주급', `${playerWage}억/주`],
         ['주발', foot(p.preferredFoot)],
         ['약발', stars(p.weakFoot)],
         ['개인기', stars(p.skillMoves)]
