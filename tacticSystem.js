@@ -77,29 +77,108 @@ setInterval(() => updateTeamStrength(), 5000);
 // [PART 2] 전술 시스템 (TacticSystem)
 // =========================================================================================
 
+// 전 클럽 현실 기반 고유 전술 매핑 (170개 전체 클럽 완벽 지원)
+const DEFAULT_CLUB_TACTICS = {
+    // EPL
+    "아스널": "tikitaka", "아스톤_빌라": "counter", "본머스": "gegenpress", "브렌트포드": "twoLine",
+    "브라이튼": "lavolpiana", "첼시": "gegenpress", "코번트리_시티": "longBall", "크리스탈_팰리스": "counter",
+    "에버턴": "twoLine", "풀럼": "possession", "헐_시티": "longBall", "입스위치": "counter",
+    "리즈_유나이티드": "gegenpress", "리버풀": "gegenpress", "맨체스터_유나이티드": "counter",
+    "맨체스터_시티": "tikitaka", "뉴캐슬_유나이티드": "twoLine", "노팅엄_포레스트": "counter",
+    "토트넘_홋스퍼": "gegenpress", "선덜랜드": "twoLine",
+
+    // La Liga
+    "아틀레틱_클루브": "gegenpress", "아틀레티코_마드리드": "catenaccio", "오사수나": "twoLine",
+    "셀타_비고": "possession", "알라베스": "twoLine", "엘체": "twoLine", "바르셀로나": "tikitaka",
+    "헤타페": "catenaccio", "레반테": "counter", "말라가": "longBall", "라싱_클루브": "twoLine",
+    "라요_바예카노": "gegenpress", "데포르티보": "possession", "에스파뇰": "catenaccio",
+    "레알_베티스": "possession", "레알_마드리드": "counter", "레알_소시에다드": "possession",
+    "세비야": "twoLine", "발렌시아": "twoLine", "비야레알": "counter",
+
+    // Bundesliga
+    "FC_쾰른": "twoLine", "마인츠": "twoLine", "도르트문트": "gegenpress", "아우크스부르크": "twoLine",
+    "바이에른_뮌헨": "tikitaka", "샬케_04": "longBall", "프랑크푸르트": "counter", "함부르크": "counter",
+    "레버쿠젠": "tikitaka", "묀헨글라트바흐": "possession", "라이프치히": "gegenpress", "프라이부르크": "twoLine",
+    "파더보른": "gegenpress", "엘버스베르크": "counter", "베르더_브레멘": "counter", "호펜하임": "gegenpress",
+    "우니온_베를린": "catenaccio", "슈투트가르트": "possession",
+
+    // Serie A
+    "AS_로마": "twoLine", "아탈란타": "gegenpress", "볼로냐": "tikitaka", "칼리아리": "twoLine",
+    "코모": "tikitaka", "피오렌티나": "possession", "프로시노네": "counter", "제노아": "catenaccio",
+    "유벤투스": "catenaccio", "라치오": "possession", "레체": "twoLine", "인터_밀란": "catenaccio",
+    "AC_밀란": "counter", "몬차": "possession", "파르마": "counter", "사수올로": "possession",
+    "나폴리": "possession", "토리노": "twoLine", "우디네세": "twoLine", "베네치아": "counter",
+
+    // Ligue 1
+    "오세르": "twoLine", "앙제": "catenaccio", "모나코": "counter", "트루아": "longBall",
+    "로리앙": "counter", "르아브르": "twoLine", "르망": "longBall", "릴": "possession",
+    "니스": "possession", "리옹": "twoLine", "올랭피크_드_마르세유": "gegenpress", "파리_FC": "possession",
+    "파리_생제르맹": "tikitaka", "랑스": "gegenpress", "브레스트": "counter", "렌": "possession",
+    "스트라스부르": "counter", "툴루즈": "twoLine",
+
+    // Eredivisie
+    "덴하흐": "twoLine", "아약스": "totalFootball", "AZ_알크마르": "possession", "엑셀시오르": "counter",
+    "흐로닝언": "twoLine", "트벤테": "counter", "위트레흐트": "twoLine", "페예노르트": "gegenpress",
+    "포르투나_시타르트": "twoLine", "고_어헤드_이글스": "counter", "NEC_네이메헌": "twoLine",
+    "PEC_즈볼레": "twoLine", "PSV_에인트호번": "totalFootball", "캄뷔르": "longBall", "헤이렌베인": "possession",
+    "텔스타": "twoLine", "스파르타_로테르담": "twoLine", "빌럼_II": "twoLine",
+
+    // Portugal & Turkey & K-League & World
+    "비제우": "twoLine", "아로카": "counter", "카사_피아": "catenaccio", "에스토릴": "possession",
+    "에스트렐라": "twoLine", "알베르카": "longBall", "파말리캉": "counter", "FC_포르투": "gegenpress",
+    "질_비센테": "counter", "마리티무": "twoLine", "모레이렌스": "twoLine", "나시오날": "longBall",
+    "히우_아브": "possession", "산타_클라라": "twoLine", "SC_브라가": "counter", "벤피카": "twoLine",
+    "스포르팅_CP": "possession", "비토리아_기마랑이스": "counter", "알라냐스포르": "counter", "아메드": "twoLine",
+    "바샥셰히르": "possession", "베식타스": "gegenpress", "리제스포르": "twoLine", "초룸_FK": "longBall",
+    "에르주룸스포르": "twoLine", "에위프스포르": "counter", "페네르바체": "counter", "갈라타사라이": "possession",
+    "가지안테프": "twoLine", "겐츨레르비를리이": "twoLine", "괴즈테페": "counter", "카슴파샤": "twoLine",
+    "코자엘리스포르": "twoLine", "코냐스포르": "catenaccio", "삼순스포르": "counter", "트라브존스포르": "twoLine",
+    "부천_FC": "twoLine", "대전_하나": "counter", "FC_안양": "catenaccio", "FC_서울": "lavolpiana",
+    "강원_FC": "counter", "김천_상무": "twoLine", "광주_FC": "tikitaka", "인천_유나이티드": "twoLine",
+    "제주_유나이티드": "possession", "전북_현대": "lavolpiana", "포항_스틸러스": "possession",
+    "울산_현대": "tikitaka", "아르헨티나_연합": "catenaccio", "미국_연합": "gegenpress",
+    "멕시코_연합": "totalFootball", "브라질_연합": "possession", "알_힐랄": "tikitaka",
+    "알_이티하드": "possession", "알_나스르": "twoLine", "셀틱": "gegenpress"
+};
+if (typeof window !== 'undefined') window.DEFAULT_CLUB_TACTICS = DEFAULT_CLUB_TACTICS;
+
 class TacticSystem {
     constructor() {
         this.tactics = {
-            balanced: { name: "기본 전술 (무전술)", effective: [], ineffective: ["gegenpress", "twoLine", "lavolpiana", "longBall", "possession", "parkBus", "catenaccio", "totalFootball", "tikitaka"], description: "특별한 전술 지시가 없는 상태입니다. 조직력이 크게 떨어집니다." },
-            gegenpress: { name: "게겐프레싱", effective: ["tikitaka", "possession", "lavolpiana"], ineffective: ["parkBus", "longBall", "catenaccio", "twoLine"], description: "높은 압박으로 빠른 역습을 노리는 전술" },
+            balanced: { name: "기본 전술 (무전술)", effective: [], ineffective: ["gegenpress", "twoLine", "lavolpiana", "longBall", "possession", "parkBus", "catenaccio", "totalFootball", "tikitaka", "counter"], description: "특별한 전술 지시가 없는 상태입니다. 조직력이 크게 떨어집니다." },
+            gegenpress: { name: "게겐프레싱", effective: ["tikitaka", "possession", "lavolpiana"], ineffective: ["parkBus", "longBall", "catenaccio", "twoLine", "counter"], description: "높은 압박으로 빠른 역습을 노리는 전술" },
             twoLine: { name: "다이렉트 축구", effective: ["gegenpress", "totalFootball"], ineffective: ["tikitaka", "possession", "lavolpiana"], description: "긴 패스로 상대의 공간을 파고드는 전술" },
             lavolpiana: { name: "라볼피아나", effective: ["parkBus", "catenaccio", "twoLine", "longBall"], ineffective: ["gegenpress", "totalFootball"], description: "측면 공격과 크로스를 중심으로 한 전술" },
             longBall: { name: "롱볼 축구", effective: ["gegenpress", "totalFootball"], ineffective: ["tikitaka", "possession", "lavolpiana"], description: "긴 패스로 빠르게 공격을 전개하는 전술" },
             possession: { name: "점유율 축구", effective: ["parkBus", "catenaccio", "twoLine", "longBall"], ineffective: ["gegenpress", "totalFootball"], description: "공을 오래 소유하며 천천히 공격 기회를 만드는 전술" },
             parkBus: { name: "역습 축구", effective: ["gegenpress", "totalFootball"], ineffective: ["tikitaka", "possession", "lavolpiana"], description: "수비에 집중하고 호시탐탐 역습을 노리는 전술" },
             catenaccio: { name: "카테나치오", effective: ["gegenpress", "totalFootball"], ineffective: ["tikitaka", "possession", "lavolpiana"], description: "이탈리아식 견고한 수비 전술" },
-            totalFootball: { name: "토탈 풋볼", effective: ["tikitaka", "possession", "catenaccio", "parkBus"], ineffective: ["twoLine", "longBall"], description: "모든 선수가 공격과 수비에 참여하는 전술" },
-            tikitaka: { name: "티키타카", effective: ["parkBus", "catenaccio", "twoLine", "longBall"], ineffective: ["gegenpress", "totalFootball"], description: "짧은 패스를 연결하며 공간을 만드는 전술" }
+            totalFootball: { name: "토탈 풋볼", effective: ["tikitaka", "possession", "catenaccio", "parkBus"], ineffective: ["twoLine", "longBall", "counter"], description: "모든 선수가 공격과 수비에 참여하는 전술" },
+            tikitaka: { name: "티키타카", effective: ["parkBus", "catenaccio", "twoLine", "longBall"], ineffective: ["gegenpress", "totalFootball"], description: "짧은 패스를 연결하며 공간을 만드는 전술" },
+            counter: { name: "역습 축구", effective: ["gegenpress", "totalFootball"], ineffective: ["tikitaka", "possession", "lavolpiana"], description: "수비에 집중하고 빠른 역습으로 승부하는 전술" }
         };
-        // 팀별 전술은 script.js의 teamTactics 객체 또는 LegendLeagueManager를 참조한다고 가정
-        // 여기서는 메서드만 제공
     }
 
     getOpponentTactic(opponentTeam) {
-        if (typeof teamTactics !== 'undefined' && teamTactics[opponentTeam]) {
-            return teamTactics[opponentTeam];
-        }
-        return 'possession'; // 기본값
+        if (!opponentTeam) return 'counter';
+        const keyRaw = String(opponentTeam).trim();
+        const keyUnderscore = keyRaw.replace(/\s+/g, '_');
+        const keySpace = keyRaw.replace(/_/g, ' ');
+
+        if (DEFAULT_CLUB_TACTICS[keyUnderscore]) return DEFAULT_CLUB_TACTICS[keyUnderscore];
+        if (DEFAULT_CLUB_TACTICS[keySpace]) return DEFAULT_CLUB_TACTICS[keySpace];
+        if (DEFAULT_CLUB_TACTICS[keyRaw]) return DEFAULT_CLUB_TACTICS[keyRaw];
+
+        const tt = (typeof teamTactics !== 'undefined' && teamTactics) || (typeof window !== 'undefined' && window.teamTactics) || {};
+        if (tt[keyUnderscore]) return tt[keyUnderscore];
+        if (tt[keySpace]) return tt[keySpace];
+        if (tt[keyRaw]) return tt[keyRaw];
+
+        // 이름 해시 기반 결정론적 폴백 (무조건 의미 있는 고유 전술 부여)
+        const styles = ['counter', 'twoLine', 'gegenpress', 'possession', 'catenaccio', 'tikitaka'];
+        let hash = 0;
+        for (let i = 0; i < keyRaw.length; i++) hash = ((hash << 5) - hash) + keyRaw.charCodeAt(i);
+        return styles[Math.abs(hash) % styles.length];
     }
 
     calculateTacticEffect(userTactic, opponentTactic) {
@@ -107,14 +186,28 @@ class TacticSystem {
         if (!userTacticData) return 0;
 
         let effect = 0;
-        // [수정] 전술 상성 차이 대폭 확대 (±5 -> ±8) : 상성 우위 시 체급 극복 가능
-        if (userTacticData.effective.includes(opponentTactic)) effect += 8;
-        else if (userTacticData.ineffective.includes(opponentTactic)) effect -= 8;
 
-        // [신규] 전술 숙련도 낭만 보너스 적용 (숙련도 100일 경우 최대 +5 상쇄/추가)
-        if (window.gameData && window.gameData.tacticMastery && window.gameData.tacticMastery[userTactic]) {
+        // [핵심] '무전술(balanced)'에 대한 뼈아픈 조직력 페널티
+        if (userTactic === 'balanced') {
+            if (opponentTactic !== 'balanced') {
+                // 상대는 조직적인 전술을 구사하는데 우리 팀은 아무런 전술 지시가 없음 (-16)
+                effect = -16;
+            } else {
+                effect = 0;
+            }
+        } else if (opponentTactic === 'balanced') {
+            // 상대가 무전술인데 우리는 체계적인 전술을 갖춤 (+14)
+            effect = 14;
+        } else {
+            // 전술 상성 대결 (±14) : 체급 차이를 뒤집을 수 있는 강력한 상성 영향력
+            if (userTacticData.effective.includes(opponentTactic)) effect += 14;
+            else if (userTacticData.ineffective.includes(opponentTactic)) effect -= 14;
+        }
+
+        // 전술 숙련도 낭만 보너스 (숙련도 100일 경우 최대 +6)
+        if (typeof window !== 'undefined' && window.gameData && window.gameData.tacticMastery && window.gameData.tacticMastery[userTactic]) {
             const mastery = window.gameData.tacticMastery[userTactic];
-            const masteryBonus = Math.floor(mastery / 20); // 0 ~ 5
+            const masteryBonus = Math.floor(mastery / 16); // 0 ~ 6
             effect += masteryBonus;
         }
 
@@ -130,12 +223,18 @@ class TacticSystem {
         let result = "중립";
         let advantage = 0;
 
-        if (userTacticData.effective.includes(opponentTactic)) {
-            result = "유리";
-            advantage = 5;
+        if (userTactic === 'balanced' && opponentTactic !== 'balanced') {
+            result = "조직력 부재 (무전술 극심한 열세)";
+            advantage = -16;
+        } else if (userTactic !== 'balanced' && opponentTactic === 'balanced') {
+            result = "전술적 압도";
+            advantage = 14;
+        } else if (userTacticData.effective.includes(opponentTactic)) {
+            result = "전술 상성 유리";
+            advantage = 14;
         } else if (userTacticData.ineffective.includes(opponentTactic)) {
-            result = "불리";
-            advantage = -3;
+            result = "전술 상성 불리";
+            advantage = -14;
         }
 
         return {

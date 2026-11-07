@@ -337,6 +337,12 @@ class RealSoccerEngine {
         this.teamStrength.home = this.calcTeamStrength(homeSquad);
         this.teamStrength.away = this.calcTeamStrength(awaySquad);
 
+        // [전술 상성 및 무전술 페널티를 teamStrength에 직접 선반영]
+        const homeAdv = this.calcTacticAdvantage(homeTactic, awayTactic);
+        const awayAdv = this.calcTacticAdvantage(awayTactic, homeTactic);
+        this.teamStrength.home += homeAdv;
+        this.teamStrength.away += awayAdv;
+
         // [신규] 월드엔진 고도화 필드
         this.matchContext = null;
         this.awayHostility = 0.04;
@@ -370,6 +376,52 @@ class RealSoccerEngine {
             : [squad.gk, ...(squad.df || []), ...(squad.mf || []), ...(squad.fw || [])].filter(Boolean);
         if (!all.length) return 70;
         return all.reduce((s, p) => s + (p.rating || 70), 0) / all.length;
+    }
+
+    calcTacticAdvantage(myTactic, oppTactic) {
+        if (!myTactic) myTactic = 'balanced';
+        if (!oppTactic) oppTactic = 'balanced';
+
+        // 1. 무전술 페널티: 현대 축구에서 전술 없이 개인 기량만으로는 조직적인 팀을 이길 수 없음
+        if (myTactic === 'balanced' && oppTactic !== 'balanced') {
+            return -16; // 무전술 체급 하락
+        }
+        if (myTactic !== 'balanced' && oppTactic === 'balanced') {
+            return 14; // 무전술 상대 전술적 압도
+        }
+        if (myTactic === 'balanced' && oppTactic === 'balanced') {
+            return 0;
+        }
+
+        const effectiveMap = {
+            gegenpress: ["tikitaka", "possession", "lavolpiana"],
+            twoLine: ["gegenpress", "totalFootball"],
+            lavolpiana: ["parkBus", "catenaccio", "twoLine", "longBall"],
+            longBall: ["gegenpress", "totalFootball"],
+            possession: ["parkBus", "catenaccio", "twoLine", "longBall"],
+            parkBus: ["gegenpress", "totalFootball"],
+            catenaccio: ["gegenpress", "totalFootball"],
+            totalFootball: ["tikitaka", "possession", "catenaccio", "parkBus"],
+            tikitaka: ["parkBus", "catenaccio", "twoLine", "longBall"],
+            counter: ["gegenpress", "totalFootball"]
+        };
+
+        const ineffectiveMap = {
+            gegenpress: ["parkBus", "longBall", "catenaccio", "twoLine", "counter"],
+            twoLine: ["tikitaka", "possession", "lavolpiana"],
+            lavolpiana: ["gegenpress", "totalFootball"],
+            longBall: ["tikitaka", "possession", "lavolpiana"],
+            possession: ["gegenpress", "totalFootball"],
+            parkBus: ["tikitaka", "possession", "lavolpiana"],
+            catenaccio: ["tikitaka", "possession", "lavolpiana"],
+            totalFootball: ["twoLine", "longBall", "counter"],
+            tikitaka: ["gegenpress", "totalFootball"],
+            counter: ["tikitaka", "possession", "lavolpiana"]
+        };
+
+        if (effectiveMap[myTactic]?.includes(oppTactic)) return 14;
+        if (ineffectiveMap[myTactic]?.includes(oppTactic)) return -14;
+        return 0;
     }
 
     getMidfieldStrength(teamId) {
@@ -572,10 +624,11 @@ class RealSoccerEngine {
     }
 
     initTeam(squad, teamId, tactic) {
-        let mul = tactic === 'balanced' ? 0.95 : 1.0;
-        // 전술 상성 효과 반영 (tacticSystem.js에서 계산한 teamStrength 보정치 활용)
+        // [무전술 페널티] 전술 없이 출전할 경우 조직력 붕괴로 기본 체급 18% 감소
+        let mul = (tactic === 'balanced') ? 0.82 : 1.0;
+        // 전술 상성 및 팀 전력 보정치 반영 (상성 우위 시 체급 극복 가능)
         if (this.teamStrength && this.teamStrength[teamId] !== undefined) {
-            mul *= 1 + ((this.teamStrength[teamId] - 70) * 0.01);
+            mul *= 1 + ((this.teamStrength[teamId] - 70) * 0.012);
         }
         const hasGameData = (typeof gameData !== 'undefined' && gameData);
         const isUser = hasGameData
@@ -1919,6 +1972,7 @@ class RealSoccerEngine {
             
             let onsideSaveProb = ((toDec + toSpd) * 0.32) + (hasLineBreakTrait ? 20 : 0);
             if (isOppHighLine) onsideSaveProb -= 12; // 상대가 하이라인 오프사이드 트랩 시 트랩에 더 잘 걸림!
+            if (this.getTeamTactic(opp) === 'balanced') onsideSaveProb += 22; // 무전술 팀은 라인 통솔 부재로 오프사이드 트랩 실패 급증!
             
             const beatsTrap = (Math.random() * 100 < clamp(onsideSaveProb, 20, 85));
             if (!beatsTrap) {
@@ -1960,6 +2014,22 @@ class RealSoccerEngine {
         if (from.position === 'GK' && dist > 40) distPen += 15;
         // [신규] 체력 고갈 시 치명적 패스 미스 페널티
         if (from.stamina < 40) distPen += 18;
+
+        // [무전술 페널티: 패스 조직력 붕괴]
+        const myTactic = this.getTeamTactic(tid);
+        const oppTactic = this.getTeamTactic(tid === 'home' ? 'away' : 'home');
+        if (myTactic === 'balanced') {
+            distPen += 14; // 약속된 패스 플레이 부재로 인한 패스 미스 대폭 증가
+        }
+        // [전술 상성 패스 보정]
+        // 티키타카가 밀집 수비(카테나치오/두줄수비/역습)를 상대할 때 좁은 틈새 킬패스 보너스
+        if (myTactic === 'tikitaka' && ['catenaccio', 'twoLine', 'parkBus'].includes(oppTactic)) {
+            distPen -= 8;
+        }
+        // 게겐프레싱 상대로 후방 빌드업(점유율/라볼피아나) 시 강한 전방 압박으로 패스 미스 증가
+        if (oppTactic === 'gegenpress' && ['possession', 'lavolpiana'].includes(myTactic)) {
+            distPen += 12;
+        }
 
         // [중원 전력 차이 압박 (원인과 결과 축구)]
         // 상대 중원이 훨씬 강한데, 중원을 우회하지 않고(isBypassTactics가 아님) 무지성 중앙 패스를 시도할 경우 패스 미스 급증!
@@ -2567,6 +2637,13 @@ class RealSoccerEngine {
         const statDiff = tackleStat - (dribbleStat * 0.65 + speedStat * 0.35);
         let chance = 0.38 + (statDiff * 0.016);
         
+        // [전술 상성 및 무전술 태클 영향도]
+        const tacklerTactic = this.getTeamTactic(tackler.teamId);
+        const carrierTactic = this.getTeamTactic(carrier.teamId);
+        if (tacklerTactic === 'balanced') chance -= 0.12; // 협력 수비 부재로 탈취율 감소
+        if (carrierTactic === 'balanced') chance += 0.12; // 패스 탈출구 부재로 쉽게 뺏김
+        if (tacklerTactic === 'gegenpress' && ['possession', 'tikitaka', 'balanced'].includes(carrierTactic)) chance += 0.10; // 전방 압박 우위
+        
         // 박스 안쪽(oppGoalX 기준 18 미만) 신중한 수비
         const oppGoalX = tackler.teamId === 'home' ? 0 : 100;
         if (Math.abs(carrier.x - oppGoalX) < 18) {
@@ -2761,7 +2838,9 @@ class RealSoccerEngine {
             const phaseOk = phase === 'progressing' || phase === 'finalThird' || phase === 'counter';
             const laneOpen = !this._numOpponentsAhead(p, 8, 16);
             const carrUnder = carr ? this._isUnderPressure(carr) : false;
-            if (carr && (rightZone || mfCarrierZone) && burstBiasOk && phaseOk && (laneOpen || carrUnder)) {
+            const isBalanced = this.getTeamTactic(tid) === 'balanced';
+            const burstTacticCheck = isBalanced ? (Math.random() < 0.35) : true;
+            if (carr && (rightZone || mfCarrierZone) && burstBiasOk && phaseOk && (laneOpen || carrUnder) && burstTacticCheck) {
                 p._fwMode = 'burst';
                 p.burstTimer = 32;
                 p._timer = 32;
@@ -3475,7 +3554,9 @@ class RealSoccerEngine {
         this.players.forEach(p => {
             const factor = p.teamId === userTeamId ? (1 + boostPercent) : (1 - boostPercent * 0.6);
             for (const k in p.stats) {
-                if (typeof p.stats[k] === 'number') p.stats[k] *= factor;
+                if (typeof p.stats[k] === 'number') {
+                    p.stats[k] = clamp(p.stats[k] * factor, 15, 99);
+                }
             }
         });
     }
