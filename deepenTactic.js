@@ -625,12 +625,10 @@ class RealSoccerEngine {
     }
 
     initTeam(squad, teamId, tactic) {
-        // [무전술 페널티] 전술 없이 출전할 경우 조직력 붕괴로 기본 체급 18% 감소
-        let mul = (tactic === 'balanced') ? 0.82 : 1.0;
-        // 전술 상성 및 팀 전력 보정치 반영 (상성 우위 시 체급 극복 가능)
-        if (this.teamStrength && this.teamStrength[teamId] !== undefined) {
-            mul *= 1 + ((this.teamStrength[teamId] - 70) * 0.012);
-        }
+        // 전술 상성은 경기 의사결정과 경합에 반영하며, 선수의 원래 능력치에는
+        // 적용하지 않는다. 상대 전술에 따라 속도 같은 개인 스탯이 급락하면
+        // 같은 선수가 경기마다 걷는 것처럼 보이게 된다.
+        const mul = 1.0;
         const hasGameData = (typeof gameData !== 'undefined' && gameData);
         const isUser = hasGameData
             ? ((teamId === 'home' && gameData.isHomeGame) || (teamId === 'away' && !gameData.isHomeGame))
@@ -2637,33 +2635,33 @@ class RealSoccerEngine {
         const sv = gkV * 0.86 * (0.85 + Math.random() * 0.30) * gkMod;
         
         // [골 결정력 현실화: 평균 득점은 유지하되 점수 차가 커질수록 추격 여지를 남긴다.]
-        const inBoxBonus = d <= 7 ? 0.14 : (d <= 13 ? 0.09 : (d <= 19 ? 0.04 : -0.03));
-        const fwBonus = shooter.position === 'FW' ? 0.045 : (shooter.position === 'MF' ? 0.02 : 0);
-        const statBonus = clamp((sp - sv) * 0.006, -0.07, 0.12);
+        const inBoxBonus = d <= 7 ? 0.10 : (d <= 13 ? 0.06 : (d <= 19 ? 0.025 : -0.035));
+        const fwBonus = shooter.position === 'FW' ? 0.025 : (shooter.position === 'MF' ? 0.012 : 0);
+        const statBonus = clamp((sp - sv) * 0.0045, -0.06, 0.08);
 
         // 슈팅 관련 특성 보유 시 추가 골 결정력 가산
         const traits = shooter.traits || [];
         const hasShootingTrait = traits.some(t => t.includes('감아차기') || t.includes('파워슛') || t.includes('슈팅') || t.includes('피니셔'));
-        const traitBonus = hasShootingTrait ? 0.03 : 0;
+        const traitBonus = hasShootingTrait ? 0.02 : 0;
 
         // 직전 연계가 컷백이나 크로스 원터치 피니시인 경우 가산
         const isCutbackFinish = this.ball && this.ball.isCutback;
         const isCrossFinish = this.ball && this.ball.isCross;
-        const patternBonus = isCutbackFinish ? 0.06 : (isCrossFinish ? 0.04 : 0);
+        const patternBonus = isCutbackFinish ? 0.04 : (isCrossFinish ? 0.03 : 0);
 
         // 1:1 단독 찬스 보너스
         const nearbyDefs = this.players.filter(p => p.teamId === opp && p.position !== 'GK' && Math.hypot(p.x - shooter.x, p.y - shooter.y) < 7.0);
         const isOneOnOne = nearbyDefs.length === 0 && d <= 16;
-        const bigChanceBonus = isOneOnOne ? 0.05 : 0;
+        const bigChanceBonus = isOneOnOne ? 0.04 : 0;
 
         const goalMult = (typeof MatchTuning !== 'undefined' && MatchTuning.goalMultiplier !== undefined)
-            ? MatchTuning.goalMultiplier : 1.05;
+            ? MatchTuning.goalMultiplier : 1.0;
         const minG = (typeof MatchTuning !== 'undefined' && MatchTuning.minGoalChance !== undefined)
-            ? MatchTuning.minGoalChance : 0.06;
+            ? MatchTuning.minGoalChance : 0.025;
         const maxG = (typeof MatchTuning !== 'undefined' && MatchTuning.maxGoalChance !== undefined)
-            ? MatchTuning.maxGoalChance : 0.36;
+            ? MatchTuning.maxGoalChance : 0.28;
 
-        let goalChance = clamp((0.11 + inBoxBonus + fwBonus + statBonus + traitBonus + patternBonus + bigChanceBonus) * goalMult, minG, maxG);
+        let goalChance = clamp((0.07 + inBoxBonus + fwBonus + statBonus + traitBonus + patternBonus + bigChanceBonus) * goalMult, minG, maxG);
 
         // [다득점 과열 방지 댐핑: 경기 총 득점이 많아져도 최대 5골 내외로 제한]
         const totalMatchGoals = (this.homeScore || 0) + (this.awayScore || 0);
@@ -2673,7 +2671,7 @@ class RealSoccerEngine {
         if (scoreGap >= 3) goalChance *= 0.72;
         else if (scoreGap === 2) goalChance *= 0.86;
         else if (scoreGap === 1) goalChance *= 0.94;
-        else if (scoreGap < 0) goalChance += Math.min(0.04, Math.abs(scoreGap) * 0.015);
+        else if (scoreGap < 0) goalChance += Math.min(0.03, Math.abs(scoreGap) * 0.012);
         if (totalMatchGoals === 3) {
             goalChance *= 0.55;
         } else if (totalMatchGoals === 4) {
@@ -2888,13 +2886,13 @@ class RealSoccerEngine {
 
         // 볼 탈환 팀의 전환 모드 가동. 역습 전술이 아니면 먼저 진형을 안정화한다.
         this._phase[winningTeamId] = isCounterTeam ? 'counter' : 'building';
-        const counterDuration = isCounterTeam ? 65 : (isPossessionTeam ? 10 : 30);
+        const counterDuration = isCounterTeam ? 35 : (isPossessionTeam ? 10 : 30);
         this._phaseTimer[winningTeamId] = isCounterTeam ? counterDuration : 0;
         this._attackMemories[winningTeamId] = new Array(8).fill(null);
         this._attackMemIdx[winningTeamId] = 0;
 
         // 역습 전술 팀만 다수의 전방 침투를 사용한다.
-        const burstCount = isCounterTeam ? 3 : 0;
+        const burstCount = isCounterTeam ? 2 : 0;
         const burstDur = 48;
         const toBurst = this.players.filter(p => p.teamId === winningTeamId && (p.position === 'FW' || (p.position === 'MF' && this.getRoleBehavior(p.role).runBehind > 0.6)))
             .sort((a, b) => Math.hypot(b.x - (winningTeamId === 'home' ? 100 : 0), b.y - 50) - Math.hypot(a.x - (winningTeamId === 'home' ? 100 : 0), a.y - 50))

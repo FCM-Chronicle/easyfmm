@@ -139,7 +139,8 @@ let possessionChanges = 0;
 let lastPossessionTeam = null;
 let phaseFrames = { home:{building:0,progressing:0,finalThird:0,counter:0}, away:{building:0,progressing:0,finalThird:0,counter:0} };
 
-const MAX_FRAMES = 5000;
+// 엔진 기준 10프레임 = 1분이므로 실제 정규시간 90분을 검증한다.
+const MAX_FRAMES = 900;
 try {
     for (let f = 0; f < MAX_FRAMES; f++) {
         const minute = Math.floor(f / 10);
