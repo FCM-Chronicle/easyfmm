@@ -2889,8 +2889,12 @@ class TransferSystem {
                 }
                 // waitRounds가 0이 되는 즉시 확률 체크 후 발송
                 if (entry.waitRounds === 0 && !entry.isOfferSent) {
-                    // [수정] 오퍼가 올 확률을 40%로 하향 (안 올 가능성 60%로 상향)
-                    if (Math.random() < 0.4) {
+                    // [수정] 오퍼 발생 확률을 20%로 대폭 하향 (안 올 가능성 80%)
+                    // 선수 가치나 나이에 따라 추가 감산: 33세 이상 노장은 12%
+                    let offerChance = 0.20;
+                    if (entry.player && entry.player.age >= 33) offerChance = 0.12;
+
+                    if (Math.random() < offerChance) {
                         this.processUserTransferOffers(entry.player);
                         entry.isOfferSent = true; // 중복 발송 방지
                         entry.expireRounds = 5; // 5경기 동안 응답 없으면 자동 만료

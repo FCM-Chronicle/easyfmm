@@ -485,8 +485,8 @@ class MailManager {
             gameData.userTransferList.some(entry => !entry.isOfferSent);
         if (hasPendingUserOffer) return;
 
-        // 시즌당 약 3번 -> 약 8% 확률 (경기당)
-        if (Math.random() > 0.08) return;
+        // [수정] 무작위 오퍼 확률 하향: 경기당 약 2.5% (시즌당 약 1회 발생 수준)
+        if (Math.random() > 0.025) return;
         
         const teamPlayers = teams[gameData.selectedTeam];
         // 최소 인원(16명) 이하일 때는 제안 안 옴
