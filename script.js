@@ -4528,7 +4528,11 @@ function displayYouthPlayers() {
             }
 
             if (confirm(`${player.name} 선수를 1군 스쿼드로 콜업하시겠습니까?`)) {
-                if (typeof player.contractYears !== 'number') player.contractYears = 3;
+                if (typeof player.contractYears !== 'number') {
+                    player.contractYears = (typeof contractSystem !== 'undefined')
+                        ? contractSystem.getPlayerContractYears(player)
+                        : (Math.floor(Math.random() * 2) + 4);
+                }
                 if (typeof player.weeklyWage !== 'number') player.weeklyWage = calculatePlayerWage(player);
 
                 teams[gameData.selectedTeam].push(player);

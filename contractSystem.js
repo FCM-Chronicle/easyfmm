@@ -13,11 +13,14 @@ class ContractSystem {
 
         // 기본 계약 기간 부여 (젊은 선수는 길게, 베테랑은 짧게)
         if (player.age <= 22) {
-            player.contractYears = 3;
+            // 22세 이하: 4~5년 랜덤
+            player.contractYears = Math.floor(Math.random() * 2) + 4;
         } else if (player.age <= 29) {
-            player.contractYears = 2;
+            // 23~29세: 3~4년 랜덤
+            player.contractYears = Math.floor(Math.random() * 2) + 3;
         } else {
-            player.contractYears = 1;
+            // 30세 이상: 1~3년 랜덤
+            player.contractYears = Math.floor(Math.random() * 3) + 1;
         }
 
         return player.contractYears;

@@ -718,6 +718,38 @@ class TransferSystem {
         this.openFcNegotiationUI('RENEWAL');
     }
 
+    // [신규] 우리 구단 선수 판매: 상대 구단 단장과의 FC On Call 이적료 밀당 협상 UI 오픈
+    openSaleNegotiation(playerName, buyerTeamKey, initialOfferFee, mailId) {
+        const teamPlayers = teams[gameData.selectedTeam];
+        const player = teamPlayers.find(p => p.name === playerName);
+        if (!player) {
+            alert("해당 선수가 팀에 없습니다.");
+            return;
+        }
+
+        const buyerDisplayName = (typeof teamNames !== 'undefined' && teamNames[buyerTeamKey]) || buyerTeamKey || '영입 희망 구단';
+        const marketValue = this.calculatePlayerPrice(player, gameData.selectedTeam);
+        const startingFee = Math.max(1, Math.round(initialOfferFee || (marketValue * 0.9)));
+
+        this.chatState = {
+            mode: 'SELL',
+            step: 'SELL',
+            player: player,
+            buyerTeamKey: buyerTeamKey,
+            buyerTeamName: buyerDisplayName,
+            fee: startingFee,
+            demandedFee: startingFee, // 상대 구단이 현재 제시한 이적료
+            counterFee: null,
+            marketValue: marketValue,
+            round: 1,
+            maxRounds: 3,
+            tension: 'LOW',
+            mailId: mailId
+        };
+
+        this.openFcNegotiationUI('SELL');
+    }
+
     // 선수의 오버롤/팀 내 수준에 따른 기대 주전 위상 인덱스 (0: 유망주/후보, 1: 로테이션, 2: 주전, 3: 핵심 주전)
     getExpectedSquadRoleIndex(player) {
         const ovr = player.rating || 75;
@@ -843,6 +875,53 @@ class TransferSystem {
                     `"장난 전화도 아니고, 그 액수로는 어림도 없습니다! ${name}는 우리 팀에 남습니다. 수고하십시오."`,
                     `"우리 구단과 선수를 무시하는 처사군요. 협상은 여기까지입니다. 당분간 다시 연락하지 마십시오."`,
                     `"입장 차이가 너무 큽니다. 아쉽지만 이번 이적 건은 없던 일로 하겠습니다. 통화 종료합니다."`
+                ]);
+            }
+
+            case 'SELL_GREETING': {
+                const bName = state.buyerTeamName || '상대 구단';
+                const f = state.demandedFee || 100;
+                return pick([
+                    `"감독님 안녕하십니까! ${bName} 단장입니다. 귀 구단의 ${name} 선수를 영입하고자 ${f}억 원을 정식 제안합니다. 이 조건에 보내주시겠습니까?"`,
+                    `"좋은 하루입니다 감독님! 우리 ${bName} 보드진에서 ${name} 선수를 절실히 원하고 있습니다. 제안 금액은 ${f}억 원입니다. 협의를 원하시면 말씀해 주십시오."`,
+                    `"안녕하십니까! ${bName} 총괄 디렉터입니다. ${name} 선수의 뛰어난 기량을 높이 사서 ${f}억 원 공식 오퍼를 보냈습니다. 조건을 조율해 보시죠."`
+                ]);
+            }
+
+            case 'SELL_COUNTER': {
+                const { fee, counter, round } = ctx;
+                const bName = state.buyerTeamName || '상대 구단';
+                if (round === 2) {
+                    return pick([
+                        `"감독님, 요구하신 ${fee}억 원은 우리 구단 예산상 다소 부담스럽습니다. 서로 절충하여 ${counter}억 원에 합의하는 건 어떻습니까?"`,
+                        `"솔직히 ${fee}억 원은 높게 느껴집니다. 하지만 ${name} 선수를 꼭 데려오고 싶으니 ${counter}억 원까지 올려서 제안하겠습니다."`,
+                        `"보드진과 긴급 상의를 거쳤습니다. ${counter}억 원까지는 예산을 확대할 수 있습니다. 받아들이시겠습니까?"`
+                    ]);
+                } else {
+                    return pick([
+                        `"마지막 제안입니다 감독님. ${counter}억 원 이상은 구단 방침상 불가합니다. 결단을 내려주시죠."`,
+                        `"우리 구단이 쓸 수 있는 한계치는 ${counter}억 원입니다. 이 금액이 아니면 이번 이적 건은 접어야겠군요."`,
+                        `"정말 최종 오퍼입니다. ${counter}억 원에 도장을 찍으시겠습니까, 아니면 협상을 결렬시키겠습니까?"`
+                    ]);
+                }
+            }
+
+            case 'SELL_ACCEPT': {
+                const { fee } = ctx;
+                const bName = state.buyerTeamName || '상대 구단';
+                return pick([
+                    `"합의 완료입니다! 요구하신 ${fee}억 원에 ${name} 선수를 영입하겠습니다. 즉시 이적료를 송금하고 절차를 마무리하겠습니다!"`,
+                    `"결단에 감사드립니다 감독님! ${fee}억 원에 합의하겠습니다. ${name} 선수는 우리 ${bName}에서 훌륭히 육성하겠습니다."`,
+                    `"완벽한 비즈니스였습니다! ${fee}억 원 이적 계약서에 즉시 서명하겠습니다. 협조해 주셔서 감사합니다!"`
+                ]);
+            }
+
+            case 'SELL_REJECT': {
+                const bName = state.buyerTeamName || '상대 구단';
+                return pick([
+                    `"죄송하지만 그 금액은 저희 ${bName}의 재정 범위를 완전히 벗어납니다. 이번 협상은 여기서 중단하겠습니다."`,
+                    `"입장 차이가 너무 커서 더 이상의 대화는 무의미하겠군요. ${name} 영입 제안을 철회하겠습니다."`,
+                    `"우리 구단의 제안을 받아들이기 어려우시다면 협상은 여기까지입니다. 통화 종료하겠습니다."`
                 ]);
             }
 
@@ -1245,6 +1324,57 @@ class TransferSystem {
                 isRenewal,
                 remYears
             }));
+        } else if (step === 'SELL') {
+            // [신규] 우리 구단 선수 판매: 상대 구단 단장과 이적료 밀당 협상
+            const buyerDisplayName = state.buyerTeamName || '영입 희망 구단';
+            setElText('fcStepTag', 'TRANSFER OUT · INCOMING OFFER');
+            setElText('fcMainHeading', 'SELL PLAYER');
+            setElText('fcPhoneTopLabel', 'Transfer Desk · Incoming Call');
+            setElText('chatTeamName', buyerDisplayName);
+            setElText('fcCallerRole', `${buyerDisplayName} 단장 (Head of Recruitment)`);
+
+            setElText('fcRow1Label', '이적 형태 (Transfer Type)');
+            setElText('fcRow1Value', 'PERMANENT (완전 이적)');
+            if (row1Ctrl) row1Ctrl.style.display = 'none';
+            if (row1Val) row1Val.style.display = 'inline';
+
+            setElText('fcActiveTermLabel', '요구 이적료 (Demanded Transfer Fee)');
+            setElText('fcAmountUnit', '억 원');
+            setElText('fcRow2Label', '선수 시장 가치 (Market Value)');
+            setElText('fcRow2Value', `${state.marketValue || 0}억 원`);
+            if (row2Ctrl) row2Ctrl.style.display = 'none';
+            if (row2Val) row2Val.style.display = 'inline';
+
+            setElText('fcRow3Label', '대금 정산 방식');
+            setElText('fcRow3Value', '전액 구단 자금 즉시 입금');
+
+            if (tacRow1) tacRow1.style.display = 'none';
+            if (tacRow2) tacRow2.style.display = 'none';
+
+            // 구매 희망 구단 로고 렌더링
+            if (avatarWrap) {
+                avatarWrap.replaceChildren();
+                if (typeof createTeamLogoElement === 'function' && state.buyerTeamKey && state.buyerTeamKey !== '외부리그') {
+                    const logoEl = createTeamLogoElement(state.buyerTeamKey);
+                    if (logoEl && logoEl.nodeType) {
+                        avatarWrap.appendChild(logoEl);
+                    }
+                }
+                if (!avatarWrap.hasChildNodes()) {
+                    const fallbackBadge = document.createElement('div');
+                    fallbackBadge.className = 'fc-caller-club-fallback';
+                    fallbackBadge.textContent = buyerDisplayName.substring(0, 2).toUpperCase();
+                    avatarWrap.appendChild(fallbackBadge);
+                }
+            }
+
+            if (input) {
+                input.step = '5';
+                input.min = '1';
+                input.value = state.demandedFee || 100;
+            }
+
+            this.setFcDialogue(this.pickNegotiationLine('SELL_GREETING'));
         }
 
         this.updateTensionUI('LOW', 1);
@@ -1295,7 +1425,7 @@ class TransferSystem {
         if (!input) return;
 
         let current = parseFloat(input.value) || 0;
-        if (this.chatState.step === 'FEE') {
+        if (this.chatState.step === 'FEE' || this.chatState.step === 'SELL') {
             const base = this.chatState.demandedFee || 100;
             const stepAmt = Math.max(5, Math.round((base * 0.05) / 5) * 5);
             current = Math.max(5, Math.round(current + direction * stepAmt));
@@ -1358,6 +1488,16 @@ class TransferSystem {
             setElText('fcSummaryLbl3', '재계약 후 잔여 주급 여유분');
             setElText('fcSummaryVal3', `${remaining}억 / 주`);
             if (val3El) val3El.style.color = remaining >= 0 ? '#F8FAFC' : '#EF4444';
+        } else if (state.step === 'SELL') {
+            const currentMoney = window.GameState ? window.GameState.get().teamMoney : gameData.teamMoney;
+            const projected = Math.round(currentMoney + val);
+            setElText('fcSummaryLbl1', '우리 요구액 / 상대 제시액');
+            setElText('fcSummaryVal1', `${Math.round(val)}억 / ${state.demandedFee}억`);
+            setElText('fcSummaryLbl2', '상대 구단 제안 (Current Offer)');
+            setElText('fcSummaryVal2', state.counterFee ? `${state.counterFee}억 원 제시` : `${state.demandedFee}억 원 (원 제안)`);
+            setElText('fcSummaryLbl3', '타결 시 구단 보유 자금');
+            setElText('fcSummaryVal3', `${projected}억 원 (+${Math.round(val)}억)`);
+            if (val3El) val3El.style.color = '#10B981';
         }
     }
 
@@ -1366,7 +1506,14 @@ class TransferSystem {
         const input = document.getElementById('chatFeeInput');
         if (!input) return;
 
-        if (this.chatState.step === 'FEE' && this.chatState.counterFee) {
+        if (this.chatState.step === 'SELL') {
+            const acceptedFee = this.chatState.counterFee || this.chatState.demandedFee;
+            if (acceptedFee) {
+                input.value = acceptedFee;
+                this.updateFcBudgetSummary();
+                this.sendNegotiationChat();
+            }
+        } else if (this.chatState.step === 'FEE' && this.chatState.counterFee) {
             input.value = this.chatState.counterFee;
             this.updateFcBudgetSummary();
             this.sendNegotiationChat();
@@ -1519,6 +1666,39 @@ class TransferSystem {
                 };
                 quickReplies.appendChild(chip);
             });
+        } else if (step === 'SELL') {
+            if (input) input.disabled = false;
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = 'Make Counter Offer · 역제안 전송';
+            }
+            if (downBtn) downBtn.disabled = false;
+            if (upBtn) upBtn.disabled = false;
+
+            const baseFee = this.chatState.demandedFee || 100;
+            const presets = [
+                { label: `원 제안 (${baseFee}억)`, val: baseFee },
+                { label: `+10% (${Math.round(baseFee * 1.1)}억)`, val: Math.round(baseFee * 1.1) },
+                { label: `+20% (${Math.round(baseFee * 1.2)}억)`, val: Math.round(baseFee * 1.2) },
+                { label: `+30% (${Math.round(baseFee * 1.3)}억)`, val: Math.round(baseFee * 1.3) }
+            ];
+            presets.forEach(item => {
+                const chip = document.createElement('button');
+                chip.type = 'button';
+                chip.className = 'fc-preset-chip';
+                chip.textContent = item.label;
+                chip.onclick = () => {
+                    if (input) input.value = item.val;
+                    this.updateFcBudgetSummary();
+                };
+                quickReplies.appendChild(chip);
+            });
+
+            const acceptCounterBtn = document.getElementById('fcAcceptCounterBtn');
+            if (acceptCounterBtn) {
+                acceptCounterBtn.style.display = 'inline-flex';
+                acceptCounterBtn.textContent = `현재 제안 수락 (${baseFee}억 원)`;
+            }
         } else {
             if (input) input.disabled = true;
             if (btn) {
@@ -1714,6 +1894,105 @@ class TransferSystem {
                     }
                 }
             }, 900);
+        } else if (prevStep === 'SELL') {
+            const requestedFee = Math.round(val);
+            const initialFee = state.demandedFee;
+            const buyerTeamKey = state.buyerTeamKey;
+            const buyerTeamName = state.buyerTeamName || '상대 구단';
+            const marketValue = state.marketValue || 100;
+
+            this.setupChatInput('WAITING');
+            this.setFcDialogue(`"${buyerTeamName} 보드진이 요구액 ${requestedFee}억 원 조건을 검토 중입니다..."`);
+
+            setTimeout(() => {
+                if (!this.chatState) return;
+
+                let accepted = false;
+                if (requestedFee <= initialFee) {
+                    accepted = true;
+                } else {
+                    const increaseRatio = (requestedFee - initialFee) / initialFee;
+                    let chance = this.calculateFeeNegotiationChance(buyerTeamKey, requestedFee, marketValue);
+
+                    if (increaseRatio <= 0.08) {
+                        chance = Math.max(chance, 0.85);
+                    } else if (increaseRatio <= 0.18) {
+                        chance = Math.max(chance, 0.65);
+                    } else if (increaseRatio <= 0.30) {
+                        chance = Math.max(chance, 0.40);
+                    } else {
+                        chance = Math.min(chance, 0.20);
+                    }
+
+                    accepted = Math.random() <= chance;
+                }
+
+                if (accepted) {
+                    state.fee = requestedFee;
+                    this.updateTensionUI('LOW', state.round);
+                    const acceptCounterBtn = document.getElementById('fcAcceptCounterBtn');
+                    if (acceptCounterBtn) acceptCounterBtn.style.display = 'none';
+
+                    this.setFcDialogue(this.pickNegotiationLine('SELL_ACCEPT', { fee: requestedFee }));
+
+                    setTimeout(() => {
+                        const result = this.finalizeUserTransfer(
+                            player,
+                            buyerTeamKey,
+                            requestedFee,
+                            state.mailId,
+                            `${buyerTeamName}로의 이적 협상이 ${requestedFee}억 원에 타결되었습니다.`
+                        );
+                        if (!result.success) {
+                            alert(result.message);
+                        } else {
+                            alert(`${player.name} 선수가 ${buyerTeamName}로 ${requestedFee}억 원에 이적 완료되었습니다!`);
+                        }
+                        this.closeNegotiationChat();
+                        this.refreshAllUI();
+                        if (typeof mailManager !== 'undefined') {
+                            mailManager.renderList();
+                            const openedMail = mailManager.mails.find(m => m.id === state.mailId);
+                            if (openedMail) mailManager.openMail(openedMail);
+                        }
+                    }, 1800);
+                } else {
+                    const increaseRatio = (requestedFee - initialFee) / initialFee;
+                    const marketRatio = requestedFee / marketValue;
+
+                    if (state.round >= state.maxRounds || increaseRatio >= 0.50 || marketRatio >= 1.7) {
+                        this.updateTensionUI('HIGH', state.round);
+                        this.setFcDialogue(this.pickNegotiationLine('SELL_REJECT'));
+                        setTimeout(() => {
+                            alert(`${buyerTeamName}와의 협상이 결렬되었습니다.`);
+                            this.closeNegotiationChat();
+                        }, 2200);
+                    } else {
+                        state.round++;
+                        const stepBonus = Math.max(2, Math.round((requestedFee - initialFee) * 0.45));
+                        const newOffer = Math.min(requestedFee - 1, initialFee + stepBonus);
+                        state.counterFee = newOffer;
+                        state.demandedFee = newOffer;
+
+                        const nextTension = state.round >= 3 ? 'HIGH' : 'MEDIUM';
+                        this.updateTensionUI(nextTension, state.round);
+                        this.setFcDialogue(this.pickNegotiationLine('SELL_COUNTER', {
+                            fee: requestedFee,
+                            counter: newOffer,
+                            round: state.round
+                        }));
+
+                        const acceptCounterBtn = document.getElementById('fcAcceptCounterBtn');
+                        if (acceptCounterBtn) {
+                            acceptCounterBtn.style.display = 'inline-flex';
+                            acceptCounterBtn.textContent = `역제안 수락 (${newOffer}억 원)`;
+                        }
+
+                        this.setupChatInput('SELL');
+                        this.updateFcBudgetSummary();
+                    }
+                }
+            }, 900);
         }
     }
 
@@ -1840,17 +2119,15 @@ class TransferSystem {
     calculateOfferFeeByBudget(teamKey, marketValue, minMultiplier, maxMultiplier) {
         const budget = this.getTeamBudget(teamKey);
         const baseMultiplier = minMultiplier + Math.random() * (maxMultiplier - minMultiplier);
-        const budgetRatio = marketValue > 0 ? budget / marketValue : 1;
+        const rawFee = Math.max(1, Math.round(marketValue * baseMultiplier));
 
-        let budgetMultiplier = 1.0;
-        if (budget <= 0) budgetMultiplier = 0.72;
-        else if (budgetRatio < 0.5) budgetMultiplier = 0.8;
-        else if (budgetRatio < 1.0) budgetMultiplier = 0.9;
-        else if (budgetRatio < 1.8) budgetMultiplier = 1.0;
-        else if (budgetRatio < 3.0) budgetMultiplier = 1.08;
-        else budgetMultiplier = 1.15;
+        // [수정] 어떤 구단도 자기 실제 가용 예산의 95%를 초과하는 비현실적인 오퍼를 보낼 수 없음
+        if (budget > 0) {
+            const maxAffordable = Math.max(1, Math.round(budget * 0.95));
+            return Math.min(rawFee, maxAffordable);
+        }
 
-        return Math.max(1, Math.round(marketValue * baseMultiplier * budgetMultiplier));
+        return rawFee;
     }
 
     calculateFeeNegotiationChance(teamKey, targetFee, marketValue) {
@@ -2459,50 +2736,77 @@ class TransferSystem {
         }
     }
 
-    // [수정] 유저 선수를 위한 제안 생성 후 메일로 발송
+    // [수정] 유저 선수를 위한 제안 생성 후 메일로 발송 (현실적인 구단 예산 반영)
     processUserTransferOffers(player) {
         const marketValue = this.calculatePlayerPrice(player, gameData.selectedTeam);
         const offers = [];
         const allOtherTeams = Object.keys(allTeams).filter(t => t !== gameData.selectedTeam);
 
-        // 1. 빅클럽 제안
-        const richTeams = allOtherTeams.filter(t => this.getTeamBudget(t) >= 1000 || allTeams[t].league === 1);
-        const bigSpender = richTeams.length > 0 ? richTeams[Math.floor(Math.random() * richTeams.length)] : allOtherTeams[0];
+        // 1. 해당 선수의 몸값을 실제로 감당할 수 있는 구단들만 엄선 (예산이 시장가의 70% 이상인 구단)
+        const minAffordableBudget = Math.max(20, Math.round(marketValue * 0.7));
+        let eligibleTeams = allOtherTeams.filter(t => this.getTeamBudget(t) >= minAffordableBudget);
+
+        // 몸값이 매우 높은 특급 선수의 경우, 전 세계 예산 상위 빅클럽들 중에서만 선정
+        if (eligibleTeams.length < 3) {
+            eligibleTeams = [...allOtherTeams]
+                .sort((a, b) => this.getTeamBudget(b) - this.getTeamBudget(a))
+                .slice(0, 12);
+        }
+
+        const pickedTeams = new Set();
+        const pickTeamFrom = (list) => {
+            const avail = list.filter(t => !pickedTeams.has(t));
+            if (avail.length === 0) return null;
+            const chosen = avail[Math.floor(Math.random() * avail.length)];
+            pickedTeams.add(chosen);
+            return chosen;
+        };
+
+        // 1. 최상위 빅클럽 오퍼 (최고 수준의 제안)
+        const sortedByBudget = [...eligibleTeams].sort((a, b) => this.getTeamBudget(b) - this.getTeamBudget(a));
+        const topTierPool = sortedByBudget.slice(0, Math.max(3, Math.ceil(sortedByBudget.length * 0.35)));
+        const bigSpender = pickTeamFrom(topTierPool) || pickTeamFrom(eligibleTeams) || allOtherTeams[0];
+
         offers.push({
             teamKey: bigSpender,
             teamName: teamNames[bigSpender] || bigSpender,
-            fee: this.calculateOfferFeeByBudget(bigSpender, marketValue, 1.0, 1.1),
-            message: "우리는 해당 선수의 가치를 높게 평가하며, 시장가에 준하는 금액을 제시합니다."
+            fee: this.calculateOfferFeeByBudget(bigSpender, marketValue, 1.0, 1.12),
+            message: "우리는 선수의 뛰어난 기량을 높게 평가하며, 시장가에 걸맞은 최고 수준의 이적료를 공식 제안합니다."
         });
 
-        // 2. 같은 리그 라이벌 혹은 중위권
-        const sameLeague = allOtherTeams.filter(t => allTeams[t].league === gameData.currentLeague && t !== bigSpender);
-        const rational = sameLeague.length > 0 ? sameLeague[Math.floor(Math.random() * sameLeague.length)] : allOtherTeams[1 % allOtherTeams.length];
+        // 2. 같은 리그 라이벌 혹은 상위권 합리적 구단
+        const sameLeagueOrContenders = eligibleTeams.filter(t => 
+            (allTeams[t] && allTeams[t].league === gameData.currentLeague) || 
+            this.getTeamBudget(t) >= marketValue * 0.85
+        );
+        const rational = pickTeamFrom(sameLeagueOrContenders) || pickTeamFrom(eligibleTeams) || allOtherTeams[1 % allOtherTeams.length];
+
         offers.push({
             teamKey: rational,
             teamName: teamNames[rational] || rational,
-            fee: this.calculateOfferFeeByBudget(rational, marketValue, 0.85, 0.95),
-            message: "이적 명단에 올라온 만큼, 합리적인 수준의 할인을 기대하고 있습니다."
+            fee: this.calculateOfferFeeByBudget(rational, marketValue, 0.88, 0.96),
+            message: "선수 영입을 위해 구단 이사회 승인을 거쳐 합리적인 수준의 이적료를 공식 전달합니다."
         });
 
-        // 3. 포지션 부족 팀
-        const needy = allOtherTeams.filter(t => {
-            if (t === bigSpender || t === rational) return false;
-            const pCount = teams[t].filter(p => p.position === player.position).length;
+        // 3. 포지션 보강이 절실한 구단
+        const needy = eligibleTeams.filter(t => {
+            const pCount = (teams[t] || []).filter(p => p.position === player.position).length;
             return pCount <= 4;
         });
-        const needyTeam = needy.length > 0 ? needy[Math.floor(Math.random() * needy.length)] : allOtherTeams[2 % allOtherTeams.length];
+        const needyTeam = pickTeamFrom(needy) || pickTeamFrom(eligibleTeams) || allOtherTeams[2 % allOtherTeams.length];
+
         offers.push({
             teamKey: needyTeam,
             teamName: teamNames[needyTeam] || needyTeam,
-            fee: this.calculateOfferFeeByBudget(needyTeam, marketValue, 0.75, 0.9),
-            message: `현재 팀 사정이 넉넉지 않아 최대로 제안할 수 있는 금액은 여기까지입니다.`
+            fee: this.calculateOfferFeeByBudget(needyTeam, marketValue, 0.78, 0.88),
+            message: "우리 구단의 취약 포지션 보강을 위해 최대로 가용할 수 있는 예산을 투입하여 진정성 있게 제안합니다."
         });
 
-        // 메일 발송
+        // 메일 발송 (현실적인 비서 보고 멘트)
         if (typeof mailManager !== 'undefined') {
-            const mailTitle = `[이적 오퍼] ${player.name}에 대한 제안이 도착했습니다`;
-            const mailContent = `${player.name} 선수에 대해 3개 구단이 영입 의사를 밝혀왔습니다. 아래 제안 중 하나를 선택해 주세요.`;
+            const mailTitle = `[이적 오퍼] ${player.name}에 대한 ${offers.length}개 구단 제안 도착`;
+            const mailContent = `감독님, ${player.name} 선수에 대해 ${offers.length}개 구단에서 정식 영입 제안서를 보내왔습니다.\n\n` +
+                `각 구단의 조건을 검토해 보시고 바로 수락하시거나, 마음에 드는 구단과 추가 이적료 협상을 진행해 보실 수 있습니다.`;
             mailManager.addMail(mailTitle, "비서 김지수", mailContent, 'user_transfer_list_offers', {
                 playerName: player.name,
                 offers: offers
@@ -2540,51 +2844,7 @@ class TransferSystem {
     }
 
     negotiateUserOffer(playerName, targetTeamKey, currentFee, mailId) {
-        const teamPlayers = teams[gameData.selectedTeam];
-        const player = teamPlayers.find(p => p.name === playerName);
-
-        if (!player) {
-            alert("해당 선수가 팀에 없습니다.");
-            return;
-        }
-
-        const marketValue = this.calculatePlayerPrice(player, gameData.selectedTeam);
-        const suggestedFee = window.prompt(
-            `${player.name}의 이적료를 협상합니다.\n시장가: ${marketValue}억\n현재 제안: ${currentFee}억\n\n원하는 이적료를 입력하세요.`,
-            String(Math.max(1, Math.round(currentFee * 0.9)))
-        );
-
-        if (suggestedFee === null) return;
-
-        const negotiatedFee = Math.round(Number(suggestedFee));
-        if (!Number.isFinite(negotiatedFee) || negotiatedFee <= 0) {
-            return;
-        }
-
-        const chance = this.calculateFeeNegotiationChance(targetTeamKey, negotiatedFee, marketValue);
-        const roll = Math.random();
-
-        if (roll > chance) {
-            alert(`${teamNames[targetTeamKey] || targetTeamKey}가 ${negotiatedFee}억 제안을 거절했습니다.\n(성공 확률: ${Math.round(chance * 100)}%)\n\n다시 더 높은 금액으로 시도하거나 기존 제안을 수락할 수 있습니다.`);
-            return;
-        }
-
-        const result = this.finalizeUserTransfer(
-            player,
-            targetTeamKey,
-            negotiatedFee,
-            mailId,
-            `${teamNames[targetTeamKey] || targetTeamKey}와 ${negotiatedFee}억으로 협상에 성공했습니다.`
-        );
-
-        if (!result.success) {
-            alert(result.message);
-            return;
-        }
-
-        alert(`${player.name}의 이적료를 ${negotiatedFee}억으로 협상 완료했습니다.`);
-        this.refreshAllUI();
-        if (typeof mailManager !== 'undefined') mailManager.renderList();
+        this.openSaleNegotiation(playerName, targetTeamKey, currentFee, mailId);
     }
 
     // [신규] 제안 거절 및 명단 제외 (메일용)
@@ -3663,3 +3923,37 @@ transferNewsStyle.textContent = `
     }
 `;
 document.head.appendChild(transferNewsStyle);
+
+// [디버그/콘솔용 헬퍼] 원하는 선수(또는 이적 명단 등록 선수)에게 즉시 3개 구단 오퍼 발생
+window.triggerOffer = function(playerName) {
+    if (!gameData || !gameData.selectedTeam || !teams[gameData.selectedTeam]) {
+        console.warn("[triggerOffer] 게임 데이터나 팀 정보를 찾을 수 없습니다.");
+        return;
+    }
+
+    const teamPlayers = teams[gameData.selectedTeam];
+    let targetPlayer = null;
+
+    if (playerName) {
+        targetPlayer = teamPlayers.find(p => p.name === playerName || p.name.includes(playerName));
+    } else if (gameData.userTransferList && gameData.userTransferList.length > 0) {
+        const entry = gameData.userTransferList.find(e => !e.isOfferSent) || gameData.userTransferList[0];
+        targetPlayer = entry.player;
+    } else {
+        targetPlayer = teamPlayers[0];
+    }
+
+    if (!targetPlayer) {
+        console.warn(`[triggerOffer] 대상 선수를 찾을 수 없습니다: ${playerName || '스쿼드 선수 없음'}`);
+        return;
+    }
+
+    transferSystem.processUserTransferOffers(targetPlayer);
+    if (typeof mailManager !== 'undefined') {
+        mailManager.renderList();
+        const latestMail = mailManager.mails[0]; // unshift로 들어가므로 0번 인덱스가 최신 메일
+        if (latestMail) mailManager.openMail(latestMail);
+        if (typeof showTab === 'function') showTab('mail');
+    }
+    console.log(`%c[이적 오퍼 생성] ${targetPlayer.name} 선수의 영입 제안 메일이 도착했습니다!`, 'color: #10b981; font-weight: bold; font-size: 13px;');
+};

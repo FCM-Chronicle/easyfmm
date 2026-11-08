@@ -335,6 +335,7 @@ class RealSoccerEngine {
         this._attackMemIdx = { home: 0, away: 0 };
         this._fwBurstCooldown = 0;
         this._fwLinkupCooldown = 0;
+        this._postKickoffDefRealignTicks = 32;
 
         this.teamStrength = { home: 70, away: 70 };
         this.teamStrength.home = this.calcTeamStrength(homeSquad);
@@ -896,6 +897,7 @@ class RealSoccerEngine {
         this._attackMemIdx = { home: 0, away: 0 };
         this._fwBurstCooldown = 0;
         this._fwLinkupCooldown = 0;
+        this._postKickoffDefRealignTicks = 32;
         this.players.forEach(p => {
             p.burstTimer = 0;
             p.forceReturnTimer = 0;
@@ -908,6 +910,9 @@ class RealSoccerEngine {
             p._dribbleCommit = 0;
             p._dribbleDistance = 0;
             p._kickoffTicks = 0;
+            p._postPassSupportTicks = 0;
+            p._postPassSupportTarget = null;
+            p._isTriangleSupport = false;
         });
 
         let kicker = null;
@@ -978,6 +983,55 @@ class RealSoccerEngine {
         return profiles[this.getTeamTactic(teamId)] || profiles.balanced;
     }
 
+    // ─────────────────────────────────────────────────────────────
+    //  [6단계] 상대 전술 프로파일 실시간 판별
+    // ─────────────────────────────────────────────────────────────
+    _getOpponentTacticalProfile(tid) {
+        const opp = (tid === 'home' ? 'away' : 'home');
+        const oppTactic = this.getTeamTactic(opp);
+        const oppTSet = (this.tacticSettings && this.tacticSettings[opp]) || {};
+        const oppDFs = this.players.filter(p => p.teamId === opp && p.position === 'DF');
+
+        // 1. 수비 라인 높이 판별 (하이라인 vs 로우블록)
+        let isHighLine = oppTSet.defensiveLine === 'high' || oppTactic === 'gegenpress' || oppTactic === 'totalFootball';
+        let isLowBlock = oppTSet.defensiveLine === 'low' || oppTactic === 'catenaccio' || oppTactic === 'parkBus';
+        if (oppDFs.length) {
+            const avgDfX = oppDFs.reduce((sum, p) => sum + p.x, 0) / oppDFs.length;
+            if (opp === 'home') {
+                if (avgDfX >= 44) isHighLine = true;
+                if (avgDfX <= 26) isLowBlock = true;
+            } else {
+                if (avgDfX <= 56) isHighLine = true;
+                if (avgDfX >= 74) isLowBlock = true;
+            }
+        }
+
+        // 2. 압박 강도 판별
+        const isAggressivePress = oppTSet.pressIntensity === 'aggressive' || oppTactic === 'gegenpress' || oppTactic === 'totalFootball';
+        const isCautiousPress = oppTSet.pressIntensity === 'cautious' || oppTactic === 'catenaccio' || oppTactic === 'parkBus';
+
+        // 3. 중앙 밀집도 판별 (중앙 32~68 채널에 위치한 상대 미드필더/수비수 수)
+        const centralDefendersCount = this.players.filter(p => p.teamId === opp && p.position !== 'GK' && p.y >= 32 && p.y <= 68).length;
+        const isCentralDense = centralDefendersCount >= 6 || oppTSet.width === 'narrow' || oppTactic === 'catenaccio' || oppTactic === 'parkBus';
+
+        // 4. 빌드업 스타일 판별
+        const isDirectOpponent = oppTactic === 'longBall' || oppTactic === 'twoLine' || oppTactic === 'counter' || oppTSet.buildUp === 'direct';
+        const isPossessionOpponent = oppTactic === 'tikitaka' || oppTactic === 'possession' || oppTSet.buildUp === 'short';
+
+        return {
+            opp,
+            oppTactic,
+            oppTSet,
+            isHighLine,
+            isLowBlock,
+            isAggressivePress,
+            isCautiousPress,
+            isCentralDense,
+            isDirectOpponent,
+            isPossessionOpponent
+        };
+    }
+
     _checkAIInGameTactics(minute) {
         if (minute < 65) return;
         const userSide = (this.matchContext && this.matchContext.isHomeGame) ? 'home' : 'away';
@@ -1042,7 +1096,9 @@ class RealSoccerEngine {
             if (p.forceReturnTimer > 0) p.forceReturnTimer--;
             if (p._timer > 0) p._timer--;
             if (p._kickoffTicks > 0) p._kickoffTicks--;
+            if (p._postPassSupportTicks > 0) p._postPassSupportTicks--;
         });
+        if (this._postKickoffDefRealignTicks > 0) this._postKickoffDefRealignTicks--;
 
         // 1) BALL FLIGHT
         if (this.ball.state === BallState.IN_FLIGHT) {
@@ -1393,6 +1449,13 @@ class RealSoccerEngine {
                 }
             }
         }
+        if (!bestPassTarget || !Number.isFinite(bestPassScore)) {
+            const safeTarget = this._findSafeCirculationTarget(player, phase);
+            if (safeTarget) {
+                bestPassTarget = safeTarget;
+                bestPassScore = this._scorePass(player, safeTarget, phase);
+            }
+        }
 
         const killerPass = this._findKillerPassTarget(player, phase);
         if (killerPass && killerPass.score > bestPassScore + 6) {
@@ -1448,6 +1511,15 @@ class RealSoccerEngine {
         if (player._kickoffTicks > 0 && bestPassTarget && Number.isFinite(bestPassScore)) {
             this._executePassV3(player, bestPassTarget, phase);
             return;
+        }
+
+        // [6단계] 역습 전환 시 스트라이커 단독 질주 억제 & 열린 전방 동료에게 즉시 킬패스 방출
+        if (phase === 'counter' && bestPassTarget && Number.isFinite(bestPassScore)) {
+            const isFwd = Math.abs(bestPassTarget.x - goalX) < distToGoal - 2.0;
+            if (isFwd && !underPressure) {
+                this._executePassV3(player, bestPassTarget, phase);
+                return;
+            }
         }
         const carryPassIsTooDeep = bestPassTarget &&
             Math.abs(bestPassTarget.x - goalX) > distToGoal + 8;
@@ -1623,21 +1695,20 @@ class RealSoccerEngine {
         if (bestPassTarget && player.position !== 'DF' && (!isCutback && !isCross) &&
             roleCanCarry &&
             (!isBuildUpFirstTactic || passScore < carryScore - 16) &&
-            (wingerDribbleBias || midfielderCarryBias || forwardDribbleBias ||
-                (!underPressure && frontCrowd <= 1 && carryScore >= passScore - 4))) {
+            (wingerDribbleBias || midfielderCarryBias || forwardDribbleBias)) {
             player._dribbleCommit = isFlankWinger ? 2 : 1;
             if (player.burstTimer <= 0 && isConfidentDribbler && !underPressure && frontCrowd <= 1) player.burstTimer = 9;
             this._dribbleV3(player, goalX, moveDir, phase, underPressure, isWinger, distToGoal, nDef, effectSpeed);
             return;
         }
 
-        // [볼 순환(Circulation) & 패스 전개]
-        // 패스가 조금만 더 나은 상황에서도 팀 플레이를 우선한다.
-        if (bestPassTarget && (passScore >= carryScore - (isShortCombinationTactic ? -8 : 6) ||
+        // [4단계] 볼 순환(Circulation) & 패스 전개 (패스 우선순위: 전진 > 지원 > 원투 > 재순환 > 최후 수단 드리블)
+        if (bestPassTarget && Number.isFinite(bestPassScore) && (
+            passScore >= carryScore - (isShortCombinationTactic ? 20 : 6) ||
             player.position === 'DF' || underPressure || (isBuildUpFirstTactic && phase === 'building'))) {
             const isBackwardPass = Math.abs(bestPassTarget.x - goalX) > distToGoal + 1.5;
-            // 공격수(FW) 또는 전방(골문 32m 이내)까지 전진한 공격 자원이 컷백/크로스가 아닌 백패스를 주려 할 때 차단!
-            if ((player.position === 'FW' || distToGoal <= 32) && isBackwardPass && !isCutback && !isCross) {
+            // 전방(골문 28m 이내) 공격 자원이 백패스를 선택하려 할 때, 더 좋은 전방 대안이 있으면 전방 우선!
+            if ((player.position === 'FW' || distToGoal <= 28) && isBackwardPass && !isCutback && !isCross) {
                 let forwardAlt = null;
                 let forwardAltScore = -Infinity;
                 for (const tm of teammates) {
@@ -1654,7 +1725,7 @@ class RealSoccerEngine {
                     this._executePassV3(player, forwardAlt, phase);
                     return;
                 }
-                // 전진 선택지가 없으면 무리한 드리블 대신 안전한 재순환을 허용한다.
+                // 전진 선택지가 없으면 무리한 억지 드리블 대신 안전한 2선/3선 재순환 실행
                 this._executePassV3(player, bestPassTarget, phase);
                 return;
             }
@@ -1662,8 +1733,18 @@ class RealSoccerEngine {
             return;
         }
 
-        // 4) DRIBBLE CARRY — 패스 선택지가 없을 때만 최후 수단으로 실행한다.
-        if (!roleCanCarry && bestPassTarget) {
+        // 4) 최후의 수단: 패스 선택지가 전혀 없거나 극도로 불리할 때만 드리블 carry / 볼 보호
+        if (bestPassTarget && Number.isFinite(bestPassScore) && !roleCanCarry) {
+            this._executePassV3(player, bestPassTarget, phase);
+            return;
+        }
+        if (bestPassTarget && Number.isFinite(bestPassScore) && (player.position === 'FW' && (underPressure || frontCrowd >= 2))) {
+            // [6단계] 고립된 스트라이커(ST)는 무리한 단독 돌파 대신 원터치 벽패스/지원 패스 선택!
+            this._executePassV3(player, bestPassTarget, phase);
+            return;
+        }
+        if (bestPassTarget && Number.isFinite(bestPassScore) && (!underPressure && frontCrowd >= 2)) {
+            // 전방이 밀집 수비로 꽉 막혔을 때는 무리한 단독 드리블 대신 패스 선택!
             this._executePassV3(player, bestPassTarget, phase);
             return;
         }
@@ -1800,11 +1881,14 @@ class RealSoccerEngine {
         if (phase === 'building' && to.position === 'FW' && !isDirectBuildUp && !isLinkupTarget) {
             if (!isBurstTarget) return -Infinity;
         }
-        if (phase !== 'finalThird' && to.position === 'FW' && oppNearRecv >= 2 && !isLinkupTarget && !isBurstTarget) {
-            return -Infinity;
-        }
-
         let score = 0;
+        if (oppNearRecv >= 2) {
+            if (phase !== 'finalThird' && to.position === 'FW' && !isLinkupTarget && !isBurstTarget) {
+                return -Infinity;
+            }
+            score -= (phase === 'finalThird' ? 24 : 50);
+        }
+        if (oppNearRecv >= 3 && phase !== 'finalThird') return -Infinity;
 
         // [공격 다변화: 컷백, 크로스, 사이드 체인지 전환, 2대1 원투 연계 판별]
         const isCutbackCandidate = (dFromGoal <= 18 && Math.abs(from.y - 50) > 16 && dToGoal <= 26 && Math.abs(to.y - 50) <= 24 && dToGoal >= dFromGoal + 2);
@@ -1812,12 +1896,11 @@ class RealSoccerEngine {
         const isSwitchPlay = Math.abs(from.y - 50) > 18 && Math.abs(to.y - 50) > 18 && (Math.sign(from.y - 50) !== Math.sign(to.y - 50)) && dist > 28;
         const isOneTwoCandidate = from._receivedFromId && to.id === from._receivedFromId;
 
-        // [전방 공격수 및 파이널 서드 백패스 원천 차단]
-        // 기왕 앞까지 전진해 놓고(골문 32m 이내 또는 FW) 컷백이 아닌데 뒤로 빼는 패스 엄격 금지!
+        // [4단계] 후퇴 패스 정상화: 과도한 후퇴만 제한하고 적당한 후퇴/재순환은 허용
         if (back && !isCutbackCandidate) {
-            if (dFromGoal <= 28 && (dToGoal - dFromGoal > 2.5)) return -Infinity;
-            if (from.position === 'FW' && (to.position === 'DF' || dToGoal - dFromGoal > 5 || dFromGoal <= 36)) return -Infinity;
-            if (dFromGoal <= 34) score -= 120;
+            if (dFromGoal <= 18 && (dToGoal - dFromGoal > 10 || to.position === 'DF')) return -Infinity;
+            if (from.position === 'FW' && to.position === 'DF' && dToGoal - dFromGoal > 16) return -Infinity;
+            if (to.position === 'GK' && dFromGoal <= 55) return -Infinity;
         }
 
         // [장거리 패스 감점 강화 & 탁구 축구 억제]
@@ -1845,13 +1928,25 @@ class RealSoccerEngine {
         }
 
         // 공격수도 고립되면 돌파보다 벽패스/원투패스를 선택할 수 있어야 한다.
-        // 드리블을 금지하지 않고, 실제로 연결 가능한 동료의 패스 가치를 높인다.
         if (from.position === 'FW' && isSafeSupportTarget) {
-            if (to.position === 'MF') score += 24;
-            else if (to.position === 'FW') score += 16;
-            else if (to.position === 'DF' && fromUnderPressure) score += 12;
+            if (to.position === 'MF') score += 26;
+            else if (to.position === 'FW') score += 18;
+            else if (to.position === 'DF' && fromUnderPressure) score += 14;
         }
-        if (from.position === 'FW' && isOneTwoCandidate && !back) score += 18;
+        if (from.position === 'FW' && isOneTwoCandidate && !back) score += 22;
+
+        // [4단계] 삼각형 유지 보너스: from과 to 사이에 제3의 아군이 삼각형(열린 패스 각도)을 형성할 때
+        const matesPool = this.players.filter(p => p.teamId === tid && p !== from && p !== to && p.position !== 'GK');
+        const hasTriangleSupport = matesPool.some(tm => {
+            const d1 = Math.hypot(from.x - tm.x, from.y - tm.y);
+            const d2 = Math.hypot(to.x - tm.x, to.y - tm.y);
+            if (d1 < 5 || d1 > 22 || d2 < 5 || d2 > 22) return false;
+            const area = Math.abs((to.x - from.x) * (tm.y - from.y) - (to.y - from.y) * (tm.x - from.x));
+            return area > 24;
+        });
+        if (hasTriangleSupport && dist <= 24 && laneBlock === 0) {
+            score += 16;
+        }
 
         // [볼 순환(Possession Circulation) & 전개 템포 조절]
         const isFrontBlocked = this._isFrontalBlocked(from, goalX);
@@ -1864,44 +1959,118 @@ class RealSoccerEngine {
         } else if (later) {
             // 횡패스: 피치를 길게 가로지르지 않는 인접 동료(yShift <= 22)에게만 순환 보너스 부여
             if ((isFrontBlocked || frontDefCount >= 2) && yShift <= 22) {
-                if (oppNearRecv === 0) score += 28;
-                else score += 10;
+                if (oppNearRecv === 0) score += 30;
+                else score += 12;
             } else {
-                score += (isLowTempo && yShift <= 18 ? 6 : -8);
+                score += (isLowTempo && yShift <= 18 ? 8 : -6);
             }
         } else if (back) {
             if (isCutbackCandidate) {
                 score += 95; // 컷백 패스는 최우선 찬스로 가산!
-            } else if (from.position === 'FW' || dFromGoal <= 32) {
-                score -= 110; // 공격수 및 전방 진입 선수의 후방 백패스 강력 감점!
+            } else if (from.position === 'FW') {
+                // 공격수가 전방이 막혔거나 압박을 받을 때, 열린 2선 미드필더에게 내주는 짧은 재순환은 적극 장려!
+                const isShortDropBack = (to.position === 'MF' || ['DM', 'CM', 'AM'].includes(to.role)) &&
+                    dist <= 22 && oppNearRecv <= 1 && laneBlock === 0 && (dToGoal - dFromGoal <= 14);
+                if ((isFrontBlocked || frontDefCount >= 2 || fromUnderPressure) && isShortDropBack) {
+                    score += 38; // 2선 원투/재순환 찬스 가산
+                } else if (dFromGoal <= 22) {
+                    score -= 90; // 박스 안 슛 찬스에서 불필요한 백패스는 감점
+                } else {
+                    score -= (isLowTempo ? 10 : 25);
+                }
+            } else if (dFromGoal <= 32 && !isCutbackCandidate) {
+                const isRecycleToMid = to.position === 'MF' && dist <= 20 && oppNearRecv <= 1;
+                if ((isFrontBlocked || frontDefCount >= 2 || fromUnderPressure) && isRecycleToMid) {
+                    score += 32;
+                } else {
+                    score -= 35;
+                }
             } else if ((isFrontBlocked || frontDefCount >= 2 || fromUnderPressure) && oppNearRecv === 0 && laneBlock === 0 && yShift <= 22) {
                 // 중원/후방에서 전방이 밀집 수비로 꽉 막혔을 때만 인접 노마크 동료에게 재정비 빌드업 패스!
-                score += 40;
-                if (isLowTempo) score += 12;
+                score += 42;
+                if (isLowTempo) score += 14;
             } else if (phase === 'building' && yShift <= 22) {
-                score += (oppNearRecv === 0 ? 15 : -15);
+                score += (oppNearRecv === 0 ? 20 : -15);
             } else {
-                score -= (isLowTempo ? 15 : 35);
+                score -= (isLowTempo ? 12 : 28);
             }
         }
 
-        // [2단계] 전술별 패스 의도 차별화
+        // [4단계] 전술별 패스 의도 차별화
         const tactic = this.getTeamTactic(tid);
         if (tactic === 'tikitaka') {
-            if (isOneTwoCandidate && !back) score += 22;
-            if (isBurstTarget && forward && isSameOrAdjChannel) score += 24;
-            if (later && dist <= 20 && yShift <= 18 && oppNearRecv <= 1) score += 12;
+            if (isOneTwoCandidate && !back) score += 28;
+            if (isBurstTarget && forward && isSameOrAdjChannel) score += 26;
+            if (hasTriangleSupport && dist <= 20) score += 20;
+            if (dist >= 6 && dist <= 18 && oppNearRecv <= 1) score += 22;
+            if (dist > 28) score -= 25;
         } else if (tactic === 'possession') {
-            if (later && dist <= 24 && yShift <= 22 && oppNearRecv <= 1) score += 16;
-            if (back && from.position !== 'FW' && fromUnderPressure && laneBlock === 0) score += 10;
-            if (forward && dist > 28) score -= 10;
+            if (later && dist <= 24 && yShift <= 22 && oppNearRecv <= 1) score += 24;
+            if (back && oppNearRecv <= 1 && laneBlock === 0 && dist <= 22) score += 26;
+            if (hasTriangleSupport && dist <= 22) score += 18;
+            if (forward && dist > 26) score -= 14;
         } else if (tactic === 'lavolpiana') {
-            if (from.position === 'DF' && to.position === 'MF' && forward && yShift <= 26) score += 22;
-            if (from.position === 'MF' && to.position === 'DF' && back && yShift <= 22) score += 12;
+            if (from.position === 'DF' && to.position === 'MF' && forward && yShift <= 26) score += 28;
+            if (from.position === 'MF' && to.position === 'DF' && back && yShift <= 22) score += 18;
+            if (from.position === 'DF' && ['DM', 'CDM', 'DLP', 'REG'].includes(to.role)) score += 34;
+            if (['DM', 'CDM', 'DLP', 'REG'].includes(from.role) && (to.position === 'MF' || to.role.includes('B'))) score += 30;
         } else if (tactic === 'counter' || tactic === 'longBall') {
-            if (forward && dist >= 12) score += 18;
-            if (isBurstTarget && forward) score += 18;
-            if (later && dist < 12) score -= 8;
+            if (forward && dist >= 14) score += 22;
+            if (isBurstTarget && forward) score += 22;
+            if (later && dist < 12) score -= 6;
+            if (tactic === 'longBall' && isFrontBlocked && oppNearRecv <= 1 && dist <= 22) score += 20;
+        }
+
+        // [6단계] 상대 전술 상성 판별 및 맞춤 패스 선택
+        const oppProfile = this._getOpponentTacticalProfile(tid);
+
+        // 1) 상대 하이라인 공략: 뒷공간 침투 패스, 빠른 전방 전환
+        if (oppProfile.isHighLine) {
+            if (forward && (to._fwMode === 'burst' || to.burstTimer > 0)) {
+                score += 36; // 뒷공간 킬패스 최우선 가산!
+            } else if (forward && dist >= 16 && (to.position === 'FW' || ['W', 'IW', 'IF'].includes(to.role))) {
+                score += 26;
+            }
+            if (back && !isCutbackCandidate) score -= 12;
+        }
+
+        // 2) 상대 로우블록(밀집 수비) 공략: 측면 벌리기, 컷백, 2선 중거리/세컨드볼 연계
+        if (oppProfile.isLowBlock) {
+            if (isCutbackCandidate) score += 35; // 컷백 최우선
+            if (Math.abs(to.y - 50) > 18 && isSameOrAdjChannel) score += 28; // 측면 벌리기
+            const isLateSecondWave = to.position === 'MF' && ['AM', 'CM', 'BBM', 'SS'].includes(to.role) && dToGoal >= 18 && dToGoal <= 28;
+            if (isLateSecondWave) score += 28; // 2선 쇄도 자원 활용
+            if (forward && dist < 18 && oppNearRecv >= 2 && !isBurstTarget) score -= 30; // 좁은 중앙 틈새 억지 투입 방지
+            if (later && oppNearRecv <= 1 && dist <= 22) score += 22; // 블록을 흔들기 위한 횡순환
+        }
+
+        // 3) 상대 강한 전방 압박(게겐프레싱) 공략: 원터치 연계, 후방 안전 탈출, 반대전환
+        if (oppProfile.isAggressivePress) {
+            if (isOneTwoCandidate && !back) score += 32; // 원터치 리턴 패스 탈압박
+            if (isSwitchPlay) score += 34; // 압박이 쏠린 반대편 약점으로 대각 전환
+            if (back && to.position !== 'FW' && oppNearRecv <= 1 && laneBlock === 0) score += 24; // 후방 안전 재순환
+        }
+
+        // 4) 상대 중앙 밀집(Narrow Defense) 공략: 측면 공간 활용
+        if (oppProfile.isCentralDense && !oppProfile.isLowBlock) {
+            if (Math.abs(to.y - 50) > 20) score += 26; // 측면으로 벌리는 패스
+            if (isSwitchPlay) score += 28;
+            if (Math.abs(from.y - 50) <= 15 && Math.abs(to.y - 50) <= 15 && forward && oppNearRecv >= 2) score -= 25;
+        }
+
+        // 5) 경기 상황별(스코어 & 시간) 전술 동적 보정
+        const myScore = (tid === 'home' ? this.homeScore : this.awayScore) || 0;
+        const oppScore = (tid === 'home' ? this.awayScore : this.homeScore) || 0;
+        const scoreDiff = myScore - oppScore;
+
+        if (scoreDiff >= 1) {
+            // 앞서고 있을 때: 무리한 전진보다 점유와 안전한 재순환 강화
+            if ((later || back) && oppNearRecv <= 1 && laneBlock === 0 && dist <= 24) score += 18;
+            if (forward && dist > 32) score -= 14;
+        } else if (scoreDiff <= -1) {
+            // 뒤지고 있을 때: 과감한 전진 패스와 박스 침투 우선
+            if (forward && (to.position === 'FW' || isBurstTarget)) score += 22;
+            if (back && !isCutbackCandidate) score -= 16;
         }
 
         // 수비에 둘러싸인 수신자는 빌드업에서 패스 후보가 되지 않는다.
@@ -2236,6 +2405,8 @@ class RealSoccerEngine {
         from._ballHoldTicks = 0;
         from._dribbleCommit = 0;
         from._dribbleDistance = 0;
+        from._postPassSupportTicks = 28;
+        from._postPassSupportTarget = to;
         this.ball.state = BallState.IN_FLIGHT;
         this.ball._flightOrigin = { x: from.x, y: from.y };
         this.ball.lastOwner = from;
@@ -3122,6 +3293,7 @@ class RealSoccerEngine {
             });
         }
         let presser = null;
+        let support1 = null, support2 = null;
         if (attacking) {
             let mD = 999;
             const refX = (this.ball.state === BallState.IN_FLIGHT && this.ball.targetPos) ? this.ball.targetPos.x : this.ball.x;
@@ -3133,10 +3305,24 @@ class RealSoccerEngine {
                     mD = d; presser = p;
                 }
             });
+
+            // [4단계] 삼각형 유지: 공 가진 선수 주변에 최소 2개의 지원 선택지(support1, support2) 상시 확보
+            const carr = this.ball.owner || (this.ball.state === BallState.IN_FLIGHT ? this.ball.intendedReceiver : null);
+            const mates = this.players.filter(p =>
+                p.teamId === attacking && p !== carr && p.position !== 'GK' && p.burstTimer <= 0
+            );
+            mates.sort((a, b) => Math.hypot(a.x - refX, a.y - refY) - Math.hypot(b.x - refX, b.y - refY));
+            if (mates.length > 0) support1 = mates[0];
+            if (mates.length > 1) {
+                support2 = mates.find(m => m !== support1 && (Math.sign(m.y - refY) !== Math.sign(support1.y - refY) || Math.abs(m.y - support1.y) > 12)) || mates[1];
+            }
         }
         this.players.forEach(p => {
             if (p === this.ball.owner) return;
             if (p.position === 'GK') { this._gkOffBall(p); return; }
+
+            p._isTriangleSupport = (p === support1 || p === support2);
+            p._supportRole = (p === support1 ? 1 : (p === support2 ? 2 : 0));
 
             const behavior = this.getRoleBehavior(p.role);
             const effSpd = this.getEffectiveStat(p, 'speed');
@@ -3171,13 +3357,21 @@ class RealSoccerEngine {
                 this._physicsStep(p, tx, ty, ms); return;
             }
 
-            if (this.ball.state === BallState.IN_FLIGHT && this.ball.lastOwner === p && p.position !== 'DF') {
-                const lines = this._getTeamBlockLines(p.teamId);
-                const chaseX = p.position === 'FW' ? lines.fwX - fwd * 3 : lines.mfX - fwd * 1;
-                tx = isHome ? Math.min(p.x + 8, chaseX) : Math.max(p.x - 8, chaseX);
-                ty = p.slotY + (this.ball.y - p.slotY) * 0.18;
-                ms = 0.35;
-                this._physicsStep(p, tx, ty, ms); return;
+            // [4단계] 패스 직후 움직임: 패스한 선수가 멈추지 않고 삼각형을 유지하며 재지원 위치로 이동
+            if (p._postPassSupportTicks > 0 && p._postPassSupportTarget && p.position !== 'GK') {
+                const to = p._postPassSupportTarget;
+                if (p.burstTimer > 0) {
+                    tx = isHome ? to.x + 6 : to.x - 6;
+                    ty = p.slotY;
+                    ms = 0.88 * clamp(speedFactor, 0.85, 1.8);
+                } else {
+                    const side = (p.y <= to.y ? -1 : 1);
+                    tx = isHome ? (to.x - 4.5) : (to.x + 4.5);
+                    ty = clamp(to.y + side * 10, 8, 92);
+                    ms = 0.65 * clamp(speedFactor, 0.8, 1.6);
+                }
+                this._physicsStep(p, tx, ty, ms);
+                return;
             }
 
             if (isAttacking) {
@@ -3430,6 +3624,21 @@ class RealSoccerEngine {
             tx = isHome ? Math.max(tx, ABS_MIN) : Math.min(tx, ABS_MIN);
         }
 
+        // [5단계] FW 간격 조정 & 겹침 방지 (단차 배치: 한 명 침투, 한 명 연계 공간 확보)
+        const otherFWs = teamFWs.filter(q => q !== p);
+        for (const o of otherFWs) {
+            const dX = Math.abs(tx - o.x);
+            const dY = Math.abs(ty - o.y);
+            if (dX < 4.0 && dY < 12.0) {
+                if (isPrimaryRunner || bhv.runBehind > this.getRoleBehavior(o.role).runBehind) {
+                    tx = isHome ? Math.min(tx + 3.0, offX - 0.8) : Math.max(tx - 3.0, offX + 0.8);
+                } else {
+                    tx = isHome ? Math.max(tx - 3.5, ABS_MIN) : Math.min(tx + 3.5, ABS_MIN);
+                    ty = clamp(ty + (ty >= o.y ? 6 : -6), 12, 88);
+                }
+            }
+        }
+
         tx = clamp(tx, 4, 96);
         ty = clamp(ty, 4, 96);
         this._physicsStep(p, tx, ty, ms);
@@ -3553,13 +3762,13 @@ class RealSoccerEngine {
             ty = p.slotY < 50 ? 24 : 76;
         }
 
-        // [2단계] 전술별 중원 움직임
+        // [4단계] 전술별 중원 움직임
         // 티키타카는 짧은 삼각형을 만들고, 점유는 공 주변의 재순환 거리를 줄인다.
         // 라볼피아나는 빌드업 초기에 수비 라인과 중원을 연결하고, 역습은 2선의 전진을 허용한다.
         if (!p._comingShort) {
             if (tactic === 'tikitaka') {
                 tx += fwd * (isAM ? 3 : (isDM ? -1 : 1));
-                if (carr) ty = clamp(ty + (carr.y - ty) * 0.18, 12, 88);
+                if (carr) ty = clamp(ty + (carr.y - ty) * 0.22, 12, 88);
             } else if (tactic === 'possession') {
                 tx += fwd * (isDM ? -2 : -1);
                 if (carr) {
@@ -3568,13 +3777,25 @@ class RealSoccerEngine {
                 }
             } else if (tactic === 'lavolpiana' && phase === 'building') {
                 if (isDM) {
-                    tx = isHome ? clamp(lines.dfX + 7, 24, 48) : clamp(lines.dfX - 7, 52, 76);
+                    tx = isHome ? clamp(lines.dfX + 2, 22, 44) : clamp(lines.dfX - 2, 56, 78);
+                    ty = 50; // 센터백 사이 중앙으로 확실히 하강 (변형 3백 형성)
                 } else if (isAM) {
                     tx += fwd * 4;
                 }
             } else if ((tactic === 'counter' || tactic === 'longBall') && phase === 'progressing' && !isDM) {
                 tx += fwd * (isAM ? 7 : 3);
             }
+        }
+
+        // [4단계] 삼각형 유지 오프더볼: 서포트 1/2 역할에 따라 공 소유자 기준 각도 확보
+        if (p._isTriangleSupport && carr && !isWingerRole) {
+            const roleIdx = p._supportRole || 1;
+            const side = (roleIdx === 1 ? (p.y <= refY ? -1 : 1) : (p.y <= refY ? 1 : -1));
+            const offsetX = (roleIdx === 1 ? fwd * 4.5 : fwd * -5.0);
+            const offsetY = side * (tactic === 'tikitaka' ? 9 : 13);
+            tx = (tx * 0.4) + (clamp(refX + offsetX, 6, 94) * 0.6);
+            ty = (ty * 0.4) + (clamp(refY + offsetY, 10, 90) * 0.6);
+            ms = Math.max(ms, 0.64 * clamp(sf, 0.8, 1.6));
         }
 
         // 측면 크로스 찬스 시 오직 공격형 미드필더(AM/SS) 단 1명만 페널티 아크/박스 입구(75~80)로 침투 지원
@@ -3585,6 +3806,16 @@ class RealSoccerEngine {
             tx = (tx * 0.4) + (lateRunTx * 0.6);
             ty = (ty * 0.4) + (lateRunTy * 0.6);
             ms = 0.78 * clamp(sf, 0.85, 1.8);
+        }
+
+        // [5단계] 수비형 미드필더와 센터백 간격 제어 (CB-DM 최대 12m 간격 제한 & Zone 14 커버)
+        if (isDM && cbs.length) {
+            const cbX = isHome ? Math.max(...cbs.map(q => q.x)) : Math.min(...cbs.map(q => q.x));
+            const maxDmGap = 12.0;
+            tx = isHome ? clamp(tx, cbX + 2.0, cbX + maxDmGap) : clamp(tx, cbX - maxDmGap, cbX - 2.0);
+        }
+        if (isDM && !p._isTriangleSupport) {
+            ty = clamp(ty, 34, 66);
         }
 
         tx = clamp(tx, 4, 96);
@@ -3659,8 +3890,8 @@ class RealSoccerEngine {
                 ty = clamp(p.slotY * 0.20 + oppFW.y * 0.80, 20, 80);
             }
             if (tactic === 'lavolpiana' && lines.haveBall && phase === 'building') {
-                tx = isHome ? clamp(lines.dfX, 24, 46) : clamp(lines.dfX, 54, 76);
-                ty = p.slotY < 50 ? 34 : (p.slotY > 50 ? 66 : 50);
+                tx = isHome ? clamp(lines.dfX - 1, 22, 44) : clamp(lines.dfX + 1, 56, 78);
+                ty = p.slotY < 50 ? 24 : (p.slotY > 50 ? 76 : 50);
             }
             tx = clamp(tx, isHome ? 8 : 20, isHome ? 80 : 92);
 
@@ -3726,6 +3957,25 @@ class RealSoccerEngine {
         const pressIsMe = (presser === p);
         const owner = this.ball.owner;
         p._isTrackingRunner = false;
+
+        // [5단계] 실점 직후 / 킥오프 수비 안정화: 전원이 무작정 전진하거나 첫 패스에 덤비지 않고 중앙 블록 정렬 우선
+        if (this._postKickoffDefRealignTicks > 0) {
+            p._isTrackingRunner = false;
+            if (p.position === 'DF') {
+                const tx = lines.dfX;
+                const ty = p.slotY;
+                const s = 0.55 * clamp(sf, 0.8, 1.5);
+                this._physicsStep(p, clamp(tx, 4, 96), clamp(ty, 4, 96), s);
+                return;
+            } else if (p.position === 'MF') {
+                const isDM = ['DM', 'CDM', 'ANC', 'DLP', 'BWM', 'REG', 'HB'].includes(p.role) || ['CDM', 'DM'].includes(p.detailPosition);
+                const tx = lines.dfX + fwd * (isDM ? 6.0 : 10.0);
+                const ty = clamp(p.slotY, 28, 72); // 중앙 복도(Zone 14) 집중 차단
+                const s = 0.55 * clamp(sf, 0.8, 1.5);
+                this._physicsStep(p, clamp(tx, 4, 96), clamp(ty, 4, 96), s);
+                return;
+            }
+        }
 
         // 태클 시도: 전담 압박자이거나, 볼 캐리어가 근처(dBall < 4.0, 미드필더/수비수는 4.4)에 들어왔을 때 즉시 경합!
         if (owner && owner.teamId !== tid && p._stealCooldown <= 0) {
@@ -3850,17 +4100,27 @@ class RealSoccerEngine {
                         // 그래야 수비수가 주자를 따라가면서도 패스 받을 공간과 오프사이드 함정이 남는다.
                         const markX = isHome ? (refX - 2.8) : (refX + 2.8);
                         const stepUpCap = isHome ? Math.max(lines.dfX + 16, 52) : Math.min(lines.dfX - 16, 48);
-                        if ((isPenetrating || caughtBehind) && !defensiveRetreat) {
+                        // [5단계] 오프사이드 라인 개선: 공과 골대 사이(Goal-side) 우선 확보 및 무작정 맨마킹 방지
+                        const isBallAirborne = this.ball.state === BallState.IN_FLIGHT;
+                        const attackerIsAheadOfLine = isHome ? (refX < lines.dfX - 1.5) : (refX > lines.dfX + 1.5);
+
+                        if (isPenetrating && isBallAirborne && !defensiveRetreat) {
+                            p._isTrackingRunner = true;
                             tx = isHome ? clamp(markX, 4.2, stepUpCap) : clamp(markX, stepUpCap, 95.8);
                             ty = clamp(p.slotY * 0.35 + refY * 0.65, 12, 88);
-                            ms = 0.78 * clamp(sf, 0.88, 1.72);
+                            ms = 0.82 * clamp(sf, 0.88, 1.75);
+                        } else if (isPenetrating && !attackerIsAheadOfLine && !defensiveRetreat) {
+                            p._isTrackingRunner = false;
+                            const holdX = isHome ? Math.max(lines.dfX, markX) : Math.min(lines.dfX, markX);
+                            tx = isHome ? clamp(holdX, lines.dfX - 3.0, lines.dfX + 4.0) : clamp(holdX, lines.dfX - 4.0, lines.dfX + 3.0);
+                            ty = clamp(p.slotY * 0.50 + refY * 0.50, 14, 86);
+                            ms = 0.72 * clamp(sf, 0.82, 1.6);
                         } else {
-                            // 상대가 공을 잡은 순간에는 주자를 따라 나가지 말고
-                            // 최종 수비라인과 골대 사이 공간을 먼저 회복한다.
+                            p._isTrackingRunner = false;
                             const retreatX = isHome ? Math.min(lines.dfX, ballX - 2.5) : Math.max(lines.dfX, ballX + 2.5);
                             tx = isHome ? clamp(retreatX, 8, 52) : clamp(retreatX, 48, 92);
-                            ty = clamp(p.slotY * 0.55 + refY * 0.45, 16, 84);
-                            ms = 0.72 * clamp(sf, 0.82, 1.55);
+                            ty = clamp(p.slotY * 0.60 + refY * 0.40, 16, 84);
+                            ms = 0.68 * clamp(sf, 0.80, 1.55);
                         }
                     } else {
                         ty = isLeftCB ? clamp(ty, 34, 46) : clamp(ty, 54, 66);
@@ -3889,7 +4149,6 @@ class RealSoccerEngine {
                 } else {
                     const oppW = this._findMarkTargetForDF(p, 'wide');
                     if (oppW) {
-                        p._isTrackingRunner = true;
                         const isReceivingFlight = oppW === this.ball.intendedReceiver && this.ball.state === BallState.IN_FLIGHT && this.ball.targetPos;
                         const refX = isReceivingFlight ? (oppW.x * 0.35 + this.ball.targetPos.x * 0.65) : oppW.x;
                         const refY = isReceivingFlight ? (oppW.y * 0.35 + this.ball.targetPos.y * 0.65) : oppW.y;
@@ -3898,11 +4157,22 @@ class RealSoccerEngine {
                         const isThreat = isReceivingFlight || oppW._fwMode === 'burst' || oppW.burstTimer > 0 ||
                             (isHome ? oppW.x < lines.dfX + 10 : oppW.x > lines.dfX - 10) ||
                             inOwnThird || isOppCounter;
-                        if ((isThreat || caughtBehind) && !defensiveRetreat) {
+                        const isBallAirborne = this.ball.state === BallState.IN_FLIGHT;
+                        const attackerIsAheadOfLine = isHome ? (refX < lines.dfX - 1.5) : (refX > lines.dfX + 1.5);
+
+                        if ((isThreat || caughtBehind) && isBallAirborne && !defensiveRetreat) {
+                            p._isTrackingRunner = true;
                             tx = isHome ? clamp(markX, 4.2, stepUpCap) : clamp(markX, stepUpCap, 95.8);
                             ty = clamp(p.slotY * 0.30 + refY * 0.70, p.slotY < 50 ? 4 : 54, p.slotY < 50 ? 46 : 96);
                             ms = 0.76 * clamp(sf, 0.86, 1.72);
+                        } else if ((isThreat || caughtBehind) && !attackerIsAheadOfLine && !defensiveRetreat) {
+                            p._isTrackingRunner = false;
+                            const holdX = isHome ? Math.max(lines.dfX, markX) : Math.min(lines.dfX, markX);
+                            tx = isHome ? clamp(holdX, lines.dfX - 3.0, lines.dfX + 4.0) : clamp(holdX, lines.dfX - 4.0, lines.dfX + 3.0);
+                            ty = clamp(p.slotY * 0.45 + refY * 0.55, p.slotY < 50 ? 6 : 56, p.slotY < 50 ? 42 : 94);
+                            ms = 0.70 * clamp(sf, 0.82, 1.6);
                         } else {
+                            p._isTrackingRunner = false;
                             const retreatX = isHome ? Math.min(lines.dfX, ballX - 2.5) : Math.max(lines.dfX, ballX + 2.5);
                             tx = isHome ? clamp(retreatX, 8, 52) : clamp(retreatX, 48, 92);
                             ty = clamp(p.slotY * 0.55 + refY * 0.45, p.slotY < 50 ? 6 : 56, p.slotY < 50 ? 42 : 94);
@@ -4044,15 +4314,15 @@ class RealSoccerEngine {
             if (cbs.length < 2) continue;
             const xs = cbs.map(q => q.x);
             const mean = xs.reduce((a, b) => a + b, 0) / xs.length;
-            const maxDev = 8;
+            const maxDev = 5.0; // [5단계] CB 라인 통솔 및 오프사이드 트랩 유지 강화 (8 -> 5)
             const lines = this._getTeamBlockLines(tid);
             for (const cb of cbs) {
-                if (cb._isTrackingRunner) continue; // 침투 마킹 중인 CB는 공격수에게 끝까지 붙도록 허용!
+                if (cb._isTrackingRunner) continue;
                 if (Math.abs(cb.x - mean) > maxDev) {
-                    cb.x += (mean - cb.x) * 0.04;
+                    cb.x += (mean - cb.x) * 0.08;
                 }
                 if (!lines.haveBall) {
-                    cb.x += (lines.dfX - cb.x) * 0.06;
+                    cb.x += (lines.dfX - cb.x) * 0.08;
                 }
             }
             cbs.sort((a, b) => a.y - b.y);
