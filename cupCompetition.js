@@ -13,6 +13,16 @@ const CUP_CONFIGS = {
             logo: 'assets/cup_logos/fa_cup.png',
             fallbackEmoji: '🏆'
         },
+        efl_championship: {
+            id: 'fa_england',
+            leagueId: 'premier_league',
+            name: '에미레이츠 FA컵',
+            fullName: 'The Emirates FA Cup',
+            country: '잉글랜드',
+            flag: '🇬🇧',
+            logo: 'assets/cup_logos/fa_cup.png',
+            fallbackEmoji: '🏆'
+        },
         laliga: {
             id: 'fa_spain',
             leagueId: 'laliga',
@@ -130,9 +140,10 @@ function getClubMiniLogoHTML(teamKey, size = 18) {
 
 class CupCompetitionManager {
     constructor() {
-        this.faStages = ['R1', 'R16', 'QF', 'SF', 'FINAL'];
+        this.faStages = ['R1', 'R32', 'R16', 'QF', 'SF', 'FINAL'];
         this.faStageNames = {
             'R1': '1라운드 (예선전)',
+            'R32': '32강전 (본선)',
             'R16': '16강전',
             'QF': '8강전 (준준결승)',
             'SF': '4강전 (준결승)',
@@ -141,6 +152,7 @@ class CupCompetitionManager {
         // 리그 라운드 직후 열리는 FA컵 스케줄
         this.faCupSchedule = {
             6: 'R1',
+            9: 'R32',
             12: 'R16',
             18: 'QF',
             24: 'SF',
@@ -295,33 +307,39 @@ class CupCompetitionManager {
     // ------------------------------------------
     initFACup() {
         const userTeam = gameData.selectedTeam;
-        const userLeagueId = (typeof LeagueManager !== 'undefined') ? LeagueManager.getLeagueIdByTeam(userTeam) : 'premier_league';
         const faConfig = this.getUserFACupConfig();
         const leagueTeams = (typeof LeagueManager !== 'undefined') ? LeagueManager.getTeamsInLeague(faConfig.leagueId) : [];
 
         const teamCount = leagueTeams.length;
         let seedTeams = [];
         let r1Matches = [];
+        const hasR32 = (faConfig.id === 'fa_england');
 
-        if (faConfig.id === 'fa_england' && userLeagueId === 'efl_championship' && typeof LeagueManager !== 'undefined') {
-            // EFL 챔피언십 유저: 챔피언십 16팀(유저 포함) R1 예선(8경기) -> 승자 8팀 + 프리미어리그 8팀 시드 = 16강
-            const champTeams = LeagueManager.getTeamsInLeague('efl_championship');
-            const others = this.shuffle(champTeams.filter(t => t !== userTeam)).slice(0, 15);
-            const r1Pool = this.shuffle([userTeam, ...others]);
-            const plSorted = [...leagueTeams].sort((a, b) => this.getTeamRating(b) - this.getTeamRating(a));
-            seedTeams = this.shuffle(plSorted.slice(0, 8));
+        if (hasR32) {
+            // 잉글랜드 에미레이츠 FA컵 (총 44팀):
+            // EFL 챔피언십 24팀 전원 R1 예선 (12경기) -> 승자 12팀 + 프리미어리그 20팀 전원 시드 = 32강 본선 (16경기)
+            const champTeams = (typeof LeagueManager !== 'undefined')
+                ? LeagueManager.getTeamsInLeague('efl_championship')
+                : Object.keys(allTeams || {}).filter(k => allTeams[k] && allTeams[k].leagueId === 'efl_championship');
+            const plTeams = (typeof LeagueManager !== 'undefined')
+                ? LeagueManager.getTeamsInLeague('premier_league')
+                : Object.keys(allTeams || {}).filter(k => allTeams[k] && allTeams[k].leagueId === 'premier_league');
+            const r1Pool = this.shuffle(champTeams);
+            seedTeams = this.shuffle(plTeams);
 
             for (let i = 0; i < r1Pool.length; i += 2) {
-                r1Matches.push({
-                    home: r1Pool[i],
-                    away: r1Pool[i + 1],
-                    winner: null,
-                    score: null,
-                    pk: null
-                });
+                if (r1Pool[i + 1]) {
+                    r1Matches.push({
+                        home: r1Pool[i],
+                        away: r1Pool[i + 1],
+                        winner: null,
+                        score: null,
+                        pk: null
+                    });
+                }
             }
         } else if (teamCount === 20) {
-            // 20팀 리그 (EPL, 라리가, 세리에 A)
+            // 20팀 리그 (라리가, 세리에 A)
             // 8팀 예선 (4경기) -> 승자 4팀 + 시드 12팀 = 16강 본선 (8경기)
             const shuffled = this.shuffle(leagueTeams);
             const r1Pool = shuffled.slice(0, 8);
@@ -381,6 +399,7 @@ class CupCompetitionManager {
             runnerUp: null,
             bracket: {
                 'R1': r1Matches,
+                'R32': [],
                 'R16': [],
                 'QF': [],
                 'SF': [],
@@ -388,7 +407,8 @@ class CupCompetitionManager {
             },
             seedTeams: seedTeams,
             matchPending: false,
-            isShortBracket: (teamCount === 12)
+            hasR32: hasR32,
+            isShortBracket: (!hasR32 && teamCount === 12)
         };
 
         console.log(`[FA Cup] ${faConfig.name} (${faConfig.country}) 대진 생성 완료. 유저 1R 참가여부: ${userInR1}`);
@@ -671,7 +691,45 @@ class CupCompetitionManager {
         const cup = gameData.faCup;
         if (cup.bracket[stage] && cup.bracket[stage].length > 0) return;
 
-        if (stage === 'R16') {
+        if (stage === 'R32' && cup.hasR32) {
+            (cup.bracket['R1'] || []).forEach(m => {
+                if (!m.winner) {
+                    const sim = this.simulateMatch(m.home, m.away);
+                    m.winner = sim.winner;
+                    m.score = sim.score;
+                    m.pk = sim.pk;
+                }
+            });
+            const r1Winners = (cup.bracket['R1'] || []).map(m => m.winner || m.home);
+            const seeds = cup.seedTeams || [];
+            const r32Matches = [];
+
+            // 시드 팀(EPL 20팀)과 1R 승자(EFL 12팀)를 트리 순서대로 매칭 (총 16경기)
+            let wIdx = 0;
+            let sIdx = 0;
+            while (r32Matches.length < 16 && (sIdx < seeds.length || wIdx < r1Winners.length)) {
+                if (wIdx < r1Winners.length && sIdx < seeds.length) {
+                    r32Matches.push({
+                        home: seeds[sIdx++],
+                        away: r1Winners[wIdx++],
+                        winner: null,
+                        score: null,
+                        pk: null
+                    });
+                } else if (sIdx + 1 < seeds.length) {
+                    r32Matches.push({
+                        home: seeds[sIdx++],
+                        away: seeds[sIdx++],
+                        winner: null,
+                        score: null,
+                        pk: null
+                    });
+                } else {
+                    break;
+                }
+            }
+            cup.bracket['R32'] = r32Matches;
+        } else if (stage === 'R16' && !cup.hasR32) {
             (cup.bracket['R1'] || []).forEach(m => {
                 if (!m.winner) {
                     const sim = this.simulateMatch(m.home, m.away);
@@ -784,7 +842,9 @@ class CupCompetitionManager {
         const curIdx = this.faStages.indexOf(cup.currentStage);
         if (curIdx < this.faStages.length - 1) {
             let nextStage = this.faStages[curIdx + 1];
-            if (cup.isShortBracket && nextStage === 'R16') {
+            if (!cup.hasR32 && nextStage === 'R32') {
+                nextStage = cup.isShortBracket ? 'QF' : 'R16';
+            } else if (cup.isShortBracket && nextStage === 'R16') {
                 nextStage = 'QF';
             }
             cup.currentStage = nextStage;
@@ -1079,7 +1139,7 @@ class CupCompetitionManager {
             matchRecord.pk = pkStr;
         }
 
-        const prizeTable = { 'R1': 10, 'R16': 30, 'QF': 60, 'SF': 120, 'FINAL': 400 };
+        const prizeTable = { 'R1': 10, 'R32': 20, 'R16': 30, 'QF': 60, 'SF': 120, 'FINAL': 400 };
         const prize = prizeTable[stage] || 30;
         gameData.teamMoney = (gameData.teamMoney || 0) + prize;
 
@@ -1455,6 +1515,7 @@ class CupCompetitionManager {
 
         const r1Actual = cup.bracket['R1'] || [];
         const seeds = cup.seedTeams || [];
+        const hasR32 = !!cup.hasR32;
         const isShort = !!cup.isShortBracket;
 
         // 1) R1 (예선)
@@ -1465,12 +1526,77 @@ class CupCompetitionManager {
             awayPlaceholder: `예선 참가팀`
         }));
 
+        // 1-2) R32 (32강, 16경기 - 잉글랜드 FA컵: EPL 20팀 시드 + EFL 1R 승자 12팀)
+        let r32List = [];
+        if (hasR32) {
+            const r32Actual = cup.bracket['R32'] || [];
+            if (r32Actual.length > 0) {
+                r32List = r32Actual.map(m => ({ ...m, roundHint: '9R 직후' }));
+            } else {
+                let wIdx = 0;
+                let sIdx = 0;
+                for (let i = 0; i < 16; i++) {
+                    if (wIdx < r1List.length && sIdx < seeds.length) {
+                        const r1Match = r1List[wIdx];
+                        const r1Winner = r1Match ? r1Match.winner : null;
+                        r32List.push({
+                            home: seeds[sIdx++],
+                            away: r1Winner || null,
+                            awayPlaceholder: `1R #${wIdx + 1} 승자`,
+                            winner: null,
+                            score: null,
+                            pk: null,
+                            roundHint: '9R 직후',
+                            isProjected: !r1Winner
+                        });
+                        wIdx++;
+                    } else if (sIdx + 1 < seeds.length) {
+                        r32List.push({
+                            home: seeds[sIdx++],
+                            away: seeds[sIdx++],
+                            winner: null,
+                            score: null,
+                            pk: null,
+                            roundHint: '9R 직후',
+                            isProjected: false
+                        });
+                    } else {
+                        r32List.push({
+                            home: null,
+                            away: null,
+                            homePlaceholder: `시드 #${i * 2 + 1}`,
+                            awayPlaceholder: `시드 #${i * 2 + 2}`,
+                            winner: null,
+                            score: null,
+                            roundHint: '9R 직후',
+                            isProjected: true
+                        });
+                    }
+                }
+            }
+        }
+
         // 2) R16 (8경기, 단 K리그 단축 브래킷은 스킵)
         let r16List = [];
         if (!isShort) {
             const r16Actual = cup.bracket['R16'] || [];
             if (r16Actual.length > 0) {
                 r16List = r16Actual.map(m => ({ ...m, roundHint: '12R 직후' }));
+            } else if (hasR32) {
+                for (let i = 0; i < 8; i++) {
+                    const mA = r32List[i * 2];
+                    const mB = r32List[i * 2 + 1];
+                    r16List.push({
+                        home: (mA && mA.winner) ? mA.winner : null,
+                        away: (mB && mB.winner) ? mB.winner : null,
+                        homePlaceholder: `32강 #${i * 2 + 1} 승자`,
+                        awayPlaceholder: `32강 #${i * 2 + 2} 승자`,
+                        winner: null,
+                        score: null,
+                        roundHint: '12R 직후',
+                        isProjected: true
+                    });
+                }
             } else {
                 let wIdx = 0;
                 let sIdx = 0;
@@ -1591,7 +1717,7 @@ class CupCompetitionManager {
             });
         }
 
-        return { r1List, r16List, qfList, sfList, finalList, isShort };
+        return { r1List, r32List, r16List, qfList, sfList, finalList, hasR32, isShort };
     }
 
     // ------------------------------------------
@@ -1652,6 +1778,12 @@ class CupCompetitionManager {
         };
 
         const champName = cup.champion ? ((typeof teamNames !== 'undefined' && teamNames[cup.champion]) ? teamNames[cup.champion] : cup.champion) : null;
+        const roundScheduleText = tree.hasR32
+            ? '6R / 9R / 12R / 18R / 24R / 30R 직후'
+            : '6R / 12R / 18R / 24R / 30R 직후';
+        const seedBannerText = tree.hasR32
+            ? `32강 본선 직행 (EPL ${(cup.seedTeams || []).length}개 전 구단) + 1라운드 예선 (EFL 챔피언십 ${tree.r1List.length * 2}개 전 구단)`
+            : `${tree.isShort ? '8강' : '16강'} 본선 직행 (${(cup.seedTeams || []).length}개 구단) + 1라운드 예선 (${tree.r1List.length * 2}개 구단)`;
 
         return `
             <div style="background:#0F172A; border:1px solid #334155; border-radius:10px; padding:12px 16px; margin-bottom:12px; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:10px;">
@@ -1659,7 +1791,7 @@ class CupCompetitionManager {
                     ${logoHeader}
                     <div>
                         <div style="font-weight:800; font-size:1.15rem; color:#F8FAFC;">${faConfig.fullName} (${faConfig.country}) 토너먼트 대진표</div>
-                        <div style="font-size:0.85rem; color:#94A3B8;">단판 승부 (무승부 시 승부차기) · 개최 라운드: 6R / 12R / 18R / 24R / 30R 직후 · 상태: ${activeTag}</div>
+                        <div style="font-size:0.85rem; color:#94A3B8;">단판 승부 (무승부 시 승부차기) · 개최 라운드: ${roundScheduleText} · 상태: ${activeTag}</div>
                     </div>
                 </div>
                 ${champName ? `<div style="background:rgba(251,191,36,0.15); border:1px solid #FBBF24; padding:6px 14px; border-radius:8px; color:#FBBF24; font-weight:800; font-size:0.95rem;">🏆 챔피언: ${champName}</div>` : ''}
@@ -1668,13 +1800,14 @@ class CupCompetitionManager {
             <div class="facup-reward-banner">
                 <div class="reward-pill">🏆 우승 상금: <strong>400억원</strong></div>
                 <div class="reward-pill">🥈 준우승: <strong>150억원</strong></div>
-                <div class="reward-pill">🎯 시드 배정: <strong>16강 본선 직행 (${(cup.seedTeams || []).length}개 구단) + 1라운드 예선 (${tree.r1List.length * 2}개 구단)</strong></div>
+                <div class="reward-pill">🎯 시드 배정: <strong>${seedBannerText}</strong></div>
             </div>
 
             <!-- 실제 토너먼트 브래킷 트리 -->
             <div class="tourney-tree-scroll">
                 <div class="tourney-tree-grid">
                     ${buildColumnHTML('R1', '1라운드 (예선)', '리그 6R 직후', tree.r1List, '1R', false)}
+                    ${tree.hasR32 ? buildColumnHTML('R32', '32강전 (Round of 32)', '리그 9R 직후', tree.r32List, '32강', true) : ''}
                     ${!tree.isShort ? buildColumnHTML('R16', '16강전 (Round of 16)', '리그 12R 직후', tree.r16List, '16강', true) : ''}
                     ${buildColumnHTML('QF', '8강전 (Quarter-Final)', '리그 18R 직후', tree.qfList, '8강', true)}
                     ${buildColumnHTML('SF', '4강전 (Semi-Final)', '리그 24R 직후', tree.sfList, '4강', true)}
@@ -2211,28 +2344,32 @@ class CupCompetitionManager {
                 const faSt = this.faCupSchedule[r];
                 if (faSt && gameData.faCup) {
                     const cup = gameData.faCup;
-                    const m = (cup.bracket[faSt] || []).find(x => x.home === userTeam || x.away === userTeam);
-                    if (m || (cup.isUserActive && r >= curRound)) {
-                        const faIsHome = m ? (m.home === userTeam) : true;
-                        const faOpp = m ? (faIsHome ? m.away : m.home) : null;
-                        const oppLabel = faOpp ? ((typeof teamNames !== 'undefined' && teamNames[faOpp]) ? teamNames[faOpp] : faOpp) : (faSt === 'R1' ? '16강 시드 직행 (예선 면제)' : '대진 추첨 예정');
-                        const faPlayed = !!(m && m.winner);
-                        const isNextNow = gameData.isFACupMatch && gameData.faCupStage === faSt;
+                    const skipStage = (!cup.hasR32 && faSt === 'R32') || (cup.isShortBracket && (faSt === 'R32' || faSt === 'R16'));
+                    if (!skipStage) {
+                        const m = (cup.bracket[faSt] || []).find(x => x.home === userTeam || x.away === userTeam);
+                        if (m || (cup.isUserActive && r >= curRound)) {
+                            const faIsHome = m ? (m.home === userTeam) : true;
+                            const faOpp = m ? (faIsHome ? m.away : m.home) : null;
+                            const seedBypassLabel = cup.hasR32 ? '32강 시드 직행 (예선 면제)' : (cup.isShortBracket ? '8강 시드 직행 (예선 면제)' : '16강 시드 직행 (예선 면제)');
+                            const oppLabel = faOpp ? ((typeof teamNames !== 'undefined' && teamNames[faOpp]) ? teamNames[faOpp] : faOpp) : (faSt === 'R1' ? seedBypassLabel : '대진 추첨 예정');
+                            const faPlayed = !!(m && m.winner);
+                            const isNextNow = gameData.isFACupMatch && gameData.faCupStage === faSt;
 
-                        if (m || faSt !== 'R1') {
-                            timelineItems += `
-                                <div class="season-fixture-card fa-fixture ${isNextNow ? 'current-fixture' : ''}">
-                                    <div class="fixture-comp-badge fa">🏆 ${faConfig.name} · ${this.faStageNames[faSt]}</div>
-                                    <div class="fixture-main-row">
-                                        <span class="fixture-ha-tag ${faIsHome ? 'home' : 'away'}">${faIsHome ? 'HOME' : 'AWAY'}</span>
-                                        ${faOpp ? getClubMiniLogoHTML(faOpp, 22) : ''}
-                                        <strong class="fixture-opp-name">${oppLabel}</strong>
+                            if (m || faSt !== 'R1') {
+                                timelineItems += `
+                                    <div class="season-fixture-card fa-fixture ${isNextNow ? 'current-fixture' : ''}">
+                                        <div class="fixture-comp-badge fa">🏆 ${faConfig.name} · ${this.faStageNames[faSt]}</div>
+                                        <div class="fixture-main-row">
+                                            <span class="fixture-ha-tag ${faIsHome ? 'home' : 'away'}">${faIsHome ? 'HOME' : 'AWAY'}</span>
+                                            ${faOpp ? getClubMiniLogoHTML(faOpp, 22) : ''}
+                                            <strong class="fixture-opp-name">${oppLabel}</strong>
+                                        </div>
+                                        <div class="fixture-status-box">
+                                            ${faPlayed ? `<span class="fixture-score">${m.score}${m.pk ? ' ' + m.pk : ''}</span>` : (isNextNow ? '<span class="fixture-next-pill">이번 경기</span>' : `<span class="fixture-upcoming">${r}R 주간</span>`)}
+                                        </div>
                                     </div>
-                                    <div class="fixture-status-box">
-                                        ${faPlayed ? `<span class="fixture-score">${m.score}${m.pk ? ' ' + m.pk : ''}</span>` : (isNextNow ? '<span class="fixture-next-pill">이번 경기</span>' : `<span class="fixture-upcoming">${r}R 주간</span>`)}
-                                    </div>
-                                </div>
-                            `;
+                                `;
+                            }
                         }
                     }
                 }

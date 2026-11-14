@@ -235,9 +235,9 @@ class RecordsSystem {
 
     // 전술 상성에 따른 인위적 승률 가감 제거 (순수 전력·홈이점 기반 공정 시뮬레이션)
 
-    // [수정] 전력 차이 반영 비중 확대 (150 -> 100) : 전력 차이가 승패에 더 큰 영향을 주도록 변경
-    const powerDivisor = (typeof gameData !== 'undefined' && gameData.isWorldCupMode) ? 50 : 100;
-    const maxAdvantage = (typeof gameData !== 'undefined' && gameData.isWorldCupMode) ? 0.45 : 0.4;
+    // [수정] 전력 차이 반영 비중 현실화 (100 -> 24) : 강팀 우승 승점 80~90점대 및 상위/하위권 격차 반영
+    const powerDivisor = (typeof gameData !== 'undefined' && gameData.isWorldCupMode) ? 30 : 24;
+    const maxAdvantage = (typeof gameData !== 'undefined' && gameData.isWorldCupMode) ? 0.50 : 0.50;
 
     if (ratingDiff > 0) {
         const advantage = Math.min(maxAdvantage, ratingDiff / powerDivisor);
@@ -252,7 +252,7 @@ class RecordsSystem {
             drawChance -= upsetBonus * 0.4;
         }
     } else if (ratingDiff < 0) {
-        const advantage = Math.min(maxAdvantage, Math.abs(ratingDiff) / (powerDivisor * 0.66)); // 약팀이 이길 확률은 더 낮게 보정
+        const advantage = Math.min(maxAdvantage, Math.abs(ratingDiff) / (powerDivisor * 0.9)); // 원정 강팀도 전력차 충분히 반영
         team2WinChance += advantage;
         team1WinChance -= advantage * 0.7;
         drawChance -= advantage * 0.3;
