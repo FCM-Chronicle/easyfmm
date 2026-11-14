@@ -361,10 +361,10 @@
                     <span data-icon="stadium"></span>
                     <span>구장/설비 증축</span>
                 </button>
-                <a href="match_tester.html" target="_blank" class="sandbox-quick-link">
-                    <span data-icon="zap"></span>
-                    <span>엔진 샌드박스</span>
-                </a>
+                <button type="button" id="openTacticTipsBtn" class="sandbox-quick-link" style="cursor: pointer; border-color: rgba(250, 204, 21, 0.45); background: rgba(250, 204, 21, 0.14); color: #FACC15;">
+                    <span data-icon="lightbulb"></span>
+                    <span>전술 팁</span>
+                </button>
             </div>
         </div>
 
@@ -498,23 +498,33 @@
                             <span class="tactic-tag tag-press">전방 압박</span>
                             <span class="tactic-tag tag-mentality">공격적 성향</span>
                         </div>
+                        <!-- [신규] 현재 전술 숙련도(Familiarity) 게이지 바 -->
+                        <div id="currentTacticMasteryWrap" style="margin-top: 12px; background: rgba(2, 6, 23, 0.55); border: 1px solid rgba(56, 189, 248, 0.22); border-radius: 10px; padding: 10px 14px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem; margin-bottom: 6px;">
+                                <span style="color: #E2E8F0; font-weight: 800;">🎯 현재 전술 숙련도 (Familiarity)</span>
+                                <span id="currentTacticMasteryText" style="color: #34D399; font-weight: 800;">40% · 적응 중 (패스·위치선정 안정성 +1.8%)</span>
+                            </div>
+                            <div style="height: 8px; background: rgba(255, 255, 255, 0.08); border-radius: 999px; overflow: hidden;">
+                                <div id="currentTacticMasteryBar" style="height: 100%; width: 40%; background: linear-gradient(90deg, #38BDF8, #34D399); border-radius: 999px; transition: width 0.25s ease;"></div>
+                            </div>
+                        </div>
                     </div>
                     <!-- 하위 호환성을 위한 요소 유지 -->
                     <select id="tacticSelect" style="display: none;">
-                        <option value="gegenpress">게겐프레싱 - 높은 압박으로 빠른 역습</option>
-                        <option value="twoLine">다이렉트 축구 - 상대의 허점 파고들기</option>
-                        <option value="lavolpiana">라볼피아나 - 측면 공격 중심</option>
-                        <option value="longBall">롱볼축구 - 긴 패스로 빠른 공격</option>
-                        <option value="possession">점유율 축구 - 천천히 기회 창출</option>
-                        <option value="parkBus">역습 축구 - 수비 후 빠른 역습</option>
-                        <option value="catenaccio">카테나치오 - 이탈리아식 수비</option>
-                        <option value="totalFootball">토탈 풋볼 - 모든 선수가 공수 참여</option>
-                        <option value="tikitaka">티키타카 - 짧은 패스 연결</option>
-                        <option value="balanced">밸런스 - 기본 균형 전술</option>
+                        <option value="gegenpress">게겐프레싱</option>
+                        <option value="tikitaka">티키타카</option>
+                        <option value="verticalTikitaka">수직 티키타카</option>
+                        <option value="possession">컨트롤 포제션</option>
+                        <option value="wingPlay">윙 플레이</option>
+                        <option value="directCounter">플루이드 역습</option>
+                        <option value="lowBlockCounter">로우 블록</option>
+                        <option value="catenaccio">카테나치오</option>
+                        <option value="routeOne">루트 원 롱볼</option>
+                        <option value="totalFootball">토탈 풋볼</option>
+                        <option value="balanced">밸런스</option>
                     </select>
                     <div class="tactic-tip" style="margin-top: 14px;">
-                        <span data-icon="lightbulb"></span> 팀의 전술 스타일 및 세부 DNA 스탯은 <strong>[전술]</strong> 탭에서 언제든지 자유롭게
-                        커스텀할 수 있습니다.
+                        <span data-icon="lightbulb"></span> FM 전술 철학, 8대 핵심 지침, 커스텀 슬롯(3개) 및 선수별 롤 적합도는 <strong>[전술]</strong> 탭에서 언제든지 자유롭게 설계할 수 있습니다.
                     </div>
                     <div class="tactic-tip" style="margin-top: 8px; color: #FBBF24;">
                         <span data-icon="clapperboard"></span> 골 직전 연출은 설정 탭 → 경기 연출에서 On/Off 및 강도를 조절할 수 있습니다.
@@ -522,15 +532,14 @@
                 </div>
             </div>
 
-            <!-- 전술(DNA) 탭 -->
+            <!-- 전술(FM 통합 보드) 탭 -->
             <div id="tactics" class="tab-panel">
                 <div class="tactics-header-flex">
-                    <h3>팀 DNA 설정</h3>
+                    <h3>전술 보드 & 포메이션</h3>
                     <button id="openEngineGuideBtn" class="btn btn-sm"><span data-icon="book-open"></span> 전술
                         가이드</button>
                 </div>
-                <p style="color: #94A3B8; font-size: 0.9rem; margin-bottom: 20px;">라인별 총 포인트(OVR x 6)를 6대 핵심 스탯에 직접
-                    분배하여 팀의 색깔을 결정하세요.</p>
+                <p style="color: #94A3B8; font-size: 0.9rem; margin-bottom: 20px;">FM 스타일 전술 철학, 8대 핵심 지침, 커스텀 플랜 슬롯(3개)과 선발 11인 개인 롤(Role) 적합도를 통합 설계하세요.</p>
                 <div id="tacticsContent"></div>
             </div>
 
@@ -1170,6 +1179,29 @@
             <span>Shift+F 고속 진행</span> · 설정에서 <strong>골 직전 연출</strong> On/Off · 강도 조절 가능
         </div>
 
+        <!-- [신규] 인게임 실시간 전술 컨트롤 바 (5단계 성향 · 터치라인 지침 · 슬롯 즉시 전환) -->
+        <div id="liveTacticsBar" class="live-tactics-bar" style="display: none; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; background: rgba(15, 23, 42, 0.88); border: 1px solid rgba(56, 189, 248, 0.28); border-radius: 14px; padding: 10px 14px; margin-top: 12px;">
+            <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                <span style="font-size: 0.76rem; font-weight: 800; color: #FBBF24; margin-right: 4px;">⚡ 성향</span>
+                <button type="button" class="live-tac-btn" data-live-mentality="veryDefensive">극단 수비</button>
+                <button type="button" class="live-tac-btn" data-live-mentality="defensive">수비적</button>
+                <button type="button" class="live-tac-btn active" data-live-mentality="balanced">균형</button>
+                <button type="button" class="live-tac-btn" data-live-mentality="attacking">공격적</button>
+                <button type="button" class="live-tac-btn" data-live-mentality="veryAttacking">총공세</button>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                <span style="font-size: 0.76rem; font-weight: 800; color: #38BDF8; margin-right: 4px;">📣 터치라인</span>
+                <button type="button" class="live-tac-btn shout" data-live-shout="pressAll" title="전원 압박 및 즉각 재압박 가동 (체력 소모 증가)">🔥 전원 압박</button>
+                <button type="button" class="live-tac-btn shout" data-live-shout="counterPrepare" title="수비 라인 하향 및 역습 차단 우선">🛡️ 역습 대비</button>
+                <button type="button" class="live-tac-btn shout" data-live-shout="timeWasting" title="템포를 늦추고 안전한 패스로 시간 관리">⏱️ 시간 끌기</button>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="font-size: 0.76rem; font-weight: 800; color: #34D399;">📋 플랜</span>
+                <select id="liveTacticPresetSelect" style="background: #1E293B; color: #F8FAFC; border: 1px solid rgba(52, 211, 153, 0.4); border-radius: 7px; padding: 5px 8px; font-size: 0.76rem; font-weight: 700; cursor: pointer;"></select>
+                <span id="liveTacticMasteryBadge" style="font-size: 0.74rem; font-weight: 800; color: #34D399; background: rgba(52, 211, 153, 0.14); border: 1px solid rgba(52, 211, 153, 0.35); padding: 4px 8px; border-radius: 6px;">숙련도 40%</span>
+            </div>
+        </div>
+
         <div class="match-controls"
             style="text-align: center; margin-top: 20px; display: flex; justify-content: center; gap: 15px;">
             <button id="substituteBtn" class="btn" style="display: none;">교체</button>
@@ -1465,6 +1497,62 @@
     </div>
 
     <!-- 전술 가이드 모달 -->
+    <!-- [신규] 전술 팁 모달 -->
+    <div id="tacticTipsModal" class="modal">
+        <div class="modal-content" style="max-width: 820px;">
+            <span class="close-btn" id="closeTacticTipsModal">&times;</span>
+            <div class="modal-guide-header" style="text-align: center; margin-bottom: 24px;">
+                <span class="badge"
+                    style="background: rgba(250, 204, 21, 0.18); color: #FACC15; border: 1px solid rgba(250, 204, 21, 0.4); padding: 4px 12px; border-radius: 999px; font-size: 0.85rem; font-weight: 700;">Match Engine Tactics Guide</span>
+                <h3 style="color: #F8FAFC; margin-top: 10px; font-size: 1.55rem; font-weight: 800;">전술 작동 원리 &amp; 전술 팁</h3>
+                <p style="color: #94A3B8; font-size: 0.9rem; margin-top: 6px;">전술 상성에 따른 인위적 스탯 가감 없이, 실제 경기장 위의 움직임과 전술 인과관계로 승부가 갈립니다.</p>
+            </div>
+            <div class="engine-guide-content" style="max-height: 600px; overflow-y: auto; padding-right: 8px;">
+
+                <div class="engine-guide-section">
+                    <h4>1. <span class="engine-guide-badge badge-mid">전술 유불리가 결정되는 방식</span></h4>
+                    <p><strong>스탯 강제 버프/너프 없음:</strong> 전술 상성표(예: 게겐프레싱 vs 티키타카) 때문에 선수 스탯이나 사기가 인위적으로 깎이거나 오르지 않습니다. 오직 전술 설정이 만들어내는 <strong>라인 높이·압박·패스 선택·체력 소모</strong>의 상호작용으로 유리함과 불리함이 결정됩니다.</p>
+                    <p><strong>상대 전술 실시간 감지:</strong></p>
+                    <ul style="margin-top: 6px; padding-left: 20px; color: #CBD5E1; line-height: 1.6;">
+                        <li><strong>상대가 하이라인 (게겐프레싱·토탈 풋볼·하이 라인):</strong> 공격수 뒷공간 침투 패스 우선도가 크게 오르고 스루패스 성공 보정을 받습니다.</li>
+                        <li><strong>상대가 로우블록 (카테나치오·텐백·로우 라인):</strong> 측면 벌리기, 엔드라인 컷백, 2선 쇄도, 아크 정면 중거리 슈팅 빈도가 상승합니다.</li>
+                        <li><strong>상대가 강한 압박:</strong> 원터치 리턴 패스와 반대편 전환(스위치 플레이)으로 압박을 벗어납니다.</li>
+                    </ul>
+                    <p style="margin-top: 8px;"><strong>중원 전력 비교 &amp; 우회:</strong> 상대 미드필더진(패스·수비·피지컬)이 우리보다 2.5 이상 강할 때 <strong>다이렉트 빌드업 / 다이렉트 패스 / 넓은 너비</strong>를 쓰면 중앙 턴오버를 피해 측면 윙어·타겟맨에게 바로 연결합니다.</p>
+                    <p><strong>체력 소모 트레이드오프:</strong> 맹렬한 압박(+22%)과 빠른 템포(+10%)는 후반전 체력 저하(75 미만부터 스탯 단계 감소)를 앞당기며, 거리 유지(-12%)와 느린 템포(-8%)는 후반전 뒷심을 지켜줍니다.</p>
+                    <p><strong>후반 AI 전술 변화:</strong> 65분 이후 AI가 지고 있으면 게겐프레싱으로 라인을 끌어올리고, 78분 이후 앞서고 있으면 카테나치오로 걸어 잠급니다.</p>
+                </div>
+
+                <div class="engine-guide-section">
+                    <h4>2. <span class="engine-guide-badge badge-atk">8대 전술 지침 &amp; 선수 롤 적합도(★) · 전술 숙련도</span></h4>
+                    <p>개별 선수의 FC27 세부 능력치(<strong>attributes</strong>)에 <strong>FM 역할 가중치(RoleData)</strong>와 <strong>특성(Traits)</strong>이 더해집니다. <strong>[전술] 탭 미니 피치</strong>에서 각 선수의 능력치에 맞는 <strong>롤 적합도(S~C등급 · ★1~5)</strong>를 확인하고 최적의 역할을 부여하세요.</p>
+                    <p style="margin-top: 6px;"><strong>8대 핵심 지침 100% 연동:</strong> <strong>① 후방 빌드업 구조 · ② 수비 라인 높이 · ③ 압박 강도 · ④ 공격 전환 · ⑤ 수비 전환(게겐프레싱 3초 재압박 vs 즉시 대형 복귀) · ⑥ 패스 길이 · ⑦ 전개 템포 · ⑧ 팀 좌우 폭</strong> 8가지 모두가 실시간 엔진 프로파일을 직접 구동합니다.</p>
+                    <p style="margin-top: 6px;"><strong>전술 숙련도(Familiarity) &amp; 실시간 지시:</strong> 경기를 치를수록 현재 전술 철학 숙련도가 상승해 패스·위치 선정 안정성(최대 +4.5%)이 올라가며, 경기 중 하단 <strong>실시간 전술 바</strong>로 5단계 성향과 터치라인 지시(🔥전원 압박 / 🛡️역습 대비 / ⏱️시간 끌기 / ★커스텀 플랜 전환)를 즉시 내릴 수 있습니다.</p>
+                </div>
+
+                <div class="engine-guide-section">
+                    <h4>3. <span class="engine-guide-badge badge-counter">상황별 FM 전술 철학 &amp; 세팅 팁</span></h4>
+                    <p><strong>① 약팀이거나 중원이 밀리는 강팀을 상대할 때 (역습/우회 세팅):</strong></p>
+                    <p style="color: #CBD5E1;">• 추천 철학: <strong>플루이드 역습(directCounter) / 로우 블록(lowBlockCounter) / 루트 원 롱볼(routeOne)</strong><br>• 세부 지침: 빌드업 <strong>다이렉트 전개</strong> · 수비 라인 <strong>로우/미드 블록</strong> · 공격 전환 <strong>즉각 역습</strong> · 수비 전환 <strong>즉시 대형 복귀</strong><br>• 중앙 싸움을 건너뛰고 최전방 어드밴스드 포워드(AF)·인사이드 포워드(IF)·타겟맨(TM)에게 직선 연결합니다.</p>
+                    <p style="margin-top: 10px;"><strong>② 기동력과 활동량이 좋은 스쿼드로 상대를 찍어누를 때:</strong></p>
+                    <p style="color: #CBD5E1;">• 추천 철학: <strong>게겐프레싱(gegenpress) / 수직 티키타카(verticalTikitaka) / 토탈 풋볼(totalFootball)</strong><br>• 세부 지침: 수비 라인 <strong>하이 라인</strong> · 압박 강도 <strong>극한 전방 압박</strong> · 수비 전환 <strong>게겐프레싱(즉각 재압박)</strong><br>• 볼 상실 후 3초간 즉각 재압박으로 상대 진영 턴오버를 유도하되, 후반 체력 저하에 대비해 교체와 템포 조절을 활용하세요.</p>
+                    <p style="margin-top: 10px;"><strong>③ 기술 좋은 강팀으로 상대 텐백(로우 블록·카테나치오)을 뚫을 때:</strong></p>
+                    <p style="color: #CBD5E1;">• 추천 철학: <strong>티키타카(tikitaka) / 컨트롤 포제션(possession) / 윙 플레이(wingPlay)</strong><br>• 팁: 상대가 중앙을 잠그면 <strong>팀 좌우 폭 → 넓은 폭</strong>으로 변경하고 정통 윙어(W)·윙백(WB)·메짤라(MEZ)·쉐도우 스트라이커(SS) 조합으로 측면 컷백과 박스 침투 루트를 여는 것이 효과적입니다.</p>
+                </div>
+
+                <div class="engine-guide-section" style="border-bottom: none; margin-bottom: 0; padding-bottom: 0;">
+                    <h4>4. <span class="engine-guide-badge badge-def">롤(Role) &amp; 상대 스타일 맞춤 팁</span></h4>
+                    <p><strong>• 역할 궁합:</strong> <strong>F9(펄스 나인)</strong>이나 <strong>TM(타겟맨)</strong>은 수비를 끌어낸 뒤 주변 윙어(W/IF)·2선(SS/BBM)에게 찌르는 킬패스 보정이 매우 강합니다. <strong>감아차기 / 파워슛</strong> 특성이 있는 AM·AP·IW·IF는 아크 정면 중거리 슈팅으로 밀집 수비를 깰 수 있습니다.</p>
+                    <p><strong>• 상대 맞춤 대응:</strong><br>
+                    - 상대가 <strong>점유·티키타카·라볼피아나</strong> → <strong>게겐프레싱</strong> (빌드업 압박)<br>
+                    - 상대가 <strong>게겐프레싱·토탈 풋볼</strong> → <strong>역습·카테나치오·다이렉트</strong> (뒷공간 공략)<br>
+                    - 상대가 <strong>카테나치오·텐백·다이렉트</strong> → <strong>티키타카(넓게)·라볼피아나·토탈 풋볼</strong> (측면·2선 타격)</p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
     <div id="engineGuideModal" class="modal">
         <div class="modal-content" style="max-width: 820px;">
             <span class="close-btn" id="closeEngineGuideModal">&times;</span>
@@ -1856,7 +1944,8 @@
     <!-- 라이브러리 -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <!-- 로딩 매니저 (가장 먼저 실행되어 화면을 덮어야 함) -->
+    <!-- 저장소 및 로딩 매니저 (가장 먼저 실행되어 화면을 덮어야 함) -->
+    <script src="saveStorage.js"></script>
     <script src="loadManager.js"></script>
 
     <!-- 핵심 데이터 및 시스템 (순서 중요) -->

@@ -143,8 +143,11 @@ window.AutoSaveSystem = {
             if (typeof window.saveToSlot === 'function') {
                 console.log(`[AutoSave] 자동 저장 실행 (슬롯 ${this.lastLoadedSlot})`);
                 // silent 모드로 저장 (알림창 없이)
-                window.saveToSlot(this.lastLoadedSlot, true);
-                this.showToast();
+                Promise.resolve(window.saveToSlot(this.lastLoadedSlot, true)).then((saved) => {
+                    if (saved !== false) {
+                        this.showToast();
+                    }
+                });
             }
         }
     },
@@ -648,16 +651,34 @@ function setupEventListeners() {
     // 성장 현황 보기
     document.getElementById('showGrowthBtn').addEventListener('click', showGrowthSummary);
 
-    // [신규] 매치 엔진 가이드 모달
+    // [신규] 전술 팁 모달 (엔진 샌드박스 버튼 대체)
+    const tacticTipsBtn = document.getElementById('openTacticTipsBtn');
+    const tacticTipsModal = document.getElementById('tacticTipsModal');
+    const closeTacticTipsBtn = document.getElementById('closeTacticTipsModal');
+
+    if (tacticTipsBtn && tacticTipsModal) {
+        tacticTipsBtn.addEventListener('click', () => { tacticTipsModal.style.display = 'block'; });
+        if (closeTacticTipsBtn) {
+            closeTacticTipsBtn.addEventListener('click', () => { tacticTipsModal.style.display = 'none'; });
+        }
+        window.addEventListener('click', (e) => {
+            if (e.target === tacticTipsModal) tacticTipsModal.style.display = 'none';
+        });
+    }
+
+    // [통합] 전술 탭 가이드 버튼도 통합 전술 팁 모달(#tacticTipsModal)로 연결
     const guideBtn = document.getElementById('openEngineGuideBtn');
     const guideModal = document.getElementById('engineGuideModal');
     const closeGuideBtn = document.getElementById('closeEngineGuideModal');
 
-    if (guideBtn && guideModal) {
-        guideBtn.addEventListener('click', () => guideModal.style.display = 'block');
+    if (guideBtn) {
+        guideBtn.addEventListener('click', () => {
+            if (tacticTipsModal) tacticTipsModal.style.display = 'block';
+            else if (guideModal) guideModal.style.display = 'block';
+        });
+    }
+    if (guideModal && closeGuideBtn) {
         closeGuideBtn.addEventListener('click', () => guideModal.style.display = 'none');
-
-        // 모달 바깥 클릭 시 닫기
         window.addEventListener('click', (e) => {
             if (e.target === guideModal) guideModal.style.display = 'none';
         });
@@ -1336,10 +1357,12 @@ function isLandscapeLayout() {
     return window.matchMedia(LANDSCAPE_LAYOUT_QUERY).matches;
 }
 
-// [신규] 경기 탭의 현재 전술 디스플레이 업데이트
+// [신규] 경기 탭의 현재 전술 디스플레이 업데이트 (FM 스타일 전술 철학 및 커스텀 슬롯 반영)
 function updateMatchTabCurrentTacticDisplay() {
-    const curKey = gameData.currentTactic || 'balanced';
-    
+    const rawKey = gameData.currentTactic || 'balanced';
+    const curKey = (typeof window.normalizeTacticKey === 'function') ? window.normalizeTacticKey(rawKey) : rawKey;
+    gameData.currentTactic = curKey;
+
     // 숨겨진 셀렉트가 있다면 동기화 (기존 코드 호환성)
     const tacticSelect = document.getElementById('tacticSelect');
     if (tacticSelect) tacticSelect.value = curKey;
@@ -1352,63 +1375,67 @@ function updateMatchTabCurrentTacticDisplay() {
     const tacticMap = {
         gegenpress: {
             name: '게겐프레싱',
-            desc: '높은 수비 라인과 강력한 전방 압박으로 상대를 에워싸 볼을 재탈취하고 빠른 역습으로 득점을 노립니다.',
-            tags: [{ text: '전방 강한 압박', type: 'press' }, { text: '매우 빠른 템포', type: 'tempo' }, { text: '공격적 성향', type: 'mentality' }]
-        },
-        twoLine: {
-            name: '다이렉트 축구',
-            desc: '단단한 두 줄 수비 블록으로 실점을 방지하고, 빈틈을 파고드는 직진 패스로 상대의 허점을 찌릅니다.',
-            tags: [{ text: '두 줄 수비 블록', type: 'press' }, { text: '직진 다이렉트 패스', type: 'tempo' }, { text: '실리적 균형', type: 'mentality' }]
-        },
-        lavolpiana: {
-            name: '라볼피아나',
-            desc: '수비형 미드필더가 센터백 사이로 내려앉아 후방 빌드업을 안정화하고 좌우 풀백의 측면 공격을 지원합니다.',
-            tags: [{ text: '후방 빌드업', type: 'mentality' }, { text: '측면 공격 지원', type: 'tempo' }, { text: '안정적 수비', type: 'press' }]
-        },
-        longBall: {
-            name: '롱볼 축구',
-            desc: '중원 압박을 우회하여 전방 공격수를 향해 다이렉트 롱패스를 공급하며 빠른 공중볼 경합을 유도합니다.',
-            tags: [{ text: '장거리 롱패스', type: 'tempo' }, { text: '공중볼 경합', type: 'press' }, { text: '빠른 전개', type: 'mentality' }]
-        },
-        possession: {
-            name: '점유율 축구',
-            desc: '높은 점유율과 침착한 패스워크로 경기 흐름을 장악하며 상대 수비의 틈을 천천히 흔들어 찬스를 만듭니다.',
-            tags: [{ text: '높은 볼 점유율', type: 'mentality' }, { text: '안정된 지공', type: 'tempo' }, { text: '유기적 연계', type: 'press' }]
-        },
-        parkBus: {
-            name: '역습 축구',
-            desc: '최후방에 밀집 수비벽을 형성해 상대 공격을 완벽히 흡수한 뒤, 날카로운 카운터 어택으로 득점을 노립니다.',
-            tags: [{ text: '밀집 수비(버스)', type: 'press' }, { text: '총알 역습', type: 'tempo' }, { text: '극단적 수비', type: 'mentality' }]
-        },
-        catenaccio: {
-            name: '카테나치오',
-            desc: '이탈리아 전통의 철벽 자물쇠 수비로 상대 공간을 완벽 봉쇄하고 실점을 최소화하는 늪 축구입니다.',
-            tags: [{ text: '자물쇠 질식 수비', type: 'press' }, { text: '최소 실점', type: 'mentality' }, { text: '안전 우선', type: 'tempo' }]
-        },
-        totalFootball: {
-            name: '토탈 풋볼',
-            desc: '모든 선수가 유기적으로 포지션을 스위칭하며 공격과 수비에 적극 참여하는 혁신적인 전원 축구입니다.',
-            tags: [{ text: '전원 공격 & 수비', type: 'mentality' }, { text: '유연한 포지셔닝', type: 'press' }, { text: '높은 활동량', type: 'tempo' }]
+            desc: '높은 수비 라인과 즉각 재압박(게겐프레싱)으로 상대 진영에서 볼을 탈취해 빠른 역습을 노립니다.',
+            tags: [{ text: '즉각 재압박', type: 'press' }, { text: '빠른 템포', type: 'tempo' }, { text: '하이 라인', type: 'mentality' }]
         },
         tikitaka: {
             name: '티키타카',
-            desc: '짧고 정교한 삼각 원터치 패스를 연속 연결하여 상대 압박을 무력화하고 문전까지 볼을 운반합니다.',
-            tags: [{ text: '짧은 삼각 패스', type: 'tempo' }, { text: '높은 테크닉', type: 'mentality' }, { text: '침착한 전개', type: 'press' }]
+            desc: '짧고 정교한 삼각 원터치 패스를 연속 연결하여 볼 점유율을 지배하고 문전 공간을 엽니다.',
+            tags: [{ text: '극단적 숏패스', type: 'tempo' }, { text: '점유율 지배', type: 'mentality' }, { text: '전방 재압박', type: 'press' }]
+        },
+        verticalTikitaka: {
+            name: '수직 티키타카',
+            desc: '변형 3백 빌드업과 짧고 빠른 수직 전진 패스로 하프스페이스를 공략하는 현대식 전술입니다.',
+            tags: [{ text: '수직 전진 패스', type: 'tempo' }, { text: '하프스페이스', type: 'mentality' }, { text: '변형 3백 빌드업', type: 'press' }]
+        },
+        possession: {
+            name: '컨트롤 포제션',
+            desc: '안정적인 볼 순환과 침착한 템포 조절로 체력을 아끼며 경기 흐름을 완벽히 통제합니다.',
+            tags: [{ text: '경기 흐름 통제', type: 'mentality' }, { text: '안정된 지공', type: 'tempo' }, { text: '체력 세이브', type: 'press' }]
+        },
+        wingPlay: {
+            name: '윙 플레이',
+            desc: '측면 터치라인 끝까지 벌린 윙어와 풀백의 오버래핑·크로스로 박스 안을 폭격합니다.',
+            tags: [{ text: '측면 오버래핑', type: 'tempo' }, { text: '넓은 좌우 폭', type: 'mentality' }, { text: '크로스 집중', type: 'press' }]
+        },
+        directCounter: {
+            name: '플루이드 역습',
+            desc: '단단한 미드 블록으로 상대 공격을 흡수한 뒤 볼 탈취 즉시 전방 공간으로 빠르게 역습합니다.',
+            tags: [{ text: '미드 블록', type: 'press' }, { text: '직선 역습', type: 'tempo' }, { text: '실리적 전환', type: 'mentality' }]
+        },
+        lowBlockCounter: {
+            name: '로우 블록',
+            desc: '수비 라인을 깊게 내리고 박스 안 공간을 잠근 뒤 최전방 스피드로 한 방의 롱카운터를 노립니다.',
+            tags: [{ text: '로우 블록(텐백)', type: 'press' }, { text: '롱카운터', type: 'tempo' }, { text: '선수비 후역습', type: 'mentality' }]
+        },
+        catenaccio: {
+            name: '카테나치오',
+            desc: '이탈리아식 철벽 수비 조직력과 대인 마크로 실점을 원천 봉쇄하는 빗장수비 전술입니다.',
+            tags: [{ text: '빗장 수비', type: 'press' }, { text: '최소 실점', type: 'mentality' }, { text: '느린 템포', type: 'tempo' }]
+        },
+        routeOne: {
+            name: '루트 원 롱볼',
+            desc: '중원 압박을 생략하고 최전방 타겟맨과 뒷공간으로 곧바로 긴 패스를 투입해 세컨볼 승부를 겁니다.',
+            tags: [{ text: '루트 원 롱패스', type: 'tempo' }, { text: '세컨볼 경합', type: 'press' }, { text: '직선 전개', type: 'mentality' }]
+        },
+        totalFootball: {
+            name: '토탈 풋볼',
+            desc: '전 포지션이 유기적으로 스위칭하며 공격과 수비 전역에서 수적 우위를 점하는 전원 축구입니다.',
+            tags: [{ text: '전원 공수 가담', type: 'mentality' }, { text: '포지션 스위칭', type: 'press' }, { text: '높은 활동량', type: 'tempo' }]
         },
         balanced: {
-            name: '밸런스 (기본형)',
-            desc: '공수 균형을 맞춘 표준 전술입니다. [전술] 탭에서 팀만의 고유한 DNA를 특화하여 전력을 극대화하세요.',
-            tags: [{ text: '공수 균형', type: 'mentality' }, { text: '표준 템포', type: 'tempo' }, { text: '전술 커스텀 권장', type: 'press' }]
+            name: '밸런스',
+            desc: '공수 균형을 맞춘 표준 전술입니다. [전술] 탭에서 8대 지침과 선수 롤을 자유롭게 설계하세요.',
+            tags: [{ text: '공수 균형', type: 'mentality' }, { text: '표준 템포', type: 'tempo' }, { text: '유연한 대응', type: 'press' }]
         }
     };
 
-    const info = tacticMap[curKey] || {
-        name: curKey,
-        desc: '팀의 고유 전술이 설정되어 있습니다. [전술] 탭에서 세부 전술을 확인하세요.',
-        tags: [{ text: '현재 적용 중', type: 'mentality' }]
-    };
+    const info = tacticMap[curKey] || tacticMap.balanced;
+    const customSlotName = (typeof gameData.activeCustomSlot === 'number' && gameData.customTactics?.[gameData.activeCustomSlot])
+        ? ` (★ ${gameData.customTactics[gameData.activeCustomSlot].name})`
+        : '';
 
-    nameEl.textContent = info.name;
+    nameEl.textContent = `${info.name}${customSlotName}`;
     descEl.textContent = info.desc;
     tagsEl.replaceChildren();
 
@@ -1443,8 +1470,28 @@ function updateMatchTabCurrentTacticDisplay() {
             tagsEl.appendChild(span);
         });
     }
+
+    // 현재 전술 숙련도(Familiarity) 게이지 및 텍스트 업데이트
+    const masteryPct = (typeof window.getTacticMasteryPct === 'function')
+        ? window.getTacticMasteryPct(curKey)
+        : Math.min(100, Math.max(0, Number(gameData.tacticMastery?.[curKey] || 40)));
+    const bonusPct = ((masteryPct / 100) * 4.5).toFixed(1);
+    let tierLabel = '미숙';
+    if (masteryPct >= 85) tierLabel = '완벽 체화';
+    else if (masteryPct >= 65) tierLabel = '숙련';
+    else if (masteryPct >= 40) tierLabel = '적응 중';
+
+    const masteryTxtEl = document.getElementById('currentTacticMasteryText');
+    const masteryBarEl = document.getElementById('currentTacticMasteryBar');
+    if (masteryTxtEl) {
+        masteryTxtEl.textContent = `${masteryPct}% · ${tierLabel} (패스·위치선정 안정성 +${bonusPct}%)`;
+    }
+    if (masteryBarEl) {
+        masteryBarEl.style.width = `${masteryPct}%`;
+    }
 }
 window.updateMatchTabCurrentTacticDisplay = updateMatchTabCurrentTacticDisplay;
+window.updateCurrentTacticPanelUI = updateMatchTabCurrentTacticDisplay;
 
 // [신규] 경기 탭 내 시즌 일정 & FA컵/UCL 토너먼트 대진표 인라인 렌더링
 function renderMatchTabScheduleOrBracket(mode) {
@@ -2666,7 +2713,14 @@ function updateDisplay() {
             const tag = gameData.isHomeGame ? '홈 경기' : '원정 경기';
             const stadDesc = stad ? ` · ${stad.name} (${(stad.currentCapacity || stad.capacity).toLocaleString()}석)` : '';
 
-            if (gameData.isUCLMatch && typeof cupCompetitionManager !== 'undefined') {
+            if (gameData.isPlayoffMatch) {
+                const poStageName = gameData.playoffStage === 'FINAL' ? '웸블리 결승전 (단판)'
+                    : (gameData.playoffStage === 'SF_LEG2' ? '준결승 2차전' : '준결승 1차전');
+                const locTag = gameData.playoffStage === 'FINAL' ? '중립 구장 · 웸블리' : tag;
+                matchTypeSpan.textContent = `🔥 승격 플레이오프 [${poStageName} · ${locTag}]${stadDesc}`;
+                matchTypeSpan.style.color = '#F59E0B';
+                matchTypeSpan.style.fontWeight = '800';
+            } else if (gameData.isUCLMatch && typeof cupCompetitionManager !== 'undefined') {
                 const stName = cupCompetitionManager.uclStageNames[gameData.uclStage] || '토너먼트';
                 matchTypeSpan.textContent = `⭐ UCL [${stName} · ${tag}]${stadDesc}`;
                 matchTypeSpan.style.color = '#38BDF8';
@@ -2755,6 +2809,17 @@ function generateFullSchedule() {
 }
 
 function setNextOpponent() {
+    // [신규] EFL 챔피언십 승격 플레이오프 경기 체크 (정규 시즌 종료 후 최우선)
+    if (typeof EFLPlayoffManager !== 'undefined' && !gameData.isWorldCupMode && gameData.eflPlayoff && !gameData.eflPlayoff.completed) {
+        const isPlayoff = EFLPlayoffManager.checkAndSetupMatch();
+        if (isPlayoff) {
+            updateDisplay();
+            return;
+        }
+    }
+    gameData.isPlayoffMatch = false;
+    gameData.playoffStage = null;
+
     // [신규] 컵 대회 (UCL 리그 페이즈 / FA컵 토너먼트) 경기 체크 (우선순위)
     if (typeof cupCompetitionManager !== 'undefined' && !gameData.isWorldCupMode && (gameData.faCup || gameData.ucl)) {
         const isCup = cupCompetitionManager.checkAndSetupCupMatch();
@@ -3303,8 +3368,11 @@ function saveGame() {
             }
         }
 
+        const gameDataToSave = { ...gameData };
+        delete gameDataToSave.aiFormations;
+
         const saveData = {
-            gameData: gameData,
+            gameData: gameDataToSave,
             allTeams: typeof allTeams !== 'undefined' ? allTeams : null, // teams는 allTeams에서 복구 가능하므로 제외
             recordsData: recordsData,
             snsData: snsManager.getSaveData(),
@@ -3357,9 +3425,6 @@ function loadGame(event) {
             gameData = saveData.gameData;
             if (!gameData.playerRoles) gameData.playerRoles = {}; // [추가] 구버전 세이브 호환성 보장
             if (!gameData.mentoringPairs) gameData.mentoringPairs = []; // [추가] 멘토링 세이브 호환성 보장
-            if (!gameData.aiFormations && typeof TeamUtils !== 'undefined') {
-                TeamUtils.initializeAllAIFormations();
-            }
             if (typeof calculateTotalWages === 'function') calculateTotalWages();
             if (typeof gameData.wageBudget !== 'number' || gameData.wageBudget < (gameData.totalWeeklyWage || 0)) {
                 gameData.wageBudget = gameData.totalWeeklyWage || 0;
@@ -3394,6 +3459,11 @@ function loadGame(event) {
 
             // 스쿼드 선수 객체 재연결 (중요!)
             relinkSquadPlayers();
+
+            // AI 최적 포메이션 캐시 복원 (저장 용량 절감을 위해 생략된 경우 재계산)
+            if (!gameData.aiFormations && typeof TeamUtils !== 'undefined') {
+                TeamUtils.initializeAllAIFormations();
+            }
 
             // 리그 테이블 복원 (gameData.leagueData 기반으로 전역 변수 복구)
             if (gameData.leagueData) {
@@ -3738,8 +3808,13 @@ if (showTacticsBtnEl) showTacticsBtnEl.addEventListener('click', showTacticsInfo
 const showTeamTacticsBtnEl = document.getElementById('showTeamTacticsBtn');
 if (showTeamTacticsBtnEl) showTeamTacticsBtnEl.addEventListener('click', showTeamTacticsInfo);
 
-// 전술 상성표 표시 함수
+// 전술 정보 표시 함수 (통합 전술 팁 모달로 일원화)
 function showTacticsInfo() {
+    const tipsModal = document.getElementById('tacticTipsModal');
+    if (tipsModal) {
+        tipsModal.style.display = 'block';
+        return;
+    }
     const tactics = {
         gegenpress: {
             name: "게겐프레싱",
@@ -4009,7 +4084,7 @@ function applyTeamTheme(teamKey) {
 function getSlotInfo(slotNumber, managerId = null) {
     const activeManagerId = managerId || gameData.managerId;
     const saveKey = activeManagerId ? `fm_save_${activeManagerId}_slot${slotNumber}` : `footballManagerSave_slot${slotNumber}`;
-    const savedData = localStorage.getItem(saveKey);
+    const savedData = typeof SaveStorage !== 'undefined' ? SaveStorage.getItem(saveKey) : localStorage.getItem(saveKey);
     if (!savedData) return null;
 
     try {
@@ -4020,12 +4095,18 @@ function getSlotInfo(slotNumber, managerId = null) {
         // 팀 순위 계산
         let teamRank = '-';
         const divisionKey = `division${currentLeague}`;
+        const uLeagueId = (typeof allTeams !== 'undefined' && allTeams[selectedTeam] && allTeams[selectedTeam].leagueId)
+            ? allTeams[selectedTeam].leagueId
+            : null;
+        const leagueDataObj = (data.gameData.leagueData)
+            ? ((uLeagueId && data.gameData.leagueData[uLeagueId]) || data.gameData.leagueData[divisionKey] || data.gameData.leagueData.division1)
+            : null;
 
-        if (data.gameData.leagueData && data.gameData.leagueData[divisionKey]) {
-            const standings = Object.keys(data.gameData.leagueData[divisionKey]).map(teamKey => ({
+        if (leagueDataObj) {
+            const standings = Object.keys(leagueDataObj).map(teamKey => ({
                 team: teamKey,
-                ...data.gameData.leagueData[divisionKey][teamKey],
-                goalDiff: data.gameData.leagueData[divisionKey][teamKey].goalsFor - data.gameData.leagueData[divisionKey][teamKey].goalsAgainst
+                ...leagueDataObj[teamKey],
+                goalDiff: leagueDataObj[teamKey].goalsFor - leagueDataObj[teamKey].goalsAgainst
             })).sort((a, b) => {
                 if (b.points !== a.points) return b.points - a.points;
                 if (b.goalDiff !== a.goalDiff) return b.goalDiff - a.goalDiff;
@@ -4157,7 +4238,7 @@ function createSaveSlots() {
 }
 
 // 특정 슬롯에 저장
-function saveToSlot(slotNumber, silent = false) {
+async function saveToSlot(slotNumber, silent = false) {
     try {
         if (!silent) console.log(`=== 슬롯 ${slotNumber}에 저장 시작 ===`);
 
@@ -4180,7 +4261,7 @@ function saveToSlot(slotNumber, silent = false) {
         // 자동 저장이 아닐 때만 덮어쓰기 확인
         if (slotInfo && !silent) {
             if (!confirm(`슬롯 ${slotNumber}에 이미 저장된 데이터가 있습니다.\n(${slotInfo.teamName}, ${slotInfo.matchesPlayed}경기)\n\n덮어쓰시겠습니까?`)) {
-                return;
+                return false;
             }
         }
 
@@ -4189,25 +4270,19 @@ function saveToSlot(slotNumber, silent = false) {
             gameData.transferSystemData = transferSystem.getSaveData();
         }
 
-        // Records System에서 모든 득점/도움 데이터 수집
+        // Records System 데이터 수집 (불필요한 중복 랭킹 캐시는 제외해 저장 용량 절감)
         const recordsData = {};
 
         if (typeof leagueBasedRecordsSystem !== 'undefined') {
             recordsData.recordsSystemData = leagueBasedRecordsSystem.getSaveData();
-            recordsData.topScorersAll = leagueBasedRecordsSystem.getTopScorers(20);
-            recordsData.topAssistersAll = leagueBasedRecordsSystem.getTopAssisters(20);
-
-            recordsData.leagueTopScorers = {};
-            recordsData.leagueTopAssisters = {};
-
-            for (let league = 1; league <= 3; league++) {
-                recordsData.leagueTopScorers[league] = leagueBasedRecordsSystem.getTopScorersByLeague(league, 10);
-                recordsData.leagueTopAssisters[league] = leagueBasedRecordsSystem.getTopAssistersByLeague(league, 10);
-            }
         }
 
+        // aiFormations는 로드 시 즉시 재계산 가능한 캐시이므로 저장 데이터에서 제외 (약 3~4MB 절감)
+        const gameDataToSave = { ...gameData };
+        delete gameDataToSave.aiFormations;
+
         const saveData = {
-            gameData: gameData,
+            gameData: gameDataToSave,
             allTeams: typeof allTeams !== 'undefined' ? allTeams : null,
             recordsData: recordsData,
             snsData: snsManager.getSaveData(),
@@ -4220,9 +4295,14 @@ function saveToSlot(slotNumber, silent = false) {
         // [수정] 매니저 시스템 적용: gameData.managerId 기반으로 저장키 분리
         const managerId = gameData.managerId;
         const saveKey = managerId ? `fm_save_${managerId}_slot${slotNumber}` : `footballManagerSave_slot${slotNumber}`;
-        
-        // 로컬스토리지에 저장
-        localStorage.setItem(saveKey, JSON.stringify(saveData));
+        const serializedData = JSON.stringify(saveData);
+
+        // IndexedDB 기반 대용량 스토리지에 저장 (미지원 시 localStorage 폴백)
+        if (typeof SaveStorage !== 'undefined') {
+            await SaveStorage.setItem(saveKey, serializedData);
+        } else {
+            localStorage.setItem(saveKey, serializedData);
+        }
 
         if (!silent) {
             console.log(`슬롯 ${slotNumber}에 저장 완료`);
@@ -4231,16 +4311,20 @@ function saveToSlot(slotNumber, silent = false) {
 
         // 슬롯 UI 새로고침
         createSaveSlots();
+        return true;
 
     } catch (error) {
         console.error(`슬롯 ${slotNumber} 저장 중 오류:`, error);
 
-        // 용량 초과 에러 처리
-        if (error.name === 'QuotaExceededError') {
-            alert('브라우저 저장 공간이 부족합니다. 다른 슬롯을 삭제하거나 파일 저장을 이용해주세요.');
-        } else {
-            alert('저장 중 오류가 발생했습니다.');
+        if (!silent) {
+            // 용량 초과 에러 처리
+            if (error && error.name === 'QuotaExceededError') {
+                alert('브라우저 저장 공간이 부족합니다. 다른 슬롯을 삭제하거나 파일 저장을 이용해주세요.');
+            } else {
+                alert('저장 중 오류가 발생했습니다.');
+            }
         }
+        return false;
     }
 }
 
@@ -4249,7 +4333,7 @@ function loadFromSlot(slotNumber, overrideManagerId = null) {
     try {
         const managerId = overrideManagerId || gameData.managerId;
         const saveKey = managerId ? `fm_save_${managerId}_slot${slotNumber}` : `footballManagerSave_slot${slotNumber}`;
-        const savedData = localStorage.getItem(saveKey);
+        const savedData = typeof SaveStorage !== 'undefined' ? SaveStorage.getItem(saveKey) : localStorage.getItem(saveKey);
 
         if (!savedData) {
             alert(`슬롯 ${slotNumber}에 저장된 게임이 없습니다.`);
@@ -4302,6 +4386,21 @@ function loadFromSlot(slotNumber, overrideManagerId = null) {
 
         // 스쿼드 선수 객체 재연결
         relinkSquadPlayers();
+
+        // AI 최적 포메이션 캐시 복원 (저장 용량 절감을 위해 생략된 경우 재계산)
+        if (!gameData.aiFormations && typeof TeamUtils !== 'undefined') {
+            TeamUtils.initializeAllAIFormations();
+        }
+
+        // 이적 시장 데이터 복원
+        if (gameData.transferSystemData && typeof transferSystem !== 'undefined') {
+            transferSystem.loadSaveData(gameData.transferSystemData);
+        }
+
+        // 스케줄 데이터 복원 (없으면 생성)
+        if (!gameData.schedule) {
+            generateFullSchedule();
+        }
 
         // 리그 테이블 복원
         if (gameData.leagueData) {
@@ -4416,7 +4515,7 @@ function loadFromSlot(slotNumber, overrideManagerId = null) {
 }
 
 // 특정 슬롯 삭제
-function deleteSlot(slotNumber) {
+async function deleteSlot(slotNumber) {
     const slotInfo = getSlotInfo(slotNumber);
 
     if (!slotInfo) {
@@ -4429,7 +4528,11 @@ function deleteSlot(slotNumber) {
     if (confirm(confirmMessage)) {
         const managerId = gameData.managerId;
         const saveKey = managerId ? `fm_save_${managerId}_slot${slotNumber}` : `footballManagerSave_slot${slotNumber}`;
-        localStorage.removeItem(saveKey);
+        if (typeof SaveStorage !== 'undefined') {
+            await SaveStorage.removeItem(saveKey);
+        } else {
+            localStorage.removeItem(saveKey);
+        }
         alert(`슬롯 ${slotNumber}이(가) 삭제되었습니다.`);
 
         // 슬롯 UI 새로고침
@@ -6966,7 +7069,8 @@ async function simulateMultipleSeasons(count) {
             if (!gameData.schedule) generateFullSchedule();
 
             const divisionKey = `division${gameData.currentLeague}`;
-            const schedule = gameData.schedule[divisionKey];
+            const uLId = (typeof LeagueManager !== 'undefined') ? LeagueManager.getLeagueIdByTeam(gameData.selectedTeam) : null;
+            const schedule = (uLId && gameData.schedule[uLId]) ? gameData.schedule[uLId] : gameData.schedule[divisionKey];
 
             if (!schedule) break;
 

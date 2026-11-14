@@ -155,7 +155,8 @@ const WorldCupManager = {
         if (!container) return;
         container.replaceChildren();
         for (let i = 1; i <= 3; i++) {
-            const slotData = localStorage.getItem(`worldcup_save_${i}`);
+            const wcKey = `worldcup_save_${i}`;
+            const slotData = typeof SaveStorage !== 'undefined' ? SaveStorage.getItem(wcKey) : localStorage.getItem(wcKey);
             const info = slotData ? JSON.parse(slotData).timestamp : null;
             const dateStr = info ? new Date(info).toLocaleString() : '비어있음';
 
@@ -1319,7 +1320,7 @@ const WorldCupManager = {
         this.setKnockoutSchedule(nextMatches);
     },
 
-    saveWorldCup(slotIndex, silent = false) {
+    async saveWorldCup(slotIndex, silent = false) {
         const data = {
             wcPlayers: this.wcPlayers,
             groups: this.groups,
@@ -1334,14 +1335,31 @@ const WorldCupManager = {
             currentRound: gameData.currentRound,
             isEliminated: this.isEliminated
         };
-        localStorage.setItem(`worldcup_save_${slotIndex}`, JSON.stringify(data));
-        if (!silent) alert(`월드컵 슬롯 ${slotIndex}에 저장되었습니다.`);
-        this.renderSaveSlots();
+        const wcKey = `worldcup_save_${slotIndex}`;
+        const serialized = JSON.stringify(data);
+        try {
+            if (typeof SaveStorage !== 'undefined') {
+                await SaveStorage.setItem(wcKey, serialized);
+            } else {
+                localStorage.setItem(wcKey, serialized);
+            }
+            if (!silent) alert(`월드컵 슬롯 ${slotIndex}에 저장되었습니다.`);
+            this.renderSaveSlots();
+        } catch (err) {
+            console.error('월드컵 저장 중 오류:', err);
+            if (!silent) {
+                alert(err && err.name === 'QuotaExceededError'
+                    ? '브라우저 저장 공간이 부족합니다.'
+                    : '월드컵 저장 중 오류가 발생했습니다.');
+            }
+        }
     },
 
     tryInitialSave() {
         for (let i = 1; i <= 3; i++) {
-            if (!localStorage.getItem(`worldcup_save_${i}`)) {
+            const wcKey = `worldcup_save_${i}`;
+            const exists = typeof SaveStorage !== 'undefined' ? SaveStorage.getItem(wcKey) : localStorage.getItem(wcKey);
+            if (!exists) {
                 this.currentSlotIndex = i;
                 this.saveWorldCup(i, true);
                 return;
@@ -1358,7 +1376,8 @@ const WorldCupManager = {
     },
 
     loadWorldCup(slotIndex) {
-        const dataStr = localStorage.getItem(`worldcup_save_${slotIndex}`);
+        const wcKey = `worldcup_save_${slotIndex}`;
+        const dataStr = typeof SaveStorage !== 'undefined' ? SaveStorage.getItem(wcKey) : localStorage.getItem(wcKey);
         if (!dataStr) {
             alert(`슬롯 ${slotIndex}에 저장된 데이터가 없습니다.`);
             return;
@@ -1416,9 +1435,14 @@ const WorldCupManager = {
         }
     },
     
-    deleteWorldCup(slotIndex) {
+    async deleteWorldCup(slotIndex) {
         if (confirm(`정말 월드컵 슬롯 ${slotIndex} 데이터를 삭제하시겠습니까?`)) {
-            localStorage.removeItem(`worldcup_save_${slotIndex}`);
+            const wcKey = `worldcup_save_${slotIndex}`;
+            if (typeof SaveStorage !== 'undefined') {
+                await SaveStorage.removeItem(wcKey);
+            } else {
+                localStorage.removeItem(wcKey);
+            }
             this.renderSaveSlots();
         }
     }

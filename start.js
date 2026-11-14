@@ -2,6 +2,7 @@
 
 const AVAILABLE_LEAGUES = [
     { id: "premier_league", name: "🇬🇧 잉글랜드 프리미어리그" },
+    { id: "efl_championship", name: "🇬🇧 잉글랜드 EFL 챔피언십" },
     { id: "laliga", name: "🇪🇸 스페인 라리가" },
     { id: "bundesliga", name: "🇩🇪 독일 분데스리가" },
     { id: "serie_a", name: "🇮🇹 이탈리아 세리에 A" },

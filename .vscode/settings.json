@@ -1,4 +1,6 @@
 {
-    "liveServer.settings.port": 5518,
-    "livePreview.defaultPreviewPath": "/index.html"
+  "liveServer.settings.port": 5510,
+  "liveServer.defaultPreviewPath": "/index.html",
+  "antigravity.agent.permissionPreset": "Auto",
+  "antigravity.terminal.autoExecution": "Always Proceed"
 }

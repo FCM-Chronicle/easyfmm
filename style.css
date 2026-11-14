@@ -13363,3 +13363,34 @@ input[type="range"].game-range-slider::-moz-range-thumb:hover,
 
 
 
+
+
+/* [신규] 인게임 실시간 전술 컨트롤 바 스타일 */
+.live-tactics-bar .live-tac-btn {
+    background: rgba(30, 41, 59, 0.75);
+    color: #CBD5E1;
+    border: 1px solid rgba(148, 163, 184, 0.24);
+    border-radius: 7px;
+    padding: 5px 10px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.live-tactics-bar .live-tac-btn:hover {
+    border-color: #38BDF8;
+    color: #F8FAFC;
+}
+.live-tactics-bar .live-tac-btn.active {
+    background: rgba(245, 158, 11, 0.24);
+    color: #FBBF24;
+    border-color: #F59E0B;
+    font-weight: 800;
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.25);
+}
+.live-tactics-bar .live-tac-btn.shout.active {
+    background: rgba(56, 189, 248, 0.24);
+    color: #38BDF8;
+    border-color: #38BDF8;
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.25);
+}

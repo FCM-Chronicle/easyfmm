@@ -428,7 +428,17 @@
     const compLogo = document.getElementById("sb-comp-logo");
     const compTag = document.getElementById("sb-comp-tag");
     if (compTag && window.gameData) {
-      if (window.gameData.isUCLMatch) {
+      if (window.gameData.isPlayoffMatch) {
+        if (compLogo) {
+          compLogo.src = "assets/league_logos/efl_championship.png";
+          compLogo.style.display = "block";
+          compLogo.onerror = function () {
+            this.style.display = "none";
+            if (compTag) compTag.textContent = "PLAYOFF";
+          };
+        }
+        compTag.textContent = "";
+      } else if (window.gameData.isUCLMatch) {
         if (compLogo) {
           compLogo.src = (window.CUP_CONFIGS && window.CUP_CONFIGS.ucl && window.CUP_CONFIGS.ucl.logo)
             ? window.CUP_CONFIGS.ucl.logo

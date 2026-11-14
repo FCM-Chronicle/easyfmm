@@ -138,9 +138,10 @@ const managerSystem = {
     migrateLegacySaves() {
         let hasLegacySaves = false;
         const legacySaves = [];
+        const readSave = (k) => (typeof SaveStorage !== 'undefined' ? SaveStorage.getItem(k) : localStorage.getItem(k));
         
         for (let i = 1; i <= 3; i++) {
-            const save = localStorage.getItem(`footballManagerSave_slot${i}`);
+            const save = readSave(`footballManagerSave_slot${i}`);
             if (save) {
                 hasLegacySaves = true;
                 legacySaves.push({ slot: i, data: save });
@@ -164,8 +165,14 @@ const managerSystem = {
             this.saveManagers();
 
             legacySaves.forEach(item => {
-                localStorage.setItem(`fm_save_${legacyManager.id}_slot${item.slot}`, item.data);
-                localStorage.removeItem(`footballManagerSave_slot${item.slot}`);
+                const newKey = `fm_save_${legacyManager.id}_slot${item.slot}`;
+                const oldKey = `footballManagerSave_slot${item.slot}`;
+                if (typeof SaveStorage !== 'undefined') {
+                    SaveStorage.setItem(newKey, item.data).then(() => SaveStorage.removeItem(oldKey));
+                } else {
+                    localStorage.setItem(newKey, item.data);
+                    localStorage.removeItem(oldKey);
+                }
             });
 
             console.log("레거시 세이브 마이그레이션 완료", legacyManager);
@@ -451,7 +458,12 @@ const managerSystem = {
         this.saveManagers();
         
         for (let i = 1; i <= 3; i++) {
-            localStorage.removeItem(`fm_save_${managerId}_slot${i}`);
+            const key = `fm_save_${managerId}_slot${i}`;
+            if (typeof SaveStorage !== 'undefined') {
+                SaveStorage.removeItem(key);
+            } else {
+                localStorage.removeItem(key);
+            }
         }
 
         document.getElementById('managerProfileModal').style.display = 'none';
@@ -519,7 +531,9 @@ const managerSystem = {
             // 세이브 슬롯 사용 개수 확인
             let activeSlots = 0;
             for (let i = 1; i <= 3; i++) {
-                if (localStorage.getItem(`fm_save_${manager.id}_slot${i}`)) activeSlots++;
+                const key = `fm_save_${manager.id}_slot${i}`;
+                const exists = typeof SaveStorage !== 'undefined' ? SaveStorage.getItem(key) : localStorage.getItem(key);
+                if (exists) activeSlots++;
             }
 
             const card = document.createElement('div');
@@ -658,7 +672,7 @@ const managerSystem = {
 
         for (let i = 1; i <= 3; i++) {
             const slotKey = `fm_save_${managerId}_slot${i}`;
-            const saveDataStr = localStorage.getItem(slotKey);
+            const saveDataStr = typeof SaveStorage !== 'undefined' ? SaveStorage.getItem(slotKey) : localStorage.getItem(slotKey);
             
             const slotDiv = document.createElement('div');
             slotDiv.className = 'save-slot';

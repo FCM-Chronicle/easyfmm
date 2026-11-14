@@ -233,23 +233,7 @@ class RecordsSystem {
         }
     }
 
-    // 전술 상성 반영 강화 (체감도 대폭 상승)
-    if (typeof TacticSystem !== 'undefined') {
-        const ts = new TacticSystem();
-        const t1Tactic = ts.getOpponentTactic(team1Key);
-        const t2Tactic = ts.getOpponentTactic(team2Key);
-        const matchup = ts.getTacticMatchup(t1Tactic, t2Tactic);
-        
-        if (matchup.advantage > 0) {
-            team1WinChance += 0.08;
-            team2WinChance -= 0.05;
-            drawChance -= 0.03;
-        } else if (matchup.advantage < 0) {
-            team1WinChance -= 0.05;
-            team2WinChance += 0.08;
-            drawChance -= 0.03;
-        }
-    }
+    // 전술 상성에 따른 인위적 승률 가감 제거 (순수 전력·홈이점 기반 공정 시뮬레이션)
 
     // [수정] 전력 차이 반영 비중 확대 (150 -> 100) : 전력 차이가 승패에 더 큰 영향을 주도록 변경
     const powerDivisor = (typeof gameData !== 'undefined' && gameData.isWorldCupMode) ? 50 : 100;
@@ -1245,7 +1229,7 @@ class LeagueBasedRecordsSystem extends RecordsSystem {
         if (typeof league === 'string') return league;
         // 구 division 번호는 LeagueManager 호환 매핑과 동일하게 변환
         if (league === 1) return this.getUserLeagueId();
-        if (league === 2) return 'laliga';
+        if (league === 2) return 'efl_championship';
         if (league === 3) return 'bundesliga';
         return `division${league}`;
     }

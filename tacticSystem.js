@@ -142,117 +142,185 @@ const DEFAULT_CLUB_TACTICS = {
 };
 if (typeof window !== 'undefined') window.DEFAULT_CLUB_TACTICS = DEFAULT_CLUB_TACTICS;
 
+// 구형 프리셋 키 -> FM 정통 전술 키 정규화 매핑
+const LEGACY_TACTIC_KEY_MAP = {
+    lavolpiana: 'verticalTikitaka',
+    twoLine: 'directCounter',
+    counter: 'directCounter',
+    parkBus: 'lowBlockCounter',
+    longBall: 'routeOne'
+};
+
+function normalizeTacticKey(key) {
+    if (!key || typeof key !== 'string') return 'balanced';
+    return LEGACY_TACTIC_KEY_MAP[key] || key;
+}
+if (typeof window !== 'undefined') window.normalizeTacticKey = normalizeTacticKey;
+
+// 전술 숙련도(0~100%) 조회 및 구형 키 숙련도 자동 마이그레이션 헬퍼
+function getTacticMasteryPct(tacticKey) {
+    if (typeof gameData === 'undefined' || !gameData) return 40;
+    if (!gameData.tacticMastery || typeof gameData.tacticMastery !== 'object') {
+        gameData.tacticMastery = {};
+    }
+    // 구형 키(lavolpiana, parkBus, twoLine, counter, longBall) 숙련도를 정규 FM 키로 병합
+    for (const [oldK, newK] of Object.entries(LEGACY_TACTIC_KEY_MAP)) {
+        if (typeof gameData.tacticMastery[oldK] === 'number') {
+            gameData.tacticMastery[newK] = Math.max(gameData.tacticMastery[newK] || 0, gameData.tacticMastery[oldK]);
+            delete gameData.tacticMastery[oldK];
+        }
+    }
+    const normKey = normalizeTacticKey(tacticKey || gameData.currentTactic || 'balanced');
+    // 구단 기본 고유 전술이거나 초기 시작 전술인데 아직 기록이 없으면 기본 숙련도 40% 부여
+    if (typeof gameData.tacticMastery[normKey] !== 'number') {
+        const clubRaw = gameData.selectedTeam ? String(gameData.selectedTeam).trim() : '';
+        const clubDef = clubRaw ? normalizeTacticKey(DEFAULT_CLUB_TACTICS[clubRaw] || DEFAULT_CLUB_TACTICS[clubRaw.replace(/\s+/g, '_')] || 'balanced') : 'balanced';
+        if (normKey === clubDef || normKey === normalizeTacticKey(gameData.currentTactic)) {
+            gameData.tacticMastery[normKey] = Math.max(40, gameData.tacticMastery[normKey] || 0);
+        } else {
+            gameData.tacticMastery[normKey] = 20;
+        }
+    }
+    return Math.max(0, Math.min(100, Math.round(gameData.tacticMastery[normKey] || 0)));
+}
+if (typeof window !== 'undefined') window.getTacticMasteryPct = getTacticMasteryPct;
+
+// 유저 커스텀 전술 슬롯 (3개) 관리 유틸
+const CustomTacticSlots = {
+    ensureSlots() {
+        if (typeof gameData === 'undefined' || !gameData) return [];
+        if (!Array.isArray(gameData.customTactics) || gameData.customTactics.length !== 3) {
+            const prev = Array.isArray(gameData.customTactics) ? gameData.customTactics : [];
+            gameData.customTactics = [0, 1, 2].map(idx => prev[idx] || {
+                id: idx + 1,
+                name: `커스텀 플랜 ${idx + 1}`,
+                baseStyle: null,
+                settings: null,
+                mentality: 'balanced',
+                savedAt: null
+            });
+        }
+        return gameData.customTactics;
+    },
+    saveToSlot(slotIdx, customName) {
+        const slots = this.ensureSlots();
+        if (!slots[slotIdx]) return false;
+        const curStyle = normalizeTacticKey(gameData.currentTactic || 'balanced');
+        const defaultFn = typeof window.getDefaultTacticSettings === 'function'
+            ? window.getDefaultTacticSettings
+            : () => ({ buildUp: 'balanced', defensiveLine: 'normal', pressIntensity: 'normal', offensiveTrans: 'balanced', defensiveTrans: 'regroup', passLength: 'mixed', tempo: 'normal', width: 'normal' });
+        const curSettings = Object.assign({}, defaultFn(curStyle), gameData.tacticSettings || {});
+        slots[slotIdx] = {
+            id: slotIdx + 1,
+            name: (customName && String(customName).trim()) ? String(customName).trim() : (slots[slotIdx].name || `커스텀 플랜 ${slotIdx + 1}`),
+            baseStyle: curStyle,
+            settings: curSettings,
+            mentality: (gameData.tacticMentality || 'balanced'),
+            savedAt: Date.now()
+        };
+        gameData.activeCustomSlot = slotIdx;
+        if (typeof window.triggerAutoSave === 'function') window.triggerAutoSave();
+        return slots[slotIdx];
+    },
+    loadFromSlot(slotIdx) {
+        const slots = this.ensureSlots();
+        const slot = slots[slotIdx];
+        if (!slot || !slot.settings) return null;
+        gameData.currentTactic = normalizeTacticKey(slot.baseStyle || 'balanced');
+        gameData.tacticSettings = Object.assign({}, slot.settings);
+        gameData.tacticMentality = slot.mentality || 'balanced';
+        gameData.activeCustomSlot = slotIdx;
+        if (typeof window.updateCurrentTacticPanelUI === 'function') {
+            window.updateCurrentTacticPanelUI(gameData.currentTactic);
+        }
+        if (typeof window.triggerAutoSave === 'function') window.triggerAutoSave();
+        return slot;
+    }
+};
+if (typeof window !== 'undefined') window.CustomTacticSlots = CustomTacticSlots;
+
 class TacticSystem {
     constructor() {
         this.tactics = {
-            balanced: { name: "기본 전술 (무전술)", effective: [], ineffective: ["gegenpress", "twoLine", "lavolpiana", "longBall", "possession", "parkBus", "catenaccio", "totalFootball", "tikitaka", "counter"], description: "특별한 전술 지시가 없는 상태입니다. 조직력이 크게 떨어집니다." },
-            gegenpress: { name: "게겐프레싱", effective: ["tikitaka", "possession", "lavolpiana"], ineffective: ["parkBus", "longBall", "catenaccio", "twoLine", "counter"], description: "높은 압박으로 빠른 역습을 노리는 전술" },
-            twoLine: { name: "다이렉트 축구", effective: ["gegenpress", "totalFootball"], ineffective: ["tikitaka", "possession", "lavolpiana"], description: "긴 패스로 상대의 공간을 파고드는 전술" },
-            lavolpiana: { name: "라볼피아나", effective: ["parkBus", "catenaccio", "twoLine", "longBall"], ineffective: ["gegenpress", "totalFootball"], description: "측면 공격과 크로스를 중심으로 한 전술" },
-            longBall: { name: "롱볼 축구", effective: ["gegenpress", "totalFootball"], ineffective: ["tikitaka", "possession", "lavolpiana"], description: "긴 패스로 빠르게 공격을 전개하는 전술" },
-            possession: { name: "점유율 축구", effective: ["parkBus", "catenaccio", "twoLine", "longBall"], ineffective: ["gegenpress", "totalFootball"], description: "공을 오래 소유하며 천천히 공격 기회를 만드는 전술" },
-            parkBus: { name: "역습 축구", effective: ["gegenpress", "totalFootball"], ineffective: ["tikitaka", "possession", "lavolpiana"], description: "수비에 집중하고 호시탐탐 역습을 노리는 전술" },
-            catenaccio: { name: "카테나치오", effective: ["gegenpress", "totalFootball"], ineffective: ["tikitaka", "possession", "lavolpiana"], description: "이탈리아식 견고한 수비 전술" },
-            totalFootball: { name: "토탈 풋볼", effective: ["tikitaka", "possession", "catenaccio", "parkBus"], ineffective: ["twoLine", "longBall", "counter"], description: "모든 선수가 공격과 수비에 참여하는 전술" },
-            tikitaka: { name: "티키타카", effective: ["parkBus", "catenaccio", "twoLine", "longBall"], ineffective: ["gegenpress", "totalFootball"], description: "짧은 패스를 연결하며 공간을 만드는 전술" },
-            counter: { name: "역습 축구", effective: ["gegenpress", "totalFootball"], ineffective: ["tikitaka", "possession", "lavolpiana"], description: "수비에 집중하고 빠른 역습으로 승부하는 전술" }
+            gegenpress: { name: "게겐프레싱", effective: ["tikitaka", "possession", "verticalTikitaka"], ineffective: ["lowBlockCounter", "routeOne", "catenaccio", "directCounter"], description: "공을 잃자마자 높은 수비라인에서 즉각 재압박해 상대 진영에서 찬스를 만드는 전술" },
+            tikitaka: { name: "티키타카", effective: ["lowBlockCounter", "catenaccio", "directCounter"], ineffective: ["gegenpress", "totalFootball"], description: "극단적인 짧은 패스와 삼각 대형으로 점유율을 지배하며 틈을 여는 전술" },
+            verticalTikitaka: { name: "수직 티키타카", effective: ["lowBlockCounter", "catenaccio", "possession"], ineffective: ["gegenpress", "wingPlay"], description: "짧고 빠른 전진 패스로 하프스페이스를 수직 공략하는 현대식 빌드업 전술" },
+            possession: { name: "컨트롤 포제션", effective: ["lowBlockCounter", "catenaccio", "routeOne"], ineffective: ["gegenpress", "directCounter"], description: "안정적인 볼 순환과 템포 조절로 경기 흐름을 통제하는 점유 전술" },
+            wingPlay: { name: "윙 플레이", effective: ["lowBlockCounter", "catenaccio", "verticalTikitaka"], ineffective: ["tikitaka", "totalFootball"], description: "터치라인 끝까지 벌린 윙어와 풀백의 오버래핑·크로스로 측면을 폭격하는 전술" },
+            directCounter: { name: "플루이드 역습", effective: ["gegenpress", "totalFootball", "possession"], ineffective: ["catenaccio", "lowBlockCounter"], description: "견고한 미드블록 유지 후 탈취 즉시 전방 공간으로 빠르게 찌르는 역습 전술" },
+            lowBlockCounter: { name: "로우 블록", effective: ["gegenpress", "totalFootball", "verticalTikitaka"], ineffective: ["wingPlay", "tikitaka", "possession"], description: "수비 라인을 깊게 내리고 박스 안 공간을 잠근 뒤 한 방의 롱카운터를 노리는 전술" },
+            catenaccio: { name: "카테나치오", effective: ["directCounter", "gegenpress", "routeOne"], ineffective: ["tikitaka", "wingPlay", "possession"], description: "촘촘한 중앙 수비 블록과 대인 마크로 실점을 극도로 억제하는 빗장수비 전술" },
+            routeOne: { name: "루트 원 롱볼", effective: ["gegenpress", "tikitaka"], ineffective: ["catenaccio", "possession", "balanced"], description: "후방에서 최전방 타겟맨과 뒷공간으로 곧바로 긴 패스를 투입하는 직선 전술" },
+            totalFootball: { name: "토탈 풋볼", effective: ["catenaccio", "lowBlockCounter", "wingPlay"], ineffective: ["directCounter", "routeOne"], description: "전 포지션이 유기적으로 스위칭하며 공수 전역에서 수적 우위를 점하는 전술" },
+            balanced: { name: "밸런스", effective: [], ineffective: [], description: "공수 라인과 패스·템포를 표준 균형으로 유지하며 상황에 유연하게 대응하는 전술" },
+            // 하위 호환 별칭 (구형 세이브 및 클럽 매핑 호환용)
+            lavolpiana: { name: "수직 티키타카", isAlias: true, canonical: "verticalTikitaka", effective: ["lowBlockCounter", "catenaccio"], ineffective: ["gegenpress"], description: "짧고 빠른 전진 패스로 하프스페이스를 수직 공략하는 현대식 빌드업 전술" },
+            twoLine: { name: "플루이드 역습", isAlias: true, canonical: "directCounter", effective: ["gegenpress", "totalFootball"], ineffective: ["catenaccio"], description: "견고한 미드블록 유지 후 탈취 즉시 전방 공간으로 빠르게 찌르는 역습 전술" },
+            counter: { name: "플루이드 역습", isAlias: true, canonical: "directCounter", effective: ["gegenpress", "totalFootball"], ineffective: ["catenaccio"], description: "견고한 미드블록 유지 후 탈취 즉시 전방 공간으로 빠르게 찌르는 역습 전술" },
+            parkBus: { name: "로우 블록", isAlias: true, canonical: "lowBlockCounter", effective: ["gegenpress", "totalFootball"], ineffective: ["wingPlay", "tikitaka"], description: "수비 라인을 깊게 내리고 박스 안 공간을 잠근 뒤 한 방의 롱카운터를 노리는 전술" },
+            longBall: { name: "루트 원 롱볼", isAlias: true, canonical: "routeOne", effective: ["gegenpress", "tikitaka"], ineffective: ["catenaccio", "possession"], description: "후방에서 최전방 타겟맨과 뒷공간으로 곧바로 긴 패스를 투입하는 직선 전술" }
         };
     }
 
     getOpponentTactic(opponentTeam) {
-        if (!opponentTeam) return 'counter';
+        if (!opponentTeam) return 'directCounter';
         const keyRaw = String(opponentTeam).trim();
         const keyUnderscore = keyRaw.replace(/\s+/g, '_');
         const keySpace = keyRaw.replace(/_/g, ' ');
 
-        if (DEFAULT_CLUB_TACTICS[keyUnderscore]) return DEFAULT_CLUB_TACTICS[keyUnderscore];
-        if (DEFAULT_CLUB_TACTICS[keySpace]) return DEFAULT_CLUB_TACTICS[keySpace];
-        if (DEFAULT_CLUB_TACTICS[keyRaw]) return DEFAULT_CLUB_TACTICS[keyRaw];
+        if (DEFAULT_CLUB_TACTICS[keyUnderscore]) return normalizeTacticKey(DEFAULT_CLUB_TACTICS[keyUnderscore]);
+        if (DEFAULT_CLUB_TACTICS[keySpace]) return normalizeTacticKey(DEFAULT_CLUB_TACTICS[keySpace]);
+        if (DEFAULT_CLUB_TACTICS[keyRaw]) return normalizeTacticKey(DEFAULT_CLUB_TACTICS[keyRaw]);
 
         const tt = (typeof teamTactics !== 'undefined' && teamTactics) || (typeof window !== 'undefined' && window.teamTactics) || {};
-        if (tt[keyUnderscore]) return tt[keyUnderscore];
-        if (tt[keySpace]) return tt[keySpace];
-        if (tt[keyRaw]) return tt[keyRaw];
+        if (tt[keyUnderscore]) return normalizeTacticKey(tt[keyUnderscore]);
+        if (tt[keySpace]) return normalizeTacticKey(tt[keySpace]);
+        if (tt[keyRaw]) return normalizeTacticKey(tt[keyRaw]);
 
-        // 이름 해시 기반 결정론적 폴백 (무조건 의미 있는 고유 전술 부여)
-        const styles = ['counter', 'twoLine', 'gegenpress', 'possession', 'catenaccio', 'tikitaka'];
+        const styles = ['directCounter', 'gegenpress', 'possession', 'catenaccio', 'tikitaka', 'verticalTikitaka', 'wingPlay', 'lowBlockCounter'];
         let hash = 0;
         for (let i = 0; i < keyRaw.length; i++) hash = ((hash << 5) - hash) + keyRaw.charCodeAt(i);
         return styles[Math.abs(hash) % styles.length];
     }
 
     calculateTacticEffect(userTactic, opponentTactic) {
-        const userTacticData = this.tactics[userTactic];
-        if (!userTacticData) return 0;
-
-        let effect = 0;
-
-        // [핵심] '무전술(balanced)'에 대한 뼈아픈 조직력 페널티
-        if (userTactic === 'balanced') {
-            if (opponentTactic !== 'balanced') {
-                // 상대는 조직적인 전술을 구사하는데 우리 팀은 아무런 전술 지시가 없음 (-16)
-                effect = -16;
-            } else {
-                effect = 0;
-            }
-        } else if (opponentTactic === 'balanced') {
-            // 상대가 무전술인데 우리는 체계적인 전술을 갖춤 (+14)
-            effect = 14;
-        } else {
-            // 전술 상성 대결 (±14) : 체급 차이를 뒤집을 수 있는 강력한 상성 영향력
-            if (userTacticData.effective.includes(opponentTactic)) effect += 14;
-            else if (userTacticData.ineffective.includes(opponentTactic)) effect -= 14;
-        }
-
-        // 전술 숙련도 낭만 보너스 (숙련도 100일 경우 최대 +6)
-        if (typeof window !== 'undefined' && window.gameData && window.gameData.tacticMastery && window.gameData.tacticMastery[userTactic]) {
-            const mastery = window.gameData.tacticMastery[userTactic];
-            const masteryBonus = Math.floor(mastery / 16); // 0 ~ 6
-            effect += masteryBonus;
-        }
-
-        return effect;
+        // 전술 상성에 따른 인위적 스탯 증감 폐지 (엔진 내 전술 움직임·인과관계로만 작동)
+        return 0;
     }
 
     getTacticMatchup(userTactic, opponentTactic) {
-        const userTacticData = this.tactics[userTactic];
-        const opponentTacticData = this.tactics[opponentTactic];
+        const uKey = normalizeTacticKey(userTactic);
+        const oKey = normalizeTacticKey(opponentTactic);
+        const userTacticData = this.tactics[uKey] || this.tactics[userTactic];
+        const opponentTacticData = this.tactics[oKey] || this.tactics[opponentTactic];
 
-        if (!userTacticData) return { result: "알 수 없음", advantage: 0, description: "정보 없음" };
+        if (!userTacticData) return { result: "균형 승부", advantage: 0, description: "전술 인과관계 승부" };
 
-        let result = "중립";
-        let advantage = 0;
-
-        if (userTactic === 'balanced' && opponentTactic !== 'balanced') {
-            result = "조직력 부재 (무전술 극심한 열세)";
-            advantage = -16;
-        } else if (userTactic !== 'balanced' && opponentTactic === 'balanced') {
-            result = "전술적 압도";
-            advantage = 14;
-        } else if (userTacticData.effective.includes(opponentTactic)) {
-            result = "전술 상성 유리";
-            advantage = 14;
-        } else if (userTacticData.ineffective.includes(opponentTactic)) {
-            result = "전술 상성 불리";
-            advantage = -14;
+        let result = "전술 맞대결";
+        if (userTacticData.effective && userTacticData.effective.includes(oKey)) {
+            result = "구조적 상성 우위";
+        } else if (userTacticData.ineffective && userTacticData.ineffective.includes(oKey)) {
+            result = "구조적 상성 주의";
         }
 
         return {
             result: result,
-            advantage: advantage,
+            advantage: 0,
             userTacticName: userTacticData.name,
             opponentTacticName: opponentTacticData ? opponentTacticData.name : opponentTactic,
             description: `${userTacticData.name} vs ${opponentTacticData ? opponentTacticData.name : opponentTactic}: ${result}`
         };
     }
 
-    // [신규] 모든 전술 목록 가져오기
+    // 모든 정규 FM 전술 목록 가져오기 (별칭 제외)
     getAllTactics() {
-        return Object.keys(this.tactics).map(key => ({
-            key: key,
-            name: this.tactics[key].name,
-            description: this.tactics[key].description
-        }));
+        return Object.keys(this.tactics)
+            .filter(key => !this.tactics[key].isAlias)
+            .map(key => ({
+                key: key,
+                name: this.tactics[key].name,
+                description: this.tactics[key].description
+            }));
     }
 
     getTacticName(tactic) {
@@ -341,15 +409,8 @@ function startMatch() {
     };
     window.currentMatchData = matchData; // [신규] 치트키 사용을 위해 전역 노출
 
-    // 5. 전술 효과 적용
+    // 5. 전술 상성에 따른 사전 스탯/사기 변동 제거 (인게임 움직임·전술 인과관계로만 승부)
     const tacticSystem = new TacticSystem();
-    const opponentTactic = tacticSystem.getOpponentTactic(gameData.currentOpponent);
-    const tacticEffect = tacticSystem.calculateTacticEffect(gameData.currentTactic, opponentTactic);
-    if (window.GameState) {
-        window.GameState.adjustTeamMorale(tacticEffect);
-    } else {
-        gameData.teamMorale = Math.max(0, Math.min(100, gameData.teamMorale + tacticEffect));
-    }
 
     // 6. UI 업데이트
     document.getElementById('homeTeam').textContent = teamNames[matchData.homeTeam];
@@ -365,7 +426,10 @@ function startMatch() {
         if (matchTitleEl) {
             const selloutTag = stadiumRes.isSellout ? " ★전석 매진" : "";
             let cupPrefix = '';
-            if (gameData.isUCLMatch && typeof cupCompetitionManager !== 'undefined') {
+            if (gameData.isPlayoffMatch) {
+                const poLabel = gameData.playoffStage === 'FINAL' ? '결승' : (gameData.playoffStage === 'SF_LEG2' ? '준결승 2차전' : '준결승 1차전');
+                cupPrefix = `🔥 EFL 승격 플레이오프 [${poLabel}] · `;
+            } else if (gameData.isUCLMatch && typeof cupCompetitionManager !== 'undefined') {
                 const uclStage = cupCompetitionManager.uclStageNames[gameData.uclStage] || '토너먼트';
                 cupPrefix = `⭐ UCL [${uclStage}] · `;
             } else if (gameData.isFACupMatch && typeof faCupManager !== 'undefined') {
@@ -407,21 +471,6 @@ function startMatch() {
         });
     }
 
-    // [신규] 전술 상성 효과를 팀 전력(Team Strength)에 직접 반영
-    if (matchData.homeTeam === gameData.selectedTeam) {
-        engine.teamStrength.home += (tacticEffect * 0.8);
-        engine.teamStrength.away -= (tacticEffect * 0.8);
-    } else {
-        engine.teamStrength.away += (tacticEffect * 0.8);
-        engine.teamStrength.home -= (tacticEffect * 0.8);
-    }
-
-    // [신규] 전술 상성 효과를 실제 선수 스탯에 직접 주입 (체감 버프 확대)
-    const userTeamId = matchData.homeTeam === gameData.selectedTeam ? 'home' : 'away';
-    if (typeof engine.applyTacticBoost === 'function') {
-        engine.applyTacticBoost(userTeamId, tacticEffect * 0.025);
-    }
-
     matchData.engine = engine; // 엔진 참조 저장
 
     // [수정] 팀 컬러 가져오기 및 충돌 방지 (유니폼 색상 겹침 해결)
@@ -458,9 +507,178 @@ function startMatch() {
     initMatchLiveTelemetry(matchData, engine);
     updateMatchStaminaUI(matchData);
     updateMatchTelemetryUI(matchData);
+    initLiveTacticsBar(matchData, engine);
 
     // 8. 킥오프 버튼 표시
     showKickoffButton(matchData, engine);
+}
+
+// =========================================================================================
+// [신규] 경기 중 실시간 전술 컨트롤 바 (5단계 성향 · 터치라인 지침 · 슬롯 즉시 전환)
+// =========================================================================================
+
+function initLiveTacticsBar(matchData, engine) {
+    const bar = document.getElementById('liveTacticsBar');
+    if (!bar) return;
+
+    bar.style.display = 'flex';
+    const userSide = matchData.homeTeam === gameData.selectedTeam ? 'home' : 'away';
+
+    const state = {
+        mentality: (gameData && gameData.tacticMentality) || 'balanced',
+        pressAll: false,
+        counterPrepare: false,
+        timeWasting: false
+    };
+
+    const pushDirectiveToEngine = (logMsg) => {
+        if (engine && typeof engine.setUserLiveDirectives === 'function') {
+            engine.setUserLiveDirectives(userSide, state);
+        }
+        if (logMsg && typeof displayEvent === 'function') {
+            displayEvent({
+                minute: matchData.minute || 0,
+                type: 'tactic',
+                description: `[감독 지시] ${logMsg}`
+            }, matchData);
+        }
+    };
+
+    // 초기 동기화 (로그 없음)
+    pushDirectiveToEngine(null);
+
+    const mentalityLabels = {
+        veryDefensive: '극단적 수비',
+        defensive: '수비적',
+        balanced: '균형',
+        attacking: '공격적',
+        veryAttacking: '총공세'
+    };
+
+    // 성향 버튼 렌더링/바인딩
+    const mentalityBtns = bar.querySelectorAll('[data-live-mentality]');
+    const syncMentalityUI = () => {
+        mentalityBtns.forEach(btn => {
+            const val = btn.getAttribute('data-live-mentality');
+            if (val === state.mentality) btn.classList.add('active');
+            else btn.classList.remove('active');
+        });
+    };
+    mentalityBtns.forEach(btn => {
+        btn.onclick = () => {
+            const val = btn.getAttribute('data-live-mentality');
+            if (!val || state.mentality === val) return;
+            state.mentality = val;
+            if (gameData) gameData.tacticMentality = val;
+            syncMentalityUI();
+            pushDirectiveToEngine(`경기 성향을 '${mentalityLabels[val] || val}'(으)로 전환합니다!`);
+        };
+    });
+    syncMentalityUI();
+
+    // 빠른 터치라인 지침 토글 바인딩
+    const shoutDefs = {
+        pressAll: '🔥 전원 압박 가동! (전방 압박 및 역압박 극대화 · 체력 소모 증가)',
+        counterPrepare: '🛡️ 역습 대비 지시! (수비 라인 하향 및 후방 수비 인원 고정)',
+        timeWasting: '⏱️ 시간 끌기 지시! (템포를 늦추고 안전한 볼 소유 우선)'
+    };
+    const shoutBtns = bar.querySelectorAll('[data-live-shout]');
+    const syncShoutUI = () => {
+        shoutBtns.forEach(btn => {
+            const key = btn.getAttribute('data-live-shout');
+            if (state[key]) btn.classList.add('active');
+            else btn.classList.remove('active');
+        });
+    };
+    shoutBtns.forEach(btn => {
+        btn.onclick = () => {
+            const key = btn.getAttribute('data-live-shout');
+            if (!key || !(key in state)) return;
+            state[key] = !state[key];
+            // 상호 배타 정리: 전원 압박과 시간 끌기가 동시에 켜지면 어색하므로 자동 조정
+            if (key === 'pressAll' && state.pressAll && state.timeWasting) state.timeWasting = false;
+            if (key === 'timeWasting' && state.timeWasting && state.pressAll) state.pressAll = false;
+            syncShoutUI();
+            const label = btn.textContent.trim();
+            pushDirectiveToEngine(state[key] ? shoutDefs[key] : `'${label}' 지시를 해제하고 기본 대형으로 복귀합니다.`);
+        };
+    });
+    syncShoutUI();
+
+    // 전술 프리셋 / 커스텀 슬롯 즉시 전환 셀렉트
+    const presetSelect = document.getElementById('liveTacticPresetSelect');
+    const liveMasteryBadge = document.getElementById('liveTacticMasteryBadge');
+    const syncLiveMasteryBadge = (tacKey) => {
+        if (!liveMasteryBadge) return;
+        const mPct = getTacticMasteryPct(tacKey || gameData.currentTactic || 'balanced');
+        liveMasteryBadge.textContent = `숙련도 ${mPct}% (+${((mPct / 100) * 4.5).toFixed(1)}%)`;
+    };
+    syncLiveMasteryBadge(gameData.currentTactic);
+
+    if (presetSelect) {
+        presetSelect.replaceChildren();
+        const ts = new TacticSystem();
+        const curTac = normalizeTacticKey(gameData.currentTactic || 'balanced');
+
+        // 1) 저장된 커스텀 슬롯 그룹
+        const slots = CustomTacticSlots.ensureSlots().filter(s => s && s.settings);
+        if (slots.length > 0) {
+            const customGroup = document.createElement('optgroup');
+            customGroup.label = '★ 저장된 커스텀 플랜';
+            slots.forEach((s, idx) => {
+                const opt = document.createElement('option');
+                opt.value = `slot:${s.id - 1}`;
+                opt.textContent = `★ ${s.name} (${ts.getTacticName(s.baseStyle)} · ${getTacticMasteryPct(s.baseStyle)}%)`;
+                if (gameData.activeCustomSlot === (s.id - 1)) opt.selected = true;
+                customGroup.appendChild(opt);
+            });
+            presetSelect.appendChild(customGroup);
+        }
+
+        // 2) FM 기본 전술 철학 그룹
+        const baseGroup = document.createElement('optgroup');
+        baseGroup.label = 'FM 전술 철학 프리셋';
+        ts.getAllTactics().forEach(t => {
+            const opt = document.createElement('option');
+            opt.value = `preset:${t.key}`;
+            opt.textContent = `${t.name} (숙련도 ${getTacticMasteryPct(t.key)}%)`;
+            if (gameData.activeCustomSlot == null && t.key === curTac) opt.selected = true;
+            baseGroup.appendChild(opt);
+        });
+        presetSelect.appendChild(baseGroup);
+
+        presetSelect.onchange = (e) => {
+            const val = e.target.value || '';
+            if (val.startsWith('slot:')) {
+                const slotIdx = parseInt(val.split(':')[1], 10);
+                const loaded = CustomTacticSlots.loadFromSlot(slotIdx);
+                if (loaded) {
+                    state.mentality = loaded.mentality || state.mentality;
+                    syncMentalityUI();
+                    syncLiveMasteryBadge(loaded.baseStyle);
+                    if (engine && typeof engine.applyLiveTacticChange === 'function') {
+                        engine.applyLiveTacticChange(userSide, loaded.baseStyle, loaded.settings, state);
+                    }
+                    pushDirectiveToEngine(`커스텀 플랜 [${loaded.name}] 전술을 즉시 적용합니다! (숙련도 ${getTacticMasteryPct(loaded.baseStyle)}%)`);
+                }
+            } else if (val.startsWith('preset:')) {
+                const presetKey = normalizeTacticKey(val.split(':')[1]);
+                gameData.currentTactic = presetKey;
+                gameData.activeCustomSlot = null;
+                if (typeof window.getDefaultTacticSettings === 'function') {
+                    gameData.tacticSettings = window.getDefaultTacticSettings(presetKey);
+                }
+                if (typeof window.updateCurrentTacticPanelUI === 'function') {
+                    window.updateCurrentTacticPanelUI(presetKey);
+                }
+                syncLiveMasteryBadge(presetKey);
+                if (engine && typeof engine.applyLiveTacticChange === 'function') {
+                    engine.applyLiveTacticChange(userSide, presetKey, gameData.tacticSettings, state);
+                }
+                pushDirectiveToEngine(`전술 철학을 [${ts.getTacticName(presetKey)}](으)로 즉시 전환합니다! (숙련도 ${getTacticMasteryPct(presetKey)}%)`);
+            }
+        };
+    }
 }
 
 // =========================================================================================
@@ -607,6 +825,8 @@ function updateLiveMatchTelemetry(matchData, snapshot, isNewMinute) {
         const holder = snapshot.players.find(p => p.hasBall);
         if (holder && (holder.teamId === 'home' || holder.teamId === 'away')) {
             ls.possessionTicks[holder.teamId] += 1;
+        } else if (snapshot.possessionTeam === 'home' || snapshot.possessionTeam === 'away') {
+            ls.possessionTicks[snapshot.possessionTeam] += 0.65;
         } else if (snapshot.ball && Number.isFinite(snapshot.ball.x)) {
             ls.possessionTicks[snapshot.ball.x >= 50 ? 'home' : 'away'] += 0.35;
         }
@@ -1231,6 +1451,8 @@ function endMatch(matchData) {
     console.log('[Match] 경기 종료 처리');
     document.getElementById('endMatchBtn').style.display = 'block';
     document.getElementById('substituteBtn').style.display = 'none';
+    const liveTacBar = document.getElementById('liveTacticsBar');
+    if (liveTacBar) liveTacBar.style.display = 'none';
 
     // 진동 피드백
     if (window.customCursorInstance && typeof window.customCursorInstance.triggerVibration === 'function') {
@@ -1317,8 +1539,8 @@ function endMatch(matchData) {
         }
     }
 
-    // 리그 데이터 업데이트 (FA컵이나 UCL이 아닐 때만 정규 리그 순위표 반영)
-    if (!gameData.isFACupMatch && !gameData.isUCLMatch) {
+    // 리그 데이터 업데이트 (FA컵, UCL, 플레이오프가 아닐 때만 정규 리그 순위표 반영)
+    if (!gameData.isFACupMatch && !gameData.isUCLMatch && !gameData.isPlayoffMatch) {
         updateLeagueData(matchData, points);
     }
     if (window.GameState) window.GameState.incrementMatchesPlayed();
@@ -1353,12 +1575,14 @@ function endMatch(matchData) {
         }
     }
 
-    // [신규] 전술 숙련도(낭만) 증가 로직 (+2%)
-    if (!gameData.tacticMastery) {
-        gameData.tacticMastery = {};
+    // [신규] 전술 숙련도(Familiarity) 증가 로직 (+3%)
+    const currentTac = normalizeTacticKey(gameData.currentTactic || 'balanced');
+    gameData.currentTactic = currentTac;
+    const prevMastery = getTacticMasteryPct(currentTac);
+    gameData.tacticMastery[currentTac] = Math.min(100, prevMastery + 3);
+    if (typeof window.updateMatchTabCurrentTacticDisplay === 'function') {
+        window.updateMatchTabCurrentTacticDisplay();
     }
-    const currentTac = gameData.currentTactic || 'balanced';
-    gameData.tacticMastery[currentTac] = Math.min(100, (gameData.tacticMastery[currentTac] || 0) + 2);
     // 理쒖쥌 硫붿떆吏
     const strengthDiff = matchData.strengthDiff || { userAdvantage: false };
     let finalMsg = `경기 종료! ${result} (${userScore}-${oppScore})`;
@@ -1449,7 +1673,7 @@ function endMatch(matchData) {
     if (typeof processPostMatchGrowth === 'function') setTimeout(processPostMatchGrowth, 1000);
 
     // [以묒슂] 媛쒖씤湲곕줉 ?낅뜲?댄듃 諛?AI ?쒕??덉씠???ㅽ뻾 (simulateOtherMatches ?泥?
-    if (!gameData.isFACupMatch && !gameData.isUCLMatch) {
+    if (!gameData.isFACupMatch && !gameData.isUCLMatch && !gameData.isPlayoffMatch) {
         if (typeof updateRecordsAfterMatch === 'function') {
             updateRecordsAfterMatch(resultPayload);
         }
@@ -1457,14 +1681,18 @@ function endMatch(matchData) {
 
     injurySystem.removeInjuredFromSquad();
 
-    // [蹂듦뎄] ?쇱떆???ㅽ꺈 珥덇린??
+    // [복구] 임시 스탯 초기화
     if (gameData.temporaryStats) {
         if (window.GameState) window.GameState.clearTemporaryStats();
         else gameData.temporaryStats = {};
     }
 
-    // 다음 라운드 준비 (컵 대회(FA컵/UCL) 경기면 컵 대회 결과 처리 후 리그 라운드는 유지)
-    if ((gameData.isFACupMatch || gameData.isUCLMatch) && typeof cupCompetitionManager !== 'undefined') {
+    // 다음 라운드 준비 (플레이오프/컵 대회 경기면 결과 처리 후 리그 라운드는 유지)
+    if (gameData.isPlayoffMatch && typeof EFLPlayoffManager !== 'undefined') {
+        EFLPlayoffManager.handleUserMatchEnd(matchData);
+        gameData.isPlayoffMatch = false;
+        setNextOpponent();
+    } else if ((gameData.isFACupMatch || gameData.isUCLMatch) && typeof cupCompetitionManager !== 'undefined') {
         cupCompetitionManager.handleUserMatchEnd(matchData);
         gameData.isFACupMatch = false;
         gameData.isUCLMatch = false;
@@ -1606,7 +1834,8 @@ function renderPressBackdropWall(userTeamKey) {
         : null;
 
     let compLabel = leagueCfg ? leagueCfg.id.replace('_', ' ').toUpperCase() : 'OFFICIAL LEAGUE';
-    if (gameData.isUCLMatch) compLabel = 'CHAMPIONS LEAGUE';
+    if (gameData.isPlayoffMatch) compLabel = 'EFL PLAYOFF';
+    else if (gameData.isUCLMatch) compLabel = 'CHAMPIONS LEAGUE';
     else if (gameData.isFACupMatch) compLabel = 'OFFICIAL FA CUP';
     else if (gameData.currentLeague === 0) compLabel = 'LEGEND LEAGUE';
 

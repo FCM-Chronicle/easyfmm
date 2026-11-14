@@ -1,7 +1,8 @@
 // leagueManager.js - 실제 축구 9개국 1부 리그 관리 시스템
 
 const LEAGUES_CONFIG = {
-    premier_league: { id: "premier_league", name: "잉글랜드 프리미어리그", country: "잉글랜드", flag: "🇬🇧", rounds: 38, leagueId: 13, logo: "assets/league_logos/premier_league.png" },
+    premier_league: { id: "premier_league", name: "잉글랜드 프리미어리그", country: "잉글랜드", flag: "🇬🇧", rounds: 38, leagueId: 13, tier: 1, childLeague: "efl_championship", logo: "assets/league_logos/premier_league.png" },
+    efl_championship: { id: "efl_championship", name: "잉글랜드 EFL 챔피언십", country: "잉글랜드", flag: "🇬🇧", rounds: 46, leagueId: 14, tier: 2, parentLeague: "premier_league", logo: "assets/league_logos/efl_championship.png" },
     laliga: { id: "laliga", name: "스페인 라리가", country: "스페인", flag: "🇪🇸", rounds: 38, leagueId: 53, logo: "assets/league_logos/laliga.png" },
     bundesliga: { id: "bundesliga", name: "독일 분데스리가", country: "독일", flag: "🇩🇪", rounds: 34, leagueId: 19, logo: "assets/league_logos/bundesliga.png" },
     serie_a: { id: "serie_a", name: "이탈리아 세리에 A", country: "이탈리아", flag: "🇮🇹", rounds: 38, leagueId: 31, logo: "assets/league_logos/serie_a.png" },
@@ -124,9 +125,7 @@ const LeagueManager = {
         const userLeagueId = this.getLeagueIdByTeam(userTeam);
 
         Object.keys(LEAGUES_CONFIG).forEach(leagueId => {
-            if (!gameData.leagueData[leagueId]) {
-                gameData.leagueData[leagueId] = {};
-            }
+            gameData.leagueData[leagueId] = {};
             const teamsInLeague = this.getTeamsInLeague(leagueId);
             teamsInLeague.forEach(tKey => {
                 gameData.leagueData[leagueId][tKey] = {
@@ -154,10 +153,11 @@ const LeagueManager = {
     },
 
     // 특정 라운드의 모든 리그 AI 경기 일괄 시뮬레이션
-    simulateAllLeaguesRound(round) {
+    simulateAllLeaguesRound(round, onlyLeagueId = null) {
         if (!gameData.schedule) return;
 
-        Object.keys(LEAGUES_CONFIG).forEach(leagueId => {
+        const leagueIds = onlyLeagueId ? [onlyLeagueId] : Object.keys(LEAGUES_CONFIG);
+        leagueIds.forEach(leagueId => {
             const sched = gameData.schedule[leagueId];
             if (!sched || round > sched.length || round <= 0) return;
 
@@ -197,6 +197,11 @@ const LeagueManager = {
 
     // 경기 결과를 순위표에 반영
     applyMatchResult(table, home, away, s1, s2) {
+        if (typeof table === 'string') {
+            if (!gameData.leagueData) gameData.leagueData = {};
+            if (!gameData.leagueData[table]) gameData.leagueData[table] = {};
+            table = gameData.leagueData[table];
+        }
         if (!table[home]) table[home] = { matches: 0, wins: 0, draws: 0, losses: 0, points: 0, goalsFor: 0, goalsAgainst: 0 };
         if (!table[away]) table[away] = { matches: 0, wins: 0, draws: 0, losses: 0, points: 0, goalsFor: 0, goalsAgainst: 0 };
 
@@ -243,9 +248,10 @@ const LeagueManager = {
         modeBar.className = 'league-mode-switcher';
         modeBar.style.cssText = 'display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.08);';
 
+        const activeCfg = LEAGUES_CONFIG[this.activeViewLeague] || { rounds: 38 };
         const modes = [
             { id: 'standings', label: '📊 리그 순위표', color: '#FBBF24' },
-            { id: 'schedule', label: '📅 경기 일정표 (1~38R)', color: '#10B981' },
+            { id: 'schedule', label: `📅 경기 일정표 (1~${activeCfg.rounds || 38}R)`, color: '#10B981' },
             { id: 'fa', label: '🏆 FA컵 토너먼트 대진표', color: '#F59E0B' },
             { id: 'ucl', label: '⭐ UCL 토너먼트 대진표', color: '#38BDF8' }
         ];
@@ -356,12 +362,32 @@ const LeagueManager = {
 
         const tbody = document.createElement('tbody');
         standings.forEach((entry, idx) => {
+            const rank = idx + 1;
             const tr = document.createElement('tr');
             if (entry.team === gameData.selectedTeam) {
                 tr.className = 'user-team';
             }
 
-            const tdRank = document.createElement('td'); tdRank.textContent = idx + 1;
+            // 승강제 및 플레이오프 구역 강조
+            let zoneStyle = '';
+            let zoneBadge = '';
+            if (leagueId === 'premier_league') {
+                if (rank <= 4) { zoneStyle = 'border-left: 3px solid #38BDF8;'; }
+                else if (rank >= 18) { zoneStyle = 'border-left: 3px solid #EF4444; background: rgba(239,68,68,0.06);'; zoneBadge = '🔻'; }
+            } else if (leagueId === 'efl_championship') {
+                if (rank <= 2) { zoneStyle = 'border-left: 3px solid #10B981; background: rgba(16,185,129,0.08);'; zoneBadge = '🔺'; }
+                else if (rank >= 3 && rank <= 6) { zoneStyle = 'border-left: 3px solid #F59E0B; background: rgba(245,158,11,0.07);'; zoneBadge = 'PO'; }
+            }
+            if (zoneStyle && entry.team !== gameData.selectedTeam) {
+                tr.style.cssText += zoneStyle;
+            }
+
+            const tdRank = document.createElement('td');
+            tdRank.textContent = zoneBadge ? `${rank} ${zoneBadge}` : `${rank}`;
+            if (zoneBadge === '🔺') tdRank.style.color = '#34D399';
+            else if (zoneBadge === 'PO') tdRank.style.color = '#FBBF24';
+            else if (zoneBadge === '🔻') tdRank.style.color = '#F87171';
+
             const tdTeam = document.createElement('td');
             tdTeam.style.cssText = 'text-align: left; display: flex; align-items: center; gap: 8px;';
             if (typeof createTeamLogoElement === 'function') {
@@ -388,6 +414,23 @@ const LeagueManager = {
         });
         tableEl.appendChild(tbody);
         container.appendChild(tableEl);
+
+        // 승강제 / 플레이오프 범례 및 EFL 챔피언십 플레이오프 대진표 표시
+        if (leagueId === 'premier_league' || leagueId === 'efl_championship') {
+            const legend = document.createElement('div');
+            legend.style.cssText = 'margin-top: 10px; padding: 10px 14px; border-radius: 10px; background: rgba(15,23,42,0.75); border: 1px solid rgba(255,255,255,0.08); font-size: 0.82rem; color: #CBD5E1; display: flex; flex-wrap: wrap; gap: 14px; align-items: center;';
+            if (leagueId === 'premier_league') {
+                legend.innerHTML = '<span><strong style="color:#38BDF8;">1~4위</strong>: UCL 본선</span><span><strong style="color:#F87171;">18~20위 🔻</strong>: EFL 챔피언십 강등</span>';
+            } else {
+                legend.innerHTML = '<span><strong style="color:#34D399;">1~2위 🔺</strong>: 프리미어리그 자동 승격</span><span><strong style="color:#FBBF24;">3~6위 PO</strong>: 승격 플레이오프 (3vs6, 4vs5 홈&어웨이 준결승 → 웸블리 결승)</span>';
+            }
+            container.appendChild(legend);
+        }
+
+        if (leagueId === 'efl_championship' && typeof renderEFLPlayoffBracketCard === 'function') {
+            const bracketCard = renderEFLPlayoffBracketCard(standings);
+            if (bracketCard) container.appendChild(bracketCard);
+        }
     }
 };
 

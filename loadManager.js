@@ -4,6 +4,7 @@ const LoadManager = {
     progress: 0,
     // 각 로딩 단계 정의
     tasks: [
+        { name: "저장소 시스템 초기화", weight: 10, action: () => (typeof SaveStorage !== 'undefined' ? SaveStorage.init() : null) },
         { name: "리그 데이터베이스 동기화", weight: 10, action: () => initializeLeagueData() },
         { name: "글로벌 이벤트 리스너 바인딩", weight: 15, action: () => setupEventListeners() },
         { name: "이적 시장 시스템 가동", weight: 15, action: () => { if (typeof initTransfer === 'function') initTransfer(); } },
@@ -49,7 +50,7 @@ const LoadManager = {
             await new Promise(resolve => setTimeout(resolve, 150 + Math.random() * 200));
 
             try {
-                task.action();
+                await task.action();
             } catch (e) {
                 console.error(`[LoadManager] '${task.name}'실행 중 오류:`, e);
             }

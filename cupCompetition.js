@@ -295,6 +295,7 @@ class CupCompetitionManager {
     // ------------------------------------------
     initFACup() {
         const userTeam = gameData.selectedTeam;
+        const userLeagueId = (typeof LeagueManager !== 'undefined') ? LeagueManager.getLeagueIdByTeam(userTeam) : 'premier_league';
         const faConfig = this.getUserFACupConfig();
         const leagueTeams = (typeof LeagueManager !== 'undefined') ? LeagueManager.getTeamsInLeague(faConfig.leagueId) : [];
 
@@ -302,7 +303,24 @@ class CupCompetitionManager {
         let seedTeams = [];
         let r1Matches = [];
 
-        if (teamCount === 20) {
+        if (faConfig.id === 'fa_england' && userLeagueId === 'efl_championship' && typeof LeagueManager !== 'undefined') {
+            // EFL 챔피언십 유저: 챔피언십 16팀(유저 포함) R1 예선(8경기) -> 승자 8팀 + 프리미어리그 8팀 시드 = 16강
+            const champTeams = LeagueManager.getTeamsInLeague('efl_championship');
+            const others = this.shuffle(champTeams.filter(t => t !== userTeam)).slice(0, 15);
+            const r1Pool = this.shuffle([userTeam, ...others]);
+            const plSorted = [...leagueTeams].sort((a, b) => this.getTeamRating(b) - this.getTeamRating(a));
+            seedTeams = this.shuffle(plSorted.slice(0, 8));
+
+            for (let i = 0; i < r1Pool.length; i += 2) {
+                r1Matches.push({
+                    home: r1Pool[i],
+                    away: r1Pool[i + 1],
+                    winner: null,
+                    score: null,
+                    pk: null
+                });
+            }
+        } else if (teamCount === 20) {
             // 20팀 리그 (EPL, 라리가, 세리에 A)
             // 8팀 예선 (4경기) -> 승자 4팀 + 시드 12팀 = 16강 본선 (8경기)
             const shuffled = this.shuffle(leagueTeams);
