@@ -134,6 +134,9 @@ function getClubMiniLogoHTML(teamKey, size = 18) {
     if (team && team.teamid) {
         return `<img src="assets/team_logos/L${team.teamid}.png" alt="${teamKey}" style="width:${size}px; height:${size}px; object-fit:contain; flex-shrink:0; vertical-align:middle;" onerror="this.style.display='none'">`;
     }
+    if (team && team.logoCode && team.league && team.logoCode !== 'DFT' && !team.isCustom && !team.isIcon) {
+        return `<img src="assets/logo/${team.league}/${team.logoCode}.webp" alt="${teamKey}" style="width:${size}px; height:${size}px; object-fit:contain; flex-shrink:0; vertical-align:middle;" onerror="this.style.display='none'">`;
+    }
     const initials = teamKey.substring(0, 2);
     return `<span style="display:inline-flex; align-items:center; justify-content:center; width:${size}px; height:${size}px; border-radius:4px; background:rgba(56,189,248,0.2); color:#38BDF8; font-size:${Math.max(9, size - 7)}px; font-weight:800; flex-shrink:0;">${initials}</span>`;
 }
