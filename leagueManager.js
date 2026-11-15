@@ -157,6 +157,9 @@ const LeagueManager = {
         if (!gameData.schedule) return;
 
         const leagueIds = onlyLeagueId ? [onlyLeagueId] : Object.keys(LEAGUES_CONFIG);
+        const userLeagueId = (typeof gameData !== 'undefined' && gameData.selectedTeam)
+            ? this.getLeagueIdByTeam(gameData.selectedTeam)
+            : null;
         leagueIds.forEach(leagueId => {
             const sched = gameData.schedule[leagueId];
             if (!sched || round > sched.length || round <= 0) return;
@@ -180,6 +183,9 @@ const LeagueManager = {
                     score1 = res.score1;
                     score2 = res.score2;
                     window.recordsSystem.matchRecords.push(res);
+                    if (leagueId === userLeagueId && typeof window.recordsSystem.maybePostAIMatchToSNS === 'function') {
+                        window.recordsSystem.maybePostAIMatchToSNS(res);
+                    }
                 } else {
                     // 기본 시뮬레이션 (recordsSystem이 없을 때만 여기서 순위표에 직접 반영하여 중복 2판 방지)
                     score1 = Math.floor(Math.random() * 3);
@@ -328,7 +334,19 @@ const LeagueManager = {
 
         // 2. 현재 선택된 리그 순위표 테이블
         const curLeagueId = this.activeViewLeague;
-        const curTable = gameData.leagueData ? gameData.leagueData[curLeagueId] : null;
+        if (!gameData.leagueData) gameData.leagueData = {};
+        if (!gameData.leagueData[curLeagueId]) {
+            const fallbackTeams = this.getTeamsInLeague(curLeagueId);
+            if (fallbackTeams.length > 0) {
+                gameData.leagueData[curLeagueId] = {};
+                fallbackTeams.forEach(tKey => {
+                    gameData.leagueData[curLeagueId][tKey] = {
+                        matches: 0, wins: 0, draws: 0, losses: 0, points: 0, goalsFor: 0, goalsAgainst: 0
+                    };
+                });
+            }
+        }
+        const curTable = gameData.leagueData[curLeagueId] || null;
 
         if (!curTable) {
             const p = document.createElement('p');
@@ -371,10 +389,10 @@ const LeagueManager = {
             // 승강제 및 플레이오프 구역 강조
             let zoneStyle = '';
             let zoneBadge = '';
-            if (leagueId === 'premier_league') {
+            if (curLeagueId === 'premier_league') {
                 if (rank <= 4) { zoneStyle = 'border-left: 3px solid #38BDF8;'; }
                 else if (rank >= 18) { zoneStyle = 'border-left: 3px solid #EF4444; background: rgba(239,68,68,0.06);'; zoneBadge = '🔻'; }
-            } else if (leagueId === 'efl_championship') {
+            } else if (curLeagueId === 'efl_championship') {
                 if (rank <= 2) { zoneStyle = 'border-left: 3px solid #10B981; background: rgba(16,185,129,0.08);'; zoneBadge = '🔺'; }
                 else if (rank >= 3 && rank <= 6) { zoneStyle = 'border-left: 3px solid #F59E0B; background: rgba(245,158,11,0.07);'; zoneBadge = 'PO'; }
             }
@@ -416,10 +434,10 @@ const LeagueManager = {
         container.appendChild(tableEl);
 
         // 승강제 / 플레이오프 범례 및 EFL 챔피언십 플레이오프 대진표 표시
-        if (leagueId === 'premier_league' || leagueId === 'efl_championship') {
+        if (curLeagueId === 'premier_league' || curLeagueId === 'efl_championship') {
             const legend = document.createElement('div');
             legend.style.cssText = 'margin-top: 10px; padding: 10px 14px; border-radius: 10px; background: rgba(15,23,42,0.75); border: 1px solid rgba(255,255,255,0.08); font-size: 0.82rem; color: #CBD5E1; display: flex; flex-wrap: wrap; gap: 14px; align-items: center;';
-            if (leagueId === 'premier_league') {
+            if (curLeagueId === 'premier_league') {
                 legend.innerHTML = '<span><strong style="color:#38BDF8;">1~4위</strong>: UCL 본선</span><span><strong style="color:#F87171;">18~20위 🔻</strong>: EFL 챔피언십 강등</span>';
             } else {
                 legend.innerHTML = '<span><strong style="color:#34D399;">1~2위 🔺</strong>: 프리미어리그 자동 승격</span><span><strong style="color:#FBBF24;">3~6위 PO</strong>: 승격 플레이오프 (3vs6, 4vs5 홈&어웨이 준결승 → 웸블리 결승)</span>';
@@ -427,7 +445,7 @@ const LeagueManager = {
             container.appendChild(legend);
         }
 
-        if (leagueId === 'efl_championship' && typeof renderEFLPlayoffBracketCard === 'function') {
+        if (curLeagueId === 'efl_championship' && typeof renderEFLPlayoffBracketCard === 'function') {
             const bracketCard = renderEFLPlayoffBracketCard(standings);
             if (bracketCard) container.appendChild(bracketCard);
         }

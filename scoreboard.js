@@ -610,7 +610,48 @@
     }
   }
 
+  function isMatchScreenActive() {
+    const ms = document.getElementById("matchScreen");
+    return !!(ms && ms.classList.contains("active"));
+  }
+
+  function stopScoreboardLoops() {
+    if (syncInterval) {
+      clearInterval(syncInterval);
+      syncInterval = null;
+    }
+    if (timerRAF) {
+      cancelAnimationFrame(timerRAF);
+      timerRAF = null;
+    }
+    lastRAFTime = null;
+    if (drawerHideTimeout) {
+      clearTimeout(drawerHideTimeout);
+      drawerHideTimeout = null;
+    }
+    const drawer = document.getElementById("sb-broadcast-drawer");
+    if (drawer) drawer.classList.remove("open");
+  }
+
+  function resetMatchScoreboardState() {
+    prevHomeScore = -1;
+    prevAwayScore = -1;
+    lastLogoHomeKey = null;
+    lastLogoAwayKey = null;
+    lastDrawerMinute = -1;
+    lastShownGoalTimestamp = 0;
+    timerSec = 0;
+    lastMinValue = -1;
+    const sbTimer = document.getElementById("sb-timer-box");
+    if (sbTimer) sbTimer.textContent = "00:00";
+  }
+
   function syncData() {
+    if (!isMatchScreenActive()) {
+      stopScoreboardLoops();
+      return;
+    }
+
     const homeTeamEl = document.getElementById("homeTeam");
     const awayTeamEl = document.getElementById("awayTeam");
     const sbHomeName = document.getElementById("sb-home-name");
@@ -657,6 +698,10 @@
     lastRAFTime = null;
 
     function tick(now) {
+      if (!isMatchScreenActive()) {
+        stopScoreboardLoops();
+        return;
+      }
       if (lastRAFTime === null) lastRAFTime = now;
       const delta = now - lastRAFTime;
       if (delta >= 1000) {
@@ -684,6 +729,19 @@
     timerRAF = requestAnimationFrame(tick);
   }
 
+  function startScoreboardLoops() {
+    if (!isMatchScreenActive()) {
+      stopScoreboardLoops();
+      return;
+    }
+    if (!timerRAF) {
+      startInternalTimer();
+    }
+    if (!syncInterval) {
+      syncInterval = setInterval(syncData, 100);
+    }
+  }
+
   function flashScore(el, root) {
     el.classList.remove("scored");
     root.classList.remove("goal-flash");
@@ -701,32 +759,59 @@
     const container = document.getElementById("matchVisualizerContainer");
     if (!container) return false;
 
-    prevHomeScore = -1;
-    prevAwayScore = -1;
-    lastDrawerMinute = -1;
+    if (!document.getElementById("ingame-scoreboard")) {
+      if (getComputedStyle(container).position === "static")
+        container.style.position = "relative";
 
-    if (document.getElementById("ingame-scoreboard")) return true;
+      const sb = buildScoreboard();
+      container.appendChild(sb);
+    }
 
-    if (getComputedStyle(container).position === "static")
-      container.style.position = "relative";
-
-    const sb = buildScoreboard();
-    container.appendChild(sb);
     applyTeamColors();
-    syncData();
-    startInternalTimer();
-
-    if (syncInterval) clearInterval(syncInterval);
-    syncInterval = setInterval(syncData, 100);
+    if (isMatchScreenActive()) {
+      syncData();
+      startScoreboardLoops();
+    } else {
+      stopScoreboardLoops();
+    }
     return true;
   }
 
+  function handleMatchScreenStateChange() {
+    if (isMatchScreenActive()) {
+      resetMatchScoreboardState();
+      insertScoreboard();
+      startScoreboardLoops();
+    } else {
+      stopScoreboardLoops();
+    }
+  }
+
+  function observeMatchScreen() {
+    const ms = document.getElementById("matchScreen");
+    if (ms) {
+      let wasActive = ms.classList.contains("active");
+      new MutationObserver(() => {
+        const nowActive = ms.classList.contains("active");
+        if (nowActive !== wasActive) {
+          wasActive = nowActive;
+          handleMatchScreenStateChange();
+        }
+      }).observe(ms, { attributes: true, attributeFilter: ["class"] });
+      return true;
+    }
+    return false;
+  }
+
   function watchForContainer() {
-    if (insertScoreboard()) return;
-    const obs = new MutationObserver(() => {
-      if (insertScoreboard()) obs.disconnect();
-    });
-    obs.observe(document.body, { childList: true, subtree: true });
+    insertScoreboard();
+    if (!observeMatchScreen()) {
+      const obs = new MutationObserver(() => {
+        insertScoreboard();
+        if (observeMatchScreen()) obs.disconnect();
+      });
+      obs.observe(document.body, { childList: true, subtree: true });
+    }
   }
 
   new MutationObserver(() => applyTeamColors())
@@ -739,14 +824,5 @@
   } else {
     watchForContainer();
   }
-
-  new MutationObserver(() => {
-    const ms = document.getElementById("matchScreen");
-    if (ms && ms.classList.contains("active")) {
-      setTimeout(() => {
-        if (!document.getElementById("ingame-scoreboard")) insertScoreboard();
-      }, 300);
-    }
-  }).observe(document.body, { subtree: true, attributes: true, attributeFilter: ["class"] });
 
 })();

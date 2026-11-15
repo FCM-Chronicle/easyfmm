@@ -3274,16 +3274,20 @@ class TransferSystem {
             else alert(msg);
 
             if (typeof snsManager !== 'undefined') {
-                const content = `[루머] ${teamNames[gameData.selectedTeam]}가 ${playerName} 을 최우선 영입 대상으로 삼았습니다.`;
                 const post = {
                     id: snsManager.postIdCounter++,
-                    type: "transfer_rumor", // sns.js의 템플릿 키와 일치시킴
-                    content: content,
+                    type: "transfer_rumor",
+                    content: `[루머] ${teamNames[gameData.selectedTeam]}가 ${playerName} 을 최우선 영입 대상으로 삼았습니다.`,
+                    hashtags: ['#transfer', `#${snsManager.sanitizeHashtag(gameData.selectedTeam)}`, `#${snsManager.sanitizeHashtag(playerName)}`],
                     timestamp: Date.now(),
                     time: "방금 전",
-                    likes: Math.floor(Math.random() * 500) + 50
+                    likes: Math.floor(Math.random() * 500) + 50,
+                    comments: Math.floor(Math.random() * 80) + 10,
+                    shares: Math.floor(Math.random() * 30) + 2,
+                    playerName: playerName,
+                    toTeam: gameData.selectedTeam,
+                    transferFee: '이적 협상 중'
                 };
-                // addPost가 알아서 unshift, queue push, render를 모두 처리함
                 snsManager.addPost(post);
             }
         } else {

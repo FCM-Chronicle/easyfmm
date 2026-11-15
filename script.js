@@ -96,27 +96,72 @@ window.GameEventBus = window.GameEventBus || {
 // ==================== [신규] 자동 저장 시스템 ====================
 window.AutoSaveSystem = {
     lastLoadedSlot: 1, // 기본값 슬롯 1
+    saveTimer: null,
+    isSaving: false,
+    pendingSave: false,
+    eventsBound: false,
 
     init: function () {
         // UI 이벤트 바인딩 (설정 탭)
         const toggle = document.getElementById('autoSaveToggle');
-        if (toggle) {
-            // 기존 이벤트 제거를 위해 복제 후 교체
-            const newToggle = toggle.cloneNode(true);
-            toggle.parentNode.replaceChild(newToggle, toggle);
-
-            newToggle.addEventListener('change', (e) => {
+        if (toggle && !toggle.dataset.autoSaveBound) {
+            toggle.dataset.autoSaveBound = 'true';
+            toggle.addEventListener('change', (e) => {
                 if (!gameData.settings) gameData.settings = {};
                 gameData.settings.autoSave = e.target.checked;
                 this.updateUI();
 
-                // 켜는 순간 저장 한 번 실행
-                if (gameData.settings.autoSave) {
-                    this.triggerSave();
+                // 켜는 순간 팀이 선택된 상태라면 즉시 1회 저장
+                if (gameData.settings.autoSave && gameData.selectedTeam) {
+                    this.triggerSave(true);
                 }
             });
         }
+
+        this.hookMoney();
+        this.bindEvents();
         this.updateUI();
+    },
+
+    bindEvents: function () {
+        if (this.eventsBound || !window.GameEventBus) return;
+        this.eventsBound = true;
+
+        window.GameEventBus.on('match:end', () => {
+            this.triggerSave();
+        });
+        window.GameEventBus.on('records:updated', () => {
+            this.triggerSave();
+        });
+    },
+
+    hookMoney: function () {
+        if (typeof gameData === 'undefined' || !gameData) return;
+        if (Object.getOwnPropertyDescriptor(gameData, '__teamMoneyHooked')) return;
+
+        let currentMoney = gameData.teamMoney;
+        const self = this;
+
+        Object.defineProperty(gameData, '__teamMoneyHooked', {
+            value: true,
+            enumerable: false,
+            configurable: true
+        });
+
+        Object.defineProperty(gameData, 'teamMoney', {
+            enumerable: true,
+            configurable: true,
+            get: function () {
+                return currentMoney;
+            },
+            set: function (val) {
+                const prev = currentMoney;
+                currentMoney = val;
+                if (prev !== val && !window.loadingInProgress) {
+                    self.triggerSave();
+                }
+            }
+        });
     },
 
     updateUI: function () {
@@ -124,7 +169,7 @@ window.AutoSaveSystem = {
         const status = document.getElementById('autoSaveStatus');
 
         if (toggle && status) {
-            const isEnabled = gameData.settings && gameData.settings.autoSave;
+            const isEnabled = !!(gameData.settings && gameData.settings.autoSave);
             toggle.checked = isEnabled;
             status.textContent = isEnabled ?
                 `자동 저장이 켜져있습니다 (슬롯 ${this.lastLoadedSlot})` :
@@ -138,18 +183,54 @@ window.AutoSaveSystem = {
         this.updateUI();
     },
 
-    triggerSave: function () {
-        if (gameData.settings && gameData.settings.autoSave) {
-            if (typeof window.saveToSlot === 'function') {
-                console.log(`[AutoSave] 자동 저장 실행 (슬롯 ${this.lastLoadedSlot})`);
-                // silent 모드로 저장 (알림창 없이)
-                Promise.resolve(window.saveToSlot(this.lastLoadedSlot, true)).then((saved) => {
-                    if (saved !== false) {
-                        this.showToast();
-                    }
-                });
-            }
+    executeSave: function () {
+        if (!gameData || !gameData.selectedTeam) return;
+        if (!(gameData.settings && gameData.settings.autoSave)) return;
+        if (typeof window.saveToSlot !== 'function') return;
+
+        if (this.isSaving) {
+            this.pendingSave = true;
+            return;
         }
+
+        this.isSaving = true;
+        console.log(`[AutoSave] 자동 저장 실행 (슬롯 ${this.lastLoadedSlot})`);
+        Promise.resolve(window.saveToSlot(this.lastLoadedSlot, true))
+            .then((saved) => {
+                if (saved !== false) {
+                    this.showToast();
+                }
+            })
+            .catch((err) => {
+                console.error('[AutoSave] 자동 저장 실패:', err);
+            })
+            .finally(() => {
+                this.isSaving = false;
+                if (this.pendingSave) {
+                    this.pendingSave = false;
+                    this.triggerSave();
+                }
+            });
+    },
+
+    triggerSave: function (immediate = false) {
+        if (!gameData || !gameData.settings || !gameData.settings.autoSave) return;
+        if (!gameData.selectedTeam || window.loadingInProgress) return;
+
+        if (this.saveTimer) {
+            clearTimeout(this.saveTimer);
+            this.saveTimer = null;
+        }
+
+        if (immediate) {
+            this.executeSave();
+            return;
+        }
+
+        this.saveTimer = setTimeout(() => {
+            this.saveTimer = null;
+            this.executeSave();
+        }, 500);
     },
 
     showToast: function () {
@@ -190,6 +271,14 @@ window.AutoSaveSystem = {
         }
 
         setTimeout(() => toast.remove(), 2000);
+    }
+};
+
+// 하위 호환 전역 별칭 (formation.js, tactics.js, tacticSystem.js, matchEngine.js 등)
+window.autoSaveSystem = window.AutoSaveSystem;
+window.triggerAutoSave = function () {
+    if (window.AutoSaveSystem) {
+        window.AutoSaveSystem.triggerSave();
     }
 };
 
@@ -3423,6 +3512,7 @@ function loadGame(event) {
 
             // 기본 게임 데이터 복원
             gameData = saveData.gameData;
+            window.gameData = gameData;
             if (!gameData.playerRoles) gameData.playerRoles = {}; // [추가] 구버전 세이브 호환성 보장
             if (!gameData.mentoringPairs) gameData.mentoringPairs = []; // [추가] 멘토링 세이브 호환성 보장
             if (typeof calculateTotalWages === 'function') calculateTotalWages();
@@ -3575,8 +3665,8 @@ function loadGame(event) {
             alert('게임을 불러왔습니다!');
 
             // gameData 객체가 교체되었으므로 자동 저장 감지기 재설정
-            if (window.autoSaveSystem) {
-                window.autoSaveSystem.hookMoney();
+            if (window.AutoSaveSystem) {
+                window.AutoSaveSystem.hookMoney();
             }
 
             // 자동 저장 UI 업데이트
@@ -4354,6 +4444,7 @@ function loadFromSlot(slotNumber, overrideManagerId = null) {
 
         // 기본 게임 데이터 복원
         gameData = saveData.gameData;
+        window.gameData = gameData;
         if (!gameData.playerRoles) gameData.playerRoles = {};
         if (!gameData.mentoringPairs) gameData.mentoringPairs = [];
         if (typeof calculateTotalWages === 'function') calculateTotalWages();
@@ -4490,11 +4581,7 @@ function loadFromSlot(slotNumber, overrideManagerId = null) {
         // [추가] 자동 저장 타겟 슬롯 업데이트
         if (window.AutoSaveSystem) {
             window.AutoSaveSystem.setLastLoadedSlot(slotNumber);
-        }
-
-        // gameData 객체가 교체되었으므로 자동 저장 감지기 재설정
-        if (window.autoSaveSystem) {
-            window.autoSaveSystem.hookMoney();
+            window.AutoSaveSystem.hookMoney();
         }
 
         // 자동 저장 UI 업데이트 (설정 복원)
