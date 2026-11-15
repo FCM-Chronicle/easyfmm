@@ -8263,11 +8263,11 @@ const allTeams = {
             { name: "제르송", position: "MF", country: "브라질", age: 29, rating: 77, otherPositions: [] },
 
             // --- FW: 엔드릭은 레알 갔으니 빼고, '제2의 홀란드'델과 득점 선두 비니시우스 투입 ---
+            { name: "네이마르", position: "FW", country: "브라질", age: 34, rating: 82, playerid: 190871, detailPosition: "LW", otherPositions: ["CAM","LM"], potential: 82, value: 40.8, weeklyWage: 1.28, preferredFoot: "Right", weakFoot: 5, skillMoves: 5, attributes: { pace: 78, shooting: 80, passing: 83, dribbling: 88, defending: 34, physical: 58 }, traits: ["예리한 감아차기","데드볼 스페셜리스트","패스 마스터","독창성","테크니션","트릭스터"] },
             { name: "페드루", position: "FW", country: "브라질", age: 29, rating: 81, otherPositions: ["CB","LB","CDM"] }, // 플라멩구의 폭격기
             { name: "카를로스 비니시우스", position: "FW", country: "브라질", age: 31, rating: 79, otherPositions: [] }, // 그레미우 득점 선두권
-            { name: "이고르 치아구", position: "FW", country: "브라질", age: 24, rating: 78, playerid: 275771, detailPosition: "ST", otherPositions: [], potential: 82, value: 32.5, weeklyWage: 1.06, preferredFoot: "Right", weakFoot: 2, skillMoves: 4, attributes: { pace: 74, shooting: 83, passing: 67, dribbling: 75, defending: 44, physical: 85 }, traits: ["칩슛","압박 면제","두 번째 활력","강력한 어깨"] },
+            { name: "비토르 호키", position: "FW", country: "브라질", age: 21, rating: 78, playerid: 268438, detailPosition: "ST", otherPositions: ["LW","RW"], potential: 85, value: 32.5, weeklyWage: 1.06, preferredFoot: "Right", weakFoot: 4, skillMoves: 4, attributes: { pace: 84, shooting: 78, passing: 66, dribbling: 80, defending: 34, physical: 73 }, traits: ["아크로바틱 피니셔","래피드","스피드스터","두 번째 활력"] },
             { name: "델", position: "FW", country: "브라질", age: 18, rating: 75, playerid: 87437, detailPosition: "ST", otherPositions: [], potential: 83, value: 27.3, weeklyWage: 0.91, preferredFoot: "Right", weakFoot: 3, skillMoves: 3, attributes: { pace: 69, shooting: 64, passing: 46, dribbling: 59, defending: 21, physical: 50 }, traits: [] },
-            { name: "하양", position: "FW", country: "브라질", age: 19, rating: 76, playerid: 83494, detailPosition: "RM", otherPositions: ["RW"], potential: 83, value: 29.0, weeklyWage: 0.96, preferredFoot: "Left", weakFoot: 3, skillMoves: 2, attributes: { pace: 85, shooting: 78, passing: 74, dribbling: 80, defending: 35, physical: 74 }, traits: ["파워슛","빨랫줄 슈팅","강력한 어깨"] },
             { name: "가브리에우 바르보사", position: "FW", country: "브라질", age: 29, rating: 78, otherPositions: [] },
             { name: "예페르손 소텔도", position: "FW", country: "베네수엘라", age: 29, rating: 77, otherPositions: [] }
         ],
@@ -8356,7 +8356,7 @@ const allTeams = {
         budget: 1000,
         stadium: { name: "알 아왈 파크", capacity: 25000 },
         players: [
-            { name: "크리스티아누 호날두", position: "FW", country: "사우디아라비아", age: 31, rating: 69, playerid: 20801, detailPosition: "ST", otherPositions: ["RW","LW","LM"], potential: 69, value: 18.7, weeklyWage: 0.66, preferredFoot: "Right", weakFoot: 4, skillMoves: 4, attributes: { pace: 67, shooting: 88, passing: 75, dribbling: 78, defending: 33, physical: 75 }, traits: ["파워슛","아크로바틱 피니셔","빨랫줄 슈팅","게임체인저","트릭스터"] },
+            { name: "크리스티아누 호날두", position: "FW", country: "포르투갈", age: 41, rating: 86, playerid: 20801, detailPosition: "ST", otherPositions: ["RW","LW","LM"], potential: 86, value: 50.5, weeklyWage: 1.53, preferredFoot: "Right", weakFoot: 4, skillMoves: 4, attributes: { pace: 67, shooting: 88, passing: 75, dribbling: 78, defending: 33, physical: 75 }, traits: ["파워슛","아크로바틱 피니셔","빨랫줄 슈팅","게임체인저","트릭스터"] },
             { name: "사디오 마네", position: "FW", country: "세네갈", age: 34, rating: 82, playerid: 208722, detailPosition: "LM", otherPositions: ["RM","ST","LW"], potential: 82, value: 40.8, weeklyWage: 1.28, preferredFoot: "Right", weakFoot: 4, skillMoves: 4, attributes: { pace: 81, shooting: 81, passing: 78, dribbling: 85, defending: 44, physical: 75 }, traits: ["빨랫줄 슈팅","게임체인저","공중의 성벽","래피드"] },
             { name: "마르첼로 브로조비치", position: "MF", country: "크로아티아", age: 33, rating: 80, otherPositions: [] },
             { name: "나와프 알 아키디", position: "GK", country: "사우디아라비아", age: 26, rating: 70, playerid: 255368, detailPosition: "GK", otherPositions: [], potential: 72, value: 20.0, weeklyWage: 0.70, preferredFoot: "Right", weakFoot: 1, skillMoves: 3, attributes: { pace: 74, shooting: 68, passing: 73, dribbling: 73, defending: 47, physical: 65 }, traits: [] },
@@ -8383,7 +8383,7 @@ const allTeams = {
             { name: "웨슬리 가소바", position: "FW", country: "브라질", age: 21, rating: 75, otherPositions: ["RB","LM","RM"] },
             { name: "압둘라흐만 수퍄니", position: "FW", country: "사우디아라비아", age: 25, rating: 65, otherPositions: [] },
             { name: "사아드 알 나세르", position: "FW", country: "사우디아라비아", age: 25, rating: 67, playerid: 260343, detailPosition: "LB", otherPositions: ["LM","CM","LW"], potential: 70, value: 16.4, weeklyWage: 0.59, preferredFoot: "Left", weakFoot: 3, skillMoves: 3, attributes: { pace: 83, shooting: 57, passing: 56, dribbling: 66, defending: 56, physical: 69 }, traits: [] },
-            { name: "호날두 주니어", position: "FW", country: "포르투갈", age: 16, rating: 62, detailPosition: "LW", otherPositions: ["ST","RW"], potential: 84, value: 12.0, weeklyWage: 0.43, preferredFoot: "Right", weakFoot: 4, skillMoves: 4, attributes: { pace: 72, shooting: 64, passing: 58, dribbling: 68, defending: 25, physical: 56 }, traits: ["파워슛","트릭스터"] }
+            { name: "크리스티아누 호날두 JR", position: "FW", country: "포르투갈", age: 16, rating: 62, detailPosition: "LW", otherPositions: ["ST","RW"], potential: 88, value: 12.0, weeklyWage: 0.43, preferredFoot: "Right", weakFoot: 4, skillMoves: 4, attributes: { pace: 72, shooting: 64, passing: 58, dribbling: 68, defending: 25, physical: 56 }, traits: ["파워슛","트릭스터"] }
         ],
         description: "크리스티아누 호날두가 새로운 도전을 펼치는 무대"
     },

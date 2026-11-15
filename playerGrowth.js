@@ -63,8 +63,8 @@ class PlayerGrowthSystem {
             if (player.age < 25 && !this.growthData.has(player.name)) {
                 const growthPotential = this.calculateGrowthPotential(player);
 
-                // [수정] 포텐셜에 따라 성장 기간을 3~12개월로 다르게 설정
-                const growthMonths = Math.max(3, Math.min(12, Math.round(growthPotential / 2.5)));
+                // [수정] 포텐셜에 따라 성장 기간을 최소 1시즌(12턴=36경기) ~ 최대 5시즌(60턴=180경기)으로 설정
+                const growthMonths = this._calculateGrowthMonths(growthPotential);
                 const monthlyGrowth = growthPotential / growthMonths;
 
                 this.growthData.set(player.name, {
@@ -80,6 +80,11 @@ class PlayerGrowthSystem {
                 console.log(`${player.name}: 성장 가능성 ${growthPotential}, 성장 기간 ${growthMonths}개월, 월별 성장 ${monthlyGrowth.toFixed(2)}`);
             }
         });
+    }
+
+    /** 성장 가능성에 따른 성장 기간 계산 (1시즌=12턴 기준, 최소 1시즌 ~ 최대 5시즌) */
+    _calculateGrowthMonths(growthPotential) {
+        return Math.max(12, Math.min(60, Math.round(growthPotential * 2)));
     }
 
     // [신규] 구단 최첨단 훈련 시설 보유 여부 확인 (스타디움 시스템 연동)
@@ -608,8 +613,8 @@ class PlayerGrowthSystem {
             const callUpBonus = 0;
             growthPotential += callUpBonus;
 
-            // [수정] 포텐셜에 따라 성장 기간을 3~12개월로 다르게 설정
-            const growthMonths = Math.max(3, Math.min(12, Math.round(growthPotential / 2.5)));
+            // [수정] 포텐셜에 따라 성장 기간을 최소 1시즌(12턴=36경기) ~ 최대 5시즌(60턴=180경기)으로 설정
+            const growthMonths = this._calculateGrowthMonths(growthPotential);
             const monthlyGrowth = growthPotential / growthMonths;
 
             this.growthData.set(player.name, {
