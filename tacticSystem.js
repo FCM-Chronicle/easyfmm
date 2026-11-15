@@ -1575,11 +1575,11 @@ function endMatch(matchData) {
         }
     }
 
-    // [신규] 전술 숙련도(Familiarity) 증가 로직 (+3%)
+    // [신규] 전술 숙련도(Familiarity) 증가 로직 (+5%)
     const currentTac = normalizeTacticKey(gameData.currentTactic || 'balanced');
     gameData.currentTactic = currentTac;
     const prevMastery = getTacticMasteryPct(currentTac);
-    gameData.tacticMastery[currentTac] = Math.min(100, prevMastery + 3);
+    gameData.tacticMastery[currentTac] = Math.min(100, prevMastery + 5);
     if (typeof window.updateMatchTabCurrentTacticDisplay === 'function') {
         window.updateMatchTabCurrentTacticDisplay();
     }
