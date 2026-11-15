@@ -2736,22 +2736,66 @@ class TransferSystem {
         }
     }
 
-    // [수정] 유저 선수를 위한 제안 생성 후 메일로 발송 (현실적인 구단 예산 반영)
+    // 팀의 상위 11명 평균 오버롤 계산 (구단 수준 판단용)
+    getTeamTop11AvgRating(teamKey) {
+        const roster = (typeof teams !== 'undefined' && teams[teamKey] && teams[teamKey].length > 0)
+            ? teams[teamKey]
+            : ((typeof allTeams !== 'undefined' && allTeams[teamKey] && allTeams[teamKey].players) ? allTeams[teamKey].players : []);
+        if (!roster || roster.length === 0) return 70;
+        const topRatings = roster
+            .map(p => Number(p.rating) || 65)
+            .sort((a, b) => b - a)
+            .slice(0, 11);
+        return topRatings.reduce((sum, r) => sum + r, 0) / topRatings.length;
+    }
+
+    // 선수 수준(오버롤/나이/포텐셜)과 예산에 맞는 현실적인 영입 희망 구단 목록 반환
+    getRealisticBuyerTeams(player, candidateTeams, minAffordableBudget = 20) {
+        const rating = Number(player.rating) || 65;
+        const age = Number(player.age) || 25;
+        const potential = Number(player.maxPotential || player.potential) || rating;
+
+        // 유망주 여부: 22세 이하이면서 잠재력이 높거나(78+) 성장 여력이 큰(+7 이상) 경우
+        const isProspect = age <= 22 && (potential >= 78 || (potential - rating) >= 7);
+        const effectiveRating = isProspect
+            ? Math.round(rating * 0.4 + potential * 0.6)
+            : rating;
+
+        // 비유망주 저오버롤 선수는 팀 평균 오버롤이 훨씬 높은 빅클럽(PL, PSG 등)에서 제외
+        const maxTeamAvg = effectiveRating + (effectiveRating >= 78 ? 6 : 5);
+        const minTeamAvg = (rating >= 78 && age <= 32) ? (rating - 10) : 0;
+
+        const affordableTeams = candidateTeams.filter(t => this.getTeamBudget(t) >= minAffordableBudget);
+        const levelPool = affordableTeams.length >= 3 ? affordableTeams : candidateTeams;
+
+        let eligibleTeams = levelPool.filter(t => {
+            const teamAvg = this.getTeamTop11AvgRating(t);
+            return teamAvg <= maxTeamAvg && teamAvg >= minTeamAvg;
+        });
+
+        // 조건을 만족하는 구단이 부족하면 선수 수준과 가장 비슷한 구단들 순으로 보충
+        if (eligibleTeams.length < 3) {
+            eligibleTeams = [...levelPool]
+                .sort((a, b) => {
+                    const diffA = Math.abs(this.getTeamTop11AvgRating(a) - effectiveRating);
+                    const diffB = Math.abs(this.getTeamTop11AvgRating(b) - effectiveRating);
+                    return diffA - diffB;
+                })
+                .slice(0, Math.min(12, levelPool.length));
+        }
+
+        return eligibleTeams;
+    }
+
+    // [수정] 유저 선수를 위한 제안 생성 후 메일로 발송 (현실적인 구단 예산 및 구단 수준 반영)
     processUserTransferOffers(player) {
         const marketValue = this.calculatePlayerPrice(player, gameData.selectedTeam);
         const offers = [];
         const allOtherTeams = Object.keys(allTeams).filter(t => t !== gameData.selectedTeam);
 
-        // 1. 해당 선수의 몸값을 실제로 감당할 수 있는 구단들만 엄선 (예산이 시장가의 70% 이상인 구단)
+        // 1. 해당 선수의 몸값과 수준(오버롤/유망주 여부)에 맞는 현실적인 구단만 엄선
         const minAffordableBudget = Math.max(20, Math.round(marketValue * 0.7));
-        let eligibleTeams = allOtherTeams.filter(t => this.getTeamBudget(t) >= minAffordableBudget);
-
-        // 몸값이 매우 높은 특급 선수의 경우, 전 세계 예산 상위 빅클럽들 중에서만 선정
-        if (eligibleTeams.length < 3) {
-            eligibleTeams = [...allOtherTeams]
-                .sort((a, b) => this.getTeamBudget(b) - this.getTeamBudget(a))
-                .slice(0, 12);
-        }
+        const eligibleTeams = this.getRealisticBuyerTeams(player, allOtherTeams, minAffordableBudget);
 
         const pickedTeams = new Set();
         const pickTeamFrom = (list) => {
@@ -2762,7 +2806,7 @@ class TransferSystem {
             return chosen;
         };
 
-        // 1. 최상위 빅클럽 오퍼 (최고 수준의 제안)
+        // 1. 적정 구단 중 가장 자금력이 좋은 구단 오퍼 (최고 수준의 제안)
         const sortedByBudget = [...eligibleTeams].sort((a, b) => this.getTeamBudget(b) - this.getTeamBudget(a));
         const topTierPool = sortedByBudget.slice(0, Math.max(3, Math.ceil(sortedByBudget.length * 0.35)));
         const bigSpender = pickTeamFrom(topTierPool) || pickTeamFrom(eligibleTeams) || allOtherTeams[0];
@@ -2774,9 +2818,11 @@ class TransferSystem {
             message: "우리는 선수의 뛰어난 기량을 높게 평가하며, 시장가에 걸맞은 최고 수준의 이적료를 공식 제안합니다."
         });
 
-        // 2. 같은 리그 라이벌 혹은 상위권 합리적 구단
+        // 2. 같은 리그 혹은 합리적 예산의 구단
+        const userLeagueId = allTeams[gameData.selectedTeam] ? allTeams[gameData.selectedTeam].leagueId : null;
         const sameLeagueOrContenders = eligibleTeams.filter(t => 
-            (allTeams[t] && allTeams[t].league === gameData.currentLeague) || 
+            (userLeagueId && allTeams[t] && allTeams[t].leagueId === userLeagueId) ||
+            (!userLeagueId && allTeams[t] && allTeams[t].league === gameData.currentLeague) || 
             this.getTeamBudget(t) >= marketValue * 0.85
         );
         const rational = pickTeamFrom(sameLeagueOrContenders) || pickTeamFrom(eligibleTeams) || allOtherTeams[1 % allOtherTeams.length];

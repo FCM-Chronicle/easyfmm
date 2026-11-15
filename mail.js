@@ -506,9 +506,13 @@ class MailManager {
         const priceFactor = 0.9 + (Math.random() * 0.15); // 90% ~ 105% (시장가 근처)
         const offerPrice = Math.round(basePrice * priceFactor);
         
-        // 제안 팀 (랜덤)
+        // 제안 팀 (선수 수준과 예산에 맞는 현실적인 구단 중 선택)
         const otherTeams = Object.keys(teams).filter(t => t !== gameData.selectedTeam);
-        const offerTeamKey = otherTeams[Math.floor(Math.random() * otherTeams.length)];
+        const realisticTeams = (typeof transferSystem !== 'undefined' && typeof transferSystem.getRealisticBuyerTeams === 'function')
+            ? transferSystem.getRealisticBuyerTeams(targetPlayer, otherTeams, Math.max(20, Math.round(basePrice * 0.7)))
+            : otherTeams;
+        const candidatePool = realisticTeams.length > 0 ? realisticTeams : otherTeams;
+        const offerTeamKey = candidatePool[Math.floor(Math.random() * candidatePool.length)];
         const offerTeamName = teamNames[offerTeamKey] || offerTeamKey;
         
         const content = `다른 구단으로부터 우리 선수에 대한 이적 제안이 도착했습니다.\n\n` +
