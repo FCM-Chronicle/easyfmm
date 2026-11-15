@@ -1146,9 +1146,9 @@ class SNSManager {
                     content: `게시물 내용: "${postContent}"`
                 }
             ],
-            model: "google/gemma-4-31b-it",
+            model: "nvidia/nemotron-3.5-super-vl-120b-a12b",
             temperature: 0.7,
-            max_tokens: 900
+            max_tokens: 4000
         });
 
         for (let i = 0; i < candidates.length; i++) {
