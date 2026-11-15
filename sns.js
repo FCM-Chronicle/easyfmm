@@ -1154,7 +1154,7 @@ class SNSManager {
         for (let i = 0; i < candidates.length; i++) {
             const targetUrl = candidates[i];
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort('Request timeout'), 35000);
+            const timeoutId = setTimeout(() => controller.abort('Request timeout'), 65000);
 
             try {
                 const response = await fetch(targetUrl, {

@@ -1,5 +1,23 @@
 // Vercel Serverless Function (CommonJS: package.json 없이 모든 Node 런타임 호환)
-async function callUpstream(url, apiKey, bodyPayload, timeoutMs = 15000) {
+function pickCommonChatFields(payload) {
+    const out = {
+        messages: payload.messages
+    };
+    const passthroughKeys = ['temperature', 'top_p', 'stop', 'presence_penalty', 'frequency_penalty', 'seed'];
+    for (const key of passthroughKeys) {
+        if (payload[key] !== undefined) {
+            out[key] = payload[key];
+        }
+    }
+    return out;
+}
+
+function hasNonEmptyChoiceContent(data) {
+    const content = data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
+    return typeof content === 'string' && content.trim().length > 0;
+}
+
+async function callUpstream(url, apiKey, bodyPayload, timeoutMs = 38000) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(new Error('Upstream timeout')), timeoutMs);
 
@@ -65,39 +83,52 @@ module.exports = async function handler(request, response) {
             return response.status(400).json({ error: "잘못된 요청 형식 (messages 필요)" });
         }
 
-        // 우선순위: EXAONE(등록된 경우) -> NVIDIA NIM(폴백 또는 단독 등록 시)
+        const baseFields = pickCommonChatFields(payload);
+
+        // 우선순위: EXAONE(등록된 경우, 최대 38초) -> NVIDIA NIM(폴백, 최대 18초)
         const targets = [];
         if (exaoneKey) {
             targets.push({
                 name: 'exaone',
                 url: 'https://api.exaone.ai/v1/chat/completions',
                 apiKey: exaoneKey,
+                timeoutMs: 38000,
                 body: {
-                    ...payload,
+                    ...baseFields,
                     model: payload.exaoneModel || 'k-exaone_v2.5',
                     reasoning_effort: payload.reasoning_effort || 'low',
-                    max_tokens: Math.max(Number(payload.max_tokens) || 2000, 2000)
+                    max_tokens: Math.max(Number(payload.max_tokens) || 3000, 3000)
                 }
             });
         }
         if (nvidiaKey) {
+            const nvidiaBody = {
+                ...baseFields,
+                model: payload.nvidiaModel || payload.model || 'google/gemma-4-31b-it'
+            };
+            if (payload.max_tokens !== undefined) {
+                nvidiaBody.max_tokens = Number(payload.max_tokens) || 900;
+            }
             targets.push({
                 name: 'nvidia',
                 url: 'https://integrate.api.nvidia.com/v1/chat/completions',
                 apiKey: nvidiaKey,
-                body: {
-                    ...payload,
-                    model: payload.nvidiaModel || payload.model || 'google/gemma-4-31b-it'
-                }
+                timeoutMs: 18000,
+                body: nvidiaBody
             });
         }
 
         let lastError = null;
         for (const target of targets) {
             try {
-                const result = await callUpstream(target.url, target.apiKey, target.body);
-                if (result.ok) {
+                const result = await callUpstream(target.url, target.apiKey, target.body, target.timeoutMs);
+                if (result.ok && hasNonEmptyChoiceContent(result.data)) {
                     return response.status(200).json(result.data);
+                }
+                if (result.ok) {
+                    console.warn(`[${target.name}] Empty completion content`);
+                    lastError = { status: 502, data: { error: `${target.name} returned empty content` }, provider: target.name };
+                    continue;
                 }
                 console.error(`[${target.name}] API Error:`, result.status, result.data);
                 lastError = { status: result.status, data: result.data, provider: target.name };
