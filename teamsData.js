@@ -1,4 +1,4 @@
-// easyfmm - FC 27 Real Football World (162 Clubs with Hangulize)
+﻿// easyfmm - FC 27 Real Football World (162 Clubs with Hangulize)
 const allTeams = {
     "아스널": {
         teamid: 1,
@@ -782,7 +782,7 @@ const allTeams = {
         country: "잉글랜드",
         leagueId: "premier_league",
         league: 1,
-        logoCode: "NFO",
+        logoCode: "NOT"
         budget: 400,
         clubValue: 3500,
         stadium: { name: "시티 그라운드", capacity: 30445 },

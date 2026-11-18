@@ -22,6 +22,15 @@
       font-display: swap;
     }
 
+    @font-face {
+      font-family: 'PremierSans';
+      src: url('assets/font/Premier Sans.otf') format('opentype'),
+           url('assets/font/Premier Sans.ttf') format('truetype');
+      font-weight: 400 900;
+      font-style: normal;
+      font-display: swap;
+    }
+
     #ingame-scoreboard {
       position: absolute;
       top: 14px;
@@ -1687,14 +1696,14 @@
 
     /* ── Premier League (EPL) Broadcast Scorebug Theme ── */
     #ingame-scoreboard[data-comp="premier_league"] {
-      filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.5));
+      filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.55));
     }
 
     #ingame-scoreboard[data-comp="premier_league"] #sb-main-bar {
-      font-family: 'Outfit', 'Barlow', 'Pretendard Variable', sans-serif;
+      font-family: 'PremierSans', 'Outfit', 'Pretendard Variable', sans-serif;
       display: grid;
       grid-template-columns: auto auto auto;
-      grid-template-rows: 34px 23px;
+      grid-template-rows: 34px 26px;
       justify-items: center;
       align-items: stretch;
       height: auto;
@@ -1709,21 +1718,45 @@
     #ingame-scoreboard[data-comp="premier_league"] #sb-home {
       grid-column: 1;
       grid-row: 1;
+      position: relative;
       z-index: 2;
-      min-width: 74px;
-      background: var(--sb-home-p, #ffffff);
+      min-width: 92px;
+      background: var(--sb-home-p, #da291c);
       border-radius: 6px 0 0 6px;
-      clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 45%, calc(100% - 6px) 55%, 100% 100%, 0 100%);
+    }
+
+    #ingame-scoreboard[data-comp="premier_league"] #sb-home::after {
+      content: "";
+      position: absolute;
+      right: -11px;
+      top: 0;
+      bottom: 0;
+      width: 12px;
+      background: var(--sb-home-p, #da291c);
+      clip-path: polygon(0 0, 35% 0, 95% 48%, 45% 52%, 100% 100%, 0 100%);
+      pointer-events: none;
     }
 
     #ingame-scoreboard[data-comp="premier_league"] #sb-away {
       grid-column: 3;
       grid-row: 1;
+      position: relative;
       z-index: 2;
-      min-width: 74px;
-      background: var(--sb-away-p, #034694);
+      min-width: 92px;
+      background: var(--sb-away-p, #6cabdd);
       border-radius: 0 6px 6px 0;
-      clip-path: polygon(8px 0, 100% 0, 100% 100%, 0 100%, 6px 55%, 0 45%);
+    }
+
+    #ingame-scoreboard[data-comp="premier_league"] #sb-away::before {
+      content: "";
+      position: absolute;
+      left: -11px;
+      top: 0;
+      bottom: 0;
+      width: 12px;
+      background: var(--sb-away-p, #6cabdd);
+      clip-path: polygon(65% 0, 100% 0, 100% 100%, 0 100%, 55% 52%, 5% 48%);
+      pointer-events: none;
     }
 
     #ingame-scoreboard[data-comp="premier_league"] .sb-team-logo {
@@ -1732,19 +1765,20 @@
 
     #ingame-scoreboard[data-comp="premier_league"] .sb-name-box {
       justify-content: center !important;
-      font-size: 1rem;
-      font-weight: 800;
-      letter-spacing: 0.04em;
+      font-size: 1.56rem;
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: 0.02em;
       text-transform: uppercase;
     }
 
     #ingame-scoreboard[data-comp="premier_league"] #sb-home .sb-name-box {
-      padding: 0 14px 0 12px;
-      color: var(--sb-home-fg, #111827);
+      padding: 0 10px;
+      color: var(--sb-home-fg, #ffffff);
     }
 
     #ingame-scoreboard[data-comp="premier_league"] #sb-away .sb-name-box {
-      padding: 0 12px 0 14px;
+      padding: 0 10px;
       color: var(--sb-away-fg, #ffffff);
     }
 
@@ -1752,35 +1786,72 @@
       grid-column: 2;
       grid-row: 1;
       z-index: 1;
-      margin: 0 -10px;
-      padding: 0 14px;
-      background: linear-gradient(90deg, #37003c 0%, #861657 50%, #37003c 100%);
+      position: relative;
+      margin: 0;
+      padding: 0;
+      gap: 0;
+      background: #37003c;
       border: none;
+      overflow: visible;
     }
 
-    #ingame-scoreboard[data-comp="premier_league"] .sb-score-box {
-      min-width: 24px;
-      padding: 0 2px;
+    #ingame-scoreboard[data-comp="premier_league"] #sb-home-score-box {
+      min-width: 44px;
+      height: 100%;
+      padding: 0 8px 0 16px;
+      background: var(--sb-home-s, #1e0a24);
+      overflow: visible;
+    }
+
+    #ingame-scoreboard[data-comp="premier_league"] #sb-away-score-box {
+      min-width: 44px;
+      height: 100%;
+      padding: 0 16px 0 8px;
+      background: var(--sb-away-s, #1e0a24);
+      overflow: visible;
     }
 
     #ingame-scoreboard[data-comp="premier_league"] .sb-score-num {
-      color: #ffffff;
-      font-size: 1.38rem;
+      position: relative;
+      z-index: 4;
+      font-size: 2.65rem;
       font-weight: 900;
+      line-height: 0.78;
       transition: none;
+    }
+
+    #ingame-scoreboard[data-comp="premier_league"] #sb-home-score-box .sb-score-num {
+      color: var(--sb-home-s-fg, #ffffff);
+    }
+
+    #ingame-scoreboard[data-comp="premier_league"] #sb-away-score-box .sb-score-num {
+      color: var(--sb-away-s-fg, #ffffff);
     }
 
     #ingame-scoreboard[data-comp="premier_league"] .sb-score-num.scored {
       transform: none;
-      color: #ffffff;
     }
 
     #ingame-scoreboard[data-comp="premier_league"] #sb-score-divider {
-      width: 30px;
-      height: 36px;
-      margin: -1px 2px;
+      position: relative;
+      z-index: 3;
+      width: 34px;
+      height: 100%;
+      margin: 0;
+      background: #37003c;
+    }
+
+    #ingame-scoreboard[data-comp="premier_league"] #sb-score-divider::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: -5px;
+      transform: translateX(-50%);
+      width: 36px;
+      height: 42px;
       background: url('assets/league_logos/premier_league.png') center / contain no-repeat;
-      filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.55));
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.55));
+      pointer-events: none;
     }
 
     #ingame-scoreboard[data-comp="premier_league"] #sb-score-divider span {
@@ -1790,9 +1861,14 @@
     #ingame-scoreboard[data-comp="premier_league"] #sb-clock-wing {
       grid-column: 2;
       grid-row: 2;
-      height: 23px;
-      padding: 0 16px;
+      width: 100%;
+      box-sizing: border-box;
+      height: 28px;
+      padding: 0 14px;
       gap: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       background: #37003c;
       border-top: 1px solid rgba(255, 255, 255, 0.14);
       border-right: none;
@@ -1806,10 +1882,11 @@
 
     #ingame-scoreboard[data-comp="premier_league"] #sb-timer-box {
       color: #ffffff;
-      font-size: 0.84rem;
-      font-weight: 700;
+      font-size: 1.15rem;
+      font-weight: 800;
       letter-spacing: 0.04em;
-      min-width: 46px;
+      min-width: 0;
+      text-align: center;
     }
 
     #ingame-scoreboard[data-comp="premier_league"].goal-flash {
@@ -1823,24 +1900,38 @@
 
     @media (max-width: 600px) {
       #ingame-scoreboard[data-comp="premier_league"] #sb-main-bar {
-        grid-template-rows: 28px 20px;
+        grid-template-rows: 32px 24px;
       }
       #ingame-scoreboard[data-comp="premier_league"] #sb-home,
       #ingame-scoreboard[data-comp="premier_league"] #sb-away {
-        min-width: 58px;
+        min-width: 70px;
       }
       #ingame-scoreboard[data-comp="premier_league"] .sb-name-box {
-        font-size: 0.84rem;
+        font-size: 1.05rem;
+      }
+      #ingame-scoreboard[data-comp="premier_league"] #sb-home-score-box {
+        min-width: 36px;
+        padding: 0 8px 0 12px;
+      }
+      #ingame-scoreboard[data-comp="premier_league"] #sb-away-score-box {
+        min-width: 36px;
+        padding: 0 12px 0 8px;
       }
       #ingame-scoreboard[data-comp="premier_league"] .sb-score-num {
-        font-size: 1.14rem;
+        font-size: 1.55rem;
       }
       #ingame-scoreboard[data-comp="premier_league"] #sb-score-divider {
-        width: 24px;
-        height: 28px;
+        width: 26px;
+        height: 100%;
+        margin: 0;
+      }
+      #ingame-scoreboard[data-comp="premier_league"] #sb-score-divider::after {
+        width: 28px;
+        height: 34px;
+        top: -4px;
       }
       #ingame-scoreboard[data-comp="premier_league"] #sb-timer-box {
-        font-size: 0.74rem;
+        font-size: 0.92rem;
       }
     }
 
@@ -2314,6 +2405,22 @@
     return "#ffffff";
   }
 
+  function darkenColor(cssColor, factor = 0.38) {
+    if (!cssColor) return "#111827";
+    const ctx = getContrastTextColor._ctx || (getContrastTextColor._ctx = document.createElement("canvas").getContext("2d"));
+    if (!ctx) return "#111827";
+    ctx.fillStyle = "#000000";
+    ctx.fillStyle = cssColor;
+    const hex = ctx.fillStyle;
+    if (hex.startsWith("#") && hex.length === 7) {
+      const r = Math.round(parseInt(hex.slice(1, 3), 16) * factor);
+      const g = Math.round(parseInt(hex.slice(3, 5), 16) * factor);
+      const b = Math.round(parseInt(hex.slice(5, 7), 16) * factor);
+      return `rgb(${r}, ${g}, ${b})`;
+    }
+    return "#111827";
+  }
+
   function applyTeamColors() {
     const sbEl = document.getElementById("ingame-scoreboard");
     if (!sbEl) return;
@@ -2321,27 +2428,40 @@
     const cs = getComputedStyle(document.body);
     let homePrimary = cs.getPropertyValue("--team-primary").trim() || "#e74c3c";
     let awayPrimary = cs.getPropertyValue("--away-team-primary").trim() || "#3498db";
+    let homeSecondary = null;
+    let awaySecondary = null;
 
     const md = window.currentMatchData;
     if (md && typeof window.getMatchKitColors === "function" && md.homeTeam && md.awayTeam) {
       const kits = window.getMatchKitColors(md.homeTeam, md.awayTeam);
       homePrimary = Array.isArray(kits.home) ? kits.home[0] : kits.home;
       awayPrimary = Array.isArray(kits.away) ? kits.away[0] : kits.away;
+      if (Array.isArray(kits.home) && kits.home[1]) homeSecondary = kits.home[1];
+      if (Array.isArray(kits.away) && kits.away[1]) awaySecondary = kits.away[1];
     } else if (md && typeof window.getTeamColor === "function") {
       if (md.homeTeam) {
         const hc = window.getTeamColor(md.homeTeam, "home");
         homePrimary = Array.isArray(hc) ? hc[0] : hc;
+        if (Array.isArray(hc) && hc[1]) homeSecondary = hc[1];
       }
       if (md.awayTeam) {
         const ac = window.getTeamColor(md.awayTeam, "away");
         awayPrimary = Array.isArray(ac) ? ac[0] : ac;
+        if (Array.isArray(ac) && ac[1]) awaySecondary = ac[1];
       }
     }
+
+    if (!homeSecondary) homeSecondary = darkenColor(homePrimary, 0.38);
+    if (!awaySecondary) awaySecondary = darkenColor(awayPrimary, 0.38);
 
     sbEl.style.setProperty("--sb-home-p", homePrimary);
     sbEl.style.setProperty("--sb-away-p", awayPrimary);
     sbEl.style.setProperty("--sb-home-fg", getContrastTextColor(homePrimary));
     sbEl.style.setProperty("--sb-away-fg", getContrastTextColor(awayPrimary));
+    sbEl.style.setProperty("--sb-home-s", homeSecondary);
+    sbEl.style.setProperty("--sb-away-s", awaySecondary);
+    sbEl.style.setProperty("--sb-home-s-fg", getContrastTextColor(homeSecondary));
+    sbEl.style.setProperty("--sb-away-s-fg", getContrastTextColor(awaySecondary));
   }
 
   let syncInterval = null;
