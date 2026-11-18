@@ -2261,6 +2261,306 @@
         font-size: 0.98rem;
       }
     }
+
+    /* ── Pre-Match Broadcast Starting XI 3D Pitch Intro ── */
+    #sb-lineup-intro {
+      position: absolute;
+      left: 50%;
+      top: 58px;
+      transform: translateX(-50%);
+      width: min(820px, 96%);
+      height: min(460px, calc(100% - 68px));
+      overflow: hidden;
+      z-index: 95;
+      background: linear-gradient(180deg, #0b1120 0%, #162036 42%, #0b2416 100%);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 12px;
+      box-shadow: 0 22px 50px rgba(0, 0, 0, 0.72);
+      color: #f8fafc;
+      font-family: 'Pretendard Variable', 'Pretendard', sans-serif;
+      display: none;
+      pointer-events: auto;
+    }
+
+    #sb-lineup-intro.visible {
+      display: flex;
+      flex-direction: column;
+      animation: sb-lineup-card-in 0.34s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    @keyframes sb-lineup-card-in {
+      from { opacity: 0; transform: translateX(-50%) translateY(-10px) scale(0.98); }
+      to   { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+    }
+
+    @keyframes sb-row-rise {
+      0% {
+        opacity: 0;
+        transform: translateY(46px) scale(calc(var(--row-scale, 1) * 0.92));
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(var(--row-scale, 1));
+      }
+    }
+
+    .sb-lineup-header {
+      position: relative;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 12px;
+      background: rgba(7, 11, 20, 0.85);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .sb-lineup-team-banner {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .sb-lineup-team-logo {
+      width: 24px;
+      height: 24px;
+      object-fit: contain;
+      flex-shrink: 0;
+    }
+
+    .sb-lineup-team-name {
+      font-size: 0.92rem;
+      font-weight: 900;
+      color: #ffffff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .sb-lineup-form {
+      font-size: 0.72rem;
+      font-weight: 900;
+      color: #ffffff;
+      background: var(--intro-accent, #38bdf8);
+      padding: 2px 7px;
+      border-radius: 4px;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+      flex-shrink: 0;
+    }
+
+    .sb-lineup-controls {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-shrink: 0;
+    }
+
+    .sb-lineup-tab {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      color: #94a3b8;
+      border-radius: 5px;
+      padding: 3px 9px;
+      font-size: 0.7rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .sb-lineup-tab.active {
+      background: var(--intro-accent, #38bdf8);
+      border-color: transparent;
+      color: #ffffff;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+    }
+
+    .sb-lineup-close {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      color: #cbd5e1;
+      border-radius: 5px;
+      padding: 3px 8px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .sb-lineup-close:hover {
+      background: rgba(255, 255, 255, 0.18);
+      color: #ffffff;
+    }
+
+    .sb-pitch-stage {
+      position: relative;
+      flex: 1;
+      overflow: hidden;
+      perspective: 680px;
+    }
+
+    .sb-pitch-bg-title {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      z-index: 1;
+      opacity: 0.9;
+      pointer-events: none;
+    }
+
+    .sb-pitch-bg-title img {
+      height: 26px;
+      object-fit: contain;
+      filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.6));
+    }
+
+    .sb-pitch-bg-title span {
+      font-size: 0.86rem;
+      font-weight: 900;
+      letter-spacing: 0.16em;
+      color: rgba(255, 255, 255, 0.72);
+      text-transform: uppercase;
+    }
+
+    .sb-pitch-floor {
+      position: absolute;
+      left: -8%;
+      right: -8%;
+      top: 38px;
+      bottom: -36px;
+      transform: rotateX(55deg);
+      transform-origin: center bottom;
+      background:
+        repeating-linear-gradient(
+          0deg,
+          #166534 0px,
+          #166534 26px,
+          #14532d 26px,
+          #14532d 52px
+        );
+      border-top: 2px solid rgba(255, 255, 255, 0.35);
+      border-left: 2px solid rgba(255, 255, 255, 0.28);
+      border-right: 2px solid rgba(255, 255, 255, 0.28);
+      box-shadow: inset 0 40px 60px rgba(0, 0, 0, 0.45);
+    }
+
+    .sb-pitch-floor::before {
+      content: "";
+      position: absolute;
+      left: 28%;
+      right: 28%;
+      top: 0;
+      height: 26%;
+      border: 2px solid rgba(255, 255, 255, 0.25);
+      border-top: none;
+    }
+
+    .sb-pitch-cards {
+      position: absolute;
+      inset: 36px 12px 10px;
+      z-index: 3;
+    }
+
+    .sb-pitch-row {
+      position: absolute;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: center;
+      gap: 14px;
+      transform-origin: center center;
+      opacity: 0;
+      animation: sb-row-rise 0.46s calc(0.16s + var(--line-idx, 0) * 0.48s) cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .sb-pitch-row.row-GK { top: 4%;  --row-scale: 0.78; z-index: 1; }
+    .sb-pitch-row.row-DF { top: 24%; --row-scale: 0.86; z-index: 2; }
+    .sb-pitch-row.row-MF { top: 46%; --row-scale: 0.94; z-index: 3; }
+    .sb-pitch-row.row-FW { top: 69%; --row-scale: 1.04; z-index: 4; }
+
+    .sb-pcard {
+      width: 82px;
+      height: 98px;
+      background: linear-gradient(180deg, #1e293b 0%, #090d16 100%);
+      border: 1.5px solid var(--intro-accent, #38bdf8);
+      border-radius: 8px 8px 16px 16px;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.72), inset 0 0 12px rgba(255, 255, 255, 0.06);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .sb-pcard-ovr {
+      position: absolute;
+      top: 4px;
+      left: 5px;
+      font-size: 0.72rem;
+      font-weight: 900;
+      color: #fbbf24;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+      z-index: 2;
+    }
+
+    .sb-pcard-pos {
+      position: absolute;
+      top: 4px;
+      right: 5px;
+      font-size: 0.62rem;
+      font-weight: 900;
+      color: #cbd5e1;
+      z-index: 2;
+    }
+
+    .sb-pcard-photo {
+      width: 66px;
+      height: 70px;
+      margin-top: 4px;
+      object-fit: cover;
+      object-position: top;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.55));
+    }
+
+    .sb-pcard-name {
+      width: 100%;
+      padding: 3px 4px 4px;
+      box-sizing: border-box;
+      background: rgba(5, 8, 15, 0.92);
+      border-top: 1px solid rgba(255, 255, 255, 0.14);
+      font-size: 0.7rem;
+      font-weight: 800;
+      color: #ffffff;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: auto;
+    }
+
+    @media (max-width: 600px) {
+      #sb-lineup-intro {
+        top: 56px;
+        height: min(350px, calc(100% - 64px));
+      }
+      .sb-pitch-row {
+        gap: 6px;
+      }
+      .sb-pcard {
+        width: 58px;
+        height: 74px;
+      }
+      .sb-pcard-photo {
+        width: 46px;
+        height: 50px;
+      }
+      .sb-pcard-name {
+        font-size: 0.56rem;
+      }
+    }
   `;
 
   function injectStyle() {
@@ -2472,6 +2772,218 @@
   let lastDrawerMinute = -1;
   let drawerHideTimeout = null;
   let lastShownGoalTimestamp = 0;
+  let lineupShown = false;
+  let lineupDismissed = false;
+  let lineupAutoSwitchTimer = null;
+
+  const POS_ORDER = { GK: 0, DF: 1, MF: 2, FW: 3 };
+
+  function hideLineupIntro() {
+    if (lineupAutoSwitchTimer) {
+      clearTimeout(lineupAutoSwitchTimer);
+      lineupAutoSwitchTimer = null;
+    }
+    const el = document.getElementById("sb-lineup-intro");
+    if (el) el.classList.remove("visible");
+  }
+
+  function resolvePlayerForPhoto(p, teamKey) {
+    if (p && (p.playerid || p.playerId)) return p;
+    const roster = (window.allTeams && teamKey && window.allTeams[teamKey] && window.allTeams[teamKey].players)
+      ? window.allTeams[teamKey].players
+      : null;
+    if (roster) {
+      const found = roster.find(x => x.name === p.name);
+      if (found) return { ...p, ...found };
+    }
+    return p;
+  }
+
+  function renderPitchTeam(overlay, side, md) {
+    const isAway = side === "away";
+    const teamKey = isAway ? md.awayTeam : md.homeTeam;
+    const players = md.engine.players.filter(p => p.teamId === (isAway ? "away" : "home"));
+    const sorted = [...players].sort((a, b) => (POS_ORDER[a.position] ?? 9) - (POS_ORDER[b.position] ?? 9));
+
+    const dfCount = sorted.filter(p => p.position === "DF").length;
+    const mfCount = sorted.filter(p => p.position === "MF").length;
+    const fwCount = sorted.filter(p => p.position === "FW").length;
+
+    const sbEl = document.getElementById("ingame-scoreboard");
+    const homeAccent = (sbEl && getComputedStyle(sbEl).getPropertyValue("--sb-home-p").trim()) || "#38bdf8";
+    const awayAccent = (sbEl && getComputedStyle(sbEl).getPropertyValue("--sb-away-p").trim()) || "#f87171";
+    const accent = isAway ? awayAccent : homeAccent;
+
+    const homeLogoEl = document.getElementById("sb-home-logo");
+    const awayLogoEl = document.getElementById("sb-away-logo");
+    const homeNameEl = document.getElementById("homeTeam");
+    const awayNameEl = document.getElementById("awayTeam");
+    const teamDisplayName = isAway
+      ? ((awayNameEl && awayNameEl.textContent.trim()) || md.awayTeam || "어웨이팀")
+      : ((homeNameEl && homeNameEl.textContent.trim()) || md.homeTeam || "홈팀");
+    const logoSrc = isAway ? (awayLogoEl ? awayLogoEl.src : "") : (homeLogoEl ? homeLogoEl.src : "");
+
+    const compLogoEl = document.getElementById("sb-comp-logo");
+    const compLogoSrc = (compLogoEl && compLogoEl.style.display !== "none" && compLogoEl.src) ? compLogoEl.src : "";
+
+    overlay.style.setProperty("--intro-accent", accent);
+    overlay.replaceChildren();
+
+    // 상단 팀 헤더 + 홈/어웨이 전환 + 닫기
+    const header = document.createElement("div");
+    header.className = "sb-lineup-header";
+
+    const banner = document.createElement("div");
+    banner.className = "sb-lineup-team-banner";
+    if (logoSrc) {
+      const tImg = document.createElement("img");
+      tImg.className = "sb-lineup-team-logo";
+      tImg.src = logoSrc;
+      tImg.alt = teamDisplayName;
+      tImg.onerror = function () { this.style.display = "none"; };
+      banner.appendChild(tImg);
+    }
+    const tName = document.createElement("span");
+    tName.className = "sb-lineup-team-name";
+    tName.textContent = teamDisplayName;
+    const formBadge = document.createElement("span");
+    formBadge.className = "sb-lineup-form";
+    formBadge.textContent = `${dfCount}-${mfCount}-${fwCount}`;
+    banner.append(tName, formBadge);
+
+    const controls = document.createElement("div");
+    controls.className = "sb-lineup-controls";
+
+    const homeTab = document.createElement("button");
+    homeTab.type = "button";
+    homeTab.className = `sb-lineup-tab ${!isAway ? "active" : ""}`;
+    homeTab.textContent = "홈팀";
+    homeTab.addEventListener("click", () => {
+      if (lineupAutoSwitchTimer) { clearTimeout(lineupAutoSwitchTimer); lineupAutoSwitchTimer = null; }
+      renderPitchTeam(overlay, "home", md);
+    });
+
+    const awayTab = document.createElement("button");
+    awayTab.type = "button";
+    awayTab.className = `sb-lineup-tab ${isAway ? "active" : ""}`;
+    awayTab.textContent = "어웨이";
+    awayTab.addEventListener("click", () => {
+      if (lineupAutoSwitchTimer) { clearTimeout(lineupAutoSwitchTimer); lineupAutoSwitchTimer = null; }
+      renderPitchTeam(overlay, "away", md);
+    });
+
+    const closeBtn = document.createElement("button");
+    closeBtn.type = "button";
+    closeBtn.className = "sb-lineup-close";
+    closeBtn.textContent = "닫기 ×";
+    closeBtn.addEventListener("click", () => {
+      lineupDismissed = true;
+      hideLineupIntro();
+    });
+
+    controls.append(homeTab, awayTab, closeBtn);
+    header.append(banner, controls);
+
+    // 3D 원근 피치 스테이지
+    const stage = document.createElement("div");
+    stage.className = "sb-pitch-stage";
+
+    const bgTitle = document.createElement("div");
+    bgTitle.className = "sb-pitch-bg-title";
+    if (compLogoSrc) {
+      const cImg = document.createElement("img");
+      cImg.src = compLogoSrc;
+      cImg.alt = "";
+      cImg.onerror = function () { this.style.display = "none"; };
+      bgTitle.appendChild(cImg);
+    }
+    const bgSpan = document.createElement("span");
+    bgSpan.textContent = "STARTING XI";
+    bgTitle.appendChild(bgSpan);
+
+    const floor = document.createElement("div");
+    floor.className = "sb-pitch-floor";
+
+    const cardsLayer = document.createElement("div");
+    cardsLayer.className = "sb-pitch-cards";
+
+    const lineKeys = ["GK", "DF", "MF", "FW"];
+    lineKeys.forEach((lineKey, lineIdx) => {
+      const linePlayers = sorted.filter(p => (["GK", "DF", "MF", "FW"].includes(p.position) ? p.position : "MF") === lineKey);
+      if (linePlayers.length === 0) return;
+
+      const row = document.createElement("div");
+      row.className = `sb-pitch-row row-${lineKey}`;
+      row.style.setProperty("--line-idx", String(lineIdx));
+
+      linePlayers.forEach((p) => {
+        const card = document.createElement("div");
+        card.className = "sb-pcard";
+
+        const ovr = document.createElement("span");
+        ovr.className = "sb-pcard-ovr";
+        const ratingVal = Math.round(p.baseRating || p.rating || 0);
+        ovr.textContent = ratingVal > 0 ? String(ratingVal) : "";
+
+        const pos = document.createElement("span");
+        pos.className = "sb-pcard-pos";
+        pos.textContent = lineKey;
+
+        const photo = document.createElement("img");
+        photo.className = "sb-pcard-photo";
+        photo.alt = p.name || "";
+        const fullP = resolvePlayerForPhoto(p, teamKey);
+        if (typeof window.setPlayerPhoto === "function") {
+          window.setPlayerPhoto(photo, fullP);
+        }
+
+        const pname = document.createElement("div");
+        pname.className = "sb-pcard-name";
+        pname.textContent = p.name || "";
+
+        card.append(ovr, pos, photo, pname);
+        row.appendChild(card);
+      });
+
+      cardsLayer.appendChild(row);
+    });
+
+    stage.append(bgTitle, floor, cardsLayer);
+    overlay.append(header, stage);
+  }
+
+  function updateLineupIntro() {
+    const md = window.currentMatchData;
+    const container = document.getElementById("matchVisualizerContainer");
+    if (!container || !md) return;
+
+    if (md.isRunning || (md.minute || 0) > 0) {
+      hideLineupIntro();
+      return;
+    }
+
+    if (lineupDismissed || lineupShown) return;
+    if (!md.engine || !Array.isArray(md.engine.players) || md.engine.players.length === 0) return;
+
+    let overlay = document.getElementById("sb-lineup-intro");
+    if (!overlay) {
+      overlay = document.createElement("div");
+      overlay.id = "sb-lineup-intro";
+      container.appendChild(overlay);
+    }
+
+    renderPitchTeam(overlay, "home", md);
+    overlay.classList.add("visible");
+    lineupShown = true;
+
+    // 홈팀 라인별 소개 후 자동으로 어웨이팀 소개로 전환
+    if (lineupAutoSwitchTimer) clearTimeout(lineupAutoSwitchTimer);
+    lineupAutoSwitchTimer = setTimeout(() => {
+      if (!lineupDismissed && window.currentMatchData && !window.currentMatchData.isRunning) {
+        renderPitchTeam(overlay, "away", window.currentMatchData);
+      }
+    }, 3600);
+  }
 
   function applyTeamLogos() {
     const md = window.currentMatchData;
@@ -2726,6 +3238,7 @@
     }
     const drawer = document.getElementById("sb-broadcast-drawer");
     if (drawer) drawer.classList.remove("open");
+    hideLineupIntro();
   }
 
   function resetMatchScoreboardState() {
@@ -2735,6 +3248,9 @@
     lastLogoAwayKey = null;
     lastDrawerMinute = -1;
     lastShownGoalTimestamp = 0;
+    lineupShown = false;
+    lineupDismissed = false;
+    hideLineupIntro();
     timerSec = 0;
     lastMinValue = -1;
     const sbTimer = document.getElementById("sb-timer-box");
@@ -2803,6 +3319,7 @@
       }
     }
 
+    updateLineupIntro();
     updateBroadcastDrawerCycle();
   }
 

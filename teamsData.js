@@ -782,7 +782,7 @@ const allTeams = {
         country: "잉글랜드",
         leagueId: "premier_league",
         league: 1,
-        logoCode: "NOT"
+        logoCode: "NOT",
         budget: 400,
         clubValue: 3500,
         stadium: { name: "시티 그라운드", capacity: 30445 },
