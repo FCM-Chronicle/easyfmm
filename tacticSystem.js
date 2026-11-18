@@ -9,35 +9,380 @@ if (!gameData.lineRoles) {
     };
 }
 
-// [신규] 팀 컬러 데이터 (주요 팀)
+// [개선] 전 클럽(194개) 및 국가대표팀(54개) 홈/어웨이 유니폼 컬러 데이터
 const TeamColors = {
-    "바르셀로나": ["#a50044", "#004170"],
-    "레알_마드리드": "#ffffff",
-    "맨체스터_시티": "skyblue",
-    "리버풀": "#c8102e",
-    "토트넘_홋스퍼": "#ffffff",
-    "파리_생제르맹": ["#004170", "#da291c"],
-    "AC_밀란": ["#fb090b", "#000000"],
-    "인터_밀란": ["#010e80", "#000000"],
-    "아스널": ["#ef0107", "#ffffff"],
-    "나폴리": "skyblue",
-    "첼시": "#034694",
-    "바이에른_뮌헨": "#dc052d",
-    "아틀레티코_마드리드": ["#cb3524", "#ffffff"],
-    "도르트문트": ["#fde100", "#000000"],
-    "맨체스터_유나이티드": "#da291c",
-    "FC_서울": ["#fc0000", "#000000"],
-    "대한민국": "#ec0e27"
+    // ================= Premier League (20) =================
+    "아스널": { home: ["#ef0107", "#ffffff"], away: "#111827" },
+    "아스톤_빌라": { home: ["#670e36", "#95bfe5"], away: "#ffffff" },
+    "본머스": { home: ["#da291c", "#000000"], away: "#38bdf8" },
+    "브렌트포드": { home: ["#e30613", "#ffffff"], away: "#1e293b" },
+    "브라이튼": { home: ["#0057b8", "#ffffff"], away: "#fde047" },
+    "첼시": { home: "#034694", away: "#f8fafc" },
+    "코번트리_시티": { home: ["#6cabdd", "#ffffff"], away: "#1e1b4b" },
+    "크리스탈_팰리스": { home: ["#1b458f", "#c4122e"], away: "#facc15" },
+    "에버턴": { home: "#003399", away: "#111827" },
+    "풀럼": { home: "#ffffff", away: "#111827" },
+    "헐_시티": { home: ["#f5a12d", "#000000"], away: "#ffffff" },
+    "입스위치": { home: "#0057b8", away: "#111827" },
+    "리즈_유나이티드": { home: "#ffffff", away: "#1d4ed8" },
+    "리버풀": { home: "#c8102e", away: "#f8fafc" },
+    "맨체스터_유나이티드": { home: "#da291c", away: "#1e293b" },
+    "맨체스터_시티": { home: "#6cabdd", away: "#1e1b4b" },
+    "뉴캐슬_유나이티드": { home: ["#000000", "#ffffff"], away: "#065f46" },
+    "노팅엄_포레스트": { home: "#dd0000", away: "#ffffff" },
+    "토트넘_홋스퍼": { home: "#ffffff", away: "#132257" },
+    "선덜랜드": { home: ["#eb172b", "#ffffff"], away: "#1e293b" },
+
+    // ================= EFL Championship (24) =================
+    "버밍엄_시티": { home: "#0000ff", away: "#ffffff" },
+    "블랙번_로버스": { home: ["#009ee0", "#ffffff"], away: "#111827" },
+    "볼턴_원더러스": { home: "#ffffff", away: "#1e293b" },
+    "브리스톨_시티": { home: "#e21a23", away: "#ffffff" },
+    "번리": { home: ["#6c1d45", "#99d6ea"], away: "#facc15" },
+    "카디프_시티": { home: "#0070b5", away: "#111827" },
+    "찰턴_애슬레틱": { home: "#d4021d", away: "#111827" },
+    "더비_카운티": { home: "#ffffff", away: "#111827" },
+    "링컨_시티": { home: ["#d71920", "#ffffff"], away: "#1e293b" },
+    "미들즈브러": { home: "#e11b22", away: "#1e293b" },
+    "밀월": { home: "#001d5e", away: "#ffffff" },
+    "노리치_시티": { home: ["#fff200", "#00a650"], away: "#111827" },
+    "포츠머스": { home: "#001489", away: "#ffffff" },
+    "프레스턴_노스_엔드": { home: "#ffffff", away: "#1e3a8a" },
+    "퀸즈_파크_레인저스": { home: ["#1d5ba4", "#ffffff"], away: "#dc2626" },
+    "셰필드_유나이티드": { home: ["#ee2737", "#ffffff"], away: "#111827" },
+    "사우샘프턴": { home: ["#d71920", "#ffffff"], away: "#fde047" },
+    "스토크_시티": { home: ["#e03a3e", "#ffffff"], away: "#111827" },
+    "스완지_시티": { home: "#ffffff", away: "#1e293b" },
+    "왓퍼드": { home: ["#fbee23", "#000000"], away: "#dc2626" },
+    "웨스트브롬위치": { home: ["#122f67", "#ffffff"], away: "#fde047" },
+    "웨스트햄_유나이티드": { home: ["#7a263a", "#1bb1e7"], away: "#ffffff" },
+    "울버햄튼": { home: ["#fdb913", "#000000"], away: "#111827" },
+    "렉섬": { home: "#e41b17", away: "#ffffff" },
+
+    // ================= La Liga (20) =================
+    "아틀레틱_클루브": { home: ["#ee2523", "#ffffff"], away: "#1e293b" },
+    "아틀레티코_마드리드": { home: ["#cb3524", "#ffffff"], away: "#1e293b" },
+    "오사수나": { home: "#d91a21", away: "#1e3a8a" },
+    "셀타_비고": { home: "#8ac3ee", away: "#1e293b" },
+    "알라베스": { home: ["#0033a0", "#ffffff"], away: "#111827" },
+    "엘체": { home: ["#ffffff", "#00843d"], away: "#111827" },
+    "바르셀로나": { home: ["#a50044", "#004170"], away: "#111827" },
+    "헤타페": { home: "#005999", away: "#dc2626" },
+    "레반테": { home: ["#004d98", "#a50044"], away: "#ffffff" },
+    "말라가": { home: ["#0072ce", "#ffffff"], away: "#111827" },
+    "라싱_클루브": { home: ["#ffffff", "#00843d"], away: "#111827" },
+    "라요_바예카노": { home: ["#ffffff", "#e53935"], away: "#111827" },
+    "데포르티보": { home: ["#004b93", "#ffffff"], away: "#111827" },
+    "에스파뇰": { home: ["#007fc8", "#ffffff"], away: "#dc2626" },
+    "레알_베티스": { home: ["#0bb363", "#ffffff"], away: "#111827" },
+    "레알_마드리드": { home: "#ffffff", away: "#f97316" },
+    "레알_소시에다드": { home: ["#0067b1", "#ffffff"], away: "#111827" },
+    "세비야": { home: "#ffffff", away: "#d71920" },
+    "발렌시아": { home: "#ffffff", away: "#111827" },
+    "비야레알": { home: "#ffe667", away: "#7f1d1d" },
+
+    // ================= Bundesliga (18) =================
+    "FC_쾰른": { home: ["#ffffff", "#ed1c24"], away: "#dc2626" },
+    "마인츠": { home: "#c3141e", away: "#ffffff" },
+    "도르트문트": { home: ["#fde100", "#000000"], away: "#111827" },
+    "아우크스부르크": { home: ["#ffffff", "#ba3733"], away: "#111827" },
+    "바이에른_뮌헨": { home: "#dc052d", away: "#ffffff" },
+    "샬케_04": { home: "#004d9d", away: "#ffffff" },
+    "프랑크푸르트": { home: ["#e1000f", "#000000"], away: "#ffffff" },
+    "함부르크": { home: "#ffffff", away: "#005ca9" },
+    "레버쿠젠": { home: ["#e32221", "#000000"], away: "#ffffff" },
+    "묀헨글라트바흐": { home: "#ffffff", away: "#166534" },
+    "라이프치히": { home: ["#ffffff", "#dd0741"], away: "#1e293b" },
+    "프라이부르크": { home: ["#ed1c24", "#000000"], away: "#ffffff" },
+    "파더보른": { home: ["#005ca9", "#000000"], away: "#ffffff" },
+    "엘버스베르크": { home: "#ffffff", away: "#111827" },
+    "베르더_브레멘": { home: "#1d9053", away: "#ffffff" },
+    "호펜하임": { home: "#1c63b7", away: "#ffffff" },
+    "우니온_베를린": { home: "#eb1923", away: "#ffffff" },
+    "슈투트가르트": { home: ["#ffffff", "#e32219"], away: "#dc2626" },
+
+    // ================= Serie A (20) =================
+    "AS_로마": { home: ["#8e1f2f", "#f0bc42"], away: "#ffffff" },
+    "아탈란타": { home: ["#1e71b8", "#000000"], away: "#ffffff" },
+    "볼로냐": { home: ["#a21c26", "#1a2f48"], away: "#ffffff" },
+    "칼리아리": { home: ["#a21c26", "#002350"], away: "#ffffff" },
+    "코모": { home: "#0056a3", away: "#ffffff" },
+    "피오렌티나": { home: "#482e92", away: "#ffffff" },
+    "프로시노네": { home: ["#ffed00", "#0055a4"], away: "#ffffff" },
+    "제노아": { home: ["#ad172b", "#002c5f"], away: "#ffffff" },
+    "유벤투스": { home: ["#ffffff", "#000000"], away: "#fde047" },
+    "라치오": { home: "#87d8f7", away: "#1e293b" },
+    "레체": { home: ["#ffed00", "#e30613"], away: "#ffffff" },
+    "인터_밀란": { home: ["#010e80", "#000000"], away: "#ffffff" },
+    "AC_밀란": { home: ["#fb090b", "#000000"], away: "#ffffff" },
+    "몬차": { home: "#e30613", away: "#ffffff" },
+    "파르마": { home: ["#ffffff", "#000000"], away: "#fde047" },
+    "사수올로": { home: ["#00a752", "#000000"], away: "#ffffff" },
+    "나폴리": { home: "#12a0d7", away: "#1e293b" },
+    "토리노": { home: "#8a1e03", away: "#ffffff" },
+    "우디네세": { home: ["#ffffff", "#000000"], away: "#1e293b" },
+    "베네치아": { home: ["#000000", "#ff6a00"], away: "#ffffff" },
+
+    // ================= Ligue 1 (18) =================
+    "오세르": { home: "#ffffff", away: "#1d4ed8" },
+    "앙제": { home: ["#000000", "#ffffff"], away: "#ffffff" },
+    "모나코": { home: ["#e51b22", "#ffffff"], away: "#111827" },
+    "트루아": { home: "#0055a4", away: "#ffffff" },
+    "로리앙": { home: ["#f58220", "#000000"], away: "#ffffff" },
+    "르아브르": { home: "#87ceeb", away: "#1e3a8a" },
+    "르망": { home: ["#e30613", "#facc15"], away: "#ffffff" },
+    "릴": { home: "#e01e13", away: "#ffffff" },
+    "니스": { home: ["#cc0000", "#000000"], away: "#ffffff" },
+    "리옹": { home: "#ffffff", away: "#1d4ed8" },
+    "올랭피크_드_마르세유": { home: "#2faee0", away: "#1e293b" },
+    "파리_FC": { home: "#1b3f8b", away: "#ffffff" },
+    "파리_생제르맹": { home: ["#004170", "#da291c"], away: "#ffffff" },
+    "랑스": { home: ["#ffd700", "#e30613"], away: "#111827" },
+    "브레스트": { home: "#e30613", away: "#ffffff" },
+    "렌": { home: ["#e30613", "#000000"], away: "#ffffff" },
+    "스트라스부르": { home: "#009fe3", away: "#ffffff" },
+    "툴루즈": { home: "#5d2e8c", away: "#ffffff" },
+
+    // ================= Eredivisie (18) =================
+    "덴하흐": { home: ["#00843d", "#ffd100"], away: "#111827" },
+    "아약스": { home: ["#ffffff", "#d2122e"], away: "#1e293b" },
+    "AZ_알크마르": { home: "#db0029", away: "#111827" },
+    "엑셀시오르": { home: ["#d50000", "#000000"], away: "#ffffff" },
+    "흐로닝언": { home: ["#009944", "#ffffff"], away: "#111827" },
+    "트벤테": { home: "#e30613", away: "#1e293b" },
+    "위트레흐트": { home: "#e30613", away: "#ffffff" },
+    "페예노르트": { home: ["#ee1c25", "#ffffff"], away: "#111827" },
+    "포르투나_시타르트": { home: ["#ffdd00", "#009944"], away: "#111827" },
+    "고_어헤드_이글스": { home: ["#e30613", "#ffdd00"], away: "#ffffff" },
+    "NEC_네이메헌": { home: ["#e30613", "#00843d"], away: "#ffffff" },
+    "PEC_즈볼레": { home: ["#0066b3", "#ffffff"], away: "#111827" },
+    "PSV_에인트호번": { home: ["#ed1c24", "#ffffff"], away: "#1e293b" },
+    "캄뷔르": { home: ["#ffd700", "#0055a4"], away: "#111827" },
+    "헤이렌베인": { home: ["#0055a4", "#ffffff"], away: "#111827" },
+    "텔스타": { home: "#ffffff", away: "#1e293b" },
+    "스파르타_로테르담": { home: ["#d71920", "#ffffff"], away: "#111827" },
+    "빌럼_II": { home: ["#e30613", "#0055a4"], away: "#111827" },
+
+    // ================= Liga Portugal (18) =================
+    "비제우": { home: ["#111827", "#ffffff"], away: "#fde047" },
+    "아로카": { home: "#ffdd00", away: "#1e3a8a" },
+    "카사_피아": { home: "#111827", away: "#ffffff" },
+    "에스토릴": { home: "#ffdd00", away: "#1e3a8a" },
+    "에스트렐라": { home: ["#ffffff", "#00843d"], away: "#111827" },
+    "알베르카": { home: "#0055a4", away: "#ffffff" },
+    "파말리캉": { home: "#003399", away: "#ffffff" },
+    "FC_포르투": { home: ["#003893", "#ffffff"], away: "#f97316" },
+    "질_비센테": { home: "#e30613", away: "#ffffff" },
+    "마리티무": { home: ["#00843d", "#e30613"], away: "#ffffff" },
+    "모레이렌스": { home: ["#00843d", "#ffffff"], away: "#111827" },
+    "나시오날": { home: ["#111827", "#ffffff"], away: "#ffffff" },
+    "히우_아브": { home: ["#00843d", "#ffffff"], away: "#111827" },
+    "산타_클라라": { home: "#e30613", away: "#ffffff" },
+    "SC_브라가": { home: "#e30613", away: "#ffffff" },
+    "벤피카": { home: "#e30613", away: "#111827" },
+    "스포르팅_CP": { home: ["#008057", "#ffffff"], away: "#111827" },
+    "비토리아_기마랑이스": { home: "#ffffff", away: "#111827" },
+
+    // ================= Süper Lig (18) =================
+    "알라냐스포르": { home: ["#f58220", "#00843d"], away: "#ffffff" },
+    "아메드": { home: ["#00843d", "#e30613"], away: "#ffffff" },
+    "바샥셰히르": { home: ["#f37021", "#1d2951"], away: "#ffffff" },
+    "베식타스": { home: ["#000000", "#ffffff"], away: "#dc2626" },
+    "리제스포르": { home: ["#00843d", "#0055a4"], away: "#ffffff" },
+    "초룸_FK": { home: ["#e30613", "#000000"], away: "#ffffff" },
+    "에르주룸스포르": { home: ["#0055a4", "#ffffff"], away: "#111827" },
+    "에위프스포르": { home: ["#6b21a8", "#facc15"], away: "#ffffff" },
+    "페네르바체": { home: ["#ffed00", "#00235d"], away: "#ffffff" },
+    "갈라타사라이": { home: ["#a90432", "#fdb912"], away: "#ffffff" },
+    "가지안테프": { home: ["#e30613", "#000000"], away: "#ffffff" },
+    "겐츨레르비를리이": { home: ["#e30613", "#000000"], away: "#ffffff" },
+    "괴즈테페": { home: ["#ffd700", "#e30613"], away: "#ffffff" },
+    "카슴파샤": { home: ["#0055a4", "#ffffff"], away: "#111827" },
+    "코자엘리스포르": { home: ["#00843d", "#000000"], away: "#ffffff" },
+    "코냐스포르": { home: ["#00843d", "#ffffff"], away: "#111827" },
+    "삼순스포르": { home: ["#e30613", "#ffffff"], away: "#111827" },
+    "트라브존스포르": { home: ["#7a1c3a", "#38bdf8"], away: "#ffffff" },
+
+    // ================= K League 1 (12) =================
+    "부천_FC": { home: "#e30613", away: "#ffffff" },
+    "대전_하나": { home: ["#7a1c3a", "#00843d"], away: "#ffffff" },
+    "FC_안양": { home: "#5b2c82", away: "#ffffff" },
+    "FC_서울": { home: ["#fc0000", "#000000"], away: "#ffffff" },
+    "강원_FC": { home: ["#f37021", "#004f32"], away: "#ffffff" },
+    "김천_상무": { home: ["#e30613", "#1e3a8a"], away: "#ffffff" },
+    "광주_FC": { home: ["#f5a12d", "#7a1c3a"], away: "#ffffff" },
+    "인천_유나이티드": { home: ["#004b93", "#000000"], away: "#ffffff" },
+    "제주_유나이티드": { home: "#f37021", away: "#ffffff" },
+    "전북_현대": { home: "#006633", away: "#ffffff" },
+    "포항_스틸러스": { home: ["#e30613", "#000000"], away: "#ffffff" },
+    "울산_현대": { home: ["#004b93", "#ffd100"], away: "#ffffff" },
+
+    // ================= Rest of World / Special Clubs (8) =================
+    "아르헨티나_연합": { home: ["#75aadb", "#ffffff"], away: "#1e293b" },
+    "미국_연합": { home: ["#ffffff", "#1d4ed8"], away: "#1e3a8a" },
+    "멕시코_연합": { home: ["#006847", "#ce1126"], away: "#ffffff" },
+    "브라질_연합": { home: "#ffdf00", away: "#002776" },
+    "알_힐랄": { home: "#0055a4", away: "#ffffff" },
+    "알_이티하드": { home: ["#ffdd00", "#000000"], away: "#ffffff" },
+    "알_나스르": { home: "#ffd100", away: "#1e3a8a" },
+    "셀틱": { home: ["#009944", "#ffffff"], away: "#111827" },
+
+    // ================= World Cup National Teams (54) =================
+    "대한민국": { home: "#ec0e27", away: "#111827" },
+    "일본": { home: "#002395", away: "#ffffff" },
+    "이란": { home: "#ffffff", away: "#da0000" },
+    "호주": { home: "#ffcd00", away: "#00334e" },
+    "사우디아라비아": { home: "#006c35", away: "#ffffff" },
+    "카타르": { home: "#8d1b3d", away: "#ffffff" },
+    "우즈베키스탄": { home: "#0099b5", away: "#ffffff" },
+    "요르단": { home: "#ffffff", away: "#ce1126" },
+    "이라크": { home: "#007a3d", away: "#ffffff" },
+    "아랍에미리트": { home: "#ffffff", away: "#ef1c24" },
+
+    "잉글랜드": { home: "#ffffff", away: "#1e293b" },
+    "프랑스": { home: "#002395", away: "#ffffff" },
+    "독일": { home: "#ffffff", away: "#111827" },
+    "스페인": { home: "#aa151b", away: "#fde047" },
+    "포르투갈": { home: "#e42518", away: "#ffffff" },
+    "이탈리아": { home: "#0066b2", away: "#ffffff" },
+    "네덜란드": { home: "#f36c21", away: "#1e3a8a" },
+    "벨기에": { home: "#e30613", away: "#87ceeb" },
+    "크로아티아": { home: ["#ff0000", "#ffffff"], away: "#1e3a8a" },
+    "스위스": { home: "#da291c", away: "#ffffff" },
+    "덴마크": { home: "#c60c30", away: "#ffffff" },
+    "오스트리아": { home: "#ed2939", away: "#111827" },
+    "폴란드": { home: "#ffffff", away: "#dc143c" },
+    "우크라이나": { home: "#ffd700", away: "#005bbb" },
+    "튀르키예": { home: "#e30a17", away: "#ffffff" },
+    "체코": { home: "#d7141a", away: "#ffffff" },
+    "스코틀랜드": { home: "#00205b", away: "#ffffff" },
+    "웨일스": { home: "#d30731", away: "#ffffff" },
+    "노르웨이": { home: "#ba0c2f", away: "#ffffff" },
+    "루마니아": { home: "#fcd116", away: "#ce1126" },
+
+    "브라질": { home: "#ffdf00", away: "#002776" },
+    "아르헨티나": { home: ["#75aadb", "#ffffff"], away: "#1e293b" },
+    "우루과이": { home: "#5eb3e4", away: "#ffffff" },
+    "콜롬비아": { home: "#fcd116", away: "#111827" },
+    "에콰도르": { home: "#ffdd00", away: "#034ea2" },
+    "파라과이": { home: ["#d52b1e", "#ffffff"], away: "#0038a8" },
+    "볼리비아": { home: "#007934", away: "#ffffff" },
+
+    "미국": { home: "#ffffff", away: "#1d4ed8" },
+    "멕시코": { home: "#006847", away: "#ffffff" },
+    "캐나다": { home: "#d80621", away: "#111827" },
+    "코스타리카": { home: "#ce1126", away: "#ffffff" },
+    "파나마": { home: "#d21034", away: "#ffffff" },
+    "아이티": { home: "#00209f", away: "#d21034" },
+    "퀴라소": { home: "#002b7f", away: "#f9e814" },
+
+    "모로코": { home: "#c1272d", away: "#ffffff" },
+    "세네갈": { home: "#ffffff", away: "#00853f" },
+    "이집트": { home: "#ce1126", away: "#ffffff" },
+    "나이지리아": { home: "#008751", away: "#ffffff" },
+    "코트디부아르": { home: "#f77f00", away: "#ffffff" },
+    "가나": { home: "#ffffff", away: "#ce1126" },
+    "알제리": { home: "#ffffff", away: "#006233" },
+    "튀니지": { home: "#e70013", away: "#ffffff" },
+    "남아공": { home: "#ffb81c", away: "#007a4d" },
+    "카보베르데": { home: "#003893", away: "#ffffff" },
+
+    "뉴질랜드": { home: "#ffffff", away: "#111827" }
 };
 
-function getTeamColor(teamName) {
-    if (TeamColors[teamName]) return TeamColors[teamName];
-    // 팀 데이터가 없으면 이름 해시로 고유 색상 생성 (파스텔톤)
+function _parseHexColor(color) {
+    const primary = Array.isArray(color) ? color[0] : color;
+    if (!primary || typeof primary !== 'string') return null;
+    const hex = primary.trim().toLowerCase();
+    const namedMap = {
+        white: '#ffffff',
+        black: '#000000',
+        skyblue: '#87ceeb',
+        red: '#ff0000',
+        blue: '#0000ff',
+        yellow: '#ffff00',
+        green: '#008000'
+    };
+    const normalized = namedMap[hex] || hex;
+    const match = normalized.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i);
+    if (!match) return null;
+    let h = match[1];
+    if (h.length === 3) h = h.split('').map(ch => ch + ch).join('');
+    return {
+        r: parseInt(h.slice(0, 2), 16),
+        g: parseInt(h.slice(2, 4), 16),
+        b: parseInt(h.slice(4, 6), 16)
+    };
+}
+
+function _colorDistance(c1, c2) {
+    const rgb1 = _parseHexColor(c1);
+    const rgb2 = _parseHexColor(c2);
+    if (!rgb1 || !rgb2) {
+        const p1 = (Array.isArray(c1) ? c1[0] : String(c1 || '')).toLowerCase();
+        const p2 = (Array.isArray(c2) ? c2[0] : String(c2 || '')).toLowerCase();
+        return p1 === p2 ? 0 : 999;
+    }
+    const rMean = (rgb1.r + rgb2.r) / 2;
+    const dr = rgb1.r - rgb2.r;
+    const dg = rgb1.g - rgb2.g;
+    const db = rgb1.b - rgb2.b;
+    return Math.sqrt(
+        (2 + rMean / 256) * dr * dr +
+        4 * dg * dg +
+        (2 + (255 - rMean) / 256) * db * db
+    );
+}
+
+function _isLightColor(color) {
+    const rgb = _parseHexColor(color);
+    if (!rgb) return false;
+    const lum = (0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b) / 255;
+    return lum > 0.65;
+}
+
+function getTeamColor(teamName, kit = 'home') {
+    const entry = TeamColors[teamName];
+    if (entry) {
+        if (typeof entry === 'object' && !Array.isArray(entry)) {
+            return kit === 'away' ? (entry.away || entry.home) : entry.home;
+        }
+        return entry;
+    }
+    // 팀 데이터가 없으면 이름 해시로 고유 색상 생성
     let hash = 0;
-    for (let i = 0; i < teamName.length; i++) {
+    for (let i = 0; i < (teamName || '').length; i++) {
         hash = teamName.charCodeAt(i) + ((hash << 5) - hash);
     }
-    return `hsl(${Math.abs(hash) % 360}, 70%, 50%)`;
+    const hue = Math.abs(hash) % 360;
+    return kit === 'away'
+        ? `hsl(${(hue + 180) % 360}, 65%, 52%)`
+        : `hsl(${hue}, 70%, 50%)`;
+}
+
+function getMatchKitColors(homeTeam, awayTeam) {
+    const homeColor = getTeamColor(homeTeam, 'home');
+    let awayColor = getTeamColor(awayTeam, 'away');
+
+    const CLASH_THRESHOLD = 175;
+    if (_colorDistance(homeColor, awayColor) < CLASH_THRESHOLD) {
+        // 1순위: 원정팀의 홈 유니폼이 홈팀과 겹치지 않으면 원정팀 홈 유니폼 착용
+        const awayHomeColor = getTeamColor(awayTeam, 'home');
+        if (_colorDistance(homeColor, awayHomeColor) >= CLASH_THRESHOLD) {
+            awayColor = awayHomeColor;
+        } else {
+            // 2순위: 둘 다 겹치면 홈팀 밝기에 따라 흰색 또는 다크 네이비로 대비
+            awayColor = _isLightColor(homeColor) ? '#111827' : '#f8fafc';
+        }
+    }
+
+    return { home: homeColor, away: awayColor };
+}
+
+if (typeof window !== 'undefined') {
+    window.TeamColors = TeamColors;
+    window.getTeamColor = getTeamColor;
+    window.getMatchKitColors = getMatchKitColors;
 }
 
 // =========================================================================================
@@ -473,26 +818,8 @@ function startMatch() {
 
     matchData.engine = engine; // 엔진 참조 저장
 
-    // [수정] 팀 컬러 가져오기 및 충돌 방지 (유니폼 색상 겹침 해결)
-    const homeColor = getTeamColor(matchData.homeTeam);
-    let awayColor = getTeamColor(matchData.awayTeam);
-
-    // 주 색상 추출 헬퍼 (배열이면 첫 번째 색상, 문자열이면 그대로)
-    const getPrimaryColor = (c) => Array.isArray(c) ? c[0] : c;
-
-    const hPrimary = getPrimaryColor(homeColor);
-    const aPrimary = getPrimaryColor(awayColor);
-
-    // 색상이 같으면 원정 팀 색상 변경
-    if (hPrimary.toLowerCase() === aPrimary.toLowerCase()) {
-        // 홈이 흰색이면 원정은 검정, 아니면 원정은 흰색
-        if (hPrimary.toLowerCase() === '#ffffff' || hPrimary.toLowerCase() === 'white') {
-            awayColor = '#000000';
-        } else {
-            awayColor = '#ffffff';
-        }
-        console.log(`유니폼 색상 충돌 감지! 원정팀 색상을 ${awayColor}로 변경합니다.`);
-    }
+    // [개선] 홈/어웨이 유니폼 컬러 가져오기 (원정팀은 어웨이 유니폼 착용 + 색상 충돌 자동 방지)
+    const { home: homeColor, away: awayColor } = getMatchKitColors(matchData.homeTeam, matchData.awayTeam);
 
     // 비주얼라이저 초기화
     if (window.matchVisualizer) {
@@ -820,15 +1147,13 @@ function updateLiveMatchTelemetry(matchData, snapshot, isNewMinute) {
         return ls.playerActions[name];
     };
 
-    // 1. 실시간 볼 점유율 틱 누적
+    // 1. 실시간 볼 점유율 틱 누적 (패스 비행 중에도 possessionTeam에 동일 가중치 부여)
     if (Array.isArray(snapshot.players)) {
         const holder = snapshot.players.find(p => p.hasBall);
         if (holder && (holder.teamId === 'home' || holder.teamId === 'away')) {
             ls.possessionTicks[holder.teamId] += 1;
         } else if (snapshot.possessionTeam === 'home' || snapshot.possessionTeam === 'away') {
-            ls.possessionTicks[snapshot.possessionTeam] += 0.65;
-        } else if (snapshot.ball && Number.isFinite(snapshot.ball.x)) {
-            ls.possessionTicks[snapshot.ball.x >= 50 ? 'home' : 'away'] += 0.35;
+            ls.possessionTicks[snapshot.possessionTeam] += 1;
         }
     }
     const totalPoss = ls.possessionTicks.home + ls.possessionTicks.away;
@@ -860,10 +1185,9 @@ function updateLiveMatchTelemetry(matchData, snapshot, isNewMinute) {
                     timestamp: Date.now()
                 };
             } else if (ev.type === 'shoot') {
-                const side = findSideByName(ev.player) || 'home';
-                ls.shots[side]++;
-                const act = ensureActor(ev.player);
-                if (act) act.shots++;
+                // shoot 이벤트는 중거리/원터치 슈팅 시도 연출 로그이며,
+                // 실제 슈팅 결과(goal/save/miss/block)에서 슈팅 수가 집계되므로 이중 카운트 방지
+                ensureActor(ev.player);
             } else if (ev.type === 'save') {
                 const shooterSide = findSideByName(ev.shooter) || 'home';
                 ls.shots[shooterSide]++;

@@ -522,6 +522,120 @@ class FormationSystem {
         return player.detailPosition || player.position || lineKey;
     }
 
+    // 해당 라인에서 선수가 소화 가능한 구체적 세부 포지션 목록 반환
+    getPlayablePositionsInLine(player, lineKey) {
+        if (!player) return [];
+        const config = FORMATION_LINES[lineKey];
+        if (!config) return [];
+        const genericTags = new Set(['FW', 'AM', 'MF', 'DM', 'DF', 'SW']);
+        const concreteLinePositions = config.positions.filter(p => !genericTags.has(p));
+        const allPos = this.getPlayerAllPositions(player);
+        const playable = concreteLinePositions.filter(p => allPos.includes(p));
+        if (playable.length === 0) {
+            const current = this.getDisplayPositionForLine(player, lineKey);
+            return current ? [current] : [];
+        }
+        return playable;
+    }
+
+    // 라인 내 선수의 슬롯 포지션(_tacticalSlotPos)을 직접 변경
+    changePlayerSlotPosition(player, lineKey, targetPos) {
+        if (!player || !lineKey || !targetPos || !gameData || !gameData.squadLines) return false;
+        const lineArr = gameData.squadLines[lineKey];
+        if (!Array.isArray(lineArr)) return false;
+
+        const target = targetPos.toUpperCase();
+        const oldPos = this.getDisplayPositionForLine(player, lineKey).toUpperCase();
+        if (oldPos === target) return true;
+
+        const prevSlots = lineArr.map(p => (p ? p._tacticalSlotPos : undefined));
+        const uniqueSidePositions = new Set(['LW', 'RW', 'LM', 'RM', 'LWB', 'RWB', 'LB', 'RB']);
+
+        if (uniqueSidePositions.has(target)) {
+            const conflictPlayer = lineArr.find(p =>
+                p && p.name !== player.name && this.getDisplayPositionForLine(p, lineKey).toUpperCase() === target
+            );
+            if (conflictPlayer) {
+                const conflictPlayable = this.getPlayablePositionsInLine(conflictPlayer, lineKey);
+                if (conflictPlayable.includes(oldPos)) {
+                    conflictPlayer._tacticalSlotPos = oldPos;
+                } else {
+                    alert(`[포지션 배치 제한]\n${target} 자리에 이미 ${conflictPlayer.name} 선수가 배치되어 있습니다.\n(${conflictPlayer.name} 선수는 ${oldPos} 포지션을 소화할 수 없어 자동 교대가 불가능합니다.)`);
+                    return false;
+                }
+            }
+        }
+
+        player._tacticalSlotPos = target;
+
+        if (lineKey !== 'GK' && typeof TacticsManager !== 'undefined') {
+            if (!gameData.playerRoles) gameData.playerRoles = {};
+            const roleMap = typeof TacticsManager.getRolesForPosition === 'function'
+                ? TacticsManager.getRolesForPosition(lineKey, target)
+                : null;
+            const curRole = gameData.playerRoles[player.name];
+            if (!curRole || (roleMap && !roleMap[curRole])) {
+                gameData.playerRoles[player.name] = TacticsManager.getBestRoleForPlayer(player, lineKey, target);
+            }
+        }
+
+        const constraintErr = this.checkLineSlotConstraints(gameData.squadLines);
+        if (constraintErr) {
+            lineArr.forEach((p, idx) => {
+                if (!p) return;
+                if (prevSlots[idx] === undefined) delete p._tacticalSlotPos;
+                else p._tacticalSlotPos = prevSlots[idx];
+            });
+            alert(`[포지션 배치 제한]\n${constraintErr}`);
+            return false;
+        }
+
+        this.syncLegacySquad();
+        this.displayCurrentSquad();
+        if (typeof DNAManager !== 'undefined') DNAManager.recalculateLineOVRs();
+        if (typeof window.triggerAutoSave === 'function') window.triggerAutoSave();
+        return true;
+    }
+
+    // 시트 상단에 표시할 슬롯 포지션 직접 변경 UI 생성
+    createSlotPositionSelector(player, lineKey, onChanged) {
+        if (!player || player.isDummy || lineKey === 'GK') return null;
+        const playable = this.getPlayablePositionsInLine(player, lineKey);
+        if (playable.length <= 1) return null;
+
+        const currentPos = this.getDisplayPositionForLine(player, lineKey).toUpperCase();
+        const box = document.createElement('div');
+        box.style.cssText = 'margin-bottom: 14px; padding: 12px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px;';
+
+        const title = document.createElement('div');
+        title.style.cssText = 'font-size: 0.85rem; color: #cbd5e1; margin-bottom: 8px; font-weight: 600;';
+        title.textContent = `${player.name} 배치 포지션 변경 (현재: ${currentPos})`;
+
+        const btnRow = document.createElement('div');
+        btnRow.style.cssText = 'display: flex; flex-wrap: wrap; gap: 8px;';
+
+        playable.forEach(pos => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            const isActive = pos === currentPos;
+            btn.textContent = pos;
+            btn.style.cssText = isActive
+                ? 'padding: 6px 14px; border-radius: 6px; border: 1px solid #fbbf24; background: #fbbf24; color: #0f172a; font-weight: 700; font-size: 0.85rem; cursor: default;'
+                : 'padding: 6px 14px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.22); background: rgba(15,23,42,0.7); color: #f8fafc; font-weight: 600; font-size: 0.85rem; cursor: pointer;';
+            if (!isActive) {
+                btn.addEventListener('click', () => {
+                    if (this.changePlayerSlotPosition(player, lineKey, pos) && typeof onChanged === 'function') {
+                        onChanged(pos);
+                    }
+                });
+            }
+            btnRow.appendChild(btn);
+        });
+
+        box.append(title, btnRow);
+        return box;
+    }
+
     // 라인 내 중복 측면 포지션(예: LW 2명, RW 2명, LB 2명 등) 방지 및 슬롯 포지션 정규화
     normalizeLineSlotPositions() {
         if (typeof gameData === 'undefined' || !gameData || !gameData.squadLines) return;
@@ -755,7 +869,8 @@ class FormationSystem {
     // 피치 슬롯의 가로 좌표(x %) 계산 - LW, RW는 CAM이 없어도 양 측면(18%, 82%)으로 넓게 배치!
     getSlotXCoordinate(player, lineKey, index, total, linePlayers) {
         if (!player) return (100 / (total + 1)) * (index + 1);
-        const dp = (player.detailPosition || player.position || '').toUpperCase();
+        const getSlotPos = (p) => (p._tacticalSlotPos || p.detailPosition || p.position || '').toUpperCase();
+        const dp = getSlotPos(player);
 
         // 1. 최전방 라인 (TOP)
         if (lineKey === 'TOP') {
@@ -767,9 +882,9 @@ class FormationSystem {
 
         // 2. 2선 라인 (AM: CAM, LW, RW)
         if (lineKey === 'AM') {
-            const hasLW = linePlayers.some(p => p && ['LW', 'LM'].includes((p.detailPosition || p.position || '').toUpperCase()));
-            const hasRW = linePlayers.some(p => p && ['RW', 'RM'].includes((p.detailPosition || p.position || '').toUpperCase()));
-            const hasCAM = linePlayers.some(p => p && ['CAM', 'AM', 'CM', 'CF'].includes((p.detailPosition || p.position || '').toUpperCase()));
+            const hasLW = linePlayers.some(p => p && ['LW', 'LM'].includes(getSlotPos(p)));
+            const hasRW = linePlayers.some(p => p && ['RW', 'RM'].includes(getSlotPos(p)));
+            const hasCAM = linePlayers.some(p => p && ['CAM', 'AM', 'CM', 'CF'].includes(getSlotPos(p)));
 
             // LW와 RW만 있는 경우 (중간에 CAM 없음): 양 측면 터치라인으로 완전히 벌려줌!
             if (total === 2 && hasLW && hasRW && !hasCAM) {
@@ -797,8 +912,8 @@ class FormationSystem {
 
         // 3. 중앙 라인 (CM: LM, CM, RM)
         if (lineKey === 'CM') {
-            const hasLM = linePlayers.some(p => p && ['LM', 'LW'].includes((p.detailPosition || p.position || '').toUpperCase()));
-            const hasRM = linePlayers.some(p => p && ['RM', 'RW'].includes((p.detailPosition || p.position || '').toUpperCase()));
+            const hasLM = linePlayers.some(p => p && ['LM', 'LW'].includes(getSlotPos(p)));
+            const hasRM = linePlayers.some(p => p && ['RM', 'RW'].includes(getSlotPos(p)));
 
             // 다이아몬드의 LM과 RM만 있는 경우 (중앙 비움)
             if (total === 2 && hasLM && hasRM) {
@@ -822,8 +937,8 @@ class FormationSystem {
 
         // 4. 3선 라인 (DM: LWB, CDM, RWB)
         if (lineKey === 'DM') {
-            const hasLWB = linePlayers.some(p => p && ['LWB', 'LB'].includes((p.detailPosition || p.position || '').toUpperCase()));
-            const hasRWB = linePlayers.some(p => p && ['RWB', 'RB'].includes((p.detailPosition || p.position || '').toUpperCase()));
+            const hasLWB = linePlayers.some(p => p && ['LWB', 'LB'].includes(getSlotPos(p)));
+            const hasRWB = linePlayers.some(p => p && ['RWB', 'RB'].includes(getSlotPos(p)));
 
             // 3-5-2에서 LWB - CDM - RWB
             if (total === 3 && hasLWB && hasRWB) {
@@ -1472,6 +1587,13 @@ class FormationSystem {
         this.sheetTitle.textContent = playerOut.isDummy ? `${lineTitle} 선수 기용` : `${playerOut.name} 교체 (${lineTitle})`;
         this.sheetPlayerList.replaceChildren();
 
+        const posSelector = this.createSlotPositionSelector(playerOut, lineKey, () => {
+            this.showSubstitutionSheet(playerOut, lineKey);
+        });
+        if (posSelector) {
+            this.sheetPlayerList.appendChild(posSelector);
+        }
+
         const allTeamPlayers = (allTeams[gameData.selectedTeam] && allTeams[gameData.selectedTeam].players) || teams[gameData.selectedTeam] || [];
         const candidates = allTeamPlayers.filter(p => {
             const isInjured = typeof injurySystem !== 'undefined' && injurySystem.isInjured(gameData.selectedTeam, p.name);
@@ -1646,6 +1768,13 @@ class FormationSystem {
             
             const selectorWrap = document.createElement('div');
             selectorWrap.style.cssText = 'margin-bottom: 20px; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);';
+
+            const posSelector = this.createSlotPositionSelector(player, lineKey, () => {
+                render();
+            });
+            if (posSelector) {
+                selectorWrap.appendChild(posSelector);
+            }
 
             const label = document.createElement('label');
             label.style.cssText = 'color: #FBBF24; font-size: 0.9rem; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; gap: 6px; font-weight: bold;';

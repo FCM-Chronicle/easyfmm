@@ -159,11 +159,11 @@ try {
 
         // 소유권 변경 집계
         const ballOwnerPlayer = snap.players.find(p=>p.hasBall);
-        const currentTeam = ballOwnerPlayer ? ballOwnerPlayer.team : (snap.ball.state===2 ? null : null);
+        const currentTeam = ballOwnerPlayer ? ballOwnerPlayer.team : (snap.possessionTeam || null);
         if (currentTeam && lastPossessionTeam && currentTeam !== lastPossessionTeam) {
             possessionChanges++;
         }
-        lastPossessionTeam = currentTeam;
+        if (currentTeam) lastPossessionTeam = currentTeam;
 
         // 멈춤 감지 (볼이 10프레임 이상 거의 안 움직일 때)
         const dBall = Math.hypot(snap.ball.x - lastBallX, snap.ball.y - lastBallY);
