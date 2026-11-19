@@ -102,6 +102,16 @@ const CUP_CONFIGS = {
             flag: '🇰🇷',
             logo: 'assets/cup_logos/korea_cup.png',
             fallbackEmoji: '🏆'
+        },
+        mls: {
+            id: 'fa_usa',
+            leagueId: 'mls',
+            name: 'US 오픈 컵',
+            fullName: 'Lamar Hunt U.S. Open Cup',
+            country: '미국',
+            flag: '🇺🇸',
+            logo: 'assets/cup_logos/us_open_cup.png',
+            fallbackEmoji: '🏆'
         }
     },
 
@@ -340,6 +350,24 @@ class CupCompetitionManager {
                         pk: null
                     });
                 }
+            }
+        } else if (teamCount > 20) {
+            // 30팀 리그 (미국 MLS US 오픈 컵 등)
+            // 28팀 예선 (14경기) -> 승자 14팀 + 시드 2팀 = 16강 본선 (8경기)
+            const r1MatchesCount = Math.min(Math.floor(teamCount / 2), teamCount - 16);
+            const r1TeamCount = r1MatchesCount * 2;
+            const shuffled = this.shuffle(leagueTeams);
+            const r1Pool = shuffled.slice(0, r1TeamCount);
+            seedTeams = shuffled.slice(r1TeamCount);
+
+            for (let i = 0; i < r1Pool.length; i += 2) {
+                r1Matches.push({
+                    home: r1Pool[i],
+                    away: r1Pool[i + 1],
+                    winner: null,
+                    score: null,
+                    pk: null
+                });
             }
         } else if (teamCount === 20) {
             // 20팀 리그 (라리가, 세리에 A)
@@ -761,6 +789,14 @@ class CupCompetitionManager {
                     r16Matches.push({
                         home: seeds[sIdx++],
                         away: seeds[sIdx++],
+                        winner: null,
+                        score: null,
+                        pk: null
+                    });
+                } else if (wIdx + 1 < r1Winners.length) {
+                    r16Matches.push({
+                        home: r1Winners[wIdx++],
+                        away: r1Winners[wIdx++],
                         winner: null,
                         score: null,
                         pk: null
@@ -1628,6 +1664,23 @@ class CupCompetitionManager {
                             roundHint: '12R 직후',
                             isProjected: false
                         });
+                    } else if (wIdx + 1 < r1List.length) {
+                        const r1A = r1List[wIdx];
+                        const r1B = r1List[wIdx + 1];
+                        const winA = r1A ? r1A.winner : null;
+                        const winB = r1B ? r1B.winner : null;
+                        r16List.push({
+                            home: winA || null,
+                            away: winB || null,
+                            homePlaceholder: `1R #${wIdx + 1} 승자`,
+                            awayPlaceholder: `1R #${wIdx + 2} 승자`,
+                            winner: null,
+                            score: null,
+                            pk: null,
+                            roundHint: '12R 직후',
+                            isProjected: !(winA && winB)
+                        });
+                        wIdx += 2;
                     } else {
                         r16List.push({
                             home: null,

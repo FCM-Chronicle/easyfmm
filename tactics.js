@@ -607,12 +607,16 @@ const DNAManager = {
         const curPresetInfo = DNAPresets[curTac] || DNAPresets.balanced;
         const masteryPct = (typeof window.getTacticMasteryPct === 'function')
             ? window.getTacticMasteryPct(curTac)
-            : Math.min(100, Math.max(0, Number(gameData.tacticMastery?.[curTac] || 40)));
-        const masteryBonusTxt = `+${((masteryPct / 100) * 4.5).toFixed(1)}%`;
-        let masteryTier = '미숙';
-        if (masteryPct >= 85) masteryTier = '완벽 체화';
-        else if (masteryPct >= 65) masteryTier = '숙련';
-        else if (masteryPct >= 40) masteryTier = '적응 중';
+            : Math.min(100, Math.max(0, Number(gameData.tacticMastery?.[curTac] ?? 50)));
+        const masteryEff = (typeof window.getTacticMasteryEffect === 'function')
+            ? window.getTacticMasteryEffect(masteryPct)
+            : {
+                tier: masteryPct >= 85 ? '완벽 체화' : (masteryPct >= 65 ? '숙련' : (masteryPct > 50 ? '적응 완료' : (masteryPct === 50 ? '적응 중 (기준)' : '미숙 (페널티)'))),
+                signedText: `${masteryPct - 50 > 0 ? '+' : ''}${(((masteryPct - 50) / 50) * 5).toFixed(1)}%`,
+                color: masteryPct < 50 ? '#F87171' : (masteryPct === 50 ? '#FBBF24' : '#34D399')
+            };
+        const masteryBonusTxt = masteryEff.signedText;
+        const masteryTier = masteryEff.tier;
 
         container.replaceChildren();
 
@@ -651,14 +655,17 @@ const DNAManager = {
         mLabel.style.cssText = 'color: #E2E8F0; font-weight: 800;';
         mLabel.textContent = `🎯 현재 전술 숙련도 (${masteryTier})`;
         const mVal = document.createElement('span');
-        mVal.style.cssText = 'color: #34D399; font-weight: 800;';
-        mVal.textContent = `${masteryPct}% (안정성 ${masteryBonusTxt})`;
+        mVal.style.cssText = `color: ${masteryEff.color}; font-weight: 800;`;
+        mVal.textContent = `${masteryPct}% (전술 효율 ${masteryBonusTxt})`;
         mTop.append(mLabel, mVal);
 
         const mTrack = document.createElement('div');
         mTrack.style.cssText = 'height: 8px; background: rgba(255,255,255,0.08); border-radius: 999px; overflow: hidden;';
         const mFill = document.createElement('div');
-        mFill.style.cssText = `height: 100%; width: ${masteryPct}%; background: linear-gradient(90deg, #38BDF8, #34D399); border-radius: 999px;`;
+        const mFillGrad = masteryPct < 50
+            ? 'linear-gradient(90deg, #EF4444, #F59E0B)'
+            : (masteryPct === 50 ? 'linear-gradient(90deg, #F59E0B, #38BDF8)' : 'linear-gradient(90deg, #38BDF8, #34D399)');
+        mFill.style.cssText = `height: 100%; width: ${masteryPct}%; background: ${mFillGrad}; border-radius: 999px;`;
         mTrack.appendChild(mFill);
         masteryBox.append(mTop, mTrack);
 

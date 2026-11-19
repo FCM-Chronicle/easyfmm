@@ -1694,6 +1694,120 @@
       }
     }
 
+    /* ── MLS (Apple TV Season Pass) Broadcast Scorebug Theme ── */
+    #ingame-scoreboard[data-comp="mls"] {
+      filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.52));
+    }
+
+    #ingame-scoreboard[data-comp="mls"] #sb-main-bar {
+      height: 36px;
+      background: #E6E7EA;
+      border: none;
+      border-top: 1px solid rgba(255, 255, 255, 0.28);
+      border-radius: 2px;
+      overflow: hidden;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+    }
+
+    #ingame-scoreboard[data-comp="mls"] #sb-clock-wing {
+      background: linear-gradient(180deg, #27292E 0%, #17191D 100%);
+      border-right: none;
+      padding: 0 14px;
+      gap: 0;
+    }
+
+    #ingame-scoreboard[data-comp="mls"] #sb-comp-logo,
+    #ingame-scoreboard[data-comp="mls"] #sb-comp-tag,
+    #ingame-scoreboard[data-comp="mls"] .sb-team-logo {
+      display: none !important;
+    }
+
+    #ingame-scoreboard[data-comp="mls"] #sb-timer-box {
+      color: #F4F5F7;
+      font-weight: 500;
+      font-size: 0.96rem;
+      letter-spacing: 0.02em;
+      font-variant-numeric: tabular-nums;
+      min-width: 48px;
+    }
+
+    #ingame-scoreboard[data-comp="mls"] .sb-team-section {
+      min-width: 96px;
+      background: linear-gradient(180deg, #ECEEEF 0%, #DFE1E5 100%);
+      position: relative;
+    }
+
+    #ingame-scoreboard[data-comp="mls"] #sb-home::before {
+      content: "";
+      display: block;
+      width: 26px;
+      height: 100%;
+      flex-shrink: 0;
+      background: var(--sb-home-p, #C5B358);
+      box-shadow: inset -1px 0 0 rgba(0, 0, 0, 0.08);
+    }
+
+    #ingame-scoreboard[data-comp="mls"] #sb-away::after {
+      content: "";
+      display: block;
+      width: 26px;
+      height: 100%;
+      flex-shrink: 0;
+      background: var(--sb-away-p, #0D0E12);
+      box-shadow: inset 1px 0 0 rgba(0, 0, 0, 0.08);
+    }
+
+    #ingame-scoreboard[data-comp="mls"] .sb-name-box {
+      flex: 1;
+      color: #111317;
+      font-weight: 600;
+      font-size: 0.95rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      padding: 0 12px;
+      justify-content: flex-start;
+    }
+
+    #ingame-scoreboard[data-comp="mls"] #sb-away .sb-name-box {
+      justify-content: flex-end;
+    }
+
+    #ingame-scoreboard[data-comp="mls"] #sb-score-center {
+      background: linear-gradient(180deg, #ECEEEF 0%, #DFE1E5 100%);
+      border-left: none;
+      border-right: none;
+      padding: 0;
+      gap: 0;
+    }
+
+    #ingame-scoreboard[data-comp="mls"] .sb-score-box {
+      min-width: 32px;
+      padding: 0 8px;
+    }
+
+    #ingame-scoreboard[data-comp="mls"] #sb-score-divider {
+      width: 1px;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.95);
+      box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.06);
+      margin: 0;
+    }
+
+    #ingame-scoreboard[data-comp="mls"] #sb-score-divider span {
+      display: none;
+    }
+
+    #ingame-scoreboard[data-comp="mls"] .sb-score-num {
+      color: #111317;
+      font-weight: 600;
+      font-size: 1.02rem;
+    }
+
+    #ingame-scoreboard[data-comp="mls"] .sb-score-num.scored {
+      color: #111317;
+    }
+
     /* ── Premier League (EPL) Broadcast Scorebug Theme ── */
     #ingame-scoreboard[data-comp="premier_league"] {
       filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.55));
@@ -3001,7 +3115,22 @@
     const compTag = document.getElementById("sb-comp-tag");
     let compKey = "default";
     if (compTag && window.gameData) {
-      if (window.gameData.isPlayoffMatch) {
+      if (window.gameData.isMLSPlayoffMatch) {
+        compKey = "mls";
+        if (compLogo) {
+          compLogo.src = "assets/league_logos/mls.png";
+          compLogo.style.display = "block";
+          compLogo.onerror = function () {
+            this.style.display = "none";
+            if (compTag) {
+              compTag.textContent = "MLS CUP";
+              compTag.style.display = "";
+            }
+          };
+        }
+        compTag.textContent = "";
+        compTag.style.display = "none";
+      } else if (window.gameData.isPlayoffMatch) {
         compKey = "playoff";
         if (compLogo) {
           compLogo.src = "assets/league_logos/efl_championship.png";
@@ -3279,7 +3408,8 @@
       compNameMode === "eredivisie" ||
       compNameMode === "premier_league" ||
       compNameMode === "laliga" ||
-      compNameMode === "ligue_1"
+      compNameMode === "ligue_1" ||
+      compNameMode === "mls"
     );
 
     const homeTeamEl = document.getElementById("homeTeam");

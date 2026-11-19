@@ -217,6 +217,38 @@ const TeamColors = {
     "포항_스틸러스": { home: ["#e30613", "#000000"], away: "#ffffff" },
     "울산_현대": { home: ["#004b93", "#ffd100"], away: "#ffffff" },
 
+    // ================= Major League Soccer (30) =================
+    "인터_마이애미": { home: "#f7b5cd", away: "#111827" },
+    "LAFC": { home: ["#000000", "#c39e6d"], away: "#f8fafc" },
+    "LA_갤럭시": { home: ["#ffffff", "#00245d"], away: "#00245d" },
+    "애틀랜타_유나이티드": { home: ["#80000a", "#000000"], away: "#f8fafc" },
+    "콜럼버스_크루": { home: ["#fedd00", "#000000"], away: "#111827" },
+    "FC_신시내티": { home: ["#263b80", "#f05323"], away: "#ffffff" },
+    "시애틀_사운더스": { home: ["#5d9732", "#005595"], away: "#111827" },
+    "뉴욕_시티": { home: ["#6cadde", "#ffffff"], away: "#111827" },
+    "뉴욕_레드불스": { home: ["#ffffff", "#ed1e36"], away: "#132257" },
+    "올랜도_시티": { home: ["#633492", "#fde192"], away: "#ffffff" },
+    "시카고_파이어": { home: ["#ff0000", "#001489"], away: "#ffffff" },
+    "밴쿠버_화이트캡스": { home: ["#ffffff", "#00245e"], away: "#00245e" },
+    "토론토_FC": { home: ["#b81137", "#455560"], away: "#ffffff" },
+    "CF_몽레알": { home: ["#0033a0", "#000000"], away: "#ffffff" },
+    "샬럿_FC": { home: ["#1a85c8", "#ffffff"], away: "#111827" },
+    "필라델피아_유니언": { home: ["#071b2c", "#b19b69"], away: "#f8fafc" },
+    "뉴잉글랜드_레볼루션": { home: ["#0a2240", "#ce0e2d"], away: "#ffffff" },
+    "내슈빌_SC": { home: ["#ece83a", "#1f1646"], away: "#1f1646" },
+    "DC_유나이티드": { home: ["#000000", "#ef3e42"], away: "#ffffff" },
+    "포틀랜드_팀버스": { home: ["#004812", "#eae827"], away: "#ffffff" },
+    "미네소타_유나이티드": { home: ["#231f20", "#8cd2f4"], away: "#ffffff" },
+    "레알_솔트레이크": { home: ["#b30838", "#013a81"], away: "#ffffff" },
+    "콜로라도_래피즈": { home: ["#862633", "#8bb8e8"], away: "#ffffff" },
+    "FC_댈러스": { home: ["#bf0d3e", "#00205b"], away: "#ffffff" },
+    "휴스턴_다이나모": { home: ["#ff6b00", "#101820"], away: "#101820" },
+    "오스틴_FC": { home: ["#00b140", "#000000"], away: "#ffffff" },
+    "스포팅_캔자스시티": { home: ["#91b0d5", "#002f65"], away: "#002f65" },
+    "세인트루이스_시티": { home: ["#dd004a", "#001d4a"], away: "#ffffff" },
+    "산호세_어스퀘이크스": { home: ["#0051ba", "#000000"], away: "#ffffff" },
+    "샌디에이고_FC": { home: ["#0c2340", "#2cb3e3"], away: "#f8fafc" },
+
     // ================= Rest of World / Special Clubs (8) =================
     "아르헨티나_연합": { home: ["#75aadb", "#ffffff"], away: "#1e293b" },
     "미국_연합": { home: ["#ffffff", "#1d4ed8"], away: "#1e3a8a" },
@@ -483,7 +515,19 @@ const DEFAULT_CLUB_TACTICS = {
     "제주_유나이티드": "possession", "전북_현대": "lavolpiana", "포항_스틸러스": "possession",
     "울산_현대": "tikitaka", "아르헨티나_연합": "catenaccio", "미국_연합": "gegenpress",
     "멕시코_연합": "totalFootball", "브라질_연합": "possession", "알_힐랄": "tikitaka",
-    "알_이티하드": "possession", "알_나스르": "twoLine", "셀틱": "gegenpress"
+    "알_이티하드": "possession", "알_나스르": "twoLine", "셀틱": "gegenpress",
+
+    // MLS (30)
+    "인터_마이애미": "tikitaka", "LAFC": "gegenpress", "LA_갤럭시": "possession",
+    "애틀랜타_유나이티드": "verticalTikitaka", "콜럼버스_크루": "possession", "FC_신시내티": "directCounter",
+    "시애틀_사운더스": "balanced", "뉴욕_시티": "tikitaka", "뉴욕_레드불스": "gegenpress",
+    "올랜도_시티": "directCounter", "시카고_파이어": "wingPlay", "밴쿠버_화이트캡스": "directCounter",
+    "토론토_FC": "possession", "CF_몽레알": "verticalTikitaka", "샬럿_FC": "lowBlockCounter",
+    "필라델피아_유니언": "gegenpress", "뉴잉글랜드_레볼루션": "wingPlay", "내슈빌_SC": "lowBlockCounter",
+    "DC_유나이티드": "routeOne", "포틀랜드_팀버스": "directCounter", "미네소타_유나이티드": "directCounter",
+    "레알_솔트레이크": "gegenpress", "콜로라도_래피즈": "directCounter", "FC_댈러스": "wingPlay",
+    "휴스턴_다이나모": "possession", "오스틴_FC": "possession", "스포팅_캔자스시티": "possession",
+    "세인트루이스_시티": "gegenpress", "산호세_어스퀘이크스": "wingPlay", "샌디에이고_FC": "verticalTikitaka"
 };
 if (typeof window !== 'undefined') window.DEFAULT_CLUB_TACTICS = DEFAULT_CLUB_TACTICS;
 
@@ -496,15 +540,99 @@ const LEGACY_TACTIC_KEY_MAP = {
     longBall: 'routeOne'
 };
 
+const ALL_TACTIC_KEYS = [
+    'gegenpress', 'tikitaka', 'verticalTikitaka', 'possession',
+    'wingPlay', 'directCounter', 'lowBlockCounter', 'catenaccio',
+    'routeOne', 'totalFootball', 'balanced'
+];
+
+const COMPLEMENTARY_TACTIC_MAP = {
+    tikitaka: 'verticalTikitaka',
+    verticalTikitaka: 'possession',
+    possession: 'tikitaka',
+    totalFootball: 'gegenpress',
+    gegenpress: 'verticalTikitaka',
+    wingPlay: 'directCounter',
+    directCounter: 'lowBlockCounter',
+    lowBlockCounter: 'directCounter',
+    catenaccio: 'lowBlockCounter',
+    routeOne: 'wingPlay',
+    balanced: 'directCounter'
+};
+
 function normalizeTacticKey(key) {
     if (!key || typeof key !== 'string') return 'balanced';
     return LEGACY_TACTIC_KEY_MAP[key] || key;
 }
 if (typeof window !== 'undefined') window.normalizeTacticKey = normalizeTacticKey;
 
+// 게임 시작 시 3개 기본 전술의 친숙도를 50%로 초기화 (나머지 20%)
+function initializeTacticMastery(teamKey = null) {
+    if (typeof gameData === 'undefined' || !gameData) return {};
+    if (!gameData.tacticMastery || typeof gameData.tacticMastery !== 'object') {
+        gameData.tacticMastery = {};
+    }
+
+    const clubRaw = String(teamKey || gameData.selectedTeam || '').trim();
+    const clubDef = clubRaw
+        ? normalizeTacticKey(DEFAULT_CLUB_TACTICS[clubRaw] || DEFAULT_CLUB_TACTICS[clubRaw.replace(/\s+/g, '_')] || 'balanced')
+        : 'balanced';
+    const currentNorm = normalizeTacticKey(gameData.currentTactic || clubDef || 'balanced');
+
+    const starterSet = new Set([clubDef, 'balanced']);
+    const comp = COMPLEMENTARY_TACTIC_MAP[clubDef] || 'verticalTikitaka';
+    starterSet.add(comp);
+    for (const fallbackKey of ['gegenpress', 'possession', 'directCounter']) {
+        if (starterSet.size >= 3) break;
+        starterSet.add(fallbackKey);
+    }
+    if (currentNorm && starterSet.size < 3) starterSet.add(currentNorm);
+
+    ALL_TACTIC_KEYS.forEach(k => {
+        if (typeof gameData.tacticMastery[k] !== 'number') {
+            gameData.tacticMastery[k] = starterSet.has(k) ? 50 : 20;
+        }
+    });
+    return gameData.tacticMastery;
+}
+if (typeof window !== 'undefined') window.initializeTacticMastery = initializeTacticMastery;
+
+// 전술 친숙도(0~100%) 기반 성능 보정 계산 (50% 기준: 50% 미만은 마이너스 페널티, 50%는 0%, 초과 시 보너스)
+function getTacticMasteryEffect(masteryPct) {
+    const pct = Math.max(0, Math.min(100, Number.isFinite(Number(masteryPct)) ? Number(masteryPct) : 50));
+    const delta = (pct - 50) / 50; // -1.0 (0%) ~ 0.0 (50%) ~ +1.0 (100%)
+    const stabilityPct = Number((delta * 5.0).toFixed(1));
+    const stabilityFactor = 1.0 + delta * 0.05;
+    const chanceDelta = delta * 0.04;
+    const pressDelta = delta * 0.08;
+    const tempoDelta = delta * 0.04;
+
+    let tier = '미숙 (페널티)';
+    let color = '#F87171';
+    if (pct >= 85) { tier = '완벽 체화'; color = '#34D399'; }
+    else if (pct >= 65) { tier = '숙련'; color = '#34D399'; }
+    else if (pct > 50) { tier = '적응 완료'; color = '#38BDF8'; }
+    else if (pct === 50) { tier = '적응 중 (기준)'; color = '#FBBF24'; }
+
+    const signedText = `${stabilityPct > 0 ? '+' : ''}${stabilityPct.toFixed(1)}%`;
+    return {
+        pct,
+        delta,
+        stabilityPct,
+        stabilityFactor,
+        chanceDelta,
+        pressDelta,
+        tempoDelta,
+        tier,
+        color,
+        signedText
+    };
+}
+if (typeof window !== 'undefined') window.getTacticMasteryEffect = getTacticMasteryEffect;
+
 // 전술 숙련도(0~100%) 조회 및 구형 키 숙련도 자동 마이그레이션 헬퍼
 function getTacticMasteryPct(tacticKey) {
-    if (typeof gameData === 'undefined' || !gameData) return 40;
+    if (typeof gameData === 'undefined' || !gameData) return 50;
     if (!gameData.tacticMastery || typeof gameData.tacticMastery !== 'object') {
         gameData.tacticMastery = {};
     }
@@ -515,14 +643,13 @@ function getTacticMasteryPct(tacticKey) {
             delete gameData.tacticMastery[oldK];
         }
     }
+    if (Object.keys(gameData.tacticMastery).length === 0) {
+        initializeTacticMastery();
+    }
     const normKey = normalizeTacticKey(tacticKey || gameData.currentTactic || 'balanced');
-    // 구단 기본 고유 전술이거나 초기 시작 전술인데 아직 기록이 없으면 기본 숙련도 40% 부여
     if (typeof gameData.tacticMastery[normKey] !== 'number') {
-        const clubRaw = gameData.selectedTeam ? String(gameData.selectedTeam).trim() : '';
-        const clubDef = clubRaw ? normalizeTacticKey(DEFAULT_CLUB_TACTICS[clubRaw] || DEFAULT_CLUB_TACTICS[clubRaw.replace(/\s+/g, '_')] || 'balanced') : 'balanced';
-        if (normKey === clubDef || normKey === normalizeTacticKey(gameData.currentTactic)) {
-            gameData.tacticMastery[normKey] = Math.max(40, gameData.tacticMastery[normKey] || 0);
-        } else {
+        initializeTacticMastery();
+        if (typeof gameData.tacticMastery[normKey] !== 'number') {
             gameData.tacticMastery[normKey] = 20;
         }
     }
@@ -771,7 +898,19 @@ function startMatch() {
         if (matchTitleEl) {
             const selloutTag = stadiumRes.isSellout ? " ★전석 매진" : "";
             let cupPrefix = '';
-            if (gameData.isPlayoffMatch) {
+            if (gameData.isMLSPlayoffMatch) {
+                const mlsLabels = {
+                    MLS_WC: '와일드카드',
+                    MLS_R1_G1: '1R 1차전',
+                    MLS_R1_G2: '1R 2차전',
+                    MLS_R1_G3: '1R 3차전',
+                    MLS_CONF_SF: '컨퍼런스 준결승',
+                    MLS_CONF_FINAL: '컨퍼런스 결승',
+                    MLS_CUP: 'MLS컵 파이널'
+                };
+                const poLabel = mlsLabels[gameData.playoffStage] || '플레이오프';
+                cupPrefix = `🇺🇸 MLS컵 플레이오프 [${poLabel}] · `;
+            } else if (gameData.isPlayoffMatch) {
                 const poLabel = gameData.playoffStage === 'FINAL' ? '결승' : (gameData.playoffStage === 'SF_LEG2' ? '준결승 2차전' : '준결승 1차전');
                 cupPrefix = `🔥 EFL 승격 플레이오프 [${poLabel}] · `;
             } else if (gameData.isUCLMatch && typeof cupCompetitionManager !== 'undefined') {
@@ -2012,9 +2151,14 @@ function endMatch(matchData) {
     }
 
     // 다음 라운드 준비 (플레이오프/컵 대회 경기면 결과 처리 후 리그 라운드는 유지)
-    if (gameData.isPlayoffMatch && typeof EFLPlayoffManager !== 'undefined') {
-        EFLPlayoffManager.handleUserMatchEnd(matchData);
+    if (gameData.isPlayoffMatch) {
+        if (gameData.isMLSPlayoffMatch && typeof MLSPlayoffManager !== 'undefined') {
+            MLSPlayoffManager.handleUserMatchEnd(matchData);
+        } else if (typeof EFLPlayoffManager !== 'undefined') {
+            EFLPlayoffManager.handleUserMatchEnd(matchData);
+        }
         gameData.isPlayoffMatch = false;
+        gameData.isMLSPlayoffMatch = false;
         setNextOpponent();
     } else if ((gameData.isFACupMatch || gameData.isUCLMatch) && typeof cupCompetitionManager !== 'undefined') {
         cupCompetitionManager.handleUserMatchEnd(matchData);
@@ -2158,7 +2302,8 @@ function renderPressBackdropWall(userTeamKey) {
         : null;
 
     let compLabel = leagueCfg ? leagueCfg.id.replace('_', ' ').toUpperCase() : 'OFFICIAL LEAGUE';
-    if (gameData.isPlayoffMatch) compLabel = 'EFL PLAYOFF';
+    if (gameData.isMLSPlayoffMatch) compLabel = 'MLS CUP PLAYOFFS';
+    else if (gameData.isPlayoffMatch) compLabel = 'EFL PLAYOFF';
     else if (gameData.isUCLMatch) compLabel = 'CHAMPIONS LEAGUE';
     else if (gameData.isFACupMatch) compLabel = 'OFFICIAL FA CUP';
     else if (gameData.currentLeague === 0) compLabel = 'LEGEND LEAGUE';

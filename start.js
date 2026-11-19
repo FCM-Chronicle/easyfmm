@@ -11,6 +11,7 @@ const AVAILABLE_LEAGUES = [
     { id: "liga_portugal", name: "🇵🇹 포르투갈 프리메이라리가" },
     { id: "super_lig", name: "🇹🇷 튀르키예 쉬페르리그" },
     { id: "kleague_1", name: "🇰🇷 대한민국 K리그 1" },
+    { id: "mls", name: "🇺🇸 미국 MLS" },
     { id: "other", name: "🌍 기타 및 연합 클럽" }
 ];
 

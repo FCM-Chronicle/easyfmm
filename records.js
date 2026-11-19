@@ -514,29 +514,35 @@ generateTeamOfTheWeek() {
     this.weeklyRatings = [];
 }
 
-// 발롱도르 / 올해의 선수 선정 (평균 평점 + 정규리그 우승 + FA컵/UCL 트로피 + 득점 + 도움 + MOM 종합 평가)
+// 발롱도르 / 올해의 선수 선정 (평균 평점 + 리그별 계수 + 정규리그 우승 + FA컵/UCL 트로피 + 득점 + 도움 + MOM 종합 평가)
 getPlayerOfTheSeason() {
-    // 1. 현재 유저의 리그 데이터 및 전체 클럽 순위 산정
+    const LEAGUE_BALLON_COEFF = {
+        premier_league: 1.20,
+        laliga: 1.16,
+        bundesliga: 1.10,
+        serie_a: 1.10,
+        ligue_1: 1.02,
+        liga_portugal: 0.90,
+        eredivisie: 0.88,
+        super_lig: 0.82,
+        mls: 0.78,
+        efl_championship: 0.75,
+        kleague_1: 0.72
+    };
+
+    // 1. 전 리그 순위표 산정 (리그별 구단 순위 정확 매핑)
     const userTeam = (typeof gameData !== 'undefined') ? gameData.selectedTeam : null;
     const userLeagueId = (typeof LeagueManager !== 'undefined') ? LeagueManager.getLeagueIdByTeam(userTeam) : 'premier_league';
-    
-    // 리그 순위표 가져오기
-    let leagueData = null;
-    if (typeof gameData !== 'undefined' && gameData.leagueData) {
-        leagueData = gameData.leagueData[userLeagueId] || gameData.leagueData.division1 || null;
-    }
-    if (!leagueData && typeof window !== 'undefined') {
-        leagueData = window[`${userLeagueId}Table`] || window.league1Table || null;
-    }
 
-    const teamRanks = {};
-    if (leagueData) {
-        const sortedTeams = Object.keys(leagueData)
+    const sortLeagueMap = (tbl) => {
+        const ranks = {};
+        if (!tbl) return ranks;
+        const sortedTeams = Object.keys(tbl)
             .map(teamKey => ({
                 team: teamKey,
-                points: leagueData[teamKey]?.points || 0,
-                goalDiff: (leagueData[teamKey]?.goalsFor || 0) - (leagueData[teamKey]?.goalsAgainst || 0),
-                goalsFor: leagueData[teamKey]?.goalsFor || 0
+                points: tbl[teamKey]?.points || 0,
+                goalDiff: (tbl[teamKey]?.goalsFor || 0) - (tbl[teamKey]?.goalsAgainst || 0),
+                goalsFor: tbl[teamKey]?.goalsFor || 0
             }))
             .sort((a, b) => {
                 if (b.points !== a.points) return b.points - a.points;
@@ -544,15 +550,32 @@ getPlayerOfTheSeason() {
                 return b.goalsFor - a.goalsFor;
             });
         sortedTeams.forEach((item, idx) => {
-            teamRanks[item.team] = idx + 1;
+            ranks[item.team] = idx + 1;
+        });
+        return ranks;
+    };
+
+    const teamRanksByLeague = {};
+    if (typeof gameData !== 'undefined' && gameData.leagueData) {
+        Object.keys(gameData.leagueData).forEach(lid => {
+            teamRanksByLeague[lid] = sortLeagueMap(gameData.leagueData[lid]);
         });
     }
+    let leagueData = teamRanksByLeague[userLeagueId] ? gameData.leagueData[userLeagueId] : null;
+    if (!leagueData && typeof gameData !== 'undefined' && gameData.leagueData) {
+        leagueData = gameData.leagueData.division1 || null;
+    }
+    if (!leagueData && typeof window !== 'undefined') {
+        leagueData = window[`${userLeagueId}Table`] || window.league1Table || null;
+    }
+    const fallbackRanks = sortLeagueMap(leagueData);
 
     // 2. 컵 대회 결과 확인 (FA컵 및 UEFA 챔피언스리그)
     const faCupChamp = (typeof gameData !== 'undefined' && gameData.faCup) ? gameData.faCup.champion : null;
     const faCupRunnerUp = (typeof gameData !== 'undefined' && gameData.faCup) ? gameData.faCup.runnerUp : null;
     const uclChamp = (typeof gameData !== 'undefined' && gameData.ucl) ? gameData.ucl.champion : null;
     const uclRunnerUp = (typeof gameData !== 'undefined' && gameData.ucl) ? gameData.ucl.runnerUp : null;
+    const mlsCupChamp = (typeof gameData !== 'undefined' && gameData.mlsPlayoff) ? gameData.mlsPlayoff.champion : null;
 
     // 3. 후보 선수 풀 구성
     const candidates = Array.from(this.playerStats.values()).filter(stat => {
@@ -575,13 +598,18 @@ getPlayerOfTheSeason() {
     });
     if (pool.length === 0) pool = candidates;
 
-    // 4. 발롱도르 종합 점수 산출
+    // 4. 발롱도르 종합 점수 산출 (리그별 계수 반영)
     const scored = pool.map(stat => {
         const goals = stat.goals || 0;
         const assists = stat.assists || 0;
         const matches = stat.matches || 0;
         const moms = stat.moms || 0;
         const totw = stat.totw || 0;
+
+        const statLeagueId = (typeof allTeams !== 'undefined' && allTeams[stat.team] && allTeams[stat.team].leagueId)
+            ? allTeams[stat.team].leagueId
+            : userLeagueId;
+        const leagueCoeff = LEAGUE_BALLON_COEFF[statLeagueId] || 1.0;
 
         // 평균 평점
         let avgRating;
@@ -592,29 +620,34 @@ getPlayerOfTheSeason() {
             avgRating = Math.min(9.2, 6.6 + ((goals * 1.3) + (assists * 1.0) + (moms * 0.6)) / denom);
         }
 
-        const teamRank = teamRanks[stat.team] || 99;
-        const isLeagueChampion = (teamRank === 1);
+        const leagueRankMap = teamRanksByLeague[statLeagueId] || fallbackRanks;
+        const rawTeamRank = leagueRankMap[stat.team] || 99;
+        const isTeamMLSCupChamp = (statLeagueId === 'mls' && mlsCupChamp && stat.team === mlsCupChamp);
+        const teamRank = (statLeagueId === 'mls' && mlsCupChamp)
+            ? (isTeamMLSCupChamp ? 1 : Math.max(2, rawTeamRank))
+            : rawTeamRank;
+        const isLeagueChampion = (statLeagueId === 'mls' && mlsCupChamp) ? isTeamMLSCupChamp : (teamRank === 1);
         const isFaCupChampion = (stat.team === faCupChamp);
         const isFaCupRunnerUp = (stat.team === faCupRunnerUp);
         const isUclChampion = (stat.team === uclChamp);
         const isUclRunnerUp = (stat.team === uclRunnerUp);
 
         // [가중치 산출]
-        // 1. 개인 활약 점수
+        // 1. 개인 활약 점수 (리그 수준 계수 적용)
         const ratingScore = Math.max(0, (avgRating - 6.0) * 25);
         const attackScore = (goals * 2.2) + (assists * 1.8);
         const impactScore = (moms * 2.5) + (totw * 1.0);
+        const weightedPerfScore = (ratingScore + attackScore + impactScore) * leagueCoeff;
 
-        // 2. 대회 타이틀 가중치 (실제 발롱도르 기준 반영!)
-        // - 정규 리그: 우승 +18점, 준우승 +6점, 3위 +3점
-        let leagueTitleScore = (teamRank === 1 ? 18 : (teamRank === 2 ? 6 : (teamRank === 3 ? 3 : 0)));
-        
-        // - 국가별 FA컵: 우승 +15점, 준우승 +5점
-        let faTitleScore = isUclChampion ? 0 : 0;
-        if (isFaCupChampion) faTitleScore += 15;
-        else if (isFaCupRunnerUp) faTitleScore += 5;
+        // 2. 대회 타이틀 가중치 (정규리그·자국컵은 리그 계수 반영, UCL은 최고 권위 1.0배 유지)
+        const baseLeagueTitle = (teamRank === 1 ? 18 : (teamRank === 2 ? 6 : (teamRank === 3 ? 3 : 0)));
+        const leagueTitleScore = baseLeagueTitle * leagueCoeff;
 
-        // - UEFA 챔피언스리그 (최고 권위 빅이어!): 우승 +35점, 준우승 +15점, 4강권 +8점
+        let faTitleScore = 0;
+        if (isFaCupChampion) faTitleScore += 15 * leagueCoeff;
+        else if (isFaCupRunnerUp) faTitleScore += 5 * leagueCoeff;
+
+        // - UEFA 챔피언스리그 (최고 권위 빅이어!): 우승 +35점, 준우승 +15점
         let uclTitleScore = 0;
         if (isUclChampion) uclTitleScore += 35;
         else if (isUclRunnerUp) uclTitleScore += 15;
@@ -623,15 +656,19 @@ getPlayerOfTheSeason() {
         let multiTitleBonus = 0;
         if (isLeagueChampion && isFaCupChampion && isUclChampion) {
             multiTitleBonus += 25; // 🏆 유러피언 트레블 보너스!
-        } else if ((isLeagueChampion && isUclChampion) || (isLeagueChampion && isFaCupChampion)) {
-            multiTitleBonus += 12; // 🏆 더블 보너스!
+        } else if (isLeagueChampion && isUclChampion) {
+            multiTitleBonus += 12; // 🏆 리그 + UCL 더블!
+        } else if (isLeagueChampion && isFaCupChampion) {
+            multiTitleBonus += 12 * leagueCoeff; // 🏆 국내 더블!
         }
 
         const totalTitleScore = leagueTitleScore + faTitleScore + uclTitleScore + multiTitleBonus;
-        const ballonScore = ratingScore + attackScore + impactScore + totalTitleScore;
+        const ballonScore = weightedPerfScore + totalTitleScore;
 
         return {
             ...stat,
+            leagueId: statLeagueId,
+            leagueCoeff,
             goals,
             assists,
             matches,
@@ -642,7 +679,7 @@ getPlayerOfTheSeason() {
             isLeagueChampion,
             isFaCupChampion,
             isUclChampion,
-            totalTitleScore,
+            totalTitleScore: Number(totalTitleScore.toFixed(2)),
             ballonScore: Number(ballonScore.toFixed(2))
         };
     });

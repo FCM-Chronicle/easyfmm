@@ -449,19 +449,26 @@ class RealSoccerEngine {
         if (this.panicTimer && this.panicTimer[p.teamId] > 0 && (stat === 'defense' || stat === 'decision' || stat === 'passing')) {
             f *= stat === 'defense' ? 0.98 : 1.08;
         }
-        // [전술 숙련도(Familiarity) 보정] 최대 +4.5% 패스/오프더볼 판단 안정성 반영
+        // [전술 숙련도(Familiarity) 보정] 50% 기준: 50% 미만은 마이너스(-최대 5%), 초과 시 플러스(+최대 5%)
         if (stat === 'passing' || stat === 'decision') {
             let masteryPct = 60; // AI 구단 기본 전술 숙련도 기준치(60%)
             if (this.matchContext && typeof gameData !== 'undefined' && gameData) {
                 const userSide = this.matchContext.isHomeGame ? 'home' : 'away';
                 if (p.teamId === userSide) {
                     const curTac = this.getTeamTactic(p.teamId);
-                    masteryPct = (gameData.tacticMastery && typeof gameData.tacticMastery[curTac] === 'number')
-                        ? clamp(gameData.tacticMastery[curTac], 0, 100)
-                        : 60;
+                    if (typeof window !== 'undefined' && typeof window.getTacticMasteryPct === 'function') {
+                        masteryPct = window.getTacticMasteryPct(curTac);
+                    } else if (gameData.tacticMastery && typeof gameData.tacticMastery[curTac] === 'number') {
+                        masteryPct = clamp(gameData.tacticMastery[curTac], 0, 100);
+                    } else {
+                        masteryPct = 50;
+                    }
                 }
             }
-            f *= (1.0 + (masteryPct / 100) * 0.045);
+            const factor = (typeof window !== 'undefined' && typeof window.getTacticMasteryEffect === 'function')
+                ? window.getTacticMasteryEffect(masteryPct).stabilityFactor
+                : (1.0 + ((masteryPct - 50) / 50) * 0.05);
+            f *= factor;
         }
 
         return v * f;

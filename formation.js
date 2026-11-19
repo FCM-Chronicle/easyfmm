@@ -329,8 +329,8 @@ class FormationSystem {
                     if (currentSquadNames.has(name)) matchCount++;
                 });
 
-                // 스쿼드 변경이 없으면 기존 squadLines 유지
-                if (linesPlayers.length === 11 && currentSquadNames.size === 11 && matchCount === 11) {
+                // 스쿼드 변경이 없으면(공석 포함 0~11명 모두) 기존 squadLines 유지
+                if (linesPlayers.length === currentSquadNames.size && matchCount === currentSquadNames.size) {
                     this.syncLegacySquad();
                     return;
                 }
@@ -579,7 +579,7 @@ class FormationSystem {
             }
         }
 
-        const constraintErr = this.checkLineSlotConstraints(gameData.squadLines);
+        const constraintErr = this.checkLineSlotConstraints(gameData.squadLines, { enforceMinDefenders: false });
         if (constraintErr) {
             lineArr.forEach((p, idx) => {
                 if (!p) return;
@@ -747,11 +747,17 @@ class FormationSystem {
     }
 
     // 세부 포지션 및 라인별 정원 위반 검사 (LW<=1, RW<=1, CAM<=2, LB<=1, RB<=1, DF>=3 등)
-    checkLineSlotConstraints(squadLines) {
+    checkLineSlotConstraints(squadLines, options = {}) {
         const l = squadLines || (typeof gameData !== 'undefined' && gameData ? gameData.squadLines : null);
         if (!l) return '스쿼드 라인 데이터가 없습니다.';
 
         this.normalizeLineSlotPositions();
+
+        const totalFilled = ['TOP', 'AM', 'CM', 'DM', 'DF', 'GK']
+            .reduce((sum, k) => sum + (l[k] || []).filter(Boolean).length, 0);
+        const enforceMinDefenders = (options.enforceMinDefenders !== undefined)
+            ? options.enforceMinDefenders
+            : (totalFilled >= 11);
 
         const amList = (l.AM || []).filter(Boolean);
         let lwCount = 0, rwCount = 0, camCount = 0;
@@ -782,7 +788,7 @@ class FormationSystem {
         if (rwbCount > 1) return `우측 윙백(RWB)은 최대 1명까지만 배치할 수 있습니다. (현재 ${rwbCount}명)`;
 
         const dfList = (l.DF || []).filter(Boolean);
-        if (dfList.length < 3) return `후방 수비(DF) 라인은 최소 3명 이상이어야 합니다. (현재 ${dfList.length}명)`;
+        if (enforceMinDefenders && dfList.length < 3) return `후방 수비(DF) 라인은 최소 3명 이상이어야 합니다. (현재 ${dfList.length}명)`;
         if (dfList.length > 5) return `후방 수비(DF) 라인은 최대 5명까지만 배치할 수 있습니다. (현재 ${dfList.length}명)`;
         const lbCount = dfList.filter(p => (p._tacticalSlotPos || this.getDisplayPositionForLine(p, 'DF')).toUpperCase() === 'LB').length;
         const rbCount = dfList.filter(p => (p._tacticalSlotPos || this.getDisplayPositionForLine(p, 'DF')).toUpperCase() === 'RB').length;
@@ -1500,7 +1506,7 @@ class FormationSystem {
         } else if (gkCount !== 1) {
             message = `골키퍼는 반드시 1명이어야 합니다. (현재 ${gkCount}명)`;
         } else {
-            message = this.checkLineSlotConstraints(l);
+            message = this.checkLineSlotConstraints(l, { enforceMinDefenders: true });
         }
 
         if (message) {
@@ -1547,7 +1553,7 @@ class FormationSystem {
         }
 
         if (playerIn) delete playerIn._tacticalSlotPos;
-        const constraintErr = this.checkLineSlotConstraints(gameData.squadLines);
+        const constraintErr = this.checkLineSlotConstraints(gameData.squadLines, { enforceMinDefenders: false });
         if (constraintErr) {
             for (const k in backup) {
                 gameData.squadLines[k] = backup[k];

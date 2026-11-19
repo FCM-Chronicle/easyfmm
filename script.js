@@ -1289,6 +1289,10 @@ function selectTeam(teamKey) {
     }
 
     // DNA 시스템 초기화 (추가)
+    if (typeof window.initializeTacticMastery === 'function') {
+        gameData.tacticMastery = {};
+        window.initializeTacticMastery(teamKey);
+    }
     if (typeof DNAManager !== 'undefined') {
         DNAManager.initialize(teams[teamKey]);
     }
@@ -1560,23 +1564,29 @@ function updateMatchTabCurrentTacticDisplay() {
         });
     }
 
-    // 현재 전술 숙련도(Familiarity) 게이지 및 텍스트 업데이트
+    // 현재 전술 숙련도(Familiarity) 게이지 및 텍스트 업데이트 (50% 미만 페널티 반영)
     const masteryPct = (typeof window.getTacticMasteryPct === 'function')
         ? window.getTacticMasteryPct(curKey)
-        : Math.min(100, Math.max(0, Number(gameData.tacticMastery?.[curKey] || 40)));
-    const bonusPct = ((masteryPct / 100) * 4.5).toFixed(1);
-    let tierLabel = '미숙';
-    if (masteryPct >= 85) tierLabel = '완벽 체화';
-    else if (masteryPct >= 65) tierLabel = '숙련';
-    else if (masteryPct >= 40) tierLabel = '적응 중';
+        : Math.min(100, Math.max(0, Number(gameData.tacticMastery?.[curKey] ?? 50)));
+    const eff = (typeof window.getTacticMasteryEffect === 'function')
+        ? window.getTacticMasteryEffect(masteryPct)
+        : {
+            tier: masteryPct >= 85 ? '완벽 체화' : (masteryPct >= 65 ? '숙련' : (masteryPct > 50 ? '적응 완료' : (masteryPct === 50 ? '적응 중 (기준)' : '미숙 (페널티)'))),
+            signedText: `${masteryPct - 50 > 0 ? '+' : ''}${(((masteryPct - 50) / 50) * 5).toFixed(1)}%`,
+            color: masteryPct < 50 ? '#F87171' : (masteryPct === 50 ? '#FBBF24' : '#34D399')
+        };
 
     const masteryTxtEl = document.getElementById('currentTacticMasteryText');
     const masteryBarEl = document.getElementById('currentTacticMasteryBar');
     if (masteryTxtEl) {
-        masteryTxtEl.textContent = `${masteryPct}% · ${tierLabel} (패스·위치선정 안정성 +${bonusPct}%)`;
+        masteryTxtEl.textContent = `${masteryPct}% · ${eff.tier} (전술 효율 ${eff.signedText})`;
+        masteryTxtEl.style.color = eff.color;
     }
     if (masteryBarEl) {
         masteryBarEl.style.width = `${masteryPct}%`;
+        masteryBarEl.style.background = masteryPct < 50
+            ? 'linear-gradient(90deg, #EF4444, #F59E0B)'
+            : (masteryPct === 50 ? 'linear-gradient(90deg, #F59E0B, #38BDF8)' : 'linear-gradient(90deg, #38BDF8, #34D399)');
     }
 }
 window.updateMatchTabCurrentTacticDisplay = updateMatchTabCurrentTacticDisplay;
@@ -2802,7 +2812,21 @@ function updateDisplay() {
             const tag = gameData.isHomeGame ? '홈 경기' : '원정 경기';
             const stadDesc = stad ? ` · ${stad.name} (${(stad.currentCapacity || stad.capacity).toLocaleString()}석)` : '';
 
-            if (gameData.isPlayoffMatch) {
+            if (gameData.isMLSPlayoffMatch) {
+                const mlsStageNames = {
+                    MLS_WC: '와일드카드 (단판·PK직행)',
+                    MLS_R1_G1: '1라운드 1차전 (3판2선승)',
+                    MLS_R1_G2: '1라운드 2차전 (3판2선승)',
+                    MLS_R1_G3: '1라운드 최종 3차전',
+                    MLS_CONF_SF: '컨퍼런스 준결승 (단판)',
+                    MLS_CONF_FINAL: '컨퍼런스 결승 (단판)',
+                    MLS_CUP: 'MLS컵 파이널 (단판)'
+                };
+                const mlsLabel = mlsStageNames[gameData.playoffStage] || 'MLS컵 플레이오프';
+                matchTypeSpan.textContent = `🇺🇸 MLS컵 플레이오프 [${mlsLabel} · ${tag}]${stadDesc}`;
+                matchTypeSpan.style.color = '#38BDF8';
+                matchTypeSpan.style.fontWeight = '800';
+            } else if (gameData.isPlayoffMatch) {
                 const poStageName = gameData.playoffStage === 'FINAL' ? '웸블리 결승전 (단판)'
                     : (gameData.playoffStage === 'SF_LEG2' ? '준결승 2차전' : '준결승 1차전');
                 const locTag = gameData.playoffStage === 'FINAL' ? '중립 구장 · 웸블리' : tag;
@@ -2898,6 +2922,16 @@ function generateFullSchedule() {
 }
 
 function setNextOpponent() {
+    // [신규] MLS컵 플레이오프 경기 체크 (정규 시즌 종료 후 최우선)
+    if (typeof MLSPlayoffManager !== 'undefined' && !gameData.isWorldCupMode && gameData.mlsPlayoff && !gameData.mlsPlayoff.completed) {
+        const isMLSPlayoff = MLSPlayoffManager.checkAndSetupMatch();
+        if (isMLSPlayoff) {
+            updateDisplay();
+            return;
+        }
+    }
+    gameData.isMLSPlayoffMatch = false;
+
     // [신규] EFL 챔피언십 승격 플레이오프 경기 체크 (정규 시즌 종료 후 최우선)
     if (typeof EFLPlayoffManager !== 'undefined' && !gameData.isWorldCupMode && gameData.eflPlayoff && !gameData.eflPlayoff.completed) {
         const isPlayoff = EFLPlayoffManager.checkAndSetupMatch();

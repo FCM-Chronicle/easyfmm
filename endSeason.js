@@ -77,6 +77,41 @@ function checkSeasonEnd() {
             }
         }
 
+        // 미국 MLS 컨퍼런스 상위 9팀 MLS컵 플레이오프 진행 중이거나 시작해야 하는 경우
+        if (uLId === 'mls' && typeof MLSPlayoffManager !== 'undefined') {
+            if (gameData.mlsPlayoff && !gameData.mlsPlayoff.completed) {
+                if (typeof setNextOpponent === 'function') setNextOpponent();
+                return;
+            }
+            if (!gameData.mlsPlayoff) {
+                const overallStandings = getLeagueStandingsSorted('mls');
+                const eastStandings = overallStandings.filter(e => LeagueManager.getMLSConference(e.team) === 'east');
+                const westStandings = overallStandings.filter(e => LeagueManager.getMLSConference(e.team) === 'west');
+                const userConf = LeagueManager.getMLSConference(gameData.selectedTeam);
+                const confStandings = (userConf === 'east') ? eastStandings : westStandings;
+                const confLabel = (userConf === 'east') ? '동부 컨퍼런스' : '서부 컨퍼런스';
+                const confRank = confStandings.findIndex(e => e.team === gameData.selectedTeam) + 1;
+
+                if (confRank >= 1 && confRank <= 9) {
+                    const po = MLSPlayoffManager.init(eastStandings, westStandings, overallStandings);
+                    const tName = (typeof teamNames !== 'undefined' && teamNames[gameData.selectedTeam]) ? teamNames[gameData.selectedTeam] : gameData.selectedTeam;
+                    const stageIntro = (confRank >= 8)
+                        ? `8~9위 와일드카드 단판 승부(연장 없이 무승부 시 승부차기)부터 시작합니다!`
+                        : `플레이오프 1라운드(3판 2선승제)에 직행했습니다!`;
+                    const shieldNote = (po && po.supportersShield === gameData.selectedTeam)
+                        ? `\n🛡️ 아울러 정규리그 통합 1위 '서포터스 실드'를 차지했습니다!`
+                        : '';
+                    const poMsg = `🇺🇸 [MLS컵 플레이오프 진출!]\n${tName}이(가) ${confLabel} ${confRank}위로 포스트시즌에 진출했습니다!\n${stageIntro}${shieldNote}`;
+                    if (typeof mailManager !== 'undefined') {
+                        mailManager.addMail('[MLS] MLS컵 플레이오프 진출!', 'MLS 사무국', poMsg);
+                    }
+                    if (typeof alert === 'function') alert(poMsg);
+                    if (typeof setNextOpponent === 'function') setNextOpponent();
+                    return;
+                }
+            }
+        }
+
         endSeason();
         return;
     }
@@ -122,11 +157,53 @@ function endSeason(silent = false) {
         return b.goalsFor - a.goalsFor;
     });
     
+    // MLS 정규시즌 잔여 라운드 및 MLS컵 플레이오프 AI 완료 (타 리그 유저거나 유저 PO 미진출 시에도 우승팀 결정)
+    if (typeof LeagueManager !== 'undefined' && typeof MLSPlayoffManager !== 'undefined' && gameData.leagueData && gameData.leagueData.mls) {
+        simulateRemainingLeagueRounds('mls');
+        const mlsOverall = getLeagueStandingsSorted('mls');
+        const mlsEast = mlsOverall.filter(e => LeagueManager.getMLSConference(e.team) === 'east');
+        const mlsWest = mlsOverall.filter(e => LeagueManager.getMLSConference(e.team) === 'west');
+        MLSPlayoffManager.simulateAllAI(mlsEast, mlsWest, mlsOverall);
+    }
+
     const userPosition = standings.findIndex(team => team.team === gameData.selectedTeam) + 1;
     let reward = 0;
     let achievement = '';
-    
-    if (userPosition === 1) {
+    let isMLSChampion = false;
+
+    if (userLeagueId === 'mls') {
+        const po = gameData.mlsPlayoff;
+        const userConf = (typeof LeagueManager !== 'undefined') ? LeagueManager.getMLSConference(gameData.selectedTeam) : 'east';
+        const confList = standings.filter(e => (typeof LeagueManager !== 'undefined' ? LeagueManager.getMLSConference(e.team) : 'east') === userConf);
+        const confRank = confList.findIndex(e => e.team === gameData.selectedTeam) + 1;
+        const confName = userConf === 'east' ? '동부' : '서부';
+
+        if (po && po.champion === gameData.selectedTeam) {
+            isMLSChampion = true;
+            achievement = `MLS컵 우승 🏆 (${confName} ${confRank}위)`;
+            reward = 1500;
+            if (typeof managerSystem !== 'undefined' && gameData.managerId) {
+                managerSystem.updateManagerStats(gameData.managerId, { trophy: true });
+            }
+        } else if (po && po.runnerUp === gameData.selectedTeam) {
+            achievement = `MLS컵 준우승 🥈 (${confName} ${confRank}위)`;
+            reward = 1200;
+        } else if (confRank <= 7) {
+            achievement = `플레이오프 본선 (${confName} ${confRank}위)`;
+            reward = 850;
+        } else if (confRank <= 9) {
+            achievement = `플레이오프 와일드카드 (${confName} ${confRank}위)`;
+            reward = 600;
+        } else {
+            achievement = `플레이오프 탈락 (${confName} ${confRank}위 · 승강제 없음)`;
+            reward = 350;
+        }
+
+        if (po && po.supportersShield === gameData.selectedTeam) {
+            reward += 300;
+            achievement += ' + 🛡️ 서포터스 실드';
+        }
+    } else if (userPosition === 1) {
         achievement = '우승';
         reward = 1500;
         // [신규] 감독 성과(우승) 기록
@@ -147,7 +224,8 @@ function endSeason(silent = false) {
     // [신규] 통합 FA컵과의 더블(Double) 달성 체크
     let doubleMessage = '';
     const isFaCupChamp = (gameData.faCup && gameData.faCup.champion === gameData.selectedTeam);
-    if (userPosition === 1 && isFaCupChamp && gameData.currentLeague === 1) {
+    const isLeagueChampForDouble = (userLeagueId === 'mls') ? isMLSChampion : (userPosition === 1);
+    if (isLeagueChampForDouble && isFaCupChamp && gameData.currentLeague === 1) {
         reward += 500;
         doubleMessage = '\n\n✨ [역사적인 더블(Double) 달성!]\n1부 리그와 통합 FA컵을 동시 제패했습니다! (더블 보너스 +500억원)';
         if (typeof mailManager !== 'undefined') {
@@ -155,7 +233,7 @@ function endSeason(silent = false) {
                 `[신화] 1부리그 & FA컵 동시 석권! 시즌 더블(Double) 위업 달성!`,
                 '리그 & FA컵 연맹',
                 `위대한 감독님의 지도력 아래 구단이 한 시즌에 1부 리그 챔피언과 FA컵 챔피언을 동시에 거머쥐는 '더블(Double)' 신화를 완성했습니다!\n\n` +
-                `- 1부리그 최종 1위 우승\n- 통합 FA컵 최종 우승 (The Double)\n- 특별 축하 상금: +500억원 지급\n\n구단의 전설로 영원히 기억될 것입니다!`
+                `- 1부리그 최종 우승\n- 통합 FA컵 최종 우승 (The Double)\n- 특별 축하 상금: +500억원 지급\n\n구단의 전설로 영원히 기억될 것입니다!`
             );
         }
     }
@@ -340,8 +418,13 @@ function endSeason(silent = false) {
     if (gameData.eflPlayoff) {
         gameData.lastPlayoffBracket = gameData.eflPlayoff;
     }
+    if (gameData.mlsPlayoff) {
+        gameData.lastMLSPlayoffBracket = gameData.mlsPlayoff;
+    }
     gameData.eflPlayoff = null;
+    gameData.mlsPlayoff = null;
     gameData.isPlayoffMatch = false;
+    gameData.isMLSPlayoffMatch = false;
     gameData.playoffStage = null;
 
     // 8. 시즌 마무리 공통 로직
@@ -1062,7 +1145,17 @@ function calculateEnglandPromotionRelegation() {
     if (typeof LEAGUES_CONFIG !== 'undefined') {
         Object.keys(LEAGUES_CONFIG).forEach(lid => {
             const st = getLeagueStandingsSorted(lid);
-            if (st.length > 0) {
+            if (lid === 'mls' && gameData.mlsPlayoff && gameData.mlsPlayoff.champion) {
+                const champKey = gameData.mlsPlayoff.champion;
+                const champEntry = st.find(e => e.team === champKey);
+                champions.push({
+                    team: champKey,
+                    league: LEAGUES_CONFIG[lid].tier || 1,
+                    leagueId: lid,
+                    points: champEntry ? champEntry.points : 0,
+                    title: '미국 MLS컵 우승'
+                });
+            } else if (st.length > 0) {
                 champions.push({
                     team: st[0].team,
                     league: LEAGUES_CONFIG[lid].tier || 1,

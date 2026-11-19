@@ -415,14 +415,17 @@ class RealSoccerEngine {
         if (cfg.passing === 'direct' || cfg.passing === 'long') base.directness = Math.min(1.3, base.directness + 0.1);
         if (cfg.press === 'high') base.press = Math.min(1.3, base.press + 0.15);
 
-        // [신규] 전술 숙련도 버프 적용
-        if (typeof window !== 'undefined' && window.gameData && teamId === window.gameData.selectedTeam && window.gameData.tacticMastery) {
-            const mastery = window.gameData.tacticMastery[tactic] || 0;
-            if (mastery > 0) {
-                base.chanceRate += (mastery / 100) * 0.05; // 최대 0.05 보너스
-                base.press += (mastery / 100) * 0.1; // 최대 0.1 보너스
-                base.tempo += (mastery / 100) * 0.05; // 움직임 템포 향상
-            }
+        // [신규] 전술 숙련도 버프/페널티 적용 (50% 미만 시 마이너스)
+        if (typeof window !== 'undefined' && window.gameData && teamId === window.gameData.selectedTeam) {
+            const mastery = (typeof window.getTacticMasteryPct === 'function')
+                ? window.getTacticMasteryPct(tactic)
+                : ((window.gameData.tacticMastery && typeof window.gameData.tacticMastery[tactic] === 'number') ? window.gameData.tacticMastery[tactic] : 50);
+            const eff = (typeof window.getTacticMasteryEffect === 'function')
+                ? window.getTacticMasteryEffect(mastery)
+                : { chanceDelta: ((mastery - 50) / 50) * 0.04, pressDelta: ((mastery - 50) / 50) * 0.08, tempoDelta: ((mastery - 50) / 50) * 0.04 };
+            base.chanceRate = Math.max(0.05, base.chanceRate + eff.chanceDelta);
+            base.press = Math.max(0.3, base.press + eff.pressDelta);
+            base.tempo = Math.max(0.5, base.tempo + eff.tempoDelta);
         }
         // [신규] 포메이션 시너지 반영
         const df = this.getPlayersByTeam(teamId, 'DF').length;
