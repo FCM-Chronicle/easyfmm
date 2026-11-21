@@ -106,20 +106,20 @@ class SNSManager {
 
             // 시즌 결과 - 승격
             seasonPromotion: [
-                "⬆ [시즌 종료] {team}, {newLeague}부 리그 승격 확정! 축하합니다!",
+                "▲ [시즌 종료] {team}, {newLeague}부 리그 승격 확정! 축하합니다!",
                 "[시즌 종료] 승격의 주역! {team}, {newLeague}부 리그로!",
-                "⬆ [시즌 종료] {team}, {newLeague}부 리그 승격! 새로운 도전!",
+                "▲ [시즌 종료] {team}, {newLeague}부 리그 승격! 새로운 도전!",
                 "[시즌 종료] {team}, {newLeague}부 리그 승격 성공!",
                 "[시즌 종료] 꿈의 승격! {team}, {newLeague}부 리그로 올라간다!"
             ],
 
             // 시즌 결과 - 강등
             seasonRelegation: [
-                "⬇ [시즌 종료] {team}, {newLeague}부 리그 강등... 재기를 노린다",
+                "▼ [시즌 종료] {team}, {newLeague}부 리그 강등... 재기를 노린다",
                 "[시즌 종료] {team}, {newLeague}부 리그 강등 확정...",
-                "⬇ [시즌 종료] 아쉬운 강등... {team}, {newLeague}부 리그로",
+                "▼ [시즌 종료] 아쉬운 강등... {team}, {newLeague}부 리그로",
                 "[시즌 종료] {team}, {newLeague}부 리그 강등... 내년을 기약",
-                "⬇ [시즌 종료] {team}, {newLeague}부 리그로... 재도약 다짐"
+                "▼ [시즌 종료] {team}, {newLeague}부 리그로... 재도약 다짐"
             ],
 
             // 득점왕
@@ -149,15 +149,100 @@ class SNSManager {
 
             // 유망주 발굴 템플릿
             youthDiscovery: [
-                "와, 이 선수 물건인데? 제2의 {legendName}이 될 수 있을까?",
-                "이 유망주 잘 키우면 대박날 것 같다! 기대된다!",
-                "{legendName} 의 후계자라니 서사 지리네",
-                "이 선수 포텐셜 미쳤다... 잘만 크면 월클 각인데?",
-                "새로운 유망주 등장! 우리 팀의 미래가 밝다!",
-                "이 선수 영상 봤는데 진짜 잘하더라. 빨리 1군에서 보고 싶다.",
-                "기본기가 탄탄해 보이네. 잘 성장했으면 좋겠다.",
-                "제발 근본론만 지키자",
-                "선배님 따라서 열심히 하자 제발"
+                "[유스 소식] {team} 아카데미에 초특급 유망주 {playerName} 등장! 제2의 전설이 될 수 있을까?",
+                "[유스 콜업] {team}, 유망주 {playerName} 1군 콜업 임박! 팬들 기대감 폭발",
+                "[유스 리포트] {team}의 미래 {playerName}, 연습경기서 압도적 기량 과시",
+                "[유스 소식] 기본기가 탄탄한 {team}의 신성 {playerName}, 차세대 에이스 예약!",
+                "[유스 아카데미] {team} 팬들이 주목하는 원석 {playerName}, 곧 프로 데뷔?"
+            ],
+
+            // 선수 맹활약 / MOM 포스트
+            playerSpotlight: [
+                "[MOM] 오늘 경기의 주인공은 {playerName}({team})! {detail} 폭발하며 팀을 구했다!",
+                "[스타 집중조명] {team}의 에이스 {playerName}, {detail} 기록하며 압도적 퍼포먼스!",
+                "[인생경기] 미친 폼 보여주는 {playerName}({team})! 이 기세면 리그 최고 수준!",
+                "[히어로] 결정적인 순간 빛난 {playerName}({team})! 팬들 기립박수!",
+                "[폼 절정] 요즘 {playerName}({team}) 막을 수비수가 없다! {detail}"
+            ],
+
+            // 선수 부진 / 비판 포스트
+            playerCriticism: [
+                "[폼 저하] {team} {playerName}, 오늘 경기 최악의 부진... 팬들 인내심 한계",
+                "[비판 여론] {playerName}({team}), 결정적 찬스 무산과 잦은 실수로 도마 위",
+                "[부진 논란] 최근 경기력 급락한 {playerName}({team}), 선발 제외 목소리 커져",
+                "[위기] 제 몫을 못 해주는 {playerName}({team}), 반등이 시급하다"
+            ],
+
+            // 전술 분석 - 긍정
+            tacticalReviewPositive: [
+                "[전술 노트] {team} 감독의 전술이 완벽히 적중했다! {opponent} 상대로 압도적 경기 운영",
+                "[전술 호평] 유기적인 압박과 빠른 전환! {team}, 오늘 전술 완성도 최고조",
+                "[명장 포스] 상대 약점을 정확히 파고든 {team} 벤치의 수 싸움 완승!",
+                "[전술 리포트] {team}의 빌드업과 수비 조직력, 리그 최상위권 증명"
+            ],
+
+            // 전술 분석 - 부정
+            tacticalReviewNegative: [
+                "[전술 비판] {team}, 전술 부재 속 {opponent}에 무기력한 경기력 노출",
+                "[전술 의문] 교체 타이밍도, 플랜 B도 없었다... {team} 감독 전술 도마 위",
+                "[수비 붕괴] {team}의 뒷공간이 너무 쉽게 뚫린다! 전술적 보완 시급",
+                "[전술 리포트] 답답한 공격 전개에 그친 {team}, 변화가 필요한 시점"
+            ],
+
+            // 팀 분위기 / 연승·위기
+            teamAtmospherePositive: [
+                "[팀 분위기] {team}, 최근 상승세 타고 라커룸 분위기 최고조! 거침없는 질주",
+                "[상승세] 무서운 기세의 {team}, 팬들 사이에서 '우승 후보' 거론 시작",
+                "[팀 리포트] 흔들리지 않는 {team}, 완벽한 공수 밸런스로 순항 중"
+            ],
+            teamAtmosphereNegative: [
+                "[팀 위기] {team}, 최근 부진 탈출 실패... 감독 거취 및 선수단 분위기 술렁",
+                "[위기설] 반등이 절실한 {team}, 다음 경기 결과에 따라 큰 변화 올 수도",
+                "[팀 리포트] 침체된 {team} 분위기, 베테랑들의 리더십이 필요한 때"
+            ],
+
+            // 리그 순위 / 판도
+            leagueStandingsTalk: [
+                "[리그 판도] {league}부 리그 순위 경쟁 점입가경! {team}의 행보에 이목 집중",
+                "[순위 분석] {league}부 리그 중반부 돌입! {team}, 목표 달성을 위한 승점 사냥",
+                "[리그 이슈] 매 라운드가 결승전 같은 {league}부 리그! {team}의 다음 상대는?",
+                "[순위표 체크] 치열한 {league}부 리그 순위 싸움, {team} 팬들 계산기 두드리는 중"
+            ],
+
+            // 라커룸 / 훈련장 비하인드
+            lockerRoomNews: [
+                "[비하인드] {team} 훈련장 분위기 포착! {playerName} 중심으로 똘똘 뭉친 선수단",
+                "[라커룸 소식] {team} 주전 경쟁 치열! 훈련장서 구슬땀 흘리는 {playerName}",
+                "[팀 케미] 경기장 밖에서도 끈끈한 {team} 선수들, {playerName}의 분위기 메이커 활약",
+                "[훈련 리포트] 다음 경기를 앞두고 전술 훈련에 매진하는 {team} 선수단"
+            ],
+
+            // 팬 반응 - 긍정 / 부정
+            fanReactionPositive: [
+                "[팬 존] {team} 팬들 열광! 경기장 가득 메운 응원가와 뜨거운 환호",
+                "[서포터즈] '우리 팀이 자랑스럽다!' {team} 팬 커뮤니티 축제 분위기",
+                "[팬심 폭발] {team} 유니폼 판매량 급증! 식을 줄 모르는 팬들의 사랑"
+            ],
+            fanReactionNegative: [
+                "[팬 분노] {team} 서포터즈, 최근 경기력에 집단 항의... 프론트·감독 향해 성명 발표",
+                "[야유] 경기 종료 후 싸늘한 {team} 홈 관중석... '정신 차려라' 외침",
+                "[팬심 이반] {team} 팬 커뮤니티 들끓는 불만, 반전의 계기가 시급"
+            ],
+
+            // 감독 인터뷰 / 어록
+            managerQuote: [
+                "[기자회견] {team} 감독: \"선수들의 투지를 믿는다. 팬들에게 승리로 보답할 것\"",
+                "[인터뷰] {team} 감독: \"우리가 준비한 축구를 보여줄 때다. 두려움 없이 맞서겠다\"",
+                "[감독 어록] {team} 감독: \"결과에 대한 책임은 내가 진다. 더 단단해져서 돌아오겠다\"",
+                "[프레스룸] {team} 감독: \"매 경기가 도전이다. 라커룸 분위기는 여전히 긍정적\""
+            ],
+
+            // 재계약 / 방출 소식
+            contractNews: [
+                "[계약 소식] {team}, 핵심 자원 {playerName}과 장기 재계약 추진! 협상 순항 중",
+                "[재계약 임박] {playerName}, {team} 잔류 유력! 팬들 '종신 계약 가자'",
+                "[스쿼드 정리] {team}, {playerName} 포함 일부 선수단 개편 검토 중?",
+                "[계약 이슈] {team}과 {playerName}의 동행은 계속될까? 재계약 테이블 주목"
             ],
             
             rebirth: [
@@ -168,6 +253,9 @@ class SNSManager {
     }
 
     addPost(post) {
+        if (post && !post.sentiment) {
+            this.applySentimentToPost(post);
+        }
         this.posts.unshift(post);
         this.enqueuePreGenerate(post);
     }
@@ -225,7 +313,7 @@ class SNSManager {
         try {
             const cleanContent = post.content ? post.content.replace(/<[^>]*>?/gm, ' ').replace(/\s+/g, ' ').trim() : "";
             
-            const aiCommentsText = await this.callNvidiaForComments(cleanContent);
+            const aiCommentsText = await this.callNvidiaForComments(cleanContent, post);
             
             if (aiCommentsText && aiCommentsText.length > 0) {
                 post.generatedComments = this.buildAICommentObjects(aiCommentsText, post.timestamp);
@@ -451,8 +539,13 @@ class SNSManager {
         let template;
         let templateData = {};
 
-        if (homeScore === awayScore) {
-            if (strengthDiff > 10) {
+        const isDraw = homeScore === awayScore;
+        const isDrawShocking = isDraw && strengthDiff > 10;
+        const isUpset = !isDraw && ((homeScore > awayScore ? homeRating : awayRating) < (homeScore > awayScore ? awayRating : homeRating));
+        const totalGoals = homeScore + awayScore;
+
+        if (isDraw) {
+            if (isDrawShocking) {
                 template = this.getRandomTemplate('matchResultDrawShocking');
                 templateData = {
                     strongTeam: homeRating > awayRating ? this.getTeamName(homeTeam) : this.getTeamName(awayTeam),
@@ -470,8 +563,6 @@ class SNSManager {
         } else {
             const winTeam = homeScore > awayScore ? homeTeam : awayTeam;
             const loseTeam = homeScore > awayScore ? awayTeam : homeTeam;
-            const winnerRating = homeScore > awayScore ? homeRating : awayRating;
-            const loserRating = homeScore > awayScore ? awayRating : homeRating;
 
             templateData = {
                 winTeam: this.getTeamName(winTeam),
@@ -482,9 +573,6 @@ class SNSManager {
                 userTeam: this.getTeamName(gameData.selectedTeam),
                 opponentTeam: this.getTeamName(homeTeam === gameData.selectedTeam ? awayTeam : homeTeam)
             };
-
-            const isUpset = winnerRating < loserRating;
-            const totalGoals = homeScore + awayScore;
 
             if (isUserMatch && payload.userResult === 'win') {
                 template = this.getRandomTemplate('matchResultUserWin');
@@ -526,11 +614,253 @@ class SNSManager {
             goalScorers: goalRecords.join(', '),
             goalRecords: goalRecords,
             isUserMatch: isUserMatch,
-            userResult: payload.userResult || null
+            userResult: payload.userResult || null,
+            isUpset: isUpset,
+            isDrawShocking: isDrawShocking,
+            strengthDiff: strengthDiff,
+            totalGoals: totalGoals
         };
+        this.applySentimentToPost(post);
 
         this.addPost(post);
         console.log(`[SNS] 경기 결과 포스트 생성: ${post.content}`);
+
+        // 경기 결과에 따른 후속 포스트 자동 생성 (선수 활약, 전술 리뷰, 팬 반응 등)
+        this.generatePostMatchFollowUps(payload, isUserMatch);
+
+        return post;
+    }
+
+    // 경기 후 후속 포스트(MOM, 전술 리뷰, 팬 반응) 생성
+    generatePostMatchFollowUps(payload, isUserMatch) {
+        try {
+            const homeScore = Number(payload.homeScore) || 0;
+            const awayScore = Number(payload.awayScore) || 0;
+            const events = Array.isArray(payload.goalEvents || payload.events) ? (payload.goalEvents || payload.events) : [];
+
+            // 1) 멀티골/해트트릭 득점자 MOM 포스트
+            const scorerCounts = {};
+            events.forEach(ev => {
+                if (ev && ev.type === 'goal' && ev.scorer) {
+                    const key = `${ev.scorer}|||${ev.teamKey || ''}`;
+                    scorerCounts[key] = (scorerCounts[key] || 0) + 1;
+                }
+            });
+            const topEntry = Object.entries(scorerCounts).sort((a, b) => b[1] - a[1])[0];
+            if (topEntry && topEntry[1] >= 2) {
+                const [scorerName, goals] = [topEntry[0].split('|||')[0], topEntry[1]];
+                const teamKey = topEntry[0].split('|||')[1] || (homeScore >= awayScore ? payload.homeTeam : payload.awayTeam);
+                const detail = goals >= 3 ? `해트트릭(${goals}골)` : `멀티골(${goals}골)`;
+                this.generatePlayerSpotlightPost(scorerName, teamKey, detail, true);
+            }
+
+            // 2) 유저 경기일 경우 전술 리뷰 또는 팬 반응 추가 생성 (50% 확률)
+            if (isUserMatch && payload.userResult && payload.userResult !== 'draw') {
+                const userTeam = gameData.selectedTeam;
+                const opponentTeam = payload.homeTeam === userTeam ? payload.awayTeam : payload.homeTeam;
+                const isWin = payload.userResult === 'win';
+                const rand = Math.random();
+                if (rand < 0.35) {
+                    this.generateTacticalReviewPost(userTeam, opponentTeam, isWin);
+                } else if (rand < 0.65) {
+                    this.generateFanReactionPost(userTeam, isWin);
+                }
+            }
+        } catch (e) {
+            console.warn('[SNS] 경기 후속 포스트 생성 중 오류:', e);
+        }
+    }
+
+    // 선수 활약/부진 포스트 생성
+    generatePlayerSpotlightPost(playerName, teamKey, detail = '눈부신 활약', isPositive = true) {
+        const templateKey = isPositive ? 'playerSpotlight' : 'playerCriticism';
+        const template = this.getRandomTemplate(templateKey);
+        const teamName = this.getTeamName(teamKey);
+
+        const post = {
+            id: this.postIdCounter++,
+            type: isPositive ? 'player_spotlight' : 'player_criticism',
+            content: this.fillTemplate(template, { playerName, team: teamName, detail }),
+            hashtags: [
+                isPositive ? '#MOM' : '#폼저하',
+                `#${this.sanitizeHashtag(teamKey)}`,
+                `#${this.sanitizeHashtag(playerName)}`
+            ],
+            timestamp: Date.now(),
+            likes: Math.floor(Math.random() * 900) + 150,
+            comments: Math.floor(Math.random() * 180) + 20,
+            shares: Math.floor(Math.random() * 60) + 10,
+            playerName,
+            teamKey
+        };
+
+        this.addPost(post);
+        return post;
+    }
+
+    // 전술 평가 포스트 생성
+    generateTacticalReviewPost(teamKey, opponentKey, isPositive = true) {
+        const templateKey = isPositive ? 'tacticalReviewPositive' : 'tacticalReviewNegative';
+        const template = this.getRandomTemplate(templateKey);
+        const teamName = this.getTeamName(teamKey);
+        const opponentName = this.getTeamName(opponentKey || teamKey);
+
+        const post = {
+            id: this.postIdCounter++,
+            type: 'tactical_review',
+            isPositive,
+            content: this.fillTemplate(template, { team: teamName, opponent: opponentName }),
+            hashtags: ['#전술분석', `#${this.sanitizeHashtag(teamKey)}`, isPositive ? '#명장' : '#전술논란'],
+            timestamp: Date.now(),
+            likes: Math.floor(Math.random() * 600) + 80,
+            comments: Math.floor(Math.random() * 140) + 15,
+            shares: Math.floor(Math.random() * 40) + 5,
+            teamKey,
+            opponentKey
+        };
+
+        this.addPost(post);
+        return post;
+    }
+
+    // 팀 분위기 / 상승세·위기 포스트 생성
+    generateTeamAtmospherePost(teamKey, isPositive = true) {
+        const template = this.getRandomTemplate(isPositive ? 'teamAtmospherePositive' : 'teamAtmosphereNegative');
+        const post = {
+            id: this.postIdCounter++,
+            type: 'team_atmosphere',
+            isPositive,
+            content: this.fillTemplate(template, { team: this.getTeamName(teamKey) }),
+            hashtags: [isPositive ? '#상승세' : '#팀위기', `#${this.sanitizeHashtag(teamKey)}`],
+            timestamp: Date.now(),
+            likes: Math.floor(Math.random() * 500) + 70,
+            comments: Math.floor(Math.random() * 120) + 15,
+            shares: Math.floor(Math.random() * 35) + 5,
+            teamKey
+        };
+
+        this.addPost(post);
+        return post;
+    }
+
+    // 리그 순위 판도 포스트 생성
+    generateLeagueStandingsPost(teamKey, league = 1) {
+        const template = this.getRandomTemplate('leagueStandingsTalk');
+        const post = {
+            id: this.postIdCounter++,
+            type: 'league_standings',
+            content: this.fillTemplate(template, { team: this.getTeamName(teamKey), league }),
+            hashtags: [`#${league}부리그`, '#순위경쟁', `#${this.sanitizeHashtag(teamKey)}`],
+            timestamp: Date.now(),
+            likes: Math.floor(Math.random() * 450) + 60,
+            comments: Math.floor(Math.random() * 90) + 10,
+            shares: Math.floor(Math.random() * 25) + 3,
+            teamKey,
+            league
+        };
+
+        this.addPost(post);
+        return post;
+    }
+
+    // 라커룸 / 훈련장 소식 포스트 생성
+    generateLockerRoomPost(teamKey, playerName) {
+        const template = this.getRandomTemplate('lockerRoomNews');
+        const post = {
+            id: this.postIdCounter++,
+            type: 'locker_room',
+            content: this.fillTemplate(template, { team: this.getTeamName(teamKey), playerName }),
+            hashtags: ['#훈련장', '#라커룸', `#${this.sanitizeHashtag(teamKey)}`, `#${this.sanitizeHashtag(playerName)}`],
+            timestamp: Date.now(),
+            likes: Math.floor(Math.random() * 550) + 90,
+            comments: Math.floor(Math.random() * 70) + 8,
+            shares: Math.floor(Math.random() * 20) + 2,
+            teamKey,
+            playerName
+        };
+
+        this.addPost(post);
+        return post;
+    }
+
+    // 팬 반응 포스트 생성
+    generateFanReactionPost(teamKey, isPositive = true) {
+        const template = this.getRandomTemplate(isPositive ? 'fanReactionPositive' : 'fanReactionNegative');
+        const post = {
+            id: this.postIdCounter++,
+            type: 'fan_reaction',
+            isPositive,
+            content: this.fillTemplate(template, { team: this.getTeamName(teamKey) }),
+            hashtags: ['#팬반응', '#서포터즈', `#${this.sanitizeHashtag(teamKey)}`],
+            timestamp: Date.now(),
+            likes: Math.floor(Math.random() * 700) + 100,
+            comments: Math.floor(Math.random() * 200) + 25,
+            shares: Math.floor(Math.random() * 45) + 5,
+            teamKey
+        };
+
+        this.addPost(post);
+        return post;
+    }
+
+    // 감독 인터뷰 포스트 생성
+    generateManagerQuotePost(teamKey, isPositive = true) {
+        const template = this.getRandomTemplate('managerQuote');
+        const post = {
+            id: this.postIdCounter++,
+            type: 'manager_quote',
+            isPositive,
+            content: this.fillTemplate(template, { team: this.getTeamName(teamKey) }),
+            hashtags: ['#기자회견', '#감독인터뷰', `#${this.sanitizeHashtag(teamKey)}`],
+            timestamp: Date.now(),
+            likes: Math.floor(Math.random() * 400) + 50,
+            comments: Math.floor(Math.random() * 110) + 15,
+            shares: Math.floor(Math.random() * 30) + 4,
+            teamKey
+        };
+
+        this.addPost(post);
+        return post;
+    }
+
+    // 유망주 발굴 포스트 생성
+    generateYouthDiscoveryPost(teamKey, playerName) {
+        const template = this.getRandomTemplate('youthDiscovery');
+        const post = {
+            id: this.postIdCounter++,
+            type: 'youth_discovery',
+            content: this.fillTemplate(template, { team: this.getTeamName(teamKey), playerName }),
+            hashtags: ['#유스', '#유망주', `#${this.sanitizeHashtag(teamKey)}`, `#${this.sanitizeHashtag(playerName)}`],
+            timestamp: Date.now(),
+            likes: Math.floor(Math.random() * 650) + 120,
+            comments: Math.floor(Math.random() * 95) + 12,
+            shares: Math.floor(Math.random() * 35) + 5,
+            teamKey,
+            playerName
+        };
+
+        this.addPost(post);
+        return post;
+    }
+
+    // 재계약 / 스쿼드 개편 소식 포스트 생성
+    generateContractNewsPost(playerName, teamKey, isRenewal = true) {
+        const template = this.getRandomTemplate('contractNews');
+        const post = {
+            id: this.postIdCounter++,
+            type: 'contract_news',
+            isPositive: isRenewal,
+            content: this.fillTemplate(template, { team: this.getTeamName(teamKey), playerName }),
+            hashtags: [isRenewal ? '#재계약' : '#계약이슈', `#${this.sanitizeHashtag(teamKey)}`, `#${this.sanitizeHashtag(playerName)}`],
+            timestamp: Date.now(),
+            likes: Math.floor(Math.random() * 500) + 80,
+            comments: Math.floor(Math.random() * 90) + 10,
+            shares: Math.floor(Math.random() * 25) + 3,
+            teamKey,
+            playerName
+        };
+
+        this.addPost(post);
         return post;
     }
 
@@ -563,21 +893,63 @@ class SNSManager {
             comments: Math.floor(Math.random() * 100) + 5,
             shares: Math.floor(Math.random() * 30) + 2,
             playerName: playerName,
+            fromTeam: fromTeam,
             toTeam: toTeam,
+            rawTransferFee: Number(transferFee) || 0,
             transferFee: templateData.transferFee
         };
+        this.applySentimentToPost(post);
 
         this.addPost(post);
         console.log(`[SNS] 이적 포스트 생성: ${post.content}`);
         return post;
     }
 
+    pickRandomTeamAndPlayer() {
+        const teamsObj = (typeof allTeams !== 'undefined' && allTeams)
+            ? allTeams
+            : (typeof teams !== 'undefined' ? teams : null);
+        if (!teamsObj) return null;
+
+        const teamKeys = Object.keys(teamsObj);
+        if (teamKeys.length === 0) return null;
+
+        const useUserTeam = Math.random() < 0.35 && typeof gameData !== 'undefined' && gameData.selectedTeam && teamsObj[gameData.selectedTeam];
+        const teamKey = useUserTeam ? gameData.selectedTeam : teamKeys[Math.floor(Math.random() * teamKeys.length)];
+        const players = teamsObj[teamKey] && teamsObj[teamKey].players
+            ? teamsObj[teamKey].players
+            : (Array.isArray(teamsObj[teamKey]) ? teamsObj[teamKey] : []);
+        const player = players && players.length > 0 ? players[Math.floor(Math.random() * players.length)] : null;
+        const league = (teamsObj[teamKey] && teamsObj[teamKey].league) || (typeof gameData !== 'undefined' ? gameData.currentLeague : 1) || 1;
+
+        return { teamKey, player, league };
+    }
+
     generateRandomAINews() {
         const rand = Math.random();
-        if (rand < 0.2) { // 20% 확률
+        const picked = this.pickRandomTeamAndPlayer();
+
+        if (rand < 0.16) {
             this.generateAIMatchPreview();
-        } else if (rand < 0.3) { // 10% 확률로 루머
+        } else if (rand < 0.28) {
             this.generateRandomTransferRumor();
+        } else if (picked) {
+            const playerName = picked.player ? picked.player.name : '에이스';
+            if (rand < 0.40) {
+                this.generatePlayerSpotlightPost(playerName, picked.teamKey, '최근 맹활약', Math.random() < 0.7);
+            } else if (rand < 0.52) {
+                this.generateLeagueStandingsPost(picked.teamKey, picked.league);
+            } else if (rand < 0.64) {
+                this.generateLockerRoomPost(picked.teamKey, playerName);
+            } else if (rand < 0.76) {
+                this.generateFanReactionPost(picked.teamKey, Math.random() < 0.6);
+            } else if (rand < 0.86) {
+                this.generateManagerQuotePost(picked.teamKey, Math.random() < 0.65);
+            } else if (rand < 0.93) {
+                this.generateYouthDiscoveryPost(picked.teamKey, playerName);
+            } else {
+                this.generateContractNewsPost(playerName, picked.teamKey, Math.random() < 0.75);
+            }
         }
     }
 
@@ -798,10 +1170,25 @@ class SNSManager {
         if (post.type === 'match_result') postingTeam = post.homeTeam || postingTeam;
         else if (post.type === 'match_preview') postingTeam = post.team1 || postingTeam;
         else if (post.type === 'transfer_confirmed' || post.type === 'transfer_rumor') postingTeam = post.toTeam || postingTeam;
-        else if (post.type === 'rebirth') postingTeam = post.teamKey || postingTeam;
+        else if (post.teamKey) postingTeam = post.teamKey;
 
         const teamName = this.getTeamName(postingTeam);
-        const stadium = post.type === 'match_result' || post.type === 'match_preview' ? "Official Stadium" : post.type === 'rebirth' ? "Youth Academy" : "Transfer Market";
+        const locationMap = {
+            match_result: 'Official Stadium',
+            match_preview: 'Official Stadium',
+            rebirth: 'Youth Academy',
+            youth_discovery: 'Youth Academy',
+            tactical_review: 'Tactics Desk',
+            player_spotlight: 'Match Spotlight',
+            player_criticism: 'Match Report',
+            league_standings: 'League Desk',
+            locker_room: 'Training Ground',
+            fan_reaction: 'Fan Zone',
+            manager_quote: 'Press Conference',
+            team_atmosphere: 'Club News',
+            contract_news: 'Contract Desk'
+        };
+        const stadium = locationMap[post.type] || 'Transfer Market';
 
         const header = document.createElement('div');
         header.className = 'insta-header';
@@ -958,6 +1345,62 @@ class SNSManager {
             titleDiv.append(`${post.playerName} 은퇴,`, document.createElement('br'), '이어받을 유망주 등장');
 
             mediaEl.append(overlay, titleDiv);
+        } else {
+            const cardTeamKey = post.teamKey || postingTeam || '';
+            const bgUrl = cardTeamKey ? `assets/bg/${cardTeamKey}.png` : 'assets/bg/basic.png';
+            const tagMap = {
+                player_spotlight: '[PLAYER SPOTLIGHT]',
+                player_criticism: '[FORM WATCH]',
+                youth_discovery: '[YOUTH ACADEMY]',
+                locker_room: '[LOCKER ROOM]',
+                contract_news: '[CONTRACT]',
+                tactical_review: '[TACTICS]',
+                team_atmosphere: '[CLUB REPORT]',
+                league_standings: '[STANDINGS]',
+                fan_reaction: '[FAN ZONE]',
+                manager_quote: '[PRESS ROOM]',
+                season_champion: '[CHAMPIONS]',
+                season_promotion: '[PROMOTED]',
+                season_relegation: '[RELEGATED]',
+                top_scorer: '[GOLDEN BOOT]',
+                top_assister: '[PLAYMAKER]'
+            };
+
+            mediaEl = document.createElement('div');
+            mediaEl.className = 'insta-media transfer-graphic-card';
+            mediaEl.style.backgroundImage = `url('${bgUrl}'), url('assets/bg/basic.png')`;
+
+            const overlay = document.createElement('div');
+            overlay.className = 'transfer-card-overlay';
+
+            let playerImg = null;
+            if (post.playerName && typeof setPlayerPhoto === 'function') {
+                playerImg = document.createElement('img');
+                playerImg.className = 'transfer-card-player';
+                setPlayerPhoto(playerImg, post.playerName);
+            }
+
+            const footer = document.createElement('div');
+            footer.className = 'transfer-card-footer';
+
+            const footerTop = document.createElement('div');
+            footerTop.className = 'transfer-footer-top';
+            if (cardTeamKey && typeof createTeamLogoElement === 'function') {
+                footerTop.appendChild(createTeamLogoElement(cardTeamKey));
+            }
+            const tagSpan = document.createElement('span');
+            tagSpan.className = 'transfer-official-tag';
+            tagSpan.textContent = tagMap[post.type] || '[NEWS]';
+            footerTop.appendChild(tagSpan);
+
+            const headline = document.createElement('div');
+            headline.className = 'transfer-main-headline';
+            headline.textContent = String(post.content || '').replace(/<[^>]*>?/gm, ' ').replace(/\s+/g, ' ').trim();
+
+            footer.append(footerTop, headline);
+            mediaEl.append(overlay);
+            if (playerImg) mediaEl.append(playerImg);
+            mediaEl.append(footer);
         }
 
         const actions = document.createElement('div');
@@ -966,30 +1409,38 @@ class SNSManager {
         const actionsLeft = document.createElement('div');
         actionsLeft.className = 'actions-left';
 
+        const setActionIcon = (el, iconName, fallbackText) => {
+            if (typeof createIcon === 'function') {
+                el.replaceChildren(createIcon(iconName));
+            } else {
+                el.textContent = fallbackText;
+            }
+        };
+
         const heartIcon = document.createElement('span');
-        heartIcon.className = 'action-icon';
+        heartIcon.className = `action-icon${post._liked ? ' is-liked' : ''}`;
         heartIcon.title = '좋아요';
-        heartIcon.textContent = post._liked ? '❤️' : '🤍';
+        setActionIcon(heartIcon, 'heart', post._liked ? '♥' : '♡');
 
         const commentIcon = document.createElement('span');
         commentIcon.className = 'action-icon sns-comments-btn';
         commentIcon.dataset.postId = post.id;
         commentIcon.title = '댓글 보기';
-        commentIcon.textContent = '💬';
+        setActionIcon(commentIcon, 'chat', '댓글');
 
         const shareIcon = document.createElement('span');
         shareIcon.className = 'action-icon';
         shareIcon.title = '공유';
-        shareIcon.textContent = '↗️';
+        setActionIcon(shareIcon, 'send', '공유');
 
         actionsLeft.append(heartIcon, commentIcon, shareIcon);
 
         const actionsRight = document.createElement('div');
         actionsRight.className = 'actions-right';
         const bookmarkIcon = document.createElement('span');
-        bookmarkIcon.className = 'action-icon';
+        bookmarkIcon.className = `action-icon${post._bookmarked ? ' is-bookmarked' : ''}`;
         bookmarkIcon.title = '저장';
-        bookmarkIcon.textContent = post._bookmarked ? '🔖' : '📑';
+        setActionIcon(bookmarkIcon, 'bookmark', post._bookmarked ? '★' : '☆');
         actionsRight.appendChild(bookmarkIcon);
 
         actions.append(actionsLeft, actionsRight);
@@ -1005,12 +1456,18 @@ class SNSManager {
         heartIcon.addEventListener('click', () => {
             post._liked = !post._liked;
             post.likes = Math.max(0, (Number(post.likes) || 0) + (post._liked ? 1 : -1));
-            heartIcon.textContent = post._liked ? '❤️' : '🤍';
+            heartIcon.classList.toggle('is-liked', post._liked);
+            if (typeof createIcon !== 'function') {
+                heartIcon.textContent = post._liked ? '♥' : '♡';
+            }
             likesCount.textContent = `좋아요 ${post.likes.toLocaleString()}개`;
         });
         bookmarkIcon.addEventListener('click', () => {
             post._bookmarked = !post._bookmarked;
-            bookmarkIcon.textContent = post._bookmarked ? '🔖' : '📑';
+            bookmarkIcon.classList.toggle('is-bookmarked', post._bookmarked);
+            if (typeof createIcon !== 'function') {
+                bookmarkIcon.textContent = post._bookmarked ? '★' : '☆';
+            }
         });
 
         const caption = document.createElement('div');
@@ -1133,8 +1590,12 @@ class SNSManager {
     }
 
     // [수정] NVIDIA NIM API 호출 함수 (웹/웹뷰 공용 프록시 경유)
-    async callNvidiaForComments(postContent) {
+    async callNvidiaForComments(postContent, post = null) {
         const candidates = this.getNvidiaProxyCandidates();
+        const sentimentInfo = post ? this.determineSentiment(post) : { sentiment: 'mixed', moodLabel: '[갈드컵(논쟁) 모드]', reason: '일반 게시물' };
+        const userPrompt = post
+            ? `게시물 내용: "${postContent}"\n현재 팬 여론 모드: ${sentimentInfo.moodLabel} (${sentimentInfo.reason})\n위 여론 모드와 상황에 정확히 맞춰 댓글 3개를 작성하라.`
+            : `게시물 내용: "${postContent}"`;
         const requestBody = JSON.stringify({
             messages: [
                 {
@@ -1143,7 +1604,7 @@ class SNSManager {
                 },
                 {
                     role: "user",
-                    content: `게시물 내용: "${postContent}"`
+                    content: userPrompt
                 }
             ],
             model: "nvidia/nemotron-3.5-super-vl-120b-a12b",
@@ -1217,7 +1678,7 @@ class SNSManager {
                 post.isGeneratingComments = true;
                 try {
                     const cleanContent = post.content ? post.content.replace(/<[^>]*>?/gm, ' ').replace(/\s+/g, ' ').trim() : "";
-                    const aiCommentsText = await this.callNvidiaForComments(cleanContent);
+                    const aiCommentsText = await this.callNvidiaForComments(cleanContent, post);
                     if (aiCommentsText && aiCommentsText.length > 0) {
                         post.generatedComments = this.buildAICommentObjects(aiCommentsText, post.timestamp);
                         post.isAIFinalized = true;
@@ -1329,227 +1790,383 @@ class SNSManager {
         this.lastUpdateTime = Date.now();
     }
     // generateComments 함수를 이렇게 수정하세요
-    generateComments(post) {
-        const commentTemplates = {
-            match_result: [
-                "ㄹㅈㄷ 경기였다 ㄷㄷ",
-                "이게 맞나요?? 믿을 수가 없네요",
-                "오늘 경기 레전드다 진짜",
-                "완전 명승부였음",
-                "'축구로 우울할 필요 없어, 인생이 더 중요,' - 미겔 아르테타",
-                "'[WEB발신] 너는나를존중해야한다나는수많은.... 더보기",
-                "이 경기 못본 사람 손?",
-                "역시 축구는 해봐야 아는거다",
-                "감독 전술이 먹혔네요",
-                "수비 진짜 개판이네 ㅋㅋㅋㅋ",
-                "공격진이 살아났다!",
-                "이번 시즌 우승 가능??",
-                "감독 뭐하냐 진짜",
-                "수비수들 다 짤라야됨",
-                "골키퍼 뭐함? ㅋㅋㅋ",
-                "전술이 없어 전술이",
-                "아 답답해 미치겠네",
-                "선수들 발에 시멘트 발랐냐",
-                "이게 프로냐 진짜 ㅡㅡ",
-                "감독 경질각이다",
-                "패스 제대로 하는 놈이 없네",
-                "슛팅 왜 저따구로 쏨??",
-                "수비 구멍 뚫렸는데 왜 안막음",
-                "주전들 다 벤치박아야함",
-                "경기력 개쓰레기네요 ㅋㅋ",
-                "돈값 못하는 용병들",
-                "이러고 연봉 받아먹냐?",
-                "개똥구릉내나노"
+    // 상황별 여론(긍정/부정/혼합) 판별
+    determineSentiment(post) {
+        if (!post) {
+            return { sentiment: 'mixed', moodLabel: '[갈드컵(논쟁) 모드]', reason: '일반 게시물' };
+        }
 
-            ],
-            transfer_confirmed: [
-                "오 좋은 영입이다!",
-                "이 선수 괜찮은데??",
-                "비싸긴 한데 잘하면 인정",
-                "이적료 개비싸네 ㅋㅋㅋ",
-                "팀에 꼭 필요한 선수였음",
-                "역대급 영입이다 ㄷㄷ",
-                "벌써 기대된다",
-                "이 선수 영입하면 우승이다",
-                "환영합니다!! 화이팅",
-                "드디어 왔구나",
-                "와 이거 돈 날린거 아님? ㅋㅋ",
-                "프론트 제정신이냐",
-                "이딴 선수 데려올 돈으로 다른 애들 데려오지",
-                "완전 호구 트레이드 ㅋㅋㅋ",
-                "진심 왜왔지 ㅋㅋㅋㅋ",
-                "부상 많은 선수를 왜",
-                "?",
-                "오 쩐다",
-                "얘 전 팀에서 존나 못했는데",
-                "스카우터 해고해야됨",
-                "이적료 사기당했네 ㅅㅂ",
-                "역시 태산같은 클럽",
-                "???:송금 완료했습니다~"
-            ],
-            transfer_rumor: [
-                "설마 진짜?",
-                "루머 맞죠...?",
-                "이거 확정되면 대박인데",
-                "제발 성사되길",
-                "에이 거짓말이겠지",
-                "파브리치오가 말하면 믿어야지",
-                "이적료가 문제겠네",
-                "이 선수 우리팀에 딱인데",
-                "오지마 제발ㅠㅠ",
-                "스모크 스크린 아닐까",
-                "얘 오면 망하는데 ㅋㅋㅋ",
-                "프론트 정신차려",
-                "어그로 기사 작작써라",
-                "기자들 또 뇌피셜",
-                "이런 찌라시 믿는 사람있음?",
-                "이적시장 언론플레이 ㅈㄴ싫다",
-                "루머 퍼트리지 마세요",
-                "가짜뉴스 그만",
-                "팩트체크 해봄?",
-                "이거 맞으면 프론트 미친거임",
-                "공신력 어떤데?"
-            ],
-            season_champion: [
-                "축하합니다!!!",
-                "역시 강팀은 다르네요",
-                "완벽한 시즌이었다",
-                "우승 축하드려요!!",
-                "내년에도 화이팅!",
-                "챔피언의 위엄",
-                "이게 1등의 클래스지",
-                "정말 대단합니다",
-                "트로피 들어올리는 거 보고싶다",
-                "역대급 시즌이었음",
-                "심판 매수한 거 아님? ㅋㅋ",
-                "운빨로 우승했네",
-                "쉬운 일정 받았더만",
-                "다른 팀들 부진해서 그런거",
-                "내년엔 못할걸",
-                "홈 어드밴티지 지렸다",
-                "VAR 혜택 존나 받았음",
-                "공정하지 못한 우승",
-                "심판들 봐주기 개쩔었음",
-                "다음 시즌엔 떨어진다"
-            ],
-            season_promotion: [
-                "승격 축하드립니다!",
-                "드디어 올라갔네요!",
-                "내년 시즌 기대됩니다",
-                "상위리그에서도 화이팅",
-                "꿈이 이루어졌다 ㅠㅠ",
-                "승격의 기쁨을 누려라!",
-                "이제 시작이다!",
-                "1부리그 가보자고!",
-                "고생하셨습니다",
-                "감격스럽네요",
-                "올라가자마자 떨어질듯 ㅋㅋ",
-                "상위리그 가면 광탈",
-                "선수들 실력으로는 힘들텐데",
-                "1년 체류가 목표겠네",
-                "승격해도 꼴찌할듯",
-                "보강 안하면 바로 강등",
-                "로또 맞았네 ㅋㅋ",
-                "뽀록으로 올라감",
-                "다른 팀들이 못한거지",
-                "내년에 다시 내려온다"
-            ],
-            season_relegation: [
-                "내년에 다시 올라오자",
-                "아쉽지만 재정비가 필요해",
-                "내년을 기약합니다",
-                "이게 축구인가봐요...",
-                "다시 일어설 수 있어요",
-                "팬들이 함께 합니다",
-                "힘내세요 ㅠㅠ",
-                "반드시 복귀하자",
-                "재도약의 발판으로",
-                "이런 날도 있는 거지",
-                "감독부터 짤라야함",
-                "프론트 물갈이 해라",
-                "선수들 다 팔고 새로 뽑아",
-                "예상된 결과임 ㅋㅋ",
-                "이 실력으로 뭘 바람",
-                "투자 안하더니 당연한 결과",
-                "유스 육성도 안하고",
-                "돈만 축내는 놈들",
-                "감독 무능력의 결과",
-                "이제 망했다 진짜",
-                "팬들한테 사과나 해",
-                "책임지는 사람 없냐",
-                "구단 운영 개판"
-            ],
-            top_scorer: [
-                "득점왕 축하합니다!!",
-                "역시 골잡이는 다르네",
-                "이 선수 진짜 미쳤다",
-                "완전 득점 머신",
-                "발롱도르 가즈아",
-                "올 시즌 MVP",
-                "골든부트 축하드려요",
-                "레전드 등극",
-                "내년에도 부탁해요",
-                "경이로운 기록이다",
-                "팀 캐리했네 ㅋㅋ",
-                "혼자 다했음",
-                "나머지 공격수들 뭐함?",
-                "얘 빼면 골 넣는 놈이 없어",
-                "패널티킥 몇개임? ㅋㅋ",
-                "쉬운 골만 넣었네",
-                "다른 팀이면 못했을듯",
-                "운빨득점 많았음",
-                "혼자 다함",
-                "주서먹기 GOAT"
-            ],
-            top_assister: [
-                "도움왕 축하합니다!",
-                "어시스트 기계네 ㄷㄷ",
-                "패스 능력 지렸다",
-                "플레이메이커의 정석",
-                "이 선수가 있어서 다행",
-                "공격의 핵심",
-                "창의적인 플레이 최고",
-                "시야가 너무 넓어",
-                "득점보다 중요한 게 어시",
-                "진정한 사령탑",
-                "공격수들이 못넣어서 어시만 쌓임 ㅋㅋ",
-                "득점은 왜 못함?",
-                "도움만 주고 골은 못넣네",
-                "결정력 개떡같음",
-                "슛팅은 언제 배우냐",
-                "뽀록 어시 많았음",
-                "공격수가 잘한거지",
-                "과대평가 심함",
-                "다른 리그면 못했다",
-                "수비는 안하고 공격만 함"
-            ],
-            match_preview: [
-                "이 경기 꼭 봐야겠다",
-                "명승부 예감",
-                "누가 이길까요?",
-                "오늘 밤이 기대된다",
-                "양팀 다 화이팅!",
-                "티켓 구했다 ㅋㅋ",
-                "이거 못보면 후회함",
-                "드디어 이 매치업",
-                "결과가 궁금하네요",
-                "볼만한 경기다",
-                "둘다 노잼축구해서 재미없을듯",
-                "수준낮은 경기될듯 ㅋㅋ",
-                "별로 기대 안됨",
-                "볼까말까",
-                "어차피 심심한 경기",
-                "저걸 왜봄 차라리 내일 하이라이트만 챙겨봄",
-                "시작도 전에 잠들듯",
-                "이거 볼바에 다른거 봄",
-                "기대 1도 안됨"
-            ]
+        const userTeam = (typeof gameData !== 'undefined' && gameData.selectedTeam) ? gameData.selectedTeam : null;
+
+        switch (post.type) {
+            case 'match_result': {
+                const homeScore = Number(post.homeScore) || 0;
+                const awayScore = Number(post.awayScore) || 0;
+                const goalDiff = Math.abs(homeScore - awayScore);
+                const isDraw = homeScore === awayScore;
+
+                if (post.isUserMatch) {
+                    if (post.userResult === 'win') {
+                        const reason = post.isUpset
+                            ? '우리 팀이 강팀을 상대로 이변 승리'
+                            : (goalDiff >= 2 ? '우리 팀의 시원한 다득점 완승' : '우리 팀 승리');
+                        return { sentiment: 'positive', moodLabel: '[찬양 모드]', reason };
+                    }
+                    if (post.userResult === 'loss') {
+                        const reason = goalDiff >= 2
+                            ? '우리 팀의 아쉬운 완패'
+                            : '우리 팀 패배';
+                        return { sentiment: 'negative', moodLabel: '[비판/조롱 모드]', reason };
+                    }
+                    if (isDraw) {
+                        if (post.isDrawShocking) {
+                            return { sentiment: 'negative', moodLabel: '[비판/조롱 모드]', reason: '약팀 상대로 무승부에 그침' };
+                        }
+                        return { sentiment: 'mixed', moodLabel: '[갈드컵(논쟁) 모드]', reason: '우리 팀 무승부' };
+                    }
+                }
+
+                if (isDraw && post.isDrawShocking) {
+                    return { sentiment: 'negative', moodLabel: '[비판/조롱 모드]', reason: '강팀이 약팀과 비긴 충격적인 무승부' };
+                }
+                if (post.isUpset) {
+                    return { sentiment: 'mixed', moodLabel: '[갈드컵(논쟁) 모드]', reason: '이변이 일어난 경기 (승팀 찬양과 패팀 비판 공존)' };
+                }
+                if ((post.totalGoals || (homeScore + awayScore)) >= 5) {
+                    return { sentiment: 'positive', moodLabel: '[찬양 모드]', reason: '골이 쏟아진 화끈한 명승부' };
+                }
+                return { sentiment: 'mixed', moodLabel: '[갈드컵(논쟁) 모드]', reason: '일반 경기 결과' };
+            }
+
+            case 'transfer_confirmed': {
+                const fee = Number(post.rawTransferFee) || 0;
+                const isUserBuy = userTeam && post.toTeam === userTeam;
+                const isUserSell = userTeam && post.fromTeam === userTeam;
+
+                if (isUserBuy) {
+                    if (fee >= 1200) {
+                        return { sentiment: 'mixed', moodLabel: '[갈드컵(논쟁) 모드]', reason: '거액 이적료를 쓴 영입 (기대와 오버페이 우려 공존)' };
+                    }
+                    return { sentiment: 'positive', moodLabel: '[찬양 모드]', reason: '우리 팀의 전력 보강 영입' };
+                }
+                if (isUserSell) {
+                    if (fee > 0 && fee < 300) {
+                        return { sentiment: 'negative', moodLabel: '[비판/조롱 모드]', reason: '우리 팀 선수를 헐값에 보낸 이적' };
+                    }
+                    return { sentiment: 'mixed', moodLabel: '[갈드컵(논쟁) 모드]', reason: '우리 팀 선수 이적 (아쉬움과 이적료 평가 공존)' };
+                }
+                if (fee >= 1500) {
+                    return { sentiment: 'mixed', moodLabel: '[갈드컵(논쟁) 모드]', reason: '대형 이적료가 발생한 빅딜' };
+                }
+                return { sentiment: 'positive', moodLabel: '[찬양 모드]', reason: '새로운 팀 합류 소식' };
+            }
+
+            case 'transfer_rumor':
+                return { sentiment: 'mixed', moodLabel: '[갈드컵(논쟁) 모드]', reason: '진위가 불확실한 이적 루머' };
+
+            case 'season_champion':
+            case 'season_promotion':
+            case 'top_scorer':
+            case 'top_assister':
+            case 'rebirth':
+            case 'player_spotlight':
+            case 'youth_discovery':
+                return { sentiment: 'positive', moodLabel: '[찬양 모드]', reason: '축하 및 기대감이 높은 소식' };
+
+            case 'season_relegation':
+            case 'player_criticism':
+                return { sentiment: 'negative', moodLabel: '[비판/조롱 모드]', reason: '부진 및 실망에 따른 비판 여론' };
+
+            case 'tactical_review':
+            case 'team_atmosphere':
+            case 'fan_reaction':
+            case 'manager_quote':
+            case 'contract_news':
+                if (post.isPositive === true) {
+                    return { sentiment: 'positive', moodLabel: '[찬양 모드]', reason: '긍정적 분위기의 구단 소식' };
+                }
+                if (post.isPositive === false) {
+                    return { sentiment: 'negative', moodLabel: '[비판/조롱 모드]', reason: '부정적 분위기의 구단 소식' };
+                }
+                return { sentiment: 'mixed', moodLabel: '[갈드컵(논쟁) 모드]', reason: '다양한 의견이 오가는 구단 소식' };
+
+            case 'match_preview':
+            case 'league_standings':
+            case 'locker_room':
+                return { sentiment: 'mixed', moodLabel: '[갈드컵(논쟁) 모드]', reason: '경기 전 승부 예측과 팀 소식' };
+
+            default:
+                return { sentiment: 'mixed', moodLabel: '[갈드컵(논쟁) 모드]', reason: '일반 게시물' };
+        }
+    }
+
+    applySentimentToPost(post) {
+        if (!post) return;
+        const info = this.determineSentiment(post);
+        post.sentiment = info.sentiment;
+
+        if (info.sentiment === 'positive') {
+            post.likes = Math.round((Number(post.likes) || 100) * 1.25);
+            post.shares = Math.round((Number(post.shares) || 10) * 1.2);
+        } else if (info.sentiment === 'negative') {
+            post.likes = Math.max(10, Math.round((Number(post.likes) || 100) * 0.6));
+            post.comments = Math.round((Number(post.comments) || 20) * 1.5);
+        }
+    }
+
+    generateComments(post) {
+        const commentPools = {
+            match_result: {
+                positive: [
+                    "감독 전술이 완벽하게 먹혔네요",
+                    "오늘 공격진 폼 미쳤다 진짜",
+                    "이 맛에 축구 보지 ㅋㅋㅋ",
+                    "오늘 경기 레전드 명승부였음",
+                    "수비 집중력까지 완벽했다",
+                    "이번 시즌 우승 각 보인다!",
+                    "ㄹㅈㄷ 경기였다 ㄷㄷ",
+                    "역시 축구는 해봐야 아는 거다",
+                    "우리 팀 폼 절정이다 ㅅㅅ"
+                ],
+                negative: [
+                    "수비 진짜 개판이네 ㅋㅋㅋㅋ",
+                    "감독 뭐하냐 진짜 경질각이다",
+                    "수비수들 다 짤라야 됨",
+                    "골키퍼 뭐함? ㅋㅋㅋ",
+                    "전술이 없어 전술이",
+                    "아 답답해 미치겠네",
+                    "선수들 발에 시멘트 발랐냐",
+                    "이게 프로 경기력이냐 ㅡㅡ",
+                    "패스 제대로 하는 놈이 없네",
+                    "주전들 다 벤치 박아야 함",
+                    "경기력 개쓰레기네요 ㅋㅋ",
+                    "팬들한테 사과나 해라"
+                ],
+                neutral: [
+                    "이 경기 못 본 사람 손?",
+                    "하이라이트 다시 봐야겠다",
+                    "다음 경기가 진짜 중요해졌네",
+                    "'축구로 우울할 필요 없어, 인생이 더 중요' - 미겔 아르테타"
+                ]
+            },
+            transfer_confirmed: {
+                positive: [
+                    "오 진짜 좋은 영입이다!",
+                    "팀에 꼭 필요한 선수였음",
+                    "역대급 꿀영입이다 ㄷㄷ",
+                    "벌써 활약이 기대된다",
+                    "이 선수 영입하면 우승 도전 가능!",
+                    "환영합니다!! 화이팅",
+                    "드디어 왔구나 ㅅㅅ",
+                    "오 쩐다 프론트 일 잘하네"
+                ],
+                negative: [
+                    "와 이거 돈 날린 거 아님? ㅋㅋ",
+                    "프론트 제정신이냐",
+                    "이딴 선수 데려올 돈으로 다른 애들 데려오지",
+                    "완전 호구 딜 ㅋㅋㅋ",
+                    "진심 왜 왔지 ㅋㅋㅋㅋ",
+                    "이적료 개비싸네 오버페이 심하다",
+                    "스카우터 해고해야 됨",
+                    "역시 태산같은 클럽..."
+                ],
+                neutral: [
+                    "비싸긴 한데 잘하면 인정이지",
+                    "적응기만 잘 넘기면 괜찮을 듯",
+                    "일단 몇 경기 뛰는 거 보고 판단하자"
+                ]
+            },
+            transfer_rumor: {
+                positive: [
+                    "이거 확정되면 진짜 대박인데",
+                    "제발 성사되길 ㅠㅠ",
+                    "이 선수 우리 팀 전술에 딱인데",
+                    "로마노가 언급했으면 각 나온다"
+                ],
+                negative: [
+                    "오지 마 제발 ㅠㅠ",
+                    "얘 오면 망하는데 ㅋㅋㅋ",
+                    "프론트 정신 차려",
+                    "기자들 또 뇌피셜 쓰네",
+                    "이런 찌라시 믿는 사람 있음?",
+                    "가짜뉴스 그만 좀"
+                ],
+                neutral: [
+                    "설마 진짜?",
+                    "이적료가 관건이겠네",
+                    "공신력 어느 정도임?",
+                    "스모크 스크린 아닐까"
+                ]
+            },
+            season_champion: {
+                positive: [
+                    "우승 축하드립니다!!!",
+                    "역시 강팀은 다르네요",
+                    "완벽한 시즌이었다",
+                    "챔피언의 위엄 미쳤다",
+                    "이게 1등의 클래스지",
+                    "트로피 들어올리는 거 개멋있다",
+                    "역대급 시즌이었음 ㅅㅅ"
+                ],
+                negative: [
+                    "다음 시즌엔 지켜내려나 ㅋㅋ",
+                    "다른 팀들이 부진해서 탄 거지",
+                    "쉬운 일정 빨 좀 받았네"
+                ],
+                neutral: [
+                    "내년 시즌도 기대됩니다",
+                    "올 시즌 정말 수고 많았습니다"
+                ]
+            },
+            season_promotion: {
+                positive: [
+                    "승격 축하드립니다!",
+                    "드디어 올라갔네요 ㅠㅠ",
+                    "상위 리그에서도 화이팅!",
+                    "꿈이 이루어졌다!",
+                    "고생 많으셨습니다 감격스럽네요",
+                    "이제 시작이다 가보자고!"
+                ],
+                negative: [
+                    "올라가자마자 떨어질 듯 ㅋㅋ",
+                    "보강 안 하면 바로 강등각",
+                    "1년 체류가 목표겠네"
+                ],
+                neutral: [
+                    "여름 이적시장이 진짜 중요하겠다",
+                    "상위 리그에서도 통할지 궁금하네"
+                ]
+            },
+            season_relegation: {
+                positive: [
+                    "내년에 다시 올라오자 화이팅",
+                    "다시 일어설 수 있어요",
+                    "팬들은 끝까지 함께 합니다",
+                    "재정비해서 반드시 복귀하자"
+                ],
+                negative: [
+                    "감독부터 짤라야 함",
+                    "프론트 물갈이 해라",
+                    "예상된 결과임 ㅋㅋ",
+                    "투자 안 하더니 당연한 결과",
+                    "구단 운영 개판이네",
+                    "팬들한테 사과나 해라",
+                    "책임지는 사람 없냐?"
+                ],
+                neutral: [
+                    "아쉽지만 대대적인 리빌딩이 필요해 보인다",
+                    "내년을 기약해야겠네요..."
+                ]
+            },
+            top_scorer: {
+                positive: [
+                    "득점왕 축하합니다!!",
+                    "역시 골잡이는 다르네",
+                    "이 선수 진짜 미쳤다",
+                    "완전 득점 머신 그 자체",
+                    "올 시즌 MVP 확정",
+                    "경이로운 기록이다 ㄷㄷ"
+                ],
+                negative: [
+                    "팀 혼자 다 캐리했네 나머지 공격수들 뭐함?",
+                    "패널티킥 몇 개임? ㅋㅋ",
+                    "쉬운 골만 주워 먹었네"
+                ],
+                neutral: [
+                    "다음 시즌에도 이 폼 유지할까?",
+                    "골든부트 축하드려요"
+                ]
+            },
+            top_assister: {
+                positive: [
+                    "도움왕 축하합니다!",
+                    "어시스트 기계네 ㄷㄷ",
+                    "패스 줄기 지렸다",
+                    "플레이메이커의 정석",
+                    "시야가 진짜 말도 안 되게 넓어"
+                ],
+                negative: [
+                    "공격수들이 못 넣었으면 어시도 못 쌓았을 듯 ㅋㅋ",
+                    "도움만 주고 본인 결정력은 좀 아쉽",
+                    "수비는 안 하고 패스만 함"
+                ],
+                neutral: [
+                    "득점만큼 가치 있는 기록이지",
+                    "공격의 핵심 인정"
+                ]
+            },
+            match_preview: {
+                positive: [
+                    "이 경기 꼭 봐야겠다",
+                    "명승부 예감 ㄷㄷ",
+                    "오늘 밤이 너무 기대된다",
+                    "티켓 겨우 구했다 ㅋㅋ",
+                    "드디어 이 매치업이네"
+                ],
+                negative: [
+                    "둘 다 노잼 축구해서 재미없을 듯",
+                    "별로 기대 안 됨 ㅋㅋ",
+                    "볼까 말까 고민되네",
+                    "내일 하이라이트만 챙겨봐야지"
+                ],
+                neutral: [
+                    "과연 누가 이길까요?",
+                    "결과가 진짜 궁금하네요",
+                    "양팀 다 부상 없이 좋은 경기 하길"
+                ]
+            },
+            rebirth: {
+                positive: [
+                    "낭만 미쳤다... 전설을 잇는 유망주라니",
+                    "서사 지리네 꼭 1군에서 보고 싶다",
+                    "포텐셜 대박일 것 같다 기대된다!",
+                    "선배님 따라서 열심히 크자!"
+                ],
+                negative: [
+                    "제2의 누구라는 애들 중에 진짜 터진 애가 몇이나 되나 ㅋㅋ",
+                    "설레발은 금물, 1군 데뷔하고 얘기하자"
+                ],
+                neutral: [
+                    "앞으로 성장이 기대되네요",
+                    "유스 시스템 잘 돌아가네"
+                ]
+            }
         };
 
-        const templates = commentTemplates[post.type] || commentTemplates.match_result;
-        const shuffled = [...templates].sort(() => Math.random() - 0.5);
+        const pools = commentPools[post.type] || commentPools.match_result;
+        const { sentiment } = this.determineSentiment(post);
+        const pick = (arr, n) => [...(arr || [])].sort(() => Math.random() - 0.5).slice(0, n);
 
-        return shuffled.slice(0, 3).map((text, index) => ({
+        let selectedTexts = [];
+        if (sentiment === 'positive') {
+            selectedTexts = [
+                ...pick(pools.positive, 2),
+                ...pick(pools.neutral && pools.neutral.length ? pools.neutral : pools.positive, 1)
+            ];
+        } else if (sentiment === 'negative') {
+            selectedTexts = [
+                ...pick(pools.negative, 2),
+                ...pick(pools.neutral && pools.neutral.length ? pools.neutral : pools.negative, 1)
+            ];
+        } else {
+            selectedTexts = [
+                ...pick(pools.positive, 1),
+                ...pick(pools.negative, 1),
+                ...pick(pools.neutral && pools.neutral.length ? pools.neutral : pools.positive, 1)
+            ];
+        }
+
+        // 중복 제거 및 3개 보정
+        selectedTexts = Array.from(new Set(selectedTexts)).slice(0, 3);
+        if (selectedTexts.length < 3) {
+            const fallbackPool = sentiment === 'negative' ? pools.negative : pools.positive;
+            for (const text of fallbackPool || []) {
+                if (selectedTexts.length >= 3) break;
+                if (!selectedTexts.includes(text)) selectedTexts.push(text);
+            }
+        }
+
+        return selectedTexts.map((text, index) => ({
             id: Math.random().toString(36).substr(2, 9),
             author: this.generateRandomUsername(),
             text: text,

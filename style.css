@@ -7319,13 +7319,47 @@ body.team-브라질_연합 {
         .insta-actions {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             padding: 12px 14px;
         }
 
+        .actions-left {
+            display: flex;
+            align-items: center;
+        }
+
         .action-icon {
-            font-size: 1.6rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 1.35rem;
             margin-right: 16px;
             cursor: pointer;
+            transition: opacity 0.15s ease, transform 0.15s ease, color 0.15s ease;
+        }
+
+        .actions-right .action-icon {
+            margin-right: 0;
+        }
+
+        .action-icon:hover {
+            opacity: 0.75;
+        }
+
+        .action-icon .ui-icon {
+            width: 22px;
+            height: 22px;
+            stroke-width: 1.9;
+        }
+
+        .action-icon.is-liked {
+            color: #ff3040;
+        }
+
+        .action-icon.is-liked .ui-icon,
+        .action-icon.is-bookmarked .ui-icon {
+            fill: currentColor;
         }
 
         .insta-content {
