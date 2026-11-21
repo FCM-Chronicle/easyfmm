@@ -2330,8 +2330,7 @@ class CupCompetitionManager {
         const modeBarHTML = `
             <div style="background:#0F172A; border:1px solid #334155; border-radius:10px; padding:12px 16px; margin-bottom:12px; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:10px;">
                 <div>
-                    <div style="font-weight:800; font-size:1.12rem; color:#10B981;">📅 시즌 공식 경기 일정 & 결과 센터</div>
-                    <div style="font-size:0.83rem; color:#94A3B8;">정규 리그 · UEFA 챔피언스리그 · FA컵 연간 스케줄 및 라운드별 매치업</div>
+                    <div style="font-weight:800; font-size:1.08rem; color:#F8FAFC;">시즌 경기 일정 & 결과</div>
                 </div>
                 <div style="display:flex; gap:8px;">
                     <button type="button" data-sched-mode="my" style="padding:8px 16px; border-radius:8px; border:1px solid ${mode === 'my' ? '#10B981' : '#334155'}; background:${mode === 'my' ? 'rgba(16,185,129,0.2)' : '#1E293B'}; color:${mode === 'my' ? '#10B981' : '#CBD5E1'}; font-weight:800; cursor:pointer;">
@@ -2483,12 +2482,25 @@ class CupCompetitionManager {
 
             let leagueTabs = '';
             if (typeof LEAGUES_CONFIG !== 'undefined') {
+                const shortNames = {
+                    premier_league: '프리미어리그',
+                    efl_championship: 'EFL 챔피언십',
+                    laliga: '라리가',
+                    bundesliga: '분데스리가',
+                    serie_a: '세리에 A',
+                    ligue_1: '리그 1',
+                    eredivisie: '에레디비시',
+                    liga_portugal: '프리메이라리가',
+                    super_lig: '쉬페르리그',
+                    kleague_1: 'K리그 1',
+                    mls: 'MLS'
+                };
                 Object.keys(LEAGUES_CONFIG).forEach(lId => {
                     const cfg = LEAGUES_CONFIG[lId];
                     const active = selLeague === lId;
                     leagueTabs += `
-                        <button type="button" data-sched-league="${lId}" style="padding:6px 12px; border-radius:6px; border:1px solid ${active ? '#FBBF24' : '#334155'}; background:${active ? '#FBBF24' : '#1E293B'}; color:${active ? '#090D16' : '#CBD5E1'}; font-weight:700; font-size:0.8rem; cursor:pointer; white-space:nowrap;">
-                            ${cfg.flag} ${cfg.name.split(' ')[1] || cfg.name}
+                        <button type="button" data-sched-league="${lId}" style="padding:9px 13px 10px; margin-bottom:-1px; border:none; border-bottom:2px solid ${active ? 'var(--team-primary, #38BDF8)' : 'transparent'}; border-radius:0; background:transparent; color:${active ? '#F8FAFC' : '#94A3B8'}; font-weight:${active ? '800' : '600'}; font-size:0.86rem; cursor:pointer; white-space:nowrap;">
+                            ${shortNames[lId] || cfg.name.split(' ')[1] || cfg.name}
                         </button>
                     `;
                 });
@@ -2528,8 +2540,11 @@ class CupCompetitionManager {
 
             return `
                 ${modeBarHTML}
-                <div style="display:flex; gap:6px; overflow-x:auto; padding-bottom:10px; margin-bottom:10px;">
-                    ${leagueTabs}
+                <div class="league-underline-header" style="width:100%; margin:2px 0 14px 0;">
+                    <div class="league-underline-title" style="font-size:1.05rem; font-weight:800; color:#F8FAFC; letter-spacing:-0.02em; margin-bottom:10px; padding-left:2px;">리그별 라운드 대진표</div>
+                    <div class="league-underline-nav" style="display:flex; align-items:flex-end; gap:4px; width:100%; overflow-x:auto; border-bottom:1px solid rgba(255,255,255,0.16);">
+                        ${leagueTabs}
+                    </div>
                 </div>
                 <div style="background:#1E293B; border:1px solid #334155; border-radius:10px; padding:14px;">
                     <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:10px; margin-bottom:14px;">

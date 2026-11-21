@@ -53,7 +53,8 @@ const _PD_CSS = `
 #playerDetailModal .pd-tag { padding: 3px 10px; border-radius: 999px; font-size: .74rem; font-weight: 700; background: rgba(255,255,255,.1); }
 #playerDetailModal .pd-tag.pos { background: var(--pd-pos); color: #0b0f17; }
 #playerDetailModal .pd-tag.other-pos { background: rgba(255,255,255,.07); color: #cbd5e1; border: 1px dashed rgba(255,255,255,.25); }
-#playerDetailModal .pd-ovr { margin-left: auto; text-align: center; padding-right: 30px; }
+#playerDetailModal .pd-ovr { margin-left: auto; text-align: center; padding-right: 30px; display: flex; align-items: center; gap: 14px; }
+#playerDetailModal .pd-kit-img { width: 52px; height: 52px; object-fit: contain; filter: drop-shadow(0 4px 10px rgba(0,0,0,.6)); }
 #playerDetailModal .pd-ovr b { display: block; font-size: 3rem; line-height: 1; font-weight: 900; color: var(--pd-ovr); }
 #playerDetailModal .pd-ovr span { font-size: .68rem; color: #94a3b8; letter-spacing: .12em; }
 #playerDetailModal .pd-body { padding: 4px 26px 26px; display: grid; gap: 18px; }
@@ -215,7 +216,16 @@ function openPlayerDetail(player, teamName) {
     }
     info.append(tags);
     const ovrBox = _pdEl('div', 'pd-ovr');
-    ovrBox.append(_pdEl('b', null, ovr), _pdEl('span', null, 'OVR'));
+    if (typeof setTeamKitImage === 'function' && team) {
+        const kitImg = _pdEl('img', 'pd-kit-img');
+        const kitType = typeof getKitTypeForPlayer === 'function' ? getKitTypeForPlayer(p) : (p.position === 'GK' ? 2 : 0);
+        kitImg.alt = '';
+        setTeamKitImage(kitImg, team, kitType);
+        ovrBox.appendChild(kitImg);
+    }
+    const ovrTextWrap = _pdEl('div');
+    ovrTextWrap.append(_pdEl('b', null, ovr), _pdEl('span', null, 'OVR'));
+    ovrBox.appendChild(ovrTextWrap);
     hero.append(img, info, ovrBox);
     card.appendChild(hero);
 

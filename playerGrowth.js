@@ -790,6 +790,14 @@ class PlayerGrowthSystem {
         const badgeEl = document.getElementById('growth-count-badge');
         const emptyEl = document.getElementById('growthEmpty');
         const detailEl = document.getElementById('growthDetail');
+        const backBtn = document.getElementById('growthMobileBackBtn');
+        if (backBtn && !backBtn.dataset.bound) {
+            backBtn.dataset.bound = 'true';
+            backBtn.addEventListener('click', () => {
+                const layoutEl = document.getElementById('growthLayout') || document.querySelector('.growth-layout');
+                if (layoutEl) layoutEl.classList.remove('mobile-detail-open');
+            });
+        }
         if (!listEl) return;
 
         const summary = this.getTeamGrowthSummary();
@@ -849,6 +857,8 @@ class PlayerGrowthSystem {
 
                 item.addEventListener('click', () => {
                     this._selectedGrowthPlayer = s.name;
+                    const layoutEl = document.getElementById('growthLayout') || document.querySelector('.growth-layout');
+                    if (layoutEl) layoutEl.classList.add('mobile-detail-open');
                     this.renderGrowthTab();
                 });
 

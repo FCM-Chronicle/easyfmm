@@ -1,18 +1,18 @@
 // start.js - 팀 선택 화면 UI 로직 및 데이터 표시
 
 const AVAILABLE_LEAGUES = [
-    { id: "premier_league", name: "🇬🇧 잉글랜드 프리미어리그" },
-    { id: "efl_championship", name: "🇬🇧 잉글랜드 EFL 챔피언십" },
-    { id: "laliga", name: "🇪🇸 스페인 라리가" },
-    { id: "bundesliga", name: "🇩🇪 독일 분데스리가" },
-    { id: "serie_a", name: "🇮🇹 이탈리아 세리에 A" },
-    { id: "ligue_1", name: "🇫🇷 프랑스 리그 1" },
-    { id: "eredivisie", name: "🇳🇱 네덜란드 에레디비시" },
-    { id: "liga_portugal", name: "🇵🇹 포르투갈 프리메이라리가" },
-    { id: "super_lig", name: "🇹🇷 튀르키예 쉬페르리그" },
-    { id: "kleague_1", name: "🇰🇷 대한민국 K리그 1" },
-    { id: "mls", name: "🇺🇸 미국 MLS" },
-    { id: "other", name: "🌍 기타 및 연합 클럽" }
+    { id: "premier_league", name: "잉글랜드 프리미어리그" },
+    { id: "efl_championship", name: "잉글랜드 EFL 챔피언십" },
+    { id: "laliga", name: "스페인 라리가" },
+    { id: "bundesliga", name: "독일 분데스리가" },
+    { id: "serie_a", name: "이탈리아 세리에 A" },
+    { id: "ligue_1", name: "프랑스 리그 1" },
+    { id: "eredivisie", name: "네덜란드 에레디비시" },
+    { id: "liga_portugal", name: "포르투갈 프리메이라리가" },
+    { id: "super_lig", name: "튀르키예 쉬페르리그" },
+    { id: "kleague_1", name: "대한민국 K리그 1" },
+    { id: "mls", name: "미국 MLS" },
+    { id: "other", name: "기타 및 연합 클럽" }
 ];
 
 if (typeof selectionState === 'undefined') {
@@ -118,6 +118,42 @@ function renderTeamSelectionUI() {
         }
     }
 
+    // 유니폼 쇼케이스 렌더링 (텍스트 라벨 없이 이미지만 깔끔하게 표시)
+    const kitsEl = document.getElementById('ts-team-kits');
+    if (kitsEl) {
+        kitsEl.replaceChildren();
+        if (teamData && teamData.teamid) {
+            [0, 1, 2].forEach(kitType => {
+                const item = document.createElement('div');
+                item.className = 'ts-kit-item';
+
+                const img = document.createElement('img');
+                img.className = 'ts-kit-img';
+                img.alt = teamName;
+                if (typeof setTeamKitImage === 'function') {
+                    setTeamKitImage(img, currentTeamKey, kitType, item);
+                } else {
+                    const tid = teamData.teamid;
+                    img.src = `assets/kits/${tid}_${kitType}.png`;
+                    img.onerror = function() {
+                        if (!this.dataset.triedCdn) {
+                            this.dataset.triedCdn = '1';
+                            this.src = `https://cdn.fctoolshub.com/game_assets/fc27/kits/${tid}_${kitType}.png`;
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    };
+                }
+
+                item.appendChild(img);
+                kitsEl.appendChild(item);
+            });
+            kitsEl.style.display = 'flex';
+        } else {
+            kitsEl.style.display = 'none';
+        }
+    }
+
     // 선택 버튼 이벤트 연결
     const selectBtn = document.getElementById('ts-select-btn');
     if (selectBtn) {
@@ -136,6 +172,16 @@ function renderTeamSelectionUI() {
     if (cityEl) {
         const city = teamData.city || (typeof teamCities !== 'undefined' && teamCities[currentTeamKey]) || teamData.country || "알 수 없음";
         cityEl.textContent = city;
+    }
+
+    const stadiumEl = document.getElementById('ts-team-stadium');
+    if (stadiumEl) {
+        if (teamData.stadium && teamData.stadium.name) {
+            const cap = teamData.stadium.capacity ? ` (${Number(teamData.stadium.capacity).toLocaleString()}석)` : '';
+            stadiumEl.textContent = `${teamData.stadium.name}${cap}`;
+        } else {
+            stadiumEl.textContent = `${teamName} 스타디움`;
+        }
     }
 
     // 시작 자금 설정 (FC 27 데이터에 정의된 팀별 실제 이적 예산 표시)

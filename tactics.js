@@ -586,6 +586,7 @@ const DNAManager = {
     renderUI() {
         const container = document.getElementById('tacticsContent');
         if (!container || typeof gameData === 'undefined' || !gameData) return;
+        if (!this.mobileTacticSubview) this.mobileTacticSubview = 'philosophy';
 
         if (!gameData.lineStats) this.initialize();
         const normFn = typeof window.normalizeTacticKey === 'function' ? window.normalizeTacticKey : (k => k || 'balanced');
@@ -611,40 +612,57 @@ const DNAManager = {
         const masteryEff = (typeof window.getTacticMasteryEffect === 'function')
             ? window.getTacticMasteryEffect(masteryPct)
             : {
-                tier: masteryPct >= 85 ? '완벽 체화' : (masteryPct >= 65 ? '숙련' : (masteryPct > 50 ? '적응 완료' : (masteryPct === 50 ? '적응 중 (기준)' : '미숙 (페널티)'))),
-                signedText: `${masteryPct - 50 > 0 ? '+' : ''}${(((masteryPct - 50) / 50) * 5).toFixed(1)}%`,
+                tier: masteryPct >= 85 ? '완벽 체화' : (masteryPct >= 65 ? '숙련' : (masteryPct > 50 ? '적응 완료' : (masteryPct === 50 ? '적응 중' : '미숙'))),
                 color: masteryPct < 50 ? '#F87171' : (masteryPct === 50 ? '#FBBF24' : '#34D399')
             };
-        const masteryBonusTxt = masteryEff.signedText;
         const masteryTier = masteryEff.tier;
 
         container.replaceChildren();
+
+        // [모바일 전용] 전술 탭 내부 화면 전환 버튼 바 (스크롤 대신 버튼 클릭으로 화면 전환)
+        const mobileTacNav = document.createElement('div');
+        mobileTacNav.className = 'mobile-subview-bar tactics-mobile-subview-bar';
+        const tacViews = [
+            { id: 'philosophy', label: '⚡ 철학·플랜' },
+            { id: 'instructions', label: '🎛️ 8대 지침' },
+            { id: 'roles', label: '⚽ 포메이션·롤' },
+            { id: 'profile', label: '📊 전술 진단' }
+        ];
+        tacViews.forEach(v => {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = `mobile-subview-btn ${this.mobileTacticSubview === v.id ? 'active' : ''}`;
+            b.textContent = v.label;
+            b.onclick = () => {
+                this.mobileTacticSubview = v.id;
+                this.renderUI();
+            };
+            mobileTacNav.appendChild(b);
+        });
+        container.appendChild(mobileTacNav);
 
         // ─────────────────────────────────────────────────────────────
         // [SECTION A] 상단: FM 전술 철학 프리셋 + 전술 숙련도 + 커스텀 슬롯 3개
         // ─────────────────────────────────────────────────────────────
         const topShell = document.createElement('div');
+        topShell.className = `tactics-subview-pane ${this.mobileTacticSubview === 'philosophy' ? 'mobile-pane-active' : ''}`;
         topShell.style.cssText = 'background: rgba(15, 23, 42, 0.78); border: 1px solid rgba(56, 189, 248, 0.22); border-radius: 16px; padding: 20px; margin-bottom: 20px;';
 
         const headerRow = document.createElement('div');
         headerRow.style.cssText = 'display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 14px; margin-bottom: 16px;';
 
         const titleBlock = document.createElement('div');
-        const badgeSpan = document.createElement('span');
-        badgeSpan.style.cssText = 'display: inline-block; font-size: 0.72rem; font-weight: 800; color: #38BDF8; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); padding: 3px 9px; border-radius: 999px; margin-bottom: 6px; letter-spacing: 0.05em;';
-        badgeSpan.textContent = curPresetInfo.tag || 'FM TACTICAL SYSTEM';
-
         const h4 = document.createElement('h4');
-        h4.style.cssText = 'margin: 0; color: #F8FAFC; font-size: 1.2rem; font-weight: 800;';
+        h4.style.cssText = 'margin: 0; color: #F8FAFC; font-size: 1.15rem; font-weight: 800;';
         const customSlotBadge = (typeof gameData.activeCustomSlot === 'number' && gameData.customTactics?.[gameData.activeCustomSlot])
-            ? ` · ★ ${gameData.customTactics[gameData.activeCustomSlot].name}`
+            ? ` · ${gameData.customTactics[gameData.activeCustomSlot].name}`
             : '';
         h4.textContent = `전술 철학: ${curPresetInfo.name}${customSlotBadge}`;
 
         const subDesc = document.createElement('p');
-        subDesc.style.cssText = 'margin: 4px 0 0 0; color: #94A3B8; font-size: 0.86rem;';
+        subDesc.style.cssText = 'margin: 4px 0 0 0; color: #94A3B8; font-size: 0.85rem;';
         subDesc.textContent = curPresetInfo.description;
-        titleBlock.append(badgeSpan, h4, subDesc);
+        titleBlock.append(h4, subDesc);
 
         // 전술 숙련도(Familiarity) 박스
         const masteryBox = document.createElement('div');
@@ -656,7 +674,7 @@ const DNAManager = {
         mLabel.textContent = `🎯 현재 전술 숙련도 (${masteryTier})`;
         const mVal = document.createElement('span');
         mVal.style.cssText = `color: ${masteryEff.color}; font-weight: 800;`;
-        mVal.textContent = `${masteryPct}% (전술 효율 ${masteryBonusTxt})`;
+        mVal.textContent = `${masteryPct}%`;
         mTop.append(mLabel, mVal);
 
         const mTrack = document.createElement('div');
@@ -701,7 +719,7 @@ const DNAManager = {
         mentalityCard.style.cssText = 'background: rgba(2, 6, 23, 0.5); border: 1px solid rgba(148, 163, 184, 0.14); border-radius: 12px; padding: 12px;';
         const mTitle = document.createElement('div');
         mTitle.style.cssText = 'font-size: 0.82rem; font-weight: 800; color: #E2E8F0; margin-bottom: 8px;';
-        mTitle.textContent = '기본 경기 성향 (Mentality · 경기 중 실시간 변경 가능)';
+        mTitle.textContent = '기본 경기 성향';
         const mBtnsWrap = document.createElement('div');
         mBtnsWrap.style.cssText = 'display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px;';
         const mentalities = [
@@ -733,7 +751,7 @@ const DNAManager = {
         slotCard.style.cssText = 'background: rgba(2, 6, 23, 0.5); border: 1px solid rgba(148, 163, 184, 0.14); border-radius: 12px; padding: 12px;';
         const sTitle = document.createElement('div');
         sTitle.style.cssText = 'font-size: 0.82rem; font-weight: 800; color: #E2E8F0; margin-bottom: 8px;';
-        sTitle.textContent = '★ 커스텀 전술 플랜 슬롯 (최대 3개 저장 · 경기 중 즉시 호출)';
+        sTitle.textContent = '커스텀 전술 슬롯';
         const slotsWrap = document.createElement('div');
         slotsWrap.style.cssText = 'display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;';
 
@@ -793,13 +811,14 @@ const DNAManager = {
         // [SECTION B] 중단: 팀 전술 8대 지침 보드 (100% 매치엔진 실시간 연동)
         // ─────────────────────────────────────────────────────────────
         const boardSection = document.createElement('div');
+        boardSection.className = `tactics-subview-pane ${this.mobileTacticSubview === 'instructions' ? 'mobile-pane-active' : ''}`;
         boardSection.style.cssText = 'background: rgba(15, 23, 42, 0.78); border: 1px solid rgba(148, 163, 184, 0.18); border-radius: 16px; padding: 20px; margin-bottom: 20px;';
 
         const boardHeader = document.createElement('div');
         boardHeader.style.cssText = 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;';
         const boardTitle = document.createElement('h4');
-        boardTitle.style.cssText = 'margin: 0; color: #FBBF24; font-size: 1.05rem; font-weight: 800;';
-        boardTitle.textContent = '팀 전술 8대 핵심 지침 (인게임 빌드업 · 전환 · 수비 라인 직결)';
+        boardTitle.style.cssText = 'margin: 0; color: #F8FAFC; font-size: 1.02rem; font-weight: 800;';
+        boardTitle.textContent = '팀 전술 8대 지침';
         const resetPresetBtn = document.createElement('button');
         resetPresetBtn.type = 'button';
         resetPresetBtn.className = 'btn btn-sm';
@@ -929,12 +948,18 @@ const DNAManager = {
         // [SECTION C] 하단 2열: (좌) 팀 전술 프로필 대시보드 / (우) 포메이션 미니 피치 & 선수 롤 적합도
         // ─────────────────────────────────────────────────────────────
         const bottomGrid = document.createElement('div');
-        bottomGrid.style.cssText = 'display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 20px;';
+        bottomGrid.className = 'tactics-bottom-grid';
+        bottomGrid.style.cssText = 'display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;';
 
-        bottomGrid.append(
-            this.buildProfileDashboard(ts, gameData.tacticMentality || 'balanced'),
-            this.buildMiniPitchAndRolesPanel()
-        );
+        const profilePane = this.buildProfileDashboard(ts, gameData.tacticMentality || 'balanced');
+        profilePane.classList.add('tactics-subview-pane');
+        if (this.mobileTacticSubview === 'profile') profilePane.classList.add('mobile-pane-active');
+
+        const rolesPane = this.buildMiniPitchAndRolesPanel();
+        rolesPane.classList.add('tactics-subview-pane');
+        if (this.mobileTacticSubview === 'roles') rolesPane.classList.add('mobile-pane-active');
+
+        bottomGrid.append(profilePane, rolesPane);
 
         container.appendChild(bottomGrid);
     },
@@ -944,23 +969,23 @@ const DNAManager = {
         panel.style.cssText = 'background: rgba(15, 23, 42, 0.78); border: 1px solid rgba(148, 163, 184, 0.18); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 16px;';
 
         const title = document.createElement('h4');
-        title.style.cssText = 'margin: 0; color: #38BDF8; font-size: 1.05rem; font-weight: 800;';
-        title.textContent = '📊 팀 전술 프로필 & 리스크 진단';
+        title.style.cssText = 'margin: 0; color: #F8FAFC; font-size: 1.02rem; font-weight: 800;';
+        title.textContent = '전술 프로필 & 리스크 진단';
         panel.appendChild(title);
 
         const metrics = this.computeTacticalMetrics(ts, mentality);
         const gaugeSpecs = [
-            { label: '공격 파괴력 & 침투성', val: metrics.attackPower, color: '#F87171', sub: '찬스 창출 빈도 및 박스 안 침투 인원' },
-            { label: '수비 블록 견고함', val: metrics.defenseSolid, color: '#38BDF8', sub: '라인 간격 유지 및 뒷공간·박스 보호력' },
-            { label: '압박 강도 & 전환 속도', val: metrics.pressTrans, color: '#34D399', sub: '볼 탈취력 및 공수 전환 다이렉트성' },
-            { label: '경기당 체력 소모 부하', val: metrics.staminaLoad, color: metrics.staminaLoad >= 75 ? '#EF4444' : '#FBBF24', sub: metrics.staminaLoad >= 75 ? '⚠️ 높음: 후반 65분 이후 급격한 탈진 주의 (교체 필수)' : '적정: 90분 내내 안정적인 기동력 유지 가능' }
+            { label: '공격 파괴력 & 침투성', val: metrics.attackPower, color: '#F87171', sub: '' },
+            { label: '수비 블록 견고함', val: metrics.defenseSolid, color: '#38BDF8', sub: '' },
+            { label: '압박 강도 & 전환 속도', val: metrics.pressTrans, color: '#34D399', sub: '' },
+            { label: '경기당 체력 소모 부하', val: metrics.staminaLoad, color: metrics.staminaLoad >= 75 ? '#EF4444' : '#FBBF24', sub: metrics.staminaLoad >= 75 ? '후반 65분 이후 체력 저하 주의' : '' }
         ];
 
         const gaugesWrap = document.createElement('div');
-        gaugesWrap.style.cssText = 'display: flex; flex-direction: column; gap: 12px;';
+        gaugesWrap.style.cssText = 'display: flex; flex-direction: column; gap: 10px;';
         gaugeSpecs.forEach(g => {
             const row = document.createElement('div');
-            row.style.cssText = 'background: rgba(2, 6, 23, 0.5); border: 1px solid rgba(148, 163, 184, 0.12); border-radius: 10px; padding: 10px 12px;';
+            row.style.cssText = 'background: rgba(2, 6, 23, 0.5); border: 1px solid rgba(148, 163, 184, 0.12); border-radius: 8px; padding: 10px 12px;';
             const top = document.createElement('div');
             top.style.cssText = 'display: flex; justify-content: space-between; font-size: 0.82rem; font-weight: 800; color: #F8FAFC; margin-bottom: 5px;';
             const lSpan = document.createElement('span');
@@ -971,16 +996,18 @@ const DNAManager = {
             top.append(lSpan, vSpan);
 
             const track = document.createElement('div');
-            track.style.cssText = 'height: 8px; background: rgba(255,255,255,0.08); border-radius: 999px; overflow: hidden; margin-bottom: 4px;';
+            track.style.cssText = 'height: 6px; background: rgba(255,255,255,0.08); border-radius: 999px; overflow: hidden;';
             const fill = document.createElement('div');
             fill.style.cssText = `height: 100%; width: ${g.val}%; background: ${g.color}; border-radius: 999px;`;
             track.appendChild(fill);
 
-            const sub = document.createElement('div');
-            sub.style.cssText = 'font-size: 0.73rem; color: #94A3B8;';
-            sub.textContent = g.sub;
-
-            row.append(top, track, sub);
+            row.append(top, track);
+            if (g.sub) {
+                const sub = document.createElement('div');
+                sub.style.cssText = 'font-size: 0.73rem; color: #94A3B8; margin-top: 4px;';
+                sub.textContent = g.sub;
+                row.appendChild(sub);
+            }
             gaugesWrap.appendChild(row);
         });
         panel.appendChild(gaugesWrap);

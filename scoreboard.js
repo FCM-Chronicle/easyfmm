@@ -2380,16 +2380,16 @@
     #sb-lineup-intro {
       position: absolute;
       left: 50%;
-      top: 58px;
+      top: 52px;
       transform: translateX(-50%);
-      width: min(820px, 96%);
-      height: min(460px, calc(100% - 68px));
+      width: min(1420px, 98.5%);
+      height: calc(100% - 60px);
       overflow: hidden;
       z-index: 95;
-      background: linear-gradient(180deg, #0b1120 0%, #162036 42%, #0b2416 100%);
-      border: 1px solid rgba(255, 255, 255, 0.16);
-      border-radius: 12px;
-      box-shadow: 0 22px 50px rgba(0, 0, 0, 0.72);
+      background: linear-gradient(180deg, #0b1120 0%, #162036 38%, #0b2416 100%);
+      border: 1.5px solid rgba(255, 255, 255, 0.2);
+      border-radius: 16px;
+      box-shadow: 0 28px 65px rgba(0, 0, 0, 0.82);
       color: #f8fafc;
       font-family: 'Pretendard Variable', 'Pretendard', sans-serif;
       display: none;
@@ -2424,28 +2424,28 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 8px;
-      padding: 8px 12px;
-      background: rgba(7, 11, 20, 0.85);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+      gap: 10px;
+      padding: 12px 18px;
+      background: rgba(7, 11, 20, 0.9);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.14);
     }
 
     .sb-lineup-team-banner {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
       min-width: 0;
     }
 
     .sb-lineup-team-logo {
-      width: 24px;
-      height: 24px;
+      width: 30px;
+      height: 30px;
       object-fit: contain;
       flex-shrink: 0;
     }
 
     .sb-lineup-team-name {
-      font-size: 0.92rem;
+      font-size: 1.08rem;
       font-weight: 900;
       color: #ffffff;
       white-space: nowrap;
@@ -2454,12 +2454,12 @@
     }
 
     .sb-lineup-form {
-      font-size: 0.72rem;
+      font-size: 0.78rem;
       font-weight: 900;
       color: #ffffff;
       background: var(--intro-accent, #38bdf8);
-      padding: 2px 7px;
-      border-radius: 4px;
+      padding: 3px 9px;
+      border-radius: 5px;
       text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
       flex-shrink: 0;
     }
@@ -2467,7 +2467,7 @@
     .sb-lineup-controls {
       display: flex;
       align-items: center;
-      gap: 5px;
+      gap: 6px;
       flex-shrink: 0;
     }
 
@@ -2475,9 +2475,9 @@
       background: rgba(255, 255, 255, 0.08);
       border: 1px solid rgba(255, 255, 255, 0.14);
       color: #94a3b8;
-      border-radius: 5px;
-      padding: 3px 9px;
-      font-size: 0.7rem;
+      border-radius: 6px;
+      padding: 5px 12px;
+      font-size: 0.76rem;
       font-weight: 800;
       cursor: pointer;
     }
@@ -2493,9 +2493,9 @@
       background: rgba(255, 255, 255, 0.08);
       border: 1px solid rgba(255, 255, 255, 0.14);
       color: #cbd5e1;
-      border-radius: 5px;
-      padding: 3px 8px;
-      font-size: 0.7rem;
+      border-radius: 6px;
+      padding: 5px 11px;
+      font-size: 0.76rem;
       font-weight: 700;
       cursor: pointer;
     }
@@ -2509,7 +2509,7 @@
       position: relative;
       flex: 1;
       overflow: hidden;
-      perspective: 680px;
+      perspective: 760px;
     }
 
     .sb-pitch-bg-title {
@@ -2519,23 +2519,23 @@
       transform: translateX(-50%);
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
       z-index: 1;
-      opacity: 0.9;
+      opacity: 0.92;
       pointer-events: none;
     }
 
     .sb-pitch-bg-title img {
-      height: 26px;
+      height: 30px;
       object-fit: contain;
       filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.6));
     }
 
     .sb-pitch-bg-title span {
-      font-size: 0.86rem;
+      font-size: 0.96rem;
       font-weight: 900;
-      letter-spacing: 0.16em;
-      color: rgba(255, 255, 255, 0.72);
+      letter-spacing: 0.18em;
+      color: rgba(255, 255, 255, 0.75);
       text-transform: uppercase;
     }
 
@@ -2545,15 +2545,15 @@
       right: -8%;
       top: 38px;
       bottom: -36px;
-      transform: rotateX(55deg);
+      transform: rotateX(54deg);
       transform-origin: center bottom;
       background:
         repeating-linear-gradient(
           0deg,
           #166534 0px,
-          #166534 26px,
-          #14532d 26px,
-          #14532d 52px
+          #166534 32px,
+          #14532d 32px,
+          #14532d 64px
         );
       border-top: 2px solid rgba(255, 255, 255, 0.35);
       border-left: 2px solid rgba(255, 255, 255, 0.28);
@@ -2574,7 +2574,7 @@
 
     .sb-pitch-cards {
       position: absolute;
-      inset: 36px 12px 10px;
+      inset: 34px 16px 12px;
       z-index: 3;
     }
 
@@ -2584,95 +2584,122 @@
       right: 0;
       display: flex;
       justify-content: center;
-      gap: 14px;
+      gap: 22px;
       transform-origin: center center;
       opacity: 0;
       animation: sb-row-rise 0.46s calc(0.16s + var(--line-idx, 0) * 0.48s) cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
-    .sb-pitch-row.row-GK { top: 4%;  --row-scale: 0.78; z-index: 1; }
-    .sb-pitch-row.row-DF { top: 24%; --row-scale: 0.86; z-index: 2; }
-    .sb-pitch-row.row-MF { top: 46%; --row-scale: 0.94; z-index: 3; }
-    .sb-pitch-row.row-FW { top: 69%; --row-scale: 1.04; z-index: 4; }
+    .sb-pitch-row.row-GK { top: 2%;  --row-scale: 0.84; z-index: 1; }
+    .sb-pitch-row.row-DF { top: 23%; --row-scale: 0.91; z-index: 2; }
+    .sb-pitch-row.row-MF { top: 46%; --row-scale: 0.98; z-index: 3; }
+    .sb-pitch-row.row-FW { top: 70%; --row-scale: 1.06; z-index: 4; }
 
     .sb-pcard {
-      width: 82px;
-      height: 98px;
-      background: linear-gradient(180deg, #1e293b 0%, #090d16 100%);
-      border: 1.5px solid var(--intro-accent, #38bdf8);
-      border-radius: 8px 8px 16px 16px;
-      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.72), inset 0 0 12px rgba(255, 255, 255, 0.06);
+      width: 112px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      overflow: hidden;
       position: relative;
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      overflow: visible;
     }
 
-    .sb-pcard-ovr {
-      position: absolute;
-      top: 4px;
-      left: 5px;
-      font-size: 0.72rem;
-      font-weight: 900;
-      color: #fbbf24;
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
-      z-index: 2;
+    .sb-pcard-kit-wrap {
+      position: relative;
+      width: 84px;
+      height: 84px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
-    .sb-pcard-pos {
-      position: absolute;
-      top: 4px;
-      right: 5px;
-      font-size: 0.62rem;
-      font-weight: 900;
-      color: #cbd5e1;
+    .sb-pcard-kit {
+      width: 82px;
+      height: 82px;
+      object-fit: contain;
+      filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.78));
+      pointer-events: none;
+    }
+
+    .sb-pcard-kit-fallback {
+      width: 58px;
+      height: 62px;
+      border-radius: 10px 10px 6px 6px;
+      background: var(--intro-accent, #38bdf8);
+      border: 2px solid rgba(255, 255, 255, 0.65);
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.7);
+    }
+
+    .sb-pcard-footer {
+      margin-top: -4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 9px 3px 4px;
+      max-width: 124px;
+      background: rgba(7, 11, 20, 0.94);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-bottom: 2px solid var(--intro-accent, #38bdf8);
+      border-radius: 999px;
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.75);
       z-index: 2;
     }
 
     .sb-pcard-photo {
-      width: 66px;
-      height: 70px;
-      margin-top: 4px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
       object-fit: cover;
       object-position: top;
-      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.55));
+      background: #1e293b;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      flex-shrink: 0;
     }
 
     .sb-pcard-name {
-      width: 100%;
-      padding: 3px 4px 4px;
-      box-sizing: border-box;
-      background: rgba(5, 8, 15, 0.92);
-      border-top: 1px solid rgba(255, 255, 255, 0.14);
-      font-size: 0.7rem;
+      font-size: 0.74rem;
       font-weight: 800;
       color: #ffffff;
-      text-align: center;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      margin-top: auto;
+      line-height: 1.15;
     }
 
     @media (max-width: 600px) {
       #sb-lineup-intro {
-        top: 56px;
-        height: min(350px, calc(100% - 64px));
+        top: 50px;
+        width: 98%;
+        height: calc(100% - 56px);
       }
       .sb-pitch-row {
         gap: 6px;
       }
       .sb-pcard {
-        width: 58px;
-        height: 74px;
+        width: 68px;
       }
-      .sb-pcard-photo {
-        width: 46px;
+      .sb-pcard-kit-wrap {
+        width: 52px;
+        height: 52px;
+      }
+      .sb-pcard-kit {
+        width: 50px;
         height: 50px;
       }
+      .sb-pcard-footer {
+        padding: 2px 6px 2px 3px;
+        gap: 4px;
+        max-width: 74px;
+      }
+      .sb-pcard-photo {
+        width: 17px;
+        height: 17px;
+      }
       .sb-pcard-name {
-        font-size: 0.56rem;
+        font-size: 0.58rem;
       }
     }
   `;
@@ -3034,14 +3061,37 @@
         const card = document.createElement("div");
         card.className = "sb-pcard";
 
-        const ovr = document.createElement("span");
-        ovr.className = "sb-pcard-ovr";
-        const ratingVal = Math.round(p.baseRating || p.rating || 0);
-        ovr.textContent = ratingVal > 0 ? String(ratingVal) : "";
+        const kitWrap = document.createElement("div");
+        kitWrap.className = "sb-pcard-kit-wrap";
 
-        const pos = document.createElement("span");
-        pos.className = "sb-pcard-pos";
-        pos.textContent = lineKey;
+        const kitImg = document.createElement("img");
+        kitImg.className = "sb-pcard-kit";
+        kitImg.alt = "";
+        const kitType = lineKey === "GK" ? 2 : (isAway ? 1 : 0);
+        const tid = (typeof window.getTeamIdByName === "function") ? window.getTeamIdByName(teamKey) : null;
+        if (tid) {
+          kitImg.dataset.triedCdn = "";
+          kitImg.onerror = function () {
+            if (!this.dataset.triedCdn) {
+              this.dataset.triedCdn = "1";
+              this.src = `https://cdn.fctoolshub.com/game_assets/fc27/kits/${tid}_${kitType}.png`;
+            } else {
+              this.onerror = null;
+              const fb = document.createElement("div");
+              fb.className = "sb-pcard-kit-fallback";
+              this.replaceWith(fb);
+            }
+          };
+          kitImg.src = `assets/kits/${tid}_${kitType}.png`;
+          kitWrap.appendChild(kitImg);
+        } else {
+          const fb = document.createElement("div");
+          fb.className = "sb-pcard-kit-fallback";
+          kitWrap.appendChild(fb);
+        }
+
+        const footer = document.createElement("div");
+        footer.className = "sb-pcard-footer";
 
         const photo = document.createElement("img");
         photo.className = "sb-pcard-photo";
@@ -3055,7 +3105,8 @@
         pname.className = "sb-pcard-name";
         pname.textContent = p.name || "";
 
-        card.append(ovr, pos, photo, pname);
+        footer.append(photo, pname);
+        card.append(kitWrap, footer);
         row.appendChild(card);
       });
 

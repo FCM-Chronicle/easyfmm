@@ -8,7 +8,7 @@ const MANAGER_AVATARS = [
     { id: "maestro", emoji: "maestro", icon: "crown", label: "마에스트로" },
     { id: "legend", emoji: "legend", icon: "trophy", label: "레전드 감독" },
     { id: "fire", emoji: "fire", icon: "flame", label: "열정의 지략가" },
-    { id: "wizard", emoji: "wizard", icon: "sparkles", label: "전술 마법사" }
+    { id: "wizard", emoji: "wizard", icon: "compass", label: "전술 마법사" }
 ];
 
 function getAvatarIconHTML(avatarKey) {
@@ -23,7 +23,7 @@ const MANAGER_PHILOSOPHIES = {
         name: "닥공 & 게겐프레싱",
         icon: "zap",
         badge: "Heavy Metal",
-        desc: "초고속 템포와 전방 압박으로 상대를 압도하며, 공격진의 사기 상승폭이 큽니다.",
+        desc: "전방 압박 · 공격진 사기 상승",
         color: "#EF4444"
     },
     defensive: {
@@ -31,15 +31,15 @@ const MANAGER_PHILOSOPHIES = {
         name: "철벽 수비 & 카테나치오",
         icon: "shield",
         badge: "Iron Wall",
-        desc: "견고한 수비 블록으로 실점을 최소화하고 안정적인 승점을 확보합니다.",
+        desc: "수비 조직력 · 실점 최소화",
         color: "#38BDF8"
     },
     youth: {
         id: "youth",
         name: "유스 육성 & 멘토링",
-        icon: "sparkles",
+        icon: "youth",
         badge: "Youth Guru",
-        desc: "23세 이하 유망주들의 잠재력 폭발 확률과 성장 속도가 20% 증가합니다.",
+        desc: "23세 이하 성장 속도 +20%",
         color: "#A3E635"
     },
     moneyball: {
@@ -47,7 +47,7 @@ const MANAGER_PHILOSOPHIES = {
         name: "머니볼 & 협상 달인",
         icon: "briefcase",
         badge: "Mastermind",
-        desc: "이적료 및 주급 협상 테이블에서 유리한 조건을 이끌어내는 능력을 발휘합니다.",
+        desc: "이적료 · 주급 협상 성공률 상승",
         color: "#FBBF24"
     }
 };
@@ -482,36 +482,20 @@ const managerSystem = {
             const emptyBox = document.createElement('div');
             emptyBox.className = 'manager-empty-hero-card';
 
-            const badgeTag = document.createElement('div');
-            badgeTag.className = 'manager-empty-badge';
-            badgeTag.innerHTML = `${typeof iconSVG === 'function' ? iconSVG('trophy') : ''} <span>CAREER MODE</span>`;
-
             const iconDiv = document.createElement('div');
             iconDiv.className = 'manager-empty-avatar-ring';
             iconDiv.innerHTML = getAvatarIconHTML('suit');
 
             const h2 = document.createElement('h2');
             h2.className = 'manager-empty-title';
-            h2.textContent = '새로운 명장의 탄생을 기다리고 있습니다';
-
-            const p = document.createElement('p');
-            p.className = 'manager-empty-desc';
-            p.textContent = '아직 등록된 감독 프로필이 없습니다. 나만의 전술 철학과 캐릭터를 설정하고 세계 무대에 도전해 보세요.';
-
-            const featureRow = document.createElement('div');
-            featureRow.className = 'manager-empty-features';
-            featureRow.innerHTML = `
-                <div class="mgr-feat-pill">${typeof iconSVG === 'function' ? iconSVG('activity') : ''} <span>실시간 전술 철학 시뮬레이션</span></div>
-                <div class="mgr-feat-pill">${typeof iconSVG === 'function' ? iconSVG('shield') : ''} <span>독점 라이센스 ID 발급</span></div>
-                <div class="mgr-feat-pill">${typeof iconSVG === 'function' ? iconSVG('briefcase') : ''} <span>구단 협상 & 머니볼</span></div>
-            `;
+            h2.textContent = '등록된 감독이 없습니다';
 
             const btn = document.createElement('button');
             btn.className = 'manager-hero-cta-btn';
-            btn.innerHTML = `${typeof iconSVG === 'function' ? iconSVG('sparkles') : ''} <span>새 감독 프로필 생성하기</span>`;
+            btn.innerHTML = `${typeof iconSVG === 'function' ? iconSVG('user-plus') : ''} <span>새 감독 만들기</span>`;
             btn.onclick = () => managerSystem.openEditModal();
 
-            emptyBox.append(badgeTag, iconDiv, h2, p, featureRow, btn);
+            emptyBox.append(iconDiv, h2, btn);
             grid.appendChild(emptyBox);
             return;
         }
@@ -762,7 +746,7 @@ const managerSystem = {
                 const newCareerBtn = document.createElement('button');
                 newCareerBtn.className = 'btn success small';
                 newCareerBtn.style.cssText = 'margin-top: 10px; width: 100%; font-weight: 800; padding: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;';
-                newCareerBtn.innerHTML = `${typeof iconSVG === 'function' ? iconSVG('sparkles') : ''} <span>새 커리어 시작</span>`;
+                newCareerBtn.innerHTML = `${typeof iconSVG === 'function' ? iconSVG('play') : ''} <span>새 커리어 시작</span>`;
                 newCareerBtn.onclick = () => managerSystem.startNewCareer(managerId, i);
 
                 slotDiv.append(emptyBox, newCareerBtn);

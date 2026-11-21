@@ -1068,6 +1068,11 @@ class SNSManager {
         return teamKey;
     }
 
+    getFanpageName(teamKey) {
+        const teamName = teamKey ? this.getTeamName(teamKey) : '';
+        return teamName ? `${teamName} 팬페이지` : '축구 팬페이지';
+    }
+
     calculateTeamRating(teamKey) {
         if (teamKey === gameData.selectedTeam) {
             return window.calculateTeamRating ? window.calculateTeamRating() : 75;
@@ -1172,23 +1177,23 @@ class SNSManager {
         else if (post.type === 'transfer_confirmed' || post.type === 'transfer_rumor') postingTeam = post.toTeam || postingTeam;
         else if (post.teamKey) postingTeam = post.teamKey;
 
-        const teamName = this.getTeamName(postingTeam);
+        const fanpageName = this.getFanpageName(postingTeam);
         const locationMap = {
-            match_result: 'Official Stadium',
-            match_preview: 'Official Stadium',
-            rebirth: 'Youth Academy',
-            youth_discovery: 'Youth Academy',
-            tactical_review: 'Tactics Desk',
-            player_spotlight: 'Match Spotlight',
-            player_criticism: 'Match Report',
-            league_standings: 'League Desk',
-            locker_room: 'Training Ground',
+            match_result: 'Matchday Fan Zone',
+            match_preview: 'Matchday Preview',
+            rebirth: 'Youth Watch',
+            youth_discovery: 'Youth Watch',
+            tactical_review: 'Fan Tactics Talk',
+            player_spotlight: 'Fan Spotlight',
+            player_criticism: 'Fan Critique',
+            league_standings: 'Standings Watch',
+            locker_room: 'Inside Rumors',
             fan_reaction: 'Fan Zone',
-            manager_quote: 'Press Conference',
-            team_atmosphere: 'Club News',
-            contract_news: 'Contract Desk'
+            manager_quote: 'Press Watch',
+            team_atmosphere: 'Supporters Talk',
+            contract_news: 'Contract Watch'
         };
-        const stadium = locationMap[post.type] || 'Transfer Market';
+        const stadium = locationMap[post.type] || 'Transfer Watch';
 
         const header = document.createElement('div');
         header.className = 'insta-header';
@@ -1203,7 +1208,7 @@ class SNSManager {
         headerText.className = 'insta-header-text';
         const uName = document.createElement('div');
         uName.className = 'insta-username';
-        uName.textContent = teamName;
+        uName.textContent = fanpageName;
         const uLoc = document.createElement('div');
         uLoc.className = 'insta-location';
         uLoc.textContent = stadium;
@@ -1474,7 +1479,7 @@ class SNSManager {
         caption.className = 'insta-caption';
         const captionUser = document.createElement('span');
         captionUser.className = 'insta-username';
-        captionUser.textContent = teamName;
+        captionUser.textContent = fanpageName;
         caption.append(captionUser, ' ');
         this.appendFormattedText(caption, post.content || '');
 
@@ -1940,12 +1945,14 @@ class SNSManager {
                     "패스 제대로 하는 놈이 없네",
                     "주전들 다 벤치 박아야 함",
                     "경기력 개쓰레기네요 ㅋㅋ",
-                    "팬들한테 사과나 해라"
+                    "팬들한테 사과나 해라",
+                    "사과해요나한테!!"
                 ],
                 neutral: [
                     "이 경기 못 본 사람 손?",
                     "하이라이트 다시 봐야겠다",
                     "다음 경기가 진짜 중요해졌네",
+                    "이게 이렇게된다고?",
                     "'축구로 우울할 필요 없어, 인생이 더 중요' - 미겔 아르테타"
                 ]
             },
@@ -1958,7 +1965,9 @@ class SNSManager {
                     "이 선수 영입하면 우승 도전 가능!",
                     "환영합니다!! 화이팅",
                     "드디어 왔구나 ㅅㅅ",
-                    "오 쩐다 프론트 일 잘하네"
+                    "오 쩐다 프론트 일 잘하네",
+                    "?얘가 우리팀에 왜옴?",
+                    "다음 시즌 우승열차 출발~"
                 ],
                 negative: [
                     "와 이거 돈 날린 거 아님? ㅋㅋ",
@@ -1968,12 +1977,14 @@ class SNSManager {
                     "진심 왜 왔지 ㅋㅋㅋㅋ",
                     "이적료 개비싸네 오버페이 심하다",
                     "스카우터 해고해야 됨",
-                    "역시 태산같은 클럽..."
+                    "역시 태산같은 클럽...",
+                    "이가격은 에반데"
                 ],
                 neutral: [
                     "비싸긴 한데 잘하면 인정이지",
                     "적응기만 잘 넘기면 괜찮을 듯",
-                    "일단 몇 경기 뛰는 거 보고 판단하자"
+                    "일단 몇 경기 뛰는 거 보고 판단하자",
+                    "그래 잘해다오"
                 ]
             },
             transfer_rumor: {
@@ -1995,7 +2006,8 @@ class SNSManager {
                     "설마 진짜?",
                     "이적료가 관건이겠네",
                     "공신력 어느 정도임?",
-                    "스모크 스크린 아닐까"
+                    "스모크 스크린 아닐까",
+                    "얘 잘하냐",
                 ]
             },
             season_champion: {
@@ -2082,6 +2094,7 @@ class SNSManager {
                     "도움왕 축하합니다!",
                     "어시스트 기계네 ㄷㄷ",
                     "패스 줄기 지렸다",
+                    "마치 KDB를 보는것같았음 ㄹㅇ",
                     "플레이메이커의 정석",
                     "시야가 진짜 말도 안 되게 넓어"
                 ],
@@ -2101,6 +2114,7 @@ class SNSManager {
                     "명승부 예감 ㄷㄷ",
                     "오늘 밤이 너무 기대된다",
                     "티켓 겨우 구했다 ㅋㅋ",
+                    "ㅋㅋㅋㅋㅋㅋㅋ",
                     "드디어 이 매치업이네"
                 ],
                 negative: [
@@ -2112,7 +2126,8 @@ class SNSManager {
                 neutral: [
                     "과연 누가 이길까요?",
                     "결과가 진짜 궁금하네요",
-                    "양팀 다 부상 없이 좋은 경기 하길"
+                    "양팀 다 부상 없이 좋은 경기 하길",
+                    "진짜 누가이길까"
                 ]
             },
             rebirth: {

@@ -61,20 +61,53 @@
         award: [['circle', 12, 8, 6], ['path', 'M15.477 12.89 17 22l-5-3-5 3 1.523-9.11']],
         coins: [['circle', 8, 8, 6], ['path', 'M18.09 10.37A6 6 0 1 1 10.34 18'], ['path', 'M7 6h1v4'], ['path', 'm16.71 13.88.7.71-2.82 2.82']],
         send: [['path', 'm22 2-7 20-4-9-9-4Z'], ['path', 'M22 2 11 13']],
-        bookmark: [['path', 'm19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z']]
+        bookmark: [['path', 'm19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z']],
+        chevron_left: [['polyline', '15 18 9 12 15 6']],
+        chevron_right: [['polyline', '9 18 15 12 9 6']],
+        chevron_up: [['polyline', '18 15 12 9 6 15']],
+        chevron_down: [['polyline', '6 9 12 15 18 9']],
+        play: [['polygon', '6 3 20 12 6 21 6 3']],
+        plus: [['line', 12, 5, 12, 19], ['line', 5, 12, 19, 12]],
+        user_plus: [['path', 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2'], ['circle', 9, 7, 4], ['line', 19, 8, 19, 14], ['line', 22, 11, 16, 11]],
+        user_check: [['path', 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2'], ['circle', 9, 7, 4], ['polyline', '16 11 18 13 22 9']],
+        book_open: [['path', 'M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z'], ['path', 'M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z']],
+        football: [['circle', 12, 12, 10], ['polygon', '12 7 16.5 10.2 14.8 15.5 9.2 15.5 7.5 10.2'], ['line', 12, 2, 12, 7], ['line', 21.5, 8.9, 16.5, 10.2], ['line', 17.9, 20.1, 14.8, 15.5], ['line', 6.1, 20.1, 9.2, 15.5], ['line', 2.5, 8.9, 7.5, 10.2]],
+        activity: [['polyline', '22 12 18 12 15 21 9 3 6 12 2 12']],
+        swords: [['polyline', '14.5 17.5 3 6 3 3 6 3 17.5 14.5'], ['line', 13, 19, 19, 13], ['line', 16, 16, 20, 20], ['line', 19, 21, 21, 19], ['polyline', '14.5 6.5 18 3 21 3 21 6 17.5 9.5'], ['line', 5, 14, 9, 18], ['line', 7, 17, 4, 20], ['line', 3, 19, 5, 21]],
+        home: [['path', 'm3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z'], ['polyline', '9 22 9 12 15 12 15 22']],
+        compass: [['circle', 12, 12, 10], ['polygon', '16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76']]
     };
 
-    // 탭 id 별칭 (월드컵 모드에서 transfer 버튼이 callup 으로 바뀜)
+    // 탭 id 및 하이픈 아이콘명 별칭
     const ALIAS = {
         callup: 'transfer',
         clipboard: 'tactics',
         chart: 'league',
+        'bar-chart': 'league',
+        bar_chart: 'league',
         trending: 'growth',
         megaphone: 'sponsor',
         newspaper: 'transfer_news',
         users: 'squad',
         flag: 'match',
-        seedling: 'youth'
+        seedling: 'youth',
+        'chevron-left': 'chevron_left',
+        'chevron-right': 'chevron_right',
+        'chevron-up': 'chevron_up',
+        'chevron-down': 'chevron_down',
+        'arrow-left': 'arrow_left',
+        'arrow-right': 'arrow_right',
+        'arrow-down': 'arrow_down',
+        'user-plus': 'user_plus',
+        'user-check': 'user_check',
+        'book-open': 'book_open',
+        'alert-triangle': 'alert',
+        alert_triangle: 'alert',
+        soccer: 'football',
+        schedule: 'calendar',
+        fa: 'trophy',
+        ucl: 'star',
+        sparkles: 'star'
     };
 
     const ATTRS = {
@@ -88,7 +121,7 @@
     };
 
     function createIcon(name, extraClass) {
-        const def = ICONS[ALIAS[name] || name] || ICONS.sparkles;
+        const def = ICONS[ALIAS[name] || name] || ICONS.shield;
         const svg = document.createElementNS(SVG_NS, 'svg');
         svg.setAttribute('viewBox', '0 0 24 24');
         svg.setAttribute('class', extraClass ? `ui-icon ${extraClass}` : 'ui-icon');
@@ -108,7 +141,7 @@
     }
 
     function iconSVG(name, extraClass) {
-        const def = ICONS[ALIAS[name] || name] || ICONS.sparkles;
+        const def = ICONS[ALIAS[name] || name] || ICONS.shield;
         const cls = extraClass ? `ui-icon ${extraClass}` : 'ui-icon';
         if (!def) return `<svg viewBox="0 0 24 24" class="${cls}"aria-hidden="true"></svg>`;
         const children = def.map(([tag, ...vals]) => {

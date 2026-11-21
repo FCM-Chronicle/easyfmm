@@ -272,22 +272,22 @@ class SimPlayer {
             out = deriveStatsFromOverall(overall, data.position);
         }
 
-        // 4. FM 롤(Role)에 따른 스탯 가중치 보정
+        // 4. FM 롤(Role)에 따른 스탯 가중치 보정 (스트라이커 슈팅 99 상한 과집중 완화)
         if (typeof TacticsManager !== 'undefined' && role) {
             const rData = TacticsManager.getRoleData(role);
             if (rData) {
-                if (rData.attack) out.shooting *= (1 + rData.attack * 0.25);
+                if (rData.attack) out.shooting *= (1 + rData.attack * 0.14);
                 if (rData.technique) {
-                    out.passing *= (1 + rData.technique * 0.25);
-                    out.dribble *= (1 + rData.technique * 0.2);
+                    out.passing *= (1 + rData.technique * 0.20);
+                    out.dribble *= (1 + rData.technique * 0.18);
                 }
-                if (rData.mobility) out.speed *= (1 + rData.mobility * 0.25);
+                if (rData.mobility) out.speed *= (1 + rData.mobility * 0.20);
                 if (rData.defense && data.position !== 'GK') {
-                    out.defense *= (1 + rData.defense * 0.25);
-                    out.tackle *= (1 + rData.defense * 0.25);
+                    out.defense *= (1 + rData.defense * 0.20);
+                    out.tackle *= (1 + rData.defense * 0.20);
                 }
-                if (rData.physical) out.physical *= (1 + rData.physical * 0.25);
-                if (rData.mentality) out.decision *= (1 + rData.mentality * 0.25);
+                if (rData.physical) out.physical *= (1 + rData.physical * 0.20);
+                if (rData.mentality) out.decision *= (1 + rData.mentality * 0.20);
             }
         }
 
@@ -449,8 +449,8 @@ class RealSoccerEngine {
         if (this.panicTimer && this.panicTimer[p.teamId] > 0 && (stat === 'defense' || stat === 'decision' || stat === 'passing')) {
             f *= stat === 'defense' ? 0.98 : 1.08;
         }
-        // [전술 숙련도(Familiarity) 보정] 50% 기준: 50% 미만은 마이너스(-최대 5%), 초과 시 플러스(+최대 5%)
-        if (stat === 'passing' || stat === 'decision') {
+        // [전술 숙련도(Familiarity) 보정] 20% = -7%, 50% = 0% 기준, 100% = +3% (전술 수행 전반 스탯에 적용)
+        if (stat === 'passing' || stat === 'decision' || stat === 'shooting' || stat === 'dribble' || stat === 'defense' || stat === 'tackle') {
             let masteryPct = 60; // AI 구단 기본 전술 숙련도 기준치(60%)
             if (this.matchContext && typeof gameData !== 'undefined' && gameData) {
                 const userSide = this.matchContext.isHomeGame ? 'home' : 'away';
@@ -465,9 +465,12 @@ class RealSoccerEngine {
                     }
                 }
             }
+            const fallbackFactor = masteryPct <= 50
+                ? Math.max(0.90, 1.0 - ((50 - masteryPct) / 30) * 0.07)
+                : 1.0 + ((masteryPct - 50) / 50) * 0.03;
             const factor = (typeof window !== 'undefined' && typeof window.getTacticMasteryEffect === 'function')
                 ? window.getTacticMasteryEffect(masteryPct).stabilityFactor
-                : (1.0 + ((masteryPct - 50) / 50) * 0.05);
+                : fallbackFactor;
             f *= factor;
         }
 
@@ -1691,11 +1694,11 @@ class RealSoccerEngine {
             return;
         }
 
-        // 컷백 및 크로스 기회 감지: 엔드라인/측면에서 페널티 박스로 꺾어주거나 올려주는 찬스
-        const isCutback = distToGoal <= 18 && Math.abs(player.y - 50) > 16 &&
+        // 컷백 및 크로스 기회 감지: 엔드라인/측면에서 페널티 박스 및 아크 정면 2선으로 꺾어주거나 올려주는 찬스
+        const isCutback = distToGoal <= 24 && Math.abs(player.y - 50) > 14 &&
             bestPassTarget && (Math.abs(bestPassTarget.x - goalX) <= 26) &&
-            (Math.abs(bestPassTarget.y - 50) <= 24) &&
-            (Math.abs(bestPassTarget.x - goalX) >= distToGoal + 2);
+            (Math.abs(bestPassTarget.y - 50) <= 26) &&
+            (Math.abs(bestPassTarget.x - goalX) >= distToGoal - 2);
         const isCross = distToGoal <= 36 && Math.abs(player.y - 50) > 16 &&
             bestPassTarget && (Math.abs(bestPassTarget.x - goalX) <= 22) &&
             (Math.abs(bestPassTarget.y - 50) <= 26) &&
@@ -1704,8 +1707,8 @@ class RealSoccerEngine {
             Math.abs(bestPassTarget.x - goalX) > distToGoal + 1.5 &&
             !isCutback && !isCross;
 
-        // [공격 다변화: 아크 정면 2선 중거리 슈팅 & ZD 감아차기 (17 ~ 29m)]
-        if (distToGoal >= 17 && distToGoal <= 29 && player.position !== 'DF' && player.position !== 'GK') {
+        // [공격 다변화: 아크 정면 2선 중거리 슈팅 & ZD 감아차기 (16 ~ 29m)]
+        if (distToGoal >= 16 && distToGoal <= 29 && player.position !== 'DF' && player.position !== 'GK') {
             const effSh = this.getEffectiveStat(player, 'shooting');
             const frontCrowd = this._numOpponentsAhead(player, 8, 15);
             const oppTSet = (this.tacticSettings && this.tacticSettings[tid === 'home' ? 'away' : 'home']) || {};
@@ -1715,12 +1718,13 @@ class RealSoccerEngine {
             const hasPowerShot = traits.some(t => t.includes('파워슛') || t.includes('빨랫줄 슈팅'));
             const isLongShotRole = behavior.longShotBias || ['AP', 'AM', 'BBM', 'MEZ', 'CM', 'IW', 'IF', 'SS'].includes(player.role);
 
-            let longShotProb = (effSh >= 72 ? 0.18 : 0.11);
-            if (player.position === 'MF') longShotProb += (!underPressure && frontCrowd <= 1) ? 0.22 : 0.10;
+            let longShotProb = (effSh >= 72 ? 0.16 : 0.10);
+            if (player.position === 'MF') longShotProb += (!underPressure && frontCrowd <= 1) ? 0.28 : 0.14;
+            else if (isFlankWinger && Math.abs(player.y - 50) <= 26) longShotProb += (!underPressure && frontCrowd <= 1) ? 0.16 : 0.08;
             if (isOppLowBlock) longShotProb += 0.08;
             if (hasFinesse || hasPowerShot) longShotProb += 0.08;
-            if (isLongShotRole) longShotProb += 0.07;
-            if (Math.abs(player.y - 50) > 24) longShotProb -= 0.10;
+            if (isLongShotRole) longShotProb += 0.08;
+            if (Math.abs(player.y - 50) > 26) longShotProb -= 0.10;
             if (frontCrowd >= 2 || underPressure) longShotProb -= 0.12;
 
             if (effSh >= 56 && longShotProb > 0 && Math.random() < longShotProb) {
@@ -1765,12 +1769,24 @@ class RealSoccerEngine {
 
             const sc = this._shootChance(player, goalX, distToGoal);
             const clearSight = !this._isFrontalBlocked(player, goalX);
-            const roleShotBonus = player.position === 'FW' ? 18 : (['AM', 'AP', 'SS', 'IW', 'IF', 'W', 'BBM', 'MEZ', 'LM', 'RM'].includes(player.role) ? 14 : 8);
+            const isCentralST = player.position === 'FW' && !isFlankWinger && Math.abs(player.slotY - 50) <= 15;
+            const isAttackingWideOrAM = isFlankWinger || ['AM', 'AP', 'SS', 'IW', 'IF', 'W', 'BBM', 'MEZ', 'LM', 'RM'].includes(player.role);
+            const roleShotBonus = isCentralST ? 13 : (isAttackingWideOrAM ? 18 : (player.position === 'MF' ? 13 : 8));
             const shootScore = sc * 100 + roleShotBonus + (clearSight ? 12 : 0) - (underPressure ? 8 : 0);
-            const shootThreshold = distToGoal <= 8 ? 28 : (distToGoal <= 14 ? 38 : (distToGoal <= 19 ? 48 : 56));
+            const shootThreshold = distToGoal <= 8 ? 28 : (distToGoal <= 14 ? 38 : (distToGoal <= 19 ? 47 : 55));
 
-            // 컷백이나 크로스 타겟이 열려 있으면 패스 우선 (측면 엔드라인 부근)
-            if ((isCutback || isCross) && Math.abs(player.y - 50) > 16 && passScore >= carryScore - 15) {
+            // 컷백이나 크로스: 터치라인 깊은 측면일 때 주로 시도하되, 하프스페이스/박스 안 윙어는 직접 슈팅도 과감히 선택
+            if ((isCutback || isCross) && Math.abs(player.y - 50) > 20 && passScore >= carryScore - 10 && (distToGoal > 13 || Math.random() < 0.45)) {
+                this._executePassV3(player, bestPassTarget, phase);
+                return;
+            }
+
+            // 중앙 ST가 수비 압박을 받을 때 2선/윙어 오픈 동료에게 레이오프·연계 허용 (스트라이커 단독 슈팅 독점 완화)
+            const isTargetOpenNonST = bestPassTarget && bestPassTarget !== player &&
+                (bestPassTarget.position === 'MF' || ['LW', 'RW', 'LM', 'RM'].includes(bestPassTarget.detailPosition) || ['IW', 'IF', 'W', 'AM', 'AP', 'SS', 'BBM', 'MEZ'].includes(bestPassTarget.role)) &&
+                Math.abs(bestPassTarget.x - goalX) <= 23 && Math.abs(bestPassTarget.y - 50) <= 24 &&
+                this.players.filter(o => o.teamId !== tid && o.position !== 'GK' && Math.hypot(o.x - bestPassTarget.x, o.y - bestPassTarget.y) < 6.5).length === 0;
+            if (isCentralST && isTargetOpenNonST && (underPressure || !clearSight || (distToGoal > 11 && Math.random() < 0.34))) {
                 this._executePassV3(player, bestPassTarget, phase);
                 return;
             }
@@ -1782,11 +1798,11 @@ class RealSoccerEngine {
             );
             const isPassBetterFinish = bestPassTarget && (
                 isCutback || isCross ||
-                ((Math.abs(bestPassTarget.x - goalX) < distToGoal - 3.5) && Math.abs(bestPassTarget.y - 50) < 16)
+                ((Math.abs(bestPassTarget.x - goalX) < distToGoal - 5.5) && Math.abs(bestPassTarget.y - 50) < 14 && (Math.abs(player.y - 50) > 19 || !clearSight))
             );
 
             // 박스 안(18m 이내)에서 정면이 열렸거나 슈팅 점수가 임계값을 넘으면 과감히 슈팅!
-            if (distToGoal <= 7 || ((shootScore >= shootThreshold) && (!isPassBetterFinish || distToGoal <= 14 || (clearSight && Math.random() < 0.60)))) {
+            if (distToGoal <= 7 || ((shootScore >= shootThreshold) && (!isPassBetterFinish || (clearSight && distToGoal <= 16) || Math.random() < 0.65))) {
                 this._attemptShoot(player, goalX);
                 return;
             }
@@ -2058,8 +2074,9 @@ class RealSoccerEngine {
         if (oppNearRecv >= 3 && phase !== 'finalThird') score -= 35;
 
         // [공격 다변화: 컷백, 크로스, 사이드 체인지 전환, 2대1 원투 연계 판별]
-        const isCutbackCandidate = (dFromGoal <= 18 && Math.abs(from.y - 50) > 16 && dToGoal <= 26 && Math.abs(to.y - 50) <= 24 && dToGoal >= dFromGoal + 2);
+        const isCutbackCandidate = (dFromGoal <= 24 && Math.abs(from.y - 50) > 14 && dToGoal <= 26 && Math.abs(to.y - 50) <= 26 && dToGoal >= dFromGoal - 2);
         const isCrossCandidate = (dFromGoal <= 36 && Math.abs(from.y - 50) > 16 && dToGoal <= 22 && Math.abs(to.y - 50) <= 26 && dToGoal < dFromGoal + 2);
+        const isBoxEntryToMid = (phase === 'finalThird' && dFromGoal <= 30 && dToGoal <= 26 && Math.abs(to.y - 50) <= 26 && to.position === 'MF');
         const isSwitchPlay = Math.abs(from.y - 50) > 18 && Math.abs(to.y - 50) > 18 && (Math.sign(from.y - 50) !== Math.sign(to.y - 50)) && dist > 28;
         const isOneTwoCandidate = from._receivedFromId && to.id === from._receivedFromId;
 
@@ -2080,8 +2097,8 @@ class RealSoccerEngine {
         const isSameOrAdjChannel = yShift <= 26;
         const isShortCombination = dist >= 5 && dist <= 24 && yShift <= 24 && laneBlock === 0;
         const isSafeSupportTarget = oppNearRecv <= 1 && isShortCombination;
-        if (isCrossCandidate || isCutbackCandidate) {
-            // 박스 안 크로스 및 컷백은 중앙 투입이므로 yShift 감점 면제
+        if (isCrossCandidate || isCutbackCandidate || isBoxEntryToMid) {
+            // 박스 안 크로스·컷백·2선 아크 투입은 중앙 연계이므로 yShift 감점 면제
         } else {
             if (yShift > 38) score -= (75 + (yShift - 38) * 2.0);
             else if (yShift > 24) score -= (34 + (yShift - 24) * 1.5);
@@ -2298,15 +2315,17 @@ class RealSoccerEngine {
             if (isBurstTarget && isSameOrAdjChannel && !back) score += 32;
             if (to._fwMode === 'linkup' && isSameOrAdjChannel && !back) score += 26;
         } else {
-            // finalThird
+            // finalThird (스트라이커 단독 집중 완화: 윙어·2선 박스 침투자에게도 균형 배급)
             const isWideTarget = Math.abs(to.slotY - 50) > 18;
-            const isWingerTarget = ['W', 'IW', 'IF', 'LM', 'RM'].includes(to.role);
+            const isWingerTarget = ['W', 'IW', 'IF', 'LM', 'RM'].includes(to.role) || ['LW', 'RW', 'LM', 'RM'].includes(to.detailPosition);
+            const isCentralSTTarget = to.position === 'FW' && !isWingerTarget && Math.abs(to.slotY - 50) <= 15;
             if (!back || isCutbackCandidate) {
-                if (to.position === 'FW') score += 34;
+                if (isCentralSTTarget) score += 22;
+                else if (to.position === 'FW') score += 34; // 측면 포워드/인사이드 포워드 우선 배급
                 else if (to.position === 'MF') {
-                    const isBoxArrivingMF = dToGoal <= 25 && (isWingerTarget || ['AM', 'AP', 'BBM', 'MEZ', 'SS'].includes(to.role));
-                    if (isSameOrAdjChannel) score += (isBoxArrivingMF ? 34 : (isWingerTarget ? 30 : (isWideTarget ? 26 : 16)));
-                    else score += (isBoxArrivingMF ? 18 : 6);
+                    const isBoxArrivingMF = dToGoal <= 27 && (isWingerTarget || ['AM', 'AP', 'BBM', 'MEZ', 'SS', 'CM'].includes(to.role));
+                    if (isSameOrAdjChannel) score += (isBoxArrivingMF ? 42 : (isWingerTarget ? 34 : (isWideTarget ? 28 : 20)));
+                    else score += (isBoxArrivingMF ? 24 : 8);
                 }
             }
             
@@ -2314,20 +2333,21 @@ class RealSoccerEngine {
             if (to._fbMode === 'overlap' && isSameOrAdjChannel && (!back || isCutbackCandidate)) score += 48;
             else if (to.position === 'DF') score -= 60;
 
-            if (isBurstTarget && isSameOrAdjChannel && !back) score += 42;
+            if (isBurstTarget && isSameOrAdjChannel && !back) score += (isCentralSTTarget ? 26 : 42);
             
-            // [공격 다변화: 측면 크로스 & 컷백 로직 - 윙어/윙백 활약 극대화]
+            // [공격 다변화: 측면 크로스 & 컷백 로직 - 2선 쇄도·반대편 윙어·스트라이커 고른 마무리]
             const isWingerOrWB = Math.abs(from.y - 50) > 16 || from._fbMode === 'overlap' || ['W', 'IW', 'IF', 'WB', 'CWB', 'LM', 'RM'].includes(from.role);
             if (isWingerOrWB && dFromGoal <= 34) {
-                const isTargetFinisher = to.position === 'FW' || ['SS', 'BBM', 'AM'].includes(to.role);
+                const isSecondWaveFinisher = (to.position === 'MF' && ['SS', 'BBM', 'AM', 'AP', 'MEZ', 'CM'].includes(to.role)) || isWingerTarget;
+                const isTargetFinisher = to.position === 'FW' || isSecondWaveFinisher;
                 if (isCutbackCandidate && isTargetFinisher) {
-                    score += 110; // 컷백 최우선 찬스!
+                    score += isSecondWaveFinisher ? 115 : 85; // 컷백은 2선/반대편 윙어 우선!
                 } else if (isCrossCandidate && isTargetFinisher) {
-                    score += 100; // 크로스 최우선 찬스!
+                    score += isCentralSTTarget ? 82 : 98; // 크로스도 파포스트 윙어·2선 균형
                 }
             } else {
                 // 일반적인 골문 앞 전진 패스 보너스
-                if (Math.abs(to.y - 50) < 25 && dToGoal < 18 && forward) score += 32;
+                if (Math.abs(to.y - 50) < 28 && dToGoal < 20 && forward) score += (isCentralSTTarget ? 18 : 30);
             }
         }
         // Lane
@@ -2813,20 +2833,20 @@ class RealSoccerEngine {
         const canBreakThrough = nDef ? ((effDribble * 0.60 + effSpeed * 0.40) >= (defTackle * 0.55 + defSpeed * 0.45) + 2) : true;
         let targetX, targetY, moveSpd;
 
-        if (player.position === 'FW' && distToGoal < 28) {
-            // [공격수 박스 근처 드리블] 각도 오픈 및 돌파 속도 확보
+        if (player.position === 'FW' && distToGoal < 32) {
+            // [공격수/윙어 파이널 서드 드리블] 윙어도 하프스페이스·골문 쪽으로 적극 컷인
             targetX = goalX;
-            targetY = clamp(50 + (player.y - 50) * 0.30, 36, 64);
-            moveSpd = 0.90 * clamp(sf, 0.82, 1.50);
+            targetY = clamp(50 + (player.y - 50) * 0.28, 32, 68);
+            moveSpd = 0.91 * clamp(sf, 0.82, 1.52);
             if (player.burstTimer > 0) moveSpd *= 1.08;
         } else if (isWinger || ['W', 'IW', 'IF', 'WB', 'CWB', 'IWB', 'LM', 'RM'].includes(player.role) || player._fbMode === 'overlap') {
             const bhv = this.getRoleBehavior(player.role);
-            const isInsideCutter = ['IW', 'IF'].includes(player.role) || bhv.cutInside || player._fbMode === 'underlap' || distToGoal < 22;
+            const isInsideCutter = ['IW', 'IF'].includes(player.role) || bhv.cutInside || player._fbMode === 'underlap' || distToGoal < 30;
             if (isInsideCutter) {
                 targetX = goalX;
-                targetY = clamp(50 + (player.y - 50) * 0.32, 26, 74);
-                moveSpd = 0.92 * clamp(sf, 0.84, 1.54);
-                if (player.burstTimer <= 0 && !underPressure && Math.random() < 0.22) player.burstTimer = 8;
+                targetY = clamp(50 + (player.y - 50) * 0.28, 28, 72);
+                moveSpd = 0.93 * clamp(sf, 0.84, 1.55);
+                if (player.burstTimer <= 0 && !underPressure && Math.random() < 0.24) player.burstTimer = 8;
             } else {
                 targetX = player.x + moveDir * 48;
                 targetY = player.y < 50 ? 8 : 92;
@@ -2940,28 +2960,32 @@ class RealSoccerEngine {
         });
         if (isBlockAngle && dToGoal > 16 && player.position !== 'FW' && Math.random() < 0.5) return 0;
 
-        //  각도 페널티 (박스 외곽에서만 엄격하게 적용, 박스 안쪽에서는 슈팅 각도 관대화)
+        //  각도 페널티 (하프스페이스 윙어/2선 슈팅 기회 확대)
         const dY = Math.abs(player.y - 50);
         const shotAngle = Math.atan2(dY, Math.max(1, dToGoal));
         let angleFactor = 1.0;
-        if (shotAngle > 1.1) angleFactor = 0.25;
-        else if (shotAngle > 0.85) angleFactor = 0.55;
-        else if (shotAngle > 0.6) angleFactor = 0.78;
-        else if (shotAngle > 0.4) angleFactor = 0.92;
+        if (shotAngle > 1.15) angleFactor = 0.35;
+        else if (shotAngle > 0.85) angleFactor = 0.68;
+        else if (shotAngle > 0.6) angleFactor = 0.86;
+        else if (shotAngle > 0.4) angleFactor = 0.95;
         // 박스 안쪽(골문 앞 18야드 이내)에서는 각도 페널티 완화하여 과감한 피니시 유도
-        if (dToGoal <= 18) angleFactor = Math.max(angleFactor, 0.75);
-        if (dToGoal <= 10) angleFactor = Math.max(angleFactor, 0.90);
+        if (dToGoal <= 18) angleFactor = Math.max(angleFactor, 0.80);
+        if (dToGoal <= 10) angleFactor = Math.max(angleFactor, 0.92);
 
         let b = 0;
-        // [배속 동기화 및 사실적 골 통계] 과도한 골 수를 방지하고 경기당 평균 2~3골, 최대 5골 내외의 현실적 스코어라인 유지
-        if (dToGoal < 10) b = 0.78;
-        else if (dToGoal < 16) b = 0.56;
-        else if (dToGoal < 22) b = clamp(1 / dToGoal * 8.5, 0.14, 0.36);
-        else if (dToGoal < 30) b = clamp(1 / dToGoal * 4.5, 0.03, 0.12);
+        // [배속 동기화 및 사실적 골 통계] 경기당 평균 2.3~2.7골 유지 및 포지션별 득점 분산
+        if (dToGoal < 10) b = 0.72;
+        else if (dToGoal < 16) b = 0.52;
+        else if (dToGoal < 22) b = clamp(1 / dToGoal * 8.2, 0.15, 0.35);
+        else if (dToGoal < 30) b = clamp(1 / dToGoal * 4.8, 0.04, 0.14);
         else if (dToGoal < 38) b = 0.015;
         else b = 0.004;
 
-        if (player.position === 'FW') b *= 1.25;
+        const isWideFW = player.position === 'FW' && (['LW', 'RW', 'LM', 'RM'].includes(player.detailPosition) || ['W', 'IW', 'IF'].includes(player.role) || Math.abs(player.slotY - 50) > 15);
+        const isCentralST = player.position === 'FW' && !isWideFW;
+        if (isCentralST) b *= 0.92;
+        else if (isWideFW) b *= 1.24;
+        else if (player.position === 'MF') b *= (['AM', 'AP', 'SS', 'BBM', 'MEZ', 'W', 'IW', 'IF', 'LM', 'RM'].includes(player.role) ? 1.22 : 1.08);
 
         b *= angleFactor;
 
@@ -2994,15 +3018,16 @@ class RealSoccerEngine {
         const effSh = this.getEffectiveStat(shooter, 'shooting');
         const sp = effSh * (0.85 + Math.random() * 0.35) * dF * aF;
 
-        // [MatchTuning 연동] 골키퍼 선방 능력 배율 (GK defense 스탯 99 과보정을 0.86으로 정규화)
+        // [MatchTuning 연동] 골키퍼 선방 능력 배율
         const gkMod = (typeof MatchTuning !== 'undefined' && MatchTuning.gkSaveMultiplier !== undefined)
-            ? MatchTuning.gkSaveMultiplier : 1.05;
-        const sv = gkV * 0.85 * (0.85 + Math.random() * 0.30) * gkMod;
+            ? MatchTuning.gkSaveMultiplier : 1.14;
+        const sv = gkV * 0.91 * (0.85 + Math.random() * 0.30) * gkMod;
         
-        // [골 결정력 현실화: 평균 득점은 유지하되 점수 차가 커질수록 추격 여지를 남긴다.]
-        const inBoxBonus = d <= 7 ? 0.10 : (d <= 13 ? 0.06 : (d <= 19 ? 0.025 : (shooter.position === 'MF' && d <= 26 ? 0.015 : -0.035)));
-        const fwBonus = shooter.position === 'FW' ? 0.025 : (shooter.position === 'MF' ? 0.020 : 0);
-        const statBonus = clamp((sp - sv) * 0.0074, -0.10, 0.15);
+        // [골 결정력 현실화 및 포지션 분산: 스트라이커 과집중 억제 + 윙어/2선 결정력 균형]
+        const isWideAtt = (shooter.position === 'FW' && (['LW', 'RW'].includes(shooter.detailPosition) || ['W', 'IW', 'IF'].includes(shooter.role) || Math.abs(shooter.slotY - 50) > 15));
+        const inBoxBonus = d <= 7 ? 0.085 : (d <= 13 ? 0.055 : (d <= 19 ? 0.025 : (shooter.position === 'MF' && d <= 27 ? 0.022 : -0.030)));
+        const fwBonus = isWideAtt ? 0.030 : (shooter.position === 'MF' ? 0.026 : (shooter.position === 'FW' ? 0.014 : 0));
+        const statBonus = clamp((sp - sv) * 0.0062, -0.09, 0.12);
 
         // 슈팅 관련 특성 보유 시 추가 골 결정력 가산
         const traits = shooter.traits || [];
@@ -3012,34 +3037,34 @@ class RealSoccerEngine {
         // 직전 연계가 컷백이나 크로스 원터치 피니시인 경우 가산
         const isCutbackFinish = this.ball && this.ball.isCutback;
         const isCrossFinish = this.ball && this.ball.isCross;
-        const patternBonus = isCutbackFinish ? 0.04 : (isCrossFinish ? 0.03 : 0);
+        const patternBonus = isCutbackFinish ? 0.035 : (isCrossFinish ? 0.025 : 0);
 
         // 1:1 단독 찬스 보너스
         const nearbyDefs = this.players.filter(p => p.teamId === opp && p.position !== 'GK' && Math.hypot(p.x - shooter.x, p.y - shooter.y) < 7.0);
         const isOneOnOne = nearbyDefs.length === 0 && d <= 16;
-        const bigChanceBonus = isOneOnOne ? 0.04 : 0;
+        const bigChanceBonus = isOneOnOne ? 0.03 : 0;
 
         const goalMult = (typeof MatchTuning !== 'undefined' && MatchTuning.goalMultiplier !== undefined)
-            ? MatchTuning.goalMultiplier : 1.0;
+            ? MatchTuning.goalMultiplier : 0.78;
         const minG = (typeof MatchTuning !== 'undefined' && MatchTuning.minGoalChance !== undefined)
-            ? MatchTuning.minGoalChance : 0.025;
+            ? MatchTuning.minGoalChance : 0.03;
         const maxG = (typeof MatchTuning !== 'undefined' && MatchTuning.maxGoalChance !== undefined)
-            ? MatchTuning.maxGoalChance : 0.28;
+            ? MatchTuning.maxGoalChance : 0.36;
 
-        let goalChance = clamp((0.135 + inBoxBonus + fwBonus + statBonus + traitBonus + patternBonus + bigChanceBonus) * goalMult, minG, maxG);
+        let goalChance = clamp((0.12 + inBoxBonus + fwBonus + statBonus + traitBonus + patternBonus + bigChanceBonus) * goalMult, minG, maxG);
 
-        // [다득점 과열 방지 댐핑: 매끄러운 단조 감쇠로 3~4골 팽팽한 명승부는 살리고 6+골 이상 과열만 억제]
+        // [다득점 과열 방지 댐핑: 현실적인 스코어라인 유지]
         const totalMatchGoals = (this.homeScore || 0) + (this.awayScore || 0);
         const myTeamScore = shooter.teamId === 'home' ? (this.homeScore || 0) : (this.awayScore || 0);
         const oppTeamScore = shooter.teamId === 'home' ? (this.awayScore || 0) : (this.homeScore || 0);
         const scoreGap = myTeamScore - oppTeamScore;
-        if (scoreGap >= 3) goalChance *= 0.88;
-        else if (scoreGap === 2) goalChance *= 0.95;
-        else if (scoreGap < 0) goalChance += Math.min(0.02, Math.abs(scoreGap) * 0.008);
-        if (totalMatchGoals >= 6) {
-            goalChance *= 0.48;
-        } else if (totalMatchGoals >= 4) {
-            goalChance *= 0.76;
+        if (scoreGap >= 3) goalChance *= 0.84;
+        else if (scoreGap === 2) goalChance *= 0.92;
+        else if (scoreGap < 0) goalChance += Math.min(0.015, Math.abs(scoreGap) * 0.006);
+        if (totalMatchGoals >= 5) {
+            goalChance *= 0.52;
+        } else if (totalMatchGoals >= 3) {
+            goalChance *= 0.80;
         }
         goalChance = clamp(goalChance, minG, maxG);
 
@@ -3785,29 +3810,24 @@ class RealSoccerEngine {
             // [파이널 서드 박스 침투 (Box-Wave Pattern): 중앙 스트라이커는 문전 피니시, 측면 공격수는 파 포스트/하프스페이스 분담]
             const isCentralStrikerSlot = Math.abs(p.slotY - 50) <= 15 || (isPrimaryRunner && Math.abs(p.slotY - 50) <= 22);
             if (isCentralStrikerSlot) {
-                // 니어 포스트 / 문전 8~13야드 정면 침투 (공이 뜨기 전엔 오프사이드 라인 안쪽 유지)
-                const desiredX = isHome ? clamp(offX - 1.0, 72.0, 92.0) : clamp(offX + 1.0, 8.0, 28.0);
+                // 중앙 스트라이커: 수비수를 끌고 다니며 문전/페널티 스팟 점유 (윙어·2선 침투 공간도 개방)
+                const desiredX = isHome ? clamp(offX - 1.6, 72.0, 90.0) : clamp(offX + 1.6, 10.0, 28.0);
                 tx = isHome ? Math.min(desiredX, boxMaxX) : Math.max(desiredX, boxMaxX);
-                ty = clamp(50 + nearSign * 3.5, 42, 58);
-                ms = 0.94 * clamp(sf, 0.9, 1.95);
-            } else if (!isBallSide) {
-                // 반대편(Far-side) 공격수: 파 포스트 박스 안쪽 공략
-                const desiredX = isHome ? clamp(offX - 1.4, 70.0, 90.0) : clamp(offX + 1.4, 10.0, 30.0);
-                tx = isHome ? Math.min(desiredX, boxMaxX) : Math.max(desiredX, boxMaxX);
-                ty = nearSign < 0 ? (isTeamWide ? 66 : 60) : (isTeamWide ? 34 : 40);
+                ty = clamp(50 - nearSign * 4.5, 40, 60);
                 ms = 0.90 * clamp(sf, 0.88, 1.90);
+            } else if (!isBallSide) {
+                // 반대편(Far-side) 공격수: 파 포스트 박스 안쪽 적극 공략 (득점 분산 핵심)
+                const desiredX = isHome ? clamp(offX - 1.0, 74.0, 92.0) : clamp(offX + 1.0, 8.0, 26.0);
+                tx = isHome ? Math.min(desiredX, boxMaxX) : Math.max(desiredX, boxMaxX);
+                ty = nearSign < 0 ? (isTeamWide ? 60 : 56) : (isTeamWide ? 40 : 44);
+                ms = 0.94 * clamp(sf, 0.90, 1.95);
             } else {
-                // 볼 사이드 윙어/공격수: 롤에 따른 분기 (클래식 윙어 측면 돌파 vs 인버티드 윙어 하프스페이스 슈팅/연계)
-                if (bhv.cutInside || p.role === 'IW' || p.role === 'IF') {
-                    const desiredX = isHome ? clamp(this.ball.x + 5, 70, 88) : clamp(this.ball.x - 5, 12, 30);
+                // 볼 사이드 윙어/공격수: 하프스페이스 안쪽으로 컷인 침투 강화
+                if (bhv.cutInside || p.role === 'IW' || p.role === 'IF' || Math.abs(p.slotY - 50) > 15) {
+                    const desiredX = isHome ? clamp(this.ball.x + 8, 72, 90) : clamp(this.ball.x - 8, 10, 28);
                     tx = isHome ? Math.min(desiredX, boxMaxX) : Math.max(desiredX, boxMaxX);
-                    ty = clamp(50 + (p.slotY - 50) * 0.42, 26, 74);
-                    ms = 0.88 * clamp(sf, 0.88, 1.88);
-                } else if (bhv.hugLine || Math.abs(p.slotY - 50) > 20) {
-                    const desiredX = isHome ? clamp(this.ball.x + 6, 70, 92) : clamp(this.ball.x - 6, 8, 30);
-                    tx = isHome ? Math.min(desiredX, boxMaxX) : Math.max(desiredX, boxMaxX);
-                    ty = p.slotY < 50 ? (isTeamWide ? 7 : 12) : (isTeamWide ? 93 : 88);
-                    ms = 0.86 * clamp(sf, 0.85, 1.85);
+                    ty = clamp(50 + (p.slotY - 50) * 0.36, 32, 68);
+                    ms = 0.92 * clamp(sf, 0.88, 1.92);
                 } else {
                     // 페널티 스팟 / 아크 부근 컷백 피니시 트레일러
                     const desiredX = isHome ? clamp(offX - 3.0, 68.0, 85.0) : clamp(offX + 3.0, 15.0, 32.0);
@@ -3975,26 +3995,26 @@ class RealSoccerEngine {
                     tx = lines.mfX + fwd * (isDM ? -4 : (isAM ? 8 : (isLateRunnerMF ? 5 : 2)));
                     ms = (isLateRunnerMF ? 0.84 : 0.74) * clamp(sf, 0.84, 1.82);
                 } else if (phase === 'finalThird') {
-                    // 파이널 서드에서 DM은 3선(52~62) 보호, 일반 CM은 아크 부근(70~79), AM/BBM/MEZ는 박스 안팎(78~86) 2선 침투!
-                    tx = lines.mfX + fwd * (isDM ? -6 : (isAM ? 11 : (isLateRunnerMF ? 7 : 3)));
-                    ms = (isLateRunnerMF ? 0.90 : 0.78) * clamp(sf, 0.86, 1.88);
+                    // 파이널 서드에서 DM은 3선(52~62) 보호, CM/BBM/MEZ/AM은 박스 안팎(76~88)으로 적극 2선 침투!
+                    tx = lines.mfX + fwd * (isDM ? -6 : (isAM ? 16 : (isLateRunnerMF ? 13 : 9)));
+                    ms = (isLateRunnerMF ? 0.94 : 0.84) * clamp(sf, 0.86, 1.92);
                 } else {
                     tx = lines.mfX + fwd * (isDM ? -2 : 6);
                     ms = (isLateRunnerMF ? 0.88 : 0.78) * clamp(sf, 0.85, 1.85);
                 }
             }
 
-            // 롤별 절대 전진 상한선 (DM은 레스트 디펜스 유지, 2선 침투형 미드필더는 박스 안팎까지 진입 허용)
+            // 롤별 절대 전진 상한선 (DM은 레스트 디펜스 유지, 2선 침투형 미드필더는 박스 안쪽까지 적극 진입)
             const maxAllowedHome = isDM
                 ? (phase === 'finalThird' ? 62 : 53)
-                : (isAM ? (phase === 'finalThird' ? 86 : 74) : (isLateRunnerMF ? (phase === 'finalThird' ? 82 : 70) : (phase === 'finalThird' ? 77 : 66)));
+                : (isAM ? (phase === 'finalThird' ? 89 : 76) : (isLateRunnerMF ? (phase === 'finalThird' ? 86 : 73) : (phase === 'finalThird' ? 82 : 69)));
             const minAllowedAway = 100 - maxAllowedHome;
             tx = isHome ? Math.min(tx, maxAllowedHome) : Math.max(tx, minAllowedAway);
 
             const fws = mates.filter(q => q.position === 'FW');
             if (fws.length && !p._comingShort) {
                 const frontFW = isHome ? Math.max(...fws.map(q => q.x)) : Math.min(...fws.map(q => q.x));
-                const gapFromFW = isDM ? 16 : (isAM ? 3.5 : (isLateRunnerMF ? 6 : 9));
+                const gapFromFW = isDM ? 16 : (isAM ? 2.5 : (isLateRunnerMF ? 3.5 : 5.5));
                 const limit = isHome ? frontFW - gapFromFW : frontFW + gapFromFW;
                 tx = isHome ? Math.min(tx, limit) : Math.max(tx, limit);
             }
@@ -4020,7 +4040,10 @@ class RealSoccerEngine {
         } else if (['W', 'LM', 'RM'].includes(p.role) || bhv.hugLine) {
             ty = p.slotY < 50 ? 8 : 92;
         } else if (p.role === 'MEZ') {
-            ty = p.slotY < 50 ? 24 : 76;
+            ty = (phase === 'finalThird') ? (p.slotY < 50 ? 36 : 64) : (p.slotY < 50 ? 24 : 76);
+        } else if (phase === 'finalThird' && !isDM && !isWingerRole) {
+            // 파이널 서드에서 중앙 미드필더는 페널티 아크/하프스페이스(Y=36~64)로 좁혀 들어가 컷백·중거리 마무리 대기
+            ty = clamp(50 + (p.slotY - 50) * 0.45, 34, 66);
         }
 
         // [4단계] 전술별 중원 움직임

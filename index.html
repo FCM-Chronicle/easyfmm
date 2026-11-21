@@ -12,7 +12,7 @@
     <meta name="description"
         content="초보자도 쉽게 즐길 수 있는 축구 감독 게임입니다. '슈퍼리그'세계관에서 강한 팀으로 우승하거나, 약체 팀으로 차근차근 올라가세요. 팀을 구성하고, 전술을 선택하고, 승리하세요!">
     <link rel="shortcut icon" href="./favicon.ico">
-    <link rel="stylesheet" href="style.css?v=20261115_01">
+    <link rel="stylesheet" href="style.css?v=20261122_02">
 </head>
 
 <body>
@@ -51,7 +51,6 @@
             <h1 class="manager-screen-title">
                 <span data-icon="trophy" data-icon-class="lg"></span><span>FOOTBALL MANAGER</span>
             </h1>
-            <p class="manager-screen-subtitle">구단을 이끌 명장을 선택하거나 새로운 감독 커리어를 시작하세요.</p>
         </div>
 
         <div class="manager-toolbar">
@@ -61,7 +60,7 @@
                 <span id="managerCountBadge" class="manager-count-badge">0명</span>
             </div>
             <button id="createNewManagerBtn" class="btn primary">
-                <span data-icon="sparkles"></span>
+                <span data-icon="user-plus"></span>
                 <span>새 감독 생성</span>
             </button>
 </div>
@@ -117,7 +116,6 @@
                 <div class="manager-form-col">
                     <div class="creator-header">
                         <h2 id="managerEditTitle">새 감독 등록</h2>
-                        <p class="creator-subtitle">구단을 이끌 새로운 사령탑의 프로필과 축구 철학을 설정하세요.</p>
                     </div>
 
                     <!-- 1. 기본 인적사항 -->
@@ -283,9 +281,12 @@
                         style="padding: 15px 40px; font-size: 1.2rem; margin-top: 20px;">이 팀으로 시작</button>
                 </div>
 
-                <!-- 중앙: The Story -->
+                <!-- 중앙: Club Kits & Details -->
                 <div class="ts-section ts-center">
-                    <div class="ts-desc-box">
+                    <div id="ts-team-kits" class="ts-kits-showcase"></div>
+
+                    <!-- 데이터 호환을 위해 요소는 유지하되 UI에서는 숨김 -->
+                    <div class="ts-desc-box" style="display: none;">
                         <h3>TEAM STORY</h3>
                         <div id="ts-team-desc" class="ts-desc-text">
                             팀 설명이 들어갑니다.
@@ -296,11 +297,21 @@
                         <span class="ts-info-label">연고지</span>
                         <span id="ts-team-city" class="ts-info-value">City Name</span>
                     </div>
+
+                    <div class="ts-info-row">
+                        <span class="ts-info-label">홈구장</span>
+                        <span id="ts-team-stadium" class="ts-info-value">-</span>
+                    </div>
+
+                    <div class="ts-budget-card">
+                        <div class="ts-budget-label">시작 자금 (이적 예산)</div>
+                        <div id="ts-team-budget" class="ts-budget-value">1000억원</div>
+                    </div>
                 </div>
 
                 <!-- 우측: Key Assets -->
                 <div class="ts-section ts-right">
-                    <h3 style="color: #aaa; font-size: 0.9rem; text-transform: uppercase; margin-bottom: 20px;">KEY
+                    <h3 style="color: #aaa; font-size: 0.9rem; text-transform: uppercase; margin-bottom: 14px;">KEY
                         PLAYERS</h3>
 
                     <div id="ts-key-player-1" class="ts-key-player">
@@ -313,13 +324,6 @@
 
                     <div id="ts-key-player-3" class="ts-key-player">
                         <!-- JS로 채움 -->
-                    </div>
-
-                    <!-- [수정] 구단 가치 -> 시작 자금으로 변경 -->
-                    <div
-                        style="margin-top: 30px; background: rgba(255,255,255,0.05); padding: 20px; border-radius: 10px; text-align: center;">
-                        <div style="color: #aaa; font-size: 0.9rem; margin-bottom: 5px;">시작 자금 (Starting Budget)</div>
-                        <div id="ts-team-budget" class="ts-budget-value">1000억</div>
                     </div>
                 </div>
             </div>
@@ -411,11 +415,15 @@
         <div id="tab-content-area" class="tab-content" style="display: none;">
             <!-- 스쿼드 탭 -->
             <div id="squad" class="tab-panel active">
-                <div class="squad-controls">
+                <div class="mobile-subview-bar" id="squadMobileSubviewBar">
+                    <button type="button" class="mobile-subview-btn active" data-squad-view="pitch">⚽ 선발 11인 피치</button>
+                    <button type="button" class="mobile-subview-btn" data-squad-view="list">📋 구단 전체 선수단</button>
+                </div>
+                <div class="squad-controls" id="squadPitchControls">
                     <!-- 포메이션 수정 버튼은 이 곳으로 이동됩니다. (scouting.js에서 처리) -->
                 </div>
 
-                <div class="formation-container">
+                <div class="formation-container" id="squadPitchView">
                     <div class="field-wrapper">
                         <div class="field">
                             <div class="field-line"></div>
@@ -434,7 +442,7 @@
                     </div>
                 </div>
 
-                <div class="team-players">
+                <div class="team-players" id="squadRosterView">
                     <h3>구단 선수 명단</h3>
                     <div id="playerList"></div>
                 </div>
@@ -453,6 +461,11 @@
                                 <span class="match-type">리그전</span>
                                 <span class="match-time">킥오프 예정</span>
                             </div>
+                        </div>
+                        <div id="matchKitMatchup" class="match-kit-matchup" style="display: none;">
+                            <img id="matchMyKitImg" class="match-kit-img" src="" alt="">
+                            <span class="match-kit-vs">VS</span>
+                            <img id="matchOppKitImg" class="match-kit-img" src="" alt="">
                         </div>
                         <button id="startMatchBtn" class="btn primary"
                             style="padding: 15px 40px; font-size: 1.2rem; font-weight: bold;">경기 시작</button>
@@ -502,10 +515,10 @@
                         <div id="currentTacticMasteryWrap" style="margin-top: 12px; background: rgba(2, 6, 23, 0.55); border: 1px solid rgba(56, 189, 248, 0.22); border-radius: 10px; padding: 10px 14px;">
                             <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem; margin-bottom: 6px;">
                                 <span style="color: #E2E8F0; font-weight: 800;">🎯 현재 전술 숙련도 (Familiarity)</span>
-                                <span id="currentTacticMasteryText" style="color: #34D399; font-weight: 800;">40% · 적응 중 (패스·위치선정 안정성 +1.8%)</span>
+                                <span id="currentTacticMasteryText" style="color: #FBBF24; font-weight: 800;">50% · 적응 중</span>
                             </div>
                             <div style="height: 8px; background: rgba(255, 255, 255, 0.08); border-radius: 999px; overflow: hidden;">
-                                <div id="currentTacticMasteryBar" style="height: 100%; width: 40%; background: linear-gradient(90deg, #38BDF8, #34D399); border-radius: 999px; transition: width 0.25s ease;"></div>
+                                <div id="currentTacticMasteryBar" style="height: 100%; width: 50%; background: linear-gradient(90deg, #F59E0B, #38BDF8); border-radius: 999px; transition: width 0.25s ease;"></div>
                             </div>
                         </div>
                     </div>
@@ -523,12 +536,6 @@
                         <option value="totalFootball">토탈 풋볼</option>
                         <option value="balanced">밸런스</option>
                     </select>
-                    <div class="tactic-tip" style="margin-top: 14px;">
-                        <span data-icon="lightbulb"></span> FM 전술 철학, 8대 핵심 지침, 커스텀 슬롯(3개) 및 선수별 롤 적합도는 <strong>[전술]</strong> 탭에서 언제든지 자유롭게 설계할 수 있습니다.
-                    </div>
-                    <div class="tactic-tip" style="margin-top: 8px; color: #FBBF24;">
-                        <span data-icon="clapperboard"></span> 골 직전 연출은 설정 탭 → 경기 연출에서 On/Off 및 강도를 조절할 수 있습니다.
-                    </div>
                 </div>
             </div>
 
@@ -539,7 +546,6 @@
                     <button id="openEngineGuideBtn" class="btn btn-sm"><span data-icon="book-open"></span> 전술
                         가이드</button>
                 </div>
-                <p style="color: #94A3B8; font-size: 0.9rem; margin-bottom: 20px;">FM 스타일 전술 철학, 8대 핵심 지침, 커스텀 플랜 슬롯(3개)과 선발 11인 개인 롤(Role) 적합도를 통합 설계하세요.</p>
                 <div id="tacticsContent"></div>
             </div>
 
@@ -566,12 +572,6 @@
 
             <!-- 재정 탭 -->
             <div id="finance" class="tab-panel">
-                <div class="finance-header">
-                    <h3>재정 관리</h3>
-                    <p class="finance-description">
-                        이적 자금과 주급 자금을 분리해서 관리합니다. 필요할 때만 서로 전환하세요.
-                    </p>
-                </div>
                 <div id="financeContent"></div>
             </div>
 
@@ -582,11 +582,6 @@
 
             <!-- 대화 탭 -->
             <div id="chat" class="tab-panel">
-                <div class="chat-header-card" style="margin-bottom: 16px;">
-                    <h3>구단 대화실</h3>
-                    <p style="color: #aaa; margin: 8px 0 0; line-height: 1.6;">비서, 코치, 구단주, 스카우트와 실시간 메신저처럼 대화하세요. 입력한
-                        내용에 따라 상황별 응답이 돌아옵니다.</p>
-                </div>
                 <div id="chatContent"></div>
             </div>
 
@@ -600,13 +595,9 @@
             <div id="sponsor" class="tab-panel">
                 <div class="sponsor-hero-card">
                     <div class="sponsor-hero-main">
-                        <div class="sponsor-tag-badge">
-                            <span data-icon="handshake"></span> 공식 구단 파트너십
-                        </div>
-                        <h3>구단 스폰서십 센터</h3>
+                        <h3>구단 스폰서십</h3>
                         <p class="sponsor-description">
-                            글로벌 기업과 공식 후원 계약을 맺고 경기당 보너스와 계약금을 확보하세요.<br>
-                            구단의 평균 능력치(OVR)가 상승할수록 더 높은 가치의 메가 스폰서십 제안이 들어옵니다.
+                            팀 평균 OVR에 따라 상위 스폰서 계약이 해금되며, 경기당 고정 수익이 지급됩니다.
                         </p>
                     </div>
                     <div class="sponsor-active-card" id="currentSponsorDisplayCard">
@@ -615,7 +606,7 @@
                             <span class="active-label">현재 체결 스폰서</span>
                         </div>
                         <div class="current-sponsor-name" id="currentSponsorDisplay">계약 없음</div>
-                        <div class="current-sponsor-sub" id="currentSponsorSubDisplay">새로운 파트너십을 체결하세요.</div>
+                        <div class="current-sponsor-sub" id="currentSponsorSubDisplay">미체결</div>
                     </div>
                 </div>
                 <div class="sponsor-section-header">
@@ -635,7 +626,6 @@
                 <div class="records-header">
                     <div class="records-header-text">
                         <h3>기록 & 어워즈</h3>
-                        <p class="records-description">시즌 기록, 명예의 전당(발롱도르), 그리고 NXGN 세계 10대 유망주를 확인하세요!</p>
                     </div>
                     <div class="records-subtabs" id="recordsSubtabs">
                         <button type="button" class="records-subtab-btn active" data-subtab="current"><span
@@ -695,25 +685,20 @@
 
             <!-- 유스 탭 -->
             <div id="youth" class="tab-panel">
-                <div class="youth-hero-banner">
-                    <div class="youth-hero-content">
-                        <div class="youth-tag-badge">
-                            <span data-icon="sparkles"></span> 미래의 슈퍼스타 육성 센터
-                        </div>
-                        <h3>구단 유스 아카데미 & 스카우팅</h3>
-                        <p class="youth-hero-desc">
-                            전 세계에서 발굴되거나 환생한 차세대 원더키드를 육성하고 1군으로 콜업하세요.<br>
-                            역량 높은 스카우터를 파견하여 세계 무대를 뒤흔들 잠재력을 지닌 특급 유망주를 영입할 수 있습니다.
-                        </p>
-                    </div>
+                <div class="youth-page-header">
+                    <h3>유스 아카데미 & 스카우팅</h3>
+                </div>
+
+                <div class="mobile-subview-bar" id="youthMobileSubviewBar">
+                    <button type="button" class="mobile-subview-btn active" data-youth-view="academy">🌱 유스 소속 선수</button>
+                    <button type="button" class="mobile-subview-btn" data-youth-view="scouting">🔭 스카우터 파견</button>
                 </div>
 
                 <!-- 섹션 1: 유스팀 선수단 -->
-                <div class="youth-section-box">
+                <div class="youth-section-box" id="youthAcademyBox">
                     <div class="youth-section-header">
                         <div class="youth-section-title-wrap">
-                            <h4>유스팀 소속 유망주</h4>
-                            <span class="youth-section-sub">클릭하여 1군 스쿼드로 콜업할 수 있습니다.</span>
+                            <h4>유스 소속 선수</h4>
                         </div>
                     </div>
                     <div id="youthPlayerList" class="youth-player-grid"></div>
@@ -722,7 +707,7 @@
                 <!-- 섹션 2: 스카우트 센터 -->
                 <div id="scoutingSection" class="scouting-section-box">
                     <div id="hiredScoutInfo" class="hired-scout-banner" style="display: none;">
-                        <div class="hired-scout-badge"><span data-icon="user-check"></span> 계약 진행 중</div>
+                        <div class="hired-scout-badge"><span data-icon="user-check"></span> 파견 중</div>
                         <div class="hired-scout-details">
                             <span class="hired-scout-label">담당 스카우터:</span>
                             <strong id="hiredScoutName" class="hired-scout-title"></strong>
@@ -733,108 +718,97 @@
 
                     <div class="scouting-section-header">
                         <div class="youth-section-title-wrap">
-                            <h4>글로벌 스카우터 영입</h4>
-                            <span class="youth-section-sub">스카우터를 고용하면 능동적으로 해지하기 전까지 상시 유지되며, <strong>10경기마다
-                                    1명</strong>의 유망주를 확정 발굴합니다. 잠재력은 <strong>수준 이하, 평범함, 재능 있음, 원더키드</strong> 4단계로
-                                분류됩니다.</span>
+                            <h4>스카우터 파견</h4>
+                            <span class="youth-section-sub">해지 전까지 상시 유지되며 10경기마다 유망주 1명을 발굴합니다.</span>
                         </div>
                     </div>
 
                     <div id="scoutList" class="scout-grid">
                         <div class="scout-card tier-novice" data-tier="novice">
                             <div class="scout-card-header">
-                                <div class="scout-stars">★☆☆</div>
-                                <span class="scout-tier-badge">초급</span>
+                                <h4 class="scout-title">초급 스카우터</h4>
+                                <span class="scout-tier-badge">1급</span>
                             </div>
-                            <h4 class="scout-title">초급 스카우터</h4>
                             <div class="scout-specs">
                                 <div class="spec-row">
                                     <span class="spec-label">계약금</span>
-                                    <span class="spec-value cost">100억</span>
+                                    <span class="spec-value">100억</span>
                                 </div>
                                 <div class="spec-row">
                                     <span class="spec-label">발굴 주기</span>
-                                    <span class="spec-value rate">10경기마다 1명</span>
+                                    <span class="spec-value">10경기 / 1명</span>
                                 </div>
                                 <div class="spec-row">
-                                    <span class="spec-label">원더키드 확률</span>
-                                    <span class="spec-value ovr">0% (재능 2%)</span>
+                                    <span class="spec-label">원더키드 / 재능 확률</span>
+                                    <span class="spec-value">0% / 2%</span>
                                 </div>
                                 <div class="spec-row">
-                                    <span class="spec-label">계약 방식</span>
-                                    <span class="spec-value" style="color: #38BDF8;">상시 고용 (해지 전까지)</span>
+                                    <span class="spec-label">초기 OVR 범위</span>
+                                    <span class="spec-value">48 – 60</span>
                                 </div>
                             </div>
-                            <button class="btn btn-scout-hire" onclick="hireScoutAndRefresh('novice')">스카우터 고용</button>
+                            <button class="btn btn-scout-hire" onclick="hireScoutAndRefresh('novice')">고용</button>
                         </div>
 
                         <div class="scout-card tier-professional" data-tier="professional">
                             <div class="scout-card-header">
-                                <div class="scout-stars">★★☆</div>
-                                <span class="scout-tier-badge">프로</span>
+                                <h4 class="scout-title">프로 스카우터</h4>
+                                <span class="scout-tier-badge">2급</span>
                             </div>
-                            <h4 class="scout-title">프로 스카우터</h4>
                             <div class="scout-specs">
                                 <div class="spec-row">
                                     <span class="spec-label">계약금</span>
-                                    <span class="spec-value cost">300억</span>
+                                    <span class="spec-value">300억</span>
                                 </div>
                                 <div class="spec-row">
                                     <span class="spec-label">발굴 주기</span>
-                                    <span class="spec-value rate">10경기마다 1명</span>
+                                    <span class="spec-value">10경기 / 1명</span>
                                 </div>
                                 <div class="spec-row">
-                                    <span class="spec-label">원더키드 확률</span>
-                                    <span class="spec-value ovr" style="color: #F59E0B;">0.2% (재능 10%)</span>
+                                    <span class="spec-label">원더키드 / 재능 확률</span>
+                                    <span class="spec-value">0.2% / 10%</span>
                                 </div>
                                 <div class="spec-row">
-                                    <span class="spec-label">계약 방식</span>
-                                    <span class="spec-value" style="color: #38BDF8;">상시 고용 (해지 전까지)</span>
+                                    <span class="spec-label">초기 OVR 범위</span>
+                                    <span class="spec-value">54 – 66</span>
                                 </div>
                             </div>
-                            <button class="btn btn-scout-hire" onclick="hireScoutAndRefresh('professional')">스카우터
-                                고용</button>
+                            <button class="btn btn-scout-hire" onclick="hireScoutAndRefresh('professional')">고용</button>
                         </div>
 
                         <div class="scout-card tier-worldClass" data-tier="worldClass">
                             <div class="scout-card-header">
-                                <div class="scout-stars">★★★</div>
-                                <span class="scout-tier-badge">월드클래스</span>
+                                <h4 class="scout-title">수석 스카우터</h4>
+                                <span class="scout-tier-badge">특급</span>
                             </div>
-                            <h4 class="scout-title">월드클래스 스카우터</h4>
                             <div class="scout-specs">
                                 <div class="spec-row">
                                     <span class="spec-label">계약금</span>
-                                    <span class="spec-value cost">700억</span>
+                                    <span class="spec-value">700억</span>
                                 </div>
                                 <div class="spec-row">
                                     <span class="spec-label">발굴 주기</span>
-                                    <span class="spec-value rate" style="color: #F59E0B; font-weight: bold;">10경기마다
-                                        1명</span>
+                                    <span class="spec-value">10경기 / 1명</span>
                                 </div>
                                 <div class="spec-row">
-                                    <span class="spec-label">원더키드 확률</span>
-                                    <span class="spec-value ovr" style="color: #FBBF24; font-weight: bold;">★ 1% (재능
-                                        19%)</span>
+                                    <span class="spec-label">원더키드 / 재능 확률</span>
+                                    <span class="spec-value highlight">1.0% / 19%</span>
                                 </div>
                                 <div class="spec-row">
-                                    <span class="spec-label">계약 방식</span>
-                                    <span class="spec-value" style="color: #38BDF8;">상시 고용 (해지 전까지)</span>
+                                    <span class="spec-label">초기 OVR 범위</span>
+                                    <span class="spec-value">60 – 72</span>
                                 </div>
                             </div>
-                            <button class="btn btn-scout-hire" onclick="hireScoutAndRefresh('worldClass')">스카우터
-                                고용</button>
+                            <button class="btn btn-scout-hire" onclick="hireScoutAndRefresh('worldClass')">고용</button>
                         </div>
                     </div>
 
                     <div id="scoutingResults" class="scouting-results-box">
                         <div class="scouting-results-header">
-                            <h4>최근 발굴된 유망주</h4>
-                            <span class="youth-section-sub">스카우터가 보고한 유망주 리포트</span>
+                            <h4>최근 발굴 리포트</h4>
                         </div>
                         <div id="scoutedPlayerList" class="scouted-player-grid">
-                            <p style="text-align: center; opacity: 0.7; padding: 20px;">스카우터를 고용하면 경기 진행 시 유망주를 발굴하여
-                                보고합니다.</p>
+                            <p class="youth-inline-empty">발굴된 유망주 리포트가 없습니다.</p>
                         </div>
                     </div>
                 </div>
@@ -843,7 +817,6 @@
             <div id="sns" class="tab-panel">
                 <div class="sns-header">
                     <h3>소셜 피드</h3>
-                    <p class="sns-description">최신 이적 소식과 경기 결과를 확인하세요!</p>
                 </div>
                 <div id="snsFeed" class="sns-feed"></div>
             </div>
@@ -851,7 +824,7 @@
             <!-- 메일함 탭 -->
             <div id="mail" class="tab-panel">
                 <h3>개인 메일함</h3>
-                <div class="mail-container">
+                <div class="mail-container" id="mailContainer">
                     <div id="mailList" class="mail-list"></div>
                     <div id="mailDetail" class="mail-detail">
                         <div style="text-align: center; color: #aaa; margin-top: 100px;">메일을 선택하여 내용을 확인하세요.</div>
@@ -881,10 +854,9 @@
             <div id="growth" class="tab-panel">
                 <div class="growth-header">
                     <h3>성장 현황</h3>
-                    <p class="growth-description">우리 팀 선수들의 성장 이력과 멘토링 현황을 한눈에 확인하세요.</p>
                 </div>
-                <div class="growth-layout">
-                    <aside class="growth-sidebar">
+                <div class="growth-layout" id="growthLayout">
+                    <aside class="growth-sidebar" id="growthSidebar">
                         <div class="growth-sidebar-header">
                             <h4>성장 중인 선수</h4>
                             <span id="growth-count-badge" class="growth-count-badge">0</span>
@@ -895,12 +867,14 @@
                             <div id="mentoringList" class="mentoring-list"></div>
                         </div>
                     </aside>
-                    <section class="growth-main">
+                    <section class="growth-main" id="growthMain">
+                        <button type="button" id="growthMobileBackBtn" class="mobile-drill-back-btn">
+                            ← 성장 선수 목록으로 돌아가기
+                        </button>
                         <div id="growthEmpty" class="growth-empty" style="display:none;">
-                            <div style="margin-bottom:16px; color: #38BDF8;"><span data-icon="chart"
+                            <div style="margin-bottom:12px; color: #38BDF8;"><span data-icon="chart"
                                     data-icon-class="xl"></span></div>
-                            <h4>선수를 선택하면 성장 그래프를 확인할 수 있어요</h4>
-                            <p style="color:#94A3B8">좌측 목록에서 성장 중인 선수를 클릭해 주세요</p>
+                            <h4>좌측 목록에서 선수를 선택하세요</h4>
                         </div>
                         <div id="growthDetail" class="growth-detail" style="display:none;">
                             <div class="growth-detail-header">
@@ -1064,6 +1038,30 @@
                 </div>
             </div>
         </div>
+
+        <!-- [신규] 모바일 전용 하단 고정 네비게이션 독 바 (핵심 5개 탭) -->
+        <nav id="mobileBottomNav" class="mobile-bottom-nav" aria-label="모바일 빠른 메뉴">
+            <button type="button" class="mobile-nav-item active" data-mobile-nav="home">
+                <span class="mobile-nav-ico" data-icon="home"></span>
+                <span class="mobile-nav-label">홈</span>
+            </button>
+            <button type="button" class="mobile-nav-item" data-mobile-nav="match">
+                <span class="mobile-nav-ico" data-icon="match"></span>
+                <span class="mobile-nav-label">경기</span>
+            </button>
+            <button type="button" class="mobile-nav-item" data-mobile-nav="squad">
+                <span class="mobile-nav-ico" data-icon="squad"></span>
+                <span class="mobile-nav-label">스쿼드</span>
+            </button>
+            <button type="button" class="mobile-nav-item" data-mobile-nav="tactics">
+                <span class="mobile-nav-ico" data-icon="tactics"></span>
+                <span class="mobile-nav-label">전술</span>
+            </button>
+            <button type="button" class="mobile-nav-item" data-mobile-nav="transfer">
+                <span class="mobile-nav-ico" data-icon="transfer"></span>
+                <span class="mobile-nav-label">이적</span>
+            </button>
+        </nav>
     </div>
 
 
@@ -1305,8 +1303,7 @@
         <div class="modal-content create-team-modal">
             <span class="close-btn" id="closeCreateTeamModal">&times;</span>
             <div style="text-align: center; margin-bottom: 20px;">
-                <h2 style="font-size: 2rem; color: #ffd700; margin: 0 0 6px 0;">나만의 구단 창단 센터</h2>
-                <p style="color: #bbb; font-size: 0.95rem; margin: 0;">원하는 창단 방식을 선택하여 축구 세계에 새로운 바람을 일으키세요.</p>
+                <h2 style="font-size: 1.7rem; color: #F8FAFC; margin: 0;">구단 창단</h2>
             </div>
 
             <!-- 1. 모드 선택 화면 -->
@@ -1527,7 +1524,7 @@
                     <h4>2. <span class="engine-guide-badge badge-atk">8대 전술 지침 &amp; 선수 롤 적합도(★) · 전술 숙련도</span></h4>
                     <p>개별 선수의 FC27 세부 능력치(<strong>attributes</strong>)에 <strong>FM 역할 가중치(RoleData)</strong>와 <strong>특성(Traits)</strong>이 더해집니다. <strong>[전술] 탭 미니 피치</strong>에서 각 선수의 능력치에 맞는 <strong>롤 적합도(S~C등급 · ★1~5)</strong>를 확인하고 최적의 역할을 부여하세요.</p>
                     <p style="margin-top: 6px;"><strong>8대 핵심 지침 100% 연동:</strong> <strong>① 후방 빌드업 구조 · ② 수비 라인 높이 · ③ 압박 강도 · ④ 공격 전환 · ⑤ 수비 전환(게겐프레싱 3초 재압박 vs 즉시 대형 복귀) · ⑥ 패스 길이 · ⑦ 전개 템포 · ⑧ 팀 좌우 폭</strong> 8가지 모두가 실시간 엔진 프로파일을 직접 구동합니다.</p>
-                    <p style="margin-top: 6px;"><strong>전술 숙련도(Familiarity) &amp; 실시간 지시:</strong> 경기를 치를수록 현재 전술 철학 숙련도가 상승해 패스·위치 선정 안정성(최대 +4.5%)이 올라가며, 경기 중 하단 <strong>실시간 전술 바</strong>로 5단계 성향과 터치라인 지시(🔥전원 압박 / 🛡️역습 대비 / ⏱️시간 끌기 / ★커스텀 플랜 전환)를 즉시 내릴 수 있습니다.</p>
+                    <p style="margin-top: 6px;"><strong>전술 숙련도(Familiarity) &amp; 실시간 지시:</strong> 경기를 치를수록 현재 전술 철학 숙련도가 상승해 팀의 전술 완성도와 경기 수행력이 올라가며, 경기 중 하단 <strong>실시간 전술 바</strong>로 5단계 성향과 터치라인 지시(🔥전원 압박 / 🛡️역습 대비 / ⏱️시간 끌기 / ★커스텀 플랜 전환)를 즉시 내릴 수 있습니다.</p>
                 </div>
 
                 <div class="engine-guide-section">

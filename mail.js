@@ -59,6 +59,12 @@ class MailManager {
     renderList() {
         const listContainer = document.getElementById('mailList');
         if (!listContainer) return;
+
+        // 메일 탭 진입 시 모바일에서는 목록 화면부터 표시
+        const mailContainer = document.getElementById('mailContainer') || listContainer.closest('.mail-container');
+        if (mailContainer) {
+            mailContainer.classList.remove('mobile-detail-open');
+        }
         
         listContainer.replaceChildren();
         
@@ -115,6 +121,22 @@ class MailManager {
         }
         
         detailContainer.replaceChildren();
+
+        // [모바일 화면 전환] 메일 컨테이너를 상세 보기 화면으로 전환 (스크롤 대신 화면 진입)
+        const mailContainer = document.getElementById('mailContainer') || detailContainer.closest('.mail-container');
+        if (mailContainer) {
+            mailContainer.classList.add('mobile-detail-open');
+        }
+
+        // [모바일 전용] 메일 목록으로 돌아가기 상단 버튼
+        const backBtn = document.createElement('button');
+        backBtn.type = 'button';
+        backBtn.className = 'mobile-drill-back-btn';
+        backBtn.textContent = '← 메일 목록으로 돌아가기';
+        backBtn.onclick = () => {
+            if (mailContainer) mailContainer.classList.remove('mobile-detail-open');
+        };
+        detailContainer.appendChild(backBtn);
 
         // 1. 메일 헤더 영역
         const contentHeader = document.createElement('div');

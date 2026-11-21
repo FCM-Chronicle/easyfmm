@@ -251,8 +251,96 @@ const LeagueManager = {
         console.log("[LeagueManager] 9개국 1부 리그 순위표 완전 초기화 완료.");
     },
 
+    // 누락된 리그(예: 구버전 세이브에 없던 MLS 등) 순위표·스케줄 자동 보정 및 선택적 라운드 동기화
+    ensureAllLeaguesReady(catchUpCompletedRounds = false) {
+        if (typeof gameData === 'undefined' || !gameData || gameData.isWorldCupMode) return;
+        if (!gameData.leagueData) gameData.leagueData = {};
+        if (!gameData.schedule) gameData.schedule = {};
+
+        const newlyInitializedLeagues = [];
+
+        Object.keys(LEAGUES_CONFIG).forEach(leagueId => {
+            const config = LEAGUES_CONFIG[leagueId];
+            const leagueTeams = this.getTeamsInLeague(leagueId);
+            if (!leagueTeams.length) return;
+
+            let tableCreatedOrEmpty = false;
+            if (!gameData.leagueData[leagueId] || Object.keys(gameData.leagueData[leagueId]).length === 0) {
+                gameData.leagueData[leagueId] = {};
+                tableCreatedOrEmpty = true;
+            }
+            leagueTeams.forEach(tKey => {
+                if (!gameData.leagueData[leagueId][tKey]) {
+                    gameData.leagueData[leagueId][tKey] = {
+                        matches: 0, wins: 0, draws: 0, losses: 0,
+                        points: 0, goalsFor: 0, goalsAgainst: 0
+                    };
+                }
+            });
+
+            const existingSched = gameData.schedule[leagueId];
+            if (!Array.isArray(existingSched) || existingSched.length === 0) {
+                const shuffled = [...leagueTeams].sort(() => Math.random() - 0.5);
+                gameData.schedule[leagueId] = (leagueId === 'mls')
+                    ? this.generateMLSSchedule(shuffled)
+                    : this.generateLeagueSchedule(shuffled, config.rounds);
+                tableCreatedOrEmpty = true;
+            }
+
+            if (tableCreatedOrEmpty) {
+                const totalMatches = Object.values(gameData.leagueData[leagueId]).reduce((s, e) => s + (e.matches || 0), 0);
+                if (totalMatches === 0) {
+                    newlyInitializedLeagues.push(leagueId);
+                }
+            }
+        });
+
+        // 구버전 호환 별칭 동기화
+        const userTeam = gameData.selectedTeam;
+        const userLeagueId = userTeam ? this.getLeagueIdByTeam(userTeam) : 'premier_league';
+        if (gameData.leagueData[userLeagueId]) {
+            gameData.leagueData.division1 = gameData.leagueData[userLeagueId];
+            window.league1Table = gameData.leagueData.division1;
+        }
+        if (gameData.leagueData.laliga) {
+            gameData.leagueData.division2 = gameData.leagueData.laliga;
+            window.league2Table = gameData.leagueData.division2;
+        }
+        if (gameData.leagueData.bundesliga) {
+            gameData.leagueData.division3 = gameData.leagueData.bundesliga;
+            window.league3Table = gameData.leagueData.division3;
+        }
+        if (gameData.schedule[userLeagueId]) {
+            gameData.schedule.division1 = gameData.schedule[userLeagueId];
+        }
+        if (gameData.schedule.laliga) {
+            gameData.schedule.division2 = gameData.schedule.laliga;
+        }
+        if (gameData.schedule.bundesliga) {
+            gameData.schedule.division3 = gameData.schedule.bundesliga;
+        }
+
+        // 세이브 로드 시 신규 추가 리그(MLS 등)가 현재 진행 라운드에 맞춰 즉시 시뮬레이션되도록 보정
+        const completedRounds = Math.max(0, (gameData.currentRound || 1) - 1);
+        if (catchUpCompletedRounds && completedRounds > 0 && newlyInitializedLeagues.length > 0) {
+            newlyInitializedLeagues.forEach(lId => {
+                if (lId === userLeagueId) return; // 유저 소속 리그는 스킵
+                const sched = gameData.schedule[lId];
+                if (!Array.isArray(sched) || sched.length === 0) return;
+                const roundsToSim = Math.min(completedRounds, sched.length);
+                for (let r = 1; r <= roundsToSim; r++) {
+                    this.simulateAllLeaguesRound(r, lId, true);
+                }
+                console.log(`[LeagueManager] 누락 리그(${lId}) ${roundsToSim}라운드 자동 동기화 시뮬레이션 완료.`);
+            });
+        }
+    },
+
     // 특정 라운드의 모든 리그 AI 경기 일괄 시뮬레이션
-    simulateAllLeaguesRound(round, onlyLeagueId = null) {
+    simulateAllLeaguesRound(round, onlyLeagueId = null, _skipEnsure = false) {
+        if (!_skipEnsure) {
+            this.ensureAllLeaguesReady(false);
+        }
         if (!gameData.schedule) return;
 
         const leagueIds = onlyLeagueId ? [onlyLeagueId] : Object.keys(LEAGUES_CONFIG);
@@ -398,30 +486,43 @@ const LeagueManager = {
             return;
         }
 
-        // 1. 상단 9개 리그 선택 버튼 바
+        // 1. 상단 리그 선택 바 (제목 + 하단 가로선 + 선 위 리그명)
+        const tabHeaderWrap = document.createElement('div');
+        tabHeaderWrap.className = 'league-underline-header';
+        tabHeaderWrap.style.cssText = 'width: 100%; margin: 2px 0 16px 0;';
+
+        const tabHeaderTitle = document.createElement('div');
+        tabHeaderTitle.className = 'league-underline-title';
+        tabHeaderTitle.style.cssText = 'font-size: 1.05rem; font-weight: 800; color: #F8FAFC; letter-spacing: -0.02em; margin-bottom: 10px; padding-left: 2px;';
+        tabHeaderTitle.textContent = '리그별 순위표';
+        tabHeaderWrap.appendChild(tabHeaderTitle);
+
         const tabNav = document.createElement('div');
-        tabNav.className = 'league-nav-tabs';
-        tabNav.style.cssText = 'display: flex; gap: 6px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 14px;';
+        tabNav.className = 'league-nav-tabs league-underline-nav';
+        tabNav.style.cssText = 'display: flex; align-items: flex-end; gap: 4px; width: 100%; overflow-x: auto; border-bottom: 1px solid rgba(255,255,255,0.16);';
+
+        const shortNames = {
+            premier_league: '프리미어리그',
+            efl_championship: 'EFL 챔피언십',
+            laliga: '라리가',
+            bundesliga: '분데스리가',
+            serie_a: '세리에 A',
+            ligue_1: '리그 1',
+            eredivisie: '에레디비시',
+            liga_portugal: '프리메이라리가',
+            super_lig: '쉬페르리그',
+            kleague_1: 'K리그 1',
+            mls: 'MLS'
+        };
 
         Object.keys(LEAGUES_CONFIG).forEach(lId => {
             const cfg = LEAGUES_CONFIG[lId];
             const btn = document.createElement('button');
+            btn.type = 'button';
             const isActive = (this.activeViewLeague === lId);
-            btn.className = `btn btn-sm ${isActive ? 'primary' : ''}`;
-            btn.style.cssText = `white-space: nowrap; font-size: 0.85rem; padding: 6px 12px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; ${isActive ? 'background: #ffd700; color: #000; font-weight: bold;' : 'background: rgba(255,255,255,0.08); color: #ccc;'}`;
-
-            if (cfg.logo) {
-                const logoImg = document.createElement('img');
-                logoImg.src = cfg.logo;
-                logoImg.alt = cfg.name;
-                logoImg.style.cssText = 'width: 18px; height: 18px; object-fit: contain;';
-                logoImg.onerror = function() { this.style.display = 'none'; };
-                btn.appendChild(logoImg);
-            }
-
-            const labelSpan = document.createElement('span');
-            labelSpan.textContent = cfg.name.split(' ')[1] || cfg.name;
-            btn.appendChild(labelSpan);
+            btn.className = `league-switch-btn ${isActive ? 'active' : ''}`;
+            btn.style.cssText = `white-space: nowrap; font-size: 0.88rem; padding: 9px 14px 10px; margin-bottom: -1px; background: transparent; border: none; border-bottom: 2px solid ${isActive ? 'var(--team-primary, #38BDF8)' : 'transparent'}; border-radius: 0; cursor: pointer; color: ${isActive ? '#F8FAFC' : '#94A3B8'}; font-weight: ${isActive ? '800' : '600'}; transition: color 0.16s ease, border-color 0.16s ease;`;
+            btn.textContent = shortNames[lId] || cfg.name.split(' ')[1] || cfg.name;
 
             btn.onclick = () => {
                 this.activeViewLeague = lId;
@@ -429,7 +530,8 @@ const LeagueManager = {
             };
             tabNav.appendChild(btn);
         });
-        container.appendChild(tabNav);
+        tabHeaderWrap.appendChild(tabNav);
+        container.appendChild(tabHeaderWrap);
 
         // 2. 현재 선택된 리그 순위표 테이블
         const curLeagueId = this.activeViewLeague;

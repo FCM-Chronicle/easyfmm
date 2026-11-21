@@ -2182,44 +2182,51 @@ formationStyle.textContent = `
 }
 
 @media (max-width: 768px) {
-    #top-area, #am-area, #cm-area, #dm-area, #df-area { min-height: 64px; }
-    #gk-area { min-height: 56px; }
+    #top-area, #am-area, #cm-area, #dm-area, #df-area { min-height: 60px; }
+    #gk-area { min-height: 52px; }
     .formation-container .player-slot {
-        width: 82px;
-        height: 72px;
+        width: 74px;
+        height: 66px;
     }
     .formation-container .player-slot.empty {
-        width: 72px;
-        height: 30px;
+        width: 68px;
+        height: 28px;
     }
     .formation-container .player-slot-avatar-wrap {
-        width: 60px;
-        height: 50px;
-        margin-bottom: -12px;
+        width: 52px;
+        height: 44px;
+        margin-bottom: -10px;
     }
     .formation-container .player-slot-image {
-        width: 60px !important;
-        height: 60px !important;
-        transform: scale(1.18) translateY(16px) !important;
+        width: 52px !important;
+        height: 52px !important;
+        transform: scale(1.15) translateY(13px) !important;
     }
     .formation-container .player-slot-nameplate {
-        width: 82px;
-        max-width: 84px;
-        padding: 3px 4px;
+        width: 74px;
+        max-width: 76px;
+        padding: 2px 4px;
+        border-radius: 6px;
     }
     .slot-pos-badge {
-        font-size: 0.55rem !important;
-        padding: 1px 3px !important;
+        font-size: 0.5rem !important;
+        padding: 1px 2.5px !important;
     }
     .formation-container .player-slot .player-name {
-        font-size: 0.68rem !important;
+        font-size: 0.63rem !important;
     }
     .formation-container .player-slot .player-rating {
-        font-size: 0.72rem !important;
+        font-size: 0.67rem !important;
+    }
+    .formation-container .player-slot .player-role {
+        font-size: 0.54rem;
+        padding: 1px 3.5px;
+        top: 0;
+        right: 2px;
     }
     .area-line-label {
-        font-size: 0.58rem;
-        left: 6px;
+        font-size: 0.54rem;
+        left: 5px;
         top: 2px;
     }
 }

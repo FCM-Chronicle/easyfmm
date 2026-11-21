@@ -320,9 +320,7 @@ class StadiumSystem {
         <div class="${isInlineTab ? 'stadium-inline-panel' : 'stadium-modal-content'}" style="${isInlineTab ? 'max-width: 1100px; margin: 0 auto;' : ''}">
             <div class="stadium-modal-header">
                 <div class="stadium-title-box">
-                    <span class="stadium-badge">HOME STADIUM & CLUB FACILITIES</span>
-                    <h2>${stadium.name}</h2>
-                    <p class="stadium-sub">${(typeof teamNames !== 'undefined' && teamNames[stadium.teamKey]) ? teamNames[stadium.teamKey] : stadium.teamKey}의 홈 그라운드 & 구단 설비 센터 · Lv.${stadium.level}</p>
+                    <h2>${stadium.name} <small style="font-size:0.9rem; color:#94A3B8; font-weight:600;">Lv.${stadium.level}</small></h2>
                 </div>
                 ${isInlineTab ? '' : '<button class="stadium-modal-close" title="닫기">&times;</button>'}
             </div>
@@ -360,30 +358,28 @@ class StadiumSystem {
                 <div class="stadium-upgrade-card ${isMaxCapacity ? 'disabled' : ''}">
                     <div class="upgrade-info">
                         <h4>+5,000석 스탠드 확장</h4>
-                        <p>일반 관중석을 확장하여 홈 경기 티켓 판매량을 늘립니다.</p>
                         <span class="upgrade-cost">공사비 1,200억원</span>
                     </div>
                     <button class="btn-stadium-action primary" onclick="stadiumSystem.handleExpand(5000, 1200)" ${isMaxCapacity || gameData.teamMoney < 1200 ? 'disabled' : ''}>
-                        ${isMaxCapacity ? '최대치 도달' : '증축 시작'}
+                        ${isMaxCapacity ? '최대치 도달' : '증축'}
                     </button>
                 </div>
 
                 <!-- 10,000석 대규모 증축 -->
                 <div class="stadium-upgrade-card ${isMaxCapacity ? 'disabled' : ''}">
                     <div class="upgrade-info">
-                        <h4>+10,000석 메인 스탠드 대개축</h4>
-                        <p>구장 2층/3층 스탠드를 대규모로 증축하여 매머드급 구장으로 도약합니다.</p>
+                        <h4>+10,000석 메인 스탠드 증축</h4>
                         <span class="upgrade-cost">공사비 2,500억원</span>
                     </div>
                     <button class="btn-stadium-action primary gold" onclick="stadiumSystem.handleExpand(10000, 2500)" ${isMaxCapacity || gameData.teamMoney < 2500 ? 'disabled' : ''}>
-                        ${isMaxCapacity ? '최대치 도달' : '대개축 시작'}
+                        ${isMaxCapacity ? '최대치 도달' : '증축'}
                     </button>
                 </div>
             </div>
 
             <!-- 특수 시설 업그레이드 -->
             <div class="stadium-section-title" style="margin-top: 20px;">
-                <h3>스타디움 최고급 부대시설</h3>
+                <h3>부대시설</h3>
             </div>
 
             <div class="stadium-facility-grid">
@@ -393,9 +389,9 @@ class StadiumSystem {
                         <h4>VIP 스카이박스</h4>
                         <span class="facility-status-pill">${stadium.upgrades.skybox ? '보유중' : '800억원'}</span>
                     </div>
-                    <p class="facility-desc">최고급 라운지를 설치하여 매치데이 티켓 수입을 15% 영구 증폭시킵니다.</p>
+                    <p class="facility-desc">홈 경기 티켓 수입 +15%</p>
                     <button class="btn-stadium-action secondary" onclick="stadiumSystem.handleFacility('skybox')" ${stadium.upgrades.skybox || gameData.teamMoney < 800 ? 'disabled' : ''}>
-                        ${stadium.upgrades.skybox ? '설치 완료' : '시설 구매'}
+                        ${stadium.upgrades.skybox ? '설치 완료' : '설치'}
                     </button>
                 </div>
 
@@ -405,33 +401,33 @@ class StadiumSystem {
                         <h4>하이브리드 온열 잔디</h4>
                         <span class="facility-status-pill">${stadium.upgrades.hybridPitch ? '보유중' : '600억원'}</span>
                     </div>
-                    <p class="facility-desc">사계절 최고 품질의 잔디를 유지해 홈 경기 부상 위험을 30% 낮추고 패스 성공률을 높입니다.</p>
+                    <p class="facility-desc">홈 경기 부상 위험 -30% · 패스 성공률 보정</p>
                     <button class="btn-stadium-action secondary" onclick="stadiumSystem.handleFacility('hybridPitch')" ${stadium.upgrades.hybridPitch || gameData.teamMoney < 600 ? 'disabled' : ''}>
-                        ${stadium.upgrades.hybridPitch ? '설치 완료' : '시설 구매'}
+                        ${stadium.upgrades.hybridPitch ? '설치 완료' : '설치'}
                     </button>
                 </div>
 
                 <!-- 메가스토어 -->
                 <div class="facility-card ${stadium.upgrades.megastore ? 'purchased' : ''}">
                     <div class="facility-header">
-                        <h4>공식 메가스토어 & 박물관</h4>
+                        <h4>공식 메가스토어</h4>
                         <span class="facility-status-pill">${stadium.upgrades.megastore ? '보유중' : '1,000억원'}</span>
                     </div>
-                    <p class="facility-desc">구단 공식 굿즈와 유니폼을 판매하여 홈 경기마다 고정 2.5억원의 추가 수익을 창출합니다.</p>
+                    <p class="facility-desc">홈 경기당 고정 수익 +2.5억원</p>
                     <button class="btn-stadium-action secondary" onclick="stadiumSystem.handleFacility('megastore')" ${stadium.upgrades.megastore || gameData.teamMoney < 1000 ? 'disabled' : ''}>
-                        ${stadium.upgrades.megastore ? '설치 완료' : '시설 구매'}
+                        ${stadium.upgrades.megastore ? '설치 완료' : '설치'}
                     </button>
                 </div>
 
                 <!-- 유스 훈련 아카데미 -->
                 <div class="facility-card ${stadium.upgrades.trainingCenter ? 'purchased' : ''}">
                     <div class="facility-header">
-                        <h4>최첨단 유스 훈련 아카데미</h4>
+                        <h4>유스 훈련 아카데미</h4>
                         <span class="facility-status-pill">${stadium.upgrades.trainingCenter ? '보유중' : '900억원'}</span>
                     </div>
-                    <p class="facility-desc">최고급 훈련 피치와 데이터 분석실을 구비하여, 유망주 훈련 효율 +30% 및 출전 시 풀포텐(100%) 도달을 보장합니다.</p>
+                    <p class="facility-desc">유망주 훈련 효율 +30% · 최대 잠재력 해금</p>
                     <button class="btn-stadium-action secondary" onclick="stadiumSystem.handleFacility('trainingCenter')" ${stadium.upgrades.trainingCenter || gameData.teamMoney < 900 ? 'disabled' : ''}>
-                        ${stadium.upgrades.trainingCenter ? '설치 완료' : '시설 구매'}
+                        ${stadium.upgrades.trainingCenter ? '설치 완료' : '설치'}
                     </button>
                 </div>
             </div>

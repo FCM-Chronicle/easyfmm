@@ -1115,7 +1115,21 @@ updateLeagueTableForAIMatch(team1Key, team2Key, score1, score2) {
         
         container.replaceChildren();
         
-        const best11 = this.currentBest11[league];
+        let best11 = this.currentBest11 ? this.currentBest11[league] : null;
+        if ((!best11 || best11.length === 0) && this.currentBest11) {
+            if (typeof this.toDivisionKey === 'function') {
+                const resolvedKey = this.toDivisionKey(league);
+                if (this.currentBest11[resolvedKey] && this.currentBest11[resolvedKey].length > 0) {
+                    best11 = this.currentBest11[resolvedKey];
+                }
+            }
+            if ((!best11 || best11.length === 0) && typeof this.getUserLeagueId === 'function' && (league === 1 || league == null)) {
+                const userLeagueId = this.getUserLeagueId();
+                if (this.currentBest11[userLeagueId] && this.currentBest11[userLeagueId].length > 0) {
+                    best11 = this.currentBest11[userLeagueId];
+                }
+            }
+        }
         
         if (!best11 || best11.length === 0) {
             const p = document.createElement('p');
@@ -1217,12 +1231,15 @@ updateLeagueTableForAIMatch(team1Key, team2Key, score1, score2) {
         
         // [수정] weeklyRatings는 저장되지 않는 임시 데이터이므로 로드 시 초기화 필수
         this.weeklyRatings = [];
+        // [수정] 로드 후 라운드 AI 시뮬레이션이 중복 가드로 스킵되지 않도록 초기화
+        this.lastSimulatedRound = 0;
     }
 
     resetSeason() {
         this.playerStats.clear();
         this.matchRecords = [];
         this.initialized = false;
+        this.lastSimulatedRound = 0;
         console.log('개인기록이 리셋되었습니다.');
     }
 }
@@ -1241,14 +1258,20 @@ class LeagueBasedRecordsSystem extends RecordsSystem {
         };
     }
 
-    initialize() {
-        if (this.initialized) return;
-        
-        // 리그 전환 버튼 추가
-        this.addLeagueSwitchButtons();
-
-        // 서브탭 초기화
+    ensureRecordsUIInitialized() {
+        const recordsContent = document.querySelector('.records-content');
+        if (recordsContent && !recordsContent.querySelector('.league-switch-buttons')) {
+            this.addLeagueSwitchButtons();
+        }
         this.initRecordsSubtabs();
+    }
+
+    initialize() {
+        // UI 버튼 및 서브탭(NXGN / 명예의 전당 / 리그 선택)은 로드 후에도 항상 보장
+        this.addLeagueSwitchButtons();
+        this.initRecordsSubtabs();
+
+        if (this.initialized) return;
         
         // 부모 클래스의 initialize 호출
         super.initialize();
@@ -1407,7 +1430,8 @@ class LeagueBasedRecordsSystem extends RecordsSystem {
 
     // 리그별 득점왕 순위
     getTopScorersByLeague(league, limit = 5) {
-        const divisionKey = this.toDivisionKey(league);
+        const divisionKey = this.toDivisionKey(league);
+
         
         const scorers = this.getLeagueEntries(league)
             .filter(player => player.goals > 0)
@@ -1422,7 +1446,8 @@ class LeagueBasedRecordsSystem extends RecordsSystem {
 
     // 리그별 도움왕 순위
     getTopAssistersByLeague(league, limit = 5) {
-        const divisionKey = this.toDivisionKey(league);
+        const divisionKey = this.toDivisionKey(league);
+
         
         const assisters = this.getLeagueEntries(league)
             .filter(player => player.assists > 0)
@@ -1554,51 +1579,74 @@ class LeagueBasedRecordsSystem extends RecordsSystem {
         });
     }
 
-    // 리그 전환 버튼 추가
+    // 깔끔한 약칭 리그명 반환 (탭 라인 위 표시용)
+    getShortLeagueTabName(id) {
+        if (id === 'all') return '전체';
+        const shortMap = {
+            premier_league: '프리미어리그',
+            efl_championship: 'EFL 챔피언십',
+            laliga: '라리가',
+            bundesliga: '분데스리가',
+            serie_a: '세리에 A',
+            ligue_1: '리그 1',
+            eredivisie: '에레디비시',
+            liga_portugal: '프리메이라리가',
+            super_lig: '쉬페르리그',
+            kleague_1: 'K리그 1',
+            mls: 'MLS'
+        };
+        if (shortMap[id]) return shortMap[id];
+        const cfg = (typeof LEAGUES_CONFIG !== 'undefined') ? LEAGUES_CONFIG[id] : null;
+        return cfg ? (cfg.name.replace(/^(잉글랜드|스페인|독일|이탈리아|프랑스|네덜란드|포르투갈|튀르키예|대한민국|미국)\s+/, '')) : String(id);
+    }
+
+    // 제목 + 하단 가로선 + 선 위 리그명 탭 바 생성 헬퍼
+    createLeagueUnderlineHeader(titleText, activeLeagueId, onSelectLeague) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'league-switch-buttons league-underline-header';
+
+        const titleEl = document.createElement('div');
+        titleEl.className = 'league-underline-title';
+        titleEl.textContent = titleText;
+        wrapper.appendChild(titleEl);
+
+        const navLine = document.createElement('div');
+        navLine.className = 'league-underline-nav';
+
+        const leagueIds = ['all', ...((typeof LEAGUES_CONFIG !== 'undefined') ? Object.keys(LEAGUES_CONFIG) : ['premier_league'])];
+        leagueIds.forEach(id => {
+            const isActive = String(id) === String(activeLeagueId);
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = `league-switch-btn ${isActive ? 'active' : ''}`;
+            button.dataset.league = id;
+            button.textContent = this.getShortLeagueTabName(id);
+            button.addEventListener('click', () => onSelectLeague(id));
+            navLine.appendChild(button);
+        });
+
+        wrapper.appendChild(navLine);
+        return wrapper;
+    }
+
+    // 리그 전환 버튼 추가 (시즌 개인 기록 탭 상단 가로선 탭)
     addLeagueSwitchButtons() {
         const recordsContent = document.querySelector('.records-content');
         if (!recordsContent) return;
         
-        // 기존 버튼 제거
         const existingButtons = recordsContent.querySelector('.league-switch-buttons');
         if (existingButtons) {
             existingButtons.remove();
         }
         
-        // 새 버튼 추가
-        const buttonContainer = document.createElement('div');
-        buttonContainer.className = 'league-switch-buttons';
-        buttonContainer.style.cssText = `display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin: 20px 0;
-            flex-wrap: wrap;
-        `;
-        
         const activeLeague = this.viewLeague || this.getUserLeagueId();
-        const leagueIds = ['all', ...((typeof LEAGUES_CONFIG !== 'undefined') ? Object.keys(LEAGUES_CONFIG) : ['premier_league'])];
-        leagueIds.forEach(id => {
-            const cfg = (typeof LEAGUES_CONFIG !== 'undefined') ? LEAGUES_CONFIG[id] : null;
-            const isActive = id === activeLeague;
-            const button = document.createElement('button');
-            button.className = `league-switch-btn ${isActive ? 'active' : ''}`;
-            button.dataset.league = id;
-            button.textContent = id === 'all' ? '🌍 리그 전체' : (cfg ? `${cfg.flag || ''} ${cfg.name}`.trim() : id);
-            button.style.cssText = `padding: 8px 16px;
-                border: 1px solid rgba(255, 255, 255, 0.3);
-                border-radius: 20px;
-                background: ${isActive ? 'rgba(255, 215, 0, 0.3)' : 'rgba(255, 255, 255, 0.1)'};
-                color: white;
-                cursor: pointer;
-                transition: all 0.3s ease;
-            `;
-            button.addEventListener('click', () => {
-                this.switchToLeague(id);
-            });
-            buttonContainer.appendChild(button);
-        });
+        const headerBar = this.createLeagueUnderlineHeader(
+            '시즌 개인 기록',
+            activeLeague,
+            (id) => this.switchToLeague(id)
+        );
         
-        recordsContent.insertBefore(buttonContainer, recordsContent.firstChild);
+        recordsContent.insertBefore(headerBar, recordsContent.firstChild);
     }
 
         // 서브탭 초기화 및 이벤트 연결
@@ -1877,10 +1925,10 @@ class LeagueBasedRecordsSystem extends RecordsSystem {
         banner.className = 'nxgn-banner';
 
         const bannerTitle = document.createElement('h4');
-        bannerTitle.innerHTML = `${typeof iconSVG === 'function' ? iconSVG('sparkles') : ''} <span>NXGN 세계 10대 유망주 BEST 10</span>`;
+        bannerTitle.innerHTML = `${typeof iconSVG === 'function' ? iconSVG('star') : ''} <span>NXGN 세계 10대 유망주 BEST 10</span>`;
 
         const bannerDesc = document.createElement('p');
-        bannerDesc.textContent = `[${seasonLabel}] 전 세계 만 19세 이하 최고의 유망주들을 선정합니다. 현재 실력, 경기 활약도, 잠재성을 종합 평가한 랭킹입니다.`;
+        bannerDesc.textContent = `${seasonLabel} 만 19세 이하 유망주 TOP 10`;
 
         banner.append(bannerTitle, bannerDesc);
 
@@ -1988,6 +2036,9 @@ class LeagueBasedRecordsSystem extends RecordsSystem {
 
     // 리그 전환
     switchToLeague(league) {
+        this.viewLeague = league;
+        this.ensureRecordsUIInitialized();
+
         const topScorers = this.getTopScorersByLeague(league, 5);
         const topAssisters = this.getTopAssistersByLeague(league, 5);
         const topMOMs = this.getTopMOMsByLeague(league, 5); // 리그별 MOM 가져오기
@@ -1996,11 +2047,10 @@ class LeagueBasedRecordsSystem extends RecordsSystem {
         this.displayTopAssistersWithLeague(topAssisters, league);
         this.displayTopMOMs(topMOMs); // MOM 표시 업데이트
         
-        // 버튼 활성화 상태 업데이트
-        document.querySelectorAll('.league-switch-btn').forEach((btn, index) => {
-            btn.classList.toggle('active', index + 1 === league);
-            btn.style.background = index + 1 === league ? 
-                'rgba(255, 215, 0, 0.3)' : 'rgba(255, 255, 255, 0.1)';
+        // 버튼 활성화 상태 업데이트 (dataset.league 문자열 정확 비교)
+        document.querySelectorAll('.records-content .league-switch-btn').forEach(btn => {
+            const isAct = btn.dataset.league === String(league);
+            btn.classList.toggle('active', isAct);
         });
         
         // 베스트 11도 해당 리그로 전환
@@ -2009,18 +2059,27 @@ class LeagueBasedRecordsSystem extends RecordsSystem {
 
     // 개인기록 표시 업데이트 (리그별)
     updateRecordsDisplay() {
-        // 현재 사용자의 리그 확인
-        const userLeague = gameData.currentLeague || 1;
+        // 게임 로드 직후에도 리그 선택 버튼 및 NXGN/발롱도르 서브탭 이벤트 보장
+        this.ensureRecordsUIInitialized();
+
+        // 현재 조회 중인 리그 또는 사용자의 실제 leagueId 확인 (문자열 키로 통일해 베스트11 누락 방지)
+        const targetLeague = this.viewLeague || ((typeof gameData !== 'undefined' && gameData.isWorldCupMode) ? 4 : this.getUserLeagueId());
         
-        // 사용자 리그의 기록 표시
-        const topScorers = this.getTopScorersByLeague(userLeague, 5);
-        const topAssisters = this.getTopAssistersByLeague(userLeague, 5);
-        const topMOMs = this.getTopMOMsByLeague(userLeague, 5); // 리그별 MOM으로 변경
+        // 리그 기록 표시
+        const topScorers = this.getTopScorersByLeague(targetLeague, 5);
+        const topAssisters = this.getTopAssistersByLeague(targetLeague, 5);
+        const topMOMs = this.getTopMOMsByLeague(targetLeague, 5);
         
-        this.displayTopScorersWithLeague(topScorers, userLeague);
-        this.displayTopAssistersWithLeague(topAssisters, userLeague);
+        this.displayTopScorersWithLeague(topScorers, targetLeague);
+        this.displayTopAssistersWithLeague(topAssisters, targetLeague);
         this.displayTopMOMs(topMOMs);
-        this.displayTeamOfTheWeek(userLeague);
+        this.displayTeamOfTheWeek(targetLeague);
+
+        // 리그 선택 버튼 활성 상태 동기화
+        document.querySelectorAll('.records-content .league-switch-btn').forEach(btn => {
+            const isAct = btn.dataset.league === String(targetLeague);
+            btn.classList.toggle('active', isAct);
+        });
     }
 
     // 저장 데이터 준비 (리그별 포함)
@@ -2055,6 +2114,10 @@ class LeagueBasedRecordsSystem extends RecordsSystem {
         if (saveData.nxgnHistory) {
             this.nxgnHistory = saveData.nxgnHistory;
         }
+        // 로드 시 현재 뷰 리셋 및 UI 컨트롤(서브탭·리그 선택 버튼) 강제 바인딩
+        this.viewLeague = null;
+        this.addLeagueSwitchButtons();
+        this.initRecordsSubtabs();
     }
 
     // 시즌 리셋 (리그별 포함)
@@ -2109,21 +2172,16 @@ class LeagueBasedRecordsSystem extends RecordsSystem {
         
         container.replaceChildren();
 
-        // [신규] 역대기록 리그 필터 (리그 전체 + 9개국)
+        // [개편] 역대기록 리그 필터 (제목 + 하단 가로선 + 선 위 리그명 탭)
         const selLeague = this.historyLeague || 'all';
-        const filterBar = document.createElement('div');
-        filterBar.style.cssText = 'display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin:0 0 20px;';
-        const filterIds = ['all', ...((typeof LEAGUES_CONFIG !== 'undefined') ? Object.keys(LEAGUES_CONFIG) : [])];
-        filterIds.forEach(id => {
-            const cfg = (typeof LEAGUES_CONFIG !== 'undefined') ? LEAGUES_CONFIG[id] : null;
-            const b = document.createElement('button');
-            b.type = 'button';
-            b.className = 'league-switch-btn' + (id === selLeague ? ' active' : '');
-            b.textContent = id === 'all' ? '🌍 리그 전체' : (cfg ? `${cfg.flag || ''} ${cfg.name}`.trim() : id);
-            b.style.cssText = 'padding:6px 14px; border:1px solid rgba(255,255,255,0.3); border-radius:20px; color:white; cursor:pointer; background:' + (id === selLeague ? 'rgba(255,215,0,0.3)' : 'rgba(255,255,255,0.1)');
-            b.addEventListener('click', () => { this.historyLeague = id; this.displayHistory(); });
-            filterBar.appendChild(b);
-        });
+        const filterBar = this.createLeagueUnderlineHeader(
+            '명예의 전당 · 역대 시즌 기록',
+            selLeague,
+            (id) => {
+                this.historyLeague = id;
+                this.displayHistory();
+            }
+        );
         container.appendChild(filterBar);
 
         
@@ -2287,7 +2345,8 @@ class LeagueBasedRecordsSystem extends RecordsSystem {
 
 // 특정 리그의 득점왕 1명 반환
 getTopScorer(league) {
-    const divisionKey = this.toDivisionKey(league);
+    const divisionKey = this.toDivisionKey(league);
+
     
     const scorers = this.getLeagueEntries(league)
         .filter(player => player.goals > 0)
@@ -2308,7 +2367,8 @@ getTopScorer(league) {
 
 // 특정 리그의 도움왕 1명 반환
 getTopAssister(league) {
-    const divisionKey = this.toDivisionKey(league);
+    const divisionKey = this.toDivisionKey(league);
+
     
     const assisters = this.getLeagueEntries(league)
         .filter(player => player.assists > 0)
@@ -2415,6 +2475,61 @@ recordsStyle.textContent = `
         grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
         gap: 20px;
         padding: 10px;
+    }
+
+    /* [개편] 탭 제목 + 하단 가로선 + 선 위 리그명 탭 바 */
+    .league-underline-header {
+        grid-column: 1 / -1;
+        width: 100%;
+        margin: 4px 0 8px 0;
+    }
+
+    .league-underline-title {
+        font-size: 1.08rem;
+        font-weight: 800;
+        color: #F8FAFC;
+        letter-spacing: -0.02em;
+        margin-bottom: 10px;
+        padding-left: 2px;
+    }
+
+    .league-underline-nav {
+        display: flex;
+        align-items: flex-end;
+        gap: 4px;
+        width: 100%;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+        overflow-x: auto;
+        scrollbar-width: thin;
+    }
+
+    .league-underline-nav .league-switch-btn {
+        appearance: none;
+        background: transparent !important;
+        border: none !important;
+        border-bottom: 2px solid transparent !important;
+        border-radius: 0 !important;
+        margin-bottom: -1px;
+        padding: 9px 14px 10px;
+        font-size: 0.88rem;
+        font-weight: 600;
+        color: #94A3B8;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: color 0.16s ease, border-color 0.16s ease;
+        box-shadow: none !important;
+    }
+
+    .league-underline-nav .league-switch-btn:hover {
+        color: #E2E8F0;
+        background: transparent !important;
+    }
+
+    .league-underline-nav .league-switch-btn.active {
+        color: #F8FAFC;
+        font-weight: 800;
+        border-bottom-color: var(--team-primary, #38BDF8) !important;
+        background: transparent !important;
     }
 
     /* 랭킹 아이템 스타일 */

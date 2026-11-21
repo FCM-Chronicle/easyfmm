@@ -410,6 +410,58 @@ function createTeamLogoElement(teamName) {
     return img;
 }
 
+// [신규] 구단 유니폼(Kit) 이미지 로더 (로컬 assets/kits 우선 -> CDN 폴백)
+// kitType: 0 = 홈(Home), 1 = 어웨이(Away), 2 = 골키퍼(GK), 3 = 서드(Third)
+function getTeamIdByName(teamKeyOrName) {
+    if (!teamKeyOrName || typeof allTeams === 'undefined') return null;
+    if (allTeams[teamKeyOrName] && allTeams[teamKeyOrName].teamid) {
+        return allTeams[teamKeyOrName].teamid;
+    }
+    const foundKey = Object.keys(allTeams).find(k =>
+        k === teamKeyOrName || (allTeams[k] && allTeams[k].displayName === teamKeyOrName)
+    );
+    return foundKey && allTeams[foundKey] ? allTeams[foundKey].teamid : null;
+}
+
+function setTeamKitImage(imgEl, teamKeyOrName, kitType = 0, containerToHide = null) {
+    if (!imgEl) return;
+    const tid = getTeamIdByName(teamKeyOrName);
+    if (!tid) {
+        if (containerToHide) containerToHide.style.display = 'none';
+        else imgEl.style.display = 'none';
+        return;
+    }
+    const kt = Number(kitType) || 0;
+    imgEl.dataset.triedCdn = '';
+    imgEl.style.display = '';
+    if (containerToHide) containerToHide.style.display = '';
+
+    imgEl.onerror = function () {
+        if (!this.dataset.triedCdn) {
+            this.dataset.triedCdn = '1';
+            this.src = `https://cdn.fctoolshub.com/game_assets/fc27/kits/${tid}_${kt}.png`;
+        } else {
+            this.onerror = null;
+            if (containerToHide) containerToHide.style.display = 'none';
+            else this.style.display = 'none';
+        }
+    };
+    imgEl.src = `assets/kits/${tid}_${kt}.png`;
+}
+
+function getKitTypeForPlayer(player, lineKey = '') {
+    if (!player) return 0;
+    const lk = (lineKey || '').toUpperCase();
+    const pos = (player.position || '').toUpperCase();
+    const dpos = (player.detailPosition || '').toUpperCase();
+    if (lk === 'GK' || pos === 'GK' || dpos === 'GK') return 2;
+    return 0;
+}
+
+window.getTeamIdByName = getTeamIdByName;
+window.setTeamKitImage = setTeamKitImage;
+window.getKitTypeForPlayer = getKitTypeForPlayer;
+
 
 
 
@@ -683,6 +735,57 @@ function setupEventListeners() {
     document.getElementById('homeBtn').addEventListener('click', function () {
         if (typeof showDashboard === 'function') showDashboard();
     });
+
+    // [신규] 모바일 하단 고정 네비게이션 바 이벤트
+    const mobileBottomNav = document.getElementById('mobileBottomNav');
+    if (mobileBottomNav) {
+        mobileBottomNav.addEventListener('click', function (e) {
+            const btn = e.target.closest('.mobile-nav-item');
+            if (!btn) return;
+            const target = btn.dataset.mobileNav;
+            if (target === 'home') {
+                if (typeof showDashboard === 'function') showDashboard();
+            } else if (target) {
+                showTab(target);
+            }
+        });
+    }
+
+    // [신규] 모바일 스쿼드 서브뷰 전환 (포메이션 피치 <-> 전체 선수 명단)
+    const squadMobileSubviewBar = document.getElementById('squadMobileSubviewBar');
+    if (squadMobileSubviewBar) {
+        squadMobileSubviewBar.addEventListener('click', function (e) {
+            const btn = e.target.closest('[data-squad-view]');
+            if (!btn) return;
+            const view = btn.dataset.squadView;
+            squadMobileSubviewBar.querySelectorAll('.mobile-subview-btn').forEach(b => {
+                b.classList.toggle('active', b === btn);
+            });
+            const squadPanel = document.getElementById('squad');
+            if (squadPanel) {
+                squadPanel.classList.toggle('mobile-view-list', view === 'list');
+            }
+            window.scrollTo({ top: 0, behavior: 'instant' });
+        });
+    }
+
+    // [신규] 모바일 유스/스카우트 서브뷰 전환 (유스 아카데미 <-> 스카우팅 센터)
+    const youthMobileSubviewBar = document.getElementById('youthMobileSubviewBar');
+    if (youthMobileSubviewBar) {
+        youthMobileSubviewBar.addEventListener('click', function (e) {
+            const btn = e.target.closest('[data-youth-view]');
+            if (!btn) return;
+            const view = btn.dataset.youthView;
+            youthMobileSubviewBar.querySelectorAll('.mobile-subview-btn').forEach(b => {
+                b.classList.toggle('active', b === btn);
+            });
+            const youthPanel = document.getElementById('youth');
+            if (youthPanel) {
+                youthPanel.classList.toggle('mobile-view-scouting', view === 'scouting');
+            }
+            window.scrollTo({ top: 0, behavior: 'instant' });
+        });
+    }
 
     // 포지션 클릭
     // document.querySelectorAll('.position').forEach(position => {
@@ -1307,9 +1410,11 @@ function selectTeam(teamKey) {
         stadiumSystem.initUserStadium(teamKey);
     }
 
-    // 스케줄이 없으면 생성
+    // 스케줄이 없으면 생성 (이미 있으면 유저 소속 리그 기준 별칭/누락 리그 동기화)
     if (!gameData.schedule) {
         generateFullSchedule();
+    } else if (typeof LeagueManager !== 'undefined' && typeof LeagueManager.ensureAllLeaguesReady === 'function') {
+        LeagueManager.ensureAllLeaguesReady(false);
     }
 
     // [신규] 통합 FA컵 토너먼트 초기화
@@ -1348,15 +1453,7 @@ function selectTeam(teamKey) {
         }
     };
 
-    // 오프닝 시네마틱 연출 실행 (스킵 또는 종료 시 로비 진입)
-    if (typeof playCinematicIntro === 'function') {
-        playCinematicIntro({
-            teamKey: teamKey,
-            onComplete: enterLobby
-        });
-    } else {
-        enterLobby();
-    }
+    enterLobby();
 
     // [신규] 랜덤 이벤트 트리거 (경기 전/후 등 적절한 시점에 호출 가능)
     if (typeof secretarySystem !== 'undefined') {
@@ -1571,15 +1668,14 @@ function updateMatchTabCurrentTacticDisplay() {
     const eff = (typeof window.getTacticMasteryEffect === 'function')
         ? window.getTacticMasteryEffect(masteryPct)
         : {
-            tier: masteryPct >= 85 ? '완벽 체화' : (masteryPct >= 65 ? '숙련' : (masteryPct > 50 ? '적응 완료' : (masteryPct === 50 ? '적응 중 (기준)' : '미숙 (페널티)'))),
-            signedText: `${masteryPct - 50 > 0 ? '+' : ''}${(((masteryPct - 50) / 50) * 5).toFixed(1)}%`,
+            tier: masteryPct >= 85 ? '완벽 체화' : (masteryPct >= 65 ? '숙련' : (masteryPct > 50 ? '적응 완료' : (masteryPct === 50 ? '적응 중' : '미숙'))),
             color: masteryPct < 50 ? '#F87171' : (masteryPct === 50 ? '#FBBF24' : '#34D399')
         };
 
     const masteryTxtEl = document.getElementById('currentTacticMasteryText');
     const masteryBarEl = document.getElementById('currentTacticMasteryBar');
     if (masteryTxtEl) {
-        masteryTxtEl.textContent = `${masteryPct}% · ${eff.tier} (전술 효율 ${eff.signedText})`;
+        masteryTxtEl.textContent = `${masteryPct}% · ${eff.tier}`;
         masteryTxtEl.style.color = eff.color;
     }
     if (masteryBarEl) {
@@ -1594,6 +1690,13 @@ window.updateCurrentTacticPanelUI = updateMatchTabCurrentTacticDisplay;
 
 // [신규] 경기 탭 내 시즌 일정 & FA컵/UCL 토너먼트 대진표 인라인 렌더링
 function renderMatchTabScheduleOrBracket(mode) {
+    // 모바일에서 상단 버튼을 직접 클릭한 경우 스크롤 대신 전체 화면 모달로 즉시 진입
+    if (mode && !isLandscapeLayout() && typeof cupCompetitionManager !== 'undefined') {
+        window._matchTabInlineMode = mode;
+        cupCompetitionManager.openCupModal(mode);
+        return;
+    }
+
     const panel = document.getElementById('matchScheduleAndBracketPanel');
     if (!panel || typeof cupCompetitionManager === 'undefined') return;
     if (gameData && gameData.isWorldCupMode) {
@@ -1646,6 +1749,11 @@ function showTab(tabName) {
     document.getElementById('homeBtn').style.display = 'block'; // 홈 버튼 표시
     const lobbyTabs = document.getElementById('main-tabs');
     if (lobbyTabs) lobbyTabs.style.display = 'flex'; // 상단 탭 표시하여 다른 탭으로 빠른 전환 지원
+    const lobbyEl = document.getElementById('lobby');
+    if (lobbyEl) lobbyEl.classList.add('mobile-in-tab');
+    if (!isLandscapeLayout()) {
+        window.scrollTo({ top: 0, behavior: 'instant' });
+    }
 
     // 기존 탭 로직 유지
 
@@ -1703,11 +1811,24 @@ function showTab(tabName) {
     const activeBtn = document.querySelector(`[data-tab="${tabName}"]`);
     if (activeBtn) {
         activeBtn.classList.add('active');
+        // 모바일 가로 스크롤 탭 바에서 현재 선택된 탭이 중앙으로 보이도록 스크롤
+        if (!isLandscapeLayout() && typeof activeBtn.scrollIntoView === 'function') {
+            try {
+                activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            } catch (_) {}
+        }
         // [신규] 상단바 제목 갱신 (가로 레이아웃)
         const titleEl = document.getElementById('topbarTitle');
         const labelEl = activeBtn.querySelector('.tab-label');
         if (titleEl && labelEl) titleEl.textContent = labelEl.textContent;
     }
+
+    // [신규] 모바일 하단 고정 네비게이션 활성화 동기화
+    document.querySelectorAll('#mobileBottomNav .mobile-nav-item').forEach(item => {
+        const navKey = item.dataset.mobileNav;
+        const isMatched = (navKey === tabName) || (tabName === 'callup' && navKey === 'transfer');
+        item.classList.toggle('active', isMatched);
+    });
 
     // 탭 패널 표시
     document.querySelectorAll('.tab-panel').forEach(panel => {
@@ -1755,6 +1876,9 @@ function showTab(tabName) {
             break;
 
         case 'chat':
+            if (gameData && gameData.chatState) {
+                gameData.chatState.mobileRoomOpen = false;
+            }
             if (typeof renderChatTab === 'function') {
                 renderChatTab();
             }
@@ -2804,6 +2928,24 @@ function updateDisplay() {
             );
         }
 
+        // 다음 경기 일정에 양 팀 유니폼 표시 (텍스트 라벨 없이 유니폼만)
+        const kitMatchupEl = document.getElementById('matchKitMatchup');
+        const myKitImg = document.getElementById('matchMyKitImg');
+        const oppKitImg = document.getElementById('matchOppKitImg');
+        if (kitMatchupEl && myKitImg && oppKitImg && typeof setTeamKitImage === 'function') {
+            const myKitType = gameData.isHomeGame ? 0 : 1;
+            const oppKitType = gameData.isHomeGame ? 1 : 0;
+            const myTid = getTeamIdByName(gameData.selectedTeam);
+            const oppTid = getTeamIdByName(gameData.currentOpponent);
+            if (myTid || oppTid) {
+                kitMatchupEl.style.display = 'flex';
+                setTeamKitImage(myKitImg, gameData.selectedTeam, myKitType);
+                setTeamKitImage(oppKitImg, gameData.currentOpponent, oppKitType);
+            } else {
+                kitMatchupEl.style.display = 'none';
+            }
+        }
+
         // [신규] 다음 경기 일정에 홈/원정 구장 정보 및 FA컵 표시
         const matchTypeSpan = document.querySelector('.match-details .match-type');
         if (matchTypeSpan) {
@@ -3602,17 +3744,22 @@ function loadGame(event) {
                 if (saveData.league3Table) window.league3Table = saveData.league3Table;
             }
 
-            // Records System 데이터 복원
-            if (saveData.recordsData && typeof leagueBasedRecordsSystem !== 'undefined') {
+            // Records System 인스턴스 보장 및 데이터 복원
+            if (typeof initRecordsSystemInstance === 'function') {
+                initRecordsSystemInstance();
+            }
+            if (saveData.recordsData && typeof leagueBasedRecordsSystem !== 'undefined' && leagueBasedRecordsSystem) {
                 if (saveData.recordsData.recordsSystemData) {
                     leagueBasedRecordsSystem.loadSaveData(saveData.recordsData.recordsSystemData);
                     console.log('Records System 데이터 복원 완료');
                 }
             }
             // 기존 형식 호환성 지원
-            else if (saveData.recordsSystemData && typeof leagueBasedRecordsSystem !== 'undefined') {
+            else if (saveData.recordsSystemData && typeof leagueBasedRecordsSystem !== 'undefined' && leagueBasedRecordsSystem) {
                 leagueBasedRecordsSystem.loadSaveData(saveData.recordsSystemData);
                 console.log('Records System 데이터 복원 완료 (기존 형식)');
+            } else if (typeof leagueBasedRecordsSystem !== 'undefined' && leagueBasedRecordsSystem && typeof leagueBasedRecordsSystem.ensureRecordsUIInitialized === 'function') {
+                leagueBasedRecordsSystem.ensureRecordsUIInitialized();
             }
 
             // SNS 데이터 복원
@@ -3633,9 +3780,11 @@ function loadGame(event) {
                 console.log('이적 시장 데이터 복원 완료');
             }
 
-            // 스케줄 데이터 복원 (없으면 생성)
+            // 스케줄 데이터 복원 (없으면 생성, 구버전 세이브 누락 리그(MLS 등) 자동 보정 및 동기화)
             if (!gameData.schedule) {
                 generateFullSchedule();
+            } else if (typeof LeagueManager !== 'undefined' && typeof LeagueManager.ensureAllLeaguesReady === 'function') {
+                LeagueManager.ensureAllLeaguesReady(true);
             }
 
             // 시작 연도 초기화 (구버전 호환)
@@ -4522,9 +4671,27 @@ function loadFromSlot(slotNumber, overrideManagerId = null) {
             transferSystem.loadSaveData(gameData.transferSystemData);
         }
 
-        // 스케줄 데이터 복원 (없으면 생성)
+        // Records System 인스턴스 보장 및 데이터 복원 (스케줄 동기화 시 기록 반영을 위해 먼저 복원)
+        if (typeof initRecordsSystemInstance === 'function') {
+            initRecordsSystemInstance();
+        }
+        if (saveData.recordsData && typeof leagueBasedRecordsSystem !== 'undefined' && leagueBasedRecordsSystem) {
+            if (saveData.recordsData.recordsSystemData) {
+                leagueBasedRecordsSystem.loadSaveData(saveData.recordsData.recordsSystemData);
+                console.log('Records System 데이터 복원 완료');
+            }
+        } else if (saveData.recordsSystemData && typeof leagueBasedRecordsSystem !== 'undefined' && leagueBasedRecordsSystem) {
+            leagueBasedRecordsSystem.loadSaveData(saveData.recordsSystemData);
+            console.log('Records System 데이터 복원 완료 (기존 형식)');
+        } else if (typeof leagueBasedRecordsSystem !== 'undefined' && leagueBasedRecordsSystem && typeof leagueBasedRecordsSystem.ensureRecordsUIInitialized === 'function') {
+            leagueBasedRecordsSystem.ensureRecordsUIInitialized();
+        }
+
+        // 스케줄 데이터 복원 (없으면 생성, 구버전 세이브 누락 리그(MLS 등) 자동 보정 및 동기화)
         if (!gameData.schedule) {
             generateFullSchedule();
+        } else if (typeof LeagueManager !== 'undefined' && typeof LeagueManager.ensureAllLeaguesReady === 'function') {
+            LeagueManager.ensureAllLeaguesReady(true);
         }
 
         // 리그 테이블 복원
@@ -4538,14 +4705,6 @@ function loadFromSlot(slotNumber, overrideManagerId = null) {
             if (saveData.league1Table) window.league1Table = saveData.league1Table;
             if (saveData.league2Table) window.league2Table = saveData.league2Table;
             if (saveData.league3Table) window.league3Table = saveData.league3Table;
-        }
-
-        // Records System 데이터 복원
-        if (saveData.recordsData && typeof leagueBasedRecordsSystem !== 'undefined') {
-            if (saveData.recordsData.recordsSystemData) {
-                leagueBasedRecordsSystem.loadSaveData(saveData.recordsData.recordsSystemData);
-                console.log('Records System 데이터 복원 완료');
-            }
         }
 
         // SNS 데이터 복원
@@ -4676,11 +4835,7 @@ function displayYouthPlayers() {
     if (!gameData.youthSquad || gameData.youthSquad.length === 0) {
         const emptyBox = document.createElement('div');
         emptyBox.className = 'youth-empty-state';
-        emptyBox.innerHTML = `
-            <div class="empty-icon-wrap"><span data-icon="users"></span></div>
-            <h5>등록된 유스 선수가 없습니다</h5>
-            <p>아래 글로벌 스카우터를 고용하면 경기 진행 시 전 세계에서 숨은 원더키드를 발굴하여 유스팀에 영입합니다.</p>
-        `;
+        emptyBox.innerHTML = `<p>현재 등록된 유스 소속 선수가 없습니다.</p>`;
         container.appendChild(emptyBox);
         return;
     }
@@ -5745,6 +5900,14 @@ function showDashboard() {
     if (homeBtn) homeBtn.style.display = 'none'; // 홈 화면에선 홈 버튼 숨김
 
     if (lobbyTabs) lobbyTabs.style.display = 'none';
+    const lobbyEl = document.getElementById('lobby');
+    if (lobbyEl) lobbyEl.classList.remove('mobile-in-tab');
+    window.scrollTo({ top: 0, behavior: 'instant' });
+
+    // [신규] 모바일 하단 고정 네비게이션 '홈' 활성화
+    document.querySelectorAll('#mobileBottomNav .mobile-nav-item').forEach(item => {
+        item.classList.toggle('active', item.dataset.mobileNav === 'home');
+    });
 
     renderDashboard();
 }
@@ -6460,7 +6623,7 @@ function renderChatTab() {
     const thread = getChatThread(activeContact.id);
 
     const chatShell = document.createElement('div');
-    chatShell.className = 'chat-shell';
+    chatShell.className = `chat-shell${state.mobileRoomOpen ? ' mobile-detail-open' : ''}`;
 
     // Aside / Sidebar
     const aside = document.createElement('aside');
@@ -6534,6 +6697,15 @@ function renderChatTab() {
     const headerLeft = document.createElement('div');
     headerLeft.className = 'chat-header-left';
 
+    const backBtn = document.createElement('button');
+    backBtn.type = 'button';
+    backBtn.className = 'mobile-drill-back-btn chat-mobile-back-btn';
+    backBtn.textContent = '← 대화방 목록';
+    backBtn.onclick = () => {
+        state.mobileRoomOpen = false;
+        renderChatTab();
+    };
+
     const headerAvatar = document.createElement('div');
     headerAvatar.className = 'chat-header-avatar';
     headerAvatar.style.background = activeContact.color;
@@ -6553,7 +6725,7 @@ function renderChatTab() {
     headerSubtitle.textContent = activeContact.description;
 
     headerTitles.append(headerTitle, headerSubtitle);
-    headerLeft.append(headerAvatar, headerTitles);
+    headerLeft.append(backBtn, headerAvatar, headerTitles);
 
     const headerMeta = document.createElement('div');
     headerMeta.className = 'chat-header-meta';
@@ -6725,6 +6897,7 @@ function getChatQuickReplies(contactId) {
 function switchChatContact(contactId) {
     const state = ensureChatState();
     state.activeContactId = contactId;
+    state.mobileRoomOpen = true;
     renderChatTab();
 }
 
@@ -6816,44 +6989,24 @@ function renderFinanceTab() {
 
     const transferBudget = formatFinanceVal(Math.max(0, gameData.teamMoney || 0));
     const wageBudget = formatFinanceVal(Math.max(0, typeof gameData.wageBudget === 'number' ? gameData.wageBudget : 0));
-    const totalPool = transferBudget + wageBudget;
     const wageCoverage = gameData.totalWeeklyWage > 0 ? Math.round((wageBudget / gameData.totalWeeklyWage) * 100) : 0;
     const transferDefault = 0;
 
     const panel = document.createElement('div');
     panel.className = 'finance-panel';
 
-    // 1. Hero
-    const hero = document.createElement('div');
-    hero.className = 'finance-hero';
+    // 1. 깔끔한 상단 헤더 (중복 설명/영문 Kicker 제거)
+    const topBar = document.createElement('div');
+    topBar.className = 'finance-top-header';
+    const topTitle = document.createElement('h3');
+    topTitle.textContent = '구단 재정 & 예산 배분';
+    const topMeta = document.createElement('span');
+    topMeta.className = 'finance-top-meta';
+    topMeta.textContent = `주급 커버율 ${wageCoverage}% · 전환 비율 52억(이적) ↔ 1억(주급)`;
+    topBar.append(topTitle, topMeta);
+    panel.appendChild(topBar);
 
-    const heroCopy = document.createElement('div');
-    heroCopy.className = 'finance-hero-copy';
-
-    const kicker = document.createElement('div');
-    kicker.className = 'finance-kicker';
-    kicker.textContent = 'FINANCE MANAGEMENT';
-
-    const heroH3 = document.createElement('h3');
-    heroH3.textContent = '예산을 직접 조절하세요';
-
-    const heroP = document.createElement('p');
-    heroP.textContent = '슬라이더를 오른쪽으로 밀수록 주급 자금이 늘고, 왼쪽으로 밀수록 이적 자금이 늘어납니다. 전환은 52억 이적 자금 ↔ 1억 주급 자금 단위로 정확히 적용됩니다.';
-
-    heroCopy.append(kicker, heroH3, heroP);
-
-    const ratioChip = document.createElement('div');
-    ratioChip.className = 'finance-ratio-chip';
-    const ratioSpan = document.createElement('span');
-    ratioSpan.textContent = '운영 가능 주급 커버';
-    const ratioStrong = document.createElement('strong');
-    ratioStrong.textContent = `${wageCoverage}%`;
-    ratioChip.append(ratioSpan, ratioStrong);
-
-    hero.append(heroCopy, ratioChip);
-    panel.appendChild(hero);
-
-    // 2. Summary grid
+    // 2. 핵심 지표 4열 (무지개색 제거, 절제된 타이포그래피)
     const summaryGrid = document.createElement('div');
     summaryGrid.className = 'finance-summary-grid';
 
@@ -6874,46 +7027,37 @@ function renderFinanceTab() {
 
     summaryGrid.append(
         createSummaryCard('이적 자금', `${transferBudget}억`, 'transfer'),
-        createSummaryCard('주급 예산 (한도)', `${wageBudget}억`, 'wage'),
-        createSummaryCard('선수단 총 주급', `${formatFinanceVal(gameData.totalWeeklyWage)}억`, 'wage-debt'),
-        createSummaryCard('가용 여유 주급', `${availableWage}억`, 'annual')
+        createSummaryCard('주급 예산 한도', `${wageBudget}억`, 'wage'),
+        createSummaryCard('현재 선수단 주급', `${formatFinanceVal(gameData.totalWeeklyWage)}억`, 'wage-debt'),
+        createSummaryCard('여유 주급 예산', `${availableWage}억`, 'annual')
     );
     panel.appendChild(summaryGrid);
 
-    // 3. Conversion card
+    // 3. 예산 비율 조정 섹션 (중첩 박스 및 알약 태그 제거)
     const convCard = document.createElement('div');
     convCard.className = 'finance-conversion-card';
 
     const convHeader = document.createElement('div');
     convHeader.className = 'finance-conversion-header';
-    const convHeaderLeft = document.createElement('div');
     const convH4 = document.createElement('h4');
-    convH4.textContent = '예산 슬라이더';
-    const convP = document.createElement('p');
-    convP.textContent = '가운데는 중립, 왼쪽은 이적 자금 강화, 오른쪽은 주급 자금 강화';
-    convHeaderLeft.append(convH4, convP);
-    const rateNote = document.createElement('div');
-    rateNote.className = 'finance-rate-note';
-    rateNote.textContent = '전환 단위 = 이적 52억 ↔ 주급 1억';
-    convHeader.append(convHeaderLeft, rateNote);
+    convH4.textContent = '이적 · 주급 예산 비율 조정';
+    const scaleState = document.createElement('span');
+    scaleState.id = 'financeBalanceState';
+    scaleState.className = 'finance-state-text';
+    scaleState.textContent = '중립 상태';
+    convHeader.append(convH4, scaleState);
     convCard.appendChild(convHeader);
 
-    // Slider shell
     const sliderShell = document.createElement('div');
     sliderShell.className = 'finance-slider-shell';
 
     const sliderLabels = document.createElement('div');
     sliderLabels.className = 'finance-slider-labels';
     const tagTransfer = document.createElement('span');
-    tagTransfer.className = 'budget-tag transfer';
-    tagTransfer.textContent = '이적 자금';
-    const tagNeutral = document.createElement('span');
-    tagNeutral.className = 'budget-tag neutral';
-    tagNeutral.textContent = '중립';
+    tagTransfer.textContent = '← 이적 자금 비중 확대';
     const tagWage = document.createElement('span');
-    tagWage.className = 'budget-tag wage';
-    tagWage.textContent = '주급 자금';
-    sliderLabels.append(tagTransfer, tagNeutral, tagWage);
+    tagWage.textContent = '주급 예산 비중 확대 →';
+    sliderLabels.append(tagTransfer, tagWage);
 
     const sliderInput = document.createElement('input');
     sliderInput.id = 'financeBalanceSlider';
@@ -6925,18 +7069,7 @@ function renderFinanceTab() {
     sliderInput.value = '0';
     sliderInput.oninput = () => updateFinanceBalancePreview(sliderInput.value);
 
-    const scaleDiv = document.createElement('div');
-    scaleDiv.className = 'finance-scale';
-    const scaleMin = document.createElement('span');
-    scaleMin.textContent = '-100';
-    const scaleState = document.createElement('span');
-    scaleState.id = 'financeBalanceState';
-    scaleState.textContent = '중립 상태';
-    const scaleMax = document.createElement('span');
-    scaleMax.textContent = '+100';
-    scaleDiv.append(scaleMin, scaleState, scaleMax);
-
-    sliderShell.append(sliderLabels, sliderInput, scaleDiv);
+    sliderShell.append(sliderLabels, sliderInput);
     convCard.appendChild(sliderShell);
 
     // Preview grid
@@ -6947,7 +7080,7 @@ function renderFinanceTab() {
     cardTransfer.className = 'finance-preview-card transfer';
     const lblT = document.createElement('div');
     lblT.className = 'finance-preview-label';
-    lblT.textContent = '이적 자금 변화';
+    lblT.textContent = '이적 자금 변동';
     const valT = document.createElement('div');
     valT.id = 'financeTransferDelta';
     valT.className = 'finance-preview-value';
@@ -6962,7 +7095,7 @@ function renderFinanceTab() {
     cardWage.className = 'finance-preview-card wage';
     const lblW = document.createElement('div');
     lblW.className = 'finance-preview-label';
-    lblW.textContent = '주급 자금 변화';
+    lblW.textContent = '주급 예산 변동';
     const valW = document.createElement('div');
     valW.id = 'financeWageDelta';
     valW.className = 'finance-preview-value';
@@ -6976,81 +7109,43 @@ function renderFinanceTab() {
     previewGrid.append(cardTransfer, cardWage);
     convCard.appendChild(previewGrid);
 
-    // Action row
     const actionRow = document.createElement('div');
     actionRow.className = 'finance-action-row';
     const applyBtn = document.createElement('button');
     applyBtn.className = 'btn primary finance-apply-btn';
-    applyBtn.textContent = '선택한 예산 이동 적용';
+    applyBtn.textContent = '예산 변경 적용';
     applyBtn.onclick = () => applyFinanceBalanceSlider();
 
     const resetBtn = document.createElement('button');
     resetBtn.className = 'btn finance-reset-btn';
-    resetBtn.textContent = '슬라이더 초기화';
+    resetBtn.textContent = '초기화';
     resetBtn.onclick = () => resetFinanceSlider();
 
     actionRow.append(applyBtn, resetBtn);
     convCard.appendChild(actionRow);
     panel.appendChild(convCard);
 
-    // 4. Insight grid
-    const insightGrid = document.createElement('div');
-    insightGrid.className = 'finance-insight-grid';
-
-    const createInsightCard = (title, textBefore, boldText, textAfter) => {
-        const card = document.createElement('div');
-        card.className = 'finance-insight-card';
-        const t = document.createElement('div');
-        t.className = 'finance-insight-title';
-        t.textContent = title;
-        const body = document.createElement('div');
-        body.className = 'finance-insight-text';
-        const b = document.createElement('strong');
-        b.textContent = boldText;
-        body.append(document.createTextNode(textBefore), b, document.createTextNode(textAfter));
-        card.append(t, body);
-        return card;
-    };
-
-    insightGrid.append(
-        createInsightCard('이적 운영 상태', '현재 팀의 이적 자금은 ', `${transferBudget}억`, '이며, 공격적인 영입을 원하면 왼쪽(이적 자금 방향)으로 슬라이더를 이동하세요.'),
-        createInsightCard('주급 운영 상태', '현재 주급 자금은 ', `${wageBudget}억`, '입니다. 이 수치가 낮으면 연봉 협상과 선수 유지가 어려워집니다.')
-    );
-    panel.appendChild(insightGrid);
-
-    // Note
-    const noteDiv = document.createElement('div');
-    noteDiv.className = 'finance-note';
-    noteDiv.textContent = '주급 자금이 부족하면 협상 단계에서 계약이 막힙니다. 필요할 때만 자금을 이동시키고, 과도한 전환은 피하세요.';
-    panel.appendChild(noteDiv);
-
-    // 5. 구단 스타디움 증축 & 부대시설 바로가기 카드
+    // 4. 구단 스타디움 & 인프라 요약 바 (영문 Kicker 및 이모지 제거)
     if (typeof stadiumSystem !== 'undefined') {
         const stad = stadiumSystem.getUserStadium();
         if (stad) {
             const stadCard = document.createElement('div');
-            stadCard.className = 'finance-conversion-card';
-            stadCard.style.marginTop = '18px';
+            stadCard.className = 'finance-conversion-card finance-stadium-row';
             const upg = stad.upgrades || {};
             const installedCount = ['skybox', 'hybridPitch', 'megastore', 'trainingCenter'].filter(k => upg[k]).length;
 
             stadCard.innerHTML = `
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
                     <div>
-                        <div style="font-size: 0.76rem; font-weight: 900; color: #38BDF8; letter-spacing: 0.06em; margin-bottom: 4px;">CLUB INFRASTRUCTURE & STADIUM</div>
-                        <h4 style="margin: 0 0 6px; font-size: 1.15rem; color: #F8FAFC;">🏟️ ${stad.name} (Lv.${stad.level}) · 구단 설비 증축</h4>
-                        <p style="margin: 0; font-size: 0.88rem; color: #94A3B8;">
-                            현재 수용 인원: <strong style="color: #FBBF24;">${stad.currentCapacity.toLocaleString()}석</strong> · 부대시설 설치: <strong style="color: #34D399;">${installedCount} / 4개</strong> (스카이박스 · 온열잔디 · 메가스토어 · 유스 아카데미)
+                        <h4 style="margin: 0 0 4px; font-size: 1.02rem; font-weight: 800; color: #F8FAFC;">${stad.name} (Lv.${stad.level})</h4>
+                        <p style="margin: 0; font-size: 0.85rem; color: #94A3B8;">
+                            수용 인원 ${stad.currentCapacity.toLocaleString()}석 · 부대시설 ${installedCount} / 4개 가동 중
                         </p>
                     </div>
-                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                        <button type="button" class="btn primary" style="padding: 10px 18px; font-weight: 800;"
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button type="button" class="btn primary" style="padding: 8px 16px; font-size: 0.86rem; font-weight: 700;"
                             onclick="showTab('stadium')">
-                            🏟️ 구장/설비 탭 열기
-                        </button>
-                        <button type="button" class="btn" style="padding: 10px 16px; background: rgba(56, 189, 248, 0.16); border: 1px solid rgba(56, 189, 248, 0.45); color: #38BDF8; font-weight: 800;"
-                            onclick="stadiumSystem.openModal()">
-                            팝업 모달로 열기
+                            구장 · 설비 관리
                         </button>
                     </div>
                 </div>
@@ -7227,13 +7322,21 @@ async function simulateMultipleSeasons(count) {
 }
 
 function simulateAllMatchesInRound(round) {
-    for (let league = 1; league <= 3; league++) {
-        const divisionKey = `division${league}`;
-        const leagueSchedule = gameData.schedule[divisionKey];
+    if (typeof LeagueManager !== 'undefined' && typeof LeagueManager.ensureAllLeaguesReady === 'function') {
+        LeagueManager.ensureAllLeaguesReady(false);
+    }
+
+    const leagueKeys = (typeof LEAGUES_CONFIG !== 'undefined' && typeof LeagueManager !== 'undefined')
+        ? Object.keys(LEAGUES_CONFIG)
+        : ['division1', 'division2', 'division3'];
+
+    for (const leagueKey of leagueKeys) {
+        const leagueSchedule = gameData.schedule ? gameData.schedule[leagueKey] : null;
 
         if (!leagueSchedule || round > leagueSchedule.length) continue;
 
         const matches = leagueSchedule[round - 1];
+        if (!Array.isArray(matches)) continue;
 
         matches.forEach(match => {
             if (typeof recordsSystem === 'undefined' || !recordsSystem) {
@@ -7243,6 +7346,9 @@ function simulateAllMatchesInRound(round) {
             if (recordsSystem) {
                 const result = recordsSystem.simulateSingleAIMatch(match.home, match.away);
                 recordsSystem.matchRecords.push(result);
+                match.homeScore = result.score1;
+                match.awayScore = result.score2;
+                match.played = true;
 
                 if (match.home === gameData.selectedTeam || match.away === gameData.selectedTeam) {
                     gameData.matchesPlayed++;

@@ -420,9 +420,10 @@ class RealSoccerEngine {
             const mastery = (typeof window.getTacticMasteryPct === 'function')
                 ? window.getTacticMasteryPct(tactic)
                 : ((window.gameData.tacticMastery && typeof window.gameData.tacticMastery[tactic] === 'number') ? window.gameData.tacticMastery[tactic] : 50);
+            const fallbackDelta = mastery <= 50 ? Math.max(-0.10, -((50 - mastery) / 30) * 0.07) : ((mastery - 50) / 50) * 0.03;
             const eff = (typeof window.getTacticMasteryEffect === 'function')
                 ? window.getTacticMasteryEffect(mastery)
-                : { chanceDelta: ((mastery - 50) / 50) * 0.04, pressDelta: ((mastery - 50) / 50) * 0.08, tempoDelta: ((mastery - 50) / 50) * 0.04 };
+                : { chanceDelta: fallbackDelta * 0.4, pressDelta: fallbackDelta * 0.8, tempoDelta: fallbackDelta * 0.4 };
             base.chanceRate = Math.max(0.05, base.chanceRate + eff.chanceDelta);
             base.press = Math.max(0.3, base.press + eff.pressDelta);
             base.tempo = Math.max(0.5, base.tempo + eff.tempoDelta);

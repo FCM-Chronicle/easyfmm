@@ -597,22 +597,30 @@ function initializeTacticMastery(teamKey = null) {
 }
 if (typeof window !== 'undefined') window.initializeTacticMastery = initializeTacticMastery;
 
-// 전술 친숙도(0~100%) 기반 성능 보정 계산 (50% 기준: 50% 미만은 마이너스 페널티, 50%는 0%, 초과 시 보너스)
+// 전술 친숙도(0~100%) 기반 성능 보정 계산 (20% = -7%, 50% = 0% 기준, 100% = +3%)
 function getTacticMasteryEffect(masteryPct) {
     const pct = Math.max(0, Math.min(100, Number.isFinite(Number(masteryPct)) ? Number(masteryPct) : 50));
-    const delta = (pct - 50) / 50; // -1.0 (0%) ~ 0.0 (50%) ~ +1.0 (100%)
-    const stabilityPct = Number((delta * 5.0).toFixed(1));
-    const stabilityFactor = 1.0 + delta * 0.05;
-    const chanceDelta = delta * 0.04;
-    const pressDelta = delta * 0.08;
-    const tempoDelta = delta * 0.04;
+    let rawPct;
+    if (pct <= 50) {
+        // 50% -> 0%, 20% -> -7.0%, 0% -> -10.0% (하한 클램프)
+        rawPct = Math.max(-10.0, -((50 - pct) / 30) * 7.0);
+    } else {
+        // 50% -> 0%, 100% -> +3.0%
+        rawPct = ((pct - 50) / 50) * 3.0;
+    }
+    const stabilityPct = Number(rawPct.toFixed(1));
+    const stabilityFactor = 1.0 + (rawPct / 100);
+    const delta = rawPct / 100; // -0.10 ~ -0.07(20%) ~ 0.0(50%) ~ +0.03(100%)
+    const chanceDelta = delta * 0.4;
+    const pressDelta = delta * 0.8;
+    const tempoDelta = delta * 0.4;
 
-    let tier = '미숙 (페널티)';
+    let tier = '미숙';
     let color = '#F87171';
     if (pct >= 85) { tier = '완벽 체화'; color = '#34D399'; }
     else if (pct >= 65) { tier = '숙련'; color = '#34D399'; }
     else if (pct > 50) { tier = '적응 완료'; color = '#38BDF8'; }
-    else if (pct === 50) { tier = '적응 중 (기준)'; color = '#FBBF24'; }
+    else if (pct === 50) { tier = '적응 중'; color = '#FBBF24'; }
 
     const signedText = `${stabilityPct > 0 ? '+' : ''}${stabilityPct.toFixed(1)}%`;
     return {
@@ -1077,7 +1085,7 @@ function initLiveTacticsBar(matchData, engine) {
     const syncLiveMasteryBadge = (tacKey) => {
         if (!liveMasteryBadge) return;
         const mPct = getTacticMasteryPct(tacKey || gameData.currentTactic || 'balanced');
-        liveMasteryBadge.textContent = `숙련도 ${mPct}% (+${((mPct / 100) * 4.5).toFixed(1)}%)`;
+        liveMasteryBadge.textContent = `숙련도 ${mPct}%`;
     };
     syncLiveMasteryBadge(gameData.currentTactic);
 
@@ -1152,11 +1160,18 @@ function initLiveTacticsBar(matchData, engine) {
 // =========================================================================================
 
 function initMatchLiveTelemetry(matchData, engine) {
-    // 1. 상단 점수판 홈/어웨이 로고 삽입
+    // 1. 상단 점수판 홈/어웨이 로고 및 유니폼 삽입 (라벨 텍스트 없이 유니폼만)
     const homeSlot = document.getElementById('bmhHomeLogoSlot');
     const awaySlot = document.getElementById('bmhAwayLogoSlot');
     if (homeSlot) {
         homeSlot.replaceChildren();
+        if (typeof setTeamKitImage === 'function' && matchData.homeTeam) {
+            const homeKitImg = document.createElement('img');
+            homeKitImg.className = 'bmh-team-kit';
+            homeKitImg.alt = '';
+            setTeamKitImage(homeKitImg, matchData.homeTeam, 0);
+            homeSlot.appendChild(homeKitImg);
+        }
         if (typeof createTeamLogoElement === 'function' && matchData.homeTeam) {
             homeSlot.appendChild(createTeamLogoElement(matchData.homeTeam));
         }
@@ -1165,6 +1180,13 @@ function initMatchLiveTelemetry(matchData, engine) {
         awaySlot.replaceChildren();
         if (typeof createTeamLogoElement === 'function' && matchData.awayTeam) {
             awaySlot.appendChild(createTeamLogoElement(matchData.awayTeam));
+        }
+        if (typeof setTeamKitImage === 'function' && matchData.awayTeam) {
+            const awayKitImg = document.createElement('img');
+            awayKitImg.className = 'bmh-team-kit';
+            awayKitImg.alt = '';
+            setTeamKitImage(awayKitImg, matchData.awayTeam, 1);
+            awaySlot.appendChild(awayKitImg);
         }
     }
 
