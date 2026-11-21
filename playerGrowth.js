@@ -443,12 +443,13 @@ class PlayerGrowthSystem {
                         // 소수점 1자리까지 허용
                         growthAmount = Math.round(growthAmount * 10) / 10;
 
-                        // AI 선수 성장 적용 (일반 선수는 최대 88로 캡, 15%만 풀포텐 도달)
+                        // AI 선수 성장 적용 (일반 선수는 최대 95로 캡, 15%만 풀포텐 도달, 기존 능력치 하락 방지)
                         const oldRating = player.rating;
-                        const theoreticalCap = this.fixedPotentials.hasOwnProperty(player.name) ? this.fixedPotentials[player.name] : 88;
+                        const theoreticalCap = this.fixedPotentials.hasOwnProperty(player.name) ? this.fixedPotentials[player.name] : 95;
                         const playerRealizedCap = player._realizedCap || (player._realizedCap = (Math.random() < 0.15 ? theoreticalCap : Math.max(70, theoreticalCap - 2 - Math.floor(Math.random() * 4))));
-                        const maxCap = Math.min(88, playerRealizedCap);
-                        const newRating = Math.min(maxCap, player.rating + growthAmount);
+                        const maxCap = Math.min(95, playerRealizedCap);
+                        if (oldRating >= maxCap) return; // 이미 상한선 이상인 선수는 하락 없이 성장만 중단
+                        const newRating = Math.max(oldRating, Math.min(maxCap, player.rating + growthAmount));
                         player.rating = Math.round(newRating * 10) / 10; // 소수점 1자리
 
                         // 로그 출력 (성장폭이 0.5 이상일 때만)
