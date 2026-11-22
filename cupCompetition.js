@@ -249,14 +249,59 @@ class CupCompetitionManager {
         return [...arr].sort(() => Math.random() - 0.5);
     }
 
+    // 전력차 기반 컵대회 스코어 생성 헬퍼 (업셋 완화)
+    _rollCupScores(r1, r2) {
+        const ratingDiff = r1 - r2;
+        let p1 = 0.39;
+        let p2 = 0.35;
+        let pDraw = 0.26;
+        const adv = Math.min(0.56, Math.abs(ratingDiff) / 16);
+        if (ratingDiff > 0) {
+            p1 += adv; p2 -= adv * 0.72; pDraw -= adv * 0.28;
+        } else if (ratingDiff < 0) {
+            p2 += adv; p1 -= adv * 0.72; pDraw -= adv * 0.28;
+        }
+        const minFloor = Math.abs(ratingDiff) >= 8 ? 0.02 : 0.03;
+        p1 = Math.max(minFloor, p1);
+        p2 = Math.max(minFloor, p2);
+        pDraw = Math.max(0.05, pDraw);
+        const sum = p1 + p2 + pDraw;
+        const roll = Math.random();
+
+        const pickWinScore = (gap, isUpset) => {
+            if (isUpset) return Math.random() < 0.65 ? [1, 0] : [2, 1];
+            const bigGap = gap >= 8;
+            const r = Math.random();
+            if (bigGap) {
+                if (r < 0.28) return [2, 0];
+                if (r < 0.56) return [3, 0];
+                if (r < 0.80) return [3, 1];
+                return [4, Math.random() < 0.6 ? 0 : 1];
+            }
+            if (r < 0.35) return [1, 0];
+            if (r < 0.68) return [2, Math.random() < 0.55 ? 0 : 1];
+            if (r < 0.90) return [3, Math.random() < 0.5 ? 1 : 0];
+            return [3, 2];
+        };
+
+        if (roll < p1 / sum) {
+            return pickWinScore(Math.max(0, ratingDiff), ratingDiff < -3);
+        } else if (roll < (p1 + p2) / sum) {
+            const [w, l] = pickWinScore(Math.max(0, -ratingDiff), ratingDiff > 3);
+            return [l, w];
+        } else {
+            const dr = Math.random();
+            if (dr < 0.38) return [0, 0];
+            if (dr < 0.80) return [1, 1];
+            return [2, 2];
+        }
+    }
+
     // 단판 경기 시뮬레이션
     simulateMatch(team1, team2) {
         const r1 = this.getTeamRating(team1);
         const r2 = this.getTeamRating(team2);
-        const diff = (r1 - r2) / 10;
-
-        let s1 = Math.max(0, Math.floor(Math.random() * 3 + Math.max(0, diff)));
-        let s2 = Math.max(0, Math.floor(Math.random() * 3 + Math.max(0, -diff)));
+        const [s1, s2] = this._rollCupScores(r1, r2);
 
         if (s1 !== s2) {
             return {
@@ -268,15 +313,18 @@ class CupCompetitionManager {
             };
         }
 
-        // 동점 시 승부차기 진행
+        // 동점 시 승부차기 진행 (전력차 소폭 반영)
+        const pkEdge = Math.max(-0.05, Math.min(0.05, (r1 - r2) * 0.004));
+        const p1Acc = 0.75 + pkEdge;
+        const p2Acc = 0.75 - pkEdge;
         let pk1 = 0, pk2 = 0;
         for (let i = 0; i < 5; i++) {
-            if (Math.random() < 0.75) pk1++;
-            if (Math.random() < 0.75) pk2++;
+            if (Math.random() < p1Acc) pk1++;
+            if (Math.random() < p2Acc) pk2++;
         }
         while (pk1 === pk2) {
-            if (Math.random() < 0.75) pk1++;
-            if (Math.random() < 0.75) pk2++;
+            if (Math.random() < p1Acc) pk1++;
+            if (Math.random() < p2Acc) pk2++;
         }
 
         return {
@@ -292,10 +340,7 @@ class CupCompetitionManager {
     simulateLeaguePhaseMatch(team1, team2) {
         const r1 = this.getTeamRating(team1);
         const r2 = this.getTeamRating(team2);
-        const diff = (r1 - r2) / 10;
-
-        let s1 = Math.max(0, Math.floor(Math.random() * 3 + Math.max(0, diff)));
-        let s2 = Math.max(0, Math.floor(Math.random() * 3 + Math.max(0, -diff)));
+        const [s1, s2] = this._rollCupScores(r1, r2);
 
         return {
             homeScore: s1,

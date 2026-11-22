@@ -948,8 +948,8 @@ const EFLPlayoffManager = {
         const rHome = this.getTeamRating(homeKey);
         const rAway = this.getTeamRating(awayKey);
         const diff = (rHome - rAway) / 10;
-        let hg = Math.max(0, Math.min(5, Math.round((Math.random() * 2.2) + diff * 0.45 + 0.15)));
-        let ag = Math.max(0, Math.min(5, Math.round((Math.random() * 2.1) - diff * 0.4)));
+        let hg = Math.max(0, Math.min(5, Math.round((Math.random() * 1.7) + diff * 0.85 + 0.12)));
+        let ag = Math.max(0, Math.min(5, Math.round((Math.random() * 1.65) - diff * 0.75)));
         let pk = null;
         let winner = null;
         if (!allowDraw && hg === ag) {

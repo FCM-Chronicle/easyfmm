@@ -216,37 +216,37 @@ class RecordsSystem {
     const team1Rating = this.calculateAITeamRating(team1Key);
     const team2Rating = this.calculateAITeamRating(team2Key);
     const ratingDiff = team1Rating - team2Rating;
-    // [수정] 현실적 홈 어드밴티지 및 무승부 확률 반영 (홈 44%, 원정 30%, 무 26% 기준)
-    const upsetChance = (typeof gameData !== 'undefined' && gameData.isWorldCupMode) ? 0.02 : 0.03;
+    // [수정] 전력차 중심의 현실적 AI 시뮬레이션 (과도한 홈 편향 및 업셋 완화)
+    const upsetChance = (typeof gameData !== 'undefined' && gameData.isWorldCupMode) ? 0.01 : 0.01;
     const upsetOccurs = Math.random() < upsetChance;
-    let team1WinChance = 0.44; // 홈팀 기본 승률
-    let team2WinChance = 0.30; // 원정팀 기본 승률
+    let team1WinChance = 0.40; // 홈팀 기본 승률
+    let team2WinChance = 0.34; // 원정팀 기본 승률
     let drawChance = 0.26;
 
-    // [신규] 홈 구장 관중 위압감 (빅클럽 홈 어드밴티지 강화)
+    // [신규] 홈 구장 관중 위압감 (소폭 보정)
     if (typeof stadiumSystem !== 'undefined') {
         const stadiumRes = stadiumSystem.calculateMatchday(team1Key, team2Key);
         if (stadiumRes && stadiumRes.attendance >= 50000) {
-            team1WinChance += 0.04;
-            team2WinChance -= 0.03;
-            drawChance -= 0.01;
+            team1WinChance += 0.02;
+            team2WinChance -= 0.015;
+            drawChance -= 0.005;
         }
     }
 
     // 전술 상성에 따른 인위적 승률 가감 제거 (순수 전력·홈이점 기반 공정 시뮬레이션)
 
-    // [수정] 전력 차이 반영 비중 현실화 (100 -> 24) : 강팀 우승 승점 80~90점대 및 상위/하위권 격차 반영
-    const powerDivisor = (typeof gameData !== 'undefined' && gameData.isWorldCupMode) ? 30 : 24;
-    const maxAdvantage = (typeof gameData !== 'undefined' && gameData.isWorldCupMode) ? 0.50 : 0.50;
+    // [수정] 전력 차이 반영 비중 상향 (24 -> 16, 상한 0.50 -> 0.56) : 강팀 안정성 확보 및 업셋 빈도 축소
+    const powerDivisor = (typeof gameData !== 'undefined' && gameData.isWorldCupMode) ? 20 : 16;
+    const maxAdvantage = (typeof gameData !== 'undefined' && gameData.isWorldCupMode) ? 0.56 : 0.56;
 
     if (ratingDiff > 0) {
         const advantage = Math.min(maxAdvantage, ratingDiff / powerDivisor);
         team1WinChance += advantage;
-        team2WinChance -= advantage * 0.7;
-        drawChance -= advantage * 0.3;
+        team2WinChance -= advantage * 0.72;
+        drawChance -= advantage * 0.28;
 
         if (upsetOccurs) {
-            const upsetBonus = 0.15 + (Math.random() * 0.15);
+            const upsetBonus = 0.08 + (Math.random() * 0.08);
             team2WinChance += upsetBonus;
             team1WinChance -= upsetBonus * 0.6;
             drawChance -= upsetBonus * 0.4;
@@ -254,19 +254,20 @@ class RecordsSystem {
     } else if (ratingDiff < 0) {
         const advantage = Math.min(maxAdvantage, Math.abs(ratingDiff) / (powerDivisor * 0.9)); // 원정 강팀도 전력차 충분히 반영
         team2WinChance += advantage;
-        team1WinChance -= advantage * 0.7;
-        drawChance -= advantage * 0.3;
+        team1WinChance -= advantage * 0.72;
+        drawChance -= advantage * 0.28;
 
         if (upsetOccurs) {
-            const upsetBonus = 0.15 + (Math.random() * 0.15);
+            const upsetBonus = 0.08 + (Math.random() * 0.08);
             team1WinChance += upsetBonus;
             team2WinChance -= upsetBonus * 0.6;
             drawChance -= upsetBonus * 0.4;
         }
     }
 
-    team1WinChance = Math.max(0.05, team1WinChance);
-    team2WinChance = Math.max(0.05, team2WinChance);
+    const minWinFloor = Math.abs(ratingDiff) >= 8 ? 0.02 : 0.03;
+    team1WinChance = Math.max(minWinFloor, team1WinChance);
+    team2WinChance = Math.max(minWinFloor, team2WinChance);
     drawChance = Math.max(0.05, drawChance);
     const total = team1WinChance + team2WinChance + drawChance;
     team1WinChance /= total;
