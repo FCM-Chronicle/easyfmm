@@ -838,12 +838,12 @@ class MatchVisualizer {
     // assets/ad 폴더의 실제 스폰서 로고 사용 (한글 파일명 스폰서는 K리그 경기에서만 노출)
     _getImageSponsorSpecs() {
         const GLOBAL = [
-            'adidas.png', 'Adobe.png', 'aws.png', 'barclays.png', 'betway.png', 'budweiser.png',
-            'decathlon.png', 'FC27.webp', 'fedex.png', 'guiness.png', 'hankooktire.png', 'hyundai.webp',
-            'images.png', 'img_05.png', 'microsoft.png', 'msc.png', 'panini.png', 'philadelphia.png',
-            'puma.png', 'vodafone.png', 'W88.webp'
+            'adidas.webp', 'Adobe.webp', 'aws.webp', 'barclays.webp', 'betway.webp', 'budweiser.webp',
+            'decathlon.webp', 'FC27.webp', 'fedex.webp', 'guiness.webp', 'hankooktire.webp', 'hyundai.webp',
+            'images.webp', 'img_05.webp', 'microsoft.webp', 'msc.webp', 'panini.webp', 'philadelphia.webp',
+            'puma.webp', 'vodafone.webp', 'W88.webp'
         ];
-        const KOREAN = ['동원샘물.png', '링티.webp', '스포츠토토.png', '하나은행.jpg'];
+        const KOREAN = ['동원샘물.webp', '링티.webp', '스포츠토토.webp', '하나은행.webp'];
 
         const isK = this._isKLeagueMatch();
         let files = GLOBAL.slice();
