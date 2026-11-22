@@ -178,8 +178,8 @@ class FormationSystem {
     applyFormationTemplate(templateKey) {
         if (typeof TeamUtils === 'undefined' || !TeamUtils.FORMATION_TEMPLATES || !TeamUtils.FORMATION_TEMPLATES[templateKey]) return false;
         const tpl = TeamUtils.FORMATION_TEMPLATES[templateKey];
-        const allTeamPlayers = (typeof allTeams !== 'undefined' && allTeams[gameData.selectedTeam]?.players)
-            || (typeof teams !== 'undefined' && teams[gameData.selectedTeam]) || [];
+        const allTeamPlayers = (typeof teams !== 'undefined' && teams[gameData.selectedTeam])
+            || (typeof allTeams !== 'undefined' && allTeams[gameData.selectedTeam]?.players) || [];
         if (!allTeamPlayers.length) return false;
 
         // 부상자 제외 가용 선수에서 해당 템플릿 평가, 실패 시 전체 선수에서 최적 배정
@@ -1348,7 +1348,7 @@ class FormationSystem {
 
             if (newLineKey !== oldLineKey) {
                 if (playerName) {
-                    const allTeamPlayers = (allTeams[gameData.selectedTeam] && allTeams[gameData.selectedTeam].players) || teams[gameData.selectedTeam] || [];
+                    const allTeamPlayers = (typeof teams !== 'undefined' && teams[gameData.selectedTeam]) || (allTeams[gameData.selectedTeam] && allTeams[gameData.selectedTeam].players) || [];
                     const playerObj = allTeamPlayers.find(p => p.name === playerName);
                     if (playerObj) {
                         if (!this.canPlayLine(playerObj, newLineKey)) {
@@ -1422,7 +1422,7 @@ class FormationSystem {
                 const player = lineArr[i];
                 if (!player) continue;
 
-                const allTeamPlayers = (allTeams[gameData.selectedTeam] && allTeams[gameData.selectedTeam].players) || teams[gameData.selectedTeam] || [];
+                const allTeamPlayers = (typeof teams !== 'undefined' && teams[gameData.selectedTeam]) || (allTeams[gameData.selectedTeam] && allTeams[gameData.selectedTeam].players) || [];
                 const fullPlayer = allTeamPlayers.find(p => p.name === player.name) || player;
 
                 if (!this.canPlayLine(fullPlayer, lineKey)) {
@@ -1455,7 +1455,7 @@ class FormationSystem {
     }
 
     findBestReplacement(lineKey) {
-        const allTeamPlayers = (allTeams[gameData.selectedTeam] && allTeams[gameData.selectedTeam].players) || teams[gameData.selectedTeam] || [];
+        const allTeamPlayers = (typeof teams !== 'undefined' && teams[gameData.selectedTeam]) || (allTeams[gameData.selectedTeam] && allTeams[gameData.selectedTeam].players) || [];
         const inSquadNames = new Set();
 
         if (gameData.squadLines) {
@@ -1600,7 +1600,7 @@ class FormationSystem {
             this.sheetPlayerList.appendChild(posSelector);
         }
 
-        const allTeamPlayers = (allTeams[gameData.selectedTeam] && allTeams[gameData.selectedTeam].players) || teams[gameData.selectedTeam] || [];
+        const allTeamPlayers = (typeof teams !== 'undefined' && teams[gameData.selectedTeam]) || (allTeams[gameData.selectedTeam] && allTeams[gameData.selectedTeam].players) || [];
         const candidates = allTeamPlayers.filter(p => {
             const isInjured = typeof injurySystem !== 'undefined' && injurySystem.isInjured(gameData.selectedTeam, p.name);
             const notSelf = playerOut.isDummy ? true : p.name !== playerOut.name;

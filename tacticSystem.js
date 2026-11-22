@@ -875,6 +875,22 @@ function startMatch() {
     showScreen('matchScreen');
 
     // 4. 경기 데이터 초기화
+    const initialSquadSnapshot = gameData && gameData.squad ? {
+        gk: gameData.squad.gk || null,
+        df: Array.isArray(gameData.squad.df) ? [...gameData.squad.df] : [],
+        mf: Array.isArray(gameData.squad.mf) ? [...gameData.squad.mf] : [],
+        fw: Array.isArray(gameData.squad.fw) ? [...gameData.squad.fw] : []
+    } : null;
+    let initialSquadLinesSnapshot = null;
+    if (gameData && gameData.squadLines && typeof gameData.squadLines === 'object') {
+        initialSquadLinesSnapshot = {};
+        Object.keys(gameData.squadLines).forEach(lineKey => {
+            initialSquadLinesSnapshot[lineKey] = Array.isArray(gameData.squadLines[lineKey])
+                ? [...gameData.squadLines[lineKey]]
+                : gameData.squadLines[lineKey];
+        });
+    }
+
     const matchData = {
         homeTeam: gameData.isHomeGame ? gameData.selectedTeam : gameData.currentOpponent,
         awayTeam: gameData.isHomeGame ? gameData.currentOpponent : gameData.selectedTeam,
@@ -885,7 +901,9 @@ function startMatch() {
         isRunning: false,
         substitutionsMade: 0,
         strengthDiff: calculateTeamStrengthDifference(),
-        isFastForward: false // [신규] 고속 모드 플래그
+        isFastForward: false, // [신규] 고속 모드 플래그
+        initialSquadSnapshot,
+        initialSquadLinesSnapshot
     };
     window.currentMatchData = matchData; // [신규] 치트키 사용을 위해 전역 노출
 
@@ -1221,6 +1239,7 @@ function initMatchLiveTelemetry(matchData, engine) {
         possessionPct: { home: 50, away: 50 },
         shots: { home: 0, away: 0 },
         shotsOnTarget: { home: 0, away: 0 },
+        corners: { home: 0, away: 0 },
         fouls: { home: 0, away: 0 },
         tackles: { home: 0, away: 0 },
         passes: { home: 0, away: 0 },
@@ -1371,11 +1390,13 @@ function updateLiveMatchTelemetry(matchData, snapshot, isNewMinute) {
                 ls.tackles[side]++;
                 const act = ensureActor(ev.player);
                 if (act) act.tackles++;
-                // 거친 태클/경합 과정에서 일정 확률로 파울 카운트 누적
-                if (Math.random() < 0.28) {
-                    const foulSide = Math.random() < 0.55 ? (side === 'home' ? 'away' : 'home') : side;
-                    ls.fouls[foulSide]++;
-                }
+            } else if (ev.type === 'foul') {
+                const fSide = (ev.team === 'home' || ev.team === 'away') ? ev.team : (findSideByName(ev.player) || 'home');
+                ls.fouls[fSide]++;
+            } else if (ev.type === 'corner') {
+                const cSide = (ev.team === 'home' || ev.team === 'away') ? ev.team : (findSideByName(ev.player) || 'home');
+                if (!ls.corners) ls.corners = { home: 0, away: 0 };
+                ls.corners[cSide]++;
             } else if (ev.type === 'pass' || ev.type === 'throughpass') {
                 const side = findSideByName(ev.from) || 'home';
                 ls.passes[side]++;
@@ -1388,12 +1409,8 @@ function updateLiveMatchTelemetry(matchData, snapshot, isNewMinute) {
         });
     }
 
-    // 분 변경 시 중원 몸싸움 파울 자연 보정 및 주목할 선수(Spotlight) 갱신
+    // 분 변경 시 주목할 선수(Spotlight) 갱신
     if (isNewMinute) {
-        if (matchData.minute > 0 && matchData.minute % 7 === 0 && Math.random() < 0.55) {
-            const fSide = Math.random() < 0.5 ? 'home' : 'away';
-            ls.fouls[fSide]++;
-        }
 
         // 실시간 가장 활약도가 높은 선수 계산
         const actors = Object.values(ls.playerActions);
@@ -1517,6 +1534,7 @@ function simulateMatch(matchData, engine) {
     let tickCount = 0;
     matchData.seconds = 0; // [신규] 초 단위 정밀 시간 계산용
     matchData._lastMinute = -1; // [신규] 중복 체력 소모 방지
+    matchData.halftimeDone = false; // [신규] 하프타임 팀토크 플래그
     const tickDuration = 80; // [템포 완화] 60ms -> 80ms (약 12.5FPS) : 탁구 같은 핑퐁 속도를 해소하고 눈으로 축구 전술을 여유 있게 감상할 수 있는 최적 템포
 
     // [최적화] setInterval 대신 setTimeout 재귀 호출 사용
@@ -1527,8 +1545,29 @@ function simulateMatch(matchData, engine) {
 
         // 일시정지 상태면 잠시 대기 후 다시 체크 (폴링)
         if (!matchData.isRunning) {
-            matchData.timeoutId = setTimeout(gameLoop, 500);
+            matchData.timeoutId = setTimeout(gameLoop, 300);
             return;
+        }
+
+        // 0. 하프타임 체크 (45분 도달 시 전반 종료 -> 팀토크 & 후반 킥오프)
+        if (matchData.minute >= 45 && !matchData.halftimeDone) {
+            matchData.halftimeDone = true;
+            displayEvent({
+                minute: 45,
+                type: 'halftime',
+                description: '⏱️ 전반전 종료! 양 팀 선수들이 라커룸으로 들어갑니다.'
+            }, matchData);
+
+            if (matchData.isFastForward) {
+                if (engine && typeof engine.halfTimeReset === 'function') {
+                    engine.halfTimeReset();
+                }
+            } else {
+                matchData.isRunning = false;
+                openHalftimeModal(matchData, engine);
+                matchData.timeoutId = setTimeout(gameLoop, 300);
+                return;
+            }
         }
 
         // 1. 경기 종료 체크
@@ -1596,7 +1635,7 @@ function simulateMatch(matchData, engine) {
                     // [신규] 개인기 시각 효과 연동
                     if (engineEvent.type === 'dribble' && engineEvent.skillId) {
                         if (window.matchVisualizer && window.matchVisualizer.units[engineEvent.player]) {
-                            window.matchVisualizer.units[engineEvent.player].triggerSkillEffect(engineEvent.skillId);
+                            window.matchVisualizer.units[engineEvent.player].triggerSkillEffect(engineEvent.skillId, engineEvent.skillName);
                         }
                     }
 
@@ -1807,7 +1846,9 @@ function convertToTextEvent(engineEvent, matchData) {
     if (engineEvent.type === 'goal') {
         const data = { scorer: engineEvent.scorer, team: eventTeamName };
         let description = getRandomCommentary('goal', data);
-        if (engineEvent.assister) description += ` (도움: ${engineEvent.assister})`;
+        if (engineEvent.isPenalty) description = `⚽ [페널티킥 골!] ${engineEvent.scorer}, 침착하게 골키퍼를 속이고 성공합니다!`;
+        else if (engineEvent.isFreeKick) description = `🎯 [환상적인 프리킥 골!] ${engineEvent.scorer}의 킥이 수비벽을 넘어 골문 구석에 꽂힙니다!!`;
+        else if (engineEvent.assister) description += ` (도움: ${engineEvent.assister})`;
         return {
             minute: matchData.minute,
             type: 'goal',
@@ -1897,8 +1938,174 @@ function convertToTextEvent(engineEvent, matchData) {
             type: 'offside',
             description: engineEvent.desc || '🚩 부심의 깃발이 올라갑니다! 오프사이드 반칙입니다.'
         };
+    } else if (['throwin', 'goalkick', 'corner', 'freekick', 'penalty', 'foul', 'halftime'].includes(engineEvent.type)) {
+        return {
+            minute: matchData.minute,
+            type: engineEvent.type,
+            description: engineEvent.desc
+        };
     }
     return null;
+}
+
+// =========================================================================================
+// [신규] 하프타임 라커룸 팀토크 모달
+// =========================================================================================
+function openHalftimeModal(matchData, engine) {
+    let modal = document.getElementById('halftimeTalkModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'halftimeTalkModal';
+        modal.className = 'modal';
+        modal.style.cssText = 'display:none; z-index:4200; background:rgba(4,7,14,0.78); backdrop-filter:blur(6px); align-items:center; justify-content:center;';
+        document.body.appendChild(modal);
+    }
+
+    const userSide = matchData.homeTeam === gameData.selectedTeam ? 'home' : 'away';
+    const userScore = userSide === 'home' ? matchData.homeScore : matchData.awayScore;
+    const oppScore = userSide === 'home' ? matchData.awayScore : matchData.homeScore;
+    const ls = matchData.liveStats || { possessionPct: { home: 50, away: 50 }, shots: { home: 0, away: 0 }, shotsOnTarget: { home: 0, away: 0 }, corners: { home: 0, away: 0 }, fouls: { home: 0, away: 0 } };
+    const corners = ls.corners || { home: 0, away: 0 };
+
+    const homeLabel = (typeof teamNames !== 'undefined' && teamNames[matchData.homeTeam]) || matchData.homeTeam;
+    const awayLabel = (typeof teamNames !== 'undefined' && teamNames[matchData.awayTeam]) || matchData.awayTeam;
+
+    let moodText = '팽팽한 균형이 이어지고 있습니다.';
+    if (userScore > oppScore) moodText = '리드를 잡고 있습니다! 방심 없이 후반전을 운영하세요.';
+    else if (userScore < oppScore) moodText = '뒤처지고 있습니다! 후반전 반전을 위해 선수들을 다잡으세요.';
+
+    const talks = [
+        {
+            id: 'tactical',
+            title: '🧠 전술 집중 & 침착함 유지',
+            desc: '후반 패스·판단력 +4%, 체력 소모 -8% (안정적 경기 운영)'
+        },
+        {
+            id: 'fireup',
+            title: '🔥 강하게 몰아붙여! 절대 물러서지 마!',
+            desc: '후반 초반 모멘텀 버프 & 슈팅·스피드·피지컬 최대 +5% (체력 소모 +10%)'
+        },
+        {
+            id: 'encourage',
+            title: '👏 잘하고 있어, 자신감 있게 즐겨!',
+            desc: '후반 드리블·슈팅·패스 +3%, 팀 사기 +2'
+        }
+    ];
+
+    modal.replaceChildren();
+    const card = document.createElement('div');
+    card.style.cssText = 'width:min(520px,92vw); background:linear-gradient(180deg,#151c2b 0%,#0b1120 100%); border:1px solid rgba(56,189,248,0.35); border-radius:18px; padding:24px; color:#f8fafc; box-shadow:0 24px 60px rgba(0,0,0,0.65);';
+
+    const hdr = document.createElement('div');
+    hdr.style.cssText = 'text-align:center; margin-bottom:16px;';
+    const badge = document.createElement('div');
+    badge.style.cssText = 'display:inline-block; padding:4px 12px; border-radius:999px; background:rgba(251,191,36,0.16); color:#fbbf24; font-size:0.75rem; font-weight:800; letter-spacing:0.1em; margin-bottom:8px;';
+    badge.textContent = 'HALF TIME · 45분';
+    const scoreLine = document.createElement('div');
+    scoreLine.style.cssText = 'font-size:1.35rem; font-weight:900; margin-bottom:6px;';
+    scoreLine.textContent = `${homeLabel}  ${matchData.homeScore} : ${matchData.awayScore}  ${awayLabel}`;
+    const moodP = document.createElement('div');
+    moodP.style.cssText = 'font-size:0.86rem; color:#94a3b8;';
+    moodP.textContent = moodText;
+    hdr.append(badge, scoreLine, moodP);
+
+    const statsBox = document.createElement('div');
+    statsBox.style.cssText = 'display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:18px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:10px; text-align:center; font-size:0.78rem;';
+    [
+        ['점유율', `${ls.possessionPct.home}% : ${ls.possessionPct.away}%`],
+        ['슈팅(유효)', `${ls.shots.home}(${ls.shotsOnTarget.home}) : ${ls.shots.away}(${ls.shotsOnTarget.away})`],
+        ['코너킥', `${corners.home} : ${corners.away}`],
+        ['파울', `${ls.fouls.home} : ${ls.fouls.away}`]
+    ].forEach(([lbl, val]) => {
+        const cell = document.createElement('div');
+        const sp = document.createElement('div');
+        sp.style.cssText = 'color:#94a3b8; font-size:0.7rem; margin-bottom:3px;';
+        sp.textContent = lbl;
+        const b = document.createElement('div');
+        b.style.cssText = 'font-weight:800; color:#e2e8f0;';
+        b.textContent = val;
+        cell.append(sp, b);
+        statsBox.appendChild(cell);
+    });
+
+    const talkLabel = document.createElement('div');
+    talkLabel.style.cssText = 'font-size:0.82rem; font-weight:700; color:#38bdf8; margin-bottom:8px;';
+    talkLabel.textContent = '라커룸 팀토크 선택';
+
+    let selectedTalk = null;
+    const talkBtns = [];
+    const talkWrap = document.createElement('div');
+    talkWrap.style.cssText = 'display:grid; gap:8px; margin-bottom:18px;';
+    talks.forEach(t => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.style.cssText = 'text-align:left; padding:11px 14px; border-radius:12px; border:1px solid rgba(255,255,255,0.12); background:rgba(255,255,255,0.04); color:#f8fafc; cursor:pointer;';
+        const tTitle = document.createElement('div');
+        tTitle.style.cssText = 'font-weight:800; font-size:0.92rem; margin-bottom:3px;';
+        tTitle.textContent = t.title;
+        const tDesc = document.createElement('div');
+        tDesc.style.cssText = 'font-size:0.76rem; color:#94a3b8;';
+        tDesc.textContent = t.desc;
+        btn.append(tTitle, tDesc);
+        btn.onclick = () => {
+            selectedTalk = t.id;
+            talkBtns.forEach(b => {
+                b.style.borderColor = 'rgba(255,255,255,0.12)';
+                b.style.background = 'rgba(255,255,255,0.04)';
+            });
+            btn.style.borderColor = '#38bdf8';
+            btn.style.background = 'rgba(56,189,248,0.16)';
+        };
+        talkBtns.push(btn);
+        talkWrap.appendChild(btn);
+    });
+
+    const footer = document.createElement('div');
+    footer.style.cssText = 'display:flex; gap:10px;';
+
+    const subBtn = document.createElement('button');
+    subBtn.type = 'button';
+    subBtn.className = 'btn';
+    subBtn.style.cssText = 'flex:1; padding:12px; font-weight:700;';
+    subBtn.textContent = `선수 교체 (${5 - (matchData.substitutionsMade || 0)}회 남음)`;
+    subBtn.onclick = () => {
+        const subModal = document.getElementById('substitutionModal');
+        if (subModal) subModal.style.zIndex = '5100';
+        if (typeof openSubstitutionModal === 'function') openSubstitutionModal(matchData);
+    };
+
+    const start2ndBtn = document.createElement('button');
+    start2ndBtn.type = 'button';
+    start2ndBtn.className = 'btn primary';
+    start2ndBtn.style.cssText = 'flex:1.4; padding:12px; font-weight:800;';
+    start2ndBtn.textContent = '후반전 킥오프 ▶';
+    start2ndBtn.onclick = () => {
+        if (selectedTalk && engine && typeof engine.applyHalftimeTalk === 'function') {
+            engine.applyHalftimeTalk(userSide, selectedTalk);
+            if (selectedTalk === 'encourage') {
+                if (window.GameState) window.GameState.adjustTeamMorale(2);
+                else if (typeof gameData !== 'undefined') gameData.teamMorale = Math.min(100, (gameData.teamMorale || 70) + 2);
+            }
+            const chosen = talks.find(x => x.id === selectedTalk);
+            if (chosen) {
+                displayEvent({
+                    minute: 45,
+                    type: 'halftime',
+                    description: `🗣️ [하프타임 팀토크] "${chosen.title}"`
+                }, matchData);
+            }
+        }
+        if (engine && typeof engine.halfTimeReset === 'function') {
+            engine.halfTimeReset();
+        }
+        modal.style.display = 'none';
+        matchData.isRunning = true;
+    };
+
+    footer.append(subBtn, start2ndBtn);
+    card.append(hdr, statsBox, talkLabel, talkWrap, footer);
+    modal.appendChild(card);
+    modal.style.display = 'flex';
 }
 
 function displayEvent(event, matchData) {
@@ -2128,8 +2335,10 @@ function endMatch(matchData) {
 
                 // 알림 및 메일 발송
                 setTimeout(() => {
+                    const countryLabel = discovered.country || '국적 미상';
+                    const posLabel = discovered.detailPosition || discovered.position;
                     alert(`🌟 [유스 스카우트 보고서]\n${scoutName}이(가) 10경기 탐색 끝에 새로운 유망주를 발굴했습니다!\n\n` +
-                        `선수: ${discovered.name} (${discovered.position}, ${discovered.age}세)\n` +
+                        `선수: ${discovered.name} (${countryLabel} · ${posLabel}, ${discovered.age}세)\n` +
                         `현재 능력치: OVR ${discovered.rating}\n` +
                         `잠재력 등급: [${discovered.potentialName}] (최대 OVR ~${discovered.maxPotential})\n` +
                         `평가: ${tierDesc}`);
@@ -2138,12 +2347,14 @@ function endMatch(matchData) {
                 }, 1200);
 
                 if (typeof mailManager !== 'undefined') {
+                    const countryLabel = discovered.country || '국적 미상';
+                    const posLabel = discovered.detailPosition || discovered.position;
                     mailManager.addMail(
                         `[유스 발굴] ${discovered.name} (${discovered.potentialName}) 유망주 입단 보고서`,
                         scoutName,
                         `감독님, 지난 10경기 동안 전 세계 각지를 탐색한 끝에 구단의 미래를 책임질 유망주를 발굴했습니다!\n\n` +
                         `- 선수명: ${discovered.name}\n` +
-                        `- 포지션: ${discovered.position} | 나이: ${discovered.age}세\n` +
+                        `- 국적: ${countryLabel} | 포지션: ${posLabel} | 나이: ${discovered.age}세\n` +
                         `- 현재 능력치: OVR ${discovered.rating}\n` +
                         `- 잠재력 등급: [${discovered.potentialName}] (예상 포텐셜: ~${discovered.maxPotential})\n` +
                         `- 스카우터 코멘트: ${tierDesc}\n\n` +
@@ -2164,7 +2375,29 @@ function endMatch(matchData) {
         }
     }
 
+    // 경기 중 임시 교체로 변경된 선발 명단을 경기 전 베스트 11로 복원 (영구 덮어쓰기 방지)
+    if (matchData && matchData.initialSquadSnapshot && gameData) {
+        gameData.squad = {
+            gk: matchData.initialSquadSnapshot.gk || null,
+            df: [...(matchData.initialSquadSnapshot.df || [])],
+            mf: [...(matchData.initialSquadSnapshot.mf || [])],
+            fw: [...(matchData.initialSquadSnapshot.fw || [])]
+        };
+        if (matchData.initialSquadLinesSnapshot) {
+            const restoredLines = {};
+            Object.keys(matchData.initialSquadLinesSnapshot).forEach(lineKey => {
+                restoredLines[lineKey] = Array.isArray(matchData.initialSquadLinesSnapshot[lineKey])
+                    ? [...matchData.initialSquadLinesSnapshot[lineKey]]
+                    : matchData.initialSquadLinesSnapshot[lineKey];
+            });
+            gameData.squadLines = restoredLines;
+        }
+    }
+
     injurySystem.removeInjuredFromSquad();
+    if (typeof formationSystem !== 'undefined' && formationSystem && typeof formationSystem.displayCurrentSquad === 'function') {
+        formationSystem.displayCurrentSquad();
+    }
 
     // [복구] 임시 스탯 초기화
     if (gameData.temporaryStats) {
@@ -2196,37 +2429,54 @@ function endMatch(matchData) {
     // [?섏젙] 泥대젰 ?뚮났 ?쒖뒪??媛쒗렪 (媛쒕퀎 ?좎닔 ?⑥쐞)
     if (matchData.engine && matchData.engine.players && gameData.selectedTeam) {
         const userTeamKey = gameData.selectedTeam;
-        const userPlayers = teams[userTeamKey];
+        const userPlayers = teams[userTeamKey] || (typeof allTeams !== 'undefined' && allTeams[userTeamKey]?.players) || [];
 
         // ?ъ슜?먯쓽 ???home?몄? away?몄? ?뺤씤
         const userSide = matchData.homeTeam === userTeamKey ? 'home' : 'away';
         const playedPlayerNames = new Set();
 
         // 1. 寃쎄린 ???좎닔 泥대젰 ?낅뜲?댄듃
+        const playedStaminaMap = new Map();
+
+        // 교체 아웃된 선수의 실제 소모 스태미나 먼저 반영 (벤치 휴식 보너스 오적용 방지)
+        if (matchData._subbedOutStamina) {
+            Object.entries(matchData._subbedOutStamina).forEach(([pName, remStamina]) => {
+                if (typeof remStamina === 'number') {
+                    playedStaminaMap.set(pName, remStamina);
+                }
+            });
+        }
+
+        // 경기 종료 시점 그라운드 위 출전 선수 스태미나 기록
         matchData.engine.players.forEach(simPlayer => {
             if (simPlayer.teamId === userSide) {
-                const realPlayer = userPlayers.find(p => p.name === simPlayer.name);
-                if (realPlayer) {
-                    playedPlayerNames.add(realPlayer.name);
-
-                    const remaining = simPlayer.stamina;
-
-                    // [蹂듦뎄] 泥대젰 ?뚮났 濡쒖쭅 (?뚮え??泥대젰????83% ?뚮났)
-                    // ?? ?붿뿬 40(?뚮え 60) -> ?뚮났 50 -> 寃곌낵 90
-                    // 출전 선수: 경기 종료 후 휴식 회복(+18) 부여 (최대 100)
-                    // 예: 90분 풀타임 45 잔여 시 -> 63으로 다음 경기 진입 (로테이션 관리 필요)
-                    const recovered = Math.min(100, Math.max(15, Math.round(remaining + 18)));
-
-                    realPlayer.condition = recovered;
-                }
+                playedStaminaMap.set(simPlayer.name, simPlayer.stamina);
             }
         });
 
-        // 2. 경기 미출전 선수 컨디션 회복 (+25)
+        // 1. 실제 출전 선수(선발+교체투입+교체아웃) 컨디션 반영 (+5, 두 번째 활력 +8)
+        playedStaminaMap.forEach((rawRemaining, pName) => {
+            const realPlayer = userPlayers.find(p => p.name === pName);
+            if (realPlayer) {
+                playedPlayerNames.add(realPlayer.name);
+
+                const remaining = (typeof rawRemaining === 'number')
+                    ? rawRemaining
+                    : (realPlayer.condition !== undefined ? realPlayer.condition : 100);
+                const traits = Array.isArray(realPlayer.traits) ? realPlayer.traits : [];
+                const hasRelentless = traits.some(t => t.includes('두 번째 활력'));
+                const matchRecovery = hasRelentless ? 8 : 5;
+
+                const recovered = Math.min(100, Math.max(15, Math.round(remaining + matchRecovery)));
+                realPlayer.condition = recovered;
+            }
+        });
+
+        // 2. 경기 미출전 선수 컨디션 회복 (+15)
         userPlayers.forEach(p => {
             if (!playedPlayerNames.has(p.name)) {
                 const current = p.condition !== undefined ? p.condition : 100;
-                p.condition = Math.min(100, current + 30);
+                p.condition = Math.min(100, current + 15);
             }
         });
     }
@@ -3173,10 +3423,21 @@ class InjurySystem {
     removeInjuredFromSquad() {
         if (!gameData.selectedTeam) return;
         const s = gameData.squad;
-        if (s.gk && this.isInjured(gameData.selectedTeam, s.gk.name)) s.gk = null;
-        s.df = s.df.map(p => p && this.isInjured(gameData.selectedTeam, p.name) ? null : p);
-        s.mf = s.mf.map(p => p && this.isInjured(gameData.selectedTeam, p.name) ? null : p);
-        s.fw = s.fw.map(p => p && this.isInjured(gameData.selectedTeam, p.name) ? null : p);
+        if (s) {
+            if (s.gk && this.isInjured(gameData.selectedTeam, s.gk.name)) s.gk = null;
+            if (Array.isArray(s.df)) s.df = s.df.map(p => p && this.isInjured(gameData.selectedTeam, p.name) ? null : p);
+            if (Array.isArray(s.mf)) s.mf = s.mf.map(p => p && this.isInjured(gameData.selectedTeam, p.name) ? null : p);
+            if (Array.isArray(s.fw)) s.fw = s.fw.map(p => p && this.isInjured(gameData.selectedTeam, p.name) ? null : p);
+        }
+        if (gameData.squadLines && typeof gameData.squadLines === 'object') {
+            Object.keys(gameData.squadLines).forEach(lineKey => {
+                if (Array.isArray(gameData.squadLines[lineKey])) {
+                    gameData.squadLines[lineKey] = gameData.squadLines[lineKey].map(p =>
+                        p && this.isInjured(gameData.selectedTeam, p.name) ? null : p
+                    );
+                }
+            });
+        }
     }
 
     getSaveData() { return { injuredPlayers: Array.from(this.injuredPlayers.entries()) }; }
@@ -3351,19 +3612,36 @@ function performSubstitution(playerOut, playerIn, matchData) {
 
     // 2. 엔진 데이터 업데이트 (SimPlayer 교체)
     if (matchData.engine) {
+        const userSide = (typeof gameData !== 'undefined' && gameData && matchData.homeTeam === gameData.selectedTeam) ? 'home' : 'away';
         const simPlayers = matchData.engine.players;
-        const simPlayerIndex = simPlayers.findIndex(p => p.id === playerOut.name || p.name === playerOut.name);
+        let simPlayerIndex = simPlayers.findIndex(p => p.teamId === userSide && (p.id === playerOut.name || p.name === playerOut.name));
+        if (simPlayerIndex === -1) {
+            simPlayerIndex = simPlayers.findIndex(p => p.id === playerOut.name || p.name === playerOut.name);
+        }
 
         if (simPlayerIndex !== -1) {
             const simPlayer = simPlayers[simPlayerIndex];
 
+            // 교체 아웃 선수의 남은 스태미나 보존 (경기 종료 시 미출전 휴식 보너스 오적용 방지)
+            const outKey = playerOut.name || simPlayer.name;
+            if (outKey && typeof simPlayer.stamina === 'number') {
+                if (!matchData._subbedOutStamina) matchData._subbedOutStamina = {};
+                matchData._subbedOutStamina[outKey] = simPlayer.stamina;
+            }
+
             // 기존 SimPlayer 객체를 새 선수 정보로 갱신
+            simPlayer.rawPlayer = playerIn;
             simPlayer.id = playerIn.name;
             simPlayer.name = playerIn.name;
             simPlayer.rating = playerIn.rating;
             simPlayer.position = playerIn.position;
             simPlayer.detailPosition = ((playerIn.detailPosition || playerIn.position) || '').toUpperCase();
             simPlayer.otherPositions = playerIn.otherPositions || [];
+            simPlayer.attributes = playerIn.attributes || null;
+            simPlayer.traits = Array.isArray(playerIn.traits) ? playerIn.traits : [];
+            simPlayer.preferredFoot = playerIn.preferredFoot || 'Right';
+            simPlayer.weakFoot = playerIn.weakFoot !== undefined ? playerIn.weakFoot : 3;
+            simPlayer.skillMoves = playerIn.skillMoves !== undefined ? playerIn.skillMoves : 3;
             // [수정] 교체 투입 선수 체력 반영
             simPlayer.stamina = (playerIn.condition !== undefined) ? playerIn.condition : 100;
 
@@ -3487,17 +3765,26 @@ function performAISubstitution(playerOut, playerIn, aiTeam, matchData) {
     const inName = playerIn.name;
 
     const simPlayers = matchData.engine.players;
-    const simPlayerIndex = simPlayers.findIndex(p => p.id === outName || p.name === outName);
+    let simPlayerIndex = simPlayers.findIndex(p => p.teamId === aiTeam.side && (p.id === outName || p.name === outName));
+    if (simPlayerIndex === -1) {
+        simPlayerIndex = simPlayers.findIndex(p => p.id === outName || p.name === outName);
+    }
 
     if (simPlayerIndex !== -1) {
         const simPlayer = simPlayers[simPlayerIndex];
 
+        simPlayer.rawPlayer = playerIn;
         simPlayer.id = inName;
         simPlayer.name = inName;
         simPlayer.rating = playerIn.rating;
         simPlayer.position = playerIn.position;
         simPlayer.detailPosition = ((playerIn.detailPosition || playerIn.position) || '').toUpperCase();
         simPlayer.otherPositions = playerIn.otherPositions || [];
+        simPlayer.attributes = playerIn.attributes || null;
+        simPlayer.traits = Array.isArray(playerIn.traits) ? playerIn.traits : [];
+        simPlayer.preferredFoot = playerIn.preferredFoot || 'Right';
+        simPlayer.weakFoot = playerIn.weakFoot !== undefined ? playerIn.weakFoot : 3;
+        simPlayer.skillMoves = playerIn.skillMoves !== undefined ? playerIn.skillMoves : 3;
         simPlayer.stamina = (playerIn.condition !== undefined) ? playerIn.condition : 100;
 
         const tactic = matchData.engine.getTeamTactic ? matchData.engine.getTeamTactic(simPlayer.teamId) : 'balanced';

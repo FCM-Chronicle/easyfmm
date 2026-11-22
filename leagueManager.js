@@ -499,7 +499,7 @@ const LeagueManager = {
 
         const tabNav = document.createElement('div');
         tabNav.className = 'league-nav-tabs league-underline-nav';
-        tabNav.style.cssText = 'display: flex; align-items: flex-end; gap: 4px; width: 100%; overflow-x: auto; border-bottom: 1px solid rgba(255,255,255,0.16);';
+        tabNav.style.cssText = 'display: flex; align-items: flex-end; gap: 4px; width: 100%; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; -webkit-overflow-scrolling: touch; border-bottom: 1px solid rgba(255,255,255,0.16);';
 
         const shortNames = {
             premier_league: '프리미어리그',
@@ -563,6 +563,9 @@ const LeagueManager = {
         });
 
         const buildStandingsTableElement = (rows, zoneMode) => {
+            const tableWrap = document.createElement('div');
+            tableWrap.className = 'league-table-scroll-wrap';
+
             const tableEl = document.createElement('table');
             tableEl.className = 'league-table';
 
@@ -610,11 +613,14 @@ const LeagueManager = {
                 else if (zoneBadge === '🔻') tdRank.style.color = '#F87171';
 
                 const tdTeam = document.createElement('td');
-                tdTeam.style.cssText = 'text-align: left; display: flex; align-items: center; gap: 8px;';
+                tdTeam.style.textAlign = 'left';
+                const teamCell = document.createElement('div');
+                teamCell.className = 'league-team-cell';
                 if (typeof createTeamLogoElement === 'function') {
-                    tdTeam.appendChild(createTeamLogoElement(entry.team));
+                    teamCell.appendChild(createTeamLogoElement(entry.team));
                 }
                 const nameSpan = document.createElement('span');
+                nameSpan.className = 'league-team-name';
                 const baseName = (typeof teamNames !== 'undefined' && teamNames[entry.team]) ? teamNames[entry.team] : entry.team;
                 if (zoneMode === 'mls_overall') {
                     const confTag = this.getMLSConference(entry.team) === 'east' ? '동' : '서';
@@ -622,7 +628,8 @@ const LeagueManager = {
                 } else {
                     nameSpan.textContent = baseName;
                 }
-                tdTeam.appendChild(nameSpan);
+                teamCell.appendChild(nameSpan);
+                tdTeam.appendChild(teamCell);
 
                 const tdMat = document.createElement('td'); tdMat.textContent = entry.matches;
                 const tdW = document.createElement('td'); tdW.textContent = entry.wins;
@@ -640,7 +647,8 @@ const LeagueManager = {
                 tbody.appendChild(tr);
             });
             tableEl.appendChild(tbody);
-            return tableEl;
+            tableWrap.appendChild(tableEl);
+            return tableWrap;
         };
 
         const standings = sortStandingsEntries(Object.keys(curTable).map(tKey => ({
@@ -677,14 +685,16 @@ const LeagueManager = {
                 container.appendChild(buildStandingsTableElement(standings, 'mls_overall'));
             } else {
                 const confWrap = document.createElement('div');
-                confWrap.style.cssText = 'display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 16px;';
+                confWrap.className = 'mls-conf-grid';
+                confWrap.style.cssText = 'display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 16px;';
 
                 [
                     { title: '🗽 동부 컨퍼런스 (Eastern Conference)', rows: eastStandings },
                     { title: '🌴 서부 컨퍼런스 (Western Conference)', rows: westStandings }
                 ].forEach(sec => {
                     const card = document.createElement('div');
-                    card.style.cssText = 'overflow-x: auto;';
+                    card.className = 'mls-conf-card';
+                    card.style.cssText = 'min-width: 0;';
                     const heading = document.createElement('div');
                     heading.style.cssText = 'font-weight: 800; font-size: 0.92rem; color: #E2E8F0; margin-bottom: 8px;';
                     heading.textContent = sec.title;

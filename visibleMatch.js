@@ -19,6 +19,7 @@ class VisualUnit {
         this.hasBall = false;
         this.skillEffectTimer = 0; // 개인기 효과 타이머
         this.activeSkillId = null; // 현재 진행 중인 개인기 ID
+        this.activeSkillName = null; // 현재 진행 중인 개인기 이름
         this.color = color || (teamType === 'home' ? '#e74c3c' : '#3498db'); // [수정] 전달받은 컬러 사용
         this.pulse = 0; // [신규] 공 소유 시 강조 애니메이션용
         this.stamina = 100; // [신규] 실시간 체력 표시용
@@ -45,7 +46,10 @@ class VisualUnit {
 
         if (this.skillEffectTimer > 0) {
             this.skillEffectTimer--;
-            if (this.skillEffectTimer === 0) this.activeSkillId = null;
+            if (this.skillEffectTimer === 0) {
+                this.activeSkillId = null;
+                this.activeSkillName = null;
+            }
         }
     }
 
@@ -81,19 +85,45 @@ class VisualUnit {
                     break;
                 case 'MARSEILLE_TURN':
                 case 'ROULETTE':
-                    // 한 바퀴 돌기 (360도 회전)
+                case 'BERBATOV_SPIN':
+                case 'MCGEADY_SPIN':
+                    // 한 바퀴 회전 스핀 동작
                     rotation = progress * Math.PI * 2;
                     break;
                 case 'ELASTICO':
-                    // 좌우로 쉭쉭 (지그재그 오프셋)
-                    px += Math.sin(progress * Math.PI * 4) * (r * 1.5);
+                case 'REVERSE_ELASTICO':
+                case 'STEP_OVER':
+                case 'STEPOVER':
+                case 'BODY_FEINT':
+                    // 좌우로 빠르게 흔드는 페인팅 (지그재그)
+                    px += Math.sin(progress * Math.PI * 4) * (r * 1.4);
                     break;
                 case 'LA_CROQUETA':
-                    // 왼쪽/오른쪽 후 앞으로 (사이드 스텝)
-                    const sideStep = (progress < 0.5) ? (progress * 2) * (r * 2) : (r * 2);
-                    const forwardStep = (progress >= 0.5) ? ((progress - 0.5) * 2) * (r * 2) : 0;
+                case 'RONALDO_CHOP':
+                case 'HEEL_CHOP':
+                case 'BALL_ROLL': {
+                    // 옆으로 꺾은 뒤 전방 돌파 (사이드 스텝/촙)
+                    const sideStep = (progress < 0.5) ? (progress * 2) * (r * 1.8) : (r * 1.8);
+                    const forwardStep = (progress >= 0.5) ? ((progress - 0.5) * 2) * (r * 1.8) : 0;
                     py += sideStep;
                     px += (this.teamType === 'home' ? forwardStep : -forwardStep);
+                    break;
+                }
+                case 'CRUYFF_TURN':
+                case 'DRAG_BACK':
+                case 'RABONA_FAKE': {
+                    // 뒤로 접고 순간 방향 전환
+                    const backPull = Math.sin(progress * Math.PI) * (r * 1.6);
+                    px += (this.teamType === 'home' ? -backPull : backPull);
+                    py += Math.sin(progress * Math.PI * 2) * (r * 1.1);
+                    break;
+                }
+                case 'RAINBOW_FLICK':
+                case 'SOMBRERO_FLICK':
+                case 'NUTMEG':
+                    // 공을 띄우거나 가랑이 사이 돌파 시 도약/번쩍임 강조
+                    r *= (1 + Math.sin(progress * Math.PI) * 0.35);
+                    ctx.shadowColor = '#38bdf8';
                     break;
                 default:
                     // 기타 기술은 진동 효과
@@ -202,15 +232,30 @@ class VisualUnit {
 
         ctx.restore(); // 회전/이동 컨텍스트 복구
 
+        if (this.skillEffectTimer > 0 && this.activeSkillId && this.activeSkillId !== 'TACKLE' && this.activeSkillName) {
+            ctx.save();
+            ctx.font = 'bold 9px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'bottom';
+            ctx.lineWidth = 2.5;
+            ctx.strokeStyle = 'rgba(0,0,0,0.8)';
+            const label = `⚡ ${this.activeSkillName}`;
+            ctx.strokeText(label, px, py - r - 6);
+            ctx.fillStyle = '#fde047';
+            ctx.fillText(label, px, py - r - 6);
+            ctx.restore();
+        }
+
         if (this.skillEffectTimer > 0) {
             ctx.restore(); // 개인기 발광 효과 컨텍스트 복구
         }
     }
 
     // [신규] 개인기 시각 효과 트리거
-    triggerSkillEffect(skillId) {
+    triggerSkillEffect(skillId, skillName = null) {
         this.skillEffectTimer = 45; // 약 0.7초 유지
         this.activeSkillId = skillId;
+        this.activeSkillName = skillName;
     }
 }
 
@@ -271,6 +316,19 @@ class VisualBall {
 
         // [FLR 물리 이식] 공 본체 높이 적용 (포물선 궤적)
         const visualY = py - (this.z * (height / 100) * 0.85);
+
+        // 세트피스 대기(DEAD 상태) 시 시각적 포커스 링 표시
+        if (this.state === 3 && this.setPieceType) {
+            const pulse = 1.8 + Math.abs(Math.sin(Date.now() * 0.008)) * 0.8;
+            ctx.save();
+            ctx.beginPath();
+            ctx.setLineDash([3, 3]);
+            ctx.arc(px, visualY, r * pulse, 0, Math.PI * 2);
+            ctx.strokeStyle = this.setPieceType === 'penalty' ? '#f43f5e' : '#fbbf24';
+            ctx.lineWidth = 1.8;
+            ctx.stroke();
+            ctx.restore();
+        }
 
         ctx.beginPath();
         ctx.arc(px, visualY, r, 0, Math.PI * 2);
@@ -365,7 +423,8 @@ class MatchVisualizer {
         });
 
         // 2) 공 상태 및 탄도학 동기화
-        this.ball.state = snapshot.ball.state; // 0:DEAD, 1:CONTROLLED, 2:IN_FLIGHT, 3:LOOSE
+        this.ball.state = snapshot.ball.state; // 0:LOOSE, 1:CONTROLLED, 2:IN_FLIGHT, 3:DEAD (deepenTactic.js 기준)
+        this.ball.setPieceType = snapshot.setPiece ? snapshot.setPiece.type : null;
         this.ball.prevX = this.ball.x;
         this.ball.prevY = this.ball.y;
         this.ball.prevZ = this.ball.z;

@@ -38,7 +38,7 @@ let gameData = {
     isHomeGame: true, // 현재 경기가 홈 경기인지 여부
     startYear: 2025, // 시작 연도 (시즌 표기용)
     seasonCount: 1, // 시즌 카운트
-    settings: { autoSave: false, bgm: true, bgmVolume: 50, sfxVolume: 50, immersionMode: true, customCursor: false, useIdFacepack: true }, // 게임 설정 (오디오, SFX, 몰입 모드, 커스텀 커서, ID 페이스팩)
+    settings: { autoSave: false, bgm: true, bgmVolume: 50, sfxVolume: 50, immersionMode: true, customCursor: false }, // 게임 설정 (오디오, SFX, 몰입 모드, 커스텀 커서)
     matchDrama: { enabled: true, intensity: 'high' }, // 골 직전 몰입 연출 (CM 스타일)
     playerRoles: {}, // [추가] 선수별 역할 데이터 초기화
     aiFormations: {}, // [신규] AI 팀별 최적 포메이션 데이터 저장소
@@ -57,6 +57,154 @@ let gameData = {
 const teamNames = Object.fromEntries(Object.entries(allTeams).map(([k, v]) => [k, v.displayName || k]));
 const teamCities = Object.fromEntries(Object.entries(allTeams).map(([k, v]) => [k, v.city || "알 수 없음"]));
 const teamLogoCodes = Object.fromEntries(Object.entries(allTeams).map(([k, v]) => [k, v.logoCode || "DFT"]));
+
+// [세이브 경량화] 초기 마스터 팀/선수 스냅샷 기반 델타 직렬화 코덱 (구버전 세이브 100% 호환)
+const SaveTeamsCodec = (() => {
+    const masterTeams = (typeof allTeams !== 'undefined') ? JSON.parse(JSON.stringify(allTeams)) : {};
+    const idCount = new Map();
+    const uniqueById = new Map();
+    const byTeamAndName = new Map();
+    const dupTeamNames = new Set();
+
+    Object.entries(masterTeams).forEach(([teamKey, teamObj]) => {
+        (teamObj.players || []).forEach(p => {
+            if (p && p.playerid !== undefined && p.playerid !== null) {
+                idCount.set(p.playerid, (idCount.get(p.playerid) || 0) + 1);
+            }
+            if (p && p.name) {
+                const tkName = `${teamKey}\u0000${p.name}`;
+                if (byTeamAndName.has(tkName)) dupTeamNames.add(tkName);
+                else byTeamAndName.set(tkName, p);
+            }
+        });
+    });
+
+    dupTeamNames.forEach(k => byTeamAndName.delete(k));
+
+    Object.entries(masterTeams).forEach(([teamKey, teamObj]) => {
+        (teamObj.players || []).forEach(p => {
+            if (p && p.playerid !== undefined && p.playerid !== null && idCount.get(p.playerid) === 1) {
+                uniqueById.set(p.playerid, { teamKey, player: p });
+            }
+        });
+    });
+
+    function valuesEqual(a, b) {
+        if (a === b) return true;
+        if (a === null || b === null || typeof a !== 'object' || typeof b !== 'object') return false;
+        return JSON.stringify(a) === JSON.stringify(b);
+    }
+
+    function packAllTeams() {
+        if (typeof allTeams === 'undefined') return null;
+        const compact = {};
+        Object.entries(allTeams).forEach(([teamKey, teamObj]) => {
+            if (!teamObj) return;
+            const mTeam = masterTeams[teamKey];
+            if (!mTeam) {
+                compact[teamKey] = JSON.parse(JSON.stringify(teamObj));
+                return;
+            }
+            const packedTeam = {};
+            Object.keys(teamObj).forEach(k => {
+                if (k === 'players') return;
+                if (!valuesEqual(teamObj[k], mTeam[k])) {
+                    packedTeam[k] = teamObj[k];
+                }
+            });
+            packedTeam.players = (teamObj.players || []).map(p => {
+                if (!p || typeof p !== 'object') return p;
+                let mPlayer = null;
+                let ref = null;
+                if (p.playerid !== undefined && p.playerid !== null && uniqueById.has(p.playerid)) {
+                    const candidate = uniqueById.get(p.playerid).player;
+                    if (candidate.name === p.name) {
+                        mPlayer = candidate;
+                        ref = { _id: p.playerid };
+                    }
+                }
+                if (!mPlayer && p.name && byTeamAndName.has(`${teamKey}\u0000${p.name}`)) {
+                    mPlayer = byTeamAndName.get(`${teamKey}\u0000${p.name}`);
+                    ref = { _mn: p.name };
+                }
+                if (!mPlayer) {
+                    return JSON.parse(JSON.stringify(p));
+                }
+                const entry = { ...ref };
+                Object.keys(p).forEach(k => {
+                    if (k === '_id' || k === '_mn' || k === '_del') return;
+                    if (!valuesEqual(p[k], mPlayer[k])) {
+                        entry[k] = p[k];
+                    }
+                });
+                const delKeys = Object.keys(mPlayer).filter(k => !(k in p));
+                if (delKeys.length > 0) entry._del = delKeys;
+                return entry;
+            });
+            compact[teamKey] = packedTeam;
+        });
+        return compact;
+    }
+
+    function restoreFromSave(saveData) {
+        if (!saveData) return;
+        if (saveData.allTeamsCompact && typeof allTeams !== 'undefined') {
+            Object.keys(allTeams).forEach(k => {
+                if (!(k in saveData.allTeamsCompact)) delete allTeams[k];
+            });
+            Object.entries(saveData.allTeamsCompact).forEach(([teamKey, packedTeam]) => {
+                const baseTeam = masterTeams[teamKey]
+                    ? JSON.parse(JSON.stringify(masterTeams[teamKey]))
+                    : {};
+                Object.keys(packedTeam).forEach(k => {
+                    if (k !== 'players') baseTeam[k] = JSON.parse(JSON.stringify(packedTeam[k]));
+                });
+                baseTeam.players = (packedTeam.players || []).map(entry => {
+                    if (!entry || typeof entry !== 'object') return entry;
+                    let baseP = null;
+                    if (entry._id !== undefined && uniqueById.has(entry._id)) {
+                        baseP = JSON.parse(JSON.stringify(uniqueById.get(entry._id).player));
+                    } else if (entry._mn !== undefined && byTeamAndName.has(`${teamKey}\u0000${entry._mn}`)) {
+                        baseP = JSON.parse(JSON.stringify(byTeamAndName.get(`${teamKey}\u0000${entry._mn}`)));
+                    } else {
+                        return JSON.parse(JSON.stringify(entry));
+                    }
+                    Object.keys(entry).forEach(k => {
+                        if (k === '_id' || k === '_mn' || k === '_del') return;
+                        baseP[k] = JSON.parse(JSON.stringify(entry[k]));
+                    });
+                    if (Array.isArray(entry._del)) {
+                        entry._del.forEach(k => delete baseP[k]);
+                    }
+                    return baseP;
+                });
+                allTeams[teamKey] = baseTeam;
+            });
+            if (typeof teams !== 'undefined') {
+                Object.keys(teams).forEach(k => {
+                    if (!(k in allTeams)) delete teams[k];
+                });
+                Object.keys(allTeams).forEach(teamKey => {
+                    teams[teamKey] = allTeams[teamKey].players;
+                });
+            }
+            console.log('경량 세이브(allTeamsCompact) 복원 완료');
+        } else if (saveData.allTeams && typeof allTeams !== 'undefined') {
+            Object.assign(allTeams, saveData.allTeams);
+            console.log('allTeams 데이터 복원 완료');
+            if (typeof teams !== 'undefined') {
+                Object.keys(allTeams).forEach(teamKey => {
+                    teams[teamKey] = allTeams[teamKey].players;
+                });
+                console.log('teams 객체 재구성 완료');
+            }
+        } else if (saveData.teams && typeof teams !== 'undefined') {
+            Object.assign(teams, saveData.teams);
+        }
+    }
+
+    return { packAllTeams, restoreFromSave };
+})();
 
 // 얇은 이벤트 허브로 기능 간 직접 함수 덮어쓰기를 줄입니다.
 window.GameEventBus = window.GameEventBus || {
@@ -1257,9 +1405,20 @@ function autoFillCustomPlayers() {
     const nation = document.getElementById('customNationSelect')?.value || '대한민국';
     const pool = [...((nation === '대한민국') ? RANDOM_KOREAN_PLAYER_NAMES : RANDOM_GLOBAL_PLAYER_NAMES)].sort(() => Math.random() - 0.5);
     const inputs = document.querySelectorAll('.custom-player-input');
+    const used = new Set();
 
     inputs.forEach((input, idx) => {
-        input.value = pool[idx % pool.length] + (idx >= pool.length ? ` ${idx}` : '');
+        let name = idx < pool.length ? pool[idx] : null;
+        if (!name || used.has(name)) {
+            if (typeof PlayerGenerator !== 'undefined') {
+                const targetCountry = (nation === 'random') ? PlayerGenerator.pickCountry({ localWeight: 0 }) : nation;
+                name = PlayerGenerator.generateName(targetCountry, used);
+            } else {
+                name = pool[idx % pool.length];
+            }
+        }
+        used.add(name);
+        input.value = name;
     });
 }
 
@@ -1288,15 +1447,33 @@ function createCustomTeam() {
     else { minRating = 70; maxRating = 75; }
 
     inputs.forEach((input, index) => {
+        let playerNation = nation;
+        if (nation === 'random') {
+            const nations = ['대한민국', '잉글랜드', '스페인', '독일', '프랑스', '이탈리아', '브라질', '아르헨티나', '네덜란드', '포르투갈'];
+            playerNation = nations[Math.floor(Math.random() * nations.length)];
+        }
+
         let name = input.value.trim();
         if (!name) {
-            name = pool[index % pool.length];
+            if (index < pool.length && !usedNames.has(pool[index])) {
+                name = pool[index];
+            } else if (typeof PlayerGenerator !== 'undefined') {
+                name = PlayerGenerator.generateName(playerNation, usedNames);
+            } else {
+                name = pool[index % pool.length];
+            }
         }
 
         let uniqueName = name;
-        let counter = 1;
-        while (usedNames.has(uniqueName)) {
-            uniqueName = `${name}_${counter++}`;
+        if (usedNames.has(uniqueName)) {
+            if (typeof PlayerGenerator !== 'undefined') {
+                uniqueName = PlayerGenerator.generateName(playerNation, usedNames);
+            } else {
+                let counter = 1;
+                while (usedNames.has(uniqueName)) {
+                    uniqueName = `${name} ${counter++}`;
+                }
+            }
         }
         usedNames.add(uniqueName);
 
@@ -1304,20 +1481,18 @@ function createCustomTeam() {
         const rating = Math.floor(Math.random() * (maxRating - minRating + 1)) + minRating;
         const age = Math.floor(Math.random() * 6) + 18;
 
-        let playerNation = nation;
-        if (nation === 'random') {
-            const nations = ['대한민국', '잉글랜드', '스페인', '독일', '프랑스', '이탈리아', '브라질', '아르헨티나', '네덜란드', '포르투갈'];
-            playerNation = nations[Math.floor(Math.random() * nations.length)];
-        }
-
-        newPlayers.push({
+        const customPlayer = {
             name: uniqueName,
             position: pos,
             country: playerNation,
             age: age,
             rating: rating,
             isCustom: true
-        });
+        };
+        if (typeof PlayerGenerator !== 'undefined') {
+            PlayerGenerator.hydratePlayerSpecs(customPlayer);
+        }
+        newPlayers.push(customPlayer);
     });
 
     const newTeamKey = teamNameInput;
@@ -3570,8 +3745,19 @@ function relinkSquadPlayers() {
                 p.playerid = pid;
                 p.id = pid;
             }
+            if (typeof PlayerGenerator !== 'undefined' && (!p.attributes || !p.detailPosition || !p.country || p.country === '국적 미상')) {
+                PlayerGenerator.hydratePlayerSpecs(p, { teamKey: gameData.selectedTeam });
+            }
         }
     });
+
+    if (Array.isArray(gameData.youthSquad) && typeof PlayerGenerator !== 'undefined') {
+        gameData.youthSquad.forEach(p => {
+            if (p && (!p.attributes || !p.detailPosition || !p.country || p.country === '국적 미상' || typeof p.potential !== 'number')) {
+                PlayerGenerator.hydratePlayerSpecs(p, { teamKey: gameData.selectedTeam });
+            }
+        });
+    }
 
     const findRealPlayer = (savedPlayer) => {
         if (!savedPlayer) return null;
@@ -3583,6 +3769,18 @@ function relinkSquadPlayers() {
     gameData.squad.df = gameData.squad.df.map(p => findRealPlayer(p));
     gameData.squad.mf = gameData.squad.mf.map(p => findRealPlayer(p));
     gameData.squad.fw = gameData.squad.fw.map(p => findRealPlayer(p));
+
+    // 5선 포메이션 스쿼드(squadLines)도 teams[userTeam] 실객체로 재연결 (컨디션/스탯 동기화)
+    if (gameData.squadLines && typeof gameData.squadLines === 'object') {
+        Object.keys(gameData.squadLines).forEach(lineKey => {
+            if (Array.isArray(gameData.squadLines[lineKey])) {
+                gameData.squadLines[lineKey] = gameData.squadLines[lineKey].map(p => findRealPlayer(p));
+            }
+        });
+    }
+    if (typeof allTeams !== 'undefined' && allTeams[gameData.selectedTeam]) {
+        allTeams[gameData.selectedTeam].players = teamPlayers;
+    }
 
     console.log('스쿼드 선수 객체 재연결 및 페이스팩/스펙 복원 완료');
 }
@@ -3637,8 +3835,9 @@ function saveGame() {
         delete gameDataToSave.aiFormations;
 
         const saveData = {
+            saveVersion: 2,
             gameData: gameDataToSave,
-            allTeams: typeof allTeams !== 'undefined' ? allTeams : null, // teams는 allTeams에서 복구 가능하므로 제외
+            allTeamsCompact: SaveTeamsCodec.packAllTeams(), // 변경된 팀/선수 델타만 저장 (경량화)
             recordsData: recordsData,
             snsData: snsManager.getSaveData(),
             mailData: mailManager.getSaveData(), // 메일 데이터 저장
@@ -3648,7 +3847,7 @@ function saveGame() {
         };
 
         // JSON 파일로 저장
-        const blob = new Blob([JSON.stringify(saveData, null, 2)], { type: 'application/json' });
+        const blob = new Blob([JSON.stringify(saveData)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -3708,20 +3907,8 @@ function loadGame(event) {
             }
             console.log('gameData 복원 완료');
 
-            // 팀 데이터 복원 (allTeams -> teams 재구성)
-            if (saveData.allTeams) {
-                Object.assign(allTeams, saveData.allTeams);
-                console.log('allTeams 데이터 복원 완료');
-
-                // teams 객체 재구성
-                Object.keys(allTeams).forEach(teamKey => {
-                    teams[teamKey] = allTeams[teamKey].players;
-                });
-                console.log('teams 객체 재구성 완료');
-            } else if (saveData.teams) {
-                // 구버전 호환: teams만 있는 경우
-                Object.assign(teams, saveData.teams);
-            }
+            // 팀 데이터 복원 (경량 델타 및 구버전 전체 저장 형식 모두 지원)
+            SaveTeamsCodec.restoreFromSave(saveData);
 
             // 스쿼드 선수 객체 재연결 (중요!)
             relinkSquadPlayers();
@@ -4555,8 +4742,9 @@ async function saveToSlot(slotNumber, silent = false) {
         delete gameDataToSave.aiFormations;
 
         const saveData = {
+            saveVersion: 2,
             gameData: gameDataToSave,
-            allTeams: typeof allTeams !== 'undefined' ? allTeams : null,
+            allTeamsCompact: SaveTeamsCodec.packAllTeams(),
             recordsData: recordsData,
             snsData: snsManager.getSaveData(),
             mailData: mailManager.getSaveData(),
@@ -4643,20 +4831,8 @@ function loadFromSlot(slotNumber, overrideManagerId = null) {
         ensureMatchDramaDefaults();
         console.log('gameData 복원 완료');
 
-        // 팀 데이터 복원 (allTeams -> teams 재구성)
-        if (saveData.allTeams) {
-            Object.assign(allTeams, saveData.allTeams);
-            console.log('allTeams 데이터 복원 완료');
-
-            // teams 객체 재구성
-            Object.keys(allTeams).forEach(teamKey => {
-                teams[teamKey] = allTeams[teamKey].players;
-            });
-            console.log('teams 객체 재구성 완료');
-        } else if (saveData.teams) {
-            // 구버전 호환
-            Object.assign(teams, saveData.teams);
-        }
+        // 팀 데이터 복원 (경량 델타 및 구버전 전체 저장 형식 모두 지원)
+        SaveTeamsCodec.restoreFromSave(saveData);
 
         // 스쿼드 선수 객체 재연결
         relinkSquadPlayers();
@@ -4845,6 +5021,10 @@ function displayYouthPlayers() {
         const playerCard = document.createElement('div');
         playerCard.className = `player-card fc26-player-card pos-theme-${posLower} youth-member-card`;
         playerCard.dataset.playerName = player.name;
+        playerCard.style.cursor = 'pointer';
+        playerCard.addEventListener('click', () => {
+            if (typeof openPlayerDetail === 'function') openPlayerDetail(player, gameData.selectedTeam);
+        });
 
         const cardContent = document.createElement('div');
         cardContent.className = 'player-card-content fc26-card-layout';
@@ -4858,7 +5038,7 @@ function displayYouthPlayers() {
 
         const posBadge = document.createElement('span');
         posBadge.className = `pos-badge pos-${posLower}`;
-        posBadge.textContent = player.position;
+        posBadge.textContent = player.detailPosition || player.position;
 
         const img = document.createElement('img');
         img.className = 'player-card-image fc26-cutout-img';
@@ -4880,7 +5060,7 @@ function displayYouthPlayers() {
         const metaRow = document.createElement('div');
         metaRow.className = 'fc26-meta-row';
         const ageSpan = document.createElement('span');
-        ageSpan.textContent = `${player.age}세`;
+        ageSpan.textContent = player.country ? `${player.country} · ${player.age}세` : `${player.age}세`;
 
         let badgeDiv;
         if (player.potentialTier && typeof getPotentialBadgeHTML === 'function') {
@@ -4966,20 +5146,27 @@ function processRetirementsAndReincarnations() {
                 }
 
                 // 3. 환생 선수 생성
-                const reincarnatedPlayer = {
-                    name: player.name, // 이름 유지
-                    position: player.position,
-                    country: player.country,
-                    age: 17,
-                    rating: Math.floor(Math.random() * (71 - 57 + 1)) + 57, // 57~71
-                    isReincarnated: true // 환생 선수 플래그
-                };
+                const reincarnatedPlayer = (typeof PlayerGenerator !== 'undefined')
+                    ? PlayerGenerator.createReincarnatedPlayer({ retiredPlayer: player })
+                    : {
+                        name: player.name, // 이름 유지
+                        position: player.position,
+                        detailPosition: player.detailPosition || player.position,
+                        country: player.country,
+                        age: 17,
+                        rating: Math.floor(Math.random() * (71 - 57 + 1)) + 57, // 57~71
+                        isReincarnated: true, // 환생 선수 플래그
+                        isGenerated: true
+                    };
 
                 let message;
                 // 4. 환생한 선수를 소속에 맞게 배치
                 if (teamKey === gameData.selectedTeam) {
                     // 사용자 팀에서 은퇴한 경우, 유스팀으로 이동
-                    gameData.youthSquad.push(reincarnatedPlayer);
+                    if (!Array.isArray(gameData.youthSquad)) gameData.youthSquad = [];
+                    if (!gameData.youthSquad.some(p => p && p.name === reincarnatedPlayer.name)) {
+                        gameData.youthSquad.push(reincarnatedPlayer);
+                    }
                     message = `[은퇴/환생] 우리 팀의 전설 ${player.name}(${player.age}세)가 은퇴를 선언했습니다. 동시에 그의 재능을 이어받은 17세 유망주가 유스팀에서 발견되었습니다!`;
                 } else {
                     // AI 팀에서 은퇴한 경우, 해당 AI 팀에 바로 추가
@@ -5188,7 +5375,6 @@ class AudioManager {
             'assets/ost/Born Hater.mp3',
             'assets/ost/54321.mp3',
             'assets/ost/피타파 (Feat. pH-1, JUNNY).mp3',
-            'assets/ost/SUPERBEEWHY (Feat. BewhY) (Prod. by BewhY).mp3',
             'assets/ost/Travel Again (Feat. Cautious Clay).mp3',
             'assets/ost/Jay Park (박재범), GRAY (그레이) - _EL TORNADO_ Lyrics (Color Coded Lyrics Han_Rom_Eng_가사) [BAnXszYMGSU].mp3'
         ];
@@ -5553,12 +5739,6 @@ function renderGeneralSettings() {
     if (!generalContainer) return;
 
     const isCustomCursorOn = gameData.settings && gameData.settings.customCursor !== undefined ? gameData.settings.customCursor : false;
-
-    const isFacepackOn = gameData.settings && gameData.settings.useIdFacepack !== undefined ? gameData.settings.useIdFacepack : true;
-    const facepackToggle = document.getElementById('facepackToggle');
-    const facepackStatusText = document.getElementById('facepackStatusText');
-    if (facepackToggle) facepackToggle.checked = isFacepackOn;
-    if (facepackStatusText) facepackStatusText.textContent = `선수 ID 페이스팩 ${isFacepackOn ? 'ON' : 'OFF'} (p[ID].png/webp)`;
     const cursorToggle = document.getElementById('cursorToggle');
     const cursorStatusText = document.getElementById('cursorStatusText');
     const replayTutorialBtn = document.getElementById('replayTutorialBtn');
@@ -5578,16 +5758,6 @@ function renderGeneralSettings() {
                 } else {
                     alert('튜토리얼을 실행할 수 없습니다.');
                 }
-            });
-        }
-
-        if (facepackToggle) {
-            facepackToggle.addEventListener('change', (e) => {
-                const isOn = e.target.checked;
-                if (!gameData.settings) gameData.settings = {};
-                gameData.settings.useIdFacepack = isOn;
-                if (facepackStatusText) facepackStatusText.textContent = `선수 ID 페이스팩 ${isOn ? 'ON' : 'OFF'} (p[ID].png/webp)`;
-                if (window.AutoSaveSystem) setTimeout(() => window.AutoSaveSystem.triggerSave(), 500);
             });
         }
 

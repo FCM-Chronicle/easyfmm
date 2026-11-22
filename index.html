@@ -158,7 +158,17 @@
 
                     <!-- 2. 외형 / 아바타 선택 -->
                     <div class="creator-section">
-                        <div class="section-label">2. 감독 비주얼 아바타</div>
+                        <div class="section-label-row">
+                            <div class="section-label">2. 감독 비주얼 아바타</div>
+                            <div class="avatar-photo-actions">
+                                <button type="button" id="uploadCreatorPhotoBtn" class="btn small avatar-photo-btn">내 사진 올리기</button>
+                                <button type="button" id="removeCreatorPhotoBtn" class="btn small avatar-photo-remove-btn" style="display: none;">사진 삭제</button>
+                            </div>
+                        </div>
+                        <div id="creatorPhotoPreviewRow" class="creator-photo-preview-row" style="display: none;">
+                            <img id="creatorPhotoThumb" class="creator-photo-thumb" alt="업로드된 감독 사진">
+                            <span class="creator-photo-caption">내 프로필 사진 적용됨</span>
+                        </div>
                         <div class="avatar-picker-grid" id="avatarPickerGrid">
                             <!-- JS로 8종 렌더링 -->
                         </div>
@@ -188,12 +198,25 @@
     <div id="managerProfileModal" class="modal">
         <div class="modal-content manager-profile-modal-content">
             <span class="close-btn" id="closeManagerProfileModal">&times;</span>
+            <input type="file" id="managerPhotoInput" accept="image/*" style="display: none;">
 
             <div class="manager-profile-header-wrap">
                 <!-- 감독 정보 표시 -->
                 <div class="manager-profile-card">
                     <div class="manager-profile-card-top">
-                        <h2 id="profileManagerName" class="manager-profile-name">감독 이름</h2>
+                        <div class="manager-profile-identity">
+                            <button type="button" id="profileManagerAvatarBtn" class="profile-avatar-upload-btn" title="클릭하여 내 사진 등록/변경" aria-label="감독 프로필 사진 등록 또는 변경">
+                                <span id="profileManagerAvatarContent" class="profile-avatar-inner"></span>
+                                <span class="profile-avatar-badge" aria-hidden="true">+</span>
+                            </button>
+                            <div class="manager-profile-name-wrap">
+                                <h2 id="profileManagerName" class="manager-profile-name">감독 이름</h2>
+                                <div class="profile-photo-controls">
+                                    <button type="button" id="profileUploadPhotoHintBtn" class="profile-photo-link-btn">프로필 사진 넣기</button>
+                                    <button type="button" id="removeProfilePhotoBtn" class="profile-photo-remove-btn" style="display: none;">기본 아바타로</button>
+                                </div>
+                            </div>
+                        </div>
                         <button id="editManagerProfileBtn" class="btn small edit-profile-btn">정보 수정</button>
                     </div>
                     <div class="manager-profile-stats-grid">
@@ -974,22 +997,6 @@
                             <label class="switch"
                                 style="position: relative; display: inline-block; width: 48px; min-width: 48px; max-width: 48px; height: 26px; flex: 0 0 48px; margin: 0; padding: 0; box-sizing: border-box; border-radius: 999px; cursor: pointer;">
                                 <input type="checkbox" id="cursorToggle">
-                                <span class="slider round"
-                                    style="position: absolute; inset: 0; width: 48px; height: 26px; border-radius: 999px; box-sizing: border-box;"></span>
-                            </label>
-                        </div>
-                        <div class="setting-toggle-row"
-                            style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 16px;">
-                            <div>
-                                <span id="facepackStatusText"
-                                    style="font-size: 0.92rem; font-weight: 600; color: #F8FAFC;">선수 ID 페이스팩 ON
-                                    (p[ID].png/webp)</span>
-                                <div style="font-size: 0.78rem; color: #94A3B8; margin-top: 2px;">선수 사진 검색 시 p[선수ID].png
-                                    / p[선수ID].webp 우선 탐색</div>
-                            </div>
-                            <label class="switch"
-                                style="position: relative; display: inline-block; width: 48px; min-width: 48px; max-width: 48px; height: 26px; flex: 0 0 48px; margin: 0; padding: 0; box-sizing: border-box; border-radius: 999px; cursor: pointer;">
-                                <input type="checkbox" id="facepackToggle" checked>
                                 <span class="slider round"
                                     style="position: absolute; inset: 0; width: 48px; height: 26px; border-radius: 999px; box-sizing: border-box;"></span>
                             </label>
@@ -1939,7 +1946,7 @@
     </div>
 
     <!-- 라이브러리 -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="assets/lib/chart.min.js"></script>
 
     <!-- 저장소 및 로딩 매니저 (가장 먼저 실행되어 화면을 덮어야 함) -->
     <script src="saveStorage.js"></script>
@@ -1949,6 +1956,7 @@
     <script src="teamsData.js"></script>
     <script src="leagueManager.js"></script>
     <script src="teamUtils.js"></script>
+    <script src="playerGenerator.js"></script>
     <script src="managerSystem.js"></script>
     <script src="stadiumSystem.js"></script>
     <script src="cupCompetition.js"></script>

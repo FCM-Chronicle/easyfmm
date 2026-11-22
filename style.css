@@ -4477,6 +4477,74 @@ body.team-브라질_연합 {
     font-size: 2.5rem;
     color: var(--text-primary);
     user-select: none;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.manager-avatar-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    border-radius: 50%;
+}
+
+.section-label-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+}
+
+.section-label-row .section-label {
+    margin-bottom: 0;
+}
+
+.avatar-photo-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.avatar-photo-btn:not(#_),
+.avatar-photo-remove-btn:not(#_) {
+    min-height: 28px !important;
+    padding: 4px 10px !important;
+    font-size: 0.74rem !important;
+}
+
+.avatar-photo-remove-btn:not(#_) {
+    background: rgba(239, 68, 68, 0.14) !important;
+    border-color: rgba(239, 68, 68, 0.35) !important;
+    color: #FCA5A5 !important;
+}
+
+.creator-photo-preview-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    background: rgba(56, 189, 248, 0.08);
+    border: 1px solid rgba(56, 189, 248, 0.25);
+}
+
+.creator-photo-thumb {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid rgba(56, 189, 248, 0.5);
+    flex-shrink: 0;
+}
+
+.creator-photo-caption {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #BAE6FD;
 }
 
 .license-name-label {
@@ -4878,6 +4946,7 @@ body.team-브라질_연합 {
     color: var(--accent-primary);
     flex-shrink: 0;
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
 }
 
 .mgr-card-info h3 {
@@ -8976,7 +9045,43 @@ body,
     background: #111827 !important;
     border: 1px solid rgba(255, 255, 255, 0.08) !important;
     border-radius: 8px !important;
-    overflow-x: auto !important;
+    overflow-x: hidden !important;
+}
+
+.league-underline-nav {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+    -webkit-overflow-scrolling: touch;
+}
+
+.league-underline-nav::-webkit-scrollbar,
+.league-table-scroll-wrap::-webkit-scrollbar,
+#leagueTable::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
+.league-table-scroll-wrap {
+    width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    -webkit-overflow-scrolling: touch;
+}
+
+.league-team-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.league-team-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .league-table {
@@ -10886,9 +10991,109 @@ input[type="range"].game-range-slider::-moz-range-thumb:hover,
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 12px;
     border-bottom: 1px solid var(--border-color);
-    padding-bottom: 12px;
+    padding-bottom: 14px;
     margin-bottom: 16px;
+}
+
+.manager-profile-identity {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+    flex: 1;
+}
+
+.profile-avatar-upload-btn {
+    position: relative;
+    width: 62px;
+    height: 62px;
+    border-radius: 50%;
+    border: 2px solid rgba(56, 189, 248, 0.45);
+    background: #090D16;
+    color: var(--accent-primary);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: border-color 0.18s ease, transform 0.18s ease;
+}
+
+.profile-avatar-upload-btn:hover {
+    border-color: #38BDF8;
+    transform: scale(1.03);
+}
+
+.profile-avatar-inner {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.65rem;
+}
+
+.profile-avatar-badge {
+    position: absolute;
+    right: -2px;
+    bottom: -2px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #38BDF8;
+    color: #090D16;
+    font-size: 0.9rem;
+    font-weight: 900;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #161F30;
+}
+
+.manager-profile-name-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.profile-photo-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.profile-photo-link-btn,
+.profile-photo-remove-btn {
+    background: transparent;
+    border: none;
+    padding: 0;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.profile-photo-link-btn {
+    color: #38BDF8;
+}
+
+.profile-photo-link-btn:hover {
+    text-decoration: underline;
+}
+
+.profile-photo-remove-btn {
+    color: #94A3B8;
+}
+
+.profile-photo-remove-btn:hover {
+    color: #F87171;
 }
 
 .manager-profile-name {
@@ -10897,6 +11102,9 @@ input[type="range"].game-range-slider::-moz-range-thumb:hover,
     font-size: 1.4rem;
     font-weight: 800;
     letter-spacing: -0.02em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .edit-profile-btn {
@@ -14065,12 +14273,63 @@ input[type="range"].game-range-slider::-moz-range-thumb:hover,
         grid-template-columns: 1fr !important;
     }
 
-    /* 리그 테이블 모바일 가독성 (가로 스크롤 및 셀 패딩 축소) */
+    /* 리그 테이블 모바일 가독성 (스크롤바 제거 & 컴팩트 맞춤) */
+    #leagueTable:not(#_) {
+        padding: 10px 8px !important;
+        overflow-x: hidden !important;
+    }
+
+    .league-mode-switcher .btn:not(#_) {
+        min-height: 34px !important;
+        padding: 6px 10px !important;
+        font-size: 0.76rem !important;
+    }
+
+    .league-underline-nav {
+        scrollbar-width: none !important;
+        -ms-overflow-style: none !important;
+    }
+
+    .league-underline-nav::-webkit-scrollbar,
+    .league-table-scroll-wrap::-webkit-scrollbar,
+    #leagueTable::-webkit-scrollbar {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+    }
+
+    .league-table-scroll-wrap {
+        width: 100% !important;
+        overflow-x: auto !important;
+        scrollbar-width: none !important;
+        -ms-overflow-style: none !important;
+    }
+
     .league-table th:not(#_),
     .league-table td:not(#_) {
-        padding: 7px 6px !important;
-        font-size: 0.78rem !important;
+        padding: 6px 3px !important;
+        font-size: 0.72rem !important;
         white-space: nowrap;
+        text-align: center !important;
+    }
+
+    .league-table th:nth-child(2):not(#_),
+    .league-table td:nth-child(2):not(#_) {
+        text-align: left !important;
+    }
+
+    .league-team-cell {
+        gap: 5px;
+    }
+
+    .league-team-cell .team-logo {
+        width: 18px !important;
+        height: 18px !important;
+        flex-shrink: 0;
+    }
+
+    .league-team-name {
+        max-width: 78px;
     }
 
     /* 기자회견 화면 모바일 패딩 정리 */
@@ -14096,19 +14355,114 @@ input[type="range"].game-range-slider::-moz-range-thumb:hover,
         gap: 10px !important;
     }
 
-    /* 감독 생성 모달 모바일 컴팩트화 (과도한 프리뷰 카드 숨김) */
+    /* 감독 생성 모달 모바일 컴팩트화 (과도한 프리뷰 카드 숨김 & 모달 이탈 방지) */
+    #managerEditModal {
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 12px !important;
+        overflow: hidden !important;
+    }
+
     #managerEditModal .manager-preview-col:not(#_) {
         display: none !important;
     }
 
     #managerEditModal .manager-creator-modal:not(#_) {
         padding: 16px 14px !important;
-        margin: 4% auto !important;
+        margin: 0 auto !important;
+        width: 100% !important;
+        max-width: 560px !important;
+        max-height: calc(100dvh - 24px) !important;
+        display: flex !important;
+        flex-direction: column !important;
+        overflow: hidden !important;
+        box-sizing: border-box !important;
+    }
+
+    #managerEditModal .manager-creator-shell:not(#_) {
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        margin-top: 0 !important;
+        gap: 0 !important;
+        overflow: hidden !important;
     }
 
     #managerEditModal .manager-form-col:not(#_) {
-        max-height: 85dvh !important;
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        padding-right: 2px !important;
         gap: 10px !important;
+    }
+
+    #managerEditModal .creator-header {
+        padding-right: 40px;
+    }
+
+    #managerEditModal .creator-section:not(#_),
+    #managerEditModal .form-row-2 > div,
+    #managerEditModal .name-input-group,
+    #managerEditModal .creator-actions {
+        min-width: 0 !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    #managerEditModal .creator-input,
+    #managerEditModal .creator-select {
+        min-width: 0 !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    #managerEditModal .form-row-2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 10px !important;
+    }
+
+    #managerEditModal .avatar-picker-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        gap: 6px !important;
+    }
+
+    #managerEditModal .creator-actions {
+        padding-top: 2px;
+        padding-bottom: 4px;
+        flex-shrink: 0;
+    }
+
+    #managerEditModal .creator-submit-btn:not(#_) {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-height: 44px !important;
+        padding: 10px 14px !important;
+        font-size: 0.94rem !important;
+        white-space: normal !important;
+        line-height: 1.25 !important;
+        box-sizing: border-box !important;
+    }
+
+    #managerProfileModal {
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 12px !important;
+    }
+
+    #managerProfileModal .manager-profile-modal-content:not(#_) {
+        margin: 0 auto !important;
+        width: 100% !important;
+        max-height: calc(100dvh - 24px) !important;
+        overflow-y: auto !important;
+        padding: 18px 14px !important;
+    }
+
+    #managerProfileModal .manager-profile-card-top {
+        flex-wrap: wrap;
+        gap: 10px;
     }
 
     /* 기록 탭 서브탭 가로 스크롤 지원 */

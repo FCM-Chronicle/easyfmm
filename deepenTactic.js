@@ -375,11 +375,34 @@ class RealSoccerEngine {
         this.aiTacticState = 'initial';
         this.panicTimer = { home: 0, away: 0 };
         this.momentumBoost = { home: 0, away: 0 };
+        this.setPiece = null;
+        this._firstHalfKickoffTeam = 'home';
+        this.halftimeTalk = { home: null, away: null };
 
         this.initTeam(homeSquad, 'home', homeTactic);
         this.initTeam(awaySquad, 'away', awayTactic);
         this._assignVerticalSlots();
         this.resetPositions('home');
+    }
+
+    applyHalftimeTalk(teamId, talkType) {
+        if (!this.halftimeTalk) this.halftimeTalk = { home: null, away: null };
+        this.halftimeTalk[teamId] = talkType;
+        if (talkType === 'fireup' && this.momentumBoost) {
+            this.momentumBoost[teamId] = Math.max(this.momentumBoost[teamId] || 0, 8);
+        }
+    }
+
+    halfTimeReset() {
+        this.setPiece = null;
+        this.pendingShot = null;
+        this.pendingOffside = null;
+        this.celebrationTimer = 0;
+        this.celebrationActor = null;
+        this.celebrationTarget = null;
+        this.celebrationType = null;
+        const secondHalfKickoff = this._firstHalfKickoffTeam === 'home' ? 'away' : 'home';
+        this.resetPositions(secondHalfKickoff);
     }
 
     setMatchContext(ctx) {
@@ -448,6 +471,16 @@ class RealSoccerEngine {
         // 선택을 적극적으로 만들어 추격전이 시작될 수 있게 한다.
         if (this.panicTimer && this.panicTimer[p.teamId] > 0 && (stat === 'defense' || stat === 'decision' || stat === 'passing')) {
             f *= stat === 'defense' ? 0.98 : 1.08;
+        }
+        // [하프타임 팀토크 보정]
+        const htTalk = this.halftimeTalk && this.halftimeTalk[p.teamId];
+        if (htTalk && this.matchTime >= 45) {
+            if (htTalk === 'tactical' && (stat === 'passing' || stat === 'decision')) f *= 1.04;
+            else if (htTalk === 'fireup' && (stat === 'shooting' || stat === 'speed' || stat === 'physical')) {
+                f *= (this.matchTime <= 65 ? 1.05 : 1.02);
+            } else if (htTalk === 'encourage' && (stat === 'dribble' || stat === 'shooting' || stat === 'passing')) {
+                f *= 1.03;
+            }
         }
         // [전술 숙련도(Familiarity) 보정] 20% = -7%, 50% = 0% 기준, 100% = +3% (전술 수행 전반 스탯에 적용)
         if (stat === 'passing' || stat === 'decision' || stat === 'shooting' || stat === 'dribble' || stat === 'defense' || stat === 'tackle') {
@@ -964,8 +997,8 @@ class RealSoccerEngine {
     }
 
     consumeStamina() {
-        // 분당 소모량: 전방 압박·빠른 템포·게겐프레싱은 체력 소모를 가중하되 후반 자멸을 막도록 현실적 폭으로 조율
-        const rates = { FW: 0.30, MF: 0.33, DF: 0.22, GK: 0.04 };
+        // 분당 소모량: 90분 풀타임 기준 MF ~37, FW ~33, DF ~26 소모되어 연속 출전 시 로테이션 필요
+        const rates = { FW: 0.37, MF: 0.41, DF: 0.29, GK: 0.08 };
         this.players.forEach(p => {
             const tSet = (this.tacticSettings && this.tacticSettings[p.teamId]) || {};
             const live = (this.liveDirectives && this.liveDirectives[p.teamId]) || {};
@@ -981,6 +1014,11 @@ class RealSoccerEngine {
                 if (live.timeWasting) styleMult -= 0.08;
                 if (live.mentality === 'veryAttacking') styleMult += 0.06;
                 else if (live.mentality === 'veryDefensive') styleMult -= 0.05;
+                const htTalk = this.halftimeTalk && this.halftimeTalk[p.teamId];
+                if (htTalk && this.matchTime >= 45) {
+                    if (htTalk === 'tactical') styleMult -= 0.08;
+                    else if (htTalk === 'fireup') styleMult += 0.10;
+                }
             }
             const r = (rates[p.position] || 0.30) * Math.max(0.65, styleMult);
             p.stamina = Math.max(0, p.stamina - r * (0.8 + Math.random() * 0.4));
@@ -1199,6 +1237,12 @@ class RealSoccerEngine {
             return this.getSnapshot(true);
         }
 
+        // 세트피스 대기 및 전개 (스로인, 골킥, 코너킥, 프리킥, 페널티킥)
+        if (this.setPiece) {
+            this._processSetPiece();
+            return this.getSnapshot();
+        }
+
         this.players.forEach(p => {
             if (p._stealCooldown > 0) p._stealCooldown--;
             if (p._protectionTicks > 0) p._protectionTicks--;
@@ -1228,14 +1272,20 @@ class RealSoccerEngine {
             }
         }
 
-        // 2) LOOSE BALL PICKUP
+        // 2) LOOSE BALL PICKUP (경합 시 피지컬·스피드 반영)
         if (this.ball.state === BallState.LOOSE) {
-            let nearest = null, minD = 999;
+            const contenders = [];
             this.players.forEach(p => {
                 const d = Math.hypot(p.x - this.ball.x, p.y - this.ball.y);
-                if (d < minD) { minD = d; nearest = p; }
+                if (d < 3.4) contenders.push({ p, d });
             });
-            if (nearest && minD < 3.4) {
+            if (contenders.length > 0) {
+                contenders.sort((a, b) => {
+                    const scoreA = a.d - (this.getEffectiveStat(a.p, 'physical') - 70) * 0.035 - (this.getEffectiveStat(a.p, 'speed') - 70) * 0.02;
+                    const scoreB = b.d - (this.getEffectiveStat(b.p, 'physical') - 70) * 0.035 - (this.getEffectiveStat(b.p, 'speed') - 70) * 0.02;
+                    return scoreA - scoreB;
+                });
+                const nearest = contenders[0].p;
                 const prevTeam = this._possession ? this._possession.teamId : null;
                 this.ball.state = BallState.CONTROLLED;
                 this.ball.owner = nearest;
@@ -1285,7 +1335,8 @@ class RealSoccerEngine {
             events: [...this.eventsQueue],
             possessionTeam: this._possession ? this._possession.teamId : null,
             isCelebration: forceCelebration || this.celebrationTimer > 0,
-            isSuspense: false
+            isSuspense: Boolean(this.setPiece && (this.setPiece.type === 'penalty' || (this.setPiece.type === 'freekick' && this.setPiece.meta && this.setPiece.meta.isShotRange))),
+            setPiece: this.setPiece ? { type: this.setPiece.type, teamId: this.setPiece.teamId } : null
         };
     }
 
@@ -2594,8 +2645,11 @@ class RealSoccerEngine {
         if (['counter', 'directCounter', 'lowBlockCounter'].includes(tactic) && phase === 'counter') score += 5;
         if (nDef && !underPressure && blockedAhead <= 1) {
             const defTackle = this.getEffectiveStat(nDef.player, 'tackle') || this.getEffectiveStat(nDef.player, 'defense');
+            const phys = this.getEffectiveStat(player, 'physical');
+            const defPhys = this.getEffectiveStat(nDef.player, 'physical');
             if (dribble > defTackle + 4) score += 7;
             if (speed > this.getEffectiveStat(nDef.player, 'speed') + 4) score += 6;
+            if (phys > defPhys + 6) score += 4;
         }
         return score;
     }
@@ -2826,11 +2880,13 @@ class RealSoccerEngine {
         const startX = player.x;
         const startY = player.y;
         const effDribble = this.getEffectiveStat(player, 'dribble');
+        const effPhys = this.getEffectiveStat(player, 'physical');
         const sf = (effSpeed * 0.45 + effDribble * 0.55) / 76;
         const isBlockedFront = this._isFrontalBlocked(player, goalX);
         const defTackle = nDef ? (this.getEffectiveStat(nDef.player, 'tackle') || this.getEffectiveStat(nDef.player, 'defense')) : 65;
         const defSpeed = nDef ? this.getEffectiveStat(nDef.player, 'speed') : 65;
-        const canBreakThrough = nDef ? ((effDribble * 0.60 + effSpeed * 0.40) >= (defTackle * 0.55 + defSpeed * 0.45) + 2) : true;
+        const defPhys = nDef ? this.getEffectiveStat(nDef.player, 'physical') : 65;
+        const canBreakThrough = nDef ? ((effDribble * 0.50 + effSpeed * 0.32 + effPhys * 0.18) >= (defTackle * 0.48 + defSpeed * 0.34 + defPhys * 0.18) + 2) : true;
         let targetX, targetY, moveSpd;
 
         if (player.position === 'FW' && distToGoal < 32) {
@@ -2920,7 +2976,13 @@ class RealSoccerEngine {
 
         this.ball.x = player.x; this.ball.y = player.y; this.ball.z = 0;
         const dribbleEventProb = (nDef && nDef.dist < 9.0) ? 0.16 : 0.04;
-        if (Math.random() < dribbleEventProb) this.eventsQueue.push({ type: 'dribble', player: player.name });
+        if (Math.random() < dribbleEventProb) {
+            if (nDef && nDef.dist < 6.5 && canBreakThrough && effDribble >= 74 && Math.random() < 0.35) {
+                this._emitDribbleSkillEvent(player, nDef.player, goalX);
+            } else {
+                this.eventsQueue.push({ type: 'dribble', player: player.name });
+            }
+        }
     }
 
     _isFrontalBlocked(player, goalX) {
@@ -3082,11 +3144,11 @@ class RealSoccerEngine {
     }
 
     _handleShotResult() {
-        const { isGoal, isTarget, shooter, goalX } = this.pendingShot;
+        const { isGoal, isTarget, shooter, goalX, isPenalty, isFreeKick } = this.pendingShot;
         this.pendingShot = null;
 
         // [신규] 슈터가 오프사이드 위치였거나 오프사이드 패스를 받아 때린 슈팅의 골 취소 처리 (VAR)
-        if (isGoal && this.pendingOffside && (this.pendingOffside.receiver === shooter || this.pendingOffside.passer === shooter)) {
+        if (!isPenalty && !isFreeKick && isGoal && this.pendingOffside && (this.pendingOffside.receiver === shooter || this.pendingOffside.passer === shooter)) {
             this._handleOffsideGoalDisallowed(this.pendingOffside, shooter);
             return;
         }
@@ -3098,7 +3160,7 @@ class RealSoccerEngine {
             const isHome = shooter.teamId === 'home';
             const myS = isHome ? this.homeScore : this.awayScore;
             const opS = isHome ? this.awayScore : this.homeScore;
-            const ast = (this.ball.lastOwner && this.ball.lastOwner.teamId === shooter.teamId && this.ball.lastOwner.name !== shooter.name)
+            const ast = (!isPenalty && !isFreeKick && this.ball.lastOwner && this.ball.lastOwner.teamId === shooter.teamId && this.ball.lastOwner.name !== shooter.name)
                 ? this.ball.lastOwner.name : null;
             
             this.celebrationActor = shooter;
@@ -3121,7 +3183,14 @@ class RealSoccerEngine {
                 
                 this.celebrationState = 0;
             }
-            this.eventsQueue.push({ type: 'goal', scorer: shooter.name, team: shooter.teamId, assister: ast });
+            this.eventsQueue.push({
+                type: 'goal',
+                scorer: shooter.name,
+                team: shooter.teamId,
+                assister: ast,
+                isPenalty: Boolean(isPenalty),
+                isFreeKick: Boolean(isFreeKick)
+            });
             this.lastScorerTeam = shooter.teamId;
             this.ball.state = BallState.DEAD; this.ball.lastOwner = null;
 
@@ -3138,28 +3207,19 @@ class RealSoccerEngine {
                 });
             }
         } else if (!isTarget) {
-            // [사실적 축구 물리] 유효 슈팅 실패: 골문 빗나감 (골킥 전개)
-            shooter.forceReturnTimer = 60;
+            // [사실적 축구 물리] 유효 슈팅 실패: 골문 빗나감 -> 상대 골킥 세트피스 전개
+            shooter.forceReturnTimer = 45;
             const opp = shooter.teamId === 'home' ? 'away' : 'home';
-            const egk = this.players.find(p => p.teamId === opp && p.position === 'GK');
             this.eventsQueue.push({ type: 'miss', shooter: shooter.name, desc: ` ${shooter.name}의 슈팅이 골대를 벗어납니다!` });
-            if (egk) {
-                egk.x = goalX === 0 ? 3.2 : 96.8; egk.y = 50;
-                this.ball.state = BallState.CONTROLLED;
-                this.ball.owner = egk;
-                this.ball.x = egk.x; this.ball.y = egk.y;
-            } else {
-                this.ball.state = BallState.LOOSE;
-                this.ball.x = goalX === 0 ? 3.2 : 96.8; this.ball.y = 50;
-            }
-            this._triggerTurnover(opp);
+            const gkSpotX = goalX === 0 ? 5.5 : 94.5;
+            this._startSetPiece('goalkick', opp, gkSpotX, 50);
         } else {
             // 유효 슈팅: 수비수 블록 또는 GK 선방
-            shooter.forceReturnTimer = 60;
+            shooter.forceReturnTimer = 45;
             const opp = shooter.teamId === 'home' ? 'away' : 'home';
             const isHomeAtt = shooter.teamId === 'home';
             const egk = this.players.find(p => p.teamId !== shooter.teamId && p.position === 'GK');
-            const blockers = this.players.filter(p =>
+            const blockers = isPenalty ? [] : this.players.filter(p =>
                 p.teamId === opp && p.position !== 'GK' &&
                 Math.abs(p.x - shooter.x) < 16 && Math.abs(p.y - shooter.y) < 6 &&
                 (isHomeAtt ? p.x > shooter.x : p.x < shooter.x)
@@ -3169,6 +3229,12 @@ class RealSoccerEngine {
             if (blockers.length > 0 && Math.random() < blockChance) {
                 const bl = blockers[0];
                 this.eventsQueue.push({ type: 'block', shooter: shooter.name, blocker: bl.name, desc: ` ${bl.name}, 몸을 날려 슈팅을 막아냅니다!` });
+                if (Math.random() < 0.38) {
+                    const cornerX = goalX === 100 ? 99 : 1;
+                    const cornerY = shooter.y < 50 ? 2 : 98;
+                    this._startSetPiece('corner', shooter.teamId, cornerX, cornerY);
+                    return;
+                }
                 this.ball.state = BallState.LOOSE; this.ball.owner = null;
                 this.ball.x = bl.x + (isHomeAtt ? -5 : 5); this.ball.y = bl.y + (Math.random() - 0.5) * 16;
                 this._triggerTurnover(opp);
@@ -3178,7 +3244,13 @@ class RealSoccerEngine {
                 const gkBase = egk.teamId === 'home' ? 3.2 : 96.8;
                 egk.x = gkBase; egk.y = clamp(this.ball.targetPos.y, 40, 60);
                 this.ball.x = egk.x; this.ball.y = egk.y;
-                if (Math.random() < 0.18) {
+                const saveRoll = Math.random();
+                if (saveRoll < 0.22) {
+                    this.eventsQueue.push({ type: 'save', shooter: shooter.name, gk: egk.name, desc: ` ${egk.name}, 손끝으로 쳐냅니다! 코너킥 선언!` });
+                    const cornerX = goalX === 100 ? 99 : 1;
+                    const cornerY = this.ball.targetPos.y < 50 ? 2 : 98;
+                    this._startSetPiece('corner', shooter.teamId, cornerX, cornerY);
+                } else if (saveRoll < 0.36) {
                     this.eventsQueue.push({ type: 'save', shooter: shooter.name, gk: egk.name, desc: ` ${egk.name}, 슈팅을 펀칭!` });
                     this.ball.state = BallState.LOOSE; this.ball.owner = null;
                     this.ball.x = egk.x + (isHomeAtt ? -10 : 10); this.ball.y = egk.y + (Math.random() - 0.5) * 32;
@@ -3191,8 +3263,7 @@ class RealSoccerEngine {
                 }
             } else {
                 this.eventsQueue.push({ type: 'miss', shooter: shooter.name, desc: ` ${shooter.name}의 슈팅이 벗어납니다!` });
-                this.ball.state = BallState.LOOSE;
-                this.ball.x = goalX === 0 ? 3.2 : 96.8; this.ball.y = 50;
+                this._startSetPiece('goalkick', opp, goalX === 0 ? 5.5 : 94.5, 50);
             }
         }
     }
@@ -3200,9 +3271,8 @@ class RealSoccerEngine {
     _handleOffsideWhistle(offsideData) {
         this.pendingOffside = null;
         this.pendingShot = null;
-        const { receiver, passer, x, y, teamId } = offsideData;
+        const { receiver, x, y, teamId } = offsideData;
         const opp = teamId === 'home' ? 'away' : 'home';
-        const oppGK = this.players.find(p => p.teamId === opp && p.position === 'GK');
 
         this.eventsQueue.push({
             type: 'offside',
@@ -3210,19 +3280,9 @@ class RealSoccerEngine {
             desc: `🚩 삐빅! 부심의 깃발이 올라갑니다. ${receiver.name}의 오프사이드 반칙! 상대팀의 간접 프리킥으로 경기가 재개됩니다.`
         });
 
-        this.ball.state = BallState.CONTROLLED;
         const spotX = clamp(x, 10, 90);
         const spotY = clamp(y, 10, 90);
-        const oppDefenders = this.players.filter(p => p.teamId === opp && p.position !== 'GK');
-        const freeKicker = oppDefenders.sort((a, b) => Math.hypot(a.x - spotX, a.y - spotY) - Math.hypot(b.x - spotX, b.y - spotY))[0] || oppGK;
-        this.ball.owner = freeKicker;
-        this.ball.intendedReceiver = null;
-        this.ball.isCross = false;
-        this.ball.isCutback = false;
-        this.ball.x = freeKicker ? freeKicker.x : spotX;
-        this.ball.y = freeKicker ? freeKicker.y : spotY;
-        this.ball.z = 0;
-        this._triggerTurnover(opp);
+        this._startSetPiece('freekick', opp, spotX, spotY, { isIndirect: true, quick: true });
     }
 
     _handleOffsideGoalDisallowed(offsideData, shooter) {
@@ -3394,6 +3454,9 @@ class RealSoccerEngine {
                 this.ball.isCutback = false;
                 this.ball.x = r.x; this.ball.y = r.y;
                 this.ball.z = 0;
+            } else if ((this.ball.y <= 20 || this.ball.y >= 80) && this.ball.lastOwner && Math.random() < 0.55) {
+                const opp = this.ball.lastOwner.teamId === 'home' ? 'away' : 'home';
+                this._startSetPiece('throwin', opp, clamp(this.ball.x, 8, 92), this.ball.y < 50 ? 1.5 : 98.5);
             }
         } else {
             const r = BS / d;
@@ -3446,15 +3509,72 @@ class RealSoccerEngine {
         }
     }
 
+    _emitDribbleSkillEvent(player, defender, goalX = null) {
+        if (!player) return;
+        const effGoalX = goalX !== null ? goalX : (player.teamId === 'home' ? 100 : 0);
+        const isFlank = Math.abs(player.y - 50) > 20;
+        const nearBox = Math.abs(player.x - effGoalX) <= 24;
+        const tightPress = Boolean(defender && Math.hypot(defender.x - player.x, defender.y - player.y) < 3.6);
+
+        if (typeof SkillMoveManager !== 'undefined' && typeof SkillMoveManager.pickSkillMove === 'function') {
+            const picked = SkillMoveManager.pickSkillMove(player, { defender, isFlank, nearBox, tightPress });
+            this.eventsQueue.push({
+                type: 'dribble',
+                player: player.name,
+                defender: defender ? defender.name : null,
+                skillId: picked.skillId,
+                skillName: picked.skillName,
+                desc: picked.desc
+            });
+            return;
+        }
+
+        const fallbackMoves = [
+            { id: 'BODY_FEINT', name: '바디 페인트', minStars: 1 },
+            { id: 'BALL_ROLL', name: '볼 롤', minStars: 1 },
+            { id: 'STEP_OVER', name: '스텝오버', minStars: 2 },
+            { id: 'DRAG_BACK', name: '드래그백', minStars: 2 },
+            { id: 'HEEL_CHOP', name: '힐 촙', minStars: 2 },
+            { id: 'CRUYFF_TURN', name: '크루이프 턴', minStars: 3 },
+            { id: 'LA_CROQUETA', name: '라 크로케타', minStars: 3 },
+            { id: 'ROULETTE', name: '룰렛', minStars: 3 },
+            { id: 'MARSEILLE_TURN', name: '마르세유 턴', minStars: 3 },
+            { id: 'RONALDO_CHOP', name: '호날두 촙', minStars: 4 },
+            { id: 'BERBATOV_SPIN', name: '베르바토프 스핀', minStars: 4 },
+            { id: 'MCGEADY_SPIN', name: '맥기디 스핀', minStars: 4 },
+            { id: 'NUTMEG', name: '알까기 (넛멕)', minStars: 4 },
+            { id: 'ELASTICO', name: '엘라스티코', minStars: 5 },
+            { id: 'REVERSE_ELASTICO', name: '리버스 엘라스티코', minStars: 5 },
+            { id: 'RAINBOW_FLICK', name: '사포 (레인보우 플릭)', minStars: 5 },
+            { id: 'SOMBRERO_FLICK', name: '솜브레로 플릭', minStars: 5 },
+            { id: 'RABONA_FAKE', name: '라보나 페이크', minStars: 5 }
+        ];
+        const maxStars = clamp(Math.round(player.skillMoves || 3), 1, 5);
+        const pool = fallbackMoves.filter(m => m.minStars <= maxStars);
+        const move = pool[Math.floor(Math.random() * pool.length)] || fallbackMoves[0];
+        const defName = defender ? defender.name : '수비수';
+        this.eventsQueue.push({
+            type: 'dribble',
+            player: player.name,
+            defender: defender ? defender.name : null,
+            skillId: move.id,
+            skillName: move.name,
+            desc: `${player.name}, 화려한 ${move.name} 기술로 ${defName}을(를) 완벽히 제쳐냅니다!`
+        });
+    }
+
     _attemptTackle(tackler, carrier) {
         if (tackler._stealCooldown > 0) return false;
         if (carrier._protectionTicks && carrier._protectionTicks > 0) return false; // 탈환 직후 보호
         const tackleStat = this.getEffectiveStat(tackler, 'tackle') || this.getEffectiveStat(tackler, 'defense');
+        const tacklerPhys = this.getEffectiveStat(tackler, 'physical');
         const dribbleStat = this.getEffectiveStat(carrier, 'dribble');
         const speedStat = this.getEffectiveStat(carrier, 'speed');
-        
-        // [태클 vs 드리블 밸런스 정상화: 선수 능력치 차이 반영 강화]
-        const statDiff = tackleStat - (dribbleStat * 0.62 + speedStat * 0.38);
+        const carrierPhys = this.getEffectiveStat(carrier, 'physical');
+
+        // [태클 vs 드리블+피지컬 밸런스: 지상 몸싸움과 기술 경합 모두 반영]
+        const physDiff = tacklerPhys - carrierPhys;
+        const statDiff = (tackleStat * 0.78 + tacklerPhys * 0.22) - (dribbleStat * 0.50 + speedStat * 0.28 + carrierPhys * 0.22);
         const carryDistance = carrier._dribbleDistance || 0;
         let chance = 0.37 + (statDiff * 0.016) + Math.max(0, carryDistance - 8) * 0.006;
         
@@ -3482,6 +3602,11 @@ class RealSoccerEngine {
             // 태클 성공
             carrier._ballHoldTicks = 0;
             carrier._dribbleCommit = 0;
+            if ((carrier.y <= 22 || carrier.y >= 78) && Math.random() < 0.45) {
+                this.eventsQueue.push({ type: 'tackle', player: tackler.name, desc: ` ${tackler.name}, 터치라인 밖으로 공을 걷어냅니다!` });
+                this._startSetPiece('throwin', carrier.teamId, clamp(carrier.x, 8, 92), carrier.y < 50 ? 1.5 : 98.5);
+                return true;
+            }
             this.ball.state = BallState.CONTROLLED;
             this.ball.owner = tackler;
             this.ball.lastOwner = null;
@@ -3489,26 +3614,67 @@ class RealSoccerEngine {
             tackler._stealCooldown = 10;
             tackler._protectionTicks = 3; // 탈환 직후 즉시 재탈취 방지
             carrier._stealCooldown = 16;  // 방금 뺏긴 선수가 0초만에 다시 뺏지 못하도록 쿨다운 부여
-            this.eventsQueue.push({ type: 'tackle', player: tackler.name, desc: ` ${tackler.name}, 날카로운 태클로 공을 완벽히 탈취합니다!` });
+            const tackleDesc = (physDiff >= 10 && Math.random() < 0.48)
+                ? ` ${tackler.name}, 압도적인 피지컬 몸싸움으로 ${carrier.name}을(를) 밀어내고 공을 빼앗습니다!`
+                : ` ${tackler.name}, 날카로운 태클로 공을 완벽히 탈취합니다!`;
+            this.eventsQueue.push({ type: 'tackle', player: tackler.name, desc: tackleDesc });
             this._triggerTurnover(tackler.teamId);
             return true;
         } else {
+            // 태클 실패 -> 반칙(프리킥 / 페널티킥) 판정 체크
+            const isInsideOwnBox = (tackler.teamId === 'home' ? carrier.x <= 17 : carrier.x >= 83) && Math.abs(carrier.y - 50) <= 26;
+            const tTraits = tackler.traits || [];
+            let foulProb = isInsideOwnBox ? 0.15 : 0.28;
+            if (tacklerTactic === 'gegenpress' || tacklerTSet.pressIntensity === 'aggressive') foulProb += (isInsideOwnBox ? 0.02 : 0.05);
+            if (tackler.stamina < 45) foulProb += (isInsideOwnBox ? 0.015 : 0.04);
+            if (tTraits.some(t => t.includes('행동대장') || t.includes('슬라이딩'))) foulProb += (isInsideOwnBox ? 0.015 : 0.04);
+
+            if (Math.random() < foulProb) {
+                carrier._ballHoldTicks = 0;
+                carrier._dribbleCommit = 0;
+                if (isInsideOwnBox) {
+                    this.eventsQueue.push({
+                        type: 'foul',
+                        team: tackler.teamId,
+                        player: tackler.name,
+                        victim: carrier.name,
+                        isPenalty: true,
+                        desc: `🚨 페널티 박스 안에서 ${tackler.name}의 반칙! 주심이 페널티 스팟을 가리킵니다! 페널티킥!!`
+                    });
+                    const spotX = tackler.teamId === 'home' ? 12 : 88;
+                    this._startSetPiece('penalty', carrier.teamId, spotX, 50, { foulBy: tackler });
+                } else {
+                    const spotX = clamp(carrier.x, 8, 92);
+                    const spotY = clamp(carrier.y, 6, 94);
+                    this.eventsQueue.push({
+                        type: 'foul',
+                        team: tackler.teamId,
+                        player: tackler.name,
+                        victim: carrier.name,
+                        isPenalty: false,
+                        desc: `🟨 삐빅! ${tackler.name}이(가) ${carrier.name}에게 반칙을 범합니다. 프리킥 선언!`
+                    });
+                    this._startSetPiece('freekick', carrier.teamId, spotX, spotY, { foulBy: tackler });
+                }
+                return false;
+            }
+
             // 태클 실패 (볼 캐리어가 1차 수비를 제쳐냈으나, 커버 수비수는 곧바로 태클 가능하도록 무적 시간 최소화)
             tackler._stealCooldown = 14;
             carrier.burstTimer = 8;
             carrier._protectionTicks = 2;
             carrier._dribbleCommit = 1;
-            
-            // 능력치(드리블 70 이상)에 따라 개인기 연출 발생
-            if (dribbleStat >= 70 && Math.random() < 0.45) {
-                const skills = ['STEP_OVER', 'BODY_FEINT', 'ROULETTE', 'ELASTICO', 'LA_CROQUETA', 'MARSEILLE_TURN'];
-                const skillId = skills[Math.floor(Math.random() * skills.length)];
+
+            // 피지컬 경합 우위로 버텨내거나, 드리블·개인기 능력치에 따라 다양한 개인기 돌파 연출 발생
+            const skillTriggerProb = clamp(0.38 + (dribbleStat - 68) * 0.012 + ((carrier.skillMoves || 3) - 3) * 0.06, 0.35, 0.72);
+            if ((carrierPhys - tacklerPhys) >= 10 && Math.random() < 0.42) {
                 this.eventsQueue.push({
                     type: 'dribble',
                     player: carrier.name,
-                    skillId: skillId,
-                    desc: ` ${carrier.name}, 화려한 개인기로 수비를 완벽히 제쳐냅니다!`
+                    desc: ` ${carrier.name}, 탄탄한 피지컬로 ${tackler.name}의 어깨 싸움을 버텨내고 전진합니다!`
                 });
+            } else if ((dribbleStat >= 66 || (carrier.skillMoves || 3) >= 4) && Math.random() < skillTriggerProb) {
+                this._emitDribbleSkillEvent(carrier, tackler);
             }
             return false;
         }
@@ -4595,11 +4761,22 @@ class RealSoccerEngine {
                 if (d < minDist && d > 0.01) {
                     const overlap = minDist - d;
                     const nx = dx / d, ny = dy / d;
-                    const pushFactor = sameTeam ? 0.45 : 0.25;
-                    a.x -= nx * overlap * pushFactor;
-                    a.y -= ny * overlap * (sameTeam ? 0.55 : 0.30);
-                    b.x += nx * overlap * pushFactor;
-                    b.y += ny * overlap * (sameTeam ? 0.55 : 0.30);
+                    if (sameTeam) {
+                        a.x -= nx * overlap * 0.45;
+                        a.y -= ny * overlap * 0.55;
+                        b.x += nx * overlap * 0.45;
+                        b.y += ny * overlap * 0.55;
+                    } else {
+                        // 상대 선수 간 신체 충돌 시 피지컬이 높을수록 덜 밀려남
+                        const pA = Math.max(20, this.getEffectiveStat(a, 'physical'));
+                        const pB = Math.max(20, this.getEffectiveStat(b, 'physical'));
+                        const pushA = 0.50 * (pB / (pA + pB));
+                        const pushB = 0.50 * (pA / (pA + pB));
+                        a.x -= nx * overlap * pushA;
+                        a.y -= ny * overlap * pushA * 1.2;
+                        b.x += nx * overlap * pushB;
+                        b.y += ny * overlap * pushB * 1.2;
+                    }
                 }
             }
         }
@@ -4797,6 +4974,9 @@ class RealSoccerEngine {
     }
 
     startExitAnimation(winner) {
+        this.setPiece = null;
+        this.pendingShot = null;
+        this.pendingOffside = null;
         this.exitAnimActive = true;
         this.exitAnimTicks = 0;
         this.exitAnimDone = false;
@@ -4816,19 +4996,396 @@ class RealSoccerEngine {
         }
     }
 
+    // ─────────────────────────────────────────────────────────────
+    //  SET PIECE STATE MACHINE (스로인, 골킥, 코너킥, 프리킥, 페널티킥)
+    // ─────────────────────────────────────────────────────────────
+    _pickSetPieceTaker(teamId, type, spotX = 50, spotY = 50) {
+        const teamOutfield = this.players.filter(p => p.teamId === teamId && p.position !== 'GK');
+        const gk = this.players.find(p => p.teamId === teamId && p.position === 'GK');
+        if (type === 'goalkick') return gk || teamOutfield[0];
+        if (!teamOutfield.length) return gk;
+
+        if (type === 'throwin') {
+            return teamOutfield.slice().sort((a, b) => {
+                const aLong = (a.traits || []).some(t => t.includes('긴 스로인')) ? -10 : 0;
+                const bLong = (b.traits || []).some(t => t.includes('긴 스로인')) ? -10 : 0;
+                const aFB = a.position === 'DF' ? -4 : 0;
+                const bFB = b.position === 'DF' ? -4 : 0;
+                const da = Math.hypot(a.x - spotX, a.y - spotY) + aLong + aFB;
+                const db = Math.hypot(b.x - spotX, b.y - spotY) + bLong + bFB;
+                return da - db;
+            })[0];
+        }
+
+        if (type === 'penalty') {
+            return teamOutfield.slice().sort((a, b) => {
+                const aScore = this.getEffectiveStat(a, 'shooting') * 0.75 + this.getEffectiveStat(a, 'decision') * 0.25 + ((a.traits || []).some(t => t.includes('파워슛') || t.includes('감아차기')) ? 5 : 0);
+                const bScore = this.getEffectiveStat(b, 'shooting') * 0.75 + this.getEffectiveStat(b, 'decision') * 0.25 + ((b.traits || []).some(t => t.includes('파워슛') || t.includes('감아차기')) ? 5 : 0);
+                return bScore - aScore;
+            })[0];
+        }
+
+        if (type === 'corner' || type === 'freekick') {
+            const goalX = teamId === 'home' ? 100 : 0;
+            const isShotRange = type === 'freekick' && Math.hypot(goalX - spotX, 50 - spotY) <= 28;
+            return teamOutfield.slice().sort((a, b) => {
+                const aTrait = (a.traits || []).some(t => t.includes('데드볼') || t.includes('감아차기') || t.includes('감기는 패스')) ? 10 : 0;
+                const bTrait = (b.traits || []).some(t => t.includes('데드볼') || t.includes('감아차기') || t.includes('감기는 패스')) ? 10 : 0;
+                const aStat = isShotRange
+                    ? (this.getEffectiveStat(a, 'shooting') * 0.65 + this.getEffectiveStat(a, 'passing') * 0.35 + aTrait)
+                    : (this.getEffectiveStat(a, 'passing') * 0.8 + this.getEffectiveStat(a, 'decision') * 0.2 + aTrait);
+                const bStat = isShotRange
+                    ? (this.getEffectiveStat(b, 'shooting') * 0.65 + this.getEffectiveStat(b, 'passing') * 0.35 + bTrait)
+                    : (this.getEffectiveStat(b, 'passing') * 0.8 + this.getEffectiveStat(b, 'decision') * 0.2 + bTrait);
+                return bStat - aStat;
+            })[0];
+        }
+
+        return teamOutfield[0];
+    }
+
+    _startSetPiece(type, teamId, spotX, spotY, meta = {}) {
+        this.pendingShot = null;
+        this.pendingOffside = null;
+        this.ball.intendedReceiver = null;
+        this.ball.lastOwner = null;
+        this.ball.isCross = false;
+        this.ball.isCutback = false;
+        this.ball.owner = null;
+        this.ball.state = BallState.DEAD;
+        this.ball.x = spotX;
+        this.ball.y = spotY;
+        this.ball.z = 0;
+
+        const goalX = teamId === 'home' ? 100 : 0;
+        const isShotRange = (type === 'freekick' && !meta.isIndirect && Math.hypot(goalX - spotX, 50 - spotY) <= 28);
+        const taker = this._pickSetPieceTaker(teamId, type, spotX, spotY);
+        const durationMap = { goalkick: 10, throwin: 9, corner: 14, freekick: isShotRange ? 16 : (meta.quick ? 8 : 12), penalty: 20 };
+        const duration = durationMap[type] || 10;
+
+        this.setPiece = {
+            type,
+            teamId,
+            taker,
+            spotX,
+            spotY,
+            timer: duration,
+            maxTimer: duration,
+            meta: { ...meta, isShotRange }
+        };
+
+        this._possession = { teamId, duration: 0 };
+        if (type === 'corner') {
+            this.eventsQueue.push({ type: 'corner', team: teamId, player: taker ? taker.name : '', desc: `🚩 코너킥! ${taker ? taker.name + ' 선수가' : '공격팀이'} 코너 플래그로 향합니다.` });
+        } else if (type === 'goalkick') {
+            this.eventsQueue.push({ type: 'goalkick', team: teamId, player: taker ? taker.name : '', desc: `🥅 골킥! ${taker ? taker.name + ' 골키퍼가' : '골키퍼가'} 경기를 재개합니다.` });
+        } else if (type === 'throwin') {
+            this.eventsQueue.push({ type: 'throwin', team: teamId, player: taker ? taker.name : '', desc: `👐 스로인! ${taker ? taker.name + ' 선수가' : '선수가'} 터치라인에서 공을 던질 준비를 합니다.` });
+        } else if (type === 'penalty') {
+            this.eventsQueue.push({ type: 'penalty', team: teamId, player: taker ? taker.name : '', desc: `🎯 페널티킥! 키커 ${taker ? taker.name : '선수'}가 숨을 고르고 골키퍼와 마주 섭니다!` });
+        } else if (type === 'freekick' && !meta.quick) {
+            this.eventsQueue.push({
+                type: 'freekick',
+                team: teamId,
+                player: taker ? taker.name : '',
+                isShotRange,
+                desc: isShotRange
+                    ? `🎯 위험 지역 프리킥! ${taker ? taker.name + ' 선수가' : '키커가'} 직접 골문을 겨냥할 준비를 합니다!`
+                    : `⚡ 프리킥 선언! ${taker ? taker.name + ' 선수가' : '선수가'} 전방을 살핍니다.`
+            });
+        }
+    }
+
+    _processSetPiece() {
+        const sp = this.setPiece;
+        if (!sp) return;
+        this.ball.state = BallState.DEAD;
+        this.ball.owner = null;
+        this.ball.x = sp.spotX;
+        this.ball.y = sp.spotY;
+        this.ball.z = 0;
+
+        this._arrangeSetPiecePlayers(sp);
+        sp.timer--;
+        if (sp.timer <= 0) {
+            this.setPiece = null;
+            this._executeSetPiece(sp);
+        }
+    }
+
+    _arrangeSetPiecePlayers(sp) {
+        const { type, teamId, taker, spotX, spotY, meta } = sp;
+        const isHome = teamId === 'home';
+        const fwd = isHome ? 1 : -1;
+        const opp = isHome ? 'away' : 'home';
+        const attGoalX = isHome ? 100 : 0;
+
+        if (taker) {
+            const standX = type === 'penalty' ? clamp(spotX - fwd * 2.5, 2, 98) : spotX;
+            this._physicsStep(taker, standX, spotY, 1.0);
+        }
+
+        if (type === 'penalty') {
+            const oppGK = this.players.find(p => p.teamId === opp && p.position === 'GK');
+            if (oppGK) this._physicsStep(oppGK, isHome ? 98.8 : 1.2, 50, 1.0);
+            const boxEdge = isHome ? 79 : 21;
+            this.players.forEach((p, idx) => {
+                if (p === taker || p === oppGK) return;
+                if (p.position === 'GK') { this._physicsStep(p, p.baseX, 50, 0.5); return; }
+                const ty = clamp(18 + ((idx * 13) % 64), 14, 86);
+                const tx = isHome ? Math.min(p.x, boxEdge - (idx % 3) * 3) : Math.max(p.x, boxEdge + (idx % 3) * 3);
+                this._physicsStep(p, clamp(tx, 10, 90), ty, 0.8);
+            });
+            return;
+        }
+
+        if (type === 'corner') {
+            const boxX = isHome ? 91 : 9;
+            let attIdx = 0, defIdx = 0;
+            this.players.forEach(p => {
+                if (p === taker) return;
+                if (p.position === 'GK') {
+                    this._physicsStep(p, p.teamId === 'home' ? 2.5 : 97.5, 50, 0.7);
+                    return;
+                }
+                if (p.teamId === teamId) {
+                    if (p.position === 'FW' || (p.position === 'DF' && (p.traits || []).some(t => t.includes('헤더') || t.includes('공중')))) {
+                        const ty = clamp(40 + ((attIdx % 5) * 5), 35, 65);
+                        const tx = clamp(boxX + ((attIdx % 2) * fwd * 3), 5, 95);
+                        attIdx++;
+                        this._physicsStep(p, tx, ty, 0.9);
+                    } else if (p.position === 'DF') {
+                        this._physicsStep(p, 50 - fwd * 8, p.slotY, 0.7);
+                    } else {
+                        this._physicsStep(p, isHome ? 80 : 20, clamp(p.slotY, 22, 78), 0.75);
+                    }
+                } else {
+                    const ty = clamp(38 + ((defIdx % 5) * 6), 32, 68);
+                    const tx = clamp(isHome ? 93 - (defIdx % 2) * 3 : 7 + (defIdx % 2) * 3, 4, 96);
+                    defIdx++;
+                    this._physicsStep(p, tx, ty, 0.88);
+                }
+            });
+            return;
+        }
+
+        if (type === 'goalkick') {
+            const tSet = (this.tacticSettings && this.tacticSettings[teamId]) || {};
+            const isShort = tSet.buildUp === 'short';
+            this.players.forEach(p => {
+                if (p === taker) return;
+                if (p.position === 'GK') { this._physicsStep(p, p.baseX, 50, 0.5); return; }
+                if (p.teamId === teamId) {
+                    if (p.position === 'DF') {
+                        const tx = isShort ? (isHome ? 14 : 86) : (isHome ? 24 : 76);
+                        this._physicsStep(p, tx, p.slotY, 0.75);
+                    } else if (p.position === 'MF') {
+                        const tx = isShort ? (isHome ? 28 : 72) : (isHome ? 45 : 55);
+                        this._physicsStep(p, tx, p.slotY, 0.7);
+                    } else {
+                        this._physicsStep(p, isHome ? 56 : 44, p.slotY, 0.65);
+                    }
+                } else {
+                    const tx = isHome ? clamp(p.baseX, 34, 94) : clamp(p.baseX, 6, 66);
+                    this._physicsStep(p, tx, p.slotY, 0.6);
+                }
+            });
+            return;
+        }
+
+        if (type === 'throwin') {
+            const mates = this.players.filter(p => p.teamId === teamId && p !== taker && p.position !== 'GK')
+                .sort((a, b) => Math.hypot(a.x - spotX, a.y - spotY) - Math.hypot(b.x - spotX, b.y - spotY));
+            mates.forEach((m, idx) => {
+                if (idx < 3) {
+                    const inY = spotY < 50 ? 12 + idx * 9 : 88 - idx * 9;
+                    const inX = clamp(spotX + (idx === 0 ? fwd * 8 : (idx === 1 ? -fwd * 6 : fwd * 14)), 8, 92);
+                    this._physicsStep(m, inX, inY, 0.85);
+                } else {
+                    this._physicsStep(m, clamp(m.baseX, 10, 90), m.slotY, 0.55);
+                }
+            });
+            this.players.filter(p => p.teamId === opp && p.position !== 'GK').forEach(o => {
+                const dist = Math.hypot(o.x - spotX, o.y - spotY);
+                if (dist < 10) {
+                    const pushY = spotY < 50 ? 14 : 86;
+                    this._physicsStep(o, clamp(spotX - fwd * 4, 8, 92), pushY, 0.75);
+                }
+            });
+            return;
+        }
+
+        if (type === 'freekick') {
+            const isShotRange = meta && meta.isShotRange;
+            let wallCount = 0;
+            this.players.forEach(p => {
+                if (p === taker) return;
+                if (p.position === 'GK') {
+                    this._physicsStep(p, p.teamId === 'home' ? 2.5 : 97.5, isShotRange && p.teamId === opp ? (spotY < 50 ? 48 : 52) : 50, 0.7);
+                    return;
+                }
+                if (isShotRange && p.teamId === opp && wallCount < 3) {
+                    const dx = attGoalX - spotX, dy = 50 - spotY;
+                    const len = Math.max(1, Math.hypot(dx, dy));
+                    const wx = clamp(spotX + (dx / len) * 9.5, 4, 96);
+                    const wy = clamp(spotY + (dy / len) * 9.5 + (wallCount - 1) * 2.2, 10, 90);
+                    wallCount++;
+                    this._physicsStep(p, wx, wy, 0.9);
+                } else if (p.teamId === teamId && (p.position === 'FW' || p.position === 'MF')) {
+                    const tx = isHome ? clamp(Math.max(spotX + 10, 76), 12, 92) : clamp(Math.min(spotX - 10, 24), 8, 88);
+                    this._physicsStep(p, tx, clamp(p.slotY, 22, 78), 0.7);
+                }
+            });
+        }
+    }
+
+    _executeSetPiece(sp) {
+        const { type, teamId, taker, spotX, spotY, meta } = sp;
+        const isHome = teamId === 'home';
+        const fwd = isHome ? 1 : -1;
+        const opp = isHome ? 'away' : 'home';
+        const goalX = isHome ? 100 : 0;
+
+        if (!taker) {
+            this.resetPositions(teamId);
+            return;
+        }
+
+        if (type === 'penalty') {
+            const oppGK = this.players.find(p => p.teamId === opp && p.position === 'GK');
+            const gkStat = oppGK ? this.getEffectiveStat(oppGK, 'defense') : 68;
+            const shStat = this.getEffectiveStat(taker, 'shooting');
+            const decStat = this.getEffectiveStat(taker, 'decision');
+            const kickerBonus = (shStat * 0.65 + decStat * 0.35 - 70) * 0.004
+                + ((taker.weakFoot >= 4) ? 0.02 : 0)
+                + ((taker.traits || []).some(t => t.includes('파워슛') || t.includes('감아차기')) ? 0.025 : 0);
+            const gkBonus = (gkStat - 70) * 0.003
+                + (oppGK && (oppGK.traits || []).some(t => t.includes('일대일') || t.includes('반사')) ? 0.03 : 0);
+            const goalProb = clamp(0.76 + kickerBonus - gkBonus, 0.62, 0.87);
+            const isGoal = Math.random() < goalProb;
+            const isTarget = isGoal || (Math.random() < 0.72);
+
+            this.ball.state = BallState.IN_FLIGHT;
+            this.ball._flightOrigin = { x: spotX, y: spotY };
+            this.ball.x = spotX; this.ball.y = spotY; this.ball.z = 0;
+            this.ball.owner = null;
+            this.ball.lastOwner = taker;
+            this.ball.targetPos = { x: goalX, y: Math.random() < 0.5 ? 45.2 : 54.8 };
+            this.ball.flightDist = Math.max(1, Math.hypot(this.ball.targetPos.x - spotX, this.ball.targetPos.y - spotY));
+            this.ball.maxHeight = 1.2;
+            this.ball.speed = 6.8;
+            this.pendingShot = { isGoal, isTarget, shooter: taker, goalX, isPenalty: true };
+            this.eventsQueue.push({ type: 'shoot', player: taker.name, desc: `🎯 ${taker.name}의 페널티킥 슈팅!!` });
+            return;
+        }
+
+        if (type === 'freekick' && meta && meta.isShotRange) {
+            const oppGK = this.players.find(p => p.teamId === opp && p.position === 'GK');
+            const gkStat = oppGK ? this.getEffectiveStat(oppGK, 'defense') : 68;
+            const shStat = this.getEffectiveStat(taker, 'shooting');
+            const psStat = this.getEffectiveStat(taker, 'passing');
+            const dToGoal = Math.hypot(goalX - spotX, 50 - spotY);
+            const deadballBonus = (taker.traits || []).some(t => t.includes('데드볼') || t.includes('감아차기') || t.includes('파워슛')) ? 0.06 : 0;
+            const goalProb = clamp(0.11 + (shStat * 0.6 + psStat * 0.4 - gkStat) * 0.0045 - Math.max(0, dToGoal - 19) * 0.005 + deadballBonus, 0.05, 0.28);
+            const isGoal = Math.random() < goalProb;
+            const isTarget = isGoal || (Math.random() < 0.48);
+
+            this.ball.state = BallState.IN_FLIGHT;
+            this.ball._flightOrigin = { x: spotX, y: spotY };
+            this.ball.x = spotX; this.ball.y = spotY; this.ball.z = 0;
+            this.ball.owner = null;
+            this.ball.lastOwner = taker;
+            this.ball.targetPos = { x: goalX, y: 45 + Math.random() * 10 };
+            this.ball.flightDist = Math.max(1, Math.hypot(this.ball.targetPos.x - spotX, this.ball.targetPos.y - spotY));
+            this.ball.maxHeight = 2.6;
+            this.ball.speed = 6.0;
+            this.pendingShot = { isGoal, isTarget, shooter: taker, goalX, isFreeKick: true };
+            this.eventsQueue.push({ type: 'shoot', player: taker.name, desc: `⚡ ${taker.name}, 환상적인 궤적의 직접 프리킥 슈팅!!` });
+            return;
+        }
+
+        if (type === 'corner') {
+            const boxAttackers = this.players.filter(p => p.teamId === teamId && p !== taker && p.position !== 'GK' && Math.abs(p.x - goalX) <= 22);
+            const target = boxAttackers.sort((a, b) => {
+                const aHead = this.getEffectiveStat(a, 'physical') + ((a.traits || []).some(t => t.includes('헤더') || t.includes('공중')) ? 15 : 0);
+                const bHead = this.getEffectiveStat(b, 'physical') + ((b.traits || []).some(t => t.includes('헤더') || t.includes('공중')) ? 15 : 0);
+                return bHead - aHead;
+            })[0] || this.players.find(p => p.teamId === teamId && p !== taker && p.position !== 'GK');
+            if (!target) { this.resetPositions(teamId); return; }
+
+            this._phase[teamId] = 'finalThird';
+            this._phaseTimer[teamId] = 15;
+            this.ball.state = BallState.IN_FLIGHT;
+            this.ball._flightOrigin = { x: spotX, y: spotY };
+            this.ball.x = spotX; this.ball.y = spotY; this.ball.z = 0;
+            this.ball.owner = null;
+            this.ball.lastOwner = taker;
+            this.ball.intendedReceiver = target;
+            this.ball.isCross = true;
+            this.ball.isCutback = false;
+            this.ball.targetPos = { x: clamp(isHome ? 91 : 9, 4, 96), y: clamp(target.y, 38, 62) };
+            this.ball.flightDist = Math.max(1, Math.hypot(this.ball.targetPos.x - spotX, this.ball.targetPos.y - spotY));
+            this.ball.maxHeight = 3.8;
+            this.ball.speed = 5.4;
+            return;
+        }
+
+        // Goal kick / Throw-in / Deep or Indirect Free Kick -> pass into open teammate
+        let candidates = this.players.filter(p => p.teamId === teamId && p !== taker);
+        if (type === 'goalkick') {
+            const tSet = (this.tacticSettings && this.tacticSettings[teamId]) || {};
+            const shortOnly = tSet.buildUp === 'short';
+            const pool = candidates.filter(p => shortOnly ? (p.position === 'DF' || p.position === 'MF') : (p.position === 'FW' || p.position === 'MF'));
+            if (pool.length) candidates = pool;
+        } else if (type === 'throwin') {
+            const hasLongThrow = (taker.traits || []).some(t => t.includes('긴 스로인'));
+            const maxD = hasLongThrow ? 32 : 24;
+            const nearPool = candidates.filter(p => p.position !== 'GK' && Math.hypot(p.x - spotX, p.y - spotY) <= maxD);
+            if (nearPool.length) candidates = nearPool;
+        } else {
+            const forwardPool = candidates.filter(p => p.position !== 'GK' && (isHome ? p.x >= spotX - 8 : p.x <= spotX + 8));
+            if (forwardPool.length) candidates = forwardPool;
+        }
+
+        const target = candidates.sort((a, b) => {
+            const aProg = (a.x - spotX) * fwd;
+            const bProg = (b.x - spotX) * fwd;
+            return bProg - aProg;
+        })[0] || candidates[0];
+
+        if (!target) {
+            this.ball.state = BallState.CONTROLLED;
+            this.ball.owner = taker;
+            this.ball.x = taker.x; this.ball.y = taker.y;
+            return;
+        }
+
+        const dist = Math.hypot(target.x - spotX, target.y - spotY);
+        this.ball.state = BallState.IN_FLIGHT;
+        this.ball._flightOrigin = { x: spotX, y: spotY };
+        this.ball.x = spotX; this.ball.y = spotY; this.ball.z = 0;
+        this.ball.owner = null;
+        this.ball.lastOwner = taker;
+        this.ball.intendedReceiver = target;
+        this.ball.isCross = (type === 'throwin' && (taker.traits || []).some(t => t.includes('긴 스로인')) && Math.abs(spotX - goalX) < 30);
+        this.ball.isCutback = false;
+        this.ball.targetPos = { x: target.x, y: target.y };
+        this.ball.flightDist = Math.max(1, dist);
+        this.ball.maxHeight = type === 'goalkick' ? (dist > 25 ? 3.5 : 0.4) : (type === 'throwin' ? 1.5 : (dist > 22 ? 2.2 : 0.4));
+        this.ball.speed = type === 'throwin' ? 4.8 : (dist > 24 ? 6.2 : 5.4);
+        taker._protectionTicks = 2;
+        this._phase[teamId] = 'building';
+        this._phaseTimer[teamId] = 10;
+    }
+
     _recoverPlayersAfterMatch() {
         if (this.postMatchRecoveryApplied) return;
         this.postMatchRecoveryApplied = true;
 
+        // 엔진 내부 스태미나만 완만하게 보정 (실제 선수 condition 회복은 tacticSystem.js endMatch에서 1회만 처리해 중복 회복 방지)
         this.players.forEach(p => {
             const stamina = clamp(p.stamina || 0, 0, 100);
-            const recovery = stamina >= 75 ? 100 - stamina : 15 + stamina * 0.12;
-            p.stamina = clamp(stamina + recovery, 0, 100);
-            if (p.rawPlayer && typeof p.rawPlayer === 'object' && p.rawPlayer.condition !== undefined) {
-                const condition = clamp(p.rawPlayer.condition || 0, 0, 100);
-                const conditionRecovery = condition >= 75 ? 100 - condition : 15 + condition * 0.12;
-                p.rawPlayer.condition = clamp(condition + conditionRecovery, 0, 100);
-            }
+            p.stamina = clamp(stamina + 10, 0, 100);
         });
     }
 

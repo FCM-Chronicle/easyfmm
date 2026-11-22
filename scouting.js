@@ -43,6 +43,10 @@ const POTENTIAL_TIERS = {
     }
 };
 
+const _PlayerGen = (typeof PlayerGenerator !== 'undefined')
+    ? PlayerGenerator
+    : (typeof require === 'function' ? require('./playerGenerator.js') : null);
+
 class ScoutingSystem {
     constructor() {
         this.scouts = {
@@ -75,25 +79,6 @@ class ScoutingSystem {
                 potChances: { poor: 0.25, average: 0.55, promising: 0.19, wonderkid: 0.01 },
                 minRating: 60,
                 maxRating: 72
-            }
-        };
-
-        this.namesByNationality = {
-            korean: {
-                first: ["김", "이", "박", "최", "정", "강", "조", "윤", "장", "임", "송", "유", "한"],
-                last: ["민준", "서준", "도윤", "예준", "시우", "하준", "지호", "주원", "건우", "성민", "현우", "정훈", "민규"]
-            },
-            brazilian: {
-                first: ["Gabriel", "Lucas", "Matheus", "Pedro", "Guilherme", "Gustavo", "Rafael", "Felipe", "Bruno", "João"],
-                last: ["Silva", "Santos", "Oliveira", "Souza", "Pereira", "Costa", "Carvalho", "Almeida", "Ferreira", "Ribeiro"]
-            },
-            spanish: {
-                first: ["García", "Rodriguez", "González", "Fernández", "López", "Martínez", "Sánchez", "Pérez", "Gómez", "Martín"],
-                last: ["Hugo", "Mateo", "Martín", "Lucas", "Leo", "Daniel", "Alejandro", "Manuel", "Pablo", "Álvaro"]
-            },
-            english: {
-                first: ["Smith", "Jones", "Taylor", "Brown", "Williams", "Wilson", "Johnson", "Walker", "Robinson", "Thompson", "White", "Green"],
-                last: ["Oliver", "George", "Noah", "Arthur", "Harry", "Leo", "Muhammad", "Jack", "Henry", "Charlie", "James", "Freddie"]
             }
         };
     }
@@ -157,89 +142,80 @@ class ScoutingSystem {
         const scout = this.scouts[gameData.hiredScout.tier] || this.scouts.novice;
         const newPlayer = this.generateYouthPlayer(scout);
 
-        // 중복 이름 방지
-        while (this.isPlayerNameDuplicate(newPlayer.name)) {
-            newPlayer.name = this.generateRandomName();
+        // 중복 이름 최종 검증 (국적 유지)
+        if (this.isPlayerNameDuplicate(newPlayer.name)) {
+            newPlayer.name = this.generateRandomName(newPlayer.country);
         }
 
         if (!gameData.youthSquad) gameData.youthSquad = [];
         gameData.youthSquad.push(newPlayer);
 
         gameData.hiredScout.totalFound = (gameData.hiredScout.totalFound || 0) + 1;
-        console.log(`[Scouting] 10경기 주기 유망주 발굴: ${newPlayer.name} (포텐: ${newPlayer.potentialName}, OVR: ${newPlayer.rating})`);
+        console.log(`[Scouting] 10경기 주기 유망주 발굴: ${newPlayer.name} (${newPlayer.country}, ${newPlayer.detailPosition || newPlayer.position}, 포텐: ${newPlayer.potentialName}, OVR: ${newPlayer.rating})`);
 
         return newPlayer;
     }
 
     // 4단계 포텐셜 기반 유망주 생성
     generateYouthPlayer(scout) {
+        const teamKey = (typeof gameData !== 'undefined' && gameData) ? gameData.selectedTeam : null;
+        if (_PlayerGen) {
+            return _PlayerGen.createYouthPlayer({
+                scout,
+                potentialTiers: POTENTIAL_TIERS,
+                teamKey
+            });
+        }
+
+        // PlayerGenerator 미로드 환경 대비 최소 폴백 (한글 전용)
         const positions = ['GK', 'DF', 'MF', 'FW'];
         const position = positions[Math.floor(Math.random() * positions.length)];
-        const age = Math.floor(Math.random() * 3) + 16; // 16~18세
-
-        // 1. 4단계 포텐셜 등급 결정
-        const rand = Math.random();
-        let cumulative = 0;
-        let selectedTierKey = 'average';
-
-        const chances = scout.potChances;
-        for (const [tierKey, prob] of Object.entries(chances)) {
-            cumulative += prob;
-            if (rand <= cumulative) {
-                selectedTierKey = tierKey;
-                break;
-            }
-        }
-
-        const tierInfo = POTENTIAL_TIERS[selectedTierKey];
-        // 포텐셜 상한 산출
-        const maxPotential = Math.floor(Math.random() * (tierInfo.maxPot - tierInfo.minPot + 1)) + tierInfo.minPot;
-
-        // 2. 현재 오버롤 (rating) 산출 (스카우터 범위 내, 단 잠재력보다 최소 6~12 낮게 설정하여 성장 폭 보장)
-        let rating = Math.floor(Math.random() * (scout.maxRating - scout.minRating + 1)) + scout.minRating;
-        if (rating >= maxPotential - 5) {
-            rating = Math.max(50, maxPotential - (6 + Math.floor(Math.random() * 6)));
-        }
-
+        const age = Math.floor(Math.random() * 3) + 16;
+        const maxPotential = 70;
+        const rating = 58;
         return {
-            name: this.generateRandomName(),
-            position: position,
-            rating: rating,
-            age: age,
-            potentialTier: selectedTierKey, // 'poor' | 'average' | 'promising' | 'wonderkid'
-            potentialName: tierInfo.name,
-            maxPotential: maxPotential,
-            isWonderkid: selectedTierKey === 'wonderkid',
-            scoutedAtRound: gameData.currentRound || 1
+            name: this.generateRandomName('대한민국'),
+            country: '대한민국',
+            position,
+            detailPosition: position === 'GK' ? 'GK' : (position === 'DF' ? 'CB' : (position === 'MF' ? 'CM' : 'ST')),
+            rating,
+            age,
+            potentialTier: 'average',
+            potentialName: POTENTIAL_TIERS.average.name,
+            maxPotential,
+            potential: maxPotential,
+            isWonderkid: false,
+            isYouth: true,
+            isGenerated: true,
+            scoutedAtRound: (typeof gameData !== 'undefined' && gameData && gameData.currentRound) || 1
         };
     }
 
-    // 랜덤 이름 생성
-    generateRandomName() {
-        const nationalities = Object.keys(this.namesByNationality);
-        const randomNationality = nationalities[Math.floor(Math.random() * nationalities.length)];
-        const nameSet = this.namesByNationality[randomNationality];
-
-        const firstName = nameSet.first[Math.floor(Math.random() * nameSet.first.length)];
-        const lastName = nameSet.last[Math.floor(Math.random() * nameSet.last.length)];
-
-        if (randomNationality === 'korean') {
-            return `${firstName}${lastName}`;
-        } else if (randomNationality === 'spanish') {
-            return `${lastName} ${firstName}`;
-        } else {
-            return `${firstName} ${lastName}`;
+    // 랜덤 이름 생성 (한글 전용)
+    generateRandomName(country = null, teamKey = null) {
+        if (_PlayerGen) {
+            const targetCountry = country || _PlayerGen.pickCountry({
+                teamKey: teamKey || ((typeof gameData !== 'undefined' && gameData) ? gameData.selectedTeam : null)
+            });
+            return _PlayerGen.generateName(targetCountry);
         }
+        const surnames = ['김', '이', '박', '최', '정', '강', '조', '윤', '장', '한'];
+        const givens = ['민준', '서준', '도윤', '예준', '시우', '하준', '지호', '주원', '건우', '현우'];
+        return `${surnames[Math.floor(Math.random() * surnames.length)]}${givens[Math.floor(Math.random() * givens.length)]}`;
     }
 
     // 중복 이름 방지
     isPlayerNameDuplicate(name) {
+        if (!name) return true;
+        if (_PlayerGen) {
+            return _PlayerGen.collectExistingNames().has(name);
+        }
         if (typeof teams !== 'undefined') {
             for (const teamKey in teams) {
                 if (teams[teamKey].some(p => p.name === name)) return true;
             }
         }
-        if (gameData && gameData.youthSquad && gameData.youthSquad.some(p => p.name === name)) return true;
+        if (typeof gameData !== 'undefined' && gameData && gameData.youthSquad && gameData.youthSquad.some(p => p.name === name)) return true;
         if (typeof transferSystem !== 'undefined' && transferSystem.transferMarket && transferSystem.transferMarket.some(p => p.name === name)) return true;
         return false;
     }

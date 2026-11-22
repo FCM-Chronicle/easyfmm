@@ -714,32 +714,59 @@ const TeamUtils = {
 // 하위 호환성을 위해 전역 변수로 노출
 window.TeamUtils = TeamUtils;
 
-// 선수 페이스 사진 설정 헬퍼
+// 선수 페이스 사진 설정 헬퍼 (실제 ID 페이스팩 + NewGAN 생성선수 페이스팩 자동 매핑)
 function setPlayerPhoto(img, player) {
     if (!img) return;
-    const name = typeof player === 'string' ? player : (player ? player.name : '');
-    let id = player && (player.playerid || player.playerId || player.id);
+    let playerObj = (player && typeof player === 'object') ? player : null;
+    const name = typeof player === 'string' ? player : (playerObj ? playerObj.name : '');
 
-    if (!id && name && typeof allTeams !== 'undefined') {
+    // 문자열 이름만 넘어온 경우(예: SNS 포스트) 현재 팀/유스/시장에서 선수 객체 탐색
+    if (!playerObj && name) {
+        if (typeof gameData !== 'undefined' && gameData && Array.isArray(gameData.youthSquad)) {
+            playerObj = gameData.youthSquad.find(x => x && x.name === name) || null;
+        }
+        if (!playerObj && typeof teams !== 'undefined' && teams) {
+            for (const t in teams) {
+                const found = Array.isArray(teams[t]) ? teams[t].find(x => x && x.name === name) : null;
+                if (found) { playerObj = found; break; }
+            }
+        }
+    }
+
+    const isGeneratedPlayer = !!(playerObj && (
+        playerObj.isGenerated || playerObj.isYouth || playerObj.isReincarnated || playerObj.isVirtual || playerObj.isCustom
+    ));
+
+    let id = playerObj && (playerObj.playerid || playerObj.playerId || playerObj.id);
+    if (!id && !isGeneratedPlayer && name && typeof allTeams !== 'undefined') {
         for (const t in allTeams) {
             const found = (allTeams[t].players || []).find(x => x.name === name);
             if (found && (found.playerid || found.id)) {
                 id = found.playerid || found.id;
+                if (!playerObj) playerObj = found;
                 break;
             }
         }
     }
 
-    const useId = !(typeof gameData !== 'undefined' && gameData.settings && gameData.settings.useIdFacepack === false);
-
     const candidates = [];
-    if (useId && id) {
+    if (id && !isGeneratedPlayer) {
         const pid = 'p' + String(id).replace(/^p/i, '');
         candidates.push(`assets/players/${pid}.png`, `assets/players/${pid}.webp`);
     }
-    if (name) {
+    if (name && !isGeneratedPlayer) {
         candidates.push(`assets/players/${name}.webp`);
     }
+
+    // 생성선수 또는 실존 페이스팩 미보유 선수에게 NewGAN 페이스팩 매핑
+    const newganSrc = (playerObj && playerObj.newganFace)
+        || (typeof PlayerGenerator !== 'undefined' && PlayerGenerator.resolveNewganFace
+            ? PlayerGenerator.resolveNewganFace(playerObj || name)
+            : null);
+    if (newganSrc) {
+        candidates.push(newganSrc);
+    }
+
     candidates.push('assets/players/default.webp');
 
     let idx = 0;

@@ -27,25 +27,29 @@ const WorldCupManager = {
             first: ["장", "피에르", "미셸", "필립", "알랭", "루이", "마마두", "이브라힘", "모하메드", "알리", "오마르", "세이두", "무사", "아다마", "바카리"],
             last: ["마르탱", "베르나르", "토마", "프티", "로베르", "리샤르", "뒤랑", "뒤부아", "트라오레", "카마라", "디알로", "케이타", "시소코", "코네", "쿨리발리"]
         },
-        "EasternEurope": { // 동유럽 (크로아티아, 세르비아, 폴란드 등)
-            first: ["이반", "루카", "마르코", "니콜라", "다비드", "필립", "알렉산다르", "세르게이", "블라디미르", "안드레이", "드미트리", "로베르트", "도미니크", "마테오"],
-            last: ["페트로비치", "이바노비치", "요바노비치", "코바치", "호르바트", "노바크", "스토야노비치", "포포비치", "디미트로프", "레반도프스키", "모드리치", "블라호비치"]
+        "EasternEurope": { // 동유럽 (일반인 성씨/이름)
+            first: ["이반", "루카", "마르코", "니콜라", "다비드", "필립", "알렉산다르", "세르게이", "블라디미르", "안드레이", "드미트리", "로베르트", "도미니크", "야쿠브"],
+            last: ["페트로비치", "이바노비치", "요바노비치", "코바치", "호르바트", "노바크", "스토야노비치", "포포비치", "디미트로프", "코발스키", "멜니크", "스보보다"]
         },
         "MiddleEast": { // 중동 (사우디, 이란, 카타르 등)
             first: ["모하메드", "아흐메드", "알리", "하산", "후세인", "이브라힘", "오마르", "유세프", "압둘라", "칼리드", "살렘", "나세르", "파하드"],
-            last: ["알리", "모하메드", "아흐메드", "하산", "이브라힘", "살라", "마흐무드", "사이드", "압델", "라만", "알도사리", "알셰흐리"]
+            last: ["마흐무드", "사이드", "만수르", "칼릴", "오스만", "압델라만", "알가므디", "알도사리", "알하르비", "호세이니", "카리미", "타헤리"]
+        },
+        "Korean": { // 대한민국, 북한
+            first: ["민준", "서준", "도윤", "예준", "시우", "하준", "지호", "주원", "건우", "현우", "우진", "선우", "태윤"],
+            last: ["김", "이", "박", "최", "정", "강", "조", "윤", "장", "임", "한", "오", "서"]
         },
         "Japanese": { // 일본
-            first: ["타쿠미", "쇼타", "켄타", "다이키", "유우키", "나오키", "료", "카이토", "타츠야", "카오루", "타케후사", "히로키", "아오", "리츠", "코이타쿠"],
-            last: ["사토", "스즈키", "타카하시", "타나카", "와타나베", "이토", "야마모토", "나카무라", "코바야시", "카토", "미토마", "쿠보", "토미야스", "엔도", "카마다"]
+            first: ["타쿠미", "쇼타", "겐타", "다이키", "유우키", "나오키", "료", "카이토", "다쓰야", "히로키", "리쿠", "렌", "하루토", "유타"],
+            last: ["사토", "스즈키", "다카하시", "다나카", "와타나베", "이토", "야마모토", "나카무라", "고바야시", "가토", "요시다", "야마다", "사사키"]
         },
         "Chinese": { // 중국
-            first: ["웨이", "하오", "레이", "양", "펑", "보", "린", "지에", "타오", "민", "준", "롱", "시", "카이"],
-            last: ["리", "왕", "장", "류", "첸", "양", "자오", "황", "주", "우", "가오", "마", "궈"]
+            first: ["웨이", "하오", "레이", "양", "펑", "보", "린", "제", "타오", "민", "준", "룽", "청", "카이"],
+            last: ["리", "왕", "장", "류", "천", "양", "자오", "황", "저우", "우", "가오", "마", "궈"]
         },
-        "English": { // 미국, 호주, 캐나다 등 (잉글랜드 제외)
+        "English": { // 미국, 호주, 캐나다 등
             first: ["제임스", "존", "로버트", "마이클", "윌리엄", "데이비드", "리차드", "조셉", "토마스", "찰스", "해리", "올리버", "잭", "노아", "조지", "카일"],
-            last: ["스미스", "존슨", "윌리엄스", "브라운", "존스", "밀러", "데이비스", "가르시아", "로저스", "윌슨", "워커", "케인", "엘리엇", "포든", "라이스"]
+            last: ["스미스", "존슨", "윌리엄스", "브라운", "존스", "밀러", "데이비스", "가르시아", "로저스", "윌슨", "워커", "테일러", "클라크", "화이트", "해리스"]
         }
     },
     
@@ -286,9 +290,11 @@ const WorldCupManager = {
             const selectedFWs = selectTop(fws, 6);
 
             // 부족한 인원 가상 선수로 채우기
+            const existingNames = new Set(pool.map(p => p && p.name).filter(Boolean));
             const fillVirtual = (pos, currentCount, targetCount) => {
                 for (let i = currentCount; i < targetCount; i++) {
-                    const vp = this.createVirtualPlayer(country, pos, avgRating);
+                    const vp = this.createVirtualPlayer(country, pos, avgRating, existingNames);
+                    existingNames.add(vp.name);
                     squad.push(vp);
                     pool.push(vp); // 풀에도 추가
                 }
@@ -311,7 +317,8 @@ const WorldCupManager = {
                 const needed = 4 - wildcards.length;
                 for (let i = 0; i < needed; i++) {
                     const pos = ['DF', 'MF', 'FW'][i % 3];
-                    const vp = this.createVirtualPlayer(country, pos, avgRating);
+                    const vp = this.createVirtualPlayer(country, pos, avgRating, existingNames);
+                    existingNames.add(vp.name);
                     squad.push(vp);
                     pool.push(vp);
                 }
@@ -322,44 +329,44 @@ const WorldCupManager = {
         });
     },
 
-    createVirtualPlayer(country, fixedPos = null, avgRating = 0) {
-        // 언어권 기반 이름 생성 로직
-        let region = "English"; // 기본값 (미국, 호주 등)
+    createVirtualPlayer(country, fixedPos = null, avgRating = 0, existingNames = null) {
+        if (typeof PlayerGenerator !== 'undefined') {
+            return PlayerGenerator.createWorldCupVirtualPlayer({
+                country,
+                position: fixedPos,
+                avgRating,
+                existingNames
+            });
+        }
 
-        if (["스페인", "포르투갈", "브라질", "아르헨티나", "멕시코", "콜롬비아", "우루과이", "파라과이", "칠레", "에콰도르", "볼리비아", "페루", "베네수엘라", "코스타리카", "파나마", "쿠바", "온두라스"].includes(country)) region = "Latin";
+        // PlayerGenerator 미로드 시 한글 폴백
+        let region = "English";
+        if (["대한민국", "북한"].includes(country)) region = "Korean";
+        else if (["스페인", "포르투갈", "브라질", "아르헨티나", "멕시코", "콜롬비아", "우루과이", "파라과이", "칠레", "에콰도르", "볼리비아", "페루", "베네수엘라", "코스타리카", "파나마", "쿠바", "온두라스"].includes(country)) region = "Latin";
         else if (["프랑스", "벨기에", "세네갈", "카메룬", "코트디부아르", "모로코", "알제리", "튀니지", "가나", "나이지리아", "부르키나파소", "말리", "기니", "콩고"].includes(country)) region = "FrenchAfrican";
         else if (["독일", "오스트리아", "스위스", "네덜란드", "덴마크", "스웨덴", "노르웨이", "아이슬란드"].includes(country)) region = "Germanic";
         else if (["크로아티아", "세르비아", "폴란드", "우크라이나", "러시아", "체코", "슬로바키아", "헝가리", "루마니아", "불가리아", "보스니아", "슬로베니아"].includes(country)) region = "EasternEurope";
-        else if (["사우디아라비아", "이란", "카타르", "UAE", "이라크", "요르단", "이집트"].includes(country)) region = "MiddleEast";
+        else if (["사우디아라비아", "이란", "카타르", "UAE", "아랍에미리트", "이라크", "요르단", "이집트"].includes(country)) region = "MiddleEast";
         else if (["일본"].includes(country)) region = "Japanese";
-        else if (["중국", "북한", "베트남", "태국"].includes(country)) region = "Chinese";
-
-        // 한국, 잉글랜드, 이탈리아 등은 DB에 충분하므로 가상 생성 시에는 기본값이나 근접한 지역 사용
-        // (실제로는 DB가 충분하면 이 함수가 호출될 일이 거의 없음)
+        else if (["중국"].includes(country)) region = "Chinese";
 
         const nameSet = this.nameDatabase[region] || this.nameDatabase["English"];
         const first = nameSet.first[Math.floor(Math.random() * nameSet.first.length)];
         const last = nameSet.last[Math.floor(Math.random() * nameSet.last.length)];
-        
-        // 동양권은 성+이름, 그 외는 이름+성
-        const name = ["대한민국", "일본", "중국", "북한"].includes(country) ? `${last}${first}` : `${first} ${last}`;
-        
+
+        let name;
+        if (["대한민국", "북한"].includes(country)) name = `${last}${first}`;
+        else if (["일본", "중국"].includes(country)) name = `${last} ${first}`;
+        else name = `${first} ${last}`;
+
         const positions = ['GK', 'DF', 'MF', 'FW'];
         const position = fixedPos || positions[Math.floor(Math.random() * positions.length)];
-        
-        let rating;
-        if (avgRating === 0) {
-            // 실제 선수가 한 명도 없는 경우: 65 ~ 76 사이
-            rating = Math.floor(Math.random() * 12) + 65;
-        } else {
-            // 팀 평균 오버롤 기반: 평균 + (-7 ~ +2)
-            const adjustment = Math.floor(Math.random() * 10) - 7;
-            rating = Math.max(50, Math.min(99, avgRating + adjustment));
-        }
-
+        const rating = avgRating === 0
+            ? Math.floor(Math.random() * 12) + 65
+            : Math.max(50, Math.min(99, avgRating + Math.floor(Math.random() * 10) - 7));
         const age = Math.floor(Math.random() * 15) + 18;
 
-        return { name, position, country, age, rating, isVirtual: true, originalClub: "FA" };
+        return { name, position, country, age, rating, isVirtual: true, isGenerated: true, originalClub: "FA" };
     },
 
     setupGroups() {

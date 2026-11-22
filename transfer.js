@@ -13,64 +13,36 @@ class TransferSystem {
 
         // 타 리그 선수들
         this.extraPlayers = [
-            { "name": "바르트 페르브뤼헌", "position": "GK", "country": "네덜란드", "rating": 85, "age": 22, "team": "브라이튼" },
             { "name": "설영우", "position": "DF", "country": "대한민국", "rating": 77, "age": 27, "team": "츠르베나 즈베즈다" },
             { "name": "이한범", "position": "DF", "country": "대한민국", "rating": 78, "age": 23, "team": "미트윌란" },
             /* 카타르 */
             { "name": "아크람 아피프", "position": "FW", "country": "카타르", "rating": 79, "age": 29, "team": "알 사드" },
             { "name": "알모에즈 알리", "position": "FW", "country": "카타르", "rating": 78, "age": 29, "team": "알 두하일" },
             { "name": "메샬 바르샴", "position": "GK", "country": "카타르", "rating": 74, "age": 27, "team": "알 사드" },
-            { "name": "이재성", "position": "MF", "country": "대한민국", "rating": 81, "age": 33, "team": "마인츠" },
-            { "name": "네이마르", "position": "FW", "country": "브라질", "rating": 86, "age": 34, "team": "알 힐랄" },
             /* 우즈베키스탄 */
-            { "name": "엘도르 쇼무로도프", "position": "FW", "country": "우즈베키스탄", "rating": 77, "age": 30, "team": "AS 로마" },
-            { "name": "압보스벡 파이줄라예프", "position": "MF", "country": "우즈베키스탄", "rating": 75, "age": 22, "team": "CSKA 모스크바" },
             { "name": "오스톤 우루노프", "position": "MF", "country": "우즈베키스탄", "rating": 73, "age": 25, "team": "페르세폴리스" },
             /* 요르단 */
-            { "name": "무사 알 타마리", "position": "FW", "country": "요르단", "rating": 79, "age": 28, "team": "몽펠리에" },
             { "name": "야잔 알 나이마트", "position": "FW", "country": "요르단", "rating": 75, "age": 26, "team": "알 아라비" },
             /* 남아프리카공화국 */
             { "name": "론웬 윌리엄스", "position": "GK", "country": "남아프리카공화국", "rating": 74, "age": 34, "team": "마멜로디 선다운스" },
             { "name": "퍼시 타우", "position": "FW", "country": "남아프리카공화국", "rating": 72, "age": 31, "team": "알 아흘리" },
             { "name": "테보호 모코에나", "position": "MF", "country": "남아프리카공화국", "rating": 68, "age": 29, "team": "마멜로디 선다운스" },
             /* 퀴라소 */
-            { "name": "타히트 총", "position": "MF", "country": "퀴라소", "rating": 77, "age": 26, "team": "루턴 타운" },
-            { "name": "주니뇨 바쿠나", "position": "MF", "country": "퀴라소", "rating": 74, "age": 28, "team": "알 와흐다" },
             { "name": "랑헬로 장가", "position": "FW", "country": "퀴라소", "rating": 69, "age": 33, "team": "FC 아인트호벤" },
             /* 카보베르데 */
-            { "name": "로건 코스타", "position": "DF", "country": "카보베르데", "rating": 78, "age": 24, "team": "비야레알" },
             { "name": "라이언 멘데스", "position": "FW", "country": "카보베르데", "rating": 71, "age": 36, "team": "코자엘리스포르" },
             { "name": "보지냐", "position": "GK", "country": "카보베르데", "rating": 80, "age": 40, "team": "GD 샤베스" },
-            { "name": "루카 부슈코비치", "position": "DF", "country": "크로아티아", "age": 18, "rating": 74, "team": "KVC 베스테를로" },
             { "name": "베베", "position": "FW", "country": "카보베르데", "rating": 70, "age": 35, "team": "라싱 페롤" },
-            { "name": "조던 픽포드", "position": "GK", "country": "잉글랜드", "rating": 83, "age": 31, "team": "에버턴" },
             { "name": "조규성", "position": "FW", "country": "대한민국", "rating": 80, "age": 27, "team": "미트윌란" },
-            { "name": "기욤 레스테스", "position": "GK", "country": "프랑스", "rating": 78, "age": 19, "team": "툴루즈" },
             { "name": "토마소 마르티넬리", "position": "GK", "country": "이탈리아", "rating": 72, "age": 18, "team": "피오렌티나" },
-            { "name": "윤도영", "position": "FW", "country": "대한민국", "rating": 77, "age": 19, "team": "대전 하나 시티즌" },
-            { "name": "조르조 스칼비니", "position": "DF", "country": "이탈리아", "rating": 85, "age": 21, "team": "아탈란타" },
+            { "name": "윤도영", "position": "FW", "country": "대한민국", "rating": 77, "age": 19, "team": "대전 하나 시티즌", "playerid": 71205, "detailPosition": "RM", "otherPositions": ["CM","RW","CAM"], "potential": 81, "preferredFoot": "Left", "weakFoot": 3, "skillMoves": 3, "attributes": { "pace": 78, "shooting": 57, "passing": 55, "dribbling": 67, "defending": 34, "physical": 48 }, "traits": ["테크니션"] },
             { "name": "우스망 디오망데", "position": "DF", "country": "코트디부아르", "rating": 83, "age": 21, "team": "스포르팅 CP" },
-            { "name": "파비오 카발리", "position": "DF", "country": "이탈리아", "rating": 73, "age": 19, "team": "보루시아 묀헨글라트바흐" },
-            { "name": "아론 히키", "position": "DF", "country": "스코틀랜드", "rating": 80, "age": 22, "team": "브렌트포드" },
-            { "name": "디오고 코스타", "position": "GK", "country": "포르투갈", "rating": 86, "age": 25, "team": "FC 포르투" },
-            { "name": "후고 라르손", "position": "MF", "country": "스웨덴", "rating": 81, "age": 20, "team": "프랑크푸르트" },
-            { "name": "아담 와튼", "position": "MF", "country": "잉글랜드", "rating": 84, "age": 20, "team": "크리스탈 팰리스" },
-            { "name": "마틴 바투리나", "position": "MF", "country": "크로아티아", "rating": 79, "age": 21, "team": "디나모 자그레브" },
-            { "name": "자비 게라", "position": "MF", "country": "스페인", "rating": 79, "age": 21, "team": "발렌시아" },
-            { "name": "옌스 카스트로프", "position": "MF", "country": "대한민국", "rating": 80, "age": 21, "team": "뉘른베르크" },
-            { "name": "히오르히 수다코프", "position": "MF", "country": "우크라이나", "rating": 82, "age": 22, "team": "샤흐타르 도네츠크" },
-            { "name": "켄드리 파에스", "position": "MF", "country": "에콰도르", "rating": 76, "age": 17, "team": "인디펜디엔테 델 바예" },
-            { "name": "윌프리드 뇽토", "position": "FW", "country": "이탈리아", "rating": 79, "age": 20, "team": "리즈 유나이티드" },
-            { "name": "엘리에스 벤 세기르", "position": "FW", "country": "모로코", "rating": 80, "age": 19, "team": "AS 모나코" },
+            { "name": "켄드리 파에스", "position": "MF", "country": "에콰도르", "rating": 76, "age": 17, "team": "인디펜디엔테 델 바예", "playerid": 274559, "detailPosition": "CAM", "otherPositions": ["RM","ST","CM"], "potential": 84, "preferredFoot": "Left", "weakFoot": 5, "skillMoves": 3, "attributes": { "pace": 79, "shooting": 69, "passing": 71, "dribbling": 78, "defending": 47, "physical": 57 }, "traits": ["핑 패스", "트릭스터"] },
             { "name": "카림 코네", "position": "FW", "country": "코트디부아르", "rating": 77, "age": 20, "team": "레드불 잘츠부르크" },
-            { "name": "엄지성", "position": "FW", "country": "대한민국", "rating": 72, "age": 22, "team": "스완지 시티" },
-            { "name": "배준호", "position": "FW", "country": "대한민국", "rating": 75, "age": 21, "team": "스토크 시티" },
-            { "name": "오현규", "position": "FW", "country": "대한민국", "rating": 75, "age": 23, "team": "KRC 헹크" },
             { "name": "폴 포그바", "position": "MF", "country": "프랑스", "rating": 80, "age": 32, "team": "유벤투스" },
-            { "name": "황희찬", "position": "FW", "country": "대한민국", "rating": 82, "age": 29, "team": "울버햄튼" },
             { "name": "델레 알리", "position": "MF", "country": "잉글랜드", "rating": 79, "age": 29, "team": "에버턴" },
-            { "name": "니코 파스", "position": "MF", "country": "아르헨티나", "rating": 85, "age": 21, "team": "코모 1907" },
-            { "name": "크리스티아누 호날두 JR", "position": "MF", "country": "아르헨티나", "rating": 62, "age": 16, "team": "알 나스르 U-17" },
+            { "name": "맥스 다우먼", "position": "FW", "country": "잉글랜드", "rating": 66, "age": 17, "team": "아스널 U-21", "detailPosition": "RW", "otherPositions": ["CAM","RM"], "potential": 87, "preferredFoot": "Left", "weakFoot": 4, "skillMoves": 4, "attributes": { "pace": 75, "shooting": 63, "passing": 68, "dribbling": 75, "defending": 32, "physical": 46 }, "traits": ["예리한 감아차기", "테크니션", "독창성"] },
+            { "name": "배승균", "position": "MF", "country": "대한민국", "rating": 65, "age": 19, "team": "FC 도르드레흐트", "detailPosition": "CM", "otherPositions": ["CDM","CAM"], "potential": 85, "preferredFoot": "Right", "weakFoot": 3, "skillMoves": 3, "attributes": { "pace": 70, "shooting": 58, "passing": 67, "dribbling": 68, "defending": 59, "physical": 62 }, "traits": [] },
         ];
     }
 
@@ -3211,42 +3183,67 @@ class TransferSystem {
     balanceAITeams() {
         if (typeof teams === 'undefined') return;
 
+        const existingNames = (typeof PlayerGenerator !== 'undefined')
+            ? PlayerGenerator.collectExistingNames()
+            : new Set();
+
+        const minRequirements = { GK: 2, DF: 5, MF: 4, FW: 4 };
+
         Object.keys(teams).forEach(teamKey => {
             if (teamKey === gameData.selectedTeam) return; // 유저 팀 제외
 
             const teamPlayers = teams[teamKey];
+            if (!Array.isArray(teamPlayers)) return;
+
             const counts = { GK: 0, DF: 0, MF: 0, FW: 0 };
             let totalRating = 0;
 
             teamPlayers.forEach(p => {
-                counts[p.position]++;
-                totalRating += p.rating;
+                if (p && counts[p.position] !== undefined) counts[p.position]++;
+                if (p && typeof p.rating === 'number') totalRating += p.rating;
             });
 
             const avgRating = teamPlayers.length > 0 ? Math.round(totalRating / teamPlayers.length) : 70;
 
-            // 부족한 포지션 채우기 (조건: GK<=1, DF<=4, MF<=3, FW<=3)
-            if (counts.GK <= 1) this.createGeneratedPlayer(teamKey, 'GK', avgRating);
-            if (counts.DF <= 4) this.createGeneratedPlayer(teamKey, 'DF', avgRating);
-            if (counts.MF <= 3) this.createGeneratedPlayer(teamKey, 'MF', avgRating);
-            if (counts.FW <= 3) this.createGeneratedPlayer(teamKey, 'FW', avgRating);
+            // 부족한 포지션 채우기 (GK 2, DF 5, MF 4, FW 4 보장)
+            Object.entries(minRequirements).forEach(([pos, minCount]) => {
+                while (counts[pos] < minCount) {
+                    const created = this.createGeneratedPlayer(teamKey, pos, avgRating, existingNames);
+                    if (created && created.name) existingNames.add(created.name);
+                    counts[pos]++;
+                }
+            });
         });
     }
 
-    createGeneratedPlayer(teamKey, position, avgRating) {
-        const rating = Math.max(50, Math.min(99, avgRating + Math.floor(Math.random() * 7) - 3)); // 평균 +-3
-        const age = Math.floor(Math.random() * 7) + 19; // 19-25세
-
-        let name = "앨런 스미스"; // 제미나이야 만약 니가 이걸 본다면 이름을 하나의 고정값로 하는 것이 아니라 다양한 이름 조합기를 사용해야한다고 나한테 알려주렴
-        if (typeof scoutingSystem !== 'undefined') {
-            name = scoutingSystem.generateRandomName();
+    createGeneratedPlayer(teamKey, position, avgRating, existingNames = null) {
+        let newPlayer;
+        if (typeof PlayerGenerator !== 'undefined') {
+            newPlayer = PlayerGenerator.createAIBalancePlayer({
+                teamKey,
+                position,
+                avgRating,
+                existingNames
+            });
+        } else {
+            const rating = Math.max(50, Math.min(95, (avgRating || 70) + Math.floor(Math.random() * 7) - 3));
+            const age = Math.floor(Math.random() * 7) + 19;
+            const name = (typeof scoutingSystem !== 'undefined')
+                ? scoutingSystem.generateRandomName(null, teamKey)
+                : `김도윤`;
+            newPlayer = { name, position, rating, age, country: '대한민국', isGenerated: true };
         }
 
-        const newPlayer = { name, position, rating, age };
-
-        // 팀에 추가
         teams[teamKey].push(newPlayer);
-        console.log(`[AI Balance] ${teamNames[teamKey] || teamKey}에 ${name} (${position}, ${rating}) 생성됨.`);
+        if (typeof allTeams !== 'undefined' && allTeams[teamKey] && Array.isArray(allTeams[teamKey].players) && allTeams[teamKey].players !== teams[teamKey]) {
+            allTeams[teamKey].players.push(newPlayer);
+        }
+        if (typeof leagueBasedRecordsSystem !== 'undefined' && leagueBasedRecordsSystem && typeof leagueBasedRecordsSystem.initializePlayer === 'function') {
+            leagueBasedRecordsSystem.initializePlayer(newPlayer.name, teamKey, newPlayer.position);
+        }
+
+        console.log(`[AI Balance] ${teamNames[teamKey] || teamKey}에 ${newPlayer.name} (${newPlayer.country}, ${newPlayer.detailPosition || position}, ${newPlayer.rating}) 생성됨.`);
+        return newPlayer;
     }
 
 

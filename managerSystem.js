@@ -17,6 +17,20 @@ function getAvatarIconHTML(avatarKey) {
     return typeof iconSVG === 'function' ? iconSVG(iconName) : avatarKey;
 }
 
+function renderManagerAvatarContent(container, avatarKey, customPhoto) {
+    if (!container) return;
+    container.replaceChildren();
+    if (typeof customPhoto === 'string' && customPhoto.startsWith('data:image/')) {
+        const img = document.createElement('img');
+        img.className = 'manager-avatar-photo';
+        img.src = customPhoto;
+        img.alt = '감독 프로필 사진';
+        container.appendChild(img);
+    } else {
+        container.innerHTML = getAvatarIconHTML(avatarKey || 'suit');
+    }
+}
+
 const MANAGER_PHILOSOPHIES = {
     attacking: {
         id: "attacking",
@@ -96,6 +110,7 @@ const managerSystem = {
     managers: [],
     activeManagerId: null,
     editingManagerId: null,
+    photoTargetMode: null,
 
     // 크리에이터 임시 상태
     creatorState: {
@@ -104,6 +119,7 @@ const managerSystem = {
         flag: "KOR",
         age: 45,
         avatar: "suit",
+        customPhoto: null,
         philosophy: "attacking"
     },
 
@@ -132,7 +148,12 @@ const managerSystem = {
     },
 
     saveManagers() {
-        localStorage.setItem('fm_managers', JSON.stringify(this.managers));
+        try {
+            localStorage.setItem('fm_managers', JSON.stringify(this.managers));
+        } catch (err) {
+            console.error('감독 데이터 저장 실패:', err);
+            alert('저장 공간이 부족하여 변경사항을 저장하지 못했습니다.');
+        }
     },
 
     migrateLegacySaves() {
@@ -216,6 +237,104 @@ const managerSystem = {
         document.getElementById('randomNameBtn')?.addEventListener('click', () => {
             this.pickRandomName();
         });
+
+        const photoInput = document.getElementById('managerPhotoInput');
+        const openPhotoPicker = (mode) => {
+            if (!photoInput) return;
+            this.photoTargetMode = mode;
+            photoInput.value = '';
+            photoInput.click();
+        };
+
+        document.getElementById('profileManagerAvatarBtn')?.addEventListener('click', () => {
+            openPhotoPicker('profile');
+        });
+        document.getElementById('profileUploadPhotoHintBtn')?.addEventListener('click', () => {
+            openPhotoPicker('profile');
+        });
+        document.getElementById('removeProfilePhotoBtn')?.addEventListener('click', () => {
+            const manager = this.managers.find(m => m.id === this.activeManagerId);
+            if (!manager) return;
+            delete manager.customPhoto;
+            this.saveManagers();
+            this.renderManagerList();
+            this.openProfileModal(manager.id);
+        });
+
+        document.getElementById('uploadCreatorPhotoBtn')?.addEventListener('click', () => {
+            openPhotoPicker('creator');
+        });
+        document.getElementById('prevAvatar')?.addEventListener('click', () => {
+            openPhotoPicker('creator');
+        });
+        document.getElementById('removeCreatorPhotoBtn')?.addEventListener('click', () => {
+            this.creatorState.customPhoto = null;
+            this.renderAvatarPicker();
+            this.updateLiveCard();
+        });
+
+        photoInput?.addEventListener('change', async (e) => {
+            const file = e.target.files && e.target.files[0];
+            if (!file) return;
+            if (!file.type || !file.type.startsWith('image/')) {
+                alert('이미지 파일만 업로드할 수 있습니다.');
+                return;
+            }
+            try {
+                const dataUrl = await this.processManagerPhotoFile(file);
+                if (this.photoTargetMode === 'profile' && this.activeManagerId) {
+                    const manager = this.managers.find(m => m.id === this.activeManagerId);
+                    if (manager) {
+                        manager.customPhoto = dataUrl;
+                        this.saveManagers();
+                        this.renderManagerList();
+                        this.openProfileModal(manager.id);
+                    }
+                } else if (this.photoTargetMode === 'creator') {
+                    this.creatorState.customPhoto = dataUrl;
+                    this.renderAvatarPicker();
+                    this.updateLiveCard();
+                }
+            } catch (err) {
+                console.error('감독 사진 처리 실패:', err);
+                alert('사진을 불러오지 못했습니다. 다른 이미지로 시도해주세요.');
+            } finally {
+                photoInput.value = '';
+            }
+        });
+    },
+
+    processManagerPhotoFile(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onerror = () => reject(new Error('File read error'));
+            reader.onload = () => {
+                const img = new Image();
+                img.onerror = () => reject(new Error('Image decode error'));
+                img.onload = () => {
+                    const maxDim = 240;
+                    const size = Math.min(img.naturalWidth || img.width, img.naturalHeight || img.height);
+                    const sx = Math.max(0, Math.floor(((img.naturalWidth || img.width) - size) / 2));
+                    const sy = Math.max(0, Math.floor(((img.naturalHeight || img.height) - size) / 2));
+                    const canvas = document.createElement('canvas');
+                    canvas.width = maxDim;
+                    canvas.height = maxDim;
+                    const ctx = canvas.getContext('2d');
+                    if (!ctx) {
+                        reject(new Error('Canvas context unavailable'));
+                        return;
+                    }
+                    ctx.drawImage(img, sx, sy, size, size, 0, 0, maxDim, maxDim);
+                    let output = canvas.toDataURL('image/webp', 0.85);
+                    if (!output || !output.startsWith('data:image/webp')) {
+                        output = canvas.toDataURL('image/jpeg', 0.85);
+                    }
+                    resolve(output);
+                };
+                img.src = reader.result;
+            };
+            reader.readAsDataURL(file);
+        });
     },
 
     setupCreatorInteractions() {
@@ -250,9 +369,11 @@ const managerSystem = {
         if (!grid) return;
         grid.replaceChildren();
 
+        const hasCustomPhoto = Boolean(this.creatorState.customPhoto);
+
         MANAGER_AVATARS.forEach(item => {
             const card = document.createElement('div');
-            card.className = `avatar-card-opt ${this.creatorState.avatar === item.emoji ? 'active' : ''}`;
+            card.className = `avatar-card-opt ${!hasCustomPhoto && this.creatorState.avatar === item.emoji ? 'active' : ''}`;
 
             const emojiSpan = document.createElement('span');
             emojiSpan.className = 'opt-emoji';
@@ -266,6 +387,7 @@ const managerSystem = {
 
             card.onclick = () => {
                 this.creatorState.avatar = item.emoji;
+                this.creatorState.customPhoto = null;
                 grid.querySelectorAll('.avatar-card-opt').forEach(el => el.classList.remove('active'));
                 card.classList.add('active');
                 this.updateLiveCard();
@@ -331,8 +453,18 @@ const managerSystem = {
         if (flagEl) flagEl.textContent = NATION_FLAGS[this.creatorState.nation] || this.creatorState.flag;
         if (nationEl) nationEl.textContent = this.creatorState.nation;
         if (ageEl) ageEl.textContent = `${this.creatorState.age}세`;
-        if (avatarEl) avatarEl.innerHTML = getAvatarIconHTML(this.creatorState.avatar);
+        if (avatarEl) {
+            renderManagerAvatarContent(avatarEl, this.creatorState.avatar, this.creatorState.customPhoto);
+        }
         if (titleBadgeEl) titleBadgeEl.textContent = this.getTitleByAge(this.creatorState.age);
+
+        const previewRow = document.getElementById('creatorPhotoPreviewRow');
+        const thumbEl = document.getElementById('creatorPhotoThumb');
+        const removeBtn = document.getElementById('removeCreatorPhotoBtn');
+        const hasPhoto = Boolean(this.creatorState.customPhoto);
+        if (previewRow) previewRow.style.display = hasPhoto ? 'flex' : 'none';
+        if (thumbEl && hasPhoto) thumbEl.src = this.creatorState.customPhoto;
+        if (removeBtn) removeBtn.style.display = hasPhoto ? 'inline-flex' : 'none';
 
         const currentPhilo = MANAGER_PHILOSOPHIES[this.creatorState.philosophy] || MANAGER_PHILOSOPHIES.attacking;
         if (philoBadgeEl) {
@@ -372,6 +504,7 @@ const managerSystem = {
                     flag: NATION_FLAGS[manager.nation] || manager.flag || "KOR",
                     age: manager.age || 45,
                     avatar: manager.avatar || "suit",
+                    customPhoto: manager.customPhoto || null,
                     philosophy: manager.philosophy || "attacking"
                 };
             }
@@ -383,6 +516,7 @@ const managerSystem = {
                 flag: "KOR",
                 age: 45,
                 avatar: "suit",
+                customPhoto: null,
                 philosophy: "attacking"
             };
         }
@@ -411,6 +545,7 @@ const managerSystem = {
         const flag = NATION_FLAGS[nation] || this.creatorState.flag || "INT";
         const age = this.creatorState.age;
         const avatar = this.creatorState.avatar;
+        const customPhoto = this.creatorState.customPhoto || null;
         const philosophy = this.creatorState.philosophy;
         const title = this.getTitleByAge(age);
 
@@ -422,6 +557,8 @@ const managerSystem = {
                 manager.flag = flag;
                 manager.age = age;
                 manager.avatar = avatar;
+                if (customPhoto) manager.customPhoto = customPhoto;
+                else delete manager.customPhoto;
                 manager.philosophy = philosophy;
                 manager.title = title;
             }
@@ -433,6 +570,7 @@ const managerSystem = {
                 flag: flag,
                 age: age,
                 avatar: avatar,
+                ...(customPhoto ? { customPhoto } : {}),
                 philosophy: philosophy,
                 title: title,
                 stats: { matches: 0, wins: 0, draws: 0, losses: 0, trophies: 0 },
@@ -531,7 +669,7 @@ const managerSystem = {
 
             const avatarDiv = document.createElement('div');
             avatarDiv.className = 'mgr-card-avatar';
-            avatarDiv.innerHTML = getAvatarIconHTML(avatar);
+            renderManagerAvatarContent(avatarDiv, avatar, manager.customPhoto || null);
 
             const infoDiv = document.createElement('div');
             infoDiv.className = 'mgr-card-info';
@@ -625,18 +763,26 @@ const managerSystem = {
         const trophies = manager.stats?.trophies || 0;
 
         const nameEl = document.getElementById('profileManagerName');
+        const avatarContentEl = document.getElementById('profileManagerAvatarContent');
+        const uploadHintBtn = document.getElementById('profileUploadPhotoHintBtn');
+        const removePhotoBtn = document.getElementById('removeProfilePhotoBtn');
         const nationEl = document.getElementById('profileManagerNation');
         const ageEl = document.getElementById('profileManagerAge');
         const matchesEl = document.getElementById('profileManagerMatches');
         const wdlEl = document.getElementById('profileManagerWDL');
         const trophiesEl = document.getElementById('profileManagerTrophies');
 
+        if (avatarContentEl) {
+            renderManagerAvatarContent(avatarContentEl, avatar, manager.customPhoto || null);
+        }
         if (nameEl) {
-            nameEl.replaceChildren();
-            const avatarSpan = document.createElement('span');
-            avatarSpan.style.cssText = 'margin-right: 8px; display: inline-flex; align-items: center;';
-            avatarSpan.innerHTML = getAvatarIconHTML(avatar);
-            nameEl.append(avatarSpan, manager.name);
+            nameEl.textContent = manager.name;
+        }
+        if (uploadHintBtn) {
+            uploadHintBtn.textContent = manager.customPhoto ? '프로필 사진 변경' : '프로필 사진 넣기';
+        }
+        if (removePhotoBtn) {
+            removePhotoBtn.style.display = manager.customPhoto ? 'inline-flex' : 'none';
         }
         if (nationEl) nationEl.textContent = `[${flag}] ${nation}`;
         if (ageEl) ageEl.textContent = manager.age || 45;

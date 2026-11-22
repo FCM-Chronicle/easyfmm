@@ -1,4 +1,4 @@
-﻿// events.js - 라커룸 이벤트, 비서 상담, 주급 요구 등 랜덤 이벤트 및 처리 로직
+// events.js - 라커룸 이벤트, 비서 상담, 주급 요구 등 랜덤 이벤트 및 처리 로직
 
 class EventManager {
     constructor() {
@@ -72,7 +72,7 @@ class EventManager {
         ];
     }
 
-    // 주급 인상 요구 생성
+    // 주급 인상 요구 생성 (contractSystem의 억/주 단위 통일)
     triggerWageDemand() {
         if (!gameData.selectedTeam) return null;
 
@@ -81,30 +81,37 @@ class EventManager {
 
         // 선발급 선수(rating 상위권) 중에서 랜덤 선택
         const sortedPlayers = [...teamPlayers].sort((a, b) => b.rating - a.rating);
-        const topPlayers = sortedPlayers.slice(0, 5); // 상위 5명
+        const topPlayers = sortedPlayers.slice(0, 6);
         const randomPlayer = topPlayers[Math.floor(Math.random() * topPlayers.length)];
 
-        // 현재 주급을 주급총합 기반으로 대략 추산하거나 랜덤 부여
-        // 게임에 선수별 주급이 명확하지 않은 경우, 현재 능력치 비례로 설정
-        const currentWage = randomPlayer.wage || Math.floor(randomPlayer.rating * 1.2);
-        const demandedWage = Math.floor(currentWage * 1.3); // 약 30% 인상 요구
+        const currentWage = (typeof calculatePlayerWage === 'function')
+            ? calculatePlayerWage(randomPlayer)
+            : parseFloat((randomPlayer.weeklyWage || Math.max(0.3, Math.pow((randomPlayer.rating || 70) / 70, 3.8) * 0.7)).toFixed(2));
+        const demandedWage = parseFloat(Math.max(currentWage + 0.05, currentWage * 1.25).toFixed(2));
+        const wageDiff = parseFloat((demandedWage - currentWage).toFixed(2));
 
         return {
             type: 'wage_demand',
             player: randomPlayer,
             currentWage: currentWage,
             demandedWage: demandedWage,
+            wageDiff: wageDiff,
             title: `[주급 인상 요구] ${randomPlayer.name} 면담 요청`,
-            content: `감독님, ${randomPlayer.name} 선수가 제게 조용히 찾아와서 주급 인상을 요구하네요.\n\n현재 활약에 비해 너무 적게 받고 있다면서 주급을 ${demandedWage}만원으로 인상해 달라고 합니다.\n만약 거절하시면 엄청나게 실망할 것 같아요. 어떻게 할까요?`
+            content: `감독님, ${randomPlayer.name} 선수가 제게 조용히 찾아와서 주급 인상을 요구하네요.\n\n현재 주급(${currentWage}억원/주)이 활약에 비해 적다면서 ${demandedWage}억원/주(+${wageDiff}억/주)로 인상해 달라고 합니다.\n거절하시면 팀 분위기가 흔들릴 수 있는데 어떻게 할까요?`
         };
     }
 
-    // 상담/라커룸 랜덤 이벤트 생성
+    // 상담/라커룸/주급요구 랜덤 이벤트 생성
     triggerRandomEvent() {
         const rand = Math.random();
 
-        // 50% 확률로 상담 이벤트, 50% 확률로 라커룸 이벤트 발생
-        if (rand < 0.5) {
+        if (rand < 0.15) {
+            const wageEvent = this.triggerWageDemand();
+            if (wageEvent) return wageEvent;
+        }
+
+        // 나머지 확률로 상담 이벤트 / 라커룸 이벤트 발생
+        if (rand < 0.58) {
             // 상담 이벤트
             if (!gameData.selectedTeam) return null;
             const teamPlayers = teams[gameData.selectedTeam];
@@ -212,12 +219,65 @@ class EventManager {
                 confirmBtn.addEventListener('click', () => window.eventManager.closeEventModal());
 
                 optionsContainer.append(effectBox, confirmBtn);
+            } else if (eventData.type === 'wage_demand') {
+                const acceptBtn = document.createElement('button');
+                acceptBtn.className = 'btn primary';
+                acceptBtn.style.cssText = 'display: block; width: 100%; margin-bottom: 12px; padding: 15px; font-size: 1.05rem; text-align: left;';
+                const accTitle = document.createElement('div');
+                accTitle.style.marginBottom = '5px';
+                accTitle.textContent = `요구 수락 (${eventData.demandedWage}억원/주로 인상)`;
+                const accDesc = document.createElement('span');
+                accDesc.style.cssText = 'font-size: 0.85rem; color: #ffeb3b;';
+                accDesc.textContent = `(효과: 주급 +${eventData.wageDiff}억원/주, 팀 사기 +3)`;
+                acceptBtn.append(accTitle, accDesc);
+                acceptBtn.addEventListener('click', () => window.eventManager.handleWageDemandChoice(true));
+
+                const rejectBtn = document.createElement('button');
+                rejectBtn.className = 'btn';
+                rejectBtn.style.cssText = 'display: block; width: 100%; padding: 15px; font-size: 1.05rem; text-align: left;';
+                const rejTitle = document.createElement('div');
+                rejTitle.style.marginBottom = '5px';
+                rejTitle.textContent = `거절 (현재 주급 ${eventData.currentWage}억원/주 유지)`;
+                const rejDesc = document.createElement('span');
+                rejDesc.style.cssText = 'font-size: 0.85rem; color: #f87171;';
+                rejDesc.textContent = '(효과: 주급 동결, 팀 사기 -4)';
+                rejectBtn.append(rejTitle, rejDesc);
+                rejectBtn.addEventListener('click', () => window.eventManager.handleWageDemandChoice(false));
+
+                optionsContainer.append(acceptBtn, rejectBtn);
             }
         }
 
         modal.style.display = 'flex';
         this.currentEvent = eventData;
         this.onCloseCallback = callback;
+    }
+
+    handleWageDemandChoice(accepted) {
+        if (!this.currentEvent || this.currentEvent.type !== 'wage_demand') return;
+        const player = this.currentEvent.player;
+        const demandedWage = this.currentEvent.demandedWage;
+        const wageDiff = this.currentEvent.wageDiff || 0;
+
+        if (accepted && player && typeof gameData !== 'undefined') {
+            const currentTotal = (typeof calculateTotalWages === 'function') ? calculateTotalWages() : (gameData.totalWeeklyWage || 0);
+            const wageBudget = gameData.wageBudget || 0;
+            if (wageBudget > 0 && parseFloat((currentTotal + wageDiff).toFixed(2)) > wageBudget) {
+                alert(`주급 예산이 부족합니다! (필요: ${parseFloat((currentTotal + wageDiff).toFixed(2))}억/주, 현재 한도: ${wageBudget}억/주)\n[재정] 탭에서 예산을 먼저 확보해 주세요.`);
+                return;
+            }
+            player.weeklyWage = demandedWage;
+            if (typeof calculateTotalWages === 'function') calculateTotalWages();
+            if (typeof updateFinanceDisplay === 'function') updateFinanceDisplay();
+            if (typeof displayTeamPlayers === 'function') displayTeamPlayers();
+            if (window.GameState) window.GameState.adjustTeamMorale(3);
+            else gameData.teamMorale = Math.max(0, Math.min(100, (gameData.teamMorale || 70) + 3));
+        } else if (!accepted && typeof gameData !== 'undefined') {
+            if (window.GameState) window.GameState.adjustTeamMorale(-4);
+            else gameData.teamMorale = Math.max(0, Math.min(100, (gameData.teamMorale || 70) - 4));
+        }
+
+        this.closeEventModal();
     }
 
     handleEventChoice(optionIndex) {
