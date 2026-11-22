@@ -1134,6 +1134,7 @@ class RealSoccerEngine {
         this._possession = { teamId: null, duration: 0 };
         this._phase = { home: 'building', away: 'building' };
         this._phaseTimer = { home: 0, away: 0 };
+        this._transitionDrive = { home: null, away: null };
         this._attackProgressX = { home: 0, away: 0 };
         this._attackMemories = { home: new Array(8).fill(null), away: new Array(8).fill(null) };
         this._attackMemIdx = { home: 0, away: 0 };
@@ -1540,6 +1541,17 @@ class RealSoccerEngine {
         if (!this._counterpressTicks) this._counterpressTicks = { home: 0, away: 0 };
         if (this._counterpressTicks.home > 0) this._counterpressTicks.home--;
         if (this._counterpressTicks.away > 0) this._counterpressTicks.away--;
+        if (!this._transitionDrive) this._transitionDrive = { home: null, away: null };
+        for (const tid of ['home', 'away']) {
+            const td = this._transitionDrive[tid];
+            if (!td) continue;
+            td.ticks--;
+            const ownX = tid === 'home' ? 0 : 100;
+            const prog = Math.abs(this.ball.x - ownX);
+            if (td.ticks <= 0 || this._possession.teamId !== tid || prog >= 72) {
+                this._transitionDrive[tid] = null;
+            }
+        }
 
         const teamId = this.ball.owner ? this.ball.owner.teamId
             : (this.ball.state === BallState.IN_FLIGHT && this.ball.lastOwner ? this.ball.lastOwner.teamId : null);
@@ -1730,14 +1742,16 @@ class RealSoccerEngine {
             : ballX;
 
         let dfX, mfX, fwX;
+        const tdState = (this._transitionDrive && this._transitionDrive[teamId]) ? this._transitionDrive[teamId] : null;
+        const tdPush = tdState ? 6 : 0;
         if (haveBall) {
             // [미드필더 과도한 최전방 쏠림 방지: 미드필더는 중원/박스 외곽(2선)을 지키고 공격수와 명확한 간격 유지]
             if (phase === 'building') {
-                mfX = isHome ? clamp(ballX + 9, 24, 44) : clamp(ballX - 9, 56, 76);
-                fwX = isHome ? clamp(mfX + 19, 48, 68) : clamp(mfX - 19, 32, 52);
-            } else if (phase === 'progressing') {
-                mfX = isHome ? clamp(ballX + 6, 36, 66) : clamp(ballX - 6, 34, 64);
-                fwX = isHome ? clamp(ballX + 23, 58, 84) : clamp(ballX - 23, 16, 42);
+                mfX = isHome ? clamp(ballX + 10 + tdPush, 28, 54) : clamp(ballX - 10 - tdPush, 46, 72);
+                fwX = isHome ? clamp(mfX + 19, 50, 72) : clamp(mfX - 19, 28, 50);
+            } else if (phase === 'progressing' || phase === 'counter') {
+                mfX = isHome ? clamp(ballX + 8 + tdPush * 0.6, 42, 70) : clamp(ballX - 8 - tdPush * 0.6, 30, 58);
+                fwX = isHome ? clamp(ballX + 23, 60, 86) : clamp(ballX - 23, 14, 40);
             } else {
                 const phasePush = phase === 'finalThird' ? 20 : 16;
                 fwX = isHome ? clamp(ballX + 14 + phasePush, 74, 91)
@@ -1862,10 +1876,18 @@ class RealSoccerEngine {
         // [팀별 공격 스타일 & 전환 전술 연동]
         const myTactic = this.getTeamTactic(tid);
         const myTSet = (this.tacticSettings && this.tacticSettings[tid]) || {};
+        const myLive = (this.liveDirectives && this.liveDirectives[tid]) || {};
+        const progFromOwn = isHome ? player.x : (100 - player.x);
+        const tdState = (this._transitionDrive && this._transitionDrive[tid]) ? this._transitionDrive[tid] : null;
+        const isConservativeHold = Boolean(myLive.timeWasting || myLive.mentality === 'veryDefensive' || ['catenaccio', 'parkBus'].includes(myTactic));
+        const inTransitionDrive = Boolean(tdState && tdState.ticks > 0 && !isConservativeHold);
         const isCounterStyle = ['counter', 'directCounter', 'lowBlockCounter'].includes(myTactic) ||
             (myTSet.offensiveTrans === 'counter' && ['longBall', 'routeOne', 'twoLine'].includes(myTactic));
         const isLongBallTactic = ['longBall', 'routeOne', 'twoLine'].includes(myTactic) || myTSet.passLength === 'direct';
         const isDirectBuildUpPhase = isLongBallTactic || (phase === 'building' && myTSet.buildUp === 'direct');
+        const frontCrowdEarly = this._numOpponentsAhead(player, 10, 16);
+        const mfNeedsMoreAdvanceBeforeLaunch = player.position === 'MF' && !isLongBallTactic && !isConservativeHold &&
+            progFromOwn < (isCounterStyle ? 45 : 52) && (!tdState || tdState.mfLinks < 2 || progFromOwn < (isCounterStyle ? 42 : 46));
 
         if (isDirectBuildUpPhase && (phase === 'building' || phase === 'progressing' || phase === 'counter')) {
             const longBall = this._findLongBallTarget(player, phase);
@@ -1877,14 +1899,18 @@ class RealSoccerEngine {
         if ((isCounterStyle || (myTSet.offensiveTrans === 'counter' && phase === 'counter')) &&
             !['longBall', 'routeOne', 'twoLine'].includes(myTactic) &&
             (phase === 'counter' || (isCounterStyle && phase === 'progressing'))) {
-            const counterBurst = this.players.find(p =>
-                p.teamId === tid && p !== player && p.position === 'FW' && (p._fwMode === 'burst' || p.burstTimer > 0)
-            ) || this.players.find(p => p.teamId === tid && p !== player && p.position === 'FW');
-            if (counterBurst) {
-                const cs = this._scorePass(player, counterBurst, phase);
-                if (cs > bestPassScore - 15) {
-                    bestPassTarget = counterBurst;
-                    bestPassScore = cs + 22;
+            // 역습 전환 시 자기 진영 깊숙이(44 미만)이고 앞이 열려 있으면 잠깐 전진/연계 후 찌르되, 44 이상에서는 즉시 역습 개시!
+            const readyToLaunchCounter = player.position !== 'MF' || progFromOwn >= 44 || underPressure || frontCrowdEarly >= 2 || (tdState && tdState.mfLinks >= 1 && progFromOwn >= 40);
+            if (readyToLaunchCounter) {
+                const counterBurst = this.players.find(p =>
+                    p.teamId === tid && p !== player && p.position === 'FW' && (p._fwMode === 'burst' || p.burstTimer > 0)
+                ) || this.players.find(p => p.teamId === tid && p !== player && p.position === 'FW');
+                if (counterBurst) {
+                    const cs = this._scorePass(player, counterBurst, phase);
+                    if (cs > bestPassScore - 15) {
+                        bestPassTarget = counterBurst;
+                        bestPassScore = cs + 22;
+                    }
                 }
             }
         }
@@ -1913,10 +1939,55 @@ class RealSoccerEngine {
             return;
         }
 
+        // [전환 전진 운반(Progressive Midfield Drive)]
+        // - 앵커/홀딩 DM은 3선 보호를 위해 짧게(최대 2틱·4.2야드)만 전진해 각을 열고 앞선 CM/AM에게 빠르게 연결한다.
+        // - CM/BBM/MEZ/AM 등은 앞이 열려 있으면 먼저 3~5틱 전진 운반으로 블록을 끌어올린 뒤 주고받거나 전방으로 쭉 뿌린다.
+        // - 역습 전술은 짧고 빠르게 치고 나간 뒤 즉시 킬패스를 우선하며, 시간끌기/극수비 지시 시에는 발동하지 않는다.
+        const isHoldingAnchorDM = player.position === 'MF' && (
+            ['DM', 'CDM', 'ANC', 'HB', 'BWM', 'DLP', 'REG'].includes(player.role) ||
+            ['CDM', 'DM'].includes(player.detailPosition)
+        );
+        let maxMfDriveDist = isHoldingAnchorDM ? 4.2 : (isCounterStyle ? 6.5 : (inTransitionDrive ? 11.0 : 8.5));
+        let maxMfHoldTicks = isHoldingAnchorDM ? 2 : (isCounterStyle ? 3 : (inTransitionDrive ? 5 : 4));
+        if (effDrib < 66) {
+            maxMfDriveDist = Math.min(maxMfDriveDist, 5.5);
+            maxMfHoldTicks = Math.min(maxMfHoldTicks, 3);
+        }
+        const hasOpenMidfieldRunway = player.position === 'MF' && !isLongBallTactic && !isConservativeHold &&
+            !underPressure && frontCrowdEarly === 0 &&
+            (!nDef || nDef.dist >= 5.2) &&
+            distToGoal > 24 && progFromOwn < (isHoldingAnchorDM ? 50 : 64) &&
+            (player._dribbleDistance || 0) < maxMfDriveDist &&
+            player._ballHoldTicks <= maxMfHoldTicks;
+        const bestPassIsGoodForwardMF = bestPassTarget && bestPassTarget.position === 'MF' &&
+            (isHome ? (bestPassTarget.x - player.x) : (player.x - bestPassTarget.x)) >= 5.5 &&
+            Math.hypot(bestPassTarget.x - player.x, bestPassTarget.y - player.y) <= 22 &&
+            bestPassScore >= 46;
+        const hasBurstKiller = killerPass && killerPass.target &&
+            (killerPass.target._fwMode === 'burst' || killerPass.target.burstTimer > 0) &&
+            killerPass.score >= 66 && progFromOwn >= 42;
+        const hasImmediateKillerFinish = hasBurstKiller || (killerPass && killerPass.score >= 72 && progFromOwn >= 44);
+        if (hasOpenMidfieldRunway && !hasImmediateKillerFinish) {
+            // 전진하는 동료 MF와 주고받을 타이밍(DM은 1틱, 일반 MF는 2틱 이상 몰았을 때)이 아니면 먼저 앞으로 치고 나간다.
+            const readyToHandOff = bestPassIsGoodForwardMF && (
+                isHoldingAnchorDM
+                    ? player._ballHoldTicks >= 1
+                    : (player._ballHoldTicks >= 2 && (player._dribbleDistance || 0) >= 3.5)
+            );
+            if (!readyToHandOff) {
+                player._dribbleCommit = isHoldingAnchorDM ? 1 : 2;
+                if (!isHoldingAnchorDM && player.burstTimer <= 0 && inTransitionDrive && effDrib >= 68) player.burstTimer = 6;
+                this._dribbleV3(player, goalX, moveDir, phase, underPressure, isWinger, distToGoal, nDef, effectSpeed);
+                return;
+            }
+        }
+
         // [6단계] 역습 전환 시 스트라이커 단독 질주 억제 & 열린 전방 동료에게 즉시 킬패스 방출
         if (phase === 'counter' && bestPassTarget && Number.isFinite(bestPassScore)) {
             const isFwd = Math.abs(bestPassTarget.x - goalX) < distToGoal - 2.0;
-            if (isFwd && !underPressure) {
+            const passDistNow = Math.hypot(bestPassTarget.x - player.x, bestPassTarget.y - player.y);
+            const skipEarlyLaunch = mfNeedsMoreAdvanceBeforeLaunch && bestPassTarget.position === 'FW' && passDistNow > 22 && !underPressure && frontCrowdEarly <= 1;
+            if (isFwd && !underPressure && !skipEarlyLaunch) {
                 this._executePassV3(player, bestPassTarget, phase);
                 return;
             }
@@ -2693,8 +2764,38 @@ class RealSoccerEngine {
             }
         }
 
-        // 6. [미드필더의 분산 연계] 같은 채널의 윙어, 오버래핑 풀백, 2선 쇄도, 밑으로 내려온 공격수에게 골고루 분배
+        // 6. [미드필더의 전진 연계 & 전방 킬패스 리듬]
+        // 자기 진영/하프라인 부근에서는 미드필더끼리 전진하며 짧게 주고받아 라인을 밀어올리고,
+        // 하프라인을 넘어 상대 진영에 진입하면 침투하는 공격수·윙어에게 시원하게 쭉 뿌린다!
         if (from.position === 'MF' && isSameOrAdjChannel && !back) {
+            const progressiveX = isHome ? (to.x - from.x) : (from.x - to.x);
+            const tdPassState = (this._transitionDrive && this._transitionDrive[tid]) ? this._transitionDrive[tid] : null;
+            const isLongBallPass = ['longBall', 'routeOne', 'twoLine'].includes(tactic) || tSettings.passLength === 'direct';
+
+            const isCounterPass = ['counter', 'directCounter', 'lowBlockCounter'].includes(tactic);
+            const launchLineX = isCounterPass ? 44 : 50;
+            if (!isLongBallPass && distFromOwnGoal < (isCounterPass ? 48 : 54)) {
+                // 1단계: 자기 진영~하프라인 — 전진하는 동료 미드필더와 주고받으며 전진!
+                if (to.position === 'MF' && progressiveX >= 3.5 && dist <= 22 && oppNearRecv <= 1 && laneBlock === 0) {
+                    score += tdPassState ? 38 : 24;
+                    if (progressiveX >= 7) score += 10;
+                } else if (to.position === 'MF' && progressiveX < 2.5 && !fromUnderPressure && frontDefCount < 2) {
+                    // 압박이 없는데 제자리/횡으로만 주고받는 패스는 소폭 감점해 전진 유도
+                    score -= 10;
+                }
+                // 아직 하프라인 전에서 먼 FW에게 성급하게 쭉 뿌리는 패스는 절제 (단, 역습 팀의 침투 burst 패스는 허용)
+                if (to.position === 'FW' && !isLinkupTarget && !(isCounterPass && isBurstTarget) && distFromOwnGoal < launchLineX && dist > 18 && (!tdPassState || tdPassState.mfLinks < 2)) {
+                    score -= isCounterPass ? 14 : 26;
+                }
+            } else if (distFromOwnGoal >= launchLineX) {
+                // 2단계: 하프라인 돌파 후 상대 진영 진입 — 전방 침투 FW/윙어에게 시원하게 쭉 뿌리기!
+                const afterMidCombo = Boolean(tdPassState && tdPassState.mfLinks >= 1);
+                if ((to.position === 'FW' || isWideTarget) && progressiveX >= 9 && dist >= 12 && dist <= 42 && oppNearRecv <= 1) {
+                    score += afterMidCombo ? 38 : 24;
+                    if (isBurstTarget) score += 14;
+                }
+            }
+
             if (isWideTarget) score += 14; // 같은 사이드 윙어/와이드MF에게 볼 배급
             if (to.role === 'SS' || to.role === 'BBM') score += 14; // 2선 쇄도 자원에게 연결
             if (to.position === 'DF' && to._fbMode === 'overlap') score += 18; // 오버래핑 풀백 지원
@@ -2899,9 +3000,19 @@ class RealSoccerEngine {
         this.ball.flightDist = Math.max(1, dist);
         this.ball.maxHeight = isCross ? 3.6 : (isSwitchPlay ? 3.2 : (dist > 30 ? 2.5 : (dist > 18 ? 1.0 : 0.1)));
 
-        // [공격 다변화: 패스 후 쇄도] 전진 패스를 준 선수는 앞으로 가속 침투 (기브앤고 콤비네이션 연계)
-        if (forward && dist < 24 && (from.position === 'FW' || from.position === 'MF')) {
-            from.burstTimer = 22;
+        // [공격 다변화: 패스 후 쇄도] 전진 패스 또는 미드필더 연계 패스를 준 선수는 앞으로 가속 침투 (전진 주고받기 콤비네이션)
+        const isPasserAnchorDM = ['DM', 'CDM', 'ANC', 'HB'].includes(from.role);
+        const isMidProgressionLink = from.position === 'MF' && to.position === 'MF' && dist <= 24 && (dToGoalTo <= dToGoalFr + 2);
+        if ((forward && dist < 24 && (from.position === 'FW' || from.position === 'MF')) || (isMidProgressionLink && !isPasserAnchorDM)) {
+            from.burstTimer = 24;
+        }
+        if (this._transitionDrive && this._transitionDrive[tid]) {
+            if (from.position === 'MF' && to.position === 'MF') {
+                this._transitionDrive[tid].mfLinks = (this._transitionDrive[tid].mfLinks || 0) + 1;
+            } else if (from.position === 'MF' && to.position === 'FW' && dToGoalTo < dToGoalFr - 8) {
+                // 전진 연계 후 전방으로 쭉 뿌리는 데 성공했으면 전환 드라이브 완료
+                this._transitionDrive[tid] = null;
+            }
         }
 
         // [FIFA 공식 오프사이드 규칙 정밀 판정 (패스 방출 순간 기준)]
@@ -3131,14 +3242,14 @@ class RealSoccerEngine {
                 targetX = player.x + moveDir * 22;
                 moveSpd = 0.76 * clamp(sf, 0.76, 1.36);
             }
-        } else if (phase === 'progressing') {
+        } else if (phase === 'progressing' || phase === 'counter') {
             targetX = player.x + moveDir * 40;
             targetY = clamp(player.y + (50 - player.y) * 0.15, 8, 92);
-            moveSpd = 0.84 * clamp(sf, 0.80, 1.44);
+            moveSpd = (player.position === 'MF' ? 0.90 : 0.84) * clamp(sf, 0.80, 1.48);
         } else if (phase === 'building') {
-            targetX = player.x + moveDir * 28;
+            targetX = player.x + moveDir * 32;
             targetY = clamp(player.y + (player.y < 50 ? 4 : -4), 10, 90);
-            moveSpd = 0.72 * clamp(sf, 0.74, 1.30);
+            moveSpd = (player.position === 'MF' ? 0.86 : 0.72) * clamp(sf, 0.76, 1.40);
         } else {
             targetX = goalX;
             targetY = clamp(50 + (player.y - 50) * 0.40, 16, 84);
@@ -3533,19 +3644,38 @@ class RealSoccerEngine {
         this._phase[winningTeamId] = triggerCounterPhase ? 'counter' : (isOwnDeepWin ? 'building' : 'progressing');
         const counterDuration = isPureCounterTeam ? 26 : (isHighPressTrans ? 12 : (isPossessionTeam ? 8 : 16));
         this._phaseTimer[winningTeamId] = triggerCounterPhase ? counterDuration : 0;
+        if (!this._transitionDrive) this._transitionDrive = { home: null, away: null };
+        this._transitionDrive[losing] = null;
+        const winStartProg = winningTeamId === 'home' ? this.ball.x : (100 - this.ball.x);
+        const winLive = (this.liveDirectives && this.liveDirectives[winningTeamId]) || {};
+        const isLongBallWin = ['longBall', 'routeOne', 'twoLine'].includes(winTactic) || winTSet.passLength === 'direct';
+        const isConservativeWin = Boolean(winLive.timeWasting || winLive.mentality === 'veryDefensive' || ['catenaccio', 'parkBus'].includes(winTactic));
+        if (!isGKRestart && !isLongBallWin && !isConservativeWin && winStartProg < 62) {
+            this._transitionDrive[winningTeamId] = {
+                ticks: isPureCounterTeam ? 32 : 52,
+                startProg: winStartProg,
+                mfLinks: 0
+            };
+        } else {
+            this._transitionDrive[winningTeamId] = null;
+        }
         this._attackMemories[winningTeamId] = new Array(8).fill(null);
         this._attackMemIdx[winningTeamId] = 0;
 
         // 공격 전환 시 최소 1~2명의 전방 침투로 패스 각도를 열어주고, 역습/고라인 대응 시 동시 침투 가동
+        // (공미 AM/AP/SS/CAM은 최전방 오프사이드 라인까지 튀어나가지 않고 2선에서 연결/마무리하도록 제외)
         const oppGoalX = winningTeamId === 'home' ? 100 : 0;
         const burstCount = triggerCounterPhase ? 2 : (isPossessionTeam ? 1 : 2);
         const burstDur = 48;
-        const toBurst = this.players.filter(p =>
-            p.teamId === winningTeamId &&
-            p !== this.ball.owner &&
-            p.role !== 'TM' &&
-            (p.position === 'FW' || (p.position === 'MF' && this.getRoleBehavior(p.role).runBehind >= 0.6))
-        ).sort((a, b) => {
+        const toBurst = this.players.filter(p => {
+            if (p.teamId !== winningTeamId || p === this.ball.owner || p.role === 'TM') return false;
+            if (p.position === 'FW') return true;
+            if (p.position === 'MF') {
+                const isWideMid = ['W', 'IW', 'IF', 'LM', 'RM'].includes(p.role) || ['LW', 'RW', 'LM', 'RM'].includes(p.detailPosition);
+                return isWideMid && this.getRoleBehavior(p.role).runBehind >= 0.6;
+            }
+            return false;
+        }).sort((a, b) => {
             const ra = this.getRoleBehavior(a.role).runBehind || 0;
             const rb = this.getRoleBehavior(b.role).runBehind || 0;
             const scoreA = Math.abs(a.x - oppGoalX) - ra * 14;
@@ -3968,18 +4098,33 @@ class RealSoccerEngine {
                 this._physicsStep(p, tx, ty, ms); return;
             }
 
-            // [4단계] 패스 직후 움직임: 패스한 선수가 멈추지 않고 삼각형을 유지하며 재지원 위치로 이동
+            // [4단계] 패스 직후 움직임: 패스한 선수가 멈추지 않고 전진 삼각형을 만들며 재지원 위치로 이동
             if (p._postPassSupportTicks > 0 && p._postPassSupportTarget && p.position !== 'GK') {
                 const to = p._postPassSupportTarget;
+                const isAMRole = p.position === 'MF' && (['AP', 'AM', 'SS'].includes(p.role) || ['CAM', 'AM'].includes(p.detailPosition));
+                const isDMRole = p.position === 'MF' && (['DM', 'CDM', 'ANC', 'HB', 'DLP', 'REG', 'BWM'].includes(p.role) || ['CDM', 'DM'].includes(p.detailPosition));
                 if (p.burstTimer > 0) {
-                    tx = isHome ? to.x + 6 : to.x - 6;
-                    ty = p.slotY;
-                    ms = 0.88 * clamp(speedFactor, 0.85, 1.8);
+                    const advancePush = p.position === 'MF' ? (isAMRole ? 4.5 : (isDMRole ? 3.5 : 9.5)) : 7.0;
+                    tx = isHome ? clamp(to.x + advancePush, 6, 94) : clamp(to.x - advancePush, 6, 94);
+                    ty = clamp(p.slotY * 0.7 + to.y * 0.3, 10, 90);
+                    ms = (isAMRole ? 0.80 : 0.90) * clamp(speedFactor, 0.85, 1.82);
                 } else {
                     const side = (p.y <= to.y ? -1 : 1);
-                    tx = isHome ? (to.x - 4.5) : (to.x + 4.5);
+                    const supportOffsetX = (p.position === 'MF' && !isDMRole) ? (isAMRole ? 1.5 : 3.5) : -4.0;
+                    tx = isHome ? (to.x + supportOffsetX) : (to.x - supportOffsetX);
                     ty = clamp(to.y + side * 10, 8, 92);
-                    ms = 0.65 * clamp(speedFactor, 0.8, 1.6);
+                    ms = 0.72 * clamp(speedFactor, 0.82, 1.65);
+                }
+                // 공미(AM/CAM)는 패스 후 전진 시에도 공격수 라인을 넘지 않고 2선·페널티 아크 부근을 유지
+                if (isAMRole) {
+                    const amPhaseCap = this._phase[p.teamId] === 'finalThird' ? 75 : 67;
+                    tx = isHome ? Math.min(tx, amPhaseCap) : Math.max(tx, 100 - amPhaseCap);
+                    const teamFWs = this.players.filter(q => q.teamId === p.teamId && q.position === 'FW');
+                    if (teamFWs.length) {
+                        const frontFW = isHome ? Math.max(...teamFWs.map(q => q.x)) : Math.min(...teamFWs.map(q => q.x));
+                        const amLimit = isHome ? frontFW - 8.0 : frontFW + 8.0;
+                        tx = isHome ? Math.min(tx, amLimit) : Math.max(tx, amLimit);
+                    }
                 }
                 this._physicsStep(p, tx, ty, ms);
                 return;
@@ -4349,32 +4494,32 @@ class RealSoccerEngine {
                 ms = 0.68 * clamp(sf, 0.85, 1.72);
             } else {
                 if (phase === 'building') {
-                    tx = lines.mfX + fwd * (isDM ? -5 : (isAM ? 3 : -1));
+                    tx = lines.mfX + fwd * (isDM ? -5 : (isAM ? 2 : -1));
                     ms = 0.64 * clamp(sf, 0.82, 1.68);
                 } else if (phase === 'progressing') {
-                    tx = lines.mfX + fwd * (isDM ? -4 : (isAM ? 8 : (isLateRunnerMF ? 5 : 2)));
-                    ms = (isLateRunnerMF ? 0.84 : 0.74) * clamp(sf, 0.84, 1.82);
+                    tx = lines.mfX + fwd * (isDM ? -4 : (isAM ? 4.5 : (isLateRunnerMF ? 4 : 2)));
+                    ms = (isLateRunnerMF ? 0.80 : 0.74) * clamp(sf, 0.84, 1.80);
                 } else if (phase === 'finalThird') {
-                    // 파이널 서드에서 DM은 3선(52~62) 보호, CM/BBM/MEZ/AM은 박스 안팎(76~88)으로 적극 2선 침투!
-                    tx = lines.mfX + fwd * (isDM ? -6 : (isAM ? 16 : (isLateRunnerMF ? 13 : 9)));
-                    ms = (isLateRunnerMF ? 0.94 : 0.84) * clamp(sf, 0.86, 1.92);
+                    // 파이널 서드에서 DM은 3선(52~62) 보호, 공미(AM)는 공격수 바로 뒤 2선·페널티 아크(72~80) 유지
+                    tx = lines.mfX + fwd * (isDM ? -6 : (isAM ? 9.5 : (isLateRunnerMF ? 9.5 : 7.5)));
+                    ms = (isLateRunnerMF ? 0.88 : 0.82) * clamp(sf, 0.86, 1.88);
                 } else {
-                    tx = lines.mfX + fwd * (isDM ? -2 : 6);
-                    ms = (isLateRunnerMF ? 0.88 : 0.78) * clamp(sf, 0.85, 1.85);
+                    tx = lines.mfX + fwd * (isDM ? -2 : (isAM ? 4.5 : 5));
+                    ms = (isLateRunnerMF ? 0.84 : 0.78) * clamp(sf, 0.85, 1.82);
                 }
             }
 
-            // 롤별 절대 전진 상한선 (DM은 레스트 디펜스 유지, 2선 침투형 미드필더는 박스 안쪽까지 적극 진입)
+            // 롤별 절대 전진 상한선 (DM은 레스트 디펜스 유지, 공미는 공격수보다 한 칸 낮은 2선·아크 부근 유지)
             const maxAllowedHome = isDM
                 ? (phase === 'finalThird' ? 62 : 53)
-                : (isAM ? (phase === 'finalThird' ? 89 : 76) : (isLateRunnerMF ? (phase === 'finalThird' ? 86 : 73) : (phase === 'finalThird' ? 82 : 69)));
+                : (isAM ? (phase === 'finalThird' ? 75 : 67) : (isLateRunnerMF ? (phase === 'finalThird' ? 78 : 69) : (phase === 'finalThird' ? 76 : 66)));
             const minAllowedAway = 100 - maxAllowedHome;
             tx = isHome ? Math.min(tx, maxAllowedHome) : Math.max(tx, minAllowedAway);
 
             const fws = mates.filter(q => q.position === 'FW');
             if (fws.length && !p._comingShort) {
                 const frontFW = isHome ? Math.max(...fws.map(q => q.x)) : Math.min(...fws.map(q => q.x));
-                const gapFromFW = isDM ? 16 : (isAM ? 2.5 : (isLateRunnerMF ? 3.5 : 5.5));
+                const gapFromFW = isDM ? 16 : (isAM ? 8.5 : (isLateRunnerMF ? 6.5 : 8.0));
                 const limit = isHome ? frontFW - gapFromFW : frontFW + gapFromFW;
                 tx = isHome ? Math.min(tx, limit) : Math.max(tx, limit);
             }
@@ -4411,7 +4556,7 @@ class RealSoccerEngine {
         // 라볼피아나는 빌드업 초기에 수비 라인과 중원을 연결하고, 역습은 2선의 전진을 허용한다.
         if (!p._comingShort) {
             if (tactic === 'tikitaka') {
-                tx += fwd * (isAM ? 3 : (isDM ? -1 : 1));
+                tx += fwd * (isAM ? 1.5 : (isDM ? -1 : 1));
                 if (carr) ty = clamp(ty + (carr.y - ty) * 0.22, 12, 88);
             } else if (tactic === 'possession') {
                 if (phase !== 'finalThird') {
@@ -4421,39 +4566,54 @@ class RealSoccerEngine {
                         ty = clamp(ty + (carr.y - ty) * 0.28, 12, 88);
                     }
                 } else {
-                    tx += fwd * (isAM ? 3 : (isDM ? -1 : 1));
+                    tx += fwd * (isAM ? 1.5 : (isDM ? -1 : 1));
                 }
             } else if (tactic === 'lavolpiana' && phase === 'building') {
                 if (isDM) {
                     tx = isHome ? clamp(lines.dfX + 2, 22, 44) : clamp(lines.dfX - 2, 56, 78);
                     ty = 50; // 센터백 사이 중앙으로 확실히 하강 (변형 3백 형성)
                 } else if (isAM) {
-                    tx += fwd * 4;
+                    tx += fwd * 2;
                 }
             } else if ((tactic === 'counter' || tactic === 'longBall') && phase === 'progressing' && !isDM) {
-                tx += fwd * (isAM ? 7 : 3);
+                tx += fwd * (isAM ? 4 : 2.5);
             }
         }
 
-        // [4단계] 삼각형 유지 오프더볼: 서포트 1/2 역할에 따라 공 소유자 기준 각도 확보
+        // [4단계] 삼각형 유지 오프더볼: 서포트 1/2 역할에 따라 공 소유자 기준 전진 패스 각도 확보 (DM은 3선 보호 유지)
         if (p._isTriangleSupport && carr && !isWingerRole) {
             const roleIdx = p._supportRole || 1;
             const side = (roleIdx === 1 ? (p.y <= refY ? -1 : 1) : (p.y <= refY ? 1 : -1));
-            const offsetX = (roleIdx === 1 ? fwd * 4.5 : fwd * -5.0);
-            const offsetY = side * (tactic === 'tikitaka' ? 9 : 13);
-            tx = (tx * 0.4) + (clamp(refX + offsetX, 6, 94) * 0.6);
+            const inDrive = Boolean(this._transitionDrive && this._transitionDrive[tid]);
+            const fwdPush1 = isDM ? 4.0 : ((inDrive || phase === 'progressing' || phase === 'counter') ? 9.5 : 6.5);
+            const fwdPush2 = isDM ? -4.5 : (inDrive ? 5.0 : 2.0);
+            const offsetX = (roleIdx === 1 ? fwd * fwdPush1 : fwd * fwdPush2);
+            const offsetY = side * (tactic === 'tikitaka' ? 10 : 13);
+            tx = (tx * 0.35) + (clamp(refX + offsetX, 6, 94) * 0.65);
             ty = (ty * 0.4) + (clamp(refY + offsetY, 10, 90) * 0.6);
-            ms = Math.max(ms, 0.64 * clamp(sf, 0.8, 1.6));
+            ms = Math.max(ms, (inDrive && !isDM ? 0.82 : 0.70) * clamp(sf, 0.82, 1.75));
         }
 
-        // 측면 크로스 찬스 시 오직 공격형 미드필더(AM/SS) 단 1명만 페널티 아크/박스 입구(75~80)로 침투 지원
+        // 측면 크로스 찬스 시 공미(AM/SS)는 박스 안 최전방이 아닌 페널티 아크·컷백 존(67~74)으로 지원
         const isWingerCrossSituation = carr && Math.abs(carr.y - 50) > 20 && (isHome ? carr.x > 74 : carr.x < 26);
         if (!p._comingShort && isWingerCrossSituation && isAM && (p.role === 'SS' || p.role === 'AM')) {
-            const lateRunTx = isHome ? clamp(offX - 4.0, 74, 80) : clamp(offX + 4.0, 20, 26);
+            const lateRunTx = isHome ? clamp(offX - 10.0, 67, 74) : clamp(offX + 10.0, 26, 33);
             const lateRunTy = clamp(50 + (carr ? (carr.y < 50 ? -4 : 4) : 0), 42, 58);
             tx = (tx * 0.4) + (lateRunTx * 0.6);
             ty = (ty * 0.4) + (lateRunTy * 0.6);
-            ms = 0.78 * clamp(sf, 0.85, 1.8);
+            ms = 0.74 * clamp(sf, 0.85, 1.75);
+        }
+
+        // 공미(AM/AP/SS) 최종 2선 상한 클램프: 전술 보정/삼각형 서포트 이후에도 공격수 라인보다 한 칸 낮게 유지
+        if (isAM && !isWingerRole && !p._comingShort) {
+            const amCapHome = phase === 'finalThird' ? 75 : 67;
+            tx = isHome ? Math.min(tx, amCapHome) : Math.max(tx, 100 - amCapHome);
+            const fwsFinal = mates.filter(q => q.position === 'FW');
+            if (fwsFinal.length) {
+                const frontFWFinal = isHome ? Math.max(...fwsFinal.map(q => q.x)) : Math.min(...fwsFinal.map(q => q.x));
+                const amLimit = isHome ? frontFWFinal - 8.5 : frontFWFinal + 8.5;
+                tx = isHome ? Math.min(tx, amLimit) : Math.max(tx, amLimit);
+            }
         }
 
         // [5단계] 수비형 미드필더와 센터백 간격 제어 (CB-DM 최대 12m 간격 제한 & Zone 14 커버)
