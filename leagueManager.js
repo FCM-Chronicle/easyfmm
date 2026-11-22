@@ -579,6 +579,17 @@ const LeagueManager = {
             thead.appendChild(hRow);
             tableEl.appendChild(thead);
 
+            const uclQuotas = {
+                premier_league: 5,
+                laliga: 5,
+                bundesliga: 5,
+                serie_a: 5,
+                ligue_1: 4,
+                liga_portugal: 3,
+                eredivisie: 3,
+                super_lig: 2
+            };
+
             const tbody = document.createElement('tbody');
             rows.forEach((entry, idx) => {
                 const rank = idx + 1;
@@ -589,9 +600,12 @@ const LeagueManager = {
 
                 let zoneStyle = '';
                 let zoneBadge = '';
+                let isUclZone = false;
                 if (zoneMode === 'premier_league') {
-                    if (rank <= 4) { zoneStyle = 'border-left: 3px solid #38BDF8;'; }
+                    if (rank <= uclQuotas.premier_league) { zoneStyle = 'border-left: 3px solid #38BDF8; background: rgba(56,189,248,0.06);'; isUclZone = true; }
                     else if (rank >= 18) { zoneStyle = 'border-left: 3px solid #EF4444; background: rgba(239,68,68,0.06);'; zoneBadge = '🔻'; }
+                } else if (uclQuotas[zoneMode]) {
+                    if (rank <= uclQuotas[zoneMode]) { zoneStyle = 'border-left: 3px solid #38BDF8; background: rgba(56,189,248,0.06);'; isUclZone = true; }
                 } else if (zoneMode === 'efl_championship') {
                     if (rank <= 2) { zoneStyle = 'border-left: 3px solid #10B981; background: rgba(16,185,129,0.08);'; zoneBadge = '🔺'; }
                     else if (rank >= 3 && rank <= 6) { zoneStyle = 'border-left: 3px solid #F59E0B; background: rgba(245,158,11,0.07);'; zoneBadge = 'PO'; }
@@ -601,8 +615,12 @@ const LeagueManager = {
                 } else if (zoneMode === 'mls_overall') {
                     if (rank === 1) { zoneStyle = 'border-left: 3px solid #FBBF24; background: rgba(251,191,36,0.08);'; zoneBadge = '🛡️'; }
                 }
-                if (zoneStyle && entry.team !== gameData.selectedTeam) {
-                    tr.style.cssText += zoneStyle;
+                if (zoneStyle) {
+                    if (entry.team !== gameData.selectedTeam) {
+                        tr.style.cssText += zoneStyle;
+                    } else if (isUclZone) {
+                        tr.style.borderLeft = '3px solid #38BDF8';
+                    }
                 }
 
                 const tdRank = document.createElement('td');
@@ -611,6 +629,7 @@ const LeagueManager = {
                 else if (zoneBadge === 'PO') tdRank.style.color = (zoneMode === 'mls_conf') ? '#38BDF8' : '#FBBF24';
                 else if (zoneBadge === 'WC' || zoneBadge === '🛡️') tdRank.style.color = '#FBBF24';
                 else if (zoneBadge === '🔻') tdRank.style.color = '#F87171';
+                else if (isUclZone) { tdRank.style.color = '#38BDF8'; tdRank.style.fontWeight = '700'; }
 
                 const tdTeam = document.createElement('td');
                 tdTeam.style.textAlign = 'left';
@@ -719,12 +738,24 @@ const LeagueManager = {
 
         container.appendChild(buildStandingsTableElement(standings, curLeagueId));
 
-        // 승강제 / 플레이오프 범례 및 EFL 챔피언십 플레이오프 대진표 표시
-        if (curLeagueId === 'premier_league' || curLeagueId === 'efl_championship') {
+        // UCL 진출권 / 승강제 / 플레이오프 범례 표시
+        const legendUclQuotas = {
+            premier_league: 5,
+            laliga: 5,
+            bundesliga: 5,
+            serie_a: 5,
+            ligue_1: 4,
+            liga_portugal: 3,
+            eredivisie: 3,
+            super_lig: 2
+        };
+        if (legendUclQuotas[curLeagueId] || curLeagueId === 'efl_championship') {
             const legend = document.createElement('div');
             legend.style.cssText = 'margin-top: 10px; padding: 10px 14px; border-radius: 10px; background: rgba(15,23,42,0.75); border: 1px solid rgba(255,255,255,0.08); font-size: 0.82rem; color: #CBD5E1; display: flex; flex-wrap: wrap; gap: 14px; align-items: center;';
             if (curLeagueId === 'premier_league') {
-                legend.innerHTML = '<span><strong style="color:#38BDF8;">1~4위</strong>: UCL 본선</span><span><strong style="color:#F87171;">18~20위 🔻</strong>: EFL 챔피언십 강등</span>';
+                legend.innerHTML = `<span><strong style="color:#38BDF8;">1~${legendUclQuotas.premier_league}위</strong>: ⭐ UCL 본선</span><span><strong style="color:#F87171;">18~20위 🔻</strong>: EFL 챔피언십 강등</span>`;
+            } else if (legendUclQuotas[curLeagueId]) {
+                legend.innerHTML = `<span><strong style="color:#38BDF8;">1~${legendUclQuotas[curLeagueId]}위</strong>: ⭐ UCL 본선</span>`;
             } else {
                 legend.innerHTML = '<span><strong style="color:#34D399;">1~2위 🔺</strong>: 프리미어리그 자동 승격</span><span><strong style="color:#FBBF24;">3~6위 PO</strong>: 승격 플레이오프 (3vs6, 4vs5 홈&어웨이 준결승 → 웸블리 결승)</span>';
             }

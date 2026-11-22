@@ -458,7 +458,9 @@ class CupCompetitionManager {
         ];
         const excludedKeys = ['브라질_연합', '알_힐랄', '알_나스르'];
 
-        // 리그별 팀 분류 및 Top 11 OVR 정렬
+        // 리그별 팀 분류 및 정렬 (시즌 2 이후 전 시즌 순위 기록이 있으면 순위 우선, 시즌 1은 Top 11 OVR 순)
+        const prevMeta = (typeof gameData !== 'undefined' && gameData.prevSeasonUclMeta) ? gameData.prevSeasonUclMeta : null;
+        const prevStandings = (prevMeta && prevMeta.leagueStandings) ? prevMeta.leagueStandings : null;
         const leagueTeams = {};
         europeanLeagues.forEach(l => { leagueTeams[l] = []; });
 
@@ -466,16 +468,24 @@ class CupCompetitionManager {
             const t = allTeams[key];
             if (!t || excludedKeys.includes(key)) continue;
             if (europeanLeagues.includes(t.leagueId)) {
+                const rankList = prevStandings && Array.isArray(prevStandings[t.leagueId]) ? prevStandings[t.leagueId] : null;
+                const prevRank = rankList ? rankList.indexOf(key) : -1;
                 leagueTeams[t.leagueId].push({
                     key,
                     league: t.leagueId,
-                    ovr: this.getTeamRating(key)
+                    ovr: this.getTeamRating(key),
+                    prevRank: prevRank >= 0 ? prevRank : 999
                 });
             }
         }
 
         for (const l in leagueTeams) {
-            leagueTeams[l].sort((a, b) => b.ovr - a.ovr);
+            const hasPrev = prevStandings && Array.isArray(prevStandings[l]) && prevStandings[l].length > 0;
+            if (hasPrev) {
+                leagueTeams[l].sort((a, b) => (a.prevRank !== b.prevRank) ? (a.prevRank - b.prevRank) : (b.ovr - a.ovr));
+            } else {
+                leagueTeams[l].sort((a, b) => b.ovr - a.ovr);
+            }
         }
 
         const quotas = {
@@ -504,14 +514,16 @@ class CupCompetitionManager {
             selected.push(remaining.shift());
         }
 
-        const isUserEuropean = allTeams[userTeam] && europeanLeagues.includes(allTeams[userTeam].leagueId);
-        const userInSelected = selected.some(t => t.key === userTeam);
-        if (isUserEuropean && !userInSelected) {
-            selected[35] = {
-                key: userTeam,
-                league: allTeams[userTeam].leagueId,
-                ovr: this.getTeamRating(userTeam)
-            };
+        // 디펜딩 챔피언 자동 진출 (전 시즌 UCL 우승팀이 유럽 1부 소속이고 아직 미포함일 때만)
+        const prevChampion = prevMeta ? prevMeta.champion : null;
+        if (prevChampion && allTeams[prevChampion] && europeanLeagues.includes(allTeams[prevChampion].leagueId)) {
+            if (!selected.some(t => t.key === prevChampion)) {
+                selected[35] = {
+                    key: prevChampion,
+                    league: allTeams[prevChampion].leagueId,
+                    ovr: this.getTeamRating(prevChampion)
+                };
+            }
         }
 
         selected.sort((a, b) => b.ovr - a.ovr);

@@ -489,6 +489,30 @@ function endSeason(silent = false) {
         recordsSys.initialize();
     }
     
+    // 다음 시즌 UCL 진출권 산정을 위해 초기화 전 유럽 리그 최종 순위 & 디펜딩 챔피언 스냅샷 저장
+    try {
+        const euroLeagues = ['premier_league', 'laliga', 'bundesliga', 'serie_a', 'ligue_1', 'liga_portugal', 'eredivisie', 'super_lig'];
+        const leagueStandingsSnap = {};
+        euroLeagues.forEach(lid => {
+            const ld = gameData.leagueData && gameData.leagueData[lid];
+            if (ld && typeof ld === 'object') {
+                const sorted = Object.keys(ld).map(tk => ({
+                    team: tk,
+                    points: ld[tk].points || 0,
+                    gd: (ld[tk].goalsFor || 0) - (ld[tk].goalsAgainst || 0),
+                    gf: ld[tk].goalsFor || 0
+                })).sort((a, b) => (b.points - a.points) || (b.gd - a.gd) || (b.gf - a.gf));
+                if (sorted.length > 0) leagueStandingsSnap[lid] = sorted.map(x => x.team);
+            }
+        });
+        gameData.prevSeasonUclMeta = {
+            leagueStandings: leagueStandingsSnap,
+            champion: (gameData.ucl && gameData.ucl.champion) ? gameData.ucl.champion : null
+        };
+    } catch (e) {
+        console.warn('[endSeason] prevSeasonUclMeta 저장 실패:', e);
+    }
+
     if (typeof initializeLeagueData === 'function') {
         initializeLeagueData();
     }

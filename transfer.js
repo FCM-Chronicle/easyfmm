@@ -41,7 +41,6 @@ class TransferSystem {
             { "name": "카림 코네", "position": "FW", "country": "코트디부아르", "rating": 77, "age": 20, "team": "레드불 잘츠부르크" },
             { "name": "폴 포그바", "position": "MF", "country": "프랑스", "rating": 80, "age": 32, "team": "유벤투스" },
             { "name": "델레 알리", "position": "MF", "country": "잉글랜드", "rating": 79, "age": 29, "team": "에버턴" },
-            { "name": "맥스 다우먼", "position": "FW", "country": "잉글랜드", "rating": 66, "age": 17, "team": "아스널 U-21", "detailPosition": "RW", "otherPositions": ["CAM","RM"], "potential": 87, "preferredFoot": "Left", "weakFoot": 4, "skillMoves": 4, "attributes": { "pace": 75, "shooting": 63, "passing": 68, "dribbling": 75, "defending": 32, "physical": 46 }, "traits": ["예리한 감아차기", "테크니션", "독창성"] },
             { "name": "배승균", "position": "MF", "country": "대한민국", "rating": 65, "age": 19, "team": "FC 도르드레흐트", "detailPosition": "CM", "otherPositions": ["CDM","CAM"], "potential": 85, "preferredFoot": "Right", "weakFoot": 3, "skillMoves": 3, "attributes": { "pace": 70, "shooting": 58, "passing": 67, "dribbling": 68, "defending": 59, "physical": 62 }, "traits": [] },
         ];
     }
