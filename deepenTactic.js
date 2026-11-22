@@ -3411,11 +3411,11 @@ class RealSoccerEngine {
         const bigChanceBonus = isOneOnOne ? 0.03 : 0;
 
         const goalMult = (typeof MatchTuning !== 'undefined' && MatchTuning.goalMultiplier !== undefined)
-            ? MatchTuning.goalMultiplier : 0.78;
+            ? MatchTuning.goalMultiplier : 1.16;
         const minG = (typeof MatchTuning !== 'undefined' && MatchTuning.minGoalChance !== undefined)
             ? MatchTuning.minGoalChance : 0.03;
         const maxG = (typeof MatchTuning !== 'undefined' && MatchTuning.maxGoalChance !== undefined)
-            ? MatchTuning.maxGoalChance : 0.36;
+            ? MatchTuning.maxGoalChance : 0.45;
 
         const wideAngleMult = dY > 14 ? clamp(1.0 - (dY - 14) * 0.012, 0.72, 1.0) : 1.0;
         let goalChance = clamp((0.12 + inBoxBonus + fwBonus + statBonus + traitBonus + patternBonus + bigChanceBonus) * goalMult * wideAngleMult, minG, maxG);
