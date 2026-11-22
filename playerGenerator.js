@@ -1241,7 +1241,7 @@
         const rand = Math.random();
         let cumulative = 0;
         let selectedTierKey = 'average';
-        const chances = (scout && scout.potChances) || { poor: 0.45, average: 0.45, promising: 0.098, wonderkid: 0.002 };
+        const chances = (scout && scout.potChances) || { poor: 0.422, average: 0.45, promising: 0.098, wonderkid: 0.03 };
 
         for (const [tierKey, prob] of Object.entries(chances)) {
             cumulative += prob;

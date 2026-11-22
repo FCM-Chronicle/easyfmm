@@ -363,7 +363,7 @@ class RealSoccerEngine {
         this._attackMemIdx = { home: 0, away: 0 };
         this._fwBurstCooldown = { home: 0, away: 0 };
         this._fwLinkupCooldown = { home: 0, away: 0 };
-        this._postKickoffDefRealignTicks = 32;
+        this._postKickoffDefRealignTicks = 12;
 
         this.teamStrength = { home: 70, away: 70 };
         this.teamStrength.home = this.calcTeamStrength(homeSquad);
@@ -1139,7 +1139,7 @@ class RealSoccerEngine {
         this._attackMemIdx = { home: 0, away: 0 };
         this._fwBurstCooldown = { home: 0, away: 0 };
         this._fwLinkupCooldown = { home: 0, away: 0 };
-        this._postKickoffDefRealignTicks = 32;
+        this._postKickoffDefRealignTicks = 12;
         this.players.forEach(p => {
             p.burstTimer = 0;
             p.forceReturnTimer = 0;
@@ -3268,7 +3268,7 @@ class RealSoccerEngine {
         let aF = 1.0;
         if (dY > 12) {
             const ang = Math.atan2(dY - 10, Math.max(2, d));
-            aF = clamp(1.0 - ang * 0.35, 0.55, 1.0);
+            aF = clamp(1.0 - ang * 0.45, 0.45, 1.0);
         }
         const effSh = this.getEffectiveStat(shooter, 'shooting');
         const sp = effSh * (0.85 + Math.random() * 0.35) * dF * aF;
@@ -3306,7 +3306,8 @@ class RealSoccerEngine {
         const maxG = (typeof MatchTuning !== 'undefined' && MatchTuning.maxGoalChance !== undefined)
             ? MatchTuning.maxGoalChance : 0.36;
 
-        let goalChance = clamp((0.12 + inBoxBonus + fwBonus + statBonus + traitBonus + patternBonus + bigChanceBonus) * goalMult, minG, maxG);
+        const wideAngleMult = dY > 14 ? clamp(1.0 - (dY - 14) * 0.012, 0.72, 1.0) : 1.0;
+        let goalChance = clamp((0.12 + inBoxBonus + fwBonus + statBonus + traitBonus + patternBonus + bigChanceBonus) * goalMult * wideAngleMult, minG, maxG);
 
         // [다득점 과열 방지 댐핑: 현실적인 스코어라인 유지]
         const totalMatchGoals = (this.homeScore || 0) + (this.awayScore || 0);
@@ -4605,26 +4606,8 @@ class RealSoccerEngine {
         const owner = this.ball.owner;
         p._isTrackingRunner = false;
 
-        // [5단계] 실점 직후 / 킥오프 수비 안정화: 전원이 무작정 전진하거나 첫 패스에 덤비지 않고 중앙 블록 정렬 우선
-        if (this._postKickoffDefRealignTicks > 0) {
-            p._isTrackingRunner = false;
-            if (p.position === 'DF') {
-                const tx = lines.dfX;
-                const ty = p.slotY;
-                const s = 0.55 * clamp(sf, 0.8, 1.5);
-                this._physicsStep(p, clamp(tx, 4, 96), clamp(ty, 4, 96), s);
-                return;
-            } else if (p.position === 'MF') {
-                const isDM = ['DM', 'CDM', 'ANC', 'DLP', 'BWM', 'REG', 'HB'].includes(p.role) || ['CDM', 'DM'].includes(p.detailPosition);
-                const tx = lines.dfX + fwd * (isDM ? 6.0 : 10.0);
-                const ty = clamp(p.slotY, 28, 72); // 중앙 복도(Zone 14) 집중 차단
-                const s = 0.55 * clamp(sf, 0.8, 1.5);
-                this._physicsStep(p, clamp(tx, 4, 96), clamp(ty, 4, 96), s);
-                return;
-            }
-        }
-
-        // 태클 시도: 전담 압박자이거나, 볼 캐리어가 근접 거리(압박자 4.5, DF/MF 3.6, FW 3.0)에 들어왔을 때 경합!
+        // 태클 시도: 전담 압박자이거나, 볼 캐리어가 근접 거리(압박자 3.6, DF/MF 3.2, FW 2.6)에 들어왔을 때 경합!
+        // (킥오프 직후 정렬 중이더라도 볼 캐리어가 코앞으로 돌파해 들어오면 반드시 태클/차단)
         const tSetDef = (this.tacticSettings && this.tacticSettings[tid]) || {};
         const liveDef = (this.liveDirectives && this.liveDirectives[tid]) || {};
         const inCounterpress = Boolean(this._counterpressTicks && this._counterpressTicks[tid] > 0) || Boolean(liveDef.pressAll);
@@ -4632,6 +4615,27 @@ class RealSoccerEngine {
             const cpBonus = (inCounterpress && dBall < 9) ? 0.35 : 0;
             const tackleRange = (pressIsMe ? 3.6 : (p.position === 'FW' ? 2.6 : 3.2)) + cpBonus;
             if (dBall < tackleRange && this._attemptTackle(p, owner)) return;
+        }
+
+        // [5단계] 실점 직후 / 킥오프 수비 안정화: 볼이 아직 중앙선 근처일 때 후방 블록만 정렬
+        // 단, 전담 압박자·근접 수비수(12m 이내)이거나 볼이 이미 우리 진영(46/54 안쪽)으로 돌파해 들어온 경우 즉시 정상 압박/수비 수행
+        const ballEnteredDefHalf = isHome ? (ballX < 46) : (ballX > 54);
+        if (this._postKickoffDefRealignTicks > 0 && !ballEnteredDefHalf && !pressIsMe && dBall > 12) {
+            p._isTrackingRunner = false;
+            if (p.position === 'DF') {
+                const tx = lines.dfX;
+                const ty = clamp(p.slotY + clamp((ballY - p.slotY) * 0.22, -6, 6), 8, 92);
+                const s = 0.55 * clamp(sf, 0.8, 1.5);
+                this._physicsStep(p, clamp(tx, 4, 96), ty, s);
+                return;
+            } else if (p.position === 'MF') {
+                const isDM = ['DM', 'CDM', 'ANC', 'DLP', 'BWM', 'REG', 'HB'].includes(p.role) || ['CDM', 'DM'].includes(p.detailPosition);
+                const tx = lines.dfX + fwd * (isDM ? 6.0 : 10.0);
+                const ty = clamp(p.slotY + clamp((ballY - p.slotY) * 0.28, -8, 8), 24, 76); // 중앙 복도(Zone 14) 집중 차단
+                const s = 0.55 * clamp(sf, 0.8, 1.5);
+                this._physicsStep(p, clamp(tx, 4, 96), ty, s);
+                return;
+            }
         }
 
         // 1) FW DEFENSE (공격수: 전담 압박자 또는 즉각 재압박 윈도우 내 근접 공격수는 압박, 나머지는 대형 유지)

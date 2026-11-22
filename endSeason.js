@@ -181,44 +181,82 @@ function endSeason(silent = false) {
         if (po && po.champion === gameData.selectedTeam) {
             isMLSChampion = true;
             achievement = `MLS컵 우승 🏆 (${confName} ${confRank}위)`;
-            reward = 1500;
+            reward = 450;
             if (typeof managerSystem !== 'undefined' && gameData.managerId) {
                 managerSystem.updateManagerStats(gameData.managerId, { trophy: true });
             }
         } else if (po && po.runnerUp === gameData.selectedTeam) {
             achievement = `MLS컵 준우승 🥈 (${confName} ${confRank}위)`;
-            reward = 1200;
+            reward = 320;
         } else if (confRank <= 7) {
             achievement = `플레이오프 본선 (${confName} ${confRank}위)`;
-            reward = 850;
+            reward = Math.max(170, 260 - (confRank - 1) * 15);
         } else if (confRank <= 9) {
             achievement = `플레이오프 와일드카드 (${confName} ${confRank}위)`;
-            reward = 600;
+            reward = Math.max(120, 140 - (confRank - 8) * 20);
         } else {
             achievement = `플레이오프 탈락 (${confName} ${confRank}위 · 승강제 없음)`;
-            reward = 350;
+            reward = Math.max(70, 100 - (confRank - 10) * 6);
         }
 
         if (po && po.supportersShield === gameData.selectedTeam) {
-            reward += 300;
+            reward += 100;
             achievement += ' + 🛡️ 서포터스 실드';
         }
-    } else if (userPosition === 1) {
-        achievement = '우승';
-        reward = 1500;
-        // [신규] 감독 성과(우승) 기록
-        if (typeof managerSystem !== 'undefined' && gameData.managerId) {
-            managerSystem.updateManagerStats(gameData.managerId, { trophy: true });
-        }
-    } else if (userPosition <= 4) {
-        achievement = '상위권';
-        reward = 1000;
-    } else if (userPosition <= 12) {
-        achievement = '중위권';
-        reward = 500;
     } else {
-        achievement = '강등권';
-        reward = 200;
+        if (userPosition === 1) {
+            achievement = '우승';
+            reward = 3000;
+            // [신규] 감독 성과(우승) 기록
+            if (typeof managerSystem !== 'undefined' && gameData.managerId) {
+                managerSystem.updateManagerStats(gameData.managerId, { trophy: true });
+            }
+        } else if (userPosition === 2) {
+            achievement = '준우승';
+            reward = 2500;
+        } else if (userPosition === 3) {
+            achievement = '상위권';
+            reward = 2200;
+        } else if (userPosition === 4) {
+            achievement = '상위권';
+            reward = 1950;
+        } else if (userPosition === 5) {
+            achievement = '상위권';
+            reward = 1700;
+        } else if (userPosition === 6) {
+            achievement = '중상위권';
+            reward = 1500;
+        } else if (userPosition <= 10) {
+            achievement = '중위권';
+            reward = 1350 - (userPosition - 7) * 100;
+        } else if (userPosition <= 14) {
+            achievement = '중하위권';
+            reward = 950 - (userPosition - 11) * 70;
+        } else if (userPosition <= 17) {
+            achievement = '하위권';
+            reward = 650 - (userPosition - 15) * 50;
+        } else {
+            achievement = '강등권';
+            reward = Math.max(400, 500 - (userPosition - 18) * 30);
+        }
+
+        // 리그 규모·위상별 상금 배율 적용
+        const leaguePrizeMultipliers = {
+            premier_league: 1.00,
+            laliga: 0.85,
+            bundesliga: 0.85,
+            serie_a: 0.85,
+            ligue_1: 0.72,
+            efl_championship: 0.55,
+            eredivisie: 0.45,
+            liga_portugal: 0.45,
+            super_lig: 0.45,
+            kleague_1: 0.20
+        };
+        const prizeMult = (userLeagueId && leaguePrizeMultipliers[userLeagueId] !== undefined)
+            ? leaguePrizeMultipliers[userLeagueId]
+            : 0.50;
+        reward = Math.round(reward * prizeMult);
     }
 
     // [신규] 통합 FA컵과의 더블(Double) 달성 체크
@@ -226,14 +264,14 @@ function endSeason(silent = false) {
     const isFaCupChamp = (gameData.faCup && gameData.faCup.champion === gameData.selectedTeam);
     const isLeagueChampForDouble = (userLeagueId === 'mls') ? isMLSChampion : (userPosition === 1);
     if (isLeagueChampForDouble && isFaCupChamp && gameData.currentLeague === 1) {
-        reward += 500;
-        doubleMessage = '\n\n✨ [역사적인 더블(Double) 달성!]\n1부 리그와 통합 FA컵을 동시 제패했습니다! (더블 보너스 +500억원)';
+        reward += 1000;
+        doubleMessage = '\n\n✨ [역사적인 더블(Double) 달성!]\n1부 리그와 통합 FA컵을 동시 제패했습니다! (더블 보너스 +1000억원)';
         if (typeof mailManager !== 'undefined') {
             mailManager.addMail(
                 `[신화] 1부리그 & FA컵 동시 석권! 시즌 더블(Double) 위업 달성!`,
                 '리그 & FA컵 연맹',
                 `위대한 감독님의 지도력 아래 구단이 한 시즌에 1부 리그 챔피언과 FA컵 챔피언을 동시에 거머쥐는 '더블(Double)' 신화를 완성했습니다!\n\n` +
-                `- 1부리그 최종 우승\n- 통합 FA컵 최종 우승 (The Double)\n- 특별 축하 상금: +500억원 지급\n\n구단의 전설로 영원히 기억될 것입니다!`
+                `- 1부리그 최종 우승\n- 통합 FA컵 최종 우승 (The Double)\n- 특별 축하 상금: +1000억원 지급\n\n구단의 전설로 영원히 기억될 것입니다!`
             );
         }
     }
@@ -283,7 +321,7 @@ function endSeason(silent = false) {
             promotionRelegationData = englandPromoRel.legacyView;
             userPromotionStatus = englandPromoRel.userStatus;
             if (userPromotionStatus.status === 'promotion') {
-                const promoBonus = 600;
+                const promoBonus = 1000;
                 gameData.teamMoney += promoBonus;
                 reward += promoBonus;
                 promotionMessage = `\n\n🎉 축하합니다! 잉글랜드 프리미어리그 승격 확정! (${userPromotionStatus.reason}, 승격 지원금 +${promoBonus}억원)`;
@@ -705,18 +743,22 @@ function applyPromotionRelegationNew(promotionRelegationData) {
 function calculateAdditionalSeasonPrize(league, position) {
     const additionalPrizeTable = {
         1: {
-            1: 500,  // 1부리그 우승 추가 상금
-            2: 300,  // 준우승
+            1: 1000, // 1부리그 우승 추가 상금
+            2: 700,  // 준우승
+            3: 500,  // 3위
+            4: 300,  // 4위
             default: 0
         },
         2: {
-            1: 300,  // 2부리그 우승 + 승격 보너스
-            2: 200,  // 준우승 + 승격 보너스
+            1: 600,  // 2부리그 우승 + 승격 보너스
+            2: 400,  // 준우승 + 승격 보너스
+            3: 250,
             default: 0
         },
         3: {
-            1: 200,  // 3부리그 우승 + 승격 보너스
-            2: 100,  // 준우승 + 승격 보너스
+            1: 400,  // 3부리그 우승 + 승격 보너스
+            2: 250,  // 준우승 + 승격 보너스
+            3: 150,
             default: 0
         }
     };

@@ -66,7 +66,7 @@ class ScoutingSystem {
                 stars: '★★☆',
                 cost: 300, // 300억원
                 interval: 10,
-                potChances: { poor: 0.45, average: 0.45, promising: 0.098, wonderkid: 0.002 },
+                potChances: { poor: 0.422, average: 0.45, promising: 0.098, wonderkid: 0.03 },
                 minRating: 54,
                 maxRating: 66
             },
@@ -76,7 +76,7 @@ class ScoutingSystem {
                 stars: '★★★',
                 cost: 700, // 700억원
                 interval: 10,
-                potChances: { poor: 0.25, average: 0.55, promising: 0.19, wonderkid: 0.01 },
+                potChances: { poor: 0.11, average: 0.55, promising: 0.19, wonderkid: 0.15 },
                 minRating: 60,
                 maxRating: 72
             }
