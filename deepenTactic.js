@@ -378,6 +378,7 @@ class RealSoccerEngine {
         this.setPiece = null;
         this._firstHalfKickoffTeam = 'home';
         this.halftimeTalk = { home: null, away: null };
+        this.halftimeEffect = { home: null, away: null };
 
         this.initTeam(homeSquad, 'home', homeTactic);
         this.initTeam(awaySquad, 'away', awayTactic);
@@ -385,12 +386,207 @@ class RealSoccerEngine {
         this.resetPositions('home');
     }
 
-    applyHalftimeTalk(teamId, talkType) {
-        if (!this.halftimeTalk) this.halftimeTalk = { home: null, away: null };
-        this.halftimeTalk[teamId] = talkType;
-        if (talkType === 'fireup' && this.momentumBoost) {
-            this.momentumBoost[teamId] = Math.max(this.momentumBoost[teamId] || 0, 8);
+    getHalftimeSituation(teamId, matchData = null) {
+        const isHome = teamId === 'home';
+        const myScore = isHome ? (this.homeScore || 0) : (this.awayScore || 0);
+        const oppScore = isHome ? (this.awayScore || 0) : (this.homeScore || 0);
+        const diff = myScore - oppScore;
+
+        const ls = (matchData && matchData.liveStats) ? matchData.liveStats : null;
+        const myPoss = ls && ls.possessionPct ? (isHome ? ls.possessionPct.home : ls.possessionPct.away) : 50;
+        const oppPoss = ls && ls.possessionPct ? (isHome ? ls.possessionPct.away : ls.possessionPct.home) : 50;
+        const myOnTarget = ls && ls.shotsOnTarget ? (isHome ? ls.shotsOnTarget.home : ls.shotsOnTarget.away) : 0;
+        const oppOnTarget = ls && ls.shotsOnTarget ? (isHome ? ls.shotsOnTarget.away : ls.shotsOnTarget.home) : 0;
+        const possDiff = myPoss - oppPoss;
+        const shotsDiff = myOnTarget - oppOnTarget;
+
+        let situationKey = 'drawEven';
+        let situationLabel = '팽팽한 균형';
+        if (diff >= 2) {
+            situationKey = 'bigLead';
+            situationLabel = `${diff}골 차 여유 있는 리드`;
+        } else if (diff === 1) {
+            situationKey = 'narrowLead';
+            situationLabel = '1골 차 근소한 리드';
+        } else if (diff === -1) {
+            situationKey = 'narrowTrail';
+            situationLabel = '1골 차 열세';
+        } else if (diff <= -2) {
+            situationKey = 'bigTrail';
+            situationLabel = `${Math.abs(diff)}골 차 열세`;
+        } else if (shotsDiff >= 2 || possDiff >= 8) {
+            situationKey = 'drawDominant';
+            situationLabel = '동점 · 경기 주도';
+        } else if (shotsDiff <= -2 || possDiff <= -8) {
+            situationKey = 'drawUnderdog';
+            situationLabel = '동점 · 열세 흐름';
         }
+
+        return { situationKey, situationLabel, diff, possDiff, shotsDiff };
+    }
+
+    getHalftimeTalkOptions(teamId, matchData = null) {
+        const sit = this.getHalftimeSituation(teamId, matchData);
+        const k = sit.situationKey;
+
+        const matrix = {
+            positive: {
+                bigLead: {
+                    speech: '전반전 완벽했다. 이 분위기 그대로 즐기면서 마무리하자.',
+                    effectSummary: '방심 위험: 패스·드리블 +2%, 팀 사기 +2 / 판단력·수비 -4%',
+                    statMults: { passing: 1.02, dribble: 1.02, decision: 0.96, defense: 0.96, tackle: 0.96 },
+                    staminaDelta: 0, momentumBoost: 0, moraleDelta: 2
+                },
+                narrowLead: {
+                    speech: '좋은 흐름이다. 자신감을 갖고 후반전에도 계속 압도하자.',
+                    effectSummary: '흐름 유지: 드리블·슈팅·패스 +3%, 팀 사기 +2',
+                    statMults: { dribble: 1.03, shooting: 1.03, passing: 1.03 },
+                    staminaDelta: 0, momentumBoost: 2, moraleDelta: 2
+                },
+                drawDominant: {
+                    speech: '경기 내용은 우리가 앞서고 있다. 침착하게 두드리면 골은 따라온다.',
+                    effectSummary: '공격 탄력: 드리블·슈팅·패스 +4%, 팀 사기 +2',
+                    statMults: { dribble: 1.04, shooting: 1.04, passing: 1.04 },
+                    staminaDelta: 0, momentumBoost: 3, moraleDelta: 2
+                },
+                drawEven: {
+                    speech: '잘 버티고 있다. 서로를 믿고 자신 있게 플레이하자.',
+                    effectSummary: '안정감 상승: 패스·드리블 +3%, 체력 소모 -5%, 팀 사기 +1',
+                    statMults: { passing: 1.03, dribble: 1.03 },
+                    staminaDelta: -0.05, momentumBoost: 0, moraleDelta: 1
+                },
+                drawUnderdog: {
+                    speech: '결과는 아직 동점이다. 부담 내려놓고 우리 플레이를 보여줘.',
+                    effectSummary: '긴장 완화: 드리블·패스 +2%, 체력 소모 -6%, 팀 사기 +1',
+                    statMults: { dribble: 1.02, passing: 1.02 },
+                    staminaDelta: -0.06, momentumBoost: 0, moraleDelta: 1
+                },
+                narrowTrail: {
+                    speech: '충분히 따라갈 수 있다. 고개 숙이지 말고 끝까지 해보자.',
+                    effectSummary: '자신감 회복: 드리블·패스 +3%, 팀 사기 +1',
+                    statMults: { dribble: 1.03, passing: 1.03 },
+                    staminaDelta: 0, momentumBoost: 2, moraleDelta: 1
+                },
+                bigTrail: {
+                    speech: '아직 끝나지 않았다. 편하게 마음먹고 한 골씩 쫓아가자.',
+                    effectSummary: '절박함 부족: 패스 +1%, 팀 사기 +1 / 수비·판단력 -3%',
+                    statMults: { passing: 1.01, defense: 0.97, tackle: 0.97, decision: 0.97 },
+                    staminaDelta: 0, momentumBoost: 0, moraleDelta: 1
+                }
+            },
+            neutral: {
+                bigLead: {
+                    speech: '아직 45분 남았다. 방심하지 말고 수비 간격과 전술 규율만 유지해.',
+                    effectSummary: '방심 차단: 수비·판단력 +4%, 체력 소모 -8%',
+                    statMults: { defense: 1.04, tackle: 1.04, decision: 1.04 },
+                    staminaDelta: -0.08, momentumBoost: 0, moraleDelta: 0
+                },
+                narrowLead: {
+                    speech: '한 골 차이는 안전하지 않다. 후반전에도 집중력을 흐트러뜨리지 마.',
+                    effectSummary: '집중력 유지: 수비·패스·판단력 +3%, 체력 소모 -7%',
+                    statMults: { defense: 1.03, tackle: 1.03, passing: 1.03, decision: 1.03 },
+                    staminaDelta: -0.07, momentumBoost: 0, moraleDelta: 0
+                },
+                drawDominant: {
+                    speech: '전반전 흐름을 정리하자. 패스 선택과 간격만 더 정교하게 가져가면 된다.',
+                    effectSummary: '전술 정교화: 패스·판단력 +4%, 체력 소모 -6%',
+                    statMults: { passing: 1.04, decision: 1.04 },
+                    staminaDelta: -0.06, momentumBoost: 0, moraleDelta: 0
+                },
+                drawEven: {
+                    speech: '전반전 흐름을 정리하자. 패스 선택과 포지션 간격 유지에 집중해.',
+                    effectSummary: '안정 운영: 패스·판단력 +4%, 체력 소모 -6%',
+                    statMults: { passing: 1.04, decision: 1.04 },
+                    staminaDelta: -0.06, momentumBoost: 0, moraleDelta: 0
+                },
+                drawUnderdog: {
+                    speech: '상대 압박에 흔들리지 마. 라인을 재정비하고 실수를 줄이는 데 집중하자.',
+                    effectSummary: '조직 재정비: 수비·판단력 +4%, 체력 소모 -7%',
+                    statMults: { defense: 1.04, tackle: 1.04, decision: 1.04 },
+                    staminaDelta: -0.07, momentumBoost: 0, moraleDelta: 0
+                },
+                narrowTrail: {
+                    speech: '감정에 휩쓸리지 마라. 빌드업 간격을 맞추고 찬스를 침착하게 만들어.',
+                    effectSummary: '냉정한 추격: 패스·판단력·슈팅 +3%, 체력 소모 -5%',
+                    statMults: { passing: 1.03, decision: 1.03, shooting: 1.03 },
+                    staminaDelta: -0.05, momentumBoost: 0, moraleDelta: 0
+                },
+                bigTrail: {
+                    speech: '지금은 전술 원칙을 지킬 때다. 무리한 개인 플레이 대신 패스로 풀어가.',
+                    effectSummary: '밸런스 수습: 패스·판단력·수비 +3%, 체력 소모 -5%',
+                    statMults: { passing: 1.03, decision: 1.03, defense: 1.03, tackle: 1.03 },
+                    staminaDelta: -0.05, momentumBoost: 0, moraleDelta: 0
+                }
+            },
+            negative: {
+                bigLead: {
+                    speech: '이 정도 경기력으로 만족하나? 더 집중하지 않으면 바로 따라잡힌다.',
+                    effectSummary: '과도한 질책 역효과: 패스·판단력·드리블 -5%, 체력 소모 +10%, 팀 사기 -4',
+                    statMults: { passing: 0.95, decision: 0.95, dribble: 0.95 },
+                    staminaDelta: 0.10, momentumBoost: 0, moraleDelta: -4
+                },
+                narrowLead: {
+                    speech: '겨우 한 골 앞서 있다고 안주하지 마. 더 강하게 몰아붙여야 해.',
+                    effectSummary: '압박 과부하: 스피드·피지컬 +2% / 패스·판단력 -3%, 팀 사기 -2',
+                    statMults: { speed: 1.02, physical: 1.02, passing: 0.97, decision: 0.97 },
+                    staminaDelta: 0.06, momentumBoost: 2, moraleDelta: -2
+                },
+                drawDominant: {
+                    speech: '기회를 이만큼 만들고도 왜 아직 동점인가? 결정력이 형편없다.',
+                    effectSummary: '선수단 위축 우려: 슈팅·피지컬 +2% / 패스·판단력 -3%, 팀 사기 -2',
+                    statMults: { shooting: 1.02, physical: 1.02, passing: 0.97, decision: 0.97 },
+                    staminaDelta: 0.05, momentumBoost: 2, moraleDelta: -2
+                },
+                drawEven: {
+                    speech: '지금 수준으로는 승점을 못 가져온다. 몸싸움부터 더 거칠게 붙어.',
+                    effectSummary: '투지 자극: 슈팅·스피드·피지컬 +3%, 초반 모멘텀 / 체력 소모 +8%, 팀 사기 -1',
+                    statMults: { shooting: 1.03, speed: 1.03, physical: 1.03 },
+                    staminaDelta: 0.08, momentumBoost: 4, moraleDelta: -1
+                },
+                drawUnderdog: {
+                    speech: '완전히 밀리고 있다. 정신 바짝 차리고 초반부터 강하게 부딪혀!',
+                    effectSummary: '흐름 반전 각성: 슈팅·스피드·피지컬·수비 +4%, 초반 모멘텀 / 체력 소모 +9%, 팀 사기 -1',
+                    statMults: { shooting: 1.04, speed: 1.04, physical: 1.04, defense: 1.04, tackle: 1.04 },
+                    staminaDelta: 0.09, momentumBoost: 6, moraleDelta: -1
+                },
+                narrowTrail: {
+                    speech: '이대로 질 셈인가? 후반 시작하자마자 라인 올리고 사력을 다해 뛰어!',
+                    effectSummary: '강력한 추격 의지: 초반 모멘텀 + 슈팅·스피드·피지컬 +5% / 체력 소모 +10%, 팀 사기 -1',
+                    statMults: { shooting: 1.05, speed: 1.05, physical: 1.05 },
+                    staminaDelta: 0.10, momentumBoost: 8, moraleDelta: -1
+                },
+                bigTrail: {
+                    speech: '전반전은 최악이었다. 자존심이 있다면 후반 45분은 죽을 힘을 다해 뛰어라!',
+                    effectSummary: '필사적 반격 각성: 초반 모멘텀 + 슈팅·스피드·피지컬·수비 +6% / 체력 소모 +12%, 팀 사기 -2',
+                    statMults: { shooting: 1.06, speed: 1.06, physical: 1.06, defense: 1.06, tackle: 1.06 },
+                    staminaDelta: 0.12, momentumBoost: 10, moraleDelta: -2
+                }
+            }
+        };
+
+        return [
+            { id: 'positive', tone: '긍정적', situationLabel: sit.situationLabel, ...matrix.positive[k] },
+            { id: 'neutral',  tone: '중립',   situationLabel: sit.situationLabel, ...matrix.neutral[k] },
+            { id: 'negative', tone: '부정적', situationLabel: sit.situationLabel, ...matrix.negative[k] }
+        ];
+    }
+
+    applyHalftimeTalk(teamId, talkType, matchData = null) {
+        if (!this.halftimeTalk) this.halftimeTalk = { home: null, away: null };
+        if (!this.halftimeEffect) this.halftimeEffect = { home: null, away: null };
+
+        const legacyMap = { encourage: 'positive', tactical: 'neutral', fireup: 'negative' };
+        const normalized = legacyMap[talkType] || talkType;
+        this.halftimeTalk[teamId] = normalized;
+
+        const options = this.getHalftimeTalkOptions(teamId, matchData);
+        const chosen = options.find(o => o.id === normalized) || options[1];
+        this.halftimeEffect[teamId] = chosen;
+
+        if (chosen.momentumBoost > 0 && this.momentumBoost) {
+            this.momentumBoost[teamId] = Math.max(this.momentumBoost[teamId] || 0, chosen.momentumBoost);
+        }
+        return chosen;
     }
 
     halfTimeReset() {
@@ -472,14 +668,12 @@ class RealSoccerEngine {
         if (this.panicTimer && this.panicTimer[p.teamId] > 0 && (stat === 'defense' || stat === 'decision' || stat === 'passing')) {
             f *= stat === 'defense' ? 0.98 : 1.08;
         }
-        // [하프타임 팀토크 보정]
-        const htTalk = this.halftimeTalk && this.halftimeTalk[p.teamId];
-        if (htTalk && this.matchTime >= 45) {
-            if (htTalk === 'tactical' && (stat === 'passing' || stat === 'decision')) f *= 1.04;
-            else if (htTalk === 'fireup' && (stat === 'shooting' || stat === 'speed' || stat === 'physical')) {
-                f *= (this.matchTime <= 65 ? 1.05 : 1.02);
-            } else if (htTalk === 'encourage' && (stat === 'dribble' || stat === 'shooting' || stat === 'passing')) {
-                f *= 1.03;
+        // [하프타임 팀토크 보정 (경기 상황 연동)]
+        const htEffect = this.halftimeEffect && this.halftimeEffect[p.teamId];
+        if (htEffect && htEffect.statMults && this.matchTime >= 45) {
+            const mult = htEffect.statMults[stat];
+            if (typeof mult === 'number') {
+                f *= mult;
             }
         }
         // [전술 숙련도(Familiarity) 보정] 20% = -7%, 50% = 0% 기준, 100% = +3% (전술 수행 전반 스탯에 적용)
@@ -1014,10 +1208,9 @@ class RealSoccerEngine {
                 if (live.timeWasting) styleMult -= 0.08;
                 if (live.mentality === 'veryAttacking') styleMult += 0.06;
                 else if (live.mentality === 'veryDefensive') styleMult -= 0.05;
-                const htTalk = this.halftimeTalk && this.halftimeTalk[p.teamId];
-                if (htTalk && this.matchTime >= 45) {
-                    if (htTalk === 'tactical') styleMult -= 0.08;
-                    else if (htTalk === 'fireup') styleMult += 0.10;
+                const htEffect = this.halftimeEffect && this.halftimeEffect[p.teamId];
+                if (htEffect && typeof htEffect.staminaDelta === 'number' && this.matchTime >= 45) {
+                    styleMult += htEffect.staminaDelta;
                 }
             }
             const r = (rates[p.position] || 0.30) * Math.max(0.65, styleMult);
@@ -3230,8 +3423,8 @@ class RealSoccerEngine {
                 const bl = blockers[0];
                 this.eventsQueue.push({ type: 'block', shooter: shooter.name, blocker: bl.name, desc: ` ${bl.name}, 몸을 날려 슈팅을 막아냅니다!` });
                 if (Math.random() < 0.38) {
-                    const cornerX = goalX === 100 ? 99 : 1;
-                    const cornerY = shooter.y < 50 ? 2 : 98;
+                    const cornerX = goalX === 100 ? 95 : 5;
+                    const cornerY = shooter.y < 50 ? 5 : 95;
                     this._startSetPiece('corner', shooter.teamId, cornerX, cornerY);
                     return;
                 }
@@ -3247,8 +3440,8 @@ class RealSoccerEngine {
                 const saveRoll = Math.random();
                 if (saveRoll < 0.22) {
                     this.eventsQueue.push({ type: 'save', shooter: shooter.name, gk: egk.name, desc: ` ${egk.name}, 손끝으로 쳐냅니다! 코너킥 선언!` });
-                    const cornerX = goalX === 100 ? 99 : 1;
-                    const cornerY = this.ball.targetPos.y < 50 ? 2 : 98;
+                    const cornerX = goalX === 100 ? 95 : 5;
+                    const cornerY = this.ball.targetPos.y < 50 ? 5 : 95;
                     this._startSetPiece('corner', shooter.teamId, cornerX, cornerY);
                 } else if (saveRoll < 0.36) {
                     this.eventsQueue.push({ type: 'save', shooter: shooter.name, gk: egk.name, desc: ` ${egk.name}, 슈팅을 펀칭!` });
@@ -3456,7 +3649,7 @@ class RealSoccerEngine {
                 this.ball.z = 0;
             } else if ((this.ball.y <= 20 || this.ball.y >= 80) && this.ball.lastOwner && Math.random() < 0.55) {
                 const opp = this.ball.lastOwner.teamId === 'home' ? 'away' : 'home';
-                this._startSetPiece('throwin', opp, clamp(this.ball.x, 8, 92), this.ball.y < 50 ? 1.5 : 98.5);
+                this._startSetPiece('throwin', opp, clamp(this.ball.x, 8, 92), this.ball.y < 50 ? 4.5 : 95.5);
             }
         } else {
             const r = BS / d;
@@ -3604,7 +3797,7 @@ class RealSoccerEngine {
             carrier._dribbleCommit = 0;
             if ((carrier.y <= 22 || carrier.y >= 78) && Math.random() < 0.45) {
                 this.eventsQueue.push({ type: 'tackle', player: tackler.name, desc: ` ${tackler.name}, 터치라인 밖으로 공을 걷어냅니다!` });
-                this._startSetPiece('throwin', carrier.teamId, clamp(carrier.x, 8, 92), carrier.y < 50 ? 1.5 : 98.5);
+                this._startSetPiece('throwin', carrier.teamId, clamp(carrier.x, 8, 92), carrier.y < 50 ? 4.5 : 95.5);
                 return true;
             }
             this.ball.state = BallState.CONTROLLED;
@@ -5031,17 +5224,44 @@ class RealSoccerEngine {
             return teamOutfield.slice().sort((a, b) => {
                 const aTrait = (a.traits || []).some(t => t.includes('데드볼') || t.includes('감아차기') || t.includes('감기는 패스')) ? 10 : 0;
                 const bTrait = (b.traits || []).some(t => t.includes('데드볼') || t.includes('감아차기') || t.includes('감기는 패스')) ? 10 : 0;
-                const aStat = isShotRange
+                const aDistPen = type === 'corner' ? Math.hypot(a.x - spotX, a.y - spotY) * 0.14 : 0;
+                const bDistPen = type === 'corner' ? Math.hypot(b.x - spotX, b.y - spotY) * 0.14 : 0;
+                const aStat = (isShotRange
                     ? (this.getEffectiveStat(a, 'shooting') * 0.65 + this.getEffectiveStat(a, 'passing') * 0.35 + aTrait)
-                    : (this.getEffectiveStat(a, 'passing') * 0.8 + this.getEffectiveStat(a, 'decision') * 0.2 + aTrait);
-                const bStat = isShotRange
+                    : (this.getEffectiveStat(a, 'passing') * 0.8 + this.getEffectiveStat(a, 'decision') * 0.2 + aTrait)) - aDistPen;
+                const bStat = (isShotRange
                     ? (this.getEffectiveStat(b, 'shooting') * 0.65 + this.getEffectiveStat(b, 'passing') * 0.35 + bTrait)
-                    : (this.getEffectiveStat(b, 'passing') * 0.8 + this.getEffectiveStat(b, 'decision') * 0.2 + bTrait);
+                    : (this.getEffectiveStat(b, 'passing') * 0.8 + this.getEffectiveStat(b, 'decision') * 0.2 + bTrait)) - bDistPen;
                 return bStat - aStat;
             })[0];
         }
 
         return teamOutfield[0];
+    }
+
+    _getSetPieceTakerSpot(sp) {
+        const { type, teamId, spotX, spotY } = sp;
+        const isHome = teamId === 'home';
+        const fwd = isHome ? 1 : -1;
+        if (type === 'penalty') {
+            return { x: clamp(spotX - fwd * 2.5, 2, 98), y: spotY };
+        }
+        if (type === 'corner') {
+            return {
+                x: clamp(spotX + (spotX > 50 ? 1.0 : -1.0), 2.5, 97.5),
+                y: clamp(spotY + (spotY > 50 ? 1.0 : -1.0), 2.5, 97.5)
+            };
+        }
+        if (type === 'throwin') {
+            return {
+                x: clamp(spotX, 4, 96),
+                y: clamp(spotY < 50 ? spotY - 1.2 : spotY + 1.2, 2.2, 97.8)
+            };
+        }
+        if (type === 'freekick') {
+            return { x: clamp(spotX - fwd * 1.4, 2.5, 97.5), y: clamp(spotY, 4, 96) };
+        }
+        return { x: clamp(spotX, 3, 97), y: clamp(spotY, 4, 96) };
     }
 
     _startSetPiece(type, teamId, spotX, spotY, meta = {}) {
@@ -5059,7 +5279,7 @@ class RealSoccerEngine {
 
         const goalX = teamId === 'home' ? 100 : 0;
         const isShotRange = (type === 'freekick' && !meta.isIndirect && Math.hypot(goalX - spotX, 50 - spotY) <= 28);
-        const taker = this._pickSetPieceTaker(teamId, type, spotX, spotY);
+        const taker = this._pickSetPieceTaker(teamId, type, spotX, spotY) || this.players.find(p => p.teamId === teamId) || this.players[0];
         const durationMap = { goalkick: 10, throwin: 9, corner: 14, freekick: isShotRange ? 16 : (meta.quick ? 8 : 12), penalty: 20 };
         const duration = durationMap[type] || 10;
 
@@ -5071,6 +5291,7 @@ class RealSoccerEngine {
             spotY,
             timer: duration,
             maxTimer: duration,
+            waitTicks: 0,
             meta: { ...meta, isShotRange }
         };
 
@@ -5106,6 +5327,23 @@ class RealSoccerEngine {
         this.ball.z = 0;
 
         this._arrangeSetPiecePlayers(sp);
+        sp.waitTicks = (sp.waitTicks || 0) + 1;
+
+        const stand = this._getSetPieceTakerSpot(sp);
+        const takerDist = sp.taker ? Math.hypot(sp.taker.x - stand.x, sp.taker.y - stand.y) : 0;
+        if (sp.taker && takerDist > 2.4 && sp.waitTicks < 28) {
+            // 키커/스로어가 공 위치에 도달할 때까지 킥 실행을 잠시 대기
+            sp.timer = Math.max(sp.timer, 4);
+            return;
+        }
+        if (sp.taker && takerDist > 2.4) {
+            // 최대 대기 도달 시 공 옆으로 정확히 정렬 후 준비 동작
+            sp.taker.x = stand.x;
+            sp.taker.y = stand.y;
+            sp.taker.vx = 0;
+            sp.taker.vy = 0;
+        }
+
         sp.timer--;
         if (sp.timer <= 0) {
             this.setPiece = null;
@@ -5121,8 +5359,19 @@ class RealSoccerEngine {
         const attGoalX = isHome ? 100 : 0;
 
         if (taker) {
-            const standX = type === 'penalty' ? clamp(spotX - fwd * 2.5, 2, 98) : spotX;
-            this._physicsStep(taker, standX, spotY, 1.0);
+            const stand = this._getSetPieceTakerSpot(sp);
+            const dx = stand.x - taker.x;
+            const dy = stand.y - taker.y;
+            const dist = Math.hypot(dx, dy);
+            if (dist > 2.4) {
+                const step = Math.min(dist, 3.6);
+                taker.x = clamp(taker.x + (dx / dist) * step, 2, 98);
+                taker.y = clamp(taker.y + (dy / dist) * step, 2, 98);
+                taker.vx = (dx / dist) * step * 0.4;
+                taker.vy = (dy / dist) * step * 0.4;
+            } else {
+                this._physicsStep(taker, stand.x, stand.y, 1.0);
+            }
         }
 
         if (type === 'penalty') {

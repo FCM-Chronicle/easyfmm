@@ -988,8 +988,26 @@ function startMatch() {
 
     // 비주얼라이저 초기화
     if (window.matchVisualizer) {
-        // [수정] 팀 컬러 전달
-        window.matchVisualizer.init('matchVisualizerContainer', engine.players, { home: homeColor, away: awayColor });
+        // [수정] 팀 컬러 및 경기장/계절·조명 컨텍스트 전달
+        window.matchVisualizer.init('matchVisualizerContainer', engine.players, { home: homeColor, away: awayColor }, {
+            homeTeam: matchData.homeTeam,
+            awayTeam: matchData.awayTeam,
+            stadiumName: matchData.stadiumInfo ? matchData.stadiumInfo.stadiumName : '',
+            attendance: matchData.stadiumInfo ? matchData.stadiumInfo.attendance : 0,
+            capacity: matchData.stadiumInfo ? matchData.stadiumInfo.capacity : 45000,
+            occupancyRate: matchData.stadiumInfo ? matchData.stadiumInfo.occupancyRate : 85,
+            isSellout: matchData.stadiumInfo ? Boolean(matchData.stadiumInfo.isSellout) : false,
+            isUCLMatch: Boolean(typeof gameData !== 'undefined' && gameData && gameData.isUCLMatch),
+            isFACupMatch: Boolean(typeof gameData !== 'undefined' && gameData && gameData.isFACupMatch),
+            isWorldCupMode: Boolean(typeof gameData !== 'undefined' && gameData && gameData.isWorldCupMode),
+            currentRound: (typeof gameData !== 'undefined' && gameData && gameData.currentRound) ? gameData.currentRound : 1,
+            startYear: (typeof gameData !== 'undefined' && gameData && gameData.startYear) ? gameData.startYear : 2025,
+            hasHybridPitch: Boolean(
+                typeof gameData !== 'undefined' && gameData &&
+                gameData.selectedTeam === matchData.homeTeam &&
+                gameData.stadiumInfo && gameData.stadiumInfo.upgrades && gameData.stadiumInfo.upgrades.hybridPitch
+            )
+        });
     } else {
         // 비주얼라이저가 없으면 캔버스 영역을 숨기거나 텍스트 모드로 동작
         console.warn("matchVisualizer not found. Playing in text mode.");
@@ -1647,6 +1665,9 @@ function simulateMatch(matchData, engine) {
                     }
 
                     if (engineEvent.type === 'goal') {
+                        if (window.matchVisualizer && typeof window.matchVisualizer.triggerGoalEffect === 'function') {
+                            window.matchVisualizer.triggerGoalEffect(engineEvent.team);
+                        }
                         if (engineEvent.team === 'home') matchData.homeScore++;
                         else matchData.awayScore++;
 
@@ -1971,30 +1992,28 @@ function openHalftimeModal(matchData, engine) {
     const awayLabel = (typeof teamNames !== 'undefined' && teamNames[matchData.awayTeam]) || matchData.awayTeam;
 
     let moodText = '팽팽한 균형이 이어지고 있습니다.';
-    if (userScore > oppScore) moodText = '리드를 잡고 있습니다! 방심 없이 후반전을 운영하세요.';
-    else if (userScore < oppScore) moodText = '뒤처지고 있습니다! 후반전 반전을 위해 선수들을 다잡으세요.';
+    if (userScore - oppScore >= 2) moodText = '여유 있는 리드를 잡고 있습니다. 방심 없이 후반전을 운영하세요.';
+    else if (userScore > oppScore) moodText = '근소한 리드를 잡고 있습니다. 후반전 흐름 관리가 중요합니다.';
+    else if (userScore - oppScore <= -2) moodText = '크게 뒤처지고 있습니다. 후반전 반전을 위한 강수나 정비가 필요합니다.';
+    else if (userScore < oppScore) moodText = '한 골 차로 뒤처지고 있습니다. 후반전 반전을 위해 선수들을 다잡으세요.';
 
-    const talks = [
-        {
-            id: 'tactical',
-            title: '🧠 전술 집중 & 침착함 유지',
-            desc: '후반 패스·판단력 +4%, 체력 소모 -8% (안정적 경기 운영)'
-        },
-        {
-            id: 'fireup',
-            title: '🔥 강하게 몰아붙여! 절대 물러서지 마!',
-            desc: '후반 초반 모멘텀 버프 & 슈팅·스피드·피지컬 최대 +5% (체력 소모 +10%)'
-        },
-        {
-            id: 'encourage',
-            title: '👏 잘하고 있어, 자신감 있게 즐겨!',
-            desc: '후반 드리블·슈팅·패스 +3%, 팀 사기 +2'
-        }
-    ];
+    const talks = (engine && typeof engine.getHalftimeTalkOptions === 'function')
+        ? engine.getHalftimeTalkOptions(userSide, matchData)
+        : [
+            { id: 'positive', tone: '긍정적', situationLabel: '경기 진행', speech: '서로를 믿고 자신 있게 플레이하자.', effectSummary: '후반 드리블·패스 소폭 상승, 팀 사기 +1', moraleDelta: 1 },
+            { id: 'neutral', tone: '중립', situationLabel: '경기 진행', speech: '전술 원칙과 패스 간격을 유지하며 집중하자.', effectSummary: '후반 패스·판단력 상승, 체력 소모 감소', moraleDelta: 0 },
+            { id: 'negative', tone: '부정적', situationLabel: '경기 진행', speech: '지금보다 훨씬 강하게 압박하고 투지를 보여줘.', effectSummary: '후반 슈팅·피지컬 상승, 체력 소모 증가, 팀 사기 -1', moraleDelta: -1 }
+        ];
+
+    const toneColors = {
+        positive: { border: 'rgba(16,185,129,0.45)', bg: 'rgba(16,185,129,0.14)', pillBg: 'rgba(16,185,129,0.2)', pillText: '#34d399' },
+        neutral:  { border: 'rgba(56,189,248,0.45)', bg: 'rgba(56,189,248,0.14)', pillBg: 'rgba(56,189,248,0.2)', pillText: '#38bdf8' },
+        negative: { border: 'rgba(244,63,94,0.45)',  bg: 'rgba(244,63,94,0.14)',  pillBg: 'rgba(244,63,94,0.2)',  pillText: '#fb7185' }
+    };
 
     modal.replaceChildren();
     const card = document.createElement('div');
-    card.style.cssText = 'width:min(520px,92vw); background:linear-gradient(180deg,#151c2b 0%,#0b1120 100%); border:1px solid rgba(56,189,248,0.35); border-radius:18px; padding:24px; color:#f8fafc; box-shadow:0 24px 60px rgba(0,0,0,0.65);';
+    card.style.cssText = 'width:min(540px,92vw); background:linear-gradient(180deg,#151c2b 0%,#0b1120 100%); border:1px solid rgba(56,189,248,0.35); border-radius:18px; padding:24px; color:#f8fafc; box-shadow:0 24px 60px rgba(0,0,0,0.65);';
 
     const hdr = document.createElement('div');
     hdr.style.cssText = 'text-align:center; margin-bottom:16px;';
@@ -2028,33 +2047,49 @@ function openHalftimeModal(matchData, engine) {
         statsBox.appendChild(cell);
     });
 
+    const talkLabelRow = document.createElement('div');
+    talkLabelRow.style.cssText = 'display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;';
     const talkLabel = document.createElement('div');
-    talkLabel.style.cssText = 'font-size:0.82rem; font-weight:700; color:#38bdf8; margin-bottom:8px;';
+    talkLabel.style.cssText = 'font-size:0.82rem; font-weight:700; color:#38bdf8;';
     talkLabel.textContent = '라커룸 팀토크 선택';
+    const situationTag = document.createElement('div');
+    situationTag.style.cssText = 'font-size:0.72rem; font-weight:700; color:#cbd5e1; padding:2px 8px; border-radius:999px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1);';
+    situationTag.textContent = `현재 상황: ${talks[0].situationLabel}`;
+    talkLabelRow.append(talkLabel, situationTag);
 
     let selectedTalk = null;
     const talkBtns = [];
     const talkWrap = document.createElement('div');
     talkWrap.style.cssText = 'display:grid; gap:8px; margin-bottom:18px;';
     talks.forEach(t => {
+        const tc = toneColors[t.id] || toneColors.neutral;
         const btn = document.createElement('button');
         btn.type = 'button';
-        btn.style.cssText = 'text-align:left; padding:11px 14px; border-radius:12px; border:1px solid rgba(255,255,255,0.12); background:rgba(255,255,255,0.04); color:#f8fafc; cursor:pointer;';
-        const tTitle = document.createElement('div');
-        tTitle.style.cssText = 'font-weight:800; font-size:0.92rem; margin-bottom:3px;';
-        tTitle.textContent = t.title;
+        btn.style.cssText = 'text-align:left; padding:12px 14px; border-radius:12px; border:1px solid rgba(255,255,255,0.12); background:rgba(255,255,255,0.04); color:#f8fafc; cursor:pointer; transition:border-color 0.15s ease, background 0.15s ease;';
+
+        const topRow = document.createElement('div');
+        topRow.style.cssText = 'display:flex; align-items:center; gap:8px; margin-bottom:5px;';
+        const tonePill = document.createElement('span');
+        tonePill.style.cssText = `display:inline-block; padding:2px 8px; border-radius:6px; font-size:0.72rem; font-weight:800; background:${tc.pillBg}; color:${tc.pillText}; flex-shrink:0;`;
+        tonePill.textContent = t.tone;
+        const tTitle = document.createElement('span');
+        tTitle.style.cssText = 'font-weight:700; font-size:0.88rem; color:#f8fafc;';
+        tTitle.textContent = t.speech;
+        topRow.append(tonePill, tTitle);
+
         const tDesc = document.createElement('div');
-        tDesc.style.cssText = 'font-size:0.76rem; color:#94a3b8;';
-        tDesc.textContent = t.desc;
-        btn.append(tTitle, tDesc);
+        tDesc.style.cssText = 'font-size:0.76rem; color:#94a3b8; line-height:1.4;';
+        tDesc.textContent = t.effectSummary;
+
+        btn.append(topRow, tDesc);
         btn.onclick = () => {
             selectedTalk = t.id;
             talkBtns.forEach(b => {
                 b.style.borderColor = 'rgba(255,255,255,0.12)';
                 b.style.background = 'rgba(255,255,255,0.04)';
             });
-            btn.style.borderColor = '#38bdf8';
-            btn.style.background = 'rgba(56,189,248,0.16)';
+            btn.style.borderColor = tc.border;
+            btn.style.background = tc.bg;
         };
         talkBtns.push(btn);
         talkWrap.appendChild(btn);
@@ -2078,20 +2113,21 @@ function openHalftimeModal(matchData, engine) {
     start2ndBtn.type = 'button';
     start2ndBtn.className = 'btn primary';
     start2ndBtn.style.cssText = 'flex:1.4; padding:12px; font-weight:800;';
-    start2ndBtn.textContent = '후반전 킥오프 ▶';
+    start2ndBtn.textContent = '후반전 킥오프';
     start2ndBtn.onclick = () => {
         if (selectedTalk && engine && typeof engine.applyHalftimeTalk === 'function') {
-            engine.applyHalftimeTalk(userSide, selectedTalk);
-            if (selectedTalk === 'encourage') {
-                if (window.GameState) window.GameState.adjustTeamMorale(2);
-                else if (typeof gameData !== 'undefined') gameData.teamMorale = Math.min(100, (gameData.teamMorale || 70) + 2);
+            const applied = engine.applyHalftimeTalk(userSide, selectedTalk, matchData);
+            const moraleDelta = (applied && typeof applied.moraleDelta === 'number') ? applied.moraleDelta : 0;
+            if (moraleDelta !== 0) {
+                if (window.GameState) window.GameState.adjustTeamMorale(moraleDelta);
+                else if (typeof gameData !== 'undefined') gameData.teamMorale = Math.max(0, Math.min(100, (gameData.teamMorale || 70) + moraleDelta));
             }
             const chosen = talks.find(x => x.id === selectedTalk);
             if (chosen) {
                 displayEvent({
                     minute: 45,
                     type: 'halftime',
-                    description: `🗣️ [하프타임 팀토크] "${chosen.title}"`
+                    description: `[하프타임 팀토크 · ${chosen.tone}] "${chosen.speech}"`
                 }, matchData);
             }
         }
@@ -2103,7 +2139,7 @@ function openHalftimeModal(matchData, engine) {
     };
 
     footer.append(subBtn, start2ndBtn);
-    card.append(hdr, statsBox, talkLabel, talkWrap, footer);
+    card.append(hdr, statsBox, talkLabelRow, talkWrap, footer);
     modal.appendChild(card);
     modal.style.display = 'flex';
 }
