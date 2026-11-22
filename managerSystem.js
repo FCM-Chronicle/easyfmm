@@ -902,9 +902,13 @@ const managerSystem = {
     },
 
     loadGame(managerId, slotIndex) {
+        this.activeManagerId = managerId;
         if (typeof gameData !== 'undefined') {
             gameData.managerId = managerId;
             gameData.saveSlotIndex = slotIndex;
+        }
+        if (window.AutoSaveSystem && typeof window.AutoSaveSystem.setLastLoadedSlot === 'function') {
+            window.AutoSaveSystem.setLastLoadedSlot(slotIndex);
         }
         
         document.getElementById('managerProfileModal').style.display = 'none';
@@ -915,9 +919,13 @@ const managerSystem = {
     },
 
     startNewCareer(managerId, slotIndex) {
+        this.activeManagerId = managerId;
         if (typeof gameData !== 'undefined') {
             gameData.managerId = managerId;
             gameData.saveSlotIndex = slotIndex;
+        }
+        if (window.AutoSaveSystem && typeof window.AutoSaveSystem.setLastLoadedSlot === 'function') {
+            window.AutoSaveSystem.setLastLoadedSlot(slotIndex);
         }
 
         document.getElementById('managerProfileModal').style.display = 'none';

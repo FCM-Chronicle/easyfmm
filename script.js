@@ -3880,14 +3880,25 @@ function loadGame(event) {
     window.loadingInProgress = true;
 
     const reader = new FileReader();
-    reader.onload = function (e) {
+    reader.onload = async function (e) {
         try {
             console.log('=== 게임 불러오기 시작 ===');
             const saveData = JSON.parse(e.target.result);
 
+            // 파일 불러오기 전 현재 활성 감독 ID와 진입 슬롯 번호 보존
+            const activeManagerId = (gameData && gameData.managerId)
+                || (typeof managerSystem !== 'undefined' ? managerSystem.activeManagerId : null);
+            const targetSlotIndex = (gameData && gameData.saveSlotIndex)
+                || (window.AutoSaveSystem && window.AutoSaveSystem.lastLoadedSlot)
+                || 1;
+
             // 기본 게임 데이터 복원
             gameData = saveData.gameData;
             window.gameData = gameData;
+            if (activeManagerId) {
+                gameData.managerId = activeManagerId;
+            }
+            gameData.saveSlotIndex = targetSlotIndex;
             if (!gameData.playerRoles) gameData.playerRoles = {}; // [추가] 구버전 세이브 호환성 보장
             if (!gameData.mentoringPairs) gameData.mentoringPairs = []; // [추가] 멘토링 세이브 호환성 보장
             if (typeof calculateTotalWages === 'function') calculateTotalWages();
@@ -3953,6 +3964,12 @@ function loadGame(event) {
             if (saveData.snsData && typeof snsManager !== 'undefined') {
                 snsManager.loadSaveData(saveData.snsData);
                 console.log('SNS 데이터 복원 완료');
+            }
+
+            // 메일 데이터 복원
+            if (saveData.mailData && typeof mailManager !== 'undefined') {
+                mailManager.loadSaveData(saveData.mailData);
+                console.log('메일 데이터 복원 완료');
             }
 
             // 부상 데이터 복원
@@ -4031,11 +4048,9 @@ function loadGame(event) {
                 console.log('Records 탭 업데이트 완료');
             }
 
-            console.log('=== 게임 불러오기 완료 ===');
-            alert('게임을 불러왔습니다!');
-
-            // gameData 객체가 교체되었으므로 자동 저장 감지기 재설정
+            // gameData 객체가 교체되었으므로 자동 저장 타겟 슬롯 및 감지기 재설정
             if (window.AutoSaveSystem) {
+                window.AutoSaveSystem.setLastLoadedSlot(targetSlotIndex);
                 window.AutoSaveSystem.hookMoney();
             }
 
@@ -4054,6 +4069,16 @@ function loadGame(event) {
             if (window.customCursorInstance && gameData.settings) {
                 const isCustomCursorOn = gameData.settings.customCursor !== undefined ? gameData.settings.customCursor : false;
                 window.customCursorInstance.toggle(isCustomCursorOn);
+            }
+
+            // 파일에서 불러온 데이터를 현재 슬롯에 즉시 반영(저장)하여 재접속 시에도 유지되도록 함
+            const savedToSlot = await saveToSlot(targetSlotIndex, true);
+
+            console.log('=== 게임 불러오기 완료 ===');
+            if (savedToSlot) {
+                alert(`게임을 불러와 슬롯 ${targetSlotIndex}에 저장했습니다!`);
+            } else {
+                alert('게임을 불러왔습니다!');
             }
 
         } catch (error) {
@@ -4542,7 +4567,9 @@ function applyTeamTheme(teamKey) {
 // 슬롯 정보 가져오기
 // 특정 슬롯 정보 가져오기
 function getSlotInfo(slotNumber, managerId = null) {
-    const activeManagerId = managerId || gameData.managerId;
+    const activeManagerId = managerId
+        || (typeof gameData !== 'undefined' && gameData && gameData.managerId)
+        || (typeof managerSystem !== 'undefined' ? managerSystem.activeManagerId : null);
     const saveKey = activeManagerId ? `fm_save_${activeManagerId}_slot${slotNumber}` : `footballManagerSave_slot${slotNumber}`;
     const savedData = typeof SaveStorage !== 'undefined' ? SaveStorage.getItem(saveKey) : localStorage.getItem(saveKey);
     if (!savedData) return null;
@@ -4716,7 +4743,14 @@ async function saveToSlot(slotNumber, silent = false) {
             });
         }
 
-        const slotInfo = getSlotInfo(slotNumber);
+        const managerId = (gameData && gameData.managerId)
+            || (typeof managerSystem !== 'undefined' ? managerSystem.activeManagerId : null);
+        if (managerId) {
+            gameData.managerId = managerId;
+        }
+        gameData.saveSlotIndex = slotNumber;
+
+        const slotInfo = getSlotInfo(slotNumber, managerId);
 
         // 자동 저장이 아닐 때만 덮어쓰기 확인
         if (slotInfo && !silent) {
@@ -4754,7 +4788,6 @@ async function saveToSlot(slotNumber, silent = false) {
         };
 
         // [수정] 매니저 시스템 적용: gameData.managerId 기반으로 저장키 분리
-        const managerId = gameData.managerId;
         const saveKey = managerId ? `fm_save_${managerId}_slot${slotNumber}` : `footballManagerSave_slot${slotNumber}`;
         const serializedData = JSON.stringify(saveData);
 
@@ -4772,6 +4805,12 @@ async function saveToSlot(slotNumber, silent = false) {
 
         // 슬롯 UI 새로고침
         createSaveSlots();
+        if (typeof managerSystem !== 'undefined' && managerId) {
+            managerSystem.renderSaveSlotsForManager(managerId);
+        }
+        if (typeof renderMainSaveSlots === 'function') {
+            renderMainSaveSlots();
+        }
         return true;
 
     } catch (error) {
@@ -4792,7 +4831,9 @@ async function saveToSlot(slotNumber, silent = false) {
 // 특정 슬롯에서 불러오기
 function loadFromSlot(slotNumber, overrideManagerId = null) {
     try {
-        const managerId = overrideManagerId || gameData.managerId;
+        const managerId = overrideManagerId
+            || (gameData && gameData.managerId)
+            || (typeof managerSystem !== 'undefined' ? managerSystem.activeManagerId : null);
         const saveKey = managerId ? `fm_save_${managerId}_slot${slotNumber}` : `footballManagerSave_slot${slotNumber}`;
         const savedData = typeof SaveStorage !== 'undefined' ? SaveStorage.getItem(saveKey) : localStorage.getItem(saveKey);
 
@@ -4801,7 +4842,7 @@ function loadFromSlot(slotNumber, overrideManagerId = null) {
             return;
         }
 
-        const slotInfo = getSlotInfo(slotNumber);
+        const slotInfo = getSlotInfo(slotNumber, managerId);
         const confirmMessage = slotInfo
             ? `슬롯 ${slotNumber}의 게임을 불러오시겠습니까?\n\n팀: ${slotInfo.teamName}\n경기 수: ${slotInfo.matchesPlayed}\n\n현재 진행 중인 게임은 사라집니다.`
             : `슬롯 ${slotNumber}의 게임을 불러오시겠습니까?\n현재 진행 중인 게임은 사라집니다.`;
@@ -4816,6 +4857,10 @@ function loadFromSlot(slotNumber, overrideManagerId = null) {
         // 기본 게임 데이터 복원
         gameData = saveData.gameData;
         window.gameData = gameData;
+        if (managerId) {
+            gameData.managerId = managerId;
+        }
+        gameData.saveSlotIndex = slotNumber;
         if (!gameData.playerRoles) gameData.playerRoles = {};
         if (!gameData.mentoringPairs) gameData.mentoringPairs = [];
         if (typeof calculateTotalWages === 'function') calculateTotalWages();
@@ -4972,7 +5017,9 @@ function loadFromSlot(slotNumber, overrideManagerId = null) {
 
 // 특정 슬롯 삭제
 async function deleteSlot(slotNumber) {
-    const slotInfo = getSlotInfo(slotNumber);
+    const managerId = (gameData && gameData.managerId)
+        || (typeof managerSystem !== 'undefined' ? managerSystem.activeManagerId : null);
+    const slotInfo = getSlotInfo(slotNumber, managerId);
 
     if (!slotInfo) {
         alert(`슬롯 ${slotNumber}은(는) 이미 비어있습니다.`);
@@ -4982,7 +5029,6 @@ async function deleteSlot(slotNumber) {
     const confirmMessage = `슬롯 ${slotNumber}을(를) 삭제하시겠습니까?\n\n팀: ${slotInfo.teamName}\n경기 수: ${slotInfo.matchesPlayed}\n\n이 작업은 되돌릴 수 없습니다.`;
 
     if (confirm(confirmMessage)) {
-        const managerId = gameData.managerId;
         const saveKey = managerId ? `fm_save_${managerId}_slot${slotNumber}` : `footballManagerSave_slot${slotNumber}`;
         if (typeof SaveStorage !== 'undefined') {
             await SaveStorage.removeItem(saveKey);

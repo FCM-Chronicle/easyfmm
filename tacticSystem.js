@@ -849,6 +849,10 @@ function getDramaTickDelay(matchData, snapshot) {
     if (matchData.isFastForward) return 0;
     if (!snapshot || !snapshot.isSuspense) return null;
 
+    // 2D 물리 세트피스(페널티킥·위험지역 프리킥) 준비 중에는 매 틱마다 수 초씩 멈추는
+    // 텍스트 서스펜스 딜레이를 적용하지 않고 정상 틱 속도로 부드럽게 진행
+    if (snapshot.setPiece) return null;
+
     const drama = (typeof window.getMatchDramaConfig === 'function')
         ? window.getMatchDramaConfig()
         : normalizeMatchDrama();
