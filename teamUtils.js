@@ -733,29 +733,48 @@ function setPlayerPhoto(img, player) {
         }
     }
 
+    const isReincarnated = !!(playerObj && playerObj.isReincarnated);
     const isGeneratedPlayer = !!(playerObj && (
-        playerObj.isGenerated || playerObj.isYouth || playerObj.isReincarnated || playerObj.isVirtual || playerObj.isCustom
+        playerObj.isGenerated || playerObj.isYouth || playerObj.isVirtual || playerObj.isCustom
     ));
+    // 환생 선수는 은퇴한 실존 선수의 얼굴(페이스팩)을 우선 사용
+    const skipRealFace = isGeneratedPlayer && !isReincarnated;
 
     let id = playerObj && (playerObj.playerid || playerObj.playerId || playerObj.id);
-    if (!id && !isGeneratedPlayer && name && typeof allTeams !== 'undefined') {
-        for (const t in allTeams) {
-            const found = (allTeams[t].players || []).find(x => x.name === name);
-            if (found && (found.playerid || found.id)) {
-                id = found.playerid || found.id;
-                if (!playerObj) playerObj = found;
-                break;
+    if (!id && !skipRealFace && name) {
+        if (typeof allTeams !== 'undefined') {
+            for (const t in allTeams) {
+                const found = (allTeams[t].players || []).find(x => x.name === name);
+                if (found && (found.playerid || found.id)) {
+                    id = found.playerid || found.id;
+                    if (!playerObj) playerObj = found;
+                    break;
+                }
+            }
+        }
+        // 은퇴 후 allTeams에서 제거된 환생 선수는 masterTeams 원본 데이터에서 playerid 복구
+        if (!id && typeof masterTeams !== 'undefined' && masterTeams) {
+            for (const t in masterTeams) {
+                const found = (masterTeams[t].players || []).find(x => x.name === name);
+                if (found && (found.playerid || found.id)) {
+                    id = found.playerid || found.id;
+                    break;
+                }
             }
         }
     }
 
     const candidates = [];
-    if (id && !isGeneratedPlayer) {
+    if (id && !skipRealFace) {
         const pid = 'p' + String(id).replace(/^p/i, '');
         candidates.push(`assets/players/${pid}.png`, `assets/players/${pid}.webp`);
     }
-    if (name && !isGeneratedPlayer) {
-        candidates.push(`assets/players/${name}.webp`);
+    if (name && !skipRealFace) {
+        const encodedName = encodeURIComponent(name);
+        candidates.push(`assets/players/${encodedName}.webp`);
+        if (encodedName !== name) {
+            candidates.push(`assets/players/${name}.webp`);
+        }
     }
 
     // 생성선수 또는 실존 페이스팩 미보유 선수에게 NewGAN 페이스팩 매핑

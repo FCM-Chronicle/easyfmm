@@ -1340,7 +1340,7 @@
             ? retiredPlayer.detailPosition
             : undefined;
 
-        return buildPlayerSpecs({
+        const reincarnated = buildPlayerSpecs({
             name: retiredPlayer.name,
             position: pos,
             detailPosition: detailPos,
@@ -1356,6 +1356,11 @@
             isWonderkid,
             isReincarnated: true
         });
+        const origPid = retiredPlayer && (retiredPlayer.playerid || retiredPlayer.playerId || retiredPlayer.id);
+        if (origPid) {
+            reincarnated.playerid = origPid;
+        }
+        return reincarnated;
     }
 
     const PlayerGenerator = {

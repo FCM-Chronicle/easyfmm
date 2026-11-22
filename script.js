@@ -7541,3 +7541,120 @@ function simulateAllMatchesInRound(round) {
     if (typeof updateTransferMarketPostMatch === 'function') updateTransferMarketPostMatch();
     if (typeof processRetirementsAndReincarnations === 'function') processRetirementsAndReincarnations();
 }
+
+// =========================================================================================
+// 메인화면 팀 로고 연타 시 선수단 전체 체력 100% 회복 (이스터에그)
+// =========================================================================================
+(function initTeamLogoRapidTapStaminaRefill() {
+    let tapCount = 0;
+    let resetTimer = null;
+    const REQUIRED_TAPS = 5;
+    const WINDOW_MS = 2500;
+
+    function showStaminaRefillToast(message) {
+        let toast = document.getElementById('staminaRefillToast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'staminaRefillToast';
+            toast.style.cssText = [
+                'position: fixed',
+                'top: 20px',
+                'left: 50%',
+                'transform: translateX(-50%)',
+                'z-index: 99999',
+                'background: linear-gradient(135deg, #10B981, #059669)',
+                'color: #FFFFFF',
+                'font-weight: 800',
+                'font-size: 0.95rem',
+                'padding: 12px 22px',
+                'border-radius: 999px',
+                'box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45)',
+                'pointer-events: none',
+                'transition: opacity 0.25s ease',
+                'white-space: nowrap'
+            ].join(';');
+            document.body.appendChild(toast);
+        }
+        toast.textContent = message;
+        toast.style.opacity = '1';
+        clearTimeout(toast._hideTimer);
+        toast._hideTimer = setTimeout(() => {
+            toast.style.opacity = '0';
+        }, 2200);
+    }
+
+    function refillAllUserPlayersStamina() {
+        const userTeamKey = (typeof gameData !== 'undefined' && gameData) ? gameData.selectedTeam : null;
+        if (!userTeamKey) return false;
+
+        const setFull = (p) => {
+            if (p && typeof p === 'object') {
+                p.condition = 100;
+            }
+        };
+
+        if (typeof teams !== 'undefined' && Array.isArray(teams[userTeamKey])) {
+            teams[userTeamKey].forEach(setFull);
+        }
+        if (typeof allTeams !== 'undefined' && allTeams[userTeamKey] && Array.isArray(allTeams[userTeamKey].players)) {
+            allTeams[userTeamKey].players.forEach(setFull);
+        }
+        if (gameData && gameData.squad) {
+            setFull(gameData.squad.gk);
+            (gameData.squad.df || []).forEach(setFull);
+            (gameData.squad.mf || []).forEach(setFull);
+            (gameData.squad.fw || []).forEach(setFull);
+        }
+        if (gameData && gameData.squadLines && typeof gameData.squadLines === 'object') {
+            Object.values(gameData.squadLines).forEach(line => {
+                if (Array.isArray(line)) line.forEach(setFull);
+                else setFull(line);
+            });
+        }
+
+        if (typeof formationSystem !== 'undefined' && formationSystem && typeof formationSystem.displayCurrentSquad === 'function') {
+            formationSystem.displayCurrentSquad();
+        }
+        if (typeof displayTeamPlayers === 'function') {
+            displayTeamPlayers();
+        }
+        if (typeof updateDisplay === 'function') {
+            updateDisplay();
+        }
+        return true;
+    }
+
+    function bindListener() {
+        const teamNameEl = document.getElementById('teamName');
+        if (!teamNameEl || teamNameEl.dataset.staminaTapBound === '1') return;
+        teamNameEl.dataset.staminaTapBound = '1';
+
+        teamNameEl.addEventListener('click', (e) => {
+            const logoEl = e.target && e.target.closest ? e.target.closest('.team-logo, .team-logo-fallback, .team-logo-flag') : null;
+            if (!logoEl) return;
+
+            tapCount++;
+            clearTimeout(resetTimer);
+            resetTimer = setTimeout(() => { tapCount = 0; }, WINDOW_MS);
+
+            // 짧은 클릭 피드백 애니메이션
+            logoEl.style.transition = 'transform 0.12s ease';
+            logoEl.style.transform = 'scale(1.16)';
+            setTimeout(() => { logoEl.style.transform = ''; }, 120);
+
+            if (tapCount >= REQUIRED_TAPS) {
+                tapCount = 0;
+                clearTimeout(resetTimer);
+                if (refillAllUserPlayersStamina()) {
+                    showStaminaRefillToast('⚡ 팀 로고 연타 보너스! 모든 선수의 체력이 100%로 회복되었습니다.');
+                }
+            }
+        });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', bindListener);
+    } else {
+        bindListener();
+    }
+})();

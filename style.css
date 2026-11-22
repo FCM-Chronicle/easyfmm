@@ -1799,6 +1799,8 @@ body {
     height: 100%;
     background: rgba(0, 0, 0, 0.8);
     backdrop-filter: blur(5px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .modal-content {
@@ -3184,13 +3186,56 @@ body.team-브라질_연합 {
 }
 
 /* ==================== 평점 모달 스타일 ==================== */
+#matchResultModal {
+    padding: 12px;
+    box-sizing: border-box;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+#matchResultModal .modal-content {
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 24px);
+    max-height: calc(100dvh - 24px);
+    margin: 0 auto;
+    padding: 20px;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+#matchResultModal #matchResultTitle,
+#matchResultModal .match-score-summary {
+    flex-shrink: 0;
+}
+
+#matchResultModal .ratings-container {
+    display: flex;
+    gap: 20px;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    touch-action: pan-y;
+    padding-right: 4px;
+}
+
+#matchResultModal .match-result-actions {
+    flex-shrink: 0;
+    margin-top: 14px !important;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
 .ratings-container {
     display: flex;
     gap: 20px;
 }
 
 @media (max-width: 768px) {
-    .ratings-container {
+    .ratings-container,
+    #matchResultModal .ratings-container {
         flex-direction: column;
     }
 }

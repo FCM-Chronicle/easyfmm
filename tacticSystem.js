@@ -2490,31 +2490,59 @@ function endMatch(matchData) {
             }
         });
 
-        // 1. 실제 출전 선수(선발+교체투입+교체아웃) 컨디션 반영 (+5, 두 번째 활력 +8)
+        // 1. 실제 출전 선수(선발+교체투입+교체아웃) 컨디션 반영 (+22, 두 번째 활력 +28)
         playedStaminaMap.forEach((rawRemaining, pName) => {
             const realPlayer = userPlayers.find(p => p.name === pName);
             if (realPlayer) {
                 playedPlayerNames.add(realPlayer.name);
 
-                const remaining = (typeof rawRemaining === 'number')
+                const remaining = (typeof rawRemaining === 'number' && !Number.isNaN(rawRemaining))
                     ? rawRemaining
                     : (realPlayer.condition !== undefined ? realPlayer.condition : 100);
                 const traits = Array.isArray(realPlayer.traits) ? realPlayer.traits : [];
                 const hasRelentless = traits.some(t => t.includes('두 번째 활력'));
-                const matchRecovery = hasRelentless ? 8 : 5;
+                const matchRecovery = hasRelentless ? 28 : 22;
 
-                const recovered = Math.min(100, Math.max(15, Math.round(remaining + matchRecovery)));
+                const recovered = Math.min(100, Math.max(30, Math.round(remaining + matchRecovery)));
                 realPlayer.condition = recovered;
             }
         });
 
-        // 2. 경기 미출전 선수 컨디션 회복 (+15)
+        // 2. 경기 미출전(휴식) 선수 컨디션 대폭 회복 (+45)
         userPlayers.forEach(p => {
             if (!playedPlayerNames.has(p.name)) {
                 const current = p.condition !== undefined ? p.condition : 100;
-                p.condition = Math.min(100, current + 15);
+                p.condition = Math.min(100, Math.round(current + 45));
             }
         });
+
+        // 3. gameData.squad / squadLines 객체 참조가 분리된 경우에도 컨디션 동기화
+        const condByName = new Map(userPlayers.map(p => [p.name, p.condition]));
+        const syncPlayerCond = (p) => {
+            if (p && condByName.has(p.name)) {
+                p.condition = condByName.get(p.name);
+            }
+        };
+        if (gameData && gameData.squad) {
+            syncPlayerCond(gameData.squad.gk);
+            (gameData.squad.df || []).forEach(syncPlayerCond);
+            (gameData.squad.mf || []).forEach(syncPlayerCond);
+            (gameData.squad.fw || []).forEach(syncPlayerCond);
+        }
+        if (gameData && gameData.squadLines && typeof gameData.squadLines === 'object') {
+            Object.values(gameData.squadLines).forEach(line => {
+                if (Array.isArray(line)) line.forEach(syncPlayerCond);
+                else syncPlayerCond(line);
+            });
+        }
+
+        // 4. 컨디션 회복 후 UI 즉시 갱신
+        if (typeof formationSystem !== 'undefined' && formationSystem && typeof formationSystem.displayCurrentSquad === 'function') {
+            formationSystem.displayCurrentSquad();
+        }
+        if (typeof displayTeamPlayers === 'function') {
+            displayTeamPlayers();
+        }
     }
 
     // ?쒖쫵 醫낅즺 諛????泥섎━
