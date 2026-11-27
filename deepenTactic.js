@@ -2003,8 +2003,10 @@ class RealSoccerEngine {
             return;
         }
 
-        // [긴급 슈팅] 골문 4.5m 바로 앞 (확실한 탭인 상황)
-        if (distToGoal <= 4.5 && player.position !== 'GK') {
+        // [긴급 슈팅] 골문 정면 4.5m 바로 앞 (각도가 열린 확실한 탭인 상황만 허용)
+        const dYToGoal = Math.abs(player.y - 50);
+        const shotAngleToGoal = Math.atan2(dYToGoal, Math.max(1, distToGoal));
+        if (distToGoal <= 4.5 && dYToGoal <= 8.5 && player.position !== 'GK') {
             this._attemptShoot(player, goalX);
             return;
         }
@@ -2022,8 +2024,8 @@ class RealSoccerEngine {
             Math.abs(bestPassTarget.x - goalX) > distToGoal + 1.5 &&
             !isCutback && !isCross;
 
-        // [공격 다변화: 아크 정면 2선 중거리 슈팅 & ZD 감아차기 (16 ~ 29m)]
-        if (distToGoal >= 16 && distToGoal <= 29 && player.position !== 'DF' && player.position !== 'GK') {
+        // [공격 다변화: 아크 정면 2선 중거리 슈팅 & ZD 감아차기 (17 ~ 28m, 각도가 열린 정면/하프스페이스 한정)]
+        if (distToGoal >= 17 && distToGoal <= 28 && shotAngleToGoal <= 0.58 && player.position !== 'DF' && player.position !== 'GK') {
             const effSh = this.getEffectiveStat(player, 'shooting');
             const frontCrowd = this._numOpponentsAhead(player, 8, 15);
             const oppTSet = (this.tacticSettings && this.tacticSettings[tid === 'home' ? 'away' : 'home']) || {};
@@ -2033,16 +2035,26 @@ class RealSoccerEngine {
             const hasPowerShot = traits.some(t => t.includes('파워슛') || t.includes('빨랫줄 슈팅'));
             const isLongShotRole = behavior.longShotBias || ['AP', 'AM', 'BBM', 'MEZ', 'CM', 'IW', 'IF', 'SS'].includes(player.role);
 
-            let longShotProb = (effSh >= 72 ? 0.16 : 0.10);
-            if (player.position === 'MF') longShotProb += (!underPressure && frontCrowd <= 1) ? 0.28 : 0.14;
-            else if (isFlankWinger && Math.abs(player.y - 50) <= 26) longShotProb += (!underPressure && frontCrowd <= 1) ? 0.16 : 0.08;
-            if (isOppLowBlock) longShotProb += 0.08;
-            if (hasFinesse || hasPowerShot) longShotProb += 0.08;
-            if (isLongShotRole) longShotProb += 0.08;
-            if (Math.abs(player.y - 50) > 26) longShotProb -= 0.10;
-            if (frontCrowd >= 2 || underPressure) longShotProb -= 0.12;
+            // 공격수(FW)는 박스 안 침투를 우선하고, 2선(MF) 및 슈팅 특화 롤 중심으로 절제된 중거리 시도
+            let longShotProb = player.position === 'MF'
+                ? (effSh >= 74 ? 0.075 : 0.045)
+                : (effSh >= 78 ? 0.032 : 0.018);
+            if (player.position === 'MF' && !underPressure && frontCrowd <= 1) longShotProb += 0.045;
+            else if (isFlankWinger && dYToGoal <= 16 && !underPressure && frontCrowd <= 1) longShotProb += 0.025;
+            if (isOppLowBlock) longShotProb += 0.025;
+            if (hasFinesse || hasPowerShot) longShotProb += 0.030;
+            if (isLongShotRole) longShotProb += 0.020;
+            if (frontCrowd >= 2 || underPressure) longShotProb *= 0.45;
 
-            if (effSh >= 56 && longShotProb > 0 && Math.random() < longShotProb) {
+            // 각도가 좁아질수록 중거리 슛 확률 급감 (측면에서는 크로스/패스/컷인 우선)
+            const longAngleScale = clamp(1.0 - (shotAngleToGoal / 0.62) * 0.85, 0.08, 1.0);
+            const longMod = (typeof MatchTuning !== 'undefined' && MatchTuning.longShotSuppression !== undefined)
+                ? MatchTuning.longShotSuppression : 0.52;
+            const freqMod = (typeof MatchTuning !== 'undefined' && MatchTuning.shotFrequencyMultiplier !== undefined)
+                ? MatchTuning.shotFrequencyMultiplier : 0.88;
+            longShotProb *= longAngleScale * longMod * freqMod;
+
+            if (effSh >= 60 && longShotProb > 0 && Math.random() < longShotProb) {
                 this._attemptShoot(player, goalX);
                 if (hasFinesse) {
                     this.eventsQueue.push({ type: 'shoot', player: player.name, desc: ` ${player.name}, 수비 틈 사이로 환상적인 궤적의 ZD 감아차기 슈팅!!` });
@@ -2086,12 +2098,17 @@ class RealSoccerEngine {
             const clearSight = !this._isFrontalBlocked(player, goalX);
             const isCentralST = player.position === 'FW' && !isFlankWinger && Math.abs(player.slotY - 50) <= 15;
             const isAttackingWideOrAM = isFlankWinger || ['AM', 'AP', 'SS', 'IW', 'IF', 'W', 'BBM', 'MEZ', 'LM', 'RM'].includes(player.role);
-            const roleShotBonus = isCentralST ? 13 : (isAttackingWideOrAM ? 18 : (player.position === 'MF' ? 13 : 8));
-            const shootScore = sc * 100 + roleShotBonus + (clearSight ? 12 : 0) - (underPressure ? 8 : 0);
+            const roleShotBonus = isCentralST ? 16 : (isAttackingWideOrAM ? 16 : (player.position === 'MF' ? 13 : 8));
+            // 골대와의 각도가 좁을수록 슈팅 점수를 크게 깎아 컷백·크로스·패스·안쪽 드리블을 선택하게 유도
+            const isVeryNarrowAngle = dYToGoal > 8.5 && (shotAngleToGoal > 0.96 || (dYToGoal > 18 && shotAngleToGoal > 0.72));
+            const narrowAnglePenalty = dYToGoal > 8.5 && shotAngleToGoal > 0.45
+                ? (shotAngleToGoal - 0.45) * 42
+                : 0;
+            const shootScore = sc * 100 + roleShotBonus + (clearSight ? 12 : 0) - (underPressure ? 8 : 0) - narrowAnglePenalty;
             const shootThreshold = distToGoal <= 8 ? 28 : (distToGoal <= 14 ? 38 : (distToGoal <= 19 ? 47 : 55));
 
-            // 컷백이나 크로스: 터치라인 깊은 측면일 때 주로 시도하되, 하프스페이스/박스 안 윙어는 직접 슈팅도 과감히 선택
-            if ((isCutback || isCross) && Math.abs(player.y - 50) > 20 && passScore >= carryScore - 10 && (distToGoal > 13 || Math.random() < 0.45)) {
+            // 컷백이나 크로스: 각도가 좁은 측면/엔드라인일수록 직접 슈팅 대신 중앙 컷백/크로스 적극 선택
+            if ((isCutback || isCross) && (isVeryNarrowAngle || (dYToGoal > 16 && passScore >= carryScore - 14 && (distToGoal > 11 || shotAngleToGoal > 0.65 || Math.random() < 0.65)))) {
                 this._executePassV3(player, bestPassTarget, phase);
                 return;
             }
@@ -2113,17 +2130,19 @@ class RealSoccerEngine {
             );
             const isPassBetterFinish = bestPassTarget && (
                 isCutback || isCross ||
-                ((Math.abs(bestPassTarget.x - goalX) < distToGoal - 5.5) && Math.abs(bestPassTarget.y - 50) < 14 && (Math.abs(player.y - 50) > 19 || !clearSight))
+                ((Math.abs(bestPassTarget.x - goalX) < distToGoal - 5.5) && Math.abs(bestPassTarget.y - 50) < 14 && (Math.abs(player.y - 50) > 16 || !clearSight)) ||
+                (shotAngleToGoal > 0.72 && Math.abs(bestPassTarget.y - 50) < dYToGoal - 6 && Math.abs(bestPassTarget.x - goalX) <= 20)
             );
 
-            // 박스 안(18m 이내)에서 정면이 열렸거나 슈팅 점수가 임계값을 넘으면 과감히 슈팅!
-            if (distToGoal <= 7 || ((shootScore >= shootThreshold) && (!isPassBetterFinish || (clearSight && distToGoal <= 16) || Math.random() < 0.65))) {
+            // 박스 안 정면이 열렸거나 슈팅 점수가 임계값을 넘으면 슈팅 (단, 각도가 극도로 좁으면 슈팅 금지 -> 패스/드리블!)
+            const isClearCloseTapIn = distToGoal <= 7 && dYToGoal <= 8.5;
+            if (!isVeryNarrowAngle && (isClearCloseTapIn || ((shootScore >= shootThreshold) && (!isPassBetterFinish || (clearSight && distToGoal <= 16 && shotAngleToGoal <= 0.62) || Math.random() < (shotAngleToGoal > 0.70 ? 0.25 : 0.65))))) {
                 this._attemptShoot(player, goalX);
                 return;
             }
 
-            // 동료가 더 좋은 골문 앞 위치에 있으면 패스
-            if (bestPassTarget && isTargetForwardOrBox && (isPassBetterFinish || passScore >= carryScore - 4)) {
+            // 동료가 더 좋은 골문 앞 위치에 있으면 패스 (각도가 좁을수록 패스 선호)
+            if (bestPassTarget && (isTargetForwardOrBox || isVeryNarrowAngle) && (isPassBetterFinish || isVeryNarrowAngle || passScore >= carryScore - 4)) {
                 this._executePassV3(player, bestPassTarget, phase);
                 return;
             }
@@ -3326,47 +3345,53 @@ class RealSoccerEngine {
         });
         if (isBlockAngle && dToGoal > 16 && player.position !== 'FW' && Math.random() < 0.5) return 0;
 
-        //  각도 페널티 (하프스페이스 윙어/2선 슈팅 기회 확대)
+        //  각도 페널티 (골대와의 각도가 좁을수록 슈팅 억제 -> 컷백/크로스/안쪽 돌파 유도)
         const dY = Math.abs(player.y - 50);
         const shotAngle = Math.atan2(dY, Math.max(1, dToGoal));
         let angleFactor = 1.0;
-        if (shotAngle > 1.15) angleFactor = 0.35;
-        else if (shotAngle > 0.85) angleFactor = 0.68;
-        else if (shotAngle > 0.6) angleFactor = 0.86;
-        else if (shotAngle > 0.4) angleFactor = 0.95;
-        // 박스 안쪽(골문 앞 18야드 이내)에서는 각도 페널티 완화하여 과감한 피니시 유도
-        if (dToGoal <= 18) angleFactor = Math.max(angleFactor, 0.80);
-        if (dToGoal <= 10) angleFactor = Math.max(angleFactor, 0.92);
+        if (dY <= 7.0) {
+            angleFactor = 1.0; // 골문 정면 폭 안쪽은 각도 페널티 없음
+        } else if (shotAngle > 1.05) {
+            angleFactor = 0.05; // 60도 초과 사각: 사실상 슈팅 금지
+        } else if (shotAngle > 0.85) {
+            angleFactor = 0.22; // 매우 좁은 각도
+        } else if (shotAngle > 0.65) {
+            angleFactor = 0.48; // 좁은 측면 각도
+        } else if (shotAngle > 0.45) {
+            angleFactor = 0.76; // 하프스페이스 각도
+        } else if (shotAngle > 0.28) {
+            angleFactor = 0.92;
+        }
 
         let b = 0;
-        // [배속 동기화 및 사실적 골 통계] 경기당 평균 2.3~2.7골 유지 및 포지션별 득점 분산
-        if (dToGoal < 10) b = 0.72;
-        else if (dToGoal < 16) b = 0.52;
-        else if (dToGoal < 22) b = clamp(1 / dToGoal * 8.2, 0.15, 0.35);
-        else if (dToGoal < 30) b = clamp(1 / dToGoal * 4.8, 0.04, 0.14);
-        else if (dToGoal < 38) b = 0.015;
-        else b = 0.004;
+        // [배속 동기화 및 사실적 골 통계] 박스 안 결정력 강화 및 중거리 난사 억제
+        if (dToGoal < 10) b = 0.78;
+        else if (dToGoal < 16) b = 0.58;
+        else if (dToGoal < 22) b = clamp(1 / dToGoal * 7.8, 0.14, 0.34);
+        else if (dToGoal < 30) b = clamp(1 / dToGoal * 4.0, 0.03, 0.11);
+        else if (dToGoal < 38) b = 0.010;
+        else b = 0.002;
 
         const isWideFW = player.position === 'FW' && (['LW', 'RW', 'LM', 'RM'].includes(player.detailPosition) || ['W', 'IW', 'IF'].includes(player.role) || Math.abs(player.slotY - 50) > 15);
         const isCentralST = player.position === 'FW' && !isWideFW;
-        if (isCentralST) b *= 0.92;
-        else if (isWideFW) b *= 1.24;
-        else if (player.position === 'MF') b *= (['AM', 'AP', 'SS', 'BBM', 'MEZ', 'W', 'IW', 'IF', 'LM', 'RM'].includes(player.role) ? 1.22 : 1.08);
+        if (isCentralST) b *= 1.05;
+        else if (isWideFW) b *= 1.15;
+        else if (player.position === 'MF') b *= (['AM', 'AP', 'SS', 'BBM', 'MEZ', 'W', 'IW', 'IF', 'LM', 'RM'].includes(player.role) ? 1.18 : 1.05);
 
         b *= angleFactor;
 
         // [MatchTuning 연동] 슈팅 시도 빈도 및 중거리 슈팅 조절
         const freqMod = (typeof MatchTuning !== 'undefined' && MatchTuning.shotFrequencyMultiplier !== undefined)
-            ? MatchTuning.shotFrequencyMultiplier : 0.85;
+            ? MatchTuning.shotFrequencyMultiplier : 0.88;
         b *= freqMod;
 
-        if (dToGoal >= 22) {
+        if (dToGoal >= 20) {
             const longMod = (typeof MatchTuning !== 'undefined' && MatchTuning.longShotSuppression !== undefined)
-                ? MatchTuning.longShotSuppression : 0.42;
+                ? MatchTuning.longShotSuppression : 0.52;
             b *= longMod;
         }
 
-        return Math.min(b, 0.88);
+        return Math.min(b, 0.90);
     }
 
     _attemptShoot(shooter, goalX) {
@@ -3374,64 +3399,64 @@ class RealSoccerEngine {
         const gk = this.players.find(p => p.teamId === opp && p.position === 'GK');
         const gkV = gk ? this.getEffectiveStat(gk, 'defense') : 65;
         const d = Math.abs(shooter.x - goalX);
-        const dF = clamp(1.3 - d / 40, 0.80, 1.35);
+        const dF = clamp(1.32 - d / 38, 0.82, 1.38);
         const dY = Math.abs(shooter.y - 50);
         let aF = 1.0;
-        if (dY > 12) {
-            const ang = Math.atan2(dY - 10, Math.max(2, d));
-            aF = clamp(1.0 - ang * 0.45, 0.45, 1.0);
+        if (dY > 10) {
+            const ang = Math.atan2(dY - 8, Math.max(2, d));
+            aF = clamp(1.0 - ang * 0.45, 0.42, 1.0);
         }
         const effSh = this.getEffectiveStat(shooter, 'shooting');
-        const sp = effSh * (0.85 + Math.random() * 0.35) * dF * aF;
+        const sp = effSh * (0.88 + Math.random() * 0.34) * dF * aF;
 
         // [MatchTuning 연동] 골키퍼 선방 능력 배율
         const gkMod = (typeof MatchTuning !== 'undefined' && MatchTuning.gkSaveMultiplier !== undefined)
-            ? MatchTuning.gkSaveMultiplier : 1.14;
-        const sv = gkV * 0.91 * (0.85 + Math.random() * 0.30) * gkMod;
+            ? MatchTuning.gkSaveMultiplier : 1.00;
+        const sv = gkV * 0.875 * (0.85 + Math.random() * 0.30) * gkMod;
         
-        // [골 결정력 현실화 및 포지션 분산: 스트라이커 과집중 억제 + 윙어/2선 결정력 균형]
+        // [골 결정력 현실화] 박스 안 결정력과 중앙 ST 피니시 균형 (중거리는 절제)
         const isWideAtt = (shooter.position === 'FW' && (['LW', 'RW'].includes(shooter.detailPosition) || ['W', 'IW', 'IF'].includes(shooter.role) || Math.abs(shooter.slotY - 50) > 15));
-        const inBoxBonus = d <= 7 ? 0.085 : (d <= 13 ? 0.055 : (d <= 19 ? 0.025 : (shooter.position === 'MF' && d <= 27 ? 0.022 : -0.030)));
-        const fwBonus = isWideAtt ? 0.030 : (shooter.position === 'MF' ? 0.026 : (shooter.position === 'FW' ? 0.014 : 0));
-        const statBonus = clamp((sp - sv) * 0.0062, -0.09, 0.12);
+        const inBoxBonus = d <= 7 ? 0.125 : (d <= 13 ? 0.080 : (d <= 17 ? 0.040 : (shooter.position === 'MF' && d <= 25 ? 0.015 : -0.032)));
+        const fwBonus = isWideAtt ? 0.028 : (shooter.position === 'MF' ? 0.020 : (shooter.position === 'FW' ? 0.034 : 0));
+        const statBonus = clamp((sp - sv) * 0.0063, -0.085, 0.13);
 
         // 슈팅 관련 특성 보유 시 추가 골 결정력 가산
         const traits = shooter.traits || [];
         const hasShootingTrait = traits.some(t => t.includes('감아차기') || t.includes('파워슛') || t.includes('슈팅') || t.includes('피니셔'));
-        const traitBonus = hasShootingTrait ? 0.02 : 0;
+        const traitBonus = hasShootingTrait ? 0.022 : 0;
 
         // 직전 연계가 컷백이나 크로스 원터치 피니시인 경우 가산
         const isCutbackFinish = this.ball && this.ball.isCutback;
         const isCrossFinish = this.ball && this.ball.isCross;
-        const patternBonus = isCutbackFinish ? 0.035 : (isCrossFinish ? 0.025 : 0);
+        const patternBonus = isCutbackFinish ? 0.040 : (isCrossFinish ? 0.028 : 0);
 
         // 1:1 단독 찬스 보너스
         const nearbyDefs = this.players.filter(p => p.teamId === opp && p.position !== 'GK' && Math.hypot(p.x - shooter.x, p.y - shooter.y) < 7.0);
         const isOneOnOne = nearbyDefs.length === 0 && d <= 16;
-        const bigChanceBonus = isOneOnOne ? 0.03 : 0;
+        const bigChanceBonus = isOneOnOne ? 0.048 : 0;
 
         const goalMult = (typeof MatchTuning !== 'undefined' && MatchTuning.goalMultiplier !== undefined)
-            ? MatchTuning.goalMultiplier : 1.16;
+            ? MatchTuning.goalMultiplier : 1.18;
         const minG = (typeof MatchTuning !== 'undefined' && MatchTuning.minGoalChance !== undefined)
             ? MatchTuning.minGoalChance : 0.03;
         const maxG = (typeof MatchTuning !== 'undefined' && MatchTuning.maxGoalChance !== undefined)
-            ? MatchTuning.maxGoalChance : 0.45;
+            ? MatchTuning.maxGoalChance : 0.52;
 
-        const wideAngleMult = dY > 14 ? clamp(1.0 - (dY - 14) * 0.012, 0.72, 1.0) : 1.0;
-        let goalChance = clamp((0.12 + inBoxBonus + fwBonus + statBonus + traitBonus + patternBonus + bigChanceBonus) * goalMult * wideAngleMult, minG, maxG);
+        const wideAngleMult = dY > 12 ? clamp(1.0 - (dY - 12) * 0.015, 0.65, 1.0) : 1.0;
+        let goalChance = clamp((0.142 + inBoxBonus + fwBonus + statBonus + traitBonus + patternBonus + bigChanceBonus) * goalMult * wideAngleMult, minG, maxG);
 
         // [다득점 과열 방지 댐핑: 현실적인 스코어라인 유지]
         const totalMatchGoals = (this.homeScore || 0) + (this.awayScore || 0);
         const myTeamScore = shooter.teamId === 'home' ? (this.homeScore || 0) : (this.awayScore || 0);
         const oppTeamScore = shooter.teamId === 'home' ? (this.awayScore || 0) : (this.homeScore || 0);
         const scoreGap = myTeamScore - oppTeamScore;
-        if (scoreGap >= 3) goalChance *= 0.84;
-        else if (scoreGap === 2) goalChance *= 0.92;
-        else if (scoreGap < 0) goalChance += Math.min(0.015, Math.abs(scoreGap) * 0.006);
-        if (totalMatchGoals >= 5) {
-            goalChance *= 0.52;
-        } else if (totalMatchGoals >= 3) {
-            goalChance *= 0.80;
+        if (scoreGap >= 3) goalChance *= 0.85;
+        else if (scoreGap === 2) goalChance *= 0.93;
+        else if (scoreGap < 0) goalChance += Math.min(0.018, Math.abs(scoreGap) * 0.007);
+        if (totalMatchGoals >= 6) {
+            goalChance *= 0.58;
+        } else if (totalMatchGoals >= 4) {
+            goalChance *= 0.85;
         }
         goalChance = clamp(goalChance, minG, maxG);
 
@@ -3443,7 +3468,7 @@ class RealSoccerEngine {
         this.ball.maxHeight = 1.8;
         this.ball.speed = 6.2; // [템포 완화] 너무 휙 날아가지 않고 골망을 가르는 궤적이 선명히 보이는 슛 탄속
         const isGoal = Math.random() < goalChance;
-        const targetProb = clamp(0.65 + (effSh - 70) * 0.005 - (d > 18 ? 0.10 : 0), 0.45, 0.88);
+        const targetProb = clamp(0.62 + (effSh - 70) * 0.005 - (d > 18 ? 0.16 : 0), 0.38, 0.85);
         const isTarget = isGoal || (Math.random() < targetProb);
         this.pendingShot = { isGoal, isTarget, shooter, goalX };
     }

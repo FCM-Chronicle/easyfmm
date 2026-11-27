@@ -5984,6 +5984,236 @@ body.team-브라질_연합 {
             border-radius: 12px;
         }
 
+        /* 업그레이드 재정 탭: 전체 예산 · FFP · 보드진 평가 · 가계부 */
+        .finance-summary-grid-5 {
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+        }
+
+        .finance-card-sub {
+            margin-top: 6px;
+            font-size: 0.76rem;
+            color: #94A3B8;
+            font-weight: 600;
+        }
+
+        .fin-pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 3px 9px;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 800;
+            letter-spacing: -0.01em;
+        }
+
+        .finance-gov-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .fin-desc-text {
+            margin: 0 0 12px;
+            font-size: 0.85rem;
+            color: #CBD5E1;
+            line-height: 1.5;
+        }
+
+        .fin-meter-block,
+        .fin-board-row {
+            margin-bottom: 12px;
+        }
+
+        .fin-meter-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 8px;
+            font-size: 0.82rem;
+            color: #CBD5E1;
+            margin-bottom: 6px;
+        }
+
+        .fin-meter-track {
+            width: 100%;
+            height: 7px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.08);
+            overflow: hidden;
+        }
+
+        .fin-meter-fill {
+            height: 100%;
+            border-radius: 999px;
+            transition: width 0.25s ease;
+        }
+
+        .fin-ffp-metrics {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+            margin: 12px 0;
+        }
+
+        .fin-mini-stat {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 6px;
+            padding: 8px 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            color: #94A3B8;
+        }
+
+        .fin-mini-stat strong {
+            color: #F8FAFC;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .fin-rule-footnote {
+            font-size: 0.76rem;
+            color: #94A3B8;
+            line-height: 1.5;
+            padding-top: 8px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .fin-board-overall-badge {
+            padding: 4px 10px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            font-size: 0.84rem;
+            font-weight: 800;
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .fin-board-comment {
+            margin: 10px 0 12px;
+            padding: 10px 12px;
+            border-left: 3px solid #38BDF8;
+            background: rgba(56, 189, 248, 0.06);
+            border-radius: 0 6px 6px 0;
+            font-size: 0.83rem;
+            color: #E2E8F0;
+            line-height: 1.5;
+        }
+
+        .fin-board-actions-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            color: #94A3B8;
+            margin-bottom: 8px;
+        }
+
+        .fin-board-actions {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 8px;
+        }
+
+        .fin-board-btn {
+            padding: 8px 10px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            border-radius: 6px;
+            background: rgba(56, 189, 248, 0.12);
+            border: 1px solid rgba(56, 189, 248, 0.35);
+            color: #E0F2FE;
+        }
+
+        .fin-board-btn:hover:not(:disabled) {
+            background: rgba(56, 189, 248, 0.24);
+        }
+
+        .fin-board-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .fin-pl-columns {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .fin-pl-title {
+            font-size: 0.82rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .fin-pl-title.income { color: #10B981; }
+        .fin-pl-title.expense { color: #F87171; }
+
+        .fin-pl-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 0;
+            font-size: 0.81rem;
+            color: #CBD5E1;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.05);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .fin-pl-row strong {
+            color: #F8FAFC;
+        }
+
+        .fin-ledger-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            max-height: 230px;
+            overflow-y: auto;
+        }
+
+        .fin-ledger-row {
+            display: grid;
+            grid-template-columns: 58px 1fr auto;
+            gap: 8px;
+            align-items: center;
+            padding: 6px 8px;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.025);
+            font-size: 0.8rem;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .fin-ledger-round {
+            color: #64748B;
+            font-weight: 700;
+            font-size: 0.74rem;
+        }
+
+        .fin-ledger-label {
+            color: #E2E8F0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .fin-ledger-amt {
+            font-weight: 800;
+        }
+
+        @media (max-width: 980px) {
+            .finance-summary-grid-5 {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            .finance-gov-grid,
+            .fin-pl-columns,
+            .fin-board-actions {
+                grid-template-columns: 1fr;
+            }
+        }
+
         /* 대화 화면 스타일 */
         .chat-shell {
             display: grid;

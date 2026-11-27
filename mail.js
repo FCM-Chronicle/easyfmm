@@ -751,8 +751,11 @@ class MailManager {
             teams[targetTeam].push(player);
         }
         
-        // 4. 자금 및 주급 예산 동기화
-        if (window.GameState) {
+        // 4. 자금 및 주급 예산 동기화 (매각 금액 전액은 전체 예산으로, 환원율만큼만 이적 자금으로 배정)
+        let saleBreakdown = null;
+        if (typeof financeSystem !== 'undefined') {
+            saleBreakdown = financeSystem.recordPlayerSale(player.name, price);
+        } else if (window.GameState) {
             window.GameState.addTeamMoney(price);
         } else {
             gameData.teamMoney += price;
@@ -777,7 +780,9 @@ class MailManager {
         
         // 5. 처리 완료 표시
         mail.isProcessed = true;
-        mail.data.resultMessage = `제안을 수락했습니다. (${price}억 수령)`;
+        mail.data.resultMessage = saleBreakdown
+            ? `제안을 수락했습니다. (매각 총액 ${price}억 → 구단 전체 예산 입금 / 이적 자금 +${saleBreakdown.transferBudgetAdded}억 [${saleBreakdown.retentionPct}% 환원])`
+            : `제안을 수락했습니다. (${price}억 수령)`;
         
         // 6. UI 갱신
         updateDisplay();

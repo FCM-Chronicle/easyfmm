@@ -363,8 +363,12 @@
             </div>
             <div id="topbarTitle" class="topbar-title"></div>
             <div class="team-info">
-                <div class="info-item">
-                    <span class="label">자금</span>
+                <div class="info-item" style="cursor: pointer;" onclick="showTab('finance');" title="클릭하여 구단 재정 · FFP · 보드진 평가 열기">
+                    <span class="label">구단 예산</span>
+                    <span id="lobbyClubBalance" style="color: #10B981; font-weight: 800;">0억</span>
+                </div>
+                <div class="info-item" style="cursor: pointer;" onclick="showTab('finance');" title="선수 영입에 사용 가능한 이적 자금">
+                    <span class="label">이적 자금</span>
                     <span id="teamMoney">1000억</span>
                 </div>
                 <div class="info-item" style="cursor: pointer;" onclick="showTab('finance');" title="클릭하여 재정 관리 열기 (총 주급 및 주급 예산)">
@@ -1959,6 +1963,7 @@
     <script src="playerGenerator.js"></script>
     <script src="managerSystem.js"></script>
     <script src="stadiumSystem.js"></script>
+    <script src="financeSystem.js"></script>
     <script src="cupCompetition.js"></script>
     <script src="contractSystem.js"></script>
     <script src="playerDetail.js"></script>

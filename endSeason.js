@@ -276,7 +276,10 @@ function endSeason(silent = false) {
         }
     }
     
-    gameData.teamMoney += reward;
+    // 시즌 상금은 아래 processSeasonEnd에서 구단 전체 예산에 통합 정산 (구버전 폴백 유지)
+    if (typeof financeSystem === 'undefined') {
+        gameData.teamMoney += reward;
+    }
 
 
     // 2. 발롱도르 (올해의 선수상 - 1부리그) 시상
@@ -322,7 +325,7 @@ function endSeason(silent = false) {
             userPromotionStatus = englandPromoRel.userStatus;
             if (userPromotionStatus.status === 'promotion') {
                 const promoBonus = 1000;
-                gameData.teamMoney += promoBonus;
+                if (typeof financeSystem === 'undefined') gameData.teamMoney += promoBonus;
                 reward += promoBonus;
                 promotionMessage = `\n\n🎉 축하합니다! 잉글랜드 프리미어리그 승격 확정! (${userPromotionStatus.reason}, 승격 지원금 +${promoBonus}억원)`;
             } else if (userPromotionStatus.status === 'relegation') {
@@ -341,7 +344,7 @@ function endSeason(silent = false) {
         // 추가 상금 계산 (리그별 차등)
         const additionalPrize = calculateAdditionalSeasonPrize(gameData.currentLeague, userPosition);
         if (additionalPrize > 0) {
-            gameData.teamMoney += additionalPrize;
+            if (typeof financeSystem === 'undefined') gameData.teamMoney += additionalPrize;
             reward += additionalPrize;
         }
         
@@ -352,10 +355,25 @@ function endSeason(silent = false) {
             promotionMessage = `\n\n아쉽게도 ${userPromotionStatus.newLeague}부리그 강등...`;
         }
     }
+
+    // [신규] 시즌 종료 재정 감사 (FFP 체크 + 보드진 평가 + 차기 시즌 예산 배정)
+    let seasonFinanceSummary = '';
+    if (typeof financeSystem !== 'undefined') {
+        const finRes = financeSystem.processSeasonEnd(reward, silent);
+        if (finRes) {
+            seasonFinanceSummary =
+                `\n\n[재정 & 보드진 결산]` +
+                `\n- 보드진 종합 평가: ${finRes.board.overall.grade} (${finRes.board.overall.score}점 · 성적 ${finRes.board.performance.grade} / 재정 ${finRes.board.finance.grade})` +
+                `\n- FFP 감사: ${finRes.ffp.label}` +
+                `\n- 구단 전체 예산: ${finRes.clubBalance.toLocaleString()}억원` +
+                `\n- 차기 시즌 배정 이적 자금: ${finRes.newTransferBudget.toLocaleString()}억원` +
+                (finRes.ffpPenaltyMsg ? `\n${finRes.ffpPenaltyMsg}` : '');
+        }
+    }
     
     // 4. 결과 알림 표시
     if (!silent) {
-        alert(`시즌 종료!\n최종 순위: ${userPosition}위 (${achievement})\n보상: ${reward}억원${promotionMessage}${doubleMessage}${potyMessage}`);
+        alert(`시즌 종료!\n최종 순위: ${userPosition}위 (${achievement})\n시즌 상금(전체 예산 입금): +${reward}억원${promotionMessage}${doubleMessage}${potyMessage}${seasonFinanceSummary}`);
     }
     
     // 5. 다른 팀 승강제 현황 표시
@@ -515,6 +533,9 @@ function endSeason(silent = false) {
 
     if (typeof initializeLeagueData === 'function') {
         initializeLeagueData();
+    }
+    if (typeof financeSystem !== 'undefined') {
+        financeSystem.applyPendingPointDeduction();
     }
     gameData.matchesPlayed = 0;
     

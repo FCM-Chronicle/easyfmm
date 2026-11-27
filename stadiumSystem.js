@@ -188,8 +188,13 @@ class StadiumSystem {
         const result = this.calculateMatchday(matchData.homeTeam, matchData.awayTeam);
         const stadium = this.getUserStadium();
 
-        // 재정 지급
-        gameData.teamMoney = Math.round((gameData.teamMoney + result.totalRevenue) * 10) / 10;
+        // 재정 지급 (매치데이 수익은 구단 전체 예산으로 입금)
+        if (typeof financeSystem !== 'undefined') {
+            const awayName = (typeof teamNames !== 'undefined' && teamNames[matchData.awayTeam]) ? teamNames[matchData.awayTeam] : matchData.awayTeam;
+            financeSystem.recordTransaction('income', 'matchday', result.totalRevenue, `매치데이 수익 (${awayName}전 · ${result.attendance.toLocaleString()}명)`);
+        } else {
+            gameData.teamMoney = Math.round((gameData.teamMoney + result.totalRevenue) * 10) / 10;
+        }
 
         // 통계 갱신
         if (stadium && stadium.stats) {
@@ -212,19 +217,23 @@ class StadiumSystem {
             return { success: false, message: `스타디움이 이미 최대 수용 한도(${this.maxCapacity.toLocaleString()}석)에 도달했습니다!` };
         }
 
-        if (gameData.teamMoney < cost) {
-            return { success: false, message: `공사 자금이 부족합니다. (필요: ${cost}억원 / 보유: ${gameData.teamMoney}억원)` };
+        // 구단 전체 예산(clubBalance)에서 공사 자금 차감 (이적 자금이 아님!)
+        if (typeof financeSystem !== 'undefined') {
+            const spendRes = financeSystem.spendClubBalanceForInfrastructure(cost, `${stadium.name} 관중석 +${seatsToAdd.toLocaleString()}석 증축`);
+            if (!spendRes.success) return spendRes;
+        } else {
+            if (gameData.teamMoney < cost) {
+                return { success: false, message: `공사 자금이 부족합니다. (필요: ${cost}억원 / 보유: ${gameData.teamMoney}억원)` };
+            }
+            gameData.teamMoney = Math.round((gameData.teamMoney - cost) * 10) / 10;
         }
-
-        // 자금 차감 및 증축 적용
-        gameData.teamMoney = Math.round((gameData.teamMoney - cost) * 10) / 10;
         const oldCapacity = stadium.currentCapacity;
         stadium.currentCapacity = Math.min(this.maxCapacity, stadium.currentCapacity + seatsToAdd);
         stadium.level += 1;
 
         if (typeof updateDisplay === 'function') updateDisplay();
 
-        const msg = `🎉 [스타디움 증축 완료!]\n${stadium.name}의 관중석이 ${oldCapacity.toLocaleString()}석에서 ${stadium.currentCapacity.toLocaleString()}석으로 대폭 확장되었습니다!\n(공사비 ${cost}억원 지출)`;
+        const msg = `🎉 [스타디움 증축 완료!]\n${stadium.name}의 관중석이 ${oldCapacity.toLocaleString()}석에서 ${stadium.currentCapacity.toLocaleString()}석으로 대폭 확장되었습니다!\n(구단 전체 예산에서 공사비 ${cost.toLocaleString()}억원 지출 · FFP 50% 감면 적용)`;
         return { success: true, message: msg };
     }
 
@@ -247,19 +256,23 @@ class StadiumSystem {
             return { success: false, message: `이미 설치가 완료된 시설입니다: ${target.name}` };
         }
 
-        if (gameData.teamMoney < target.cost) {
-            return { success: false, message: `자금이 부족합니다. (필요: ${target.cost}억원 / 보유: ${gameData.teamMoney}억원)` };
+        // 구단 전체 예산(clubBalance)에서 차감
+        if (typeof financeSystem !== 'undefined') {
+            const spendRes = financeSystem.spendClubBalanceForInfrastructure(target.cost, `구단 시설 설치: ${target.name}`);
+            if (!spendRes.success) return spendRes;
+        } else {
+            if (gameData.teamMoney < target.cost) {
+                return { success: false, message: `자금이 부족합니다. (필요: ${target.cost}억원 / 보유: ${gameData.teamMoney}억원)` };
+            }
+            gameData.teamMoney = Math.round((gameData.teamMoney - target.cost) * 10) / 10;
         }
-
-        // 차감 및 설치
-        gameData.teamMoney = Math.round((gameData.teamMoney - target.cost) * 10) / 10;
         stadium.upgrades[facilityKey] = true;
 
         if (typeof updateDisplay === 'function') updateDisplay();
 
         return {
             success: true,
-            message: `✨ [시설 준공 완료!]\n'${target.name}' 공사가 성공적으로 완료되었습니다!\n효과: ${target.desc}`
+            message: `✨ [시설 준공 완료!]\n'${target.name}' 공사가 성공적으로 완료되었습니다!\n(구단 전체 예산에서 ${target.cost.toLocaleString()}억원 지출 · FFP 50% 감면 적용)\n효과: ${target.desc}`
         };
     }
 
@@ -315,6 +328,8 @@ class StadiumSystem {
         const progressPct = Math.min(100, Math.round((stadium.currentCapacity / this.maxCapacity) * 100));
 
         const isMaxCapacity = stadium.currentCapacity >= this.maxCapacity;
+        const clubBalance = (typeof financeSystem !== 'undefined') ? financeSystem.getClubBalance() : (gameData.teamMoney || 0);
+        const balanceColor = clubBalance < 0 ? '#EF4444' : '#10B981';
 
         return `
         <div class="${isInlineTab ? 'stadium-inline-panel' : 'stadium-modal-content'}" style="${isInlineTab ? 'max-width: 1100px; margin: 0 auto;' : ''}">
@@ -343,14 +358,14 @@ class StadiumSystem {
                 <div class="stadium-stat-item">
                     <span class="stat-label">누적 매치데이 수익</span>
                     <span class="stat-val profit">+${stats.totalRevenue.toLocaleString()} <small>억원</small></span>
-                    <span class="stat-footnote">티켓 및 구단 굿즈 합산</span>
+                    <span class="stat-footnote">티켓 및 구단 굿즈 합산 (전체 예산 입금)</span>
                 </div>
             </div>
 
-            <!-- 구단 인프라 투자 섹션 (머니 싱크) -->
+            <!-- 구단 인프라 투자 섹션 (전체 예산에서 지출) -->
             <div class="stadium-section-title">
-                <h3>관중석 증축 공사</h3>
-                <span class="user-budget-display">보유 예산: <strong>${gameData.teamMoney.toLocaleString()}억원</strong></span>
+                <h3>관중석 증축 공사 <small style="font-size:0.78rem; color:#94A3B8; font-weight:500;">(구단 전체 예산 지출 · FFP 50% 감면)</small></h3>
+                <span class="user-budget-display">구단 전체 예산: <strong style="color:${balanceColor};">${clubBalance.toLocaleString()}억원</strong></span>
             </div>
 
             <div class="stadium-upgrade-grid">
@@ -360,7 +375,7 @@ class StadiumSystem {
                         <h4>+5,000석 스탠드 확장</h4>
                         <span class="upgrade-cost">공사비 1,200억원</span>
                     </div>
-                    <button class="btn-stadium-action primary" onclick="stadiumSystem.handleExpand(5000, 1200)" ${isMaxCapacity || gameData.teamMoney < 1200 ? 'disabled' : ''}>
+                    <button class="btn-stadium-action primary" onclick="stadiumSystem.handleExpand(5000, 1200)" ${isMaxCapacity || clubBalance < 1200 ? 'disabled' : ''}>
                         ${isMaxCapacity ? '최대치 도달' : '증축'}
                     </button>
                 </div>
@@ -371,7 +386,7 @@ class StadiumSystem {
                         <h4>+10,000석 메인 스탠드 증축</h4>
                         <span class="upgrade-cost">공사비 2,500억원</span>
                     </div>
-                    <button class="btn-stadium-action primary gold" onclick="stadiumSystem.handleExpand(10000, 2500)" ${isMaxCapacity || gameData.teamMoney < 2500 ? 'disabled' : ''}>
+                    <button class="btn-stadium-action primary gold" onclick="stadiumSystem.handleExpand(10000, 2500)" ${isMaxCapacity || clubBalance < 2500 ? 'disabled' : ''}>
                         ${isMaxCapacity ? '최대치 도달' : '증축'}
                     </button>
                 </div>
@@ -390,7 +405,7 @@ class StadiumSystem {
                         <span class="facility-status-pill">${stadium.upgrades.skybox ? '보유중' : '800억원'}</span>
                     </div>
                     <p class="facility-desc">홈 경기 티켓 수입 +15%</p>
-                    <button class="btn-stadium-action secondary" onclick="stadiumSystem.handleFacility('skybox')" ${stadium.upgrades.skybox || gameData.teamMoney < 800 ? 'disabled' : ''}>
+                    <button class="btn-stadium-action secondary" onclick="stadiumSystem.handleFacility('skybox')" ${stadium.upgrades.skybox || clubBalance < 800 ? 'disabled' : ''}>
                         ${stadium.upgrades.skybox ? '설치 완료' : '설치'}
                     </button>
                 </div>
@@ -402,7 +417,7 @@ class StadiumSystem {
                         <span class="facility-status-pill">${stadium.upgrades.hybridPitch ? '보유중' : '600억원'}</span>
                     </div>
                     <p class="facility-desc">홈 경기 부상 위험 -30% · 패스 성공률 보정</p>
-                    <button class="btn-stadium-action secondary" onclick="stadiumSystem.handleFacility('hybridPitch')" ${stadium.upgrades.hybridPitch || gameData.teamMoney < 600 ? 'disabled' : ''}>
+                    <button class="btn-stadium-action secondary" onclick="stadiumSystem.handleFacility('hybridPitch')" ${stadium.upgrades.hybridPitch || clubBalance < 600 ? 'disabled' : ''}>
                         ${stadium.upgrades.hybridPitch ? '설치 완료' : '설치'}
                     </button>
                 </div>
@@ -414,7 +429,7 @@ class StadiumSystem {
                         <span class="facility-status-pill">${stadium.upgrades.megastore ? '보유중' : '1,000억원'}</span>
                     </div>
                     <p class="facility-desc">홈 경기당 고정 수익 +2.5억원</p>
-                    <button class="btn-stadium-action secondary" onclick="stadiumSystem.handleFacility('megastore')" ${stadium.upgrades.megastore || gameData.teamMoney < 1000 ? 'disabled' : ''}>
+                    <button class="btn-stadium-action secondary" onclick="stadiumSystem.handleFacility('megastore')" ${stadium.upgrades.megastore || clubBalance < 1000 ? 'disabled' : ''}>
                         ${stadium.upgrades.megastore ? '설치 완료' : '설치'}
                     </button>
                 </div>
@@ -426,7 +441,7 @@ class StadiumSystem {
                         <span class="facility-status-pill">${stadium.upgrades.trainingCenter ? '보유중' : '900억원'}</span>
                     </div>
                     <p class="facility-desc">유망주 훈련 효율 +30% · 최대 잠재력 해금</p>
-                    <button class="btn-stadium-action secondary" onclick="stadiumSystem.handleFacility('trainingCenter')" ${stadium.upgrades.trainingCenter || gameData.teamMoney < 900 ? 'disabled' : ''}>
+                    <button class="btn-stadium-action secondary" onclick="stadiumSystem.handleFacility('trainingCenter')" ${stadium.upgrades.trainingCenter || clubBalance < 900 ? 'disabled' : ''}>
                         ${stadium.upgrades.trainingCenter ? '설치 완료' : '설치'}
                     </button>
                 </div>

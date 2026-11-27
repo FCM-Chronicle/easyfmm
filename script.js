@@ -1396,6 +1396,15 @@ function pickRandomCustomTeamName() {
 
 function randomizeSingleCustomPlayer(inputEl, pos) {
     const nation = document.getElementById('customNationSelect')?.value || '대한민국';
+    if (typeof PlayerGenerator !== 'undefined') {
+        const currentInputs = Array.from(document.querySelectorAll('.custom-player-input'))
+            .map(el => el.value.trim())
+            .filter(Boolean);
+        const existingNames = PlayerGenerator.collectExistingNames(currentInputs);
+        const targetCountry = (nation === 'random') ? PlayerGenerator.pickCountry({ localWeight: 0 }) : nation;
+        inputEl.value = PlayerGenerator.generateName(targetCountry, existingNames);
+        return;
+    }
     const pool = (nation === '대한민국') ? RANDOM_KOREAN_PLAYER_NAMES : RANDOM_GLOBAL_PLAYER_NAMES;
     const randomName = pool[Math.floor(Math.random() * pool.length)];
     inputEl.value = randomName;
@@ -1403,9 +1412,13 @@ function randomizeSingleCustomPlayer(inputEl, pos) {
 
 function autoFillCustomPlayers() {
     const nation = document.getElementById('customNationSelect')?.value || '대한민국';
-    const pool = [...((nation === '대한민국') ? RANDOM_KOREAN_PLAYER_NAMES : RANDOM_GLOBAL_PLAYER_NAMES)].sort(() => Math.random() - 0.5);
     const inputs = document.querySelectorAll('.custom-player-input');
-    const used = new Set();
+    const used = (typeof PlayerGenerator !== 'undefined')
+        ? PlayerGenerator.collectExistingNames()
+        : new Set();
+    const pool = [...((nation === '대한민국') ? RANDOM_KOREAN_PLAYER_NAMES : RANDOM_GLOBAL_PLAYER_NAMES)]
+        .filter(n => !used.has(n))
+        .sort(() => Math.random() - 0.5);
 
     inputs.forEach((input, idx) => {
         let name = idx < pool.length ? pool[idx] : null;
@@ -1414,7 +1427,8 @@ function autoFillCustomPlayers() {
                 const targetCountry = (nation === 'random') ? PlayerGenerator.pickCountry({ localWeight: 0 }) : nation;
                 name = PlayerGenerator.generateName(targetCountry, used);
             } else {
-                name = pool[idx % pool.length];
+                const fallbackPool = (nation === '대한민국') ? RANDOM_KOREAN_PLAYER_NAMES : RANDOM_GLOBAL_PLAYER_NAMES;
+                name = fallbackPool[idx % fallbackPool.length];
             }
         }
         used.add(name);
@@ -2982,6 +2996,10 @@ function initializeTeamFinance() {
         gameData.wageBudget = gameData.totalWeeklyWage || 0;
     }
 
+    if (typeof financeSystem !== 'undefined') {
+        financeSystem.initForTeam(gameData.selectedTeam);
+    }
+
     updateFinanceDisplay();
 }
 
@@ -3004,7 +3022,16 @@ function updateFinanceDisplay() {
     const availableWageEl = document.getElementById('availableWage');
     if (availableWageEl) availableWageEl.textContent = availableWage + '억';
 
-    // 로비 상단 헤더의 주급 여유분 표시 갱신
+    // 로비 상단 헤더의 구단 전체 예산 및 주급 여유분 표시 갱신
+    const lobbyClubBalanceEl = document.getElementById('lobbyClubBalance');
+    if (lobbyClubBalanceEl && typeof financeSystem !== 'undefined') {
+        const clubBal = financeSystem.getClubBalance();
+        const ffp = financeSystem.getFFPStatus();
+        lobbyClubBalanceEl.textContent = `${clubBal.toLocaleString()}억`;
+        lobbyClubBalanceEl.style.color = clubBal < 0 ? '#EF4444' : (ffp.status === 'WARNING' || ffp.status === 'BREACH' ? '#F97316' : '#10B981');
+        lobbyClubBalanceEl.title = `구단 전체 예산: ${clubBal.toLocaleString()}억 | FFP: ${ffp.label}`;
+    }
+
     const lobbyAvailableWageEl = document.getElementById('lobbyAvailableWage');
     if (lobbyAvailableWageEl) {
         lobbyAvailableWageEl.textContent = `${availableWage}억`;
@@ -3594,14 +3621,18 @@ function displaySponsors() {
             btn.innerHTML = `스폰서십 체결하기 (+${sponsor.signingBonus}억 즉시 수령)`;
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                if (confirm(`${sponsor.name}와 공식 파트너십 계약을 체결하시겠습니까?\n계약금 ${sponsor.signingBonus}억원이 구단 자금에 즉시 입금됩니다.`)) {
+                if (confirm(`${sponsor.name}와 공식 파트너십 계약을 체결하시겠습니까?\n계약금 ${sponsor.signingBonus}억원이 구단 전체 예산에 즉시 입금됩니다.`)) {
                     gameData.currentSponsor = sponsor;
                     gameData.sponsorRemainingMatches = sponsor.contractLength;
-                    gameData.teamMoney += sponsor.signingBonus;
+                    if (typeof financeSystem !== 'undefined') {
+                        financeSystem.recordTransaction('income', 'sponsor', sponsor.signingBonus, `스폰서 계약금 (${sponsor.name})`);
+                    } else {
+                        gameData.teamMoney += sponsor.signingBonus;
+                    }
 
                     updateDisplay();
                     displaySponsors();
-                    alert(`${sponsor.name}와 스폰서십 계약을 체결했습니다!\n계약금 ${sponsor.signingBonus}억을 받았습니다.`);
+                    alert(`${sponsor.name}와 스폰서십 계약을 체결했습니다!\n계약금 ${sponsor.signingBonus}억원이 구단 전체 예산에 입금되었습니다.`);
 
                     if (typeof mailManager !== 'undefined') {
                         mailManager.sendSponsorMail(sponsor);
@@ -3630,17 +3661,14 @@ function processSponsorAfterMatch(matchResult) {
     const sponsor = gameData.currentSponsor;
     let payment = 0;
 
-    // [수정] 롱타임 모드일 경우 경기 후 보너스 지급 생략 (계약 체결시에만 수령)
-    if (gameData.gameMode !== 'longtime') {
-        // 경기 결과에 따른 보너스 지급
+    // 경기 수당 지급은 financeSystem.processPostMatchFinance에서 구단 전체 예산으로 일괄 정산
+    if (typeof financeSystem === 'undefined' && gameData.gameMode !== 'longtime') {
         if (matchResult === 'win') {
             payment = sponsor.payPerWin;
             gameData.teamMoney += payment;
-            console.log(`스폰서 승리 보너스: ${payment}억원`);
         } else if (matchResult === 'loss') {
             payment = sponsor.payPerLoss;
             gameData.teamMoney += payment;
-            console.log(`스폰서 패배 보상: ${payment}억원`);
         }
     }
 
@@ -4867,6 +4895,9 @@ function loadFromSlot(slotNumber, overrideManagerId = null) {
         if (typeof gameData.wageBudget !== 'number' || gameData.wageBudget < (gameData.totalWeeklyWage || 0)) {
             gameData.wageBudget = gameData.totalWeeklyWage || 0;
         }
+        if (typeof financeSystem !== 'undefined') {
+            financeSystem.ensureState();
+        }
         if (!gameData.stadiumInfo && gameData.selectedTeam && typeof stadiumSystem !== 'undefined') {
             stadiumSystem.initUserStadium(gameData.selectedTeam);
         }
@@ -5185,6 +5216,24 @@ function processRetirementsAndReincarnations() {
 
                 // 1. 팀에서 선수 제거
                 teamPlayers.splice(i, 1);
+
+                // 1-1. 이적시장 및 유저 이적 명단에서도 은퇴 선수 제거 (은퇴 전 매물이 남아 환생 선수와 중복되는 현상 방지)
+                if (typeof transferSystem !== 'undefined' && Array.isArray(transferSystem.transferMarket)) {
+                    transferSystem.transferMarket = transferSystem.transferMarket.filter(
+                        p => !(p && p.name === player.name && p.originalTeam === teamKey)
+                    );
+                }
+                const retiredOfferKey = `${player.name}_${teamKey}`;
+                if (window.GameState && typeof window.GameState.clearTransferOffer === 'function') {
+                    window.GameState.clearTransferOffer(retiredOfferKey);
+                } else if (gameData.transferOffers) {
+                    delete gameData.transferOffers[retiredOfferKey];
+                }
+                if (teamKey === gameData.selectedTeam && Array.isArray(gameData.userTransferList)) {
+                    gameData.userTransferList = gameData.userTransferList.filter(
+                        entry => !(entry && entry.player && entry.player.name === player.name)
+                    );
+                }
 
                 // 2. 유저팀 선수였다면 스쿼드에서도 제거
                 if (teamKey === gameData.selectedTeam) {
@@ -7203,30 +7252,40 @@ function renderFinanceTab() {
     const container = document.getElementById('financeContent');
     if (!container) return;
 
+    const hasFinSys = typeof financeSystem !== 'undefined';
+    const finState = hasFinSys ? financeSystem.ensureState() : null;
+    const clubBalance = hasFinSys ? financeSystem.getClubBalance() : formatFinanceVal(gameData.teamMoney || 0);
+    const totals = hasFinSys ? financeSystem.getSeasonTotals() : { totalIncome: 0, totalExpense: 0, netProfit: 0, ffpExemptExpense: 0, ffpNet: 0 };
+    const ffp = hasFinSys ? financeSystem.getFFPStatus() : { status: 'PASS', label: '준수', color: '#10B981', summary: '', limit: 450, ffpNet: 0, deficitUsed: 0, deficitRatio: 0, wageRatio: 0, consecutiveBreaches: 0 };
+    const board = hasFinSys ? financeSystem.getBoardEvaluation() : null;
+    const retentionPct = hasFinSys ? Math.round(financeSystem.getTransferRetentionRate() * 100) : 100;
+
     const transferBudget = formatFinanceVal(Math.max(0, gameData.teamMoney || 0));
     const wageBudget = formatFinanceVal(Math.max(0, typeof gameData.wageBudget === 'number' ? gameData.wageBudget : 0));
-    const wageCoverage = gameData.totalWeeklyWage > 0 ? Math.round((wageBudget / gameData.totalWeeklyWage) * 100) : 0;
+    const totalWage = formatFinanceVal(gameData.totalWeeklyWage || 0);
+    const availableWage = formatFinanceVal(Math.max(0, wageBudget - totalWage));
+    const wageCoverage = totalWage > 0 ? Math.round((wageBudget / totalWage) * 100) : 100;
     const transferDefault = 0;
 
     const panel = document.createElement('div');
     panel.className = 'finance-panel';
 
-    // 1. 깔끔한 상단 헤더 (중복 설명/영문 Kicker 제거)
+    // 1. 상단 헤더
     const topBar = document.createElement('div');
     topBar.className = 'finance-top-header';
     const topTitle = document.createElement('h3');
-    topTitle.textContent = '구단 재정 & 예산 배분';
+    topTitle.textContent = '구단 재정 · FFP · 보드진 평가';
     const topMeta = document.createElement('span');
     topMeta.className = 'finance-top-meta';
-    topMeta.textContent = `주급 커버율 ${wageCoverage}% · 전환 비율 52억(이적) ↔ 1억(주급)`;
+    topMeta.innerHTML = `<span class="fin-pill" style="background:${ffp.color}22; color:${ffp.color}; border:1px solid ${ffp.color}55;">FFP ${ffp.label}</span> · 매각 환원율 <strong>${retentionPct}%</strong> · 주급 커버율 ${wageCoverage}%`;
     topBar.append(topTitle, topMeta);
     panel.appendChild(topBar);
 
-    // 2. 핵심 지표 4열 (무지개색 제거, 절제된 타이포그래피)
+    // 2. 핵심 지표 5열
     const summaryGrid = document.createElement('div');
-    summaryGrid.className = 'finance-summary-grid';
+    summaryGrid.className = 'finance-summary-grid finance-summary-grid-5';
 
-    const createSummaryCard = (label, valueText, valueClass) => {
+    const createSummaryCard = (label, valueText, valueClass, subText = '', customColor = '') => {
         const card = document.createElement('div');
         card.className = 'finance-summary-card';
         const lbl = document.createElement('div');
@@ -7235,21 +7294,165 @@ function renderFinanceTab() {
         const val = document.createElement('div');
         val.className = `finance-value ${valueClass}`;
         val.textContent = valueText;
+        if (customColor) val.style.color = customColor;
         card.append(lbl, val);
+        if (subText) {
+            const sub = document.createElement('div');
+            sub.className = 'finance-card-sub';
+            sub.textContent = subText;
+            card.appendChild(sub);
+        }
         return card;
     };
 
-    const availableWage = formatFinanceVal(Math.max(0, wageBudget - (gameData.totalWeeklyWage || 0)));
+    const netSign = totals.netProfit >= 0 ? '+' : '';
+    const balColor = clubBalance < 0 ? '#EF4444' : '#10B981';
 
     summaryGrid.append(
-        createSummaryCard('이적 자금', `${transferBudget}억`, 'transfer'),
-        createSummaryCard('주급 예산 한도', `${wageBudget}억`, 'wage'),
-        createSummaryCard('현재 선수단 주급', `${formatFinanceVal(gameData.totalWeeklyWage)}억`, 'wage-debt'),
-        createSummaryCard('여유 주급 예산', `${availableWage}억`, 'annual')
+        createSummaryCard(
+            '구단 전체 예산',
+            `${clubBalance.toLocaleString()}억`,
+            'club-balance',
+            `시즌 손익 ${netSign}${totals.netProfit.toLocaleString()}억`,
+            balColor
+        ),
+        createSummaryCard(
+            '이적 자금',
+            `${transferBudget.toLocaleString()}억`,
+            'transfer',
+            `매각 시 ${retentionPct}% 환원`
+        ),
+        createSummaryCard(
+            '주급 예산 한도',
+            `${wageBudget}억`,
+            'wage',
+            `커버율 ${wageCoverage}%`
+        ),
+        createSummaryCard(
+            '현재 선수단 주급',
+            `${totalWage}억`,
+            'wage-debt',
+            '매 경기 전체 예산에서 차감'
+        ),
+        createSummaryCard(
+            '여유 주급 예산',
+            `${availableWage}억`,
+            'annual',
+            '신규 영입·재계약 가용'
+        )
     );
     panel.appendChild(summaryGrid);
 
-    // 3. 예산 비율 조정 섹션 (중첩 박스 및 알약 태그 제거)
+    // 3. FFP & 보드진 평가 2열 대시보드
+    if (hasFinSys && board) {
+        const govGrid = document.createElement('div');
+        govGrid.className = 'finance-gov-grid';
+
+        const gradeColor = (g) => {
+            if (g === 'S' || g === 'A') return '#10B981';
+            if (g === 'B') return '#38BDF8';
+            if (g === 'C') return '#F59E0B';
+            return '#EF4444';
+        };
+
+        // 3-A. FFP 카드
+        const ffpCard = document.createElement('div');
+        ffpCard.className = 'finance-conversion-card finance-ffp-card';
+        const barPct = Math.min(100, Math.max(0, ffp.deficitRatio));
+        const ffpNetSign = ffp.ffpNet >= 0 ? '+' : '';
+        ffpCard.innerHTML = `
+            <div class="finance-conversion-header">
+                <h4>FFP (재정적 페어플레이) 감사</h4>
+                <span class="fin-pill" style="background:${ffp.color}22; color:${ffp.color}; border:1px solid ${ffp.color}55;">${ffp.label}</span>
+            </div>
+            <p class="fin-desc-text">${ffp.summary}</p>
+            <div class="fin-meter-block">
+                <div class="fin-meter-head">
+                    <span>FFP 적자 한도 사용률</span>
+                    <strong style="color:${ffp.color};">${ffp.deficitRatio}% (${ffpNetSign}${ffp.ffpNet.toLocaleString()}억 / 한도 -${ffp.limit}억)</strong>
+                </div>
+                <div class="fin-meter-track">
+                    <div class="fin-meter-fill" style="width:${barPct}%; background:${ffp.color};"></div>
+                </div>
+            </div>
+            <div class="fin-ffp-metrics">
+                <div class="fin-mini-stat">
+                    <span>예상 주급/수익 비율</span>
+                    <strong style="color:${ffp.wageRatio > 95 ? '#EF4444' : ffp.wageRatio > 75 ? '#F59E0B' : '#10B981'};">${ffp.wageRatio}%</strong>
+                </div>
+                <div class="fin-mini-stat">
+                    <span>인프라 투자 FFP 감면</span>
+                    <strong style="color:#38BDF8;">+${totals.ffpExemptExpense.toLocaleString()}억</strong>
+                </div>
+                <div class="fin-mini-stat">
+                    <span>매각 수익 이적자금 환원</span>
+                    <strong>${retentionPct}%</strong>
+                </div>
+                <div class="fin-mini-stat">
+                    <span>연속 FFP 위반</span>
+                    <strong style="color:${ffp.consecutiveBreaches > 0 ? '#EF4444' : '#94A3B8'};">${ffp.consecutiveBreaches}시즌</strong>
+                </div>
+            </div>
+            <div class="fin-rule-footnote">
+                ※ 선수 매각 금액은 구단 전체 예산에 전액 입금되며, 재정 상태에 따라 <strong>25%~80%</strong>만 이적 자금으로 환원됩니다.<br>
+                ※ FFP 위반 시 시즌 종료 벌금 및 예산 삭감, 2시즌 연속 위반 시 차기 시즌 <strong>승점 -6점</strong> 제재가 부과됩니다.
+            </div>
+        `;
+
+        // 3-B. 보드진 평가 카드
+        const boardCard = document.createElement('div');
+        boardCard.className = 'finance-conversion-card finance-board-card';
+        const rankText = (board.performance.currentRank && board.performance.expectedRank)
+            ? `현재 ${board.performance.currentRank}위 (기대 ${board.performance.expectedRank}위 · 승률 ${board.performance.winRate}%)`
+            : '시즌 초반 평가 진행 중';
+        const finText = `${clubBalance >= 0 ? '전체 예산' : '적자 잔고'} ${clubBalance.toLocaleString()}억 · 시즌 ${netSign}${totals.netProfit.toLocaleString()}억`;
+        const annualWageTotal = Math.round(totalWage * 52);
+
+        boardCard.innerHTML = `
+            <div class="finance-conversion-header">
+                <h4>보드진 평가 (이사회 신뢰도)</h4>
+                <span class="fin-board-overall-badge" style="border-color:${gradeColor(board.overall.grade)}66; color:${gradeColor(board.overall.grade)};">
+                    종합 ${board.overall.grade} · ${board.overall.score}점
+                </span>
+            </div>
+            <div class="fin-board-bars">
+                <div class="fin-board-row">
+                    <div class="fin-meter-head">
+                        <span>성적 평가 <small style="color:#94A3B8;">(${rankText})</small></span>
+                        <strong style="color:${gradeColor(board.performance.grade)};">${board.performance.grade} (${board.performance.score}점)</strong>
+                    </div>
+                    <div class="fin-meter-track">
+                        <div class="fin-meter-fill" style="width:${board.performance.score}%; background:${gradeColor(board.performance.grade)};"></div>
+                    </div>
+                </div>
+                <div class="fin-board-row">
+                    <div class="fin-meter-head">
+                        <span>재정 평가 <small style="color:#94A3B8;">(${finText})</small></span>
+                        <strong style="color:${gradeColor(board.finance.grade)};">${board.finance.grade} (${board.finance.score}점)</strong>
+                    </div>
+                    <div class="fin-meter-track">
+                        <div class="fin-meter-fill" style="width:${board.finance.score}%; background:${gradeColor(board.finance.grade)};"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="fin-board-comment">"${board.overall.comment}"</div>
+            <div class="fin-ffp-metrics" style="margin-top: 8px; margin-bottom: 0;">
+                <div class="fin-mini-stat">
+                    <span>선수단 배정 (이적+연간주급)</span>
+                    <strong>${Math.round(transferBudget + annualWageTotal).toLocaleString()}억 (${clubBalance > 0 ? Math.round(((transferBudget + annualWageTotal) / clubBalance) * 100) : 100}%)</strong>
+                </div>
+                <div class="fin-mini-stat">
+                    <span>구단 운영·시설 유보금</span>
+                    <strong style="color:${clubBalance - (transferBudget + annualWageTotal) >= 0 ? '#10B981' : '#EF4444'};">${Math.round(clubBalance - (transferBudget + annualWageTotal)).toLocaleString()}억</strong>
+                </div>
+            </div>
+        `;
+
+        govGrid.append(ffpCard, boardCard);
+        panel.appendChild(govGrid);
+    }
+
+    // 4. 예산 비율 조정 섹션
     const convCard = document.createElement('div');
     convCard.className = 'finance-conversion-card';
 
@@ -7270,9 +7473,9 @@ function renderFinanceTab() {
     const sliderLabels = document.createElement('div');
     sliderLabels.className = 'finance-slider-labels';
     const tagTransfer = document.createElement('span');
-    tagTransfer.textContent = '← 이적 자금 비중 확대';
+    tagTransfer.textContent = '← 이적 자금 비중 확대 (52억 단위)';
     const tagWage = document.createElement('span');
-    tagWage.textContent = '주급 예산 비중 확대 →';
+    tagWage.textContent = '주급 예산 비중 확대 (1억 단위) →';
     sliderLabels.append(tagTransfer, tagWage);
 
     const sliderInput = document.createElement('input');
@@ -7288,7 +7491,6 @@ function renderFinanceTab() {
     sliderShell.append(sliderLabels, sliderInput);
     convCard.appendChild(sliderShell);
 
-    // Preview grid
     const previewGrid = document.createElement('div');
     previewGrid.className = 'finance-preview-grid';
 
@@ -7341,7 +7543,74 @@ function renderFinanceTab() {
     convCard.appendChild(actionRow);
     panel.appendChild(convCard);
 
-    // 4. 구단 스타디움 & 인프라 요약 바 (영문 Kicker 및 이모지 제거)
+    // 5. 시즌 손익 결산표(P&L) & 최근 거래 내역 (가계부) 2열
+    if (hasFinSys && finState) {
+        const ledgerGrid = document.createElement('div');
+        ledgerGrid.className = 'finance-gov-grid';
+
+        const inc = finState.breakdown.income;
+        const exp = finState.breakdown.expense;
+
+        const plCard = document.createElement('div');
+        plCard.className = 'finance-conversion-card';
+        plCard.innerHTML = `
+            <div class="finance-conversion-header">
+                <h4>시즌 수입 · 지출 결산 (전체 예산)</h4>
+                <span style="font-weight:800; color:${totals.netProfit >= 0 ? '#10B981' : '#EF4444'};">
+                    순손익 ${netSign}${totals.netProfit.toLocaleString()}억
+                </span>
+            </div>
+            <div class="fin-pl-columns">
+                <div class="fin-pl-col">
+                    <div class="fin-pl-title income">수입 (+${totals.totalIncome.toLocaleString()}억)</div>
+                    <div class="fin-pl-row"><span>매치데이 (티켓·굿즈)</span><strong>+${(inc.matchday || 0).toLocaleString()}억</strong></div>
+                    <div class="fin-pl-row"><span>중계권 및 경기 수당</span><strong>+${(inc.broadcast || 0).toLocaleString()}억</strong></div>
+                    <div class="fin-pl-row"><span>스폰서십 수익</span><strong>+${(inc.sponsor || 0).toLocaleString()}억</strong></div>
+                    <div class="fin-pl-row"><span>선수 매각 총액</span><strong>+${(inc.transferSales || 0).toLocaleString()}억</strong></div>
+                    <div class="fin-pl-row"><span>리그·컵 상금</span><strong>+${(inc.prizes || 0).toLocaleString()}억</strong></div>
+                </div>
+                <div class="fin-pl-col">
+                    <div class="fin-pl-title expense">지출 (-${totals.totalExpense.toLocaleString()}억)</div>
+                    <div class="fin-pl-row"><span>선수단 주급 지출</span><strong>-${(exp.wages || 0).toLocaleString()}억</strong></div>
+                    <div class="fin-pl-row"><span>구단 운영·유지비</span><strong>-${(exp.operating || 0).toLocaleString()}억</strong></div>
+                    <div class="fin-pl-row"><span>선수 영입 지출</span><strong>-${(exp.transferPurchases || 0).toLocaleString()}억</strong></div>
+                    <div class="fin-pl-row"><span>구장·시설 투자</span><strong>-${(exp.infrastructure || 0).toLocaleString()}억</strong></div>
+                    <div class="fin-pl-row"><span>FFP 벌금·기타</span><strong>-${((exp.ffpFine || 0) + (exp.other || 0)).toLocaleString()}억</strong></div>
+                </div>
+            </div>
+        `;
+
+        const historyCard = document.createElement('div');
+        historyCard.className = 'finance-conversion-card';
+        const recentRows = (finState.ledger || []).slice(0, 12).map(entry => {
+            const isPos = entry.amount > 0;
+            const isNeg = entry.amount < 0;
+            const amtColor = isPos ? '#10B981' : isNeg ? '#EF4444' : '#94A3B8';
+            const amtTxt = isPos ? `+${entry.amount.toLocaleString()}억` : isNeg ? `${entry.amount.toLocaleString()}억` : '기준';
+            return `
+                <div class="fin-ledger-row">
+                    <span class="fin-ledger-round">S${entry.season || 1} R${entry.round || 1}</span>
+                    <span class="fin-ledger-label">${entry.label}</span>
+                    <span class="fin-ledger-amt" style="color:${amtColor};">${amtTxt}</span>
+                </div>
+            `;
+        }).join('');
+
+        historyCard.innerHTML = `
+            <div class="finance-conversion-header">
+                <h4>최근 재정 거래 내역</h4>
+                <span class="finance-top-meta">최근 ${(finState.ledger || []).slice(0, 12).length}건</span>
+            </div>
+            <div class="fin-ledger-list">
+                ${recentRows || '<div style="color:#94A3B8; font-size:0.85rem; padding:12px 0;">아직 기록된 거래 내역이 없습니다.</div>'}
+            </div>
+        `;
+
+        ledgerGrid.append(plCard, historyCard);
+        panel.appendChild(ledgerGrid);
+    }
+
+    // 6. 구단 스타디움 & 인프라 요약 바 (구단 전체 예산 기준 안내)
     if (typeof stadiumSystem !== 'undefined') {
         const stad = stadiumSystem.getUserStadium();
         if (stad) {
@@ -7355,7 +7624,7 @@ function renderFinanceTab() {
                     <div>
                         <h4 style="margin: 0 0 4px; font-size: 1.02rem; font-weight: 800; color: #F8FAFC;">${stad.name} (Lv.${stad.level})</h4>
                         <p style="margin: 0; font-size: 0.85rem; color: #94A3B8;">
-                            수용 인원 ${stad.currentCapacity.toLocaleString()}석 · 부대시설 ${installedCount} / 4개 가동 중
+                            수용 인원 ${stad.currentCapacity.toLocaleString()}석 · 부대시설 ${installedCount} / 4개 가동 중 · <strong>구장 증축은 구단 전체 예산에서 지출</strong>
                         </p>
                     </div>
                     <div style="display: flex; gap: 8px; flex-wrap: wrap;">
@@ -7572,12 +7841,14 @@ function simulateAllMatchesInRound(round) {
                     const myScore = isHome ? result.score1 : result.score2;
                     const oppScore = isHome ? result.score2 : result.score1;
 
-                    let moneyReward = 0;
-                    if (myScore > oppScore) moneyReward = 50;
-                    else if (myScore === oppScore) moneyReward = 15;
-                    else moneyReward = 10;
-
-                    gameData.teamMoney += moneyReward;
+                    const simRes = myScore > oppScore ? 'win' : (myScore === oppScore ? 'draw' : 'loss');
+                    if (typeof financeSystem !== 'undefined') {
+                        const oppKey = isHome ? match.away : match.home;
+                        financeSystem.processPostMatchFinance(simRes, (typeof teamNames !== 'undefined' && teamNames[oppKey]) ? teamNames[oppKey] : oppKey);
+                    } else {
+                        let moneyReward = simRes === 'win' ? 50 : (simRes === 'draw' ? 15 : 10);
+                        gameData.teamMoney += moneyReward;
+                    }
                 }
             }
         });

@@ -2019,8 +2019,13 @@ class TransferSystem {
 
     finalizeChatTransfer(player, fee, wage, contractYears = 3, squadRole = 'IMPORTANT') {
         try {
-            if (window.GameState) window.GameState.spendTeamMoney(fee);
-            else gameData.teamMoney -= fee;
+            if (typeof financeSystem !== 'undefined') {
+                financeSystem.recordPlayerPurchase(player.name, fee);
+            } else if (window.GameState) {
+                window.GameState.spendTeamMoney(fee);
+            } else {
+                gameData.teamMoney -= fee;
+            }
 
             // [수정] 영입 시 wageBudget(한도)을 차감하지 않음. 
             // 선수가 스쿼드에 추가되고 calculateTotalWages()가 호출되어 총 주급이 늘어나므로,
@@ -2170,8 +2175,14 @@ class TransferSystem {
 
         if (typeof calculateTotalWages === 'function') calculateTotalWages();
 
-        if (window.GameState) window.GameState.addTeamMoney(fee);
-        else gameData.teamMoney += fee;
+        let saleInfo = null;
+        if (typeof financeSystem !== 'undefined') {
+            saleInfo = financeSystem.recordPlayerSale(soldPlayer.name, fee);
+        } else if (window.GameState) {
+            window.GameState.addTeamMoney(fee);
+        } else {
+            gameData.teamMoney += fee;
+        }
 
         this.spendTeamBudget(targetTeamKey, fee);
 
@@ -2189,10 +2200,14 @@ class TransferSystem {
             renderFinanceTab();
         }
 
+        const saleDetailMsg = saleInfo
+            ? `매각 총액 ${fee}억 → 구단 전체 예산 전액 입금\n이적 자금 환원(${saleInfo.retentionPct}%): +${saleInfo.transferBudgetAdded}억 (구단 유보 ${saleInfo.clubRetained}억)`
+            : `이적료 ${fee}억원을 받았습니다.`;
+
         return {
             success: true,
             player: soldPlayer,
-            message: `${soldPlayer.name} 선수가 ${teamNames[targetTeamKey] || targetTeamKey}로 이적했습니다!\n이적료 ${fee}억원을 받았습니다.`
+            message: `${soldPlayer.name} 선수가 ${teamNames[targetTeamKey] || targetTeamKey}로 이적했습니다!\n${saleDetailMsg}`
         };
     }
 
@@ -2342,6 +2357,11 @@ class TransferSystem {
             }
         }
 
+        // 영입 확정: 구단 전체 예산에서 실제 이적료 지출 기록
+        if (typeof financeSystem !== 'undefined' && transferFee > 0) {
+            financeSystem.recordTransaction('expense', 'transferPurchases', transferFee, `선수 영입: ${player.name}`);
+        }
+
         // 영입 메일 발송
         if (typeof mailManager !== 'undefined') {
             const content = `${player.name} 선수가 우리 팀에 합류했습니다.\n이적료: ${transferFee}억\n연봉: ${negotiatedWeeklyWage}억/주\n포지션: ${player.position}\n\n이적료를 먼저 지불한 뒤 연봉 협상까지 마무리했습니다.`;
@@ -2389,9 +2409,15 @@ class TransferSystem {
         // 팀에서 제거
         teamPlayers.splice(playerIndex, 1);
 
-        // 이적료 받기
-        if (window.GameState) window.GameState.addTeamMoney(transferFee);
-        else gameData.teamMoney += transferFee;
+        // 이적료 받기 (전액은 구단 전체 예산 입금, 환원율만큼만 이적 자금 지급)
+        let releaseSaleInfo = null;
+        if (typeof financeSystem !== 'undefined') {
+            releaseSaleInfo = financeSystem.recordPlayerSale(player.name, transferFee);
+        } else if (window.GameState) {
+            window.GameState.addTeamMoney(transferFee);
+        } else {
+            gameData.teamMoney += transferFee;
+        }
 
         // 무작위 팀으로 이적시키기
         const availableTeams = Object.keys(teams).filter(team => team !== gameData.selectedTeam);
@@ -2409,7 +2435,10 @@ class TransferSystem {
 
             // 방출 메일 발송
             if (typeof mailManager !== 'undefined') {
-                const content = `${player.name} 선수가 ${teamNames[randomTeam]}로 이적했습니다.\n이적료 수입: ${transferFee}억`;
+                const feeDesc = releaseSaleInfo
+                    ? `매각 총액: ${transferFee}억 (구단 전체 예산 입금)\n이적 자금 환원(${releaseSaleInfo.retentionPct}%): +${releaseSaleInfo.transferBudgetAdded}억`
+                    : `이적료 수입: ${transferFee}억`;
+                const content = `${player.name} 선수가 ${teamNames[randomTeam]}로 이적했습니다.\n${feeDesc}`;
                 mailManager.addMail(`[이적] ${player.name} 이적 완료`, '단장', content);
             }
 
@@ -2694,6 +2723,11 @@ class TransferSystem {
             // 이적 실행
             const playerIndex = sellingTeamPlayers.findIndex(p => p === transferCandidate);
             sellingTeamPlayers.splice(playerIndex, 1);
+
+            // [수정] 이적시장에 동일 선수가 매물로 등록되어 있었다면 함께 제거 (중복 영입 방지)
+            this.transferMarket = this.transferMarket.filter(
+                p => !(p.name === transferCandidate.name && p.originalTeam === sellingTeam)
+            );
 
             teams[buyingTeam].push(transferCandidate);
             const estimatedFee = this.calculatePlayerPrice(transferCandidate, sellingTeam);
@@ -3296,6 +3330,9 @@ class TransferSystem {
 
         if (window.GameState) window.GameState.spendTeamMoney(cost);
         else gameData.teamMoney -= cost;
+        if (typeof financeSystem !== 'undefined') {
+            financeSystem.recordTransaction('expense', 'other', cost, `이적 언론 플레이 (${playerName})`);
+        }
         updateDisplay();
 
         offerData.hasMediaPlayed = true;

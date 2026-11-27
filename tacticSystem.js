@@ -2229,46 +2229,25 @@ function endMatch(matchData) {
         gameData.tempEventBuffs = { morale: 0, players: [] };
     }
 
-    // 자금 및 사기 보상
+    // 사기 보상 & 통합 재정 정산 (중계권/스폰서 수입 - 주급/운영비 지출 -> 구단 전체 예산 반영)
     if (result === '승리') {
-        if (window.GameState) {
-            window.GameState.addTeamMoney(50);
-            window.GameState.adjustTeamMorale(5);
-        } else {
-            gameData.teamMoney += 50;
-            gameData.teamMorale = Math.min(100, gameData.teamMorale + 5);
-        }
-    } else if (result === '무승부') {
-        if (window.GameState) {
-            window.GameState.addTeamMoney(15);
-        } else {
-            gameData.teamMoney += 15;
-        }
-    } else {
-        if (window.GameState) {
-            window.GameState.addTeamMoney(10);
-            window.GameState.adjustTeamMorale(-3);
-        } else {
-            gameData.teamMoney += 10;
-            gameData.teamMorale = Math.max(0, gameData.teamMorale - 3);
-        }
+        if (window.GameState) window.GameState.adjustTeamMorale(5);
+        else gameData.teamMorale = Math.min(100, gameData.teamMorale + 5);
+    } else if (result === '패배') {
+        if (window.GameState) window.GameState.adjustTeamMorale(-3);
+        else gameData.teamMorale = Math.max(0, gameData.teamMorale - 3);
     }
 
-    // 스폰서 보너스
-    if (gameData.currentSponsor) {
-        if (result === '승리') {
-            if (window.GameState) window.GameState.addTeamMoney(gameData.currentSponsor.payPerWin);
-            else gameData.teamMoney += gameData.currentSponsor.payPerWin;
-        }
-        else if (result === '패배') {
-            if (window.GameState) window.GameState.addTeamMoney(gameData.currentSponsor.payPerLoss);
-            else gameData.teamMoney += gameData.currentSponsor.payPerLoss;
-        }
-        else {
-            const drawBonus = Math.floor(gameData.currentSponsor.payPerWin / 2);
-            if (window.GameState) window.GameState.addTeamMoney(drawBonus);
-            else gameData.teamMoney += drawBonus;
-        }
+    let financeMatchReport = null;
+    const oppKeyForFin = isUserHome ? matchData.awayTeam : matchData.homeTeam;
+    const oppNameForFin = (typeof teamNames !== 'undefined' && teamNames[oppKeyForFin]) ? teamNames[oppKeyForFin] : oppKeyForFin;
+    const matchResultKey = result === '승리' ? 'win' : result === '패배' ? 'loss' : 'draw';
+    if (typeof financeSystem !== 'undefined') {
+        financeMatchReport = financeSystem.processPostMatchFinance(matchResultKey, oppNameForFin);
+    } else {
+        const fallbackPay = result === '승리' ? 50 : (result === '무승부' ? 15 : 10);
+        if (window.GameState) window.GameState.addTeamMoney(fallbackPay);
+        else gameData.teamMoney += fallbackPay;
     }
 
     // 리그 데이터 업데이트 (FA컵, UCL, 플레이오프가 아닐 때만 정규 리그 순위표 반영)
@@ -2323,6 +2302,12 @@ function endMatch(matchData) {
     }
     if (matchdayReport) {
         finalMsg += `\n🏟️ 관중: ${matchdayReport.attendance.toLocaleString()}명 (매치데이 수익 +${matchdayReport.totalRevenue}억원)`;
+    }
+    if (financeMatchReport) {
+        const incSum = Math.round((financeMatchReport.broadcastTotal + financeMatchReport.sponsorPay + (matchdayReport ? matchdayReport.totalRevenue : 0)) * 10) / 10;
+        const expSum = Math.round((financeMatchReport.weeklyWage + financeMatchReport.opCost) * 10) / 10;
+        const balNow = (typeof financeSystem !== 'undefined') ? financeSystem.getClubBalance() : financeMatchReport.clubBalance;
+        finalMsg += `\n💰 경기 결산: 수입 +${incSum}억 / 주급·운영 -${expSum}억 (구단 전체 예산 ${balNow.toLocaleString()}억)`;
     }
 
     const finalEvent = {
